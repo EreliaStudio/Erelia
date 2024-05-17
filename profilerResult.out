@@ -1,0 +1,25 @@
+{
+   "CentralWidget": 
+   {
+       "Average": 236.226974,
+       "CPU usage": 0.000015,
+       "Cardinal": 404014,
+       "Max": 652300,
+       "Min": 100
+   },
+   "FPSCounter": 
+   {
+       "Average": 718.750000,
+       "Cardinal": 8,
+       "Max": 960,
+       "Min": 270
+   },
+   "Total program duration": 1629,
+   "UPSCounter": 
+   {
+       "Average": 505017.500000,
+       "Cardinal": 8,
+       "Max": 804620,
+       "Min": 403600
+   }
+}
