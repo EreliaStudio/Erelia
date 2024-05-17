@@ -1,25 +1,97 @@
 {
+   "BackgroundImageLabel": 
+   {
+       "Average": 24.550537,
+       "CPU usage": 0.000000,
+       "Cardinal": 985708,
+       "Max": 23800,
+       "Min": 0
+   },
    "CentralWidget": 
    {
-       "Average": 236.226974,
-       "CPU usage": 0.000015,
-       "Cardinal": 404014,
-       "Max": 652300,
-       "Min": 100
+       "Average": 63.779095,
+       "CPU usage": 0.000001,
+       "Cardinal": 985708,
+       "Max": 17400,
+       "Min": 0
+   },
+   "CloudImageLabel": 
+   {
+       "Average": 32.628910,
+       "CPU usage": 0.000000,
+       "Cardinal": 985708,
+       "Max": 13700,
+       "Min": 0
    },
    "FPSCounter": 
    {
-       "Average": 718.750000,
-       "Cardinal": 8,
-       "Max": 960,
-       "Min": 270
+       "Average": 4135.531738,
+       "Cardinal": 47,
+       "Max": 4770,
+       "Min": 10
    },
-   "Total program duration": 1629,
+   "GameNameTextLabel": 
+   {
+       "Average": 24.906370,
+       "CPU usage": 0.000000,
+       "Cardinal": 985708,
+       "Max": 17200,
+       "Min": 0
+   },
+   "MainMenu": 
+   {
+       "Average": 37.260307,
+       "CPU usage": 0.000001,
+       "Cardinal": 985708,
+       "Max": 24800,
+       "Min": 0
+   },
+   "MainMenuPanel": 
+   {
+       "Average": 38.742794,
+       "CPU usage": 0.000001,
+       "Cardinal": 985708,
+       "Max": 23500,
+       "Min": 0
+   },
+   "RiverImageLabel": 
+   {
+       "Average": 38.400608,
+       "CPU usage": 0.000001,
+       "Cardinal": 985708,
+       "Max": 17300,
+       "Min": 0
+   },
+   "Total program duration": 7030,
+   "TreeImageLabel": 
+   {
+       "Average": 35.073700,
+       "CPU usage": 0.000000,
+       "Cardinal": 985708,
+       "Max": 29300,
+       "Min": 0
+   },
    "UPSCounter": 
    {
-       "Average": 505017.500000,
-       "Cardinal": 8,
-       "Max": 804620,
-       "Min": 403600
+       "Average": 209725.109375,
+       "Cardinal": 47,
+       "Max": 2400360,
+       "Min": 127340
+   },
+   "Unnamed MainWidget": 
+   {
+       "Average": 39.492855,
+       "CPU usage": 0.000001,
+       "Cardinal": 985708,
+       "Max": 12000,
+       "Min": 0
+   },
+   "Unnamed widget": 
+   {
+       "Average": 61.272930,
+       "CPU usage": 0.000001,
+       "Cardinal": 3942832,
+       "Max": 28700,
+       "Min": 0
    }
 }
