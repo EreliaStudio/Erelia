@@ -65,7 +65,7 @@ spk::SafePointer<spk::PushButton> CommandPanel::addButton(const std::wstring& p_
 
 	_buttonContainer.emplace_back(ButtonData{
 		newButton,
-		newButton->connect(PushButton::OnClick, p_job)
+		newButton->subscribe(p_job)
 	});
 
 	return newButton;
