@@ -32,10 +32,36 @@ private:
 			const std::wstring& seed() const;
 		};
 
+		class IconSelectorField : public spk::Widget
+		{
+		private:
+			spk::SafePointer<spk::SpriteSheet> _spriteSheet;
+			spk::Vector2UInt _iconSprite;
+
+			spk::HorizontalLayout _layout;
+			PushButton _negativeButton;
+			spk::SpacerWidget _spacerA;
+			spk::ImageLabel _imageLabel;
+			spk::SpacerWidget _spacerB;
+			PushButton _positiveButton;
+
+			void _onGeometryChange();
+
+		public:
+			IconSelectorField(const std::wstring& p_name, spk::SafePointer<spk::Widget> p_parent);
+
+			void setSpriteSheet(spk::SafePointer<spk::SpriteSheet> p_spriteSheet);
+			spk::SafePointer<spk::SpriteSheet> spriteSheet() const;
+
+			void setIconSprite(const spk::Vector2UInt& p_iconSprite);
+			const spk::Vector2UInt& iconSprite() const;
+		};
+
 		spk::FormLayout _layout;
 
 		spk::FormLayout::Row<spk::TextEdit> _nameRow;
 		spk::FormLayout::Row<SeedField> _seedRow;
+		spk::FormLayout::Row<IconSelectorField> _iconSelectorRow;
 		spk::SpacerWidget _spacer;
 
 		void _onGeometryChange();
@@ -45,6 +71,7 @@ private:
 
 		const std::wstring& name() const;
 		const std::wstring& seed() const;
+		const spk::Vector2UInt iconSprite() const;
 	};
 
 	spk::VerticalLayout _layout;
@@ -65,6 +92,7 @@ public:
 
 	const std::wstring& name() const;
 	const std::wstring& seed() const;
+	const spk::Vector2UInt iconSprite() const;
 
 	void onConfirmRequest(const spk::PushButton::Job& p_job);
 	void onCancelRequest(const spk::PushButton::Job& p_job);

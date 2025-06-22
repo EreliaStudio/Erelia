@@ -31,6 +31,14 @@
 				"x":10,
 				"y":10
 			}
+		},
+		{
+			"Name":"GameSaveIconset",
+			"Path":"resources/assets/textures/gameSaveIconset.png",
+			"Size":{
+				"x":10,
+				"y":2
+			}
 		}
 	],
 	"Fonts":[

@@ -9,17 +9,9 @@ void MainApplication::_onGeometryChange()
 	_gameMenu.setGeometry({0, geometry().size});
 }
 
-void MainApplication::_readConfigurationFile(const std::filesystem::path& p_path)
+void MainApplication::_createNewGame(const std::wstring& p_name, const std::wstring& p_seed, const spk::Vector2UInt& p_iconSprite)
 {
-	_world->parse(spk::JSON::File(p_path));
-}
-
-void MainApplication::_createNewGame(const std::wstring& p_name, const std::wstring& p_seed)
-{
-	_world->name = p_name;
-	_world->seed = p_seed;
-
-	GameFile::instance()->save();
+	GameFile::createNewGameFile(p_name, p_seed, p_iconSprite);
 
 	_gameMenu.activate();
 }
@@ -31,7 +23,7 @@ MainApplication::MainApplication(const std::wstring& p_name, spk::SafePointer<sp
 	_loadGameMenu(p_name + L"/LoadGameMenu", this),
 	_gameMenu(p_name + L"/GameMenu", this)
 {
-	_readConfigurationFile("resources/configuration.json");
+	GameFile::configure(spk::JSON::File("resources/configuration.json"));
 
 	_mainMenu.activate();
 
@@ -48,7 +40,7 @@ MainApplication::MainApplication(const std::wstring& p_name, spk::SafePointer<sp
 	});
 
 	_newGameMenu.onConfirmRequest([&](){
-		_createNewGame(_newGameMenu.name(), _newGameMenu.seed());
+		_createNewGame(_newGameMenu.name(), _newGameMenu.seed(), _newGameMenu.iconSprite());
 	});
 
 	_newGameMenu.onCancelRequest([&](){

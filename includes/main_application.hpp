@@ -7,12 +7,12 @@
 #include "menu/new_game_menu.hpp"
 #include "menu/load_game_menu.hpp"
 
-#include "structure/world.hpp"
+#include "structure/game_file.hpp"
 
 class MainApplication : public spk::Widget
 {
 private:
-	GameFile::Instanciator _world;
+	GameFile::Instanciator _gameFileInstanciator;
 
 	MainMenu _mainMenu;
 	NewGameMenu _newGameMenu;
@@ -23,8 +23,7 @@ private:
 
 	void _onGeometryChange();
 
-	void _readConfigurationFile(const std::filesystem::path& p_path);
-	void _createNewGame(const std::wstring& p_name, const std::wstring& p_seed);
+	void _createNewGame(const std::wstring& p_name, const std::wstring& p_seed, const spk::Vector2UInt& p_iconSprite);
 
 public:
 	MainApplication(const std::wstring& p_name, spk::SafePointer<spk::Widget> p_parent);

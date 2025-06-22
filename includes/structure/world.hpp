@@ -24,7 +24,7 @@ public:
 	{
 		spk::JSON::File outputFile = spk::JSON::File(p_rootPath / fileName);
 
-		outputFile.addAttribute(L"Seed") = _seed;
+		outputFile.root().addAttribute(L"Seed") = _seed;
 		
 		outputFile.save(p_rootPath / fileName);
 	}

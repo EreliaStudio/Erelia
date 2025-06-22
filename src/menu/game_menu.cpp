@@ -1,10 +1,10 @@
 #include "menu/game_menu.hpp"
 
-#include "structure/world.hpp"
+#include "structure/game_file.hpp"
 
 void GameMenu::_initializeGame()
 {
-	spk::cout << "Initializing game: " << GameFile::instance()->name << " with seed " << GameFile::instance()->seed << std::endl;
+	spk::cout << "Initializing game: " << GameFile::instance()->name << std::endl;
 
 	GameFile::instance()->load(GameFile::instance()->name);
 
