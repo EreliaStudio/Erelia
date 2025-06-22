@@ -63,26 +63,26 @@ spk::SafePointer<spk::PushButton> CommandPanel::addButton(const std::wstring& p_
 
 	WidgetAddons::ApplyFormat(newButton);
 
-	_buttonContainer.emplace_back(ButtonData{
-		newButton,
-		newButton->subscribe(p_job)
-	});
+	_buttonContainer.emplace(
+		p_name,
+		ButtonData{
+			newButton,
+			newButton->subscribe(p_job)
+		});
 
 	return newButton;
 }
 
 void CommandPanel::setOnClick(const std::wstring& p_name, const spk::PushButton::Job& p_callback)
 {
-	for (auto& buttonData : _buttonContainer)
-    {
-        if (buttonData.button->name() == p_name)
-        {
-            buttonData.contract = buttonData.button->subscribe(p_callback);
-            return;
-        }
-    }
-
+	if (_buttonContainer.contains(p_name) == false)
+	{
 	throw std::out_of_range("Button with name '" + spk::StringUtils::wstringToString(p_name) + "' not found in CommandPanel");
+	}
+
+	auto& buttonData = _buttonContainer[p_name];
+	
+	buttonData.contract = buttonData.button->subscribe(p_callback);
 }
 
 MessageBox::MessageBox(const std::wstring& p_name, spk::SafePointer<spk::Widget> p_parent) : 

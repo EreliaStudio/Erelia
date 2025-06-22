@@ -64,7 +64,7 @@ private:
         spk::PushButton::Contract contract;
     };
 
-    std::vector<ButtonData> _buttonContainer;
+    std::unordered_map<std::wstring, ButtonData> _buttonContainer;
 
 	using spk::CommandPanel::addButton;
 
