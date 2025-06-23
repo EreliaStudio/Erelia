@@ -15,7 +15,7 @@ public:
 
 	}
 
-	void initialize(const std::wstring& p_seed)
+	void setSeed(const std::wstring& p_seed)
 	{
 		_seed = p_seed;
 	}

@@ -1,6 +1,6 @@
 #include "menu/new_game_menu.hpp"
 
-#include "structure/world.hpp"
+#include "structure/game_file.hpp"
 
 void NewGameMenu::Content::SeedField::_onGeometryChange()
 {
@@ -69,9 +69,15 @@ NewGameMenu::Content::IconSelectorField::IconSelectorField(const std::wstring& p
 	_positiveButton(p_name + L"/PositiveButton", this),
 	_spacerA(p_name + L"/SpacerA", this),
 	_imageLabel(p_name + L"/ImageLabel", this),
-	_spacerA(p_name + L"/SpacerB", this),
+	_spacerB(p_name + L"/SpacerB", this),
 	_negativeButton(p_name + L"/NegativeButton", this)
 {
+	_negativeButton.activate();
+	_spacerA.activate();
+	_imageLabel.activate();
+	_spacerB.activate();
+	_positiveButton.activate();
+
 	_imageLabel.setMinimalSize(40);
 
 	_layout.setElementPadding(10);
@@ -191,6 +197,11 @@ const std::wstring& NewGameMenu::Content::seed() const
 	return (_seedRow.field.seed());
 }
 
+const spk::Vector2UInt& NewGameMenu::Content::iconSprite() const
+{
+	return (_iconSelectorRow.field.iconSprite());
+}
+
 void NewGameMenu::_onGeometryChange()
 {
 	WidgetAddons::centerInParent(&_layout, spk::Vector2Int::clamp({200, 110}, geometry().size / 2, {500, 320}), geometry());
@@ -247,6 +258,11 @@ const std::wstring& NewGameMenu::name() const
 const std::wstring& NewGameMenu::seed() const
 {
 	return (_content.seed());
+}
+
+const spk::Vector2UInt& NewGameMenu::iconSprite() const
+{
+	return (_content.iconSprite());
 }
 
 void NewGameMenu::onConfirmRequest(const spk::PushButton::Job& p_job)

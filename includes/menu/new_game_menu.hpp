@@ -71,7 +71,7 @@ private:
 
 		const std::wstring& name() const;
 		const std::wstring& seed() const;
-		const spk::Vector2UInt iconSprite() const;
+		const spk::Vector2UInt& iconSprite() const;
 	};
 
 	spk::VerticalLayout _layout;
@@ -92,7 +92,7 @@ public:
 
 	const std::wstring& name() const;
 	const std::wstring& seed() const;
-	const spk::Vector2UInt iconSprite() const;
+	const spk::Vector2UInt& iconSprite() const;
 
 	void onConfirmRequest(const spk::PushButton::Job& p_job);
 	void onCancelRequest(const spk::PushButton::Job& p_job);

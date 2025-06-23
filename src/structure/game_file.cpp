@@ -1,3 +1,5 @@
+#include "structure/game_file.hpp"
+
 #include "structure/world.hpp"
 
 void GameFile::configure(const spk::JSON::File& p_configurationFile)
@@ -7,24 +9,28 @@ void GameFile::configure(const spk::JSON::File& p_configurationFile)
 
 void GameFile::createNewGameFile(const std::wstring& p_name, const std::wstring& p_seed, const spk::Vector2UInt& p_iconIndex)
 {
+	std::filesystem::path saveFolder = composeSaveFolderPath(p_name);
 	if (exist(p_name) == false)
 	{
 		std::error_code ec;
-		std::filesystem::create_directories(gameFolder, ec);
+		std::filesystem::create_directories(saveFolder, ec);
 	}
-	
-	spk::JSON::File gameFile;
 
-	gameFile.root().addAttribute(L"Name") = p_name;
-	gameFile.root().addAttribute(L"IconIndex") = p_iconIndex;
-	gameFile.save(saveFolder / name / L"configure.json");
-	
-	World newWorld;
-	newWorld.setSeed(p_seed);
-	newWorld.save(saveFolder / name);
+	GameFile newGameFile;
+
+	newGameFile.name = p_name;
+	newGameFile.iconSprite = p_iconIndex;
+	newGameFile.world.setSeed(p_seed);
+
+	newGameFile.save();
 }
 
-bool exist(const std::wstring& p_name)
+std::filesystem::path GameFile::composeSaveFolderPath(const std::wstring& p_name)
+{
+	return (saveFolder / p_name);
+}
+
+bool GameFile::exist(const std::wstring& p_name)
 {
 	std::error_code ec;
 
@@ -65,10 +71,11 @@ void GameFile::save()
 	std::filesystem::create_directories(gameFolder, ec);
 
 	gameFile.root().addAttribute(L"Name") = name;
-	gameFile.root().addAttribute(L"Seed") = seed;
 	gameFile.root().addAttribute(L"IconSprite") = iconSprite;
 
 	gameFile.save(gameFolder / L"save.json");
+
+	world.save(gameFolder);
 }
 
 void GameFile::load(std::wstring p_gameName)
@@ -77,6 +84,5 @@ void GameFile::load(std::wstring p_gameName)
 	gameFile.load(saveFolder / p_gameName / L"save.json");
 
 	name = gameFile[L"Name"].as<std::wstring>();
-	seed = gameFile[L"Seed"].as<std::wstring>();
 	iconSprite = spk::Vector2UInt(gameFile[L"IconSprite"]);
 }
