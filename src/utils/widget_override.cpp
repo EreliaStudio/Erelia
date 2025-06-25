@@ -18,6 +18,12 @@ void PushButton::configure(const std::wstring& p_text, const spk::PushButton::Jo
 	setOnClick(p_job);
 }
 
+ImageLabel::ImageLabel(const std::wstring& p_name, spk::SafePointer<spk::Widget> p_parent) :
+	spk::ImageLabel(p_name, p_parent)
+{
+	WidgetAddons::ApplyFormat(this);
+}
+
 TextLabel::TextLabel(const std::wstring& p_name, spk::SafePointer<spk::Widget> p_parent) :
 	spk::TextLabel(p_name, p_parent)
 {

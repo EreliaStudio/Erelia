@@ -11,8 +11,9 @@ void MainApplication::_onGeometryChange()
 
 void MainApplication::_createNewGame(const std::wstring& p_name, const std::wstring& p_seed, const spk::Vector2UInt& p_iconSprite)
 {
-	GameFile::createNewGameFile(p_name, p_seed, p_iconSprite);
+	Context::instance()->reset(p_name, p_seed, p_iconSprite);
 
+	_gameMenu.initialize();
 	_gameMenu.activate();
 }
 
@@ -23,7 +24,7 @@ MainApplication::MainApplication(const std::wstring& p_name, spk::SafePointer<sp
 	_loadGameMenu(p_name + L"/LoadGameMenu", this),
 	_gameMenu(p_name + L"/GameMenu", this)
 {
-	GameFile::configure(spk::JSON::File("resources/configuration.json"));
+	Context::configure(spk::JSON::File("resources/configuration.json"));
 
 	_mainMenu.activate();
 

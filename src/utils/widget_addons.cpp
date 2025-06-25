@@ -25,6 +25,11 @@ void WidgetAddons::ApplyFormat(spk::SafePointer<spk::TextLabel> p_widget)
 	p_widget->setFontSize(defaultFontSize);
 }
 
+void WidgetAddons::ApplyFormat(spk::SafePointer<spk::ImageLabel> p_widget)
+{
+	p_widget->setNineSlice(AssetAtlas::instance()->spriteSheet(L"defaultNineSlice"));
+}
+
 void WidgetAddons::ApplyFormat(spk::SafePointer<spk::TextEdit> p_widget)
 {
 	p_widget->setNineSlice(AssetAtlas::instance()->spriteSheet(L"defaultNineSlice"));

@@ -1,6 +1,6 @@
 #include "menu/new_game_menu.hpp"
 
-#include "structure/game_file.hpp"
+#include "structure/context.hpp"
 
 void NewGameMenu::Content::SeedField::_onGeometryChange()
 {
@@ -72,6 +72,12 @@ NewGameMenu::Content::IconSelectorField::IconSelectorField(const std::wstring& p
 	_spacerB(p_name + L"/SpacerB", this),
 	_negativeButton(p_name + L"/NegativeButton", this)
 {
+	spk::SafePointer<spk::SpriteSheet> assetAtlas = AssetAtlas::instance()->spriteSheet(L"iconSet");
+	_negativeButton.setIconset(assetAtlas);
+	_negativeButton.setIcon(assetAtlas->sprite(1));
+	_positiveButton.setIconset(assetAtlas);
+	_positiveButton.setIcon(assetAtlas->sprite(2));
+
 	_negativeButton.activate();
 	_spacerA.activate();
 	_imageLabel.activate();
@@ -167,6 +173,7 @@ NewGameMenu::Content::Content(const std::wstring& p_name, spk::SafePointer<spk::
 	WidgetAddons::ApplyFormat(&_nameRow.label);
 	WidgetAddons::ApplyFormat(&_nameRow.field);
 	WidgetAddons::ApplyFormat(&_seedRow.label);
+	WidgetAddons::ApplyFormat(&_iconSelectorRow.label);
 
 	_nameRow.label.setText(L"Name:");
 	_nameRow.field.setText(L"New game");
@@ -228,7 +235,7 @@ NewGameMenu::NewGameMenu(const std::wstring& p_name, spk::SafePointer<spk::Widge
 
 	_confirmButton = _commandPanel.addButton(L"Confirm", L"Confirm", [this]() {});
 	_commandPanel.setOnClick(L"Confirm", [&](){
-		if (GameFile::exist(name()) == false)
+		if (Context::exist(name()) == false)
 		{
 			_onConfirmLambda();
 		}

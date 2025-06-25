@@ -16,6 +16,14 @@ public:
 	void configure(const std::wstring& p_text, const spk::PushButton::Job& p_job);
 };
 
+class ImageLabel : public spk::ImageLabel
+{
+private:
+
+public:
+	ImageLabel(const std::wstring& p_name, spk::SafePointer<spk::Widget> p_parent);
+};
+
 class TextLabel : public spk::TextLabel
 {
 private:

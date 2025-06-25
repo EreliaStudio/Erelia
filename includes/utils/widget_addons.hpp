@@ -23,6 +23,7 @@ public:
 
 	static void ApplyFormat(spk::SafePointer<spk::Frame> p_widget);
     static void ApplyFormat(spk::SafePointer<spk::PushButton> p_widget);
+    static void ApplyFormat(spk::SafePointer<spk::ImageLabel> p_widget);
     static void ApplyFormat(spk::SafePointer<spk::TextLabel> p_widget);
     static void ApplyFormat(spk::SafePointer<spk::TextEdit> p_widget);
     static void ApplyFormat(spk::SafePointer<spk::TextArea> p_widget);

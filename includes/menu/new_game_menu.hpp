@@ -41,7 +41,7 @@ private:
 			spk::HorizontalLayout _layout;
 			PushButton _negativeButton;
 			spk::SpacerWidget _spacerA;
-			spk::ImageLabel _imageLabel;
+			ImageLabel _imageLabel;
 			spk::SpacerWidget _spacerB;
 			PushButton _positiveButton;
 

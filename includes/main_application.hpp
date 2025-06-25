@@ -7,12 +7,12 @@
 #include "menu/new_game_menu.hpp"
 #include "menu/load_game_menu.hpp"
 
-#include "structure/game_file.hpp"
+#include "structure/context.hpp"
 
 class MainApplication : public spk::Widget
 {
 private:
-	GameFile::Instanciator _gameFileInstanciator;
+	Context::Instanciator _gameFileInstanciator;
 
 	MainMenu _mainMenu;
 	NewGameMenu _newGameMenu;
