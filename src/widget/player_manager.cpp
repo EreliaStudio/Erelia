@@ -27,9 +27,25 @@ void PlayerManager::_onGeometryChange()
 	_updatePlayerUBOs();
 }
 
-void PlayerManager::_onPaintEvent(spk::PaintEvent& p_event)
+void PlayerManager::_onUpdateEvent(spk::UpdateEvent& p_event)
 {
-	
+	if (Context::instance()->player == nullptr)
+	{
+		return ;
+	}
+
+	for (auto& [actionType, action] : _actions)
+	{
+		if (action->isInitialized() == false)
+		{
+			action->initialize(p_event);
+		}
+
+		if (action->isInitialized() == true)
+		{
+			action->update();
+		}
+	}
 }
 
 PlayerManager::PlayerManager(const std::wstring& p_name, spk::SafePointer<spk::Widget> p_parent) :
@@ -71,5 +87,6 @@ void PlayerManager::initialize()
 
 	_onPlayerEditionContract = Context::instance()->player->subscribeToEdition([&](){
 		_updatePlayerUBOs();
+		requestPaint();
 	});
 }

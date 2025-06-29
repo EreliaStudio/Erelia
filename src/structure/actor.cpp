@@ -22,7 +22,7 @@ spk::ContractProvider::Contract Actor::subscribeToEdition(const spk::ContractPro
 
 bool Actor::isMoving() const
 {
-	return (_motionTimer.state() != spk::Timer::State::Running);
+	return (_motionTimer.state() == spk::Timer::State::Running);
 }
 
 void Actor::move(const spk::Vector2& p_delta)

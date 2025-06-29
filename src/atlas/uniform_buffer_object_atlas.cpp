@@ -1,109 +1,23 @@
 #include "atlas/uniform_buffer_object_atlas.hpp"
 
-static std::wstring descriptors = LR"({
-	"UniformBufferObject": [
-		{
-			"Name": "cameraData",
-			"BlockName": "CameraData",
-			"BindingPoint": 0,
-			"Size": 128,
-			"Elements": [
-				{
-					"Name": "view",
-					"Offset": 0,
-					"Size": 64,
-					"NestedElements": []
-				},
-				{
-					"Name": "proj",
-					"Offset": 64,
-					"Size": 64,
-					"NestedElements": []
-				}
-			]
-		},
-		{
-			"Name":"timeData",
-			"BlockName":"TimeData",
-			"BindingPoint": 1,
-			"Size":4,
-			"Elements":[
-				{
-					"Name": "epoch",
-					"Offset": 0,
-					"Size": 4,
-					"NestedElements": []
-				}
-			]
-		}
-	]
-})";
-
 UniformBufferObjectAtlas::UniformBufferObjectAtlas()
 {
-	spk::JSON::File jsonConfigurationFile = spk::JSON::File::loadFromString(descriptors);
-
-	const auto &ubosArray = jsonConfigurationFile[L"UniformBufferObject"].asArray();
-
-	for (const auto *uboObjPtr : ubosArray)
 	{
-		const spk::JSON::Object &uboObj = *uboObjPtr;
-		std::wstring name = uboObj[L"Name"].as<std::wstring>();
-		std::wstring blockName = uboObj[L"BlockName"].as<std::wstring>();
-		int binding = static_cast<int>(uboObj[L"BindingPoint"].as<long>());
-		size_t size = static_cast<size_t>(uboObj[L"Size"].as<long>());
+		spk::OpenGL::UniformBufferObject cameraData(L"CameraData", 0, 128);
 
-		spk::OpenGL::UniformBufferObject newUbo(blockName, binding, size);
-
-		if (uboObj.contains(L"Elements"))
-		{
-			const auto &elements = uboObj[L"Elements"].asArray();
-			for (const auto *elementPtr : elements)
-			{
-				_loadElement(newUbo, *elementPtr);
-			}
-		}
-
-		_ubos.emplace(name, std::move(newUbo));
+		auto& viewElem = cameraData.addElement(L"view", 0, 64);
+		auto& projElem = cameraData.addElement(L"proj", 64, 64);
+		
+		_ubos.emplace(L"cameraData", std::move(cameraData));
 	}
 
-	if (jsonConfigurationFile.contains(L"ShaderStorageBufferObject"))
-    {
-        const auto& ssboArray = jsonConfigurationFile[L"ShaderStorageBufferObject"].asArray();
-        for (const auto* ssboPtr : ssboArray)
-        {
-            const auto& ssboObj = *ssboPtr;
+	{
+		spk::OpenGL::UniformBufferObject timeData(L"TimeData", 1, 4);
 
-            std::wstring name = ssboObj[L"Name"].as<std::wstring>();
-            std::wstring blockName = ssboObj[L"BlockName"].as<std::wstring>();
-            int binding = static_cast<int>(ssboObj[L"BindingPoint"].as<long>());
-            size_t fixedSize = static_cast<size_t>(ssboObj[L"FixedSize"].as<long>());
-            size_t padFD2Dyn = static_cast<size_t>(ssboObj[L"PaddingFixedToDynamic"].as<long>());
-      		size_t dynSize = static_cast<size_t>(ssboObj[L"DynamicElementSize"].as<long>());
-      		size_t dynPadding = static_cast<size_t>(ssboObj[L"DynamicElementPadding"].as<long>());
+		auto& epochElem = timeData.addElement(L"epoch", 0, 4);
 
-            spk::OpenGL::ShaderStorageBufferObject newSsbo(blockName, binding, fixedSize, padFD2Dyn, dynSize, dynPadding);
-
-            if (ssboObj.contains(L"FixedElements"))
-            {
-                for (auto* elem : ssboObj[L"FixedElements"].asArray())
-				{
-                    _loadElement(newSsbo.fixedData(), *elem);
-				}
-            }
-
-            if (ssboObj.contains(L"DynamicElementComposition"))
-            {
-                auto& dynArray = newSsbo.dynamicArray();
-                for (auto* comp : ssboObj[L"DynamicElementComposition"].asArray())
-				{
-                    _loadElement(dynArray, *comp);
-				}
-            }
-
-            _ssbos.emplace(name, std::move(newSsbo));
-        }
-    }
+		_ubos.emplace(L"timeData", std::move(timeData));
+	}
 }
 
 void UniformBufferObjectAtlas::_loadElement(spk::OpenGL::UniformBufferObject &p_ubo, const spk::JSON::Object &p_elementDesc)

@@ -28,7 +28,6 @@ void WorldManager::_onGeometryChange()
 				tmpChunk->bake();
 			}
 
-			spk::cout << "Add chunk : " << tmp << std::endl;
 			_activeChunks.push_back(tmpChunk);
 		}
 	}
@@ -38,7 +37,6 @@ void WorldManager::_onPaintEvent(spk::PaintEvent& p_event)
 {
 	for (auto& chunk : _activeChunks)
 	{
-		spk::cout << "Rendering chunk : " << chunk->position() << std::endl;
 		chunk->render();
 	}
 }

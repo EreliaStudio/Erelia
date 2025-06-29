@@ -27,7 +27,7 @@ private:
 	void _updatePlayerUBOs();
 
 	void _onGeometryChange() override;
-	void _onPaintEvent(spk::PaintEvent& p_event) override;
+	void _onUpdateEvent(spk::UpdateEvent& p_event) override;
 
 public:
 	PlayerManager(const std::wstring& p_name, spk::SafePointer<spk::Widget> p_parent);
