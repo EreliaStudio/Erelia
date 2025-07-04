@@ -18,6 +18,8 @@ GameMenu::GameMenu(const std::wstring& p_name, spk::SafePointer<spk::Widget> p_p
 	_tilemapManager.activate();
 	_actorManager.activate();
 	_playerManager.activate();
+
+	_playerManager.setMode(PlayerManager::Mode::Creative);
 }
 
 void GameMenu::loadContext(const std::wstring& p_name)

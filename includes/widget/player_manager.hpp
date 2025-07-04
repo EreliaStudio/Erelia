@@ -6,23 +6,33 @@
 
 class PlayerManager : public GraphicalWidget
 {
-private:
-	enum class ActionType
+public:
+	enum class Mode
 	{
-		MotionUp,
-		MotionDown,
-		MotionLeft,
-		MotionRight	
+		Normal,
+		Creative
 	};
+
+private:	
 	UniformBufferObjectAtlas::Instanciator _uniformBufferObjectAtlasInstanciator;
 
-	spk::Vector2Int _screenRenderDimension;
+	spk::Vector2 _screenRenderDimension;
 	spk::OpenGL::UniformBufferObject& _cameraUBO;
 	Actor::Contract _onPlayerEditionContract;
 
 	spk::Camera _camera;
 
-	std::unordered_map<ActionType, std::unique_ptr<spk::Action>> _actions;
+	std::vector<std::unique_ptr<spk::Action>> _actions;
+	Mode _mode = Mode::Creative;
+	spk::SafePointer<const spk::Mouse> _mouse;
+	spk::SafePointer<const spk::Keyboard> _keyboard;
+
+	struct CreativeData
+	{
+		NodeMap::ID nodeToPlace = 0;
+	};
+
+	CreativeData _creativeData;
 
 	void _updatePlayerUBOs();
 
@@ -31,6 +41,9 @@ private:
 
 public:
 	PlayerManager(const std::wstring& p_name, spk::SafePointer<spk::Widget> p_parent);
+
+	void setMode(const Mode& p_mode);
+	Mode mode() const;
 
 	void initialize();
 };

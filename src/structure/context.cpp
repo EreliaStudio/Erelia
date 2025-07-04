@@ -57,6 +57,7 @@ void Context::reset(const std::wstring& p_name, const std::wstring& p_seed, cons
 	actorMap.clear();
 
 	player = actorMap.addActor(0, std::make_unique<Player>()).upCast<Player>();
+	player->place({0.5f, 0.5f});
 }
 	
 Context::Context(const std::wstring& p_name)

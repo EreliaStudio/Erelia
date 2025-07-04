@@ -4,16 +4,11 @@ spk::Vector2 GraphicalWidget::convertScreenToWorldPosition(const spk::Vector2Int
 {
 	const spk::SafePointer<Player> player = Context::instance()->player;
 
-	const spk::Vector2 screenOffset = spk::Vector2(p_screenPosition
-		- viewport().geometry().size / 2
-		- viewport().geometry().anchor);
+	const spk::Vector2 screenOffset = p_screenPosition - (viewport().geometry().size / 2);
 
-	if (player == nullptr)
-	{
-		return screenOffset / spk::Vector2(_nodeSize);
-	}
+	const spk::Vector2 convertedOffset = screenOffset / spk::Vector2(_nodeSize) * spk::Vector2(1, -1);
 
-	return screenOffset / spk::Vector2(_nodeSize) + player->position();
+	return convertedOffset + (player == nullptr ? 0 : player->position());
 }
 
 spk::Vector2Int GraphicalWidget::convertWorldToScreenPosition(const spk::Vector2& p_worldPosition)

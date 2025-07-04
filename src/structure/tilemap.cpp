@@ -8,7 +8,14 @@ void Tilemap::_onChunkGeneration(const ChunkCoordinate& p_coordinates, spk::Safe
 	{
 		for (size_t j = 0; j < Chunk::Size.y; j++)
 		{
-			p_chunk->setContent(i, j, 0, (i == 0 || j == 0 ? 1 : 0));
+			if (p_coordinates == spk::Vector2Int(0, 0))
+			{
+				p_chunk->setContent(i, j, 0, (((i + j) % 2) == 0 ? 1 : 0));
+			}
+			else
+			{
+				p_chunk->setContent(i, j, 0, 0);
+			}
 		}
 	}
 

@@ -2,16 +2,19 @@
 
 void WorldManager::_onGeometryChange()
 {
-	spk::Vector2 topLeftCell = convertScreenToWorldPosition({0, 0});
-	spk::Vector2 downRightCell = convertScreenToWorldPosition(geometry().size);
-	spk::Vector2Int topLeftCorner = Tilemap::worldToChunk(spk::Vector3Int(topLeftCell, 0)) - 1;
-	spk::Vector2Int downRightCorner = Tilemap::worldToChunk(spk::Vector3Int(downRightCell, 0)) + 1;
+	spk::Vector2 downLeftCell = convertScreenToWorldPosition({0, geometry().size.y});
+	spk::Vector2 topRightCell = convertScreenToWorldPosition({geometry().size.x, 0});
+	spk::Vector2Int downLeftCorner = Tilemap::worldToChunk(spk::Vector3Int(downLeftCell, 0)) - 1;
+	spk::Vector2Int topRightCorner = Tilemap::worldToChunk(spk::Vector3Int(topRightCell, 0)) + 1;
 	
 	_activeChunks.clear();
 
-	for (int x = topLeftCorner.x; x <= downRightCorner.x; x++)
+	spk::cout << "Down Left : " << downLeftCell << std::endl;
+	spk::cout << "Top right : " << topRightCell << std::endl;
+
+	for (int x = downLeftCorner.x; x <= topRightCorner.x; x++)
 	{
-		for (int y = topLeftCorner.y; y <= downRightCorner.y; y++)
+		for (int y = downLeftCorner.y; y <= topRightCorner.y; y++)
 		{
 			Tilemap::ChunkCoordinate tmp = {x, y};
 
