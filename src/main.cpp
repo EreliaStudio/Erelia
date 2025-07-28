@@ -1,4 +1,12 @@
 #include <sparkle.hpp>
+#include <spk_debug_macro.hpp>
+
+enum class Event
+{
+	MovePlayer
+};
+
+using EventDispatcher = spk::EventDispatcher<Event>;
 
 class Controller : public spk::Component
 {
@@ -12,7 +20,25 @@ public:
 	};
 
 private:
+	EventDispatcher::Instanciator _eventDispatcherInstanciator;
+
 	std::unordered_map<ActionType, std::unique_ptr<spk::Action>> _actions;
+
+	spk::OpenGL::UniformBufferObject& _cameraUBO;
+
+	static spk::OpenGL::UniformBufferObject& requestCameraUBO()
+	{
+		if (spk::Lumina::Shader::Constants::containsUBO(L"cameraUBO") == false)
+		{
+			spk::OpenGL::UniformBufferObject newUBO = spk::OpenGL::UniformBufferObject(L"CameraUBO", 0, 128);
+
+			newUBO.addElement(L"viewMatrix", 0, 64);
+			newUBO.addElement(L"projectionMatrix", 0, 64);
+
+			spk::Lumina::Shader::Constants::addUBO(L"cameraUBO", std::move(newUBO));
+		}
+		return (spk::Lumina::Shader::Constants::ubo(L"cameraUBO"));
+	}
 
 	spk::SafePointer<spk::KeyboardAction> _moveUpAction;
 	spk::SafePointer<spk::KeyboardAction> _moveDownAction;
@@ -35,6 +61,7 @@ protected:
 
 	void onUpdateEvent(spk::UpdateEvent &p_event)
 	{
+		
 		for (auto &[key, action] : _actions)
 		{
 			if (action->isInitialized() == false)
@@ -49,39 +76,42 @@ protected:
 public:
 	Controller(const std::wstring &name) :
 		spk::Component(name),
-		_cameraHolder(L"CameraHolder", nullptr)
+		_cameraHolder(L"CameraHolder", nullptr),
+		_cameraUBO(requestCameraUBO())
 	{
 		_cameraHolder.transform().place({0, 0, 10});
 		_cameraHolder.transform().lookAt({0, 0, 0});
 
-		_moveUpAction = setAction(ActionType::MoveUp, std::make_unique<spk::KeyboardAction>(spk::Keyboard::Z, spk::InputState::Down, 26, [&](){
-			spk::cout << "Move player UP" << std::endl;
-			owner()->transform().move({0, 1, 0});
-		})).upCast<spk::KeyboardAction>();
+		_moveUpAction = setAction(ActionType::MoveUp, std::make_unique<spk::KeyboardAction>(spk::Keyboard::Z, spk::InputState::Down, 26,
+			[&](const spk::SafePointer<const spk::Keyboard>& p_keyboard) {
+				EventDispatcher::instance()->emit(Event::MovePlayer, spk::Vector3(0, 1, 0));
+			})).upCast<spk::KeyboardAction>();
 
-		_moveDownAction = setAction(ActionType::MoveDown, std::make_unique<spk::KeyboardAction>(spk::Keyboard::S, spk::InputState::Down, 26, [&](){
-			spk::cout << "Move player DOWN" << std::endl;
-			owner()->transform().move({0, -1, 0});
-		})).upCast<spk::KeyboardAction>();
+		_moveDownAction = setAction(ActionType::MoveDown, std::make_unique<spk::KeyboardAction>(spk::Keyboard::S, spk::InputState::Down, 26,
+			[&](const spk::SafePointer<const spk::Keyboard>& p_keyboard) {
+				EventDispatcher::instance()->emit(Event::MovePlayer, spk::Vector3(0, -1, 0));
+			})).upCast<spk::KeyboardAction>();
 
-		_moveRightAction = setAction(ActionType::MoveRight, std::make_unique<spk::KeyboardAction>(spk::Keyboard::Q, spk::InputState::Down, 26, [&](){
-			spk::cout << "Move player RIGHT" << std::endl;
-			owner()->transform().move({1, 0, 0});
-		})).upCast<spk::KeyboardAction>();
+		_moveRightAction = setAction(ActionType::MoveRight, std::make_unique<spk::KeyboardAction>(spk::Keyboard::Q, spk::InputState::Down, 26,
+			[&](const spk::SafePointer<const spk::Keyboard>& p_keyboard) {
+				EventDispatcher::instance()->emit(Event::MovePlayer, spk::Vector3(1, 0, 0));
+			})).upCast<spk::KeyboardAction>();
 
-		_moveLeftAction = setAction(ActionType::MoveLeft, std::make_unique<spk::KeyboardAction>(spk::Keyboard::D, spk::InputState::Down, 26, [&](){
-			spk::cout << "Move player LEFT" << std::endl;
-			owner()->transform().move({-1, 0, 0});
-		})).upCast<spk::KeyboardAction>();
-
-		_onEditionCallback = owner()->transform().addOnEditionCallback([&](){
-			spk::cout << "Updating player camera UBO" << std::endl;
-		});
+		_moveLeftAction = setAction(ActionType::MoveLeft, std::make_unique<spk::KeyboardAction>(spk::Keyboard::D, spk::InputState::Down, 26,
+			[&](const spk::SafePointer<const spk::Keyboard>& p_keyboard) {
+				EventDispatcher::instance()->emit(Event::MovePlayer, spk::Vector3(-1, 0, 0));
+			})).upCast<spk::KeyboardAction>();
 	}
 
 	void awake()
 	{
 		owner()->addChild(&_cameraHolder);
+
+		_onEditionCallback = owner()->transform().addOnEditionCallback([&](){
+			_cameraUBO[L"viewMatrix"] = viewMatrix();
+			_cameraUBO[L"projectionMatrix"] = projectionMatrix();
+			_cameraUBO.validate();
+		});
 	}
 
 	const spk::Matrix4x4& projectionMatrix() const
@@ -105,6 +135,7 @@ public:
 		spk::GameObject(p_name, p_parent),
 		_controller(addComponent<Controller>(L"Controller"))
 	{
+		_controller.activate();
 	}
 };
 
@@ -114,6 +145,19 @@ private:
 
 public:
 	World(const std::wstring &p_name, spk::SafePointer<spk::GameObject> p_parent) :
+		spk::GameObject(p_name, p_parent)
+	{
+
+	}
+};
+
+struct PlayerManager : public spk::GameObject
+{
+private:
+	EventDispatcher::Instanciator _eventDispatcherInstanciator;
+
+public:
+	PlayerManager(const std::wstring &p_name, spk::SafePointer<spk::GameObject> p_parent) :
 		spk::GameObject(p_name, p_parent)
 	{
 
@@ -132,6 +176,9 @@ struct Context
 		world(L"World", nullptr)
 	{
 		player.transform().place({0, 0, 0});
+		player.activate();
+
+		world.activate();
 		
 		engine.addEntity(&player);
 		engine.addEntity(&world);
