@@ -4,5 +4,8 @@
 
 class UBOFactory
 {
+private:
+
+public:
 	static spk::OpenGL::UniformBufferObject& cameraUBO();
 };

@@ -24,7 +24,7 @@ Player::MotionInputController::MotionInputController(const std::wstring &name) :
 		})).upCast<spk::KeyboardAction>();
 }
 
-void Player::MotionInputController::onUpdateEvent(spk::UpdateEvent &p_event) override
+void Player::MotionInputController::onUpdateEvent(spk::UpdateEvent &p_event)
 {
 	if (_ownerMotionBehavior->isMoving() == true)
 	{
@@ -42,7 +42,7 @@ void Player::MotionInputController::onUpdateEvent(spk::UpdateEvent &p_event) ove
 	}
 }
 
-void Player::MotionInputController::awake() override
+void Player::MotionInputController::awake()
 {
 	if (owner() == nullptr)
 	{
@@ -55,43 +55,4 @@ void Player::MotionInputController::awake() override
 	{
 		GENERATE_ERROR("MotionInputController must be attached to a MovableEntity.");
 	}
-}
-
-Player::TopDownCamera::TopDownCamera(const std::wstring &p_name) :
-	spk::Component(p_name),
-	_cameraHolder(p_name + L"/CameraHolder", nullptr),
-	_cameraUBO(UBOFactory::cameraUBO())
-{
-	_cameraHolder.transform().place({0, 0, 10});
-	_cameraHolder.transform().lookAt({0, 0, 0});
-}
-
-void Player::TopDownCamera::awake() override
-{
-	owner()->addChild(&_cameraHolder);
-
-	_onEditionCallback = owner()->transform().addOnEditionCallback([&](){
-		_cameraUBO[L"viewMatrix"] = viewMatrix();
-		_cameraUBO[L"projectionMatrix"] = projectionMatrix();
-		_cameraUBO.validate();
-	});
-}
-
-const spk::Matrix4x4& Player::TopDownCamera::projectionMatrix() const
-{
-	return (_camera.projectionMatrix());
-}
-
-const spk::Matrix4x4& Player::TopDownCamera::viewMatrix() const
-{
-	return (_cameraHolder.transform().inverseModel());
-}
-
-Player::Player(const std::wstring &p_name, spk::SafePointer<spk::GameObject> p_parent) :
-	MovableEntity(p_name, p_parent),
-	_controller(addComponent<MotionInputController>(p_name + L"/MotionInputController")),
-	_topDownCamera(addComponent<TopDownCamera>(p_name + L"/TopDownCamera"))
-{
-	_controller.activate();
-	_topDownCamera.activate();
 }

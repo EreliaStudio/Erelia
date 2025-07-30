@@ -4,9 +4,9 @@ MovableEntity::Behavior::Behavior(const std::wstring &p_name) : spk::Component(p
 {
 }
 
-void MovableEntity::Behavior::onUpdateEvent(spk::UpdateEvent &p_event) override
+void MovableEntity::Behavior::onUpdateEvent(spk::UpdateEvent &p_event)
 {
-	if (_motionTimer.isRunning() == false)
+	if (_motionTimer.state() != spk::Timer::State::Running)
 	{
 		return;
 	}
@@ -23,7 +23,7 @@ bool MovableEntity::Behavior::isMoving() const
 
 void MovableEntity::Behavior::setMotionDuration(const spk::Duration &p_duration)
 {
-	_motionTimer.setDuration(p_duration);
+	_motionTimer = spk::Timer(p_duration);
 }
 
 void MovableEntity::Behavior::move(const spk::Vector3 &p_delta)
