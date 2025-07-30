@@ -4,6 +4,19 @@ spk::OpenGL::UniformBufferObject& UBOFactory::cameraUBO()
 {
 	if (spk::Lumina::Shader::Constants::containsUBO(L"cameraUBO") == false)
 	{
+		/*
+		------ C++ ------
+		spk::Matrix4x4 viewMatrix() const;
+		spk::Matrix4x4 projectionMatrix() const;
+
+		------ glsl ------
+		layout(std140, binding = 0) uniform CameraUBO
+		{
+			mat4 viewMatrix;
+			mat4 projectionMatrix;
+		} cameraUBO;
+		*/
+
 		spk::OpenGL::UniformBufferObject newUBO = spk::OpenGL::UniformBufferObject(L"CameraUBO", 0, 128);
 
 		newUBO.addElement(L"viewMatrix", 0, 64);

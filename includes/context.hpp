@@ -3,6 +3,7 @@
 #include <sparkle.hpp>
 
 #include "player.hpp"
+#include "node.hpp"
 #include "world.hpp"
 
 struct Context : public spk::Singleton<Context>
@@ -15,8 +16,12 @@ private:
 
 	Context();
 
+	void populateNodeMap();
+
 public:
 	spk::GameEngine engine;
+
+	NodeCollection nodes;
 
 	Player player;
 	World world;
