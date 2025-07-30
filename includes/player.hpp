@@ -43,7 +43,7 @@ private:
 
 		void onUpdateEvent(spk::UpdateEvent &p_event) override;
 
-		void awake() override;
+		void start() override;
 	};
 
 	class TopDownCamera : public spk::Component
@@ -59,7 +59,7 @@ private:
 	public:
 		TopDownCamera(const std::wstring &p_name);
 
-		void awake() override;
+		void start() override;
 
 		const spk::Matrix4x4& projectionMatrix() const;
 		const spk::Matrix4x4& viewMatrix() const;

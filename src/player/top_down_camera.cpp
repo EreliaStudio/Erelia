@@ -11,7 +11,7 @@ Player::TopDownCamera::TopDownCamera(const std::wstring &p_name) :
 	_cameraHolder.transform().lookAt({0, 0, 0});
 }
 
-void Player::TopDownCamera::awake()
+void Player::TopDownCamera::start()
 {
 	owner()->addChild(&_cameraHolder);
 

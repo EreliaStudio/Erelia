@@ -31,6 +31,6 @@ private:
 public:
 	MovableEntity(const std::wstring &p_name, spk::SafePointer<spk::GameObject> p_parent);
 
-	void move(const spk::Vector3& p_delta);
-	void place(const spk::Vector3& p_position);
+	Behavior& behavior() { return *_behavior; }
+	const Behavior& behavior() const { return *_behavior; }
 };

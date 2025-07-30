@@ -4,7 +4,7 @@ Context::Context() :
 	player(L"Player", nullptr),
 	world(L"World", nullptr)
 {
-	player.place({0, 0, 0});
+	player.behavior().place({0, 0, 0});
 	player.activate();
 
 	world.activate();

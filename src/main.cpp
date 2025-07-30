@@ -7,7 +7,7 @@ class GameHUD : public spk::Screen
 private:
 	spk::GameEngineWidget _gameEngineWidget;
 
-	Context _context;
+	Context::Instanciator _contextInstanciator;
 
 	void _onGeometryChange()
 	{
@@ -19,7 +19,7 @@ public:
 		spk::Screen(p_name, p_parent),
 		_gameEngineWidget(p_name + L"/GameEngineWidget", this)
 	{
-		_gameEngineWidget.setGameEngine(&(_context.engine));
+		_gameEngineWidget.setGameEngine(&(Context::instance()->engine));
 		_gameEngineWidget.activate();
 	}
 };
