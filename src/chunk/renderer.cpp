@@ -93,7 +93,10 @@ void main()
 BakableChunk::Renderer::Renderer() :
 	_object(createObject()),
 	_cameraUBO(UBOFactory::cameraUBO()),
-	_nodeCollectionSSBO(SSBOFactory::nodeCollectionSSBO())
+	_timeUBO(UBOFactory::timeUBO()),
+	_nodeCollectionSSBO(SSBOFactory::nodeCollectionSSBO()),
+	_transformUBO(UBOFactory::transformUBO()),
+	_tilesetTextureSampler(SamplerFactory::tilesetTextureSampler())
 {
 }
 

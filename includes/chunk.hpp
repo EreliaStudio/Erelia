@@ -17,7 +17,10 @@ public:
 		static inline std::unique_ptr<spk::Lumina::Shader> _shader;
 		spk::Lumina::Shader::Object _object;
 		spk::OpenGL::UniformBufferObject &_cameraUBO;
+		spk::OpenGL::UniformBufferObject &_timeUBO;
 		spk::OpenGL::ShaderStorageBufferObject &_nodeCollectionSSBO;
+		spk::OpenGL::UniformBufferObject &_transformUBO;
+		spk::OpenGL::SamplerObject &_tilesetTextureSampler;
 
 		static spk::Lumina::Shader::Object createObject();
 

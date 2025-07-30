@@ -15,8 +15,11 @@ void ChunkGameObject::setChunk(const spk::SafePointer<BakableChunk> &chunk)
 		return;
 	}
 
-	transform().place(
-		{static_cast<float>(_chunk->coordinates().x * BakableChunk::Size.x), static_cast<float>(_chunk->coordinates().y * BakableChunk::Size.y), 0.f});
+	transform().place( {
+		static_cast<float>(_chunk->coordinates().x * BakableChunk::Size.x),
+		static_cast<float>(_chunk->coordinates().y * BakableChunk::Size.y),
+		0.f
+	});
 
 	_onChunkEditionContract = _chunk->subscribeToEdition([this]() { _visualizer->bake(_chunk); });
 	_onChunkEditionContract.trigger();
