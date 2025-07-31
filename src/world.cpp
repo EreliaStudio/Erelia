@@ -22,6 +22,5 @@ NodeCollection& World::nodeCollection()
 
 void World::populateNodeMap()
 {
-	
 	_nodeCollection.updateSSBO();
 }
