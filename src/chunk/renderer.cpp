@@ -1,12 +1,16 @@
 #include "chunk.hpp"
 
+#include "ssbo_factory.hpp"
+#include "sampler_factory.hpp"
+#include "ubo_factory.hpp"
+
 spk::Lumina::Shader::Object BakableChunk::Renderer::createObject()
 {
 	if (_shader == nullptr)
 	{
 		const std::string vertexCode = R"(#version 450 core
 
-layout(location = 0) in vec2 modelPosition; // 2-D quad position in local space
+layout(location = 0) in vec3 modelPosition; // 2-D quad position in local space
 layout(location = 1) in vec2 modelUVs;      // (0-1) UV inside a single sprite frame
 layout(location = 2) in flat int nodeIndex; // which entry in the SSBO to use
 
@@ -62,7 +66,7 @@ void main()
 
     texCoord = baseUV + modelUVs;
 
-    vec4 worldPosition = transformUBO.modelMatrix * vec4(modelPosition, 0.0, 1.0);
+    vec4 worldPosition = transformUBO.modelMatrix * vec4(modelPosition, 1.0);
     vec4 viewPosition  = cameraUBO.viewMatrix   * worldPosition;
     gl_Position        = cameraUBO.projectionMatrix * viewPosition;
 })";
@@ -85,30 +89,42 @@ void main()
 })";
 
 		_shader = std::make_unique<spk::Lumina::Shader>(vertexCode, fragmentCode);
-	}
+		
+        _shader->addAttribute(0, spk::OpenGL::LayoutBufferObject::Attribute::Type::Vector3);
+        _shader->addAttribute(1, spk::OpenGL::LayoutBufferObject::Attribute::Type::Vector2);
+        _shader->addAttribute(2, spk::OpenGL::LayoutBufferObject::Attribute::Type::Int);
+
+        const auto  &tilesetSampler   = SamplerFactory::tilesetTextureSampler();  // binding 4
+        const auto  &cameraUBO        = UBOFactory::cameraUBO();                  // binding 0
+        const auto  &timeUBO          = UBOFactory::timeUBO();                    // binding 1
+        const auto  &transformUBO     = UBOFactory::transformUBO();               // binding 3
+        const auto  &nodeCollection   = SSBOFactory::nodeCollectionSSBO();        // binding 2
+
+        _shader->addSampler(L"tilesetTexture",      tilesetSampler, spk::Lumina::Shader::Mode::Constant);
+        _shader->addUBO    (L"cameraUBO",           cameraUBO,      spk::Lumina::Shader::Mode::Constant);
+        _shader->addUBO    (L"timeUBO",             timeUBO,        spk::Lumina::Shader::Mode::Constant);
+        _shader->addUBO    (L"transformUBO",        transformUBO,   spk::Lumina::Shader::Mode::Attribute);
+        _shader->addSSBO   (L"nodeCollectionSSBO",  nodeCollection, spk::Lumina::Shader::Mode::Constant);
+    }
 
 	return _shader->createObject();
 }
 
 BakableChunk::Renderer::Renderer() :
 	_object(createObject()),
-	_cameraUBO(UBOFactory::cameraUBO()),
-	_timeUBO(UBOFactory::timeUBO()),
-	_nodeCollectionSSBO(SSBOFactory::nodeCollectionSSBO()),
-	_transformUBO(UBOFactory::transformUBO()),
-	_tilesetTextureSampler(SamplerFactory::tilesetTextureSampler())
+	_bufferSet(_object.bufferSet()),
+	_transformUBO(_object.UBO(L"transformUBO"))
 {
+	_object.setNbInstance(1);
 }
 
-void BakableChunk::Renderer::clear()
+void BakableChunk::Renderer::setTileset(const spk::SafePointer<spk::SpriteSheet> &p_tileset)
 {
+	_tileset = p_tileset;
+	SamplerFactory::tilesetTextureSampler().bind(p_tileset);
 }
-void BakableChunk::Renderer::prepare(const spk::SafePointer<BakableChunk> &)
-{
-}
-void BakableChunk::Renderer::validate()
-{
-}
+
 void BakableChunk::Renderer::render()
 {
+	_object.render();
 }

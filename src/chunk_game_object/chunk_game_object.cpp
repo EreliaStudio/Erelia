@@ -10,6 +10,8 @@ ChunkGameObject::ChunkGameObject(const std::wstring &name, const spk::SafePointe
 void ChunkGameObject::setChunk(const spk::SafePointer<BakableChunk> &chunk)
 {
 	_chunk = chunk;
+	_visualizer->bake(_chunk);
+
 	if (_chunk == nullptr)
 	{
 		return;
@@ -22,7 +24,6 @@ void ChunkGameObject::setChunk(const spk::SafePointer<BakableChunk> &chunk)
 	});
 
 	_onChunkEditionContract = _chunk->subscribeToEdition([this]() { _visualizer->bake(_chunk); });
-	_onChunkEditionContract.trigger();
 }
 
 spk::SafePointer<BakableChunk> ChunkGameObject::chunk() const

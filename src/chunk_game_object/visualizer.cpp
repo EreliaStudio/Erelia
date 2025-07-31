@@ -5,14 +5,15 @@ ChunkGameObject::Visualizer::Visualizer(const std::wstring &name) :
 {
 }
 
-void ChunkGameObject::Visualizer::bake(const spk::SafePointer<BakableChunk> &chunk)
+void ChunkGameObject::Visualizer::bake(const spk::SafePointer<BakableChunk> &p_chunk)
 {
-	if (chunk == nullptr)
-	{
-		return;
-	}
 	_renderer.clear();
-	_renderer.prepare(chunk);
+
+	if (p_chunk != nullptr)
+	{
+		_renderer.prepare(owner()->transform(), p_chunk);
+	}
+
 	_renderer.validate();
 }
 

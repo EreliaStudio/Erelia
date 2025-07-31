@@ -16,12 +16,8 @@ private:
 
 	Context();
 
-	void populateNodeMap();
-
 public:
 	spk::GameEngine engine;
-
-	NodeCollection nodes;
 
 	Player player;
 	World world;

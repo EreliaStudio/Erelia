@@ -33,13 +33,13 @@ spk::OpenGL::ShaderStorageBufferObject& SSBOFactory::nodeCollectionSSBO()
 			} animation;
 		};
 
-		layout(std430, binding = 1) buffer NodeCollectionSSBO
+		layout(std430, binding = 2) buffer NodeCollectionSSBO
 		{
 			int nbNode;
 			Node nodes[];
 		} nodeCollectionSSBO;
 		*/
-		spk::OpenGL::ShaderStorageBufferObject newSSBO = spk::OpenGL::ShaderStorageBufferObject(L"NodeCollectionSSBO", 1, 4, 8, 32, 0);
+		spk::OpenGL::ShaderStorageBufferObject newSSBO = spk::OpenGL::ShaderStorageBufferObject(L"NodeCollectionSSBO", 2, 4, 8, 32, 0);
 
 		newSSBO.fixedData().addElement(L"nbNode", 0, 4);
 

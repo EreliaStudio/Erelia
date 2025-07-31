@@ -26,3 +26,29 @@ spk::OpenGL::UniformBufferObject& UBOFactory::cameraUBO()
 	}
 	return (spk::Lumina::Shader::Constants::ubo(L"cameraUBO"));
 }
+
+spk::OpenGL::UniformBufferObject& UBOFactory::timeUBO()
+{
+    if (!spk::Lumina::Shader::Constants::containsUBO(L"timeUBO"))
+    {
+        /*
+        layout(std140, binding = 1) uniform TimeUBO
+        {
+            int epoch;
+        } timeUBO;
+        */
+        spk::OpenGL::UniformBufferObject newUBO(L"TimeUBO", 1, 16);
+        newUBO.addElement(L"epoch", 0, 4);
+        spk::Lumina::Shader::Constants::addUBO(L"timeUBO", std::move(newUBO));
+    }
+    return spk::Lumina::Shader::Constants::ubo(L"timeUBO");
+}
+
+spk::OpenGL::UniformBufferObject& UBOFactory::transformUBO()
+{
+	spk::OpenGL::UniformBufferObject result(L"TransformUBO", 3, 64);
+
+    result.addElement(L"modelMatrix", 0, 64);
+
+	return (result);
+}
