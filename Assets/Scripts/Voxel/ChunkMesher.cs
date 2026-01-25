@@ -102,9 +102,6 @@ public class ChunkMesher
             && neighborY >= 0 && neighborY < Chunk.SizeY
             && neighborZ >= 0 && neighborZ < Chunk.SizeZ;
         int neighborId = inBounds ? chunk.Voxels[neighborX, neighborY, neighborZ].Id : registry != null ? registry.AirId : 0;
-        Debug.Log(
-            $"Occlusion check: voxel ({x},{y},{z}) plane {plane} -> neighbor ({neighborX},{neighborY},{neighborZ}) " +
-            $"inBounds={inBounds} hasNeighbor={hasNeighbor} neighborId={neighborId}");
 
         bool isOccluded = false;
         VoxelFace rotatedFace = TransformFace(face, orientation, flipOrientation);
@@ -123,8 +120,6 @@ public class ChunkMesher
                 }
             }
         }
-
-        Debug.Log($"Occlusion result: voxel ({x},{y},{z}) plane {plane} occluded={isOccluded}");
 
         if (isOccluded)
         {
