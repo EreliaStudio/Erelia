@@ -17,7 +17,7 @@ public class Chunk
             {
                 for (int z = 0; z < SizeZ; z++)
                 {
-                    Voxels[x, y, z] = new VoxelCell(0);
+                    Voxels[x, y, z] = new VoxelCell(0, Orientation.PositiveX);
                 }
             }
         }

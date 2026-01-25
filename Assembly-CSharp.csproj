@@ -64,6 +64,7 @@
     <Compile Include="Assets\Scripts\Voxel\ChunkCoord.cs" />
     <Compile Include="Assets\Scripts\Voxel\ChunkMesher.cs" />
     <Compile Include="Assets\Scripts\Voxel\Chunk.cs" />
+    <Compile Include="Assets\Scripts\Voxel\Orientation.cs" />
     <Compile Include="Assets\Scripts\Voxel\OuterShellPlaneUtil.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMapData.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelFace.cs" />

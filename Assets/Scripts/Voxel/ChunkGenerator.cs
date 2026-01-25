@@ -35,7 +35,7 @@ public class ChunkGenerator
                         dataId = noise >= 0.5f ? 0 : 1;
                     }
 
-                    chunk.Voxels[x, y, z].Id = dataId;
+                    chunk.Voxels[x, y, z] = new VoxelCell(dataId, Orientation.PositiveX);
                 }
             }
         }
