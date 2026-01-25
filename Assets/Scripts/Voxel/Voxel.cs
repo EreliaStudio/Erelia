@@ -1,16 +1,31 @@
-using System;
+using System.Collections.Generic;
+using UnityEngine;
 
-[Serializable]
-public class Voxel
+public abstract class Voxel : ScriptableObject
 {
-    public int DataId;
+    protected List<VoxelFace> innerFaces = new List<VoxelFace>();
+    protected Dictionary<OuterShellPlane, VoxelFace> outerShellByPlane = new Dictionary<OuterShellPlane, VoxelFace>();
 
-    public Voxel()
+    public IReadOnlyList<VoxelFace> InnerFaces => innerFaces;
+    public IReadOnlyDictionary<OuterShellPlane, VoxelFace> OuterShellFaces => outerShellByPlane;
+
+	protected abstract List<VoxelFace> ConstructInnerFaces();
+	protected abstract Dictionary<OuterShellPlane, VoxelFace> ConstructOuterShellFaces();
+
+    protected virtual void OnEnable()
     {
+        RebuildRuntimeFaces();
     }
 
-    public Voxel(int dataId)
+    protected virtual void OnValidate()
     {
-        DataId = dataId;
+        RebuildRuntimeFaces();
     }
+
+    protected void RebuildRuntimeFaces()
+    {
+        innerFaces = ConstructInnerFaces() ?? new List<VoxelFace>();
+        outerShellByPlane = ConstructOuterShellFaces() ?? new Dictionary<OuterShellPlane, VoxelFace>();
+    }
+
 }

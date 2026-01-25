@@ -5,7 +5,7 @@ using UnityEngine;
 [Serializable]
 public class VoxelMapView
 {
-    [HideInInspector] [SerializeField] private VoxelDataRegistry registry;
+    [HideInInspector] [SerializeField] private VoxelRegistry registry;
     [SerializeField] private Material chunkMaterial;
     [SerializeField] private Transform target;
     [SerializeField] private int viewRadius = 1;
@@ -20,7 +20,7 @@ public class VoxelMapView
     private VoxelMapData mapData;
     private Transform owner;
 
-    public void Initialize(VoxelMapData data, VoxelDataRegistry registryValue, Transform ownerTransform)
+    public void Initialize(VoxelMapData data, VoxelRegistry registryValue, Transform ownerTransform)
     {
         mapData = data;
         owner = ownerTransform;
@@ -53,7 +53,7 @@ public class VoxelMapView
         }
     }
 
-    public void SetRegistry(VoxelDataRegistry value)
+    public void SetRegistry(VoxelRegistry value)
     {
         registry = value;
         mesher.SetRegistry(registry);

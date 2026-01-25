@@ -7,7 +7,7 @@ public class Chunk
     public const int SizeY = 64;
     public const int SizeZ = 16;
 
-    public Voxel[,,] Voxels = new Voxel[SizeX, SizeY, SizeZ];
+    public VoxelCell[,,] Voxels = new VoxelCell[SizeX, SizeY, SizeZ];
 
     public Chunk()
     {
@@ -17,7 +17,7 @@ public class Chunk
             {
                 for (int z = 0; z < SizeZ; z++)
                 {
-                    Voxels[x, y, z] = new Voxel(0);
+                    Voxels[x, y, z] = new VoxelCell(0);
                 }
             }
         }

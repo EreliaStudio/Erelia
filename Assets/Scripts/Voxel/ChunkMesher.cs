@@ -5,10 +5,8 @@ using UnityEngine;
 [System.Serializable]
 public class ChunkMesher
 {
-    [HideInInspector] private VoxelDataRegistry registry;
-    public Vector2Int AtlasSize = new Vector2Int(1, 1);
-
-    public void SetRegistry(VoxelDataRegistry value)
+    [HideInInspector] private VoxelRegistry registry;
+    public void SetRegistry(VoxelRegistry value)
     {
         registry = value;
     }
@@ -26,7 +24,7 @@ public class ChunkMesher
             {
                 for (int z = 0; z < Chunk.SizeZ; z++)
                 {
-                    AddCube(chunk, x, y, z, vertices, triangles, uvs);
+                    AddVoxel(chunk, x, y, z, vertices, triangles, uvs);
                 }
             }
         }
@@ -39,104 +37,122 @@ public class ChunkMesher
         return mesh;
     }
 
-    private void AddCube(Chunk chunk, int x, int y, int z, List<Vector3> vertices, List<int> triangles, List<Vector2> uvs)
+    private void AddVoxel(Chunk chunk, int x, int y, int z, List<Vector3> vertices, List<int> triangles, List<Vector2> uvs)
     {
-        if (!IsSolid(chunk, x, y, z))
+        if (!TryGetVoxelDefinition(chunk, x, y, z, out Voxel voxel))
         {
             return;
         }
 
         Vector3 position = new Vector3(x, y, z);
-        Vector2Int tileAnchor = GetTileAnchor(chunk.Voxels[x, y, z].DataId);
-        Vector3 p000 = position + new Vector3(0f, 0f, 0f);
-        Vector3 p001 = position + new Vector3(0f, 0f, 1f);
-        Vector3 p010 = position + new Vector3(0f, 1f, 0f);
-        Vector3 p011 = position + new Vector3(0f, 1f, 1f);
-        Vector3 p100 = position + new Vector3(1f, 0f, 0f);
-        Vector3 p101 = position + new Vector3(1f, 0f, 1f);
-        Vector3 p110 = position + new Vector3(1f, 1f, 0f);
-        Vector3 p111 = position + new Vector3(1f, 1f, 1f);
+        bool anyOuterVisible = false;
 
-        if (ShouldRenderFace(chunk, x, y, z, 1, 0, 0)) AddFace(p100, p101, p111, p110, tileAnchor, vertices, triangles, uvs); // +X
-        if (ShouldRenderFace(chunk, x, y, z, -1, 0, 0)) AddFace(p000, p010, p011, p001, tileAnchor, vertices, triangles, uvs); // -X
-        if (ShouldRenderFace(chunk, x, y, z, 0, 1, 0)) AddFace(p010, p110, p111, p011, tileAnchor, vertices, triangles, uvs); // +Y
-        if (ShouldRenderFace(chunk, x, y, z, 0, -1, 0)) AddFace(p000, p001, p101, p100, tileAnchor, vertices, triangles, uvs); // -Y
-        if (ShouldRenderFace(chunk, x, y, z, 0, 0, 1)) AddFace(p001, p011, p111, p101, tileAnchor, vertices, triangles, uvs); // +Z
-        if (ShouldRenderFace(chunk, x, y, z, 0, 0, -1)) AddFace(p000, p100, p110, p010, tileAnchor, vertices, triangles, uvs); // -Z
-    }
- 
-    private bool ShouldRenderFace(Chunk chunk, int x, int y, int z, int dx, int dy, int dz)
-    {
-        int nx = x + dx;
-        int ny = y + dy;
-        int nz = z + dz;
+        TryAddOuterFace(chunk, voxel, position, x, y, z, OuterShellPlane.PosX, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFace(chunk, voxel, position, x, y, z, OuterShellPlane.NegX, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFace(chunk, voxel, position, x, y, z, OuterShellPlane.PosY, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFace(chunk, voxel, position, x, y, z, OuterShellPlane.NegY, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFace(chunk, voxel, position, x, y, z, OuterShellPlane.PosZ, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFace(chunk, voxel, position, x, y, z, OuterShellPlane.NegZ, vertices, triangles, uvs, ref anyOuterVisible);
 
-        if (nx < 0 || nx >= Chunk.SizeX || ny < 0 || ny >= Chunk.SizeY || nz < 0 || nz >= Chunk.SizeZ)
+        if (anyOuterVisible)
         {
-            return true;
+            IReadOnlyList<VoxelFace> innerFaces = voxel.InnerFaces;
+            for (int i = 0; i < innerFaces.Count; i++)
+            {
+                AddFace(innerFaces[i], position, vertices, triangles, uvs);
+            }
+        }
+    }
+
+    private void TryAddOuterFace(
+        Chunk chunk,
+        Voxel voxel,
+        Vector3 position,
+        int x,
+        int y,
+        int z,
+        OuterShellPlane plane,
+        List<Vector3> vertices,
+        List<int> triangles,
+        List<Vector2> uvs,
+        ref bool anyOuterVisible)
+    {
+        Vector3Int offset = OuterShellPlaneUtil.PlaneToOffset(plane);
+        bool hasNeighbor = TryGetVoxelDefinition(chunk, x + offset.x, y + offset.y, z + offset.z, out Voxel neighbor);
+
+        if (!voxel.OuterShellFaces.TryGetValue(plane, out VoxelFace face))
+        {
+            return;
         }
 
-        return !IsSolid(chunk, nx, ny, nz);
+        if (face == null || face.Vertices.Count < 3)
+        {
+            return;
+        }
+
+        if (hasNeighbor)
+        {
+            OuterShellPlane oppositePlane = OuterShellPlaneUtil.GetOppositePlane(plane);
+            if (neighbor.OuterShellFaces.TryGetValue(oppositePlane, out VoxelFace otherFace)
+                && face.IsOccludedBy(otherFace))
+            {
+                return;
+            }
+        }
+
+        AddFace(face, position, vertices, triangles, uvs);
+        anyOuterVisible = true;
     }
 
-    private bool IsSolid(Chunk chunk, int x, int y, int z)
+    private bool TryGetVoxelDefinition(Chunk chunk, int x, int y, int z, out Voxel voxel)
     {
-        return chunk.Voxels[x, y, z].DataId != registry.AirId;
+        voxel = null;
+        if (registry == null)
+        {
+            return false;
+        }
+
+        if (x < 0 || x >= Chunk.SizeX || y < 0 || y >= Chunk.SizeY || z < 0 || z >= Chunk.SizeZ)
+        {
+            return false;
+        }
+
+        int id = chunk.Voxels[x, y, z].Id;
+        if (id == registry.AirId)
+        {
+            return false;
+        }
+
+        return registry.TryGetVoxel(id, out voxel) && voxel != null;
     }
 
     private void AddFace(
-        Vector3 a,
-        Vector3 b,
-        Vector3 c,
-        Vector3 d,
-        Vector2Int tileAnchor,
+        VoxelFace face,
+        Vector3 offset,
         List<Vector3> vertices,
         List<int> triangles,
         List<Vector2> uvs)
     {
+        if (face == null || face.Vertices.Count < 3)
+        {
+            return;
+        }
+
         int start = vertices.Count;
-        vertices.Add(a);
-        vertices.Add(b);
-        vertices.Add(c);
-        vertices.Add(d);
-
-        // Wind clockwise so normals face outward with Unity's default backface culling.
-        triangles.Add(start);
-        triangles.Add(start + 2);
-        triangles.Add(start + 1);
-        triangles.Add(start);
-        triangles.Add(start + 3);
-        triangles.Add(start + 2);
-
-        Vector2 tileSize = GetTileSize();
-        Vector2 uv0 = new Vector2(tileAnchor.x * tileSize.x, tileAnchor.y * tileSize.y);
-        Vector2 uv1 = new Vector2(uv0.x + tileSize.x, uv0.y);
-        Vector2 uv2 = new Vector2(uv0.x + tileSize.x, uv0.y + tileSize.y);
-        Vector2 uv3 = new Vector2(uv0.x, uv0.y + tileSize.y);
-
-        uvs.Add(uv0);
-        uvs.Add(uv1);
-        uvs.Add(uv2);
-        uvs.Add(uv3);
-    }
-
-    private Vector2Int GetTileAnchor(int dataId)
-    {
-        if (registry.TryGetData(dataId, out VoxelData voxelData) && voxelData != null)
+        List<FaceVertex> faceVertices = face.Vertices;
+        for (int i = 0; i < faceVertices.Count; i++)
         {
-            return voxelData.tileAnchor;
+            FaceVertex vertex = faceVertices[i];
+            vertices.Add(offset + vertex.Position);
+            uvs.Add(vertex.TileUV);
         }
 
-        return Vector2Int.zero;
-    }
-
-    private Vector2 GetTileSize()
-    {
-        if (AtlasSize.x <= 0 || AtlasSize.y <= 0)
+        for (int i = 1; i < faceVertices.Count - 1; i++)
         {
-            return Vector2.one;
+            triangles.Add(start);
+            triangles.Add(start + i + 1);
+            triangles.Add(start + i);
         }
-
-        return new Vector2(1f / AtlasSize.x, 1f / AtlasSize.y);
     }
+
 }

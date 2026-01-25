@@ -2,13 +2,13 @@ using UnityEngine;
 
 public class VoxelMap : MonoBehaviour
 {
-    [SerializeField] private VoxelDataRegistry voxelDataRegistry;
+    [SerializeField] private VoxelRegistry voxelDataRegistry;
     [SerializeField] private VoxelMapData data = new VoxelMapData();
     [SerializeField] private VoxelMapView view = new VoxelMapView();
 
     public VoxelMapData Data => data;
     public VoxelMapView View => view;
-    public VoxelDataRegistry Registry => voxelDataRegistry;
+    public VoxelRegistry Registry => voxelDataRegistry;
 
     private void Awake()
     {

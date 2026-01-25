@@ -4,10 +4,10 @@ using UnityEngine;
 [Serializable]
 public class ChunkGenerator
 {
-    [HideInInspector] [SerializeField] private VoxelDataRegistry registry;
+    [HideInInspector] [SerializeField] private VoxelRegistry registry;
     [SerializeField] private int seed = 0;
 
-    public void SetRegistry(VoxelDataRegistry value)
+    public void SetRegistry(VoxelRegistry value)
     {
         registry = value;
     }
@@ -35,7 +35,7 @@ public class ChunkGenerator
                         dataId = noise >= 0.5f ? 0 : 1;
                     }
 
-                    chunk.Voxels[x, y, z].DataId = dataId;
+                    chunk.Voxels[x, y, z].Id = dataId;
                 }
             }
         }

@@ -2,25 +2,25 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Voxel/VoxelDataRegistry")]
-public class VoxelDataRegistry : ScriptableObject
+[CreateAssetMenu(menuName = "Voxel/VoxelRegistry")]
+public class VoxelRegistry : ScriptableObject
 {
     [Serializable]
     public struct Entry
     {
         public int Id;
-        public VoxelData Data;
+        public Voxel Voxel;
     }
 
     [SerializeField] public int AirId = -1;
     [SerializeField] private List<Entry> entries = new List<Entry>();
-    private readonly Dictionary<int, VoxelData> data = new Dictionary<int, VoxelData>();
+    private readonly Dictionary<int, Voxel> data = new Dictionary<int, Voxel>();
 
-    public IReadOnlyDictionary<int, VoxelData> Data => data;
+    public IReadOnlyDictionary<int, Voxel> Data => data;
 
-    public bool TryGetData(int id, out VoxelData voxelData)
+    public bool TryGetVoxel(int id, out Voxel voxel)
     {
-        return data.TryGetValue(id, out voxelData);
+        return data.TryGetValue(id, out voxel);
     }
 
     private void OnEnable()
@@ -38,7 +38,7 @@ public class VoxelDataRegistry : ScriptableObject
         data.Clear();
         for (int i = 0; i < entries.Count; i++)
         {
-            data[entries[i].Id] = entries[i].Data;
+            data[entries[i].Id] = entries[i].Voxel;
         }
     }
 

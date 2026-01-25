@@ -7,11 +7,11 @@ public class VoxelMapData
 {
     public Dictionary<ChunkCoord, Chunk> Chunks = new Dictionary<ChunkCoord, Chunk>();
     [SerializeField] private ChunkGenerator generator = new ChunkGenerator();
-    [HideInInspector] [SerializeField] private VoxelDataRegistry registry;
+    [HideInInspector] [SerializeField] private VoxelRegistry registry;
 
-    public VoxelDataRegistry Registry => registry;
+    public VoxelRegistry Registry => registry;
 
-    public void SetRegistry(VoxelDataRegistry value)
+    public void SetRegistry(VoxelRegistry value)
     {
         registry = value;
         generator.SetRegistry(registry);

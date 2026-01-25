@@ -162,8 +162,7 @@ MonoBehaviour:
     verticalRadius: 0
     VisibleCoords: []
     mesher:
-      Registry: {fileID: 11400000, guid: 9cf48c2df7248ed45afc0a6ce2f2c5cc, type: 2}
-      AtlasSize: {x: 2, y: 1}
+      AtlasSize: {x: 3, y: 1}
 --- !u!4 &80715304
 Transform:
   m_ObjectHideFlags: 0
