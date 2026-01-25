@@ -52,7 +52,7 @@ public class ChunkGenerator
                             break;
                     }
 
-                    FlipOrientation flipOrientation = y < Chunk.SizeY / 2
+                    FlipOrientation flipOrientation = z < Chunk.SizeZ / 2
                         ? FlipOrientation.PositiveY
                         : FlipOrientation.NegativeY;
 

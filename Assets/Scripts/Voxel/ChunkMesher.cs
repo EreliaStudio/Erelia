@@ -236,19 +236,20 @@ public class ChunkMesher
         for (int i = 0; i < sourceVertices.Count; i++)
         {
             FaceVertex vertex = sourceVertices[i];
-            Vector3 local = vertex.Position - pivot;
+            Vector3 local = vertex.Position;
             if (steps != 0)
             {
+                Vector3 offset = local - pivot;
                 Quaternion rotation = Quaternion.AngleAxis(-steps * 90f, Vector3.up);
-                local = rotation * local;
+                local = rotation * offset + pivot;
             }
 
             if (flipOrientation == FlipOrientation.NegativeY)
             {
-                local.y = -local.y;
+                local.y = 1f - local.y;
             }
 
-            vertex.Position = local + pivot;
+            vertex.Position = local;
             rotated.Vertices.Add(vertex);
         }
 
