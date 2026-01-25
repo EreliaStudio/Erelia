@@ -52,7 +52,11 @@ public class ChunkGenerator
                             break;
                     }
 
-                    chunk.Voxels[x, y, z] = new VoxelCell(dataId, orientation);
+                    FlipOrientation flipOrientation = y < Chunk.SizeY / 2
+                        ? FlipOrientation.PositiveY
+                        : FlipOrientation.NegativeY;
+
+                    chunk.Voxels[x, y, z] = new VoxelCell(dataId, orientation, flipOrientation);
                 }
             }
         }

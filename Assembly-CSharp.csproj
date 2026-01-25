@@ -70,6 +70,7 @@
     <Compile Include="Assets\Scripts\Voxel\VoxelFace.cs" />
     <Compile Include="Assets\Scripts\Voxel\ChunkView.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelRegistry.cs" />
+    <Compile Include="Assets\Scripts\Voxel\FlipOrientation.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMap.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -45,22 +45,23 @@ public class ChunkMesher
         }
 
         Orientation orientation = chunk.Voxels[x, y, z].Orientation;
+        FlipOrientation flipOrientation = chunk.Voxels[x, y, z].FlipOrientation;
         Vector3 position = new Vector3(x, y, z);
         bool anyOuterVisible = false;
 
-        TryAddOuterFace(chunk, voxel, orientation, position, x, y, z, OuterShellPlane.PosX, vertices, triangles, uvs, ref anyOuterVisible);
-        TryAddOuterFace(chunk, voxel, orientation, position, x, y, z, OuterShellPlane.NegX, vertices, triangles, uvs, ref anyOuterVisible);
-        TryAddOuterFace(chunk, voxel, orientation, position, x, y, z, OuterShellPlane.PosY, vertices, triangles, uvs, ref anyOuterVisible);
-        TryAddOuterFace(chunk, voxel, orientation, position, x, y, z, OuterShellPlane.NegY, vertices, triangles, uvs, ref anyOuterVisible);
-        TryAddOuterFace(chunk, voxel, orientation, position, x, y, z, OuterShellPlane.PosZ, vertices, triangles, uvs, ref anyOuterVisible);
-        TryAddOuterFace(chunk, voxel, orientation, position, x, y, z, OuterShellPlane.NegZ, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFace(chunk, voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.PosX, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFace(chunk, voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.NegX, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFace(chunk, voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.PosY, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFace(chunk, voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.NegY, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFace(chunk, voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.PosZ, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFace(chunk, voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.NegZ, vertices, triangles, uvs, ref anyOuterVisible);
 
         if (anyOuterVisible)
         {
             IReadOnlyList<VoxelFace> innerFaces = voxel.InnerFaces;
             for (int i = 0; i < innerFaces.Count; i++)
             {
-                AddFace(RotateFace(innerFaces[i], orientation), position, vertices, triangles, uvs);
+                AddFace(TransformFace(innerFaces[i], orientation, flipOrientation), position, vertices, triangles, uvs);
             }
         }
     }
@@ -69,6 +70,7 @@ public class ChunkMesher
         Chunk chunk,
         Voxel voxel,
         Orientation orientation,
+        FlipOrientation flipOrientation,
         Vector3 position,
         int x,
         int y,
@@ -85,7 +87,7 @@ public class ChunkMesher
         int neighborZ = z + offset.z;
         bool hasNeighbor = TryGetVoxelDefinition(chunk, neighborX, neighborY, neighborZ, out Voxel neighbor);
 
-        OuterShellPlane localPlane = MapWorldPlaneToLocal(plane, orientation);
+        OuterShellPlane localPlane = MapWorldPlaneToLocal(plane, orientation, flipOrientation);
         if (!voxel.OuterShellFaces.TryGetValue(localPlane, out VoxelFace face))
         {
             return;
@@ -105,15 +107,16 @@ public class ChunkMesher
             $"inBounds={inBounds} hasNeighbor={hasNeighbor} neighborId={neighborId}");
 
         bool isOccluded = false;
-        VoxelFace rotatedFace = RotateFace(face, orientation);
+        VoxelFace rotatedFace = TransformFace(face, orientation, flipOrientation);
         if (hasNeighbor)
         {
             OuterShellPlane oppositePlane = OuterShellPlaneUtil.GetOppositePlane(plane);
             Orientation neighborOrientation = chunk.Voxels[neighborX, neighborY, neighborZ].Orientation;
-            OuterShellPlane neighborLocalPlane = MapWorldPlaneToLocal(oppositePlane, neighborOrientation);
+            FlipOrientation neighborFlipOrientation = chunk.Voxels[neighborX, neighborY, neighborZ].FlipOrientation;
+            OuterShellPlane neighborLocalPlane = MapWorldPlaneToLocal(oppositePlane, neighborOrientation, neighborFlipOrientation);
             if (neighbor.OuterShellFaces.TryGetValue(neighborLocalPlane, out VoxelFace otherFace))
             {
-                VoxelFace rotatedOtherFace = RotateFace(otherFace, neighborOrientation);
+                VoxelFace rotatedOtherFace = TransformFace(otherFace, neighborOrientation, neighborFlipOrientation);
                 if (rotatedFace.IsOccludedBy(rotatedOtherFace))
                 {
                     isOccluded = true;
@@ -176,6 +179,17 @@ public class ChunkMesher
         return RotatePlane(plane, -OrientationToSteps(orientation));
     }
 
+    private static OuterShellPlane MapWorldPlaneToLocal(OuterShellPlane plane, Orientation orientation, FlipOrientation flipOrientation)
+    {
+        OuterShellPlane rotated = RotatePlane(plane, -OrientationToSteps(orientation));
+        if (flipOrientation == FlipOrientation.NegativeY)
+        {
+            return FlipPlaneY(rotated);
+        }
+
+        return rotated;
+    }
+
     private static OuterShellPlane RotatePlane(OuterShellPlane plane, int steps)
     {
         int normalized = ((steps % 4) + 4) % 4;
@@ -195,7 +209,20 @@ public class ChunkMesher
         return plane;
     }
 
-    private static VoxelFace RotateFace(VoxelFace face, Orientation orientation)
+    private static OuterShellPlane FlipPlaneY(OuterShellPlane plane)
+    {
+        switch (plane)
+        {
+            case OuterShellPlane.PosY:
+                return OuterShellPlane.NegY;
+            case OuterShellPlane.NegY:
+                return OuterShellPlane.PosY;
+            default:
+                return plane;
+        }
+    }
+
+    private static VoxelFace TransformFace(VoxelFace face, Orientation orientation, FlipOrientation flipOrientation)
     {
         if (face == null || face.Vertices == null || face.Vertices.Count == 0)
         {
@@ -203,12 +230,6 @@ public class ChunkMesher
         }
 
         int steps = OrientationToSteps(orientation);
-        if (steps == 0)
-        {
-            return face;
-        }
-
-        Quaternion rotation = Quaternion.AngleAxis(-steps * 90f, Vector3.up);
         var rotated = new VoxelFace();
         Vector3 pivot = new Vector3(0.5f, 0.5f, 0.5f);
         List<FaceVertex> sourceVertices = face.Vertices;
@@ -216,9 +237,24 @@ public class ChunkMesher
         {
             FaceVertex vertex = sourceVertices[i];
             Vector3 local = vertex.Position - pivot;
-            local = rotation * local;
+            if (steps != 0)
+            {
+                Quaternion rotation = Quaternion.AngleAxis(-steps * 90f, Vector3.up);
+                local = rotation * local;
+            }
+
+            if (flipOrientation == FlipOrientation.NegativeY)
+            {
+                local.y = -local.y;
+            }
+
             vertex.Position = local + pivot;
             rotated.Vertices.Add(vertex);
+        }
+
+        if (flipOrientation == FlipOrientation.NegativeY)
+        {
+            rotated.Vertices.Reverse();
         }
 
         return rotated;
