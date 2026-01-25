@@ -3,72 +3,32 @@ using UnityEngine;
 
 public static class GeometryUtils
 {
-    public static VoxelFace CreateFace(Vector3 posAnchor, Vector3 posSize, Vector2 uvAnchor, Vector2 uvSize)
+    public struct Vertex
     {
-        Vector3 u = Vector3.zero;
-        Vector3 v = Vector3.zero;
-
-        float ax = Mathf.Abs(posSize.x);
-        float ay = Mathf.Abs(posSize.y);
-        float az = Mathf.Abs(posSize.z);
-
-        if (ax >= ay && ax >= az)
-        {
-            u = new Vector3(posSize.x, 0f, 0f);
-            v = ay >= az ? new Vector3(0f, posSize.y, 0f) : new Vector3(0f, 0f, posSize.z);
-        }
-        else if (ay >= ax && ay >= az)
-        {
-            u = new Vector3(0f, posSize.y, 0f);
-            v = ax >= az ? new Vector3(posSize.x, 0f, 0f) : new Vector3(0f, 0f, posSize.z);
-        }
-        else
-        {
-            // Swap winding for Z-dominant faces to keep normals consistent.
-            u = ax >= ay ? new Vector3(posSize.x, 0f, 0f) : new Vector3(0f, posSize.y, 0f);
-            v = new Vector3(0f, 0f, posSize.z);
-        }
-
-        if (u == Vector3.zero || v == Vector3.zero)
-        {
-            return new VoxelFace();
-        }
-
-        Vector3 a = posAnchor;
-        Vector3 b = posAnchor + u;
-        Vector3 c = posAnchor + u + v;
-        Vector3 d = posAnchor + v;
-
-        bool reverseWinding = (posSize.x < 0f) ^ (posSize.y < 0f) ^ (posSize.z < 0f);
-        return CreateFaceFromCorners(a, b, c, d, uvAnchor, uvSize, reverseWinding);
+        public Vector3 Position;
+        public Vector2 UV;
     }
 
-    public static VoxelFace CreateFaceFromCorners(Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector2 uvAnchor, Vector2 uvSize)
+    public static VoxelFace CreateRectangle(Vertex a, Vertex b, Vertex c, Vertex d)
     {
-        return CreateFaceFromCorners(a, b, c, d, uvAnchor, uvSize, false);
-    }
-
-    public static VoxelFace CreateFaceFromCorners(Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector2 uvAnchor, Vector2 uvSize, bool reverseWinding)
-    {
-        if (reverseWinding)
-        {
-            Vector3 temp = b;
-            b = d;
-            d = temp;
-        }
-
         var face = new VoxelFace();
         var verts = face.Vertices;
 
-        Vector2 uvA = uvAnchor;
-        Vector2 uvB = uvAnchor + new Vector2(uvSize.x, 0f);
-        Vector2 uvC = uvAnchor + uvSize;
-        Vector2 uvD = uvAnchor + new Vector2(0f, uvSize.y);
+        verts.Add(new FaceVertex { Position = a.Position, TileUV = a.UV });
+        verts.Add(new FaceVertex { Position = b.Position, TileUV = b.UV });
+        verts.Add(new FaceVertex { Position = c.Position, TileUV = c.UV });
+        verts.Add(new FaceVertex { Position = d.Position, TileUV = d.UV });
+        return face;
+    }
 
-        verts.Add(new FaceVertex { Position = a, TileUV = uvA });
-        verts.Add(new FaceVertex { Position = b, TileUV = uvB });
-        verts.Add(new FaceVertex { Position = c, TileUV = uvC });
-        verts.Add(new FaceVertex { Position = d, TileUV = uvD });
+    public static VoxelFace CreateTriangle(Vertex a, Vertex b, Vertex c)
+    {
+        var face = new VoxelFace();
+        var verts = face.Vertices;
+
+        verts.Add(new FaceVertex { Position = a.Position, TileUV = a.UV });
+        verts.Add(new FaceVertex { Position = b.Position, TileUV = b.UV });
+        verts.Add(new FaceVertex { Position = c.Position, TileUV = c.UV });
         return face;
     }
 

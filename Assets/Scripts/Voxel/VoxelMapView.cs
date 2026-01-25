@@ -8,7 +8,7 @@ public class VoxelMapView
     [HideInInspector] [SerializeField] private VoxelRegistry registry;
     [SerializeField] private Material chunkMaterial;
     [SerializeField] private Transform target;
-    [SerializeField] private int viewRadius = 1;
+    [SerializeField] private int viewRadius = 0;
     [SerializeField] private int verticalRadius = 0;
 
     [HideInInspector] public List<ChunkCoord> VisibleCoords = new List<ChunkCoord>();
@@ -24,6 +24,8 @@ public class VoxelMapView
     {
         mapData = data;
         owner = ownerTransform;
+        viewRadius = 0;
+        verticalRadius = 0;
         SetRegistry(registryValue);
     }
 

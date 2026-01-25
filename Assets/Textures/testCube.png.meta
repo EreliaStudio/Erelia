@@ -97,7 +97,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: CubeA
+      name: CubeDefault
       rect:
         serializedVersion: 2
         x: 0
@@ -112,14 +112,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d4db4b2d8fc85a94ebc7242b7984a4c0
-      internalID: 736575760
+      spriteID: c8cdd355a0ed60247a1f6acfa23f8abe
+      internalID: -710312497
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SlopeA
+      name: SlopeDefault
       rect:
         serializedVersion: 2
         x: 16
@@ -134,14 +134,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: bc1c20697d6ab9f44bb0b498e418d6e3
-      internalID: 1609064274
+      spriteID: 875f316fde4f6434e9e9e7038bcf6a9e
+      internalID: 1851605147
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SlopeB
+      name: SlopeSlope
       rect:
         serializedVersion: 2
         x: 32
@@ -156,8 +156,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f8b94b80feeca944397a3738725ab1cc
-      internalID: 1299054916
+      spriteID: a2dac4cfe0de7c84186e25e223567317
+      internalID: 310415147
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SlopeSide
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e85f1f76bd7569743b837c6758bb3093
+      internalID: -935574153
       vertices: []
       indices: 
       edges: []
@@ -176,11 +198,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":3.0,"y":1.0},"gridSpriteSize":{"x":16.0,"y":16.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":16.0,"y":16.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      CubeA: 736575760
-      SlopeA: 1609064274
-      SlopeB: 1299054916
+      CubeDefault: -710312497
+      SlopeDefault: 1851605147
+      SlopeSide: -935574153
+      SlopeSlope: 310415147
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

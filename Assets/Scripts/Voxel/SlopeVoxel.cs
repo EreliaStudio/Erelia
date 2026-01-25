@@ -4,24 +4,26 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Voxel/Slope")]
 public class SlopeVoxel : Voxel
 {
-    [SerializeField] private Sprite spritePosX;
-    [SerializeField] private Sprite spriteNegX;
+    [SerializeField] private Sprite spriteBack;
+    [SerializeField] private Sprite spriteBottom;
     [SerializeField] private Sprite spriteSlope;
-    [SerializeField] private Sprite spriteNegZ;
-    [SerializeField] private Sprite spriteNegY;
+    [SerializeField] private Sprite spriteSideLeft;
+    [SerializeField] private Sprite spriteSideRight;
 
 	protected override List<VoxelFace> ConstructInnerFaces()
 	{
 		var faces = new List<VoxelFace>();
 
         SpriteUvUtils.GetSpriteUvRect(spriteSlope, out Vector2 uvAnchor, out Vector2 uvSize);
-		VoxelFace slope = GeometryUtils.CreateFaceFromCorners(
-			new Vector3(0f, 0f, 0f),
-			new Vector3(1f, 0f, 0f),
-			new Vector3(1f, 1f, 1f),
-			new Vector3(0f, 1f, 1f),
-			uvAnchor,
-			uvSize);
+		Vector2 uvA = uvAnchor;
+		Vector2 uvB = uvAnchor + new Vector2(uvSize.x, 0f);
+		Vector2 uvC = uvAnchor + uvSize;
+		Vector2 uvD = uvAnchor + new Vector2(0f, uvSize.y);
+		VoxelFace slope = GeometryUtils.CreateRectangle(
+			new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvA },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvB },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvC },
+			new GeometryUtils.Vertex { Position = new Vector3(0f, 1f, 1f), UV = uvD });
 		faces.Add(slope);
 
 		return faces;
@@ -30,39 +32,61 @@ public class SlopeVoxel : Voxel
 	protected override Dictionary<OuterShellPlane, VoxelFace> ConstructOuterShellFaces()
 	{
 		var faces = new Dictionary<OuterShellPlane, VoxelFace>();
+		Vector2 uvAnchor = Vector2.zero;
+		Vector2 uvSize = Vector2.zero;
+		Vector2 uvA = Vector2.zero;
+		Vector2 uvB = Vector2.zero;
+		Vector2 uvC = Vector2.zero;
+		Vector2 uvD = Vector2.zero;
+		Vector2 uvTriA = Vector2.zero;
+		Vector2 uvTriB = Vector2.zero;
+		Vector2 uvTriC = Vector2.zero;
 
-        SpriteUvUtils.GetSpriteUvRect(spritePosX, out Vector2 uvAnchor, out Vector2 uvSize);
-		VoxelFace posX = GeometryUtils.CreateFace(
-			new Vector3(1f, 0f, 0f),
-			new Vector3(0f, 1f, 1f),
-			uvAnchor,
-			uvSize);
+        SpriteUvUtils.GetSpriteUvRect(spriteSideRight, out uvAnchor, out uvSize);
+		uvTriA = uvAnchor;
+		uvTriB = uvAnchor + new Vector2(uvSize.x, 0f);
+		uvTriC = uvAnchor + new Vector2(0f, uvSize.y);
+		VoxelFace posX = GeometryUtils.CreateTriangle(
+			new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvTriA },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvTriB },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvTriC });
 		faces[OuterShellPlane.PosX] = posX;
 
-        SpriteUvUtils.GetSpriteUvRect(spriteNegX, out uvAnchor, out uvSize);
-		VoxelFace negX = GeometryUtils.CreateFace(
-			new Vector3(0f, 0f, 0f),
-			new Vector3(0f, 1f, 1f),
-			uvAnchor,
-			uvSize);
+        SpriteUvUtils.GetSpriteUvRect(spriteSideLeft, out uvAnchor, out uvSize);
+		uvTriA = uvAnchor;
+		uvTriB = uvAnchor + new Vector2(uvSize.x, 0f);
+		uvTriC = uvAnchor + new Vector2(0f, uvSize.y);
+		VoxelFace negX = GeometryUtils.CreateTriangle(
+			new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvTriA },
+			new GeometryUtils.Vertex { Position = new Vector3(0f, 1f, 1f), UV = uvTriB },
+			new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvTriC });
 		faces[OuterShellPlane.NegX] = negX;
 
-        SpriteUvUtils.GetSpriteUvRect(spriteNegY, out uvAnchor, out uvSize);
-		VoxelFace negY = GeometryUtils.CreateFace(
-			new Vector3(0f, 0f, 0f),
-			new Vector3(1f, 0f, 1f),
-			uvAnchor,
-			uvSize);
+        SpriteUvUtils.GetSpriteUvRect(spriteBottom, out uvAnchor, out uvSize);
+		uvA = uvAnchor;
+		uvB = uvAnchor + new Vector2(uvSize.x, 0f);
+		uvC = uvAnchor + uvSize;
+		uvD = uvAnchor + new Vector2(0f, uvSize.y);
+		VoxelFace negY = GeometryUtils.CreateRectangle(
+			new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvA },
+			new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvB },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvC },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvD });
 		faces[OuterShellPlane.NegY] = negY;
 
-        SpriteUvUtils.GetSpriteUvRect(spriteNegZ, out uvAnchor, out uvSize);
-		VoxelFace negZ = GeometryUtils.CreateFace(
-			new Vector3(0f, 0f, 0f),
-			new Vector3(1f, 1f, 0f),
-			uvAnchor,
-			uvSize);
-		faces[OuterShellPlane.NegZ] = negZ;
+        SpriteUvUtils.GetSpriteUvRect(spriteBack, out uvAnchor, out uvSize);
+		uvA = uvAnchor;
+		uvB = uvAnchor + new Vector2(uvSize.x, 0f);
+		uvC = uvAnchor + uvSize;
+		uvD = uvAnchor + new Vector2(0f, uvSize.y);
+		VoxelFace posZ = GeometryUtils.CreateRectangle(
+			new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvA },
+			new GeometryUtils.Vertex { Position = new Vector3(0f, 1f, 1f), UV = uvB },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvC },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvD });
+		faces[OuterShellPlane.PosZ] = posZ;
 
 		return faces;
 	}
+
 }

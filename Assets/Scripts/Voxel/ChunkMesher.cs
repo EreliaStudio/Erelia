@@ -78,7 +78,10 @@ public class ChunkMesher
         ref bool anyOuterVisible)
     {
         Vector3Int offset = OuterShellPlaneUtil.PlaneToOffset(plane);
-        bool hasNeighbor = TryGetVoxelDefinition(chunk, x + offset.x, y + offset.y, z + offset.z, out Voxel neighbor);
+        int neighborX = x + offset.x;
+        int neighborY = y + offset.y;
+        int neighborZ = z + offset.z;
+        bool hasNeighbor = TryGetVoxelDefinition(chunk, neighborX, neighborY, neighborZ, out Voxel neighbor);
 
         if (!voxel.OuterShellFaces.TryGetValue(plane, out VoxelFace face))
         {
@@ -90,14 +93,30 @@ public class ChunkMesher
             return;
         }
 
+        bool inBounds = neighborX >= 0 && neighborX < Chunk.SizeX
+            && neighborY >= 0 && neighborY < Chunk.SizeY
+            && neighborZ >= 0 && neighborZ < Chunk.SizeZ;
+        int neighborId = inBounds ? chunk.Voxels[neighborX, neighborY, neighborZ].Id : registry != null ? registry.AirId : 0;
+        Debug.Log(
+            $"Occlusion check: voxel ({x},{y},{z}) plane {plane} -> neighbor ({neighborX},{neighborY},{neighborZ}) " +
+            $"inBounds={inBounds} hasNeighbor={hasNeighbor} neighborId={neighborId}");
+
+        bool isOccluded = false;
         if (hasNeighbor)
         {
             OuterShellPlane oppositePlane = OuterShellPlaneUtil.GetOppositePlane(plane);
             if (neighbor.OuterShellFaces.TryGetValue(oppositePlane, out VoxelFace otherFace)
                 && face.IsOccludedBy(otherFace))
             {
-                return;
+                isOccluded = true;
             }
+        }
+
+        Debug.Log($"Occlusion result: voxel ({x},{y},{z}) plane {plane} occluded={isOccluded}");
+
+        if (isOccluded)
+        {
+            return;
         }
 
         AddFace(face, position, vertices, triangles, uvs);
