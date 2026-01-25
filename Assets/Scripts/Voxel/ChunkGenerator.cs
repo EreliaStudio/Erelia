@@ -35,7 +35,24 @@ public class ChunkGenerator
                         dataId = noise >= 0.5f ? 0 : 1;
                     }
 
-                    chunk.Voxels[x, y, z] = new VoxelCell(dataId, Orientation.PositiveX);
+                    Orientation orientation;
+                    switch (z % 4)
+                    {
+                        case 0:
+                            orientation = Orientation.PositiveX;
+                            break;
+                        case 1:
+                            orientation = Orientation.PositiveZ;
+                            break;
+                        case 2:
+                            orientation = Orientation.NegativeX;
+                            break;
+                        default:
+                            orientation = Orientation.NegativeZ;
+                            break;
+                    }
+
+                    chunk.Voxels[x, y, z] = new VoxelCell(dataId, orientation);
                 }
             }
         }

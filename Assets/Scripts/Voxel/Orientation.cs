@@ -1,7 +1,7 @@
 public enum Orientation
 {
     PositiveX,
-    PositiveY,
+    PositiveZ,
     NegativeX,
-    NegativeY
+    NegativeZ
 }
