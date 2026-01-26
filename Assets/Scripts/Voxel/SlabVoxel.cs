@@ -13,7 +13,21 @@ public class SlabVoxel : Voxel
 
     protected override List<VoxelFace> ConstructInnerFaces()
     {
-        return new List<VoxelFace>();
+        var faces = new List<VoxelFace>();
+
+        SpriteUvUtils.GetSpriteUvRect(spritePosY, out Vector2 uvAnchor, out Vector2 uvSize);
+        Vector2 uvA = uvAnchor;
+        Vector2 uvB = uvAnchor + new Vector2(uvSize.x, 0f);
+        Vector2 uvC = uvAnchor + uvSize;
+        Vector2 uvD = uvAnchor + new Vector2(0f, uvSize.y);
+        VoxelFace posY = GeometryUtils.CreateRectangle(
+            new GeometryUtils.Vertex { Position = new Vector3(0f, 0.5f, 0f), UV = uvA },
+            new GeometryUtils.Vertex { Position = new Vector3(1f, 0.5f, 0f), UV = uvB },
+            new GeometryUtils.Vertex { Position = new Vector3(1f, 0.5f, 1f), UV = uvC },
+            new GeometryUtils.Vertex { Position = new Vector3(0f, 0.5f, 1f), UV = uvD });
+        faces.Add(posY);
+
+        return faces;
     }
 
     protected override Dictionary<OuterShellPlane, VoxelFace> ConstructOuterShellFaces()
@@ -21,10 +35,12 @@ public class SlabVoxel : Voxel
         var faces = new Dictionary<OuterShellPlane, VoxelFace>();
 
         SpriteUvUtils.GetSpriteUvRect(spritePosX, out Vector2 uvAnchor, out Vector2 uvSize);
-        Vector2 uvA = uvAnchor;
-        Vector2 uvB = uvAnchor + new Vector2(uvSize.x, 0f);
-        Vector2 uvC = uvAnchor + uvSize;
-        Vector2 uvD = uvAnchor + new Vector2(0f, uvSize.y);
+        Vector2 halfUvSize = new Vector2(uvSize.x, uvSize.y * 0.5f);
+        Vector2 halfUvAnchor = uvAnchor;
+        Vector2 uvA = halfUvAnchor;
+        Vector2 uvB = halfUvAnchor + new Vector2(halfUvSize.x, 0f);
+        Vector2 uvC = halfUvAnchor + halfUvSize;
+        Vector2 uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
         VoxelFace posX = GeometryUtils.CreateRectangle(
             new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvA },
             new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvB },
@@ -33,28 +49,18 @@ public class SlabVoxel : Voxel
         faces[OuterShellPlane.PosX] = posX;
 
         SpriteUvUtils.GetSpriteUvRect(spriteNegX, out uvAnchor, out uvSize);
-        uvA = uvAnchor;
-        uvB = uvAnchor + new Vector2(uvSize.x, 0f);
-        uvC = uvAnchor + uvSize;
-        uvD = uvAnchor + new Vector2(0f, uvSize.y);
+        halfUvSize = new Vector2(uvSize.x, uvSize.y * 0.5f);
+        halfUvAnchor = uvAnchor;
+        uvA = halfUvAnchor;
+        uvB = halfUvAnchor + new Vector2(halfUvSize.x, 0f);
+        uvC = halfUvAnchor + halfUvSize;
+        uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
         VoxelFace negX = GeometryUtils.CreateRectangle(
             new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvA },
             new GeometryUtils.Vertex { Position = new Vector3(0f, 0.5f, 0f), UV = uvB },
             new GeometryUtils.Vertex { Position = new Vector3(0f, 0.5f, 1f), UV = uvC },
             new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvD });
         faces[OuterShellPlane.NegX] = negX;
-
-        SpriteUvUtils.GetSpriteUvRect(spritePosY, out uvAnchor, out uvSize);
-        uvA = uvAnchor;
-        uvB = uvAnchor + new Vector2(uvSize.x, 0f);
-        uvC = uvAnchor + uvSize;
-        uvD = uvAnchor + new Vector2(0f, uvSize.y);
-        VoxelFace posY = GeometryUtils.CreateRectangle(
-            new GeometryUtils.Vertex { Position = new Vector3(0f, 0.5f, 0f), UV = uvA },
-            new GeometryUtils.Vertex { Position = new Vector3(1f, 0.5f, 0f), UV = uvB },
-            new GeometryUtils.Vertex { Position = new Vector3(1f, 0.5f, 1f), UV = uvC },
-            new GeometryUtils.Vertex { Position = new Vector3(0f, 0.5f, 1f), UV = uvD });
-        faces[OuterShellPlane.PosY] = posY;
 
         SpriteUvUtils.GetSpriteUvRect(spriteNegY, out uvAnchor, out uvSize);
         uvA = uvAnchor;
@@ -69,10 +75,12 @@ public class SlabVoxel : Voxel
         faces[OuterShellPlane.NegY] = negY;
 
         SpriteUvUtils.GetSpriteUvRect(spritePosZ, out uvAnchor, out uvSize);
-        uvA = uvAnchor;
-        uvB = uvAnchor + new Vector2(uvSize.x, 0f);
-        uvC = uvAnchor + uvSize;
-        uvD = uvAnchor + new Vector2(0f, uvSize.y);
+        halfUvSize = new Vector2(uvSize.x, uvSize.y * 0.5f);
+        halfUvAnchor = uvAnchor;
+        uvA = halfUvAnchor;
+        uvB = halfUvAnchor + new Vector2(halfUvSize.x, 0f);
+        uvC = halfUvAnchor + halfUvSize;
+        uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
         VoxelFace posZ = GeometryUtils.CreateRectangle(
             new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvA },
             new GeometryUtils.Vertex { Position = new Vector3(0f, 0.5f, 1f), UV = uvB },
@@ -81,10 +89,12 @@ public class SlabVoxel : Voxel
         faces[OuterShellPlane.PosZ] = posZ;
 
         SpriteUvUtils.GetSpriteUvRect(spriteNegZ, out uvAnchor, out uvSize);
-        uvA = uvAnchor;
-        uvB = uvAnchor + new Vector2(uvSize.x, 0f);
-        uvC = uvAnchor + uvSize;
-        uvD = uvAnchor + new Vector2(0f, uvSize.y);
+        halfUvSize = new Vector2(uvSize.x, uvSize.y * 0.5f);
+        halfUvAnchor = uvAnchor;
+        uvA = halfUvAnchor;
+        uvB = halfUvAnchor + new Vector2(halfUvSize.x, 0f);
+        uvC = halfUvAnchor + halfUvSize;
+        uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
         VoxelFace negZ = GeometryUtils.CreateRectangle(
             new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvA },
             new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvB },

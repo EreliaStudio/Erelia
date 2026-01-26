@@ -6,6 +6,17 @@ public class ChunkGenerator
 {
     [HideInInspector] [SerializeField] private VoxelRegistry registry;
     [SerializeField] private int seed = 0;
+    [Header("Voxel Ids")]
+    [SerializeField] private int cubeId = 0;
+    [SerializeField] private int stairId = 1;
+    [SerializeField] private int slopeId = 2;
+    [SerializeField] private int slabId = 3;
+
+    [Header("Layout (local coords)")]
+    [SerializeField] private int upperLayerY = 1;
+    [SerializeField] private int stairLine = 0;
+    [SerializeField] private int slopeLine = 2;
+    [SerializeField] private int slabLine = 4;
 
     public void SetRegistry(VoxelRegistry value)
     {
@@ -22,21 +33,31 @@ public class ChunkGenerator
             {
                 for (int z = 0; z < Chunk.SizeZ; z++)
                 {
-                    int worldY = (coord.Y * Chunk.SizeY) + y;
+                    int localY = y;
                     int dataId = registry.AirId;
 
-                    if (worldY == 0)
+                    if (localY == 0)
                     {
-                        float worldX = (coord.X * Chunk.SizeX) + x;
-                        float worldZ = (coord.Z * Chunk.SizeZ) + z;
-                        float noise = Mathf.PerlinNoise(
-                            (worldX + seed) * 0.1f,
-                            (worldZ + seed) * 0.1f);
-                        dataId = noise >= 0.5f ? 0 : 1;
+                        dataId = cubeId;
+                    }
+                    else if (localY == upperLayerY)
+                    {
+                        if (x == stairLine || z == stairLine)
+                        {
+                            dataId = stairId;
+                        }
+                        else if ((x == slopeLine || z == slopeLine) && x != stairLine && z != stairLine)
+                        {
+                            dataId = slopeId;
+                        }
+                        else if (x == slabLine || z == slabLine)
+                        {
+                            dataId = slabId;
+                        }
                     }
 
                     Orientation orientation;
-                    switch (z % 4)
+                    switch ((x + z) % 4)
                     {
                         case 0:
                             orientation = Orientation.PositiveX;
@@ -52,7 +73,7 @@ public class ChunkGenerator
                             break;
                     }
 
-                    FlipOrientation flipOrientation = z < Chunk.SizeZ / 2
+                    FlipOrientation flipOrientation = ((x + z + y) % 2 == 0)
                         ? FlipOrientation.PositiveY
                         : FlipOrientation.NegativeY;
 

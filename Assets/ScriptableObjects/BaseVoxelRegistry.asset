@@ -17,4 +17,8 @@ MonoBehaviour:
   - Id: 0
     Voxel: {fileID: 11400000, guid: 015bdb6e0cdb42c45bc8f8286642ff5b, type: 2}
   - Id: 1
+    Voxel: {fileID: 11400000, guid: 1e2fd1b9c5115d744800094fc21467e0, type: 2}
+  - Id: 2
     Voxel: {fileID: 11400000, guid: 6a14cd233b2be1e4281925e1ab4175fe, type: 2}
+  - Id: 3
+    Voxel: {fileID: 11400000, guid: c25caea4474fee24481d3c3e9fa2c6b8, type: 2}
