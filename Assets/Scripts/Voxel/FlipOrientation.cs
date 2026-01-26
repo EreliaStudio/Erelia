@@ -1,5 +1,5 @@
 public enum FlipOrientation
 {
-    PositiveY,
-    NegativeY
+	PositiveY,
+	NegativeY
 }

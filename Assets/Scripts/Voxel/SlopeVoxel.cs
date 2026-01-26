@@ -4,17 +4,17 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Voxel/Slope")]
 public class SlopeVoxel : Voxel
 {
-    [SerializeField] private Sprite spriteBack;
-    [SerializeField] private Sprite spriteBottom;
-    [SerializeField] private Sprite spriteSlope;
-    [SerializeField] private Sprite spriteSideLeft;
-    [SerializeField] private Sprite spriteSideRight;
+	[SerializeField] private Sprite spriteBack;
+	[SerializeField] private Sprite spriteBottom;
+	[SerializeField] private Sprite spriteSlope;
+	[SerializeField] private Sprite spriteSideLeft;
+	[SerializeField] private Sprite spriteSideRight;
 
 	protected override List<VoxelFace> ConstructInnerFaces()
 	{
 		var faces = new List<VoxelFace>();
 
-        SpriteUvUtils.GetSpriteUvRect(spriteSlope, out Vector2 uvAnchor, out Vector2 uvSize);
+		SpriteUvUtils.GetSpriteUvRect(spriteSlope, out Vector2 uvAnchor, out Vector2 uvSize);
 		Vector2 uvA = uvAnchor;
 		Vector2 uvB = uvAnchor + new Vector2(uvSize.x, 0f);
 		Vector2 uvC = uvAnchor + uvSize;
@@ -42,7 +42,7 @@ public class SlopeVoxel : Voxel
 		Vector2 uvTriB = Vector2.zero;
 		Vector2 uvTriC = Vector2.zero;
 
-        SpriteUvUtils.GetSpriteUvRect(spriteSideRight, out uvAnchor, out uvSize);
+		SpriteUvUtils.GetSpriteUvRect(spriteSideRight, out uvAnchor, out uvSize);
 		uvTriA = uvAnchor;
 		uvTriB = uvAnchor + new Vector2(uvSize.x, 0f);
 		uvTriC = uvAnchor + new Vector2(0f, uvSize.y);
@@ -52,7 +52,7 @@ public class SlopeVoxel : Voxel
 			new GeometryUtils.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvTriC });
 		faces[OuterShellPlane.PosX] = posX;
 
-        SpriteUvUtils.GetSpriteUvRect(spriteSideLeft, out uvAnchor, out uvSize);
+		SpriteUvUtils.GetSpriteUvRect(spriteSideLeft, out uvAnchor, out uvSize);
 		uvTriA = uvAnchor;
 		uvTriB = uvAnchor + new Vector2(uvSize.x, 0f);
 		uvTriC = uvAnchor + new Vector2(0f, uvSize.y);
@@ -62,7 +62,7 @@ public class SlopeVoxel : Voxel
 			new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvTriC });
 		faces[OuterShellPlane.NegX] = negX;
 
-        SpriteUvUtils.GetSpriteUvRect(spriteBottom, out uvAnchor, out uvSize);
+		SpriteUvUtils.GetSpriteUvRect(spriteBottom, out uvAnchor, out uvSize);
 		uvA = uvAnchor;
 		uvB = uvAnchor + new Vector2(uvSize.x, 0f);
 		uvC = uvAnchor + uvSize;
@@ -74,7 +74,7 @@ public class SlopeVoxel : Voxel
 			new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvD });
 		faces[OuterShellPlane.NegY] = negY;
 
-        SpriteUvUtils.GetSpriteUvRect(spriteBack, out uvAnchor, out uvSize);
+		SpriteUvUtils.GetSpriteUvRect(spriteBack, out uvAnchor, out uvSize);
 		uvA = uvAnchor;
 		uvB = uvAnchor + new Vector2(uvSize.x, 0f);
 		uvC = uvAnchor + uvSize;
