@@ -53,6 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Voxel\OuterShellPlane.cs" />
+    <Compile Include="Assets\Scripts\Voxel\CrossPlaneVoxel.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelCell.cs" />
     <Compile Include="Assets\Scripts\Voxel\GeometryUtils.cs" />
     <Compile Include="Assets\Scripts\Voxel\SlopeVoxel.cs" />

@@ -11,6 +11,7 @@ public class ChunkGenerator
     [SerializeField] private int stairId = 1;
     [SerializeField] private int slopeId = 2;
     [SerializeField] private int slabId = 3;
+    [SerializeField] private int crossPlaneId = 4;
 
     [Header("Layout (local coords)")]
     [SerializeField] private int upperLayerY = 1;
@@ -54,6 +55,10 @@ public class ChunkGenerator
                         {
                             dataId = slabId;
                         }
+						else
+						{
+							dataId = crossPlaneId;
+						}
                     }
 
                     Orientation orientation;
