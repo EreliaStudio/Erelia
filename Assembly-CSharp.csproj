@@ -56,13 +56,14 @@
     <Compile Include="Assets\Scripts\Voxel\VoxelCell.cs" />
     <Compile Include="Assets\Scripts\Voxel\GeometryUtils.cs" />
     <Compile Include="Assets\Scripts\Voxel\SlopeVoxel.cs" />
+    <Compile Include="Assets\Scripts\Voxel\SlabVoxel.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMapView.cs" />
     <Compile Include="Assets\Scripts\Voxel\ChunkGenerator.cs" />
     <Compile Include="Assets\Scripts\Voxel\Voxel.cs" />
+    <Compile Include="Assets\Scripts\Voxel\StairVoxel.cs" />
     <Compile Include="Assets\Scripts\Voxel\CubeVoxel.cs" />
     <Compile Include="Assets\Scripts\Voxel\SpriteUvUtils.cs" />
     <Compile Include="Assets\Scripts\Voxel\ChunkCoord.cs" />
-    <Compile Include="Assets\Scripts\Voxel\SlobVoxel.cs" />
     <Compile Include="Assets\Scripts\Voxel\ChunkMesher.cs" />
     <Compile Include="Assets\Scripts\Voxel\Chunk.cs" />
     <Compile Include="Assets\Scripts\Voxel\Orientation.cs" />

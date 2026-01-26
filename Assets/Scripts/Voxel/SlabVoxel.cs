@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Voxel/Slob")]
-public class SlobVoxel : Voxel
+[CreateAssetMenu(menuName = "Voxel/Slab")]
+public class SlabVoxel : Voxel
 {
     [SerializeField] private Sprite spritePosX;
     [SerializeField] private Sprite spriteNegX;

@@ -93,7 +93,7 @@ public class ChunkMesher
             return;
         }
 
-        if (face == null || face.Vertices.Count < 3)
+        if (face == null || !face.HasRenderablePolygons)
         {
             return;
         }
@@ -219,7 +219,7 @@ public class ChunkMesher
 
     private static VoxelFace TransformFace(VoxelFace face, Orientation orientation, FlipOrientation flipOrientation)
     {
-        if (face == null || face.Vertices == null || face.Vertices.Count == 0)
+        if (face == null || face.Polygons == null || face.Polygons.Count == 0)
         {
             return face;
         }
@@ -227,30 +227,42 @@ public class ChunkMesher
         int steps = OrientationToSteps(orientation);
         var rotated = new VoxelFace();
         Vector3 pivot = new Vector3(0.5f, 0.5f, 0.5f);
-        List<FaceVertex> sourceVertices = face.Vertices;
-        for (int i = 0; i < sourceVertices.Count; i++)
+        List<List<FaceVertex>> sourcePolygons = face.Polygons;
+        for (int p = 0; p < sourcePolygons.Count; p++)
         {
-            FaceVertex vertex = sourceVertices[i];
-            Vector3 local = vertex.Position;
-            if (steps != 0)
+            List<FaceVertex> sourceVertices = sourcePolygons[p];
+            if (sourceVertices == null || sourceVertices.Count == 0)
             {
-                Vector3 offset = local - pivot;
-                Quaternion rotation = Quaternion.AngleAxis(-steps * 90f, Vector3.up);
-                local = rotation * offset + pivot;
+                continue;
+            }
+
+            var rotatedPolygon = new List<FaceVertex>(sourceVertices.Count);
+            for (int i = 0; i < sourceVertices.Count; i++)
+            {
+                FaceVertex vertex = sourceVertices[i];
+                Vector3 local = vertex.Position;
+                if (steps != 0)
+                {
+                    Vector3 offset = local - pivot;
+                    Quaternion rotation = Quaternion.AngleAxis(-steps * 90f, Vector3.up);
+                    local = rotation * offset + pivot;
+                }
+
+                if (flipOrientation == FlipOrientation.NegativeY)
+                {
+                    local.y = 1f - local.y;
+                }
+
+                vertex.Position = local;
+                rotatedPolygon.Add(vertex);
             }
 
             if (flipOrientation == FlipOrientation.NegativeY)
             {
-                local.y = 1f - local.y;
+                rotatedPolygon.Reverse();
             }
 
-            vertex.Position = local;
-            rotated.Vertices.Add(vertex);
-        }
-
-        if (flipOrientation == FlipOrientation.NegativeY)
-        {
-            rotated.Vertices.Reverse();
+            rotated.Polygons.Add(rotatedPolygon);
         }
 
         return rotated;
@@ -263,25 +275,34 @@ public class ChunkMesher
         List<int> triangles,
         List<Vector2> uvs)
     {
-        if (face == null || face.Vertices.Count < 3)
+        if (face == null || face.Polygons == null || face.Polygons.Count == 0)
         {
             return;
         }
 
-        int start = vertices.Count;
-        List<FaceVertex> faceVertices = face.Vertices;
-        for (int i = 0; i < faceVertices.Count; i++)
+        List<List<FaceVertex>> facePolygons = face.Polygons;
+        for (int p = 0; p < facePolygons.Count; p++)
         {
-            FaceVertex vertex = faceVertices[i];
-            vertices.Add(offset + vertex.Position);
-            uvs.Add(vertex.TileUV);
-        }
+            List<FaceVertex> faceVertices = facePolygons[p];
+            if (faceVertices == null || faceVertices.Count < 3)
+            {
+                continue;
+            }
 
-        for (int i = 1; i < faceVertices.Count - 1; i++)
-        {
-            triangles.Add(start);
-            triangles.Add(start + i + 1);
-            triangles.Add(start + i);
+            int start = vertices.Count;
+            for (int i = 0; i < faceVertices.Count; i++)
+            {
+                FaceVertex vertex = faceVertices[i];
+                vertices.Add(offset + vertex.Position);
+                uvs.Add(vertex.TileUV);
+            }
+
+            for (int i = 1; i < faceVertices.Count - 1; i++)
+            {
+                triangles.Add(start);
+                triangles.Add(start + i + 1);
+                triangles.Add(start + i);
+            }
         }
     }
 
