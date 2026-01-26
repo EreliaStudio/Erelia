@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c6e3bcfc27b97e4495c9db3e372c399, type: 3}
   m_Name: Cube
   m_EditorClassIdentifier: Assembly-CSharp::CubeVoxel
-  spritePosX: {fileID: 736575760, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
-  spriteNegX: {fileID: 736575760, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
-  spritePosY: {fileID: 736575760, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
-  spriteNegY: {fileID: 736575760, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
-  spritePosZ: {fileID: 736575760, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
-  spriteNegZ: {fileID: 736575760, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+  spritePosX: {fileID: -710312497, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+  spriteNegX: {fileID: -710312497, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+  spritePosY: {fileID: -710312497, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+  spriteNegY: {fileID: -710312497, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+  spritePosZ: {fileID: -710312497, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+  spriteNegZ: {fileID: -710312497, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}

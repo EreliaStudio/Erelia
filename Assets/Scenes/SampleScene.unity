@@ -148,21 +148,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5fb97995c0655a41a5adcb415e63b7c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VoxelMap
-  voxelDataRegistry: {fileID: 11400000, guid: 9cf48c2df7248ed45afc0a6ce2f2c5cc, type: 2}
+  voxelDataRegistry: {fileID: 11400000, guid: 97476285c99467546a25efa403fce130, type: 2}
   data:
     generator:
-      registry: {fileID: 11400000, guid: 9cf48c2df7248ed45afc0a6ce2f2c5cc, type: 2}
+      registry: {fileID: 11400000, guid: 97476285c99467546a25efa403fce130, type: 2}
       seed: 0
-    registry: {fileID: 11400000, guid: 9cf48c2df7248ed45afc0a6ce2f2c5cc, type: 2}
+    registry: {fileID: 11400000, guid: 97476285c99467546a25efa403fce130, type: 2}
   view:
-    registry: {fileID: 11400000, guid: 9cf48c2df7248ed45afc0a6ce2f2c5cc, type: 2}
+    registry: {fileID: 11400000, guid: 97476285c99467546a25efa403fce130, type: 2}
     chunkMaterial: {fileID: 2100000, guid: 101af6d7eebbe5b44b9190b84c523d1d, type: 2}
     target: {fileID: 2136122632}
     viewRadius: 1
     verticalRadius: 0
     VisibleCoords: []
-    mesher:
-      AtlasSize: {x: 3, y: 1}
 --- !u!4 &80715304
 Transform:
   m_ObjectHideFlags: 0

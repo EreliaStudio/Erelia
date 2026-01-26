@@ -62,6 +62,7 @@
     <Compile Include="Assets\Scripts\Voxel\CubeVoxel.cs" />
     <Compile Include="Assets\Scripts\Voxel\SpriteUvUtils.cs" />
     <Compile Include="Assets\Scripts\Voxel\ChunkCoord.cs" />
+    <Compile Include="Assets\Scripts\Voxel\SlobVoxel.cs" />
     <Compile Include="Assets\Scripts\Voxel\ChunkMesher.cs" />
     <Compile Include="Assets\Scripts\Voxel\Chunk.cs" />
     <Compile Include="Assets\Scripts\Voxel\Orientation.cs" />
