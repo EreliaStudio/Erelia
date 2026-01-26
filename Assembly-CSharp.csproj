@@ -52,29 +52,29 @@
     <Analyzer Include="C:\Users\User\Documents\UnityProject\Erelia\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d\Runtime\MVVM\SourceGenerators\netstandard2.0\MVVMSourceGenerators.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Voxel\OuterShellPlane.cs" />
-    <Compile Include="Assets\Scripts\Voxel\CrossPlaneVoxel.cs" />
-    <Compile Include="Assets\Scripts\Voxel\VoxelCell.cs" />
-    <Compile Include="Assets\Scripts\Voxel\GeometryUtils.cs" />
-    <Compile Include="Assets\Scripts\Voxel\SlopeVoxel.cs" />
-    <Compile Include="Assets\Scripts\Voxel\SlabVoxel.cs" />
-    <Compile Include="Assets\Scripts\Voxel\VoxelMapView.cs" />
-    <Compile Include="Assets\Scripts\Voxel\ChunkGenerator.cs" />
-    <Compile Include="Assets\Scripts\Voxel\Voxel.cs" />
-    <Compile Include="Assets\Scripts\Voxel\StairVoxel.cs" />
-    <Compile Include="Assets\Scripts\Voxel\CubeVoxel.cs" />
-    <Compile Include="Assets\Scripts\Voxel\SpriteUvUtils.cs" />
-    <Compile Include="Assets\Scripts\Voxel\ChunkCoord.cs" />
-    <Compile Include="Assets\Scripts\Voxel\ChunkMesher.cs" />
-    <Compile Include="Assets\Scripts\Voxel\Chunk.cs" />
-    <Compile Include="Assets\Scripts\Voxel\Orientation.cs" />
-    <Compile Include="Assets\Scripts\Voxel\OuterShellPlaneUtil.cs" />
-    <Compile Include="Assets\Scripts\Voxel\VoxelMapData.cs" />
-    <Compile Include="Assets\Scripts\Voxel\VoxelFace.cs" />
-    <Compile Include="Assets\Scripts\Voxel\ChunkView.cs" />
-    <Compile Include="Assets\Scripts\Voxel\VoxelRegistry.cs" />
-    <Compile Include="Assets\Scripts\Voxel\FlipOrientation.cs" />
-    <Compile Include="Assets\Scripts\Voxel\VoxelMap.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Core\VoxelFace.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Rendering\ChunkMesher.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Types\CubeVoxel.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Map\VoxelMapView.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Rendering\ChunkView.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Core\VoxelRegistry.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Core\FlipOrientation.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Core\Orientation.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Core\Chunk.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Types\CrossPlaneVoxel.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Core\OuterShellPlane.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Map\VoxelMap.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Utils\SpriteUvUtils.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Map\VoxelMapData.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Utils\OuterShellPlaneUtil.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Core\Voxel.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Types\SlopeVoxel.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Types\SlabVoxel.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Types\StairVoxel.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Core\VoxelCell.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Utils\GeometryUtils.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Core\ChunkCoord.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Generation\ChunkGenerator.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

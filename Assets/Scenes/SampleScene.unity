@@ -167,7 +167,7 @@ MonoBehaviour:
     registry: {fileID: 11400000, guid: 97476285c99467546a25efa403fce130, type: 2}
     chunkMaterial: {fileID: 2100000, guid: 101af6d7eebbe5b44b9190b84c523d1d, type: 2}
     target: {fileID: 2136122632}
-    viewRadius: 0
+    viewRadius: 1
     verticalRadius: 0
     VisibleCoords: []
 --- !u!4 &80715304
@@ -272,7 +272,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.46193978, y: 0.33141357, z: -0.19134171, w: 0.8001032}
-  m_LocalPosition: {x: 40, y: 80, z: -40}
+  m_LocalPosition: {x: -5, y: 5, z: -5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
