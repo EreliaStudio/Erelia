@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 068b5ef0b6bbee54cbda80393cfc46c0, type: 3}
   m_Name: PlantA
   m_EditorClassIdentifier: Assembly-CSharp::CrossPlaneVoxel
-  sprite: {fileID: 0}
+  sprite: {fileID: -702225244, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}

@@ -22,3 +22,5 @@ MonoBehaviour:
     Voxel: {fileID: 11400000, guid: 6a14cd233b2be1e4281925e1ab4175fe, type: 2}
   - Id: 3
     Voxel: {fileID: 11400000, guid: c25caea4474fee24481d3c3e9fa2c6b8, type: 2}
+  - Id: 4
+    Voxel: {fileID: 11400000, guid: 66eb87023d01cca468de268eea41a9b7, type: 2}

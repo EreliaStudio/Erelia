@@ -37,15 +37,15 @@ TextureImporter:
     filterMode: 0
     aniso: 1
     mipBias: 0
-    wrapU: 1
-    wrapV: 1
+    wrapU: 0
+    wrapV: 0
     wrapW: 0
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
@@ -112,7 +112,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 8f57568ab02424c469a35f400fc1117d
+      spriteID: d6621f1d7c2f80e4297c058dda815fda
       internalID: -228545638
       vertices: []
       indices: 
@@ -134,7 +134,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d603cc77213c0304a86a71c1ab9bb37f
+      spriteID: d51938bfb0803bc4db30fd8e32b9fe3d
       internalID: 738025050
       vertices: []
       indices: 
@@ -156,7 +156,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ac4c554cfed7b8f4b9bf6654b606c90f
+      spriteID: 4336ac717e364fd4e99dc951405e6d89
       internalID: 310415147
       vertices: []
       indices: 
@@ -178,7 +178,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 77e1fb7433e0cb449b38df1c6c021436
+      spriteID: 8ad3c4b2f9080d9428c567a64dd3889d
       internalID: -935574153
       vertices: []
       indices: 
@@ -200,7 +200,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 956eb777366270c47af4d88c60b46ae6
+      spriteID: 05601c1b892822f4a9d67614ad86b8d0
       internalID: 1682147443
       vertices: []
       indices: 
@@ -222,14 +222,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1e08e5c01e46d6e4ba64a6f94dfccc41
+      spriteID: 475f611ec7aa56b44b2d85736f393938
       internalID: -31236449
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: StairTop
+      name: StairStep
       rect:
         serializedVersion: 2
         x: 96
@@ -244,8 +244,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 2dd197a60e6a6d54d99c078fd7d981b1
-      internalID: 1795229486
+      spriteID: baf89f431b59bf94fb995366f3564280
+      internalID: 1768014042
       vertices: []
       indices: 
       edges: []
@@ -266,7 +266,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3abebb751c855c1498ef107087e7e795
+      spriteID: bac70f260969a4942af3b3302ff90812
       internalID: -1971059485
       vertices: []
       indices: 
@@ -288,7 +288,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: bc7a3192a833d9e4da5db2043e1dfd52
+      spriteID: 476e6d98bb35272459200cfb4ba3a52b
       internalID: 1850431327
       vertices: []
       indices: 
@@ -310,7 +310,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 95cd37291e66e2848bc2157bc3f6742f
+      spriteID: 2b243beb22c5c3c41b69ccc22fcfd359
       internalID: -466251264
       vertices: []
       indices: 
@@ -332,7 +332,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b1b6090451df2ca4788ab0e052f9b391
+      spriteID: 481c4476561d8c544a4664fb4857961e
       internalID: -702225244
       vertices: []
       indices: 
@@ -352,7 +352,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":1,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":16.0,"y":16.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
       BushBase: -702225244
       CubeBase: -228545638
@@ -364,7 +364,7 @@ TextureImporter:
       StairBase: 1682147443
       StairRaiser: -31236449
       StairSide: -1971059485
-      StairTop: 1795229486
+      StairStep: 1768014042
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

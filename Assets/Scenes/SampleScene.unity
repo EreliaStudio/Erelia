@@ -153,12 +153,21 @@ MonoBehaviour:
     generator:
       registry: {fileID: 11400000, guid: 97476285c99467546a25efa403fce130, type: 2}
       seed: 0
+      cubeId: 0
+      stairId: 1
+      slopeId: 2
+      slabId: 3
+      crossPlaneId: 4
+      upperLayerY: 1
+      stairLine: 0
+      slopeLine: 2
+      slabLine: 4
     registry: {fileID: 11400000, guid: 97476285c99467546a25efa403fce130, type: 2}
   view:
     registry: {fileID: 11400000, guid: 97476285c99467546a25efa403fce130, type: 2}
     chunkMaterial: {fileID: 2100000, guid: 101af6d7eebbe5b44b9190b84c523d1d, type: 2}
     target: {fileID: 2136122632}
-    viewRadius: 1
+    viewRadius: 0
     verticalRadius: 0
     VisibleCoords: []
 --- !u!4 &80715304

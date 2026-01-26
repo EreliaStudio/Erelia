@@ -24,8 +24,6 @@ public class VoxelMapView
     {
         mapData = data;
         owner = ownerTransform;
-        viewRadius = 1;
-        verticalRadius = 0;
         SetRegistry(registryValue);
     }
 

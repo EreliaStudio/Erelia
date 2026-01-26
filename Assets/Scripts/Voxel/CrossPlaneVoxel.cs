@@ -24,9 +24,9 @@ public class CrossPlaneVoxel : Voxel
         faces.Add(planeA);
         VoxelFace planeABack = GeometryUtils.CreateRectangle(
             new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvA },
-            new GeometryUtils.Vertex { Position = new Vector3(0f, 1f, 0f), UV = uvB },
+            new GeometryUtils.Vertex { Position = new Vector3(0f, 1f, 0f), UV = uvD },
             new GeometryUtils.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvC },
-            new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvD });
+            new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvB });
         faces.Add(planeABack);
 
         VoxelFace planeB = GeometryUtils.CreateRectangle(
@@ -37,9 +37,9 @@ public class CrossPlaneVoxel : Voxel
         faces.Add(planeB);
         VoxelFace planeBBack = GeometryUtils.CreateRectangle(
             new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvA },
-            new GeometryUtils.Vertex { Position = new Vector3(1f, 1f, 0f), UV = uvB },
+            new GeometryUtils.Vertex { Position = new Vector3(1f, 1f, 0f), UV = uvD },
             new GeometryUtils.Vertex { Position = new Vector3(0f, 1f, 1f), UV = uvC },
-            new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvD });
+            new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvB });
         faces.Add(planeBBack);
 
         return faces;

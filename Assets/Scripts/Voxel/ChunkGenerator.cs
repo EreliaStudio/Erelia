@@ -61,29 +61,8 @@ public class ChunkGenerator
 						}
                     }
 
-                    Orientation orientation;
-                    switch ((x + z) % 4)
-                    {
-                        case 0:
-                            orientation = Orientation.PositiveX;
-                            break;
-                        case 1:
-                            orientation = Orientation.PositiveZ;
-                            break;
-                        case 2:
-                            orientation = Orientation.NegativeX;
-                            break;
-                        default:
-                            orientation = Orientation.NegativeZ;
-                            break;
-                    }
-
-                    FlipOrientation flipOrientation = ((x + z + y) % 2 == 0)
-                        ? FlipOrientation.PositiveY
-                        : FlipOrientation.NegativeY;
-
-                    chunk.Voxels[x, y, z] = new VoxelCell(dataId, orientation, flipOrientation);
-                }
+                    chunk.Voxels[x, y, z] = new VoxelCell(dataId, Orientation.PositiveX, FlipOrientation.PositiveY);
+				}
             }
         }
 

@@ -6,6 +6,36 @@ using UnityEngine;
 public class ChunkMesher
 {
     [HideInInspector] private VoxelRegistry registry;
+    private static readonly VoxelFace FullPosXFace = GeometryUtils.CreateRectangle(
+        new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 0f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 1f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(1f, 1f, 1f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(1f, 1f, 0f), UV = Vector2.zero });
+    private static readonly VoxelFace FullNegXFace = GeometryUtils.CreateRectangle(
+        new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 0f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(0f, 1f, 0f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(0f, 1f, 1f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 1f), UV = Vector2.zero });
+    private static readonly VoxelFace FullPosYFace = GeometryUtils.CreateRectangle(
+        new GeometryUtils.Vertex { Position = new Vector3(0f, 1f, 0f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(1f, 1f, 0f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(1f, 1f, 1f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(0f, 1f, 1f), UV = Vector2.zero });
+    private static readonly VoxelFace FullNegYFace = GeometryUtils.CreateRectangle(
+        new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 0f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 1f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 1f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 0f), UV = Vector2.zero });
+    private static readonly VoxelFace FullPosZFace = GeometryUtils.CreateRectangle(
+        new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 1f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(0f, 1f, 1f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(1f, 1f, 1f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 1f), UV = Vector2.zero });
+    private static readonly VoxelFace FullNegZFace = GeometryUtils.CreateRectangle(
+        new GeometryUtils.Vertex { Position = new Vector3(0f, 0f, 0f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 0f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(1f, 1f, 0f), UV = Vector2.zero },
+        new GeometryUtils.Vertex { Position = new Vector3(0f, 1f, 0f), UV = Vector2.zero });
     public void SetRegistry(VoxelRegistry value)
     {
         registry = value;
@@ -88,13 +118,13 @@ public class ChunkMesher
         bool hasNeighbor = TryGetVoxelDefinition(chunk, neighborX, neighborY, neighborZ, out Voxel neighbor);
 
         OuterShellPlane localPlane = MapWorldPlaneToLocal(plane, orientation, flipOrientation);
-        if (!voxel.OuterShellFaces.TryGetValue(localPlane, out VoxelFace face))
-        {
-            return;
-        }
 
-        if (face == null || !face.HasRenderablePolygons)
+        if (!voxel.OuterShellFaces.TryGetValue(localPlane, out VoxelFace face) || face == null || !face.HasRenderablePolygons)
         {
+            if (!IsFullyOccludedByNeighbor(chunk, neighbor, neighborX, neighborY, neighborZ, plane, hasNeighbor))
+            {
+                anyOuterVisible = true;
+            }
             return;
         }
 
@@ -128,6 +158,121 @@ public class ChunkMesher
 
         AddFace(rotatedFace, position, vertices, triangles, uvs);
         anyOuterVisible = true;
+    }
+
+    private bool IsFullyOccludedByNeighbor(
+        Chunk chunk,
+        Voxel neighbor,
+        int neighborX,
+        int neighborY,
+        int neighborZ,
+        OuterShellPlane plane,
+        bool hasNeighbor)
+    {
+        if (!hasNeighbor)
+        {
+            return false;
+        }
+
+        OuterShellPlane oppositePlane = OuterShellPlaneUtil.GetOppositePlane(plane);
+        Orientation neighborOrientation = chunk.Voxels[neighborX, neighborY, neighborZ].Orientation;
+        FlipOrientation neighborFlipOrientation = chunk.Voxels[neighborX, neighborY, neighborZ].FlipOrientation;
+        OuterShellPlane neighborLocalPlane = MapWorldPlaneToLocal(oppositePlane, neighborOrientation, neighborFlipOrientation);
+        if (!neighbor.OuterShellFaces.TryGetValue(neighborLocalPlane, out VoxelFace otherFace))
+        {
+            return false;
+        }
+
+        VoxelFace rotatedOtherFace = TransformFace(otherFace, neighborOrientation, neighborFlipOrientation);
+        if (!IsFaceCoplanarWithPlane(rotatedOtherFace, plane))
+        {
+            return false;
+        }
+
+        VoxelFace fullFace = GetFullOuterFace(plane);
+        return fullFace != null && fullFace.IsOccludedBy(rotatedOtherFace);
+    }
+
+    private static VoxelFace GetFullOuterFace(OuterShellPlane plane)
+    {
+        switch (plane)
+        {
+            case OuterShellPlane.PosX:
+                return FullPosXFace;
+            case OuterShellPlane.NegX:
+                return FullNegXFace;
+            case OuterShellPlane.PosY:
+                return FullPosYFace;
+            case OuterShellPlane.NegY:
+                return FullNegYFace;
+            case OuterShellPlane.PosZ:
+                return FullPosZFace;
+            case OuterShellPlane.NegZ:
+                return FullNegZFace;
+            default:
+                return null;
+        }
+    }
+
+    private static bool IsFaceCoplanarWithPlane(VoxelFace face, OuterShellPlane plane)
+    {
+        if (face == null || face.Polygons == null || face.Polygons.Count == 0)
+        {
+            return false;
+        }
+
+        float target = 0f;
+        int axis = 0;
+        switch (plane)
+        {
+            case OuterShellPlane.PosX:
+                axis = 0;
+                target = 1f;
+                break;
+            case OuterShellPlane.NegX:
+                axis = 0;
+                target = 0f;
+                break;
+            case OuterShellPlane.PosY:
+                axis = 1;
+                target = 1f;
+                break;
+            case OuterShellPlane.NegY:
+                axis = 1;
+                target = 0f;
+                break;
+            case OuterShellPlane.PosZ:
+                axis = 2;
+                target = 1f;
+                break;
+            case OuterShellPlane.NegZ:
+                axis = 2;
+                target = 0f;
+                break;
+        }
+
+        const float epsilon = 0.0001f;
+        List<List<FaceVertex>> polygons = face.Polygons;
+        for (int p = 0; p < polygons.Count; p++)
+        {
+            List<FaceVertex> polygon = polygons[p];
+            if (polygon == null)
+            {
+                continue;
+            }
+
+            for (int i = 0; i < polygon.Count; i++)
+            {
+                Vector3 pos = polygon[i].Position;
+                float value = axis == 0 ? pos.x : axis == 1 ? pos.y : pos.z;
+                if (Mathf.Abs(value - target) > epsilon)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     private bool TryGetVoxelDefinition(Chunk chunk, int x, int y, int z, out Voxel voxel)
