@@ -1,9 +1,18 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
 public class ChunkBushTriggerMeshBuilder : ChunkMesher
 {
+	[NonSerialized] private int[] visited;
+	[NonSerialized] private int visitedStamp = 1;
+	[NonSerialized] private readonly Queue<Vector3Int> floodQueue = new Queue<Vector3Int>();
+	[NonSerialized] private readonly List<Vector3Int> islandCells = new List<Vector3Int>();
+	[NonSerialized] private readonly List<Vector3> vertices = new List<Vector3>();
+	[NonSerialized] private readonly List<int> triangles = new List<int>();
+	[NonSerialized] private readonly List<Vector2> uvs = new List<Vector2>();
+
 	public List<Mesh> BuildBushTriggerMeshes(Chunk chunk)
 	{
 		var meshes = new List<Mesh>();
@@ -12,20 +21,21 @@ public class ChunkBushTriggerMeshBuilder : ChunkMesher
 			return meshes;
 		}
 
-		bool[,,] visited = new bool[Chunk.SizeX, Chunk.SizeY, Chunk.SizeZ];
+		BeginVisitedPass();
 		for (int x = 0; x < Chunk.SizeX; x++)
 		{
 			for (int y = 0; y < Chunk.SizeY; y++)
 			{
 				for (int z = 0; z < Chunk.SizeZ; z++)
 				{
-					if (visited[x, y, z] || !IsBushAt(chunk, x, y, z))
+					int index = GetIndex(x, y, z);
+					if (visited[index] == visitedStamp || !IsBushAt(chunk, x, y, z))
 					{
 						continue;
 					}
 
-					List<Vector3Int> island = FloodFillBush(chunk, x, y, z, visited);
-					Mesh islandMesh = BuildIslandMesh(chunk, island);
+					FloodFillBush(chunk, x, y, z, islandCells);
+					Mesh islandMesh = BuildIslandMesh(chunk, islandCells);
 					if (islandMesh != null && islandMesh.vertexCount > 0)
 					{
 						islandMesh.name = "BushCollisionMesh";
@@ -38,51 +48,50 @@ public class ChunkBushTriggerMeshBuilder : ChunkMesher
 		return meshes;
 	}
 
-	private List<Vector3Int> FloodFillBush(Chunk chunk, int startX, int startY, int startZ, bool[,,] visited)
+	private void FloodFillBush(Chunk chunk, int startX, int startY, int startZ, List<Vector3Int> island)
 	{
-		var island = new List<Vector3Int>();
-		var queue = new Queue<Vector3Int>();
-		queue.Enqueue(new Vector3Int(startX, startY, startZ));
-		visited[startX, startY, startZ] = true;
+		island.Clear();
+		floodQueue.Clear();
+		floodQueue.Enqueue(new Vector3Int(startX, startY, startZ));
+		visited[GetIndex(startX, startY, startZ)] = visitedStamp;
 
-		while (queue.Count > 0)
+		while (floodQueue.Count > 0)
 		{
-			Vector3Int current = queue.Dequeue();
+			Vector3Int current = floodQueue.Dequeue();
 			island.Add(current);
 
-			TryEnqueueBush(chunk, current.x + 1, current.y, current.z, visited, queue);
-			TryEnqueueBush(chunk, current.x - 1, current.y, current.z, visited, queue);
-			TryEnqueueBush(chunk, current.x, current.y + 1, current.z, visited, queue);
-			TryEnqueueBush(chunk, current.x, current.y - 1, current.z, visited, queue);
-			TryEnqueueBush(chunk, current.x, current.y, current.z + 1, visited, queue);
-			TryEnqueueBush(chunk, current.x, current.y, current.z - 1, visited, queue);
+			TryEnqueueBush(chunk, current.x + 1, current.y, current.z);
+			TryEnqueueBush(chunk, current.x - 1, current.y, current.z);
+			TryEnqueueBush(chunk, current.x, current.y + 1, current.z);
+			TryEnqueueBush(chunk, current.x, current.y - 1, current.z);
+			TryEnqueueBush(chunk, current.x, current.y, current.z + 1);
+			TryEnqueueBush(chunk, current.x, current.y, current.z - 1);
 		}
-
-		return island;
 	}
 
-	private void TryEnqueueBush(Chunk chunk, int x, int y, int z, bool[,,] visited, Queue<Vector3Int> queue)
+	private void TryEnqueueBush(Chunk chunk, int x, int y, int z)
 	{
 		if (x < 0 || x >= Chunk.SizeX || y < 0 || y >= Chunk.SizeY || z < 0 || z >= Chunk.SizeZ)
 		{
 			return;
 		}
 
-		if (visited[x, y, z] || !IsBushAt(chunk, x, y, z))
+		int index = GetIndex(x, y, z);
+		if (visited[index] == visitedStamp || !IsBushAt(chunk, x, y, z))
 		{
 			return;
 		}
 
-		visited[x, y, z] = true;
-		queue.Enqueue(new Vector3Int(x, y, z));
+		visited[index] = visitedStamp;
+		floodQueue.Enqueue(new Vector3Int(x, y, z));
 	}
 
 	private Mesh BuildIslandMesh(Chunk chunk, List<Vector3Int> island)
 	{
 		var mesh = new Mesh();
-		var vertices = new List<Vector3>();
-		var triangles = new List<int>();
-		var uvs = new List<Vector2>();
+		vertices.Clear();
+		triangles.Clear();
+		uvs.Clear();
 
 		for (int i = 0; i < island.Count; i++)
 		{
@@ -104,7 +113,6 @@ public class ChunkBushTriggerMeshBuilder : ChunkMesher
 		mesh.SetVertices(vertices);
 		mesh.SetTriangles(triangles, 0);
 		mesh.SetUVs(0, uvs);
-		mesh.RecalculateNormals();
 		return mesh;
 	}
 
@@ -161,5 +169,28 @@ public class ChunkBushTriggerMeshBuilder : ChunkMesher
 		}
 
 		return voxel.Collision == VoxelCollision.Bush;
+	}
+
+	private void BeginVisitedPass()
+	{
+		int size = Chunk.SizeX * Chunk.SizeY * Chunk.SizeZ;
+		if (visited == null || visited.Length != size)
+		{
+			visited = new int[size];
+			visitedStamp = 1;
+			return;
+		}
+
+		visitedStamp++;
+		if (visitedStamp == int.MaxValue)
+		{
+			Array.Clear(visited, 0, visited.Length);
+			visitedStamp = 1;
+		}
+	}
+
+	private static int GetIndex(int x, int y, int z)
+	{
+		return (x * Chunk.SizeY + y) * Chunk.SizeZ + z;
 	}
 }

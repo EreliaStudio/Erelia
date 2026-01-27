@@ -1,15 +1,20 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
 public class ChunkRenderMeshBuilder : ChunkMesher
 {
+	[NonSerialized] private readonly List<Vector3> vertices = new List<Vector3>();
+	[NonSerialized] private readonly List<int> triangles = new List<int>();
+	[NonSerialized] private readonly List<Vector2> uvs = new List<Vector2>();
+
 	public Mesh BuildMesh(Chunk chunk)
 	{
 		var mesh = new Mesh();
-		var vertices = new List<Vector3>();
-		var triangles = new List<int>();
-		var uvs = new List<Vector2>();
+		vertices.Clear();
+		triangles.Clear();
+		uvs.Clear();
 
 		for (int x = 0; x < Chunk.SizeX; x++)
 		{
@@ -55,7 +60,7 @@ public class ChunkRenderMeshBuilder : ChunkMesher
 			IReadOnlyList<VoxelFace> innerFaces = voxel.InnerFaces;
 			for (int i = 0; i < innerFaces.Count; i++)
 			{
-				AddFace(TransformFace(innerFaces[i], orientation, flipOrientation), position, vertices, triangles, uvs);
+				AddFace(TransformFaceCached(innerFaces[i], orientation, flipOrientation), position, vertices, triangles, uvs);
 			}
 		}
 	}
@@ -93,7 +98,7 @@ public class ChunkRenderMeshBuilder : ChunkMesher
 		}
 
 		bool isOccluded = false;
-		VoxelFace rotatedFace = TransformFace(face, orientation, flipOrientation);
+		VoxelFace rotatedFace = TransformFaceCached(face, orientation, flipOrientation);
 		if (hasNeighbor)
 		{
 			OuterShellPlane oppositePlane = OuterShellPlaneUtil.GetOppositePlane(plane);
@@ -102,7 +107,7 @@ public class ChunkRenderMeshBuilder : ChunkMesher
 			OuterShellPlane neighborLocalPlane = MapWorldPlaneToLocal(oppositePlane, neighborOrientation, neighborFlipOrientation);
 			if (neighbor.OuterShellFaces.TryGetValue(neighborLocalPlane, out VoxelFace otherFace))
 			{
-				VoxelFace rotatedOtherFace = TransformFace(otherFace, neighborOrientation, neighborFlipOrientation);
+				VoxelFace rotatedOtherFace = TransformFaceCached(otherFace, neighborOrientation, neighborFlipOrientation);
 				if (rotatedFace.IsOccludedBy(rotatedOtherFace))
 				{
 					isOccluded = true;

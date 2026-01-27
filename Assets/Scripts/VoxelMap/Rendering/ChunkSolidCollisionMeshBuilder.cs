@@ -1,9 +1,18 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
 public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 {
+	[NonSerialized] private int[] visited;
+	[NonSerialized] private int visitedStamp = 1;
+	[NonSerialized] private readonly Queue<Vector3Int> floodQueue = new Queue<Vector3Int>();
+	[NonSerialized] private readonly List<Vector3Int> islandCells = new List<Vector3Int>();
+	[NonSerialized] private readonly List<Vector3> vertices = new List<Vector3>();
+	[NonSerialized] private readonly List<int> triangles = new List<int>();
+	[NonSerialized] private readonly List<Vector2> uvs = new List<Vector2>();
+
 	public List<Mesh> BuildSolidMeshes(Chunk chunk)
 	{
 		var meshes = new List<Mesh>();
@@ -12,20 +21,21 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 			return meshes;
 		}
 
-		bool[,,] visited = new bool[Chunk.SizeX, Chunk.SizeY, Chunk.SizeZ];
+		BeginVisitedPass();
 		for (int x = 0; x < Chunk.SizeX; x++)
 		{
 			for (int y = 0; y < Chunk.SizeY; y++)
 			{
 				for (int z = 0; z < Chunk.SizeZ; z++)
 				{
-					if (visited[x, y, z] || !IsSolidAt(chunk, x, y, z))
+					int index = GetIndex(x, y, z);
+					if (visited[index] == visitedStamp || !IsSolidAt(chunk, x, y, z))
 					{
 						continue;
 					}
 
-					List<Vector3Int> island = FloodFillSolid(chunk, x, y, z, visited);
-					Mesh islandMesh = BuildIslandMesh(chunk, island);
+					FloodFillSolid(chunk, x, y, z, islandCells);
+					Mesh islandMesh = BuildIslandMesh(chunk, islandCells);
 					if (islandMesh != null && islandMesh.vertexCount > 0)
 					{
 						islandMesh.name = "SolidCollisionMesh";
@@ -38,51 +48,50 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 		return meshes;
 	}
 
-	private List<Vector3Int> FloodFillSolid(Chunk chunk, int startX, int startY, int startZ, bool[,,] visited)
+	private void FloodFillSolid(Chunk chunk, int startX, int startY, int startZ, List<Vector3Int> island)
 	{
-		var island = new List<Vector3Int>();
-		var queue = new Queue<Vector3Int>();
-		queue.Enqueue(new Vector3Int(startX, startY, startZ));
-		visited[startX, startY, startZ] = true;
+		island.Clear();
+		floodQueue.Clear();
+		floodQueue.Enqueue(new Vector3Int(startX, startY, startZ));
+		visited[GetIndex(startX, startY, startZ)] = visitedStamp;
 
-		while (queue.Count > 0)
+		while (floodQueue.Count > 0)
 		{
-			Vector3Int current = queue.Dequeue();
+			Vector3Int current = floodQueue.Dequeue();
 			island.Add(current);
 
-			TryEnqueueSolid(chunk, current.x + 1, current.y, current.z, visited, queue);
-			TryEnqueueSolid(chunk, current.x - 1, current.y, current.z, visited, queue);
-			TryEnqueueSolid(chunk, current.x, current.y + 1, current.z, visited, queue);
-			TryEnqueueSolid(chunk, current.x, current.y - 1, current.z, visited, queue);
-			TryEnqueueSolid(chunk, current.x, current.y, current.z + 1, visited, queue);
-			TryEnqueueSolid(chunk, current.x, current.y, current.z - 1, visited, queue);
+			TryEnqueueSolid(chunk, current.x + 1, current.y, current.z);
+			TryEnqueueSolid(chunk, current.x - 1, current.y, current.z);
+			TryEnqueueSolid(chunk, current.x, current.y + 1, current.z);
+			TryEnqueueSolid(chunk, current.x, current.y - 1, current.z);
+			TryEnqueueSolid(chunk, current.x, current.y, current.z + 1);
+			TryEnqueueSolid(chunk, current.x, current.y, current.z - 1);
 		}
-
-		return island;
 	}
 
-	private void TryEnqueueSolid(Chunk chunk, int x, int y, int z, bool[,,] visited, Queue<Vector3Int> queue)
+	private void TryEnqueueSolid(Chunk chunk, int x, int y, int z)
 	{
 		if (x < 0 || x >= Chunk.SizeX || y < 0 || y >= Chunk.SizeY || z < 0 || z >= Chunk.SizeZ)
 		{
 			return;
 		}
 
-		if (visited[x, y, z] || !IsSolidAt(chunk, x, y, z))
+		int index = GetIndex(x, y, z);
+		if (visited[index] == visitedStamp || !IsSolidAt(chunk, x, y, z))
 		{
 			return;
 		}
 
-		visited[x, y, z] = true;
-		queue.Enqueue(new Vector3Int(x, y, z));
+		visited[index] = visitedStamp;
+		floodQueue.Enqueue(new Vector3Int(x, y, z));
 	}
 
 	private Mesh BuildIslandMesh(Chunk chunk, List<Vector3Int> island)
 	{
 		var mesh = new Mesh();
-		var vertices = new List<Vector3>();
-		var triangles = new List<int>();
-		var uvs = new List<Vector2>();
+		vertices.Clear();
+		triangles.Clear();
+		uvs.Clear();
 
 		for (int i = 0; i < island.Count; i++)
 		{
@@ -98,7 +107,6 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 		mesh.SetVertices(vertices);
 		mesh.SetTriangles(triangles, 0);
 		mesh.SetUVs(0, uvs);
-		mesh.RecalculateNormals();
 		return mesh;
 	}
 
@@ -138,7 +146,7 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 			IReadOnlyList<VoxelFace> innerFaces = voxel.InnerFaces;
 			for (int i = 0; i < innerFaces.Count; i++)
 			{
-				AddFace(TransformFace(innerFaces[i], orientation, flipOrientation), position, vertices, triangles, uvs);
+				AddFace(TransformFaceCached(innerFaces[i], orientation, flipOrientation), position, vertices, triangles, uvs);
 			}
 		}
 	}
@@ -189,7 +197,7 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 		}
 
 		bool isOccluded = false;
-		VoxelFace rotatedFace = TransformFace(face, orientation, flipOrientation);
+		VoxelFace rotatedFace = TransformFaceCached(face, orientation, flipOrientation);
 		if (hasNeighbor)
 		{
 			OuterShellPlane oppositePlane = OuterShellPlaneUtil.GetOppositePlane(plane);
@@ -198,7 +206,7 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 			OuterShellPlane neighborLocalPlane = MapWorldPlaneToLocal(oppositePlane, neighborOrientation, neighborFlipOrientation);
 			if (neighbor.OuterShellFaces.TryGetValue(neighborLocalPlane, out VoxelFace otherFace))
 			{
-				VoxelFace rotatedOtherFace = TransformFace(otherFace, neighborOrientation, neighborFlipOrientation);
+				VoxelFace rotatedOtherFace = TransformFaceCached(otherFace, neighborOrientation, neighborFlipOrientation);
 				if (rotatedFace.IsOccludedBy(rotatedOtherFace))
 				{
 					isOccluded = true;
@@ -213,6 +221,29 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 
 		AddFace(rotatedFace, position, vertices, triangles, uvs);
 		anyOuterVisible = true;
+	}
+
+	private void BeginVisitedPass()
+	{
+		int size = Chunk.SizeX * Chunk.SizeY * Chunk.SizeZ;
+		if (visited == null || visited.Length != size)
+		{
+			visited = new int[size];
+			visitedStamp = 1;
+			return;
+		}
+
+		visitedStamp++;
+		if (visitedStamp == int.MaxValue)
+		{
+			Array.Clear(visited, 0, visited.Length);
+			visitedStamp = 1;
+		}
+	}
+
+	private static int GetIndex(int x, int y, int z)
+	{
+		return (x * Chunk.SizeY + y) * Chunk.SizeZ + z;
 	}
 
 	private bool IsSolidAt(Chunk chunk, int x, int y, int z)

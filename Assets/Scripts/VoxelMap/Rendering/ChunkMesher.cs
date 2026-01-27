@@ -6,6 +6,7 @@ using UnityEngine;
 public class ChunkMesher
 {
 	[HideInInspector] protected VoxelRegistry registry;
+	[NonSerialized] private readonly Dictionary<FaceTransformKey, VoxelFace> transformedFaceCache = new Dictionary<FaceTransformKey, VoxelFace>();
 	private static readonly VoxelFace FullPosXFace = GeometryUtils.CreateRectangle(
 		new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 0f), UV = Vector2.zero },
 		new GeometryUtils.Vertex { Position = new Vector3(1f, 0f, 1f), UV = Vector2.zero },
@@ -180,6 +181,24 @@ public class ChunkMesher
 		return rotated;
 	}
 
+	protected VoxelFace TransformFaceCached(VoxelFace face, Orientation orientation, FlipOrientation flipOrientation)
+	{
+		if (face == null)
+		{
+			return null;
+		}
+
+		var key = new FaceTransformKey(face, orientation, flipOrientation);
+		if (transformedFaceCache.TryGetValue(key, out VoxelFace cached))
+		{
+			return cached;
+		}
+
+		VoxelFace rotated = TransformFace(face, orientation, flipOrientation);
+		transformedFaceCache[key] = rotated;
+		return rotated;
+	}
+
 	protected void AddFace(
 		VoxelFace face,
 		Vector3 offset,
@@ -241,7 +260,7 @@ public class ChunkMesher
 			return false;
 		}
 
-		VoxelFace rotatedOtherFace = TransformFace(otherFace, neighborOrientation, neighborFlipOrientation);
+		VoxelFace rotatedOtherFace = TransformFaceCached(otherFace, neighborOrientation, neighborFlipOrientation);
 		if (!IsFaceCoplanarWithPlane(rotatedOtherFace, plane))
 		{
 			return false;
@@ -352,5 +371,42 @@ public class ChunkMesher
 		}
 
 		return fullFace.IsOccludedBy(face) && face.IsOccludedBy(fullFace);
+	}
+
+	private readonly struct FaceTransformKey : IEquatable<FaceTransformKey>
+	{
+		private readonly VoxelFace face;
+		private readonly Orientation orientation;
+		private readonly FlipOrientation flipOrientation;
+
+		public FaceTransformKey(VoxelFace face, Orientation orientation, FlipOrientation flipOrientation)
+		{
+			this.face = face;
+			this.orientation = orientation;
+			this.flipOrientation = flipOrientation;
+		}
+
+		public bool Equals(FaceTransformKey other)
+		{
+			return ReferenceEquals(face, other.face)
+				&& orientation == other.orientation
+				&& flipOrientation == other.flipOrientation;
+		}
+
+		public override bool Equals(object obj)
+		{
+			return obj is FaceTransformKey other && Equals(other);
+		}
+
+		public override int GetHashCode()
+		{
+			int hash = face != null ? face.GetHashCode() : 0;
+			unchecked
+			{
+				hash = (hash * 397) ^ (int)orientation;
+				hash = (hash * 397) ^ (int)flipOrientation;
+			}
+			return hash;
+		}
 	}
 }
