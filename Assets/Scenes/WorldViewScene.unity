@@ -565,6 +565,55 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &871038138
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 871038140}
+  - component: {fileID: 871038139}
+  m_Layer: 0
+  m_Name: EncounterDirector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &871038139
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 871038138}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46229097c1fd81b488845b52287fb527, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EncounterDirector
+  map: {fileID: 80715303}
+  settings: {fileID: 11400000, guid: 26f37bdd4c7686544b09e5651a427bfd, type: 2}
+  defaultAreaProfile: {fileID: 11400000, guid: 0edfdb67412598c4fa6ea6dfb490482c, type: 2}
+  battleSceneName: BattleGroundScene
+  triggerOnStay: 1
+--- !u!4 &871038140
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 871038138}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 10.92661, y: 0.00001, z: 12.8124}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1304992590
 GameObject:
   m_ObjectHideFlags: 0
@@ -787,3 +836,4 @@ SceneRoots:
   - {fileID: 80715304}
   - {fileID: 2136122632}
   - {fileID: 589290510}
+  - {fileID: 871038140}
