@@ -13,7 +13,9 @@ public class VoxelMapView
 
 	[HideInInspector] public List<ChunkCoord> VisibleCoords = new List<ChunkCoord>();
 
-	[SerializeField] private ChunkMesher mesher = new ChunkMesher();
+	[SerializeField] private ChunkRenderMeshBuilder renderMesher = new ChunkRenderMeshBuilder();
+	[SerializeField] private ChunkSolidCollisionMeshBuilder solidCollisionMesher = new ChunkSolidCollisionMeshBuilder();
+	[SerializeField] private ChunkBushTriggerMeshBuilder bushTriggerMesher = new ChunkBushTriggerMeshBuilder();
 	private readonly Dictionary<ChunkCoord, ChunkView> views = new Dictionary<ChunkCoord, ChunkView>();
 	private ChunkCoord lastCenter;
 	private bool hasCenter;
@@ -56,7 +58,9 @@ public class VoxelMapView
 	public void SetRegistry(VoxelRegistry value)
 	{
 		registry = value;
-		mesher.SetRegistry(registry);
+		renderMesher.SetRegistry(registry);
+		solidCollisionMesher.SetRegistry(registry);
+		bushTriggerMesher.SetRegistry(registry);
 	}
 
 	private void UpdateVisible(ChunkCoord center)
@@ -114,7 +118,7 @@ public class VoxelMapView
 			coord.Z * Chunk.SizeZ);
 
 		ChunkView view = go.AddComponent<ChunkView>();
-		view.Initialize(coord, chunk, mesher, chunkMaterial);
+		view.Initialize(coord, chunk, renderMesher, solidCollisionMesher, bushTriggerMesher, chunkMaterial);
 		return view;
 	}
 }

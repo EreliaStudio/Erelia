@@ -68,6 +68,9 @@
     <Compile Include="Assets\Scripts\VoxelMap\Utils\SpriteUvUtils.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Map\VoxelMapData.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Utils\OuterShellPlaneUtil.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Rendering\ChunkRenderMeshBuilder.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Rendering\ChunkSolidCollisionMeshBuilder.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Rendering\ChunkBushTriggerMeshBuilder.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\Voxel.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\SlopeVoxel.cs" />
