@@ -21,11 +21,13 @@ public class VoxelMapView
 	private bool hasCenter;
 	private VoxelMapData mapData;
 	private Transform owner;
+	private VoxelMap ownerMap;
 
 	public void Initialize(VoxelMapData data, VoxelRegistry registryValue, Transform ownerTransform)
 	{
 		mapData = data;
 		owner = ownerTransform;
+		ownerMap = ownerTransform != null ? ownerTransform.GetComponent<VoxelMap>() : null;
 		SetRegistry(registryValue);
 	}
 
@@ -118,7 +120,7 @@ public class VoxelMapView
 			coord.Z * Chunk.SizeZ);
 
 		ChunkView view = go.AddComponent<ChunkView>();
-		view.Initialize(coord, chunk, renderMesher, solidCollisionMesher, bushTriggerMesher, chunkMaterial);
+		view.Initialize(coord, chunk, renderMesher, solidCollisionMesher, bushTriggerMesher, chunkMaterial, ownerMap);
 		return view;
 	}
 }

@@ -5,6 +5,7 @@ public class ChunkView : MonoBehaviour
 	public ChunkCoord Coord { get; private set; }
 	public Chunk Chunk { get; private set; }
 
+    private VoxelMap ownerMap;
     private ChunkRenderMeshBuilder renderMesher;
     private ChunkSolidCollisionMeshBuilder solidCollisionMesher;
     private ChunkBushTriggerMeshBuilder bushTriggerMesher;
@@ -20,10 +21,11 @@ public class ChunkView : MonoBehaviour
     private readonly System.Collections.Generic.List<MeshFilter> bushFilters = new System.Collections.Generic.List<MeshFilter>();
     private readonly System.Collections.Generic.List<Transform> bushRoots = new System.Collections.Generic.List<Transform>();
 
-	public void Initialize(ChunkCoord coord, Chunk chunk, ChunkRenderMeshBuilder renderMesherInstance, ChunkSolidCollisionMeshBuilder solidCollisionMesherInstance, ChunkBushTriggerMeshBuilder bushTriggerMesherInstance, Material material)
+	public void Initialize(ChunkCoord coord, Chunk chunk, ChunkRenderMeshBuilder renderMesherInstance, ChunkSolidCollisionMeshBuilder solidCollisionMesherInstance, ChunkBushTriggerMeshBuilder bushTriggerMesherInstance, Material material, VoxelMap owner)
 	{
 		Coord = coord;
 		Chunk = chunk;
+        ownerMap = owner;
 		renderMesher = renderMesherInstance;
 		solidCollisionMesher = solidCollisionMesherInstance;
 		bushTriggerMesher = bushTriggerMesherInstance;
@@ -202,6 +204,22 @@ public class ChunkView : MonoBehaviour
         return filter;
     }
 
+    private void EnsureBushEmitter(Transform root)
+    {
+        if (root == null)
+        {
+            return;
+        }
+
+        BushTriggerEmitter emitter = root.GetComponent<BushTriggerEmitter>();
+        if (emitter == null)
+        {
+            emitter = root.gameObject.AddComponent<BushTriggerEmitter>();
+        }
+
+        emitter.Configure(ownerMap, Coord);
+    }
+
     private void ApplyBushMeshes(System.Collections.Generic.List<Mesh> meshes)
     {
         int desiredCount = meshes == null ? 0 : meshes.Count;
@@ -318,6 +336,7 @@ public class ChunkView : MonoBehaviour
 
             MeshCollider collider = EnsureChildCollider(root);
             MeshFilter filter = EnsureChildFilter(root);
+            EnsureBushEmitter(root);
 
             bushRoots.Add(root);
             bushColliders.Add(collider);
