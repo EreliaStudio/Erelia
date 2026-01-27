@@ -63,14 +63,17 @@
     <Compile Include="Assets\Scripts\VoxelMap\Core\Chunk.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\CrossPlaneVoxel.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\OuterShellPlane.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Core\VoxelCollision.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Map\VoxelMap.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Utils\SpriteUvUtils.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Map\VoxelMapData.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Utils\OuterShellPlaneUtil.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\Voxel.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\SlopeVoxel.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\SlabVoxel.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\StairVoxel.cs" />
+    <Compile Include="Assets\Scripts\Player\CameraOrbit.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\VoxelCell.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Utils\GeometryUtils.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\ChunkCoord.cs" />

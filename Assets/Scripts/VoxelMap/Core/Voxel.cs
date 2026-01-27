@@ -3,11 +3,13 @@ using UnityEngine;
 
 public abstract class Voxel : ScriptableObject
 {
-	protected List<VoxelFace> innerFaces = new List<VoxelFace>();
-	protected Dictionary<OuterShellPlane, VoxelFace> outerShellByPlane = new Dictionary<OuterShellPlane, VoxelFace>();
+    [SerializeField] private VoxelCollision collision = VoxelCollision.Solid;
+    protected List<VoxelFace> innerFaces = new List<VoxelFace>();
+    protected Dictionary<OuterShellPlane, VoxelFace> outerShellByPlane = new Dictionary<OuterShellPlane, VoxelFace>();
 
-	public IReadOnlyList<VoxelFace> InnerFaces => innerFaces;
-	public IReadOnlyDictionary<OuterShellPlane, VoxelFace> OuterShellFaces => outerShellByPlane;
+    public IReadOnlyList<VoxelFace> InnerFaces => innerFaces;
+    public IReadOnlyDictionary<OuterShellPlane, VoxelFace> OuterShellFaces => outerShellByPlane;
+    public VoxelCollision Collision => collision;
 
 	protected abstract List<VoxelFace> ConstructInnerFaces();
 	protected abstract Dictionary<OuterShellPlane, VoxelFace> ConstructOuterShellFaces();

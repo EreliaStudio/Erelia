@@ -1,0 +1,56 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+[RequireComponent(typeof(Collider))]
+public class PlayerController : MonoBehaviour
+{
+    [SerializeField] private Transform cameraPivot;
+    [SerializeField] private float moveSpeed = 5f;
+    private InputAction moveAction;
+
+    private void Awake()
+    {
+        PlayerInput playerInput = GetComponent<PlayerInput>();
+        if (playerInput == null || playerInput.actions == null)
+        {
+            return;
+        }
+
+        moveAction = playerInput.actions.FindAction("Player/Move", false)
+            ?? playerInput.actions.FindAction("Move", false);
+    }
+
+    private void OnEnable()
+    {
+        moveAction?.Enable();
+    }
+
+    private void OnDisable()
+    {
+        moveAction?.Disable();
+    }
+
+    private void Update()
+    {
+        if (cameraPivot == null || moveAction == null)
+        {
+            return;
+        }
+
+        Vector3 forward = cameraPivot.forward;
+        forward.y = 0f;
+        forward = forward.sqrMagnitude > 0.0001f ? forward.normalized : Vector3.forward;
+
+        Vector3 right = new Vector3(forward.z, 0f, -forward.x);
+
+        Vector2 moveInput = moveAction.ReadValue<Vector2>();
+        Vector3 input = forward * moveInput.y + right * moveInput.x;
+
+        if (input.sqrMagnitude > 1f)
+        {
+            input.Normalize();
+        }
+
+        transform.position += input * moveSpeed * Time.deltaTime;
+    }
+}

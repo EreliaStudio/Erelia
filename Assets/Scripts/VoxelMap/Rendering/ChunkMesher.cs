@@ -41,12 +41,12 @@ public class ChunkMesher
 		registry = value;
 	}
 
-	public Mesh BuildMesh(Chunk chunk)
-	{
-		var mesh = new Mesh();
-		var vertices = new List<Vector3>();
-		var triangles = new List<int>();
-		var uvs = new List<Vector2>();
+    public Mesh BuildMesh(Chunk chunk)
+    {
+        var mesh = new Mesh();
+        var vertices = new List<Vector3>();
+        var triangles = new List<int>();
+        var uvs = new List<Vector2>();
 
 		for (int x = 0; x < Chunk.SizeX; x++)
 		{
@@ -64,15 +64,51 @@ public class ChunkMesher
 		mesh.SetUVs(0, uvs);
 		mesh.RecalculateNormals();
 
-		return mesh;
-	}
+        return mesh;
+    }
 
-	private void AddVoxel(Chunk chunk, int x, int y, int z, List<Vector3> vertices, List<int> triangles, List<Vector2> uvs)
-	{
-		if (!TryGetVoxelDefinition(chunk, x, y, z, out Voxel voxel))
-		{
-			return;
-		}
+    public void BuildCollisionMeshes(Chunk chunk, out Mesh solidMesh, out Mesh triggerMesh)
+    {
+        solidMesh = BuildCollisionMesh(chunk, VoxelCollision.Solid);
+        triggerMesh = BuildCollisionMesh(chunk, VoxelCollision.Trigger);
+    }
+
+    private Mesh BuildCollisionMesh(Chunk chunk, VoxelCollision collisionType)
+    {
+        var mesh = new Mesh();
+        var vertices = new List<Vector3>();
+        var triangles = new List<int>();
+        var uvs = new List<Vector2>();
+
+        for (int x = 0; x < Chunk.SizeX; x++)
+        {
+            for (int y = 0; y < Chunk.SizeY; y++)
+            {
+                for (int z = 0; z < Chunk.SizeZ; z++)
+                {
+                    AddVoxelCollision(chunk, x, y, z, collisionType, vertices, triangles, uvs);
+                }
+            }
+        }
+
+        if (vertices.Count == 0)
+        {
+            return mesh;
+        }
+
+        mesh.SetVertices(vertices);
+        mesh.SetTriangles(triangles, 0);
+        mesh.SetUVs(0, uvs);
+        mesh.RecalculateNormals();
+        return mesh;
+    }
+
+    private void AddVoxel(Chunk chunk, int x, int y, int z, List<Vector3> vertices, List<int> triangles, List<Vector2> uvs)
+    {
+        if (!TryGetVoxelDefinition(chunk, x, y, z, out Voxel voxel))
+        {
+            return;
+        }
 
 		Orientation orientation = chunk.Voxels[x, y, z].Orientation;
 		FlipOrientation flipOrientation = chunk.Voxels[x, y, z].FlipOrientation;
@@ -96,11 +132,53 @@ public class ChunkMesher
 		}
 	}
 
-	private void TryAddOuterFace(
-		Chunk chunk,
-		Voxel voxel,
-		Orientation orientation,
-		FlipOrientation flipOrientation,
+    private void AddVoxelCollision(
+        Chunk chunk,
+        int x,
+        int y,
+        int z,
+        VoxelCollision collisionType,
+        List<Vector3> vertices,
+        List<int> triangles,
+        List<Vector2> uvs)
+    {
+        if (!TryGetVoxelDefinition(chunk, x, y, z, out Voxel voxel))
+        {
+            return;
+        }
+
+        if (voxel.Collision != collisionType)
+        {
+            return;
+        }
+
+        Orientation orientation = chunk.Voxels[x, y, z].Orientation;
+        FlipOrientation flipOrientation = chunk.Voxels[x, y, z].FlipOrientation;
+        Vector3 position = new Vector3(x, y, z);
+        bool anyOuterVisible = false;
+
+        TryAddOuterFaceCollision(chunk, voxel, collisionType, orientation, flipOrientation, position, x, y, z, OuterShellPlane.PosX, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFaceCollision(chunk, voxel, collisionType, orientation, flipOrientation, position, x, y, z, OuterShellPlane.NegX, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFaceCollision(chunk, voxel, collisionType, orientation, flipOrientation, position, x, y, z, OuterShellPlane.PosY, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFaceCollision(chunk, voxel, collisionType, orientation, flipOrientation, position, x, y, z, OuterShellPlane.NegY, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFaceCollision(chunk, voxel, collisionType, orientation, flipOrientation, position, x, y, z, OuterShellPlane.PosZ, vertices, triangles, uvs, ref anyOuterVisible);
+        TryAddOuterFaceCollision(chunk, voxel, collisionType, orientation, flipOrientation, position, x, y, z, OuterShellPlane.NegZ, vertices, triangles, uvs, ref anyOuterVisible);
+
+        if (anyOuterVisible)
+        {
+            IReadOnlyList<VoxelFace> innerFaces = voxel.InnerFaces;
+            for (int i = 0; i < innerFaces.Count; i++)
+            {
+                AddFace(TransformFace(innerFaces[i], orientation, flipOrientation), position, vertices, triangles, uvs);
+            }
+        }
+    }
+
+    private void TryAddOuterFace(
+        Chunk chunk,
+        Voxel voxel,
+        Orientation orientation,
+        FlipOrientation flipOrientation,
 		Vector3 position,
 		int x,
 		int y,
@@ -151,9 +229,82 @@ public class ChunkMesher
 			return;
 		}
 
-		AddFace(rotatedFace, position, vertices, triangles, uvs);
-		anyOuterVisible = true;
-	}
+        AddFace(rotatedFace, position, vertices, triangles, uvs);
+        anyOuterVisible = true;
+    }
+
+    private void TryAddOuterFaceCollision(
+        Chunk chunk,
+        Voxel voxel,
+        VoxelCollision collisionType,
+        Orientation orientation,
+        FlipOrientation flipOrientation,
+        Vector3 position,
+        int x,
+        int y,
+        int z,
+        OuterShellPlane plane,
+        List<Vector3> vertices,
+        List<int> triangles,
+        List<Vector2> uvs,
+        ref bool anyOuterVisible)
+    {
+        Vector3Int offset = OuterShellPlaneUtil.PlaneToOffset(plane);
+        int neighborX = x + offset.x;
+        int neighborY = y + offset.y;
+        int neighborZ = z + offset.z;
+        bool hasNeighbor = TryGetVoxelDefinition(chunk, neighborX, neighborY, neighborZ, out Voxel neighbor);
+        if (hasNeighbor && neighbor.Collision != collisionType)
+        {
+            hasNeighbor = false;
+        }
+
+        OuterShellPlane localPlane = MapWorldPlaneToLocal(plane, orientation, flipOrientation);
+
+        if (!voxel.OuterShellFaces.TryGetValue(localPlane, out VoxelFace face))
+        {
+            if (!IsFullyOccludedByNeighbor(chunk, neighbor, neighborX, neighborY, neighborZ, plane, hasNeighbor))
+            {
+                anyOuterVisible = true;
+            }
+            return;
+        }
+
+        if (face == null || !face.HasRenderablePolygons)
+        {
+            if (!IsFullyOccludedByNeighbor(chunk, neighbor, neighborX, neighborY, neighborZ, plane, hasNeighbor))
+            {
+                anyOuterVisible = true;
+            }
+            return;
+        }
+
+        bool isOccluded = false;
+        VoxelFace rotatedFace = TransformFace(face, orientation, flipOrientation);
+        if (hasNeighbor)
+        {
+            OuterShellPlane oppositePlane = OuterShellPlaneUtil.GetOppositePlane(plane);
+            Orientation neighborOrientation = chunk.Voxels[neighborX, neighborY, neighborZ].Orientation;
+            FlipOrientation neighborFlipOrientation = chunk.Voxels[neighborX, neighborY, neighborZ].FlipOrientation;
+            OuterShellPlane neighborLocalPlane = MapWorldPlaneToLocal(oppositePlane, neighborOrientation, neighborFlipOrientation);
+            if (neighbor.OuterShellFaces.TryGetValue(neighborLocalPlane, out VoxelFace otherFace))
+            {
+                VoxelFace rotatedOtherFace = TransformFace(otherFace, neighborOrientation, neighborFlipOrientation);
+                if (rotatedFace.IsOccludedBy(rotatedOtherFace))
+                {
+                    isOccluded = true;
+                }
+            }
+        }
+
+        if (isOccluded)
+        {
+            return;
+        }
+
+        AddFace(rotatedFace, position, vertices, triangles, uvs);
+        anyOuterVisible = true;
+    }
 
 	private bool IsFullyOccludedByNeighbor(
 		Chunk chunk,
