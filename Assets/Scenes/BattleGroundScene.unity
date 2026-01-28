@@ -149,6 +149,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleBootstrapper
   playerObject: {fileID: 1251852869}
+  battleInput: {fileID: 1251852872}
 --- !u!4 &608180267
 Transform:
   m_ObjectHideFlags: 0

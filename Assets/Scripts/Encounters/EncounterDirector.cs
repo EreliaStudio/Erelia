@@ -77,6 +77,13 @@ public class EncounterDirector : MonoBehaviour
             return;
         }
 
+        Camera mainCamera = Camera.main;
+        Vector3 cameraLocalPosition = Vector3.zero;
+        if (mainCamera != null)
+        {
+            cameraLocalPosition = mainCamera.transform.localPosition;
+        }
+
         BattleAreaProfile profile = ResolveBattleAreaProfile(context) ?? defaultAreaProfile;
         if (profile == null)
         {
@@ -91,6 +98,7 @@ public class EncounterDirector : MonoBehaviour
         var request = new BattleRequest
         {
             PlayerWorldPosition = context.PlayerPosition,
+            CameraLocalPosition = cameraLocalPosition,
             Seed = seed,
             AreaProfile = profile,
             Board = board,

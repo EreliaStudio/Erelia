@@ -3,13 +3,14 @@ using UnityEngine.InputSystem;
 
 public class BattleCameraOrbit : MonoBehaviour
 {
-    private static readonly Vector3 CameraLocalPosition = new Vector3(10f, 10f, 10f);
+    private static readonly Vector3 DefaultCameraLocalPosition = new Vector3(-10f, 10f, -10f);
     private static readonly Vector3 LookAtLocalPosition = Vector3.zero;
     private const float OrbitSensitivity = 2.5f;
 
     private void Start()
     {
-        transform.localPosition = CameraLocalPosition;
+        BattleRequest request = BattleRequestStore.Current;
+        transform.localPosition = request != null ? request.CameraLocalPosition : DefaultCameraLocalPosition;
         transform.LookAt(GetLookPoint(), Vector3.up);
     }
 

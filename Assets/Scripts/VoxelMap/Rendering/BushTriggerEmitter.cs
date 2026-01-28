@@ -83,6 +83,7 @@ public class BushTriggerEmitter : MonoBehaviour
         {
             return;
         }
+		Debug.Log("Coucou this is the OnTriggerStay");
 
         Vector3 playerPosition = player.transform.position;
         Vector3Int cell = Vector3Int.FloorToInt(playerPosition);

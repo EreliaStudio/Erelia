@@ -5,6 +5,7 @@ using UnityEngine;
 public class BattleRequest
 {
     public Vector3 PlayerWorldPosition;
+    public Vector3 CameraLocalPosition;
     public int Seed;
     public BattleAreaProfile AreaProfile;
     public BattleBoardData Board;

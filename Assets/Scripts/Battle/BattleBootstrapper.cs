@@ -4,9 +4,18 @@ using UnityEngine.InputSystem;
 public class BattleBootstrapper : MonoBehaviour
 {
 	[SerializeField] private GameObject playerObject = null;
+    [SerializeField] private PlayerInput battleInput = null;
     private readonly System.Collections.Generic.List<AudioListener> disabledListeners = new System.Collections.Generic.List<AudioListener>();
     private readonly System.Collections.Generic.List<Camera> disabledCameras = new System.Collections.Generic.List<Camera>();
     private readonly System.Collections.Generic.List<PlayerInput> disabledInputs = new System.Collections.Generic.List<PlayerInput>();
+
+    private void Awake()
+    {
+        if (battleInput != null)
+        {
+            battleInput.enabled = false;
+        }
+    }
 
     private void Start()
     {
@@ -21,6 +30,11 @@ public class BattleBootstrapper : MonoBehaviour
         DisableOtherListeners();
         DisableOtherCameras();
         DisableOtherPlayerInputs();
+
+        if (battleInput != null)
+        {
+            battleInput.enabled = true;
+        }
     }
 
     private void OnDestroy()

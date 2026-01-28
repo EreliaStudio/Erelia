@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 public class CameraOrbit : MonoBehaviour
 {
-    private static readonly Vector3 CameraLocalPosition = new Vector3(10f, 10f, 10f);
+    private static readonly Vector3 CameraLocalPosition = new Vector3(-10f, 10f, -10f);
     private static readonly Vector3 LookAtLocalPosition = Vector3.zero;
     private const float OrbitSensitivity = 2.5f;
 
