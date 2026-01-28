@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c716e56aaa6a904c8d1b1040605db93, type: 3}
   m_Name: DefaultEncounterTable
   m_EditorClassIdentifier: Assembly-CSharp::EncounterSettings
-  chanceOnEnter: 1
-  chanceOnMove: 1
+  chanceOnEnter: 0.15
+  chanceOnMove: 0.05
   rollCooldownSeconds: 0
   enemyTableId: Coucou

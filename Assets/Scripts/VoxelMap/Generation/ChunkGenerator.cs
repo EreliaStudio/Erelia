@@ -5,7 +5,7 @@ using UnityEngine;
 public class ChunkGenerator
 {
 	[HideInInspector][SerializeField] private VoxelRegistry registry;
-	[SerializeField] private int seed = 0;
+	// [SerializeField] private int seed = 0;
 	[Header("Voxel Ids")]
 	[SerializeField] private int cubeId = 0;
 	[SerializeField] private int stairId = 1;
@@ -55,7 +55,7 @@ public class ChunkGenerator
 						{
 							dataId = slabId;
 						}
-						else
+						else if (coord.X == 1 && coord.Y == 0 && coord.Z == 1)
 						{
 							dataId = crossPlaneId;
 						}

@@ -1,8 +1,12 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class BattleBootstrapper : MonoBehaviour
 {
+	[SerializeField] private GameObject playerObject = null;
     private readonly System.Collections.Generic.List<AudioListener> disabledListeners = new System.Collections.Generic.List<AudioListener>();
+    private readonly System.Collections.Generic.List<Camera> disabledCameras = new System.Collections.Generic.List<Camera>();
+    private readonly System.Collections.Generic.List<PlayerInput> disabledInputs = new System.Collections.Generic.List<PlayerInput>();
 
     private void Start()
     {
@@ -12,17 +16,23 @@ public class BattleBootstrapper : MonoBehaviour
             return;
         }
 
+		playerObject.transform.position = request.PlayerWorldPosition;
+
         DisableOtherListeners();
+        DisableOtherCameras();
+        DisableOtherPlayerInputs();
     }
 
     private void OnDestroy()
     {
         RestoreListeners();
+        RestoreCameras();
+        RestorePlayerInputs();
     }
 
     private void DisableOtherListeners()
     {
-        AudioListener[] listeners = FindObjectsOfType<AudioListener>(true);
+        AudioListener[] listeners = Object.FindObjectsByType<AudioListener>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         AudioListener keep = GetComponentInChildren<AudioListener>(true);
 
         for (int i = 0; i < listeners.Length; i++)
@@ -58,5 +68,81 @@ public class BattleBootstrapper : MonoBehaviour
         }
 
         disabledListeners.Clear();
+    }
+
+    private void DisableOtherCameras()
+    {
+        Camera[] cameras = Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < cameras.Length; i++)
+        {
+            Camera camera = cameras[i];
+            if (camera == null)
+            {
+                continue;
+            }
+
+            if (camera.gameObject.scene == gameObject.scene)
+            {
+                continue;
+            }
+
+            if (camera.enabled)
+            {
+                camera.enabled = false;
+                disabledCameras.Add(camera);
+            }
+        }
+    }
+
+    private void RestoreCameras()
+    {
+        for (int i = 0; i < disabledCameras.Count; i++)
+        {
+            Camera camera = disabledCameras[i];
+            if (camera != null)
+            {
+                camera.enabled = true;
+            }
+        }
+
+        disabledCameras.Clear();
+    }
+
+    private void DisableOtherPlayerInputs()
+    {
+        PlayerInput[] inputs = Object.FindObjectsByType<PlayerInput>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < inputs.Length; i++)
+        {
+            PlayerInput input = inputs[i];
+            if (input == null)
+            {
+                continue;
+            }
+
+            if (input.gameObject.scene == gameObject.scene)
+            {
+                continue;
+            }
+
+            if (input.enabled)
+            {
+                input.enabled = false;
+                disabledInputs.Add(input);
+            }
+        }
+    }
+
+    private void RestorePlayerInputs()
+    {
+        for (int i = 0; i < disabledInputs.Count; i++)
+        {
+            PlayerInput input = disabledInputs[i];
+            if (input != null)
+            {
+                input.enabled = true;
+            }
+        }
+
+        disabledInputs.Clear();
     }
 }

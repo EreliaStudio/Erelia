@@ -85,12 +85,13 @@
     <Compile Include="Assets\Scripts\VoxelMap\Rendering\BushTriggerEmitter.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\SlopeVoxel.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\SlabVoxel.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleCameraOrbit.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoardData.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\StairVoxel.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleCameraController.cs" />
     <Compile Include="Assets\Scripts\Player\CameraOrbit.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\VoxelCell.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Utils\GeometryUtils.cs" />
-    <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBootstrapper.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\ChunkCoord.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Generation\ChunkGenerator.cs" />
