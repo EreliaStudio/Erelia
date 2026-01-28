@@ -43,7 +43,7 @@ public class ChunkMesher
 		registry = value;
 	}
 
-	protected bool TryGetVoxelDefinition(Chunk chunk, int x, int y, int z, out Voxel voxel)
+	protected virtual bool TryGetVoxelDefinition(Chunk chunk, int x, int y, int z, out Voxel voxel)
 	{
 		voxel = null;
 		if (registry == null)

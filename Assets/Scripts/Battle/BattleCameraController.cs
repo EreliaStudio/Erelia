@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -16,6 +17,7 @@ public class BattleCameraController : MonoBehaviour
     private void OnEnable()
     {
         ResolveMoveAction();
+        ApplyMoveLayoutOverride(moveAction);
         moveAction?.Enable();
     }
 
@@ -63,5 +65,46 @@ public class BattleCameraController : MonoBehaviour
         moveAction = actionFromMap
             ?? playerInput.actions.FindAction("Player/Move", false)
             ?? playerInput.actions.FindAction("Move", false);
+    }
+
+    private static void ApplyMoveLayoutOverride(InputAction action)
+    {
+        if (action == null || Keyboard.current == null)
+        {
+            return;
+        }
+
+        string layout = Keyboard.current.keyboardLayout ?? string.Empty;
+        bool useAzerty = layout.IndexOf("azerty", StringComparison.OrdinalIgnoreCase) >= 0
+            || layout.IndexOf("french", StringComparison.OrdinalIgnoreCase) >= 0;
+        string up = useAzerty ? "<Keyboard>/z" : "<Keyboard>/w";
+        string left = useAzerty ? "<Keyboard>/q" : "<Keyboard>/a";
+        string down = "<Keyboard>/s";
+        string right = "<Keyboard>/d";
+
+        for (int i = 0; i < action.bindings.Count; i++)
+        {
+            InputBinding binding = action.bindings[i];
+            if (!binding.isPartOfComposite)
+            {
+                continue;
+            }
+
+            switch (binding.name)
+            {
+                case "up":
+                    action.ApplyBindingOverride(i, up);
+                    break;
+                case "left":
+                    action.ApplyBindingOverride(i, left);
+                    break;
+                case "down":
+                    action.ApplyBindingOverride(i, down);
+                    break;
+                case "right":
+                    action.ApplyBindingOverride(i, right);
+                    break;
+            }
+        }
     }
 }

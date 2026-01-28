@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -22,6 +23,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnEnable()
     {
+        ApplyMoveLayoutOverride(moveAction);
         moveAction?.Enable();
     }
 
@@ -52,5 +54,46 @@ public class PlayerController : MonoBehaviour
         }
 
         transform.position += input * moveSpeed * Time.deltaTime;
+    }
+
+    private static void ApplyMoveLayoutOverride(InputAction action)
+    {
+        if (action == null || Keyboard.current == null)
+        {
+            return;
+        }
+
+        string layout = Keyboard.current.keyboardLayout ?? string.Empty;
+        bool useAzerty = layout.IndexOf("azerty", StringComparison.OrdinalIgnoreCase) >= 0
+            || layout.IndexOf("french", StringComparison.OrdinalIgnoreCase) >= 0;
+        string up = useAzerty ? "<Keyboard>/z" : "<Keyboard>/w";
+        string left = useAzerty ? "<Keyboard>/q" : "<Keyboard>/a";
+        string down = "<Keyboard>/s";
+        string right = "<Keyboard>/d";
+
+        for (int i = 0; i < action.bindings.Count; i++)
+        {
+            InputBinding binding = action.bindings[i];
+            if (!binding.isPartOfComposite)
+            {
+                continue;
+            }
+
+            switch (binding.name)
+            {
+                case "up":
+                    action.ApplyBindingOverride(i, up);
+                    break;
+                case "left":
+                    action.ApplyBindingOverride(i, left);
+                    break;
+                case "down":
+                    action.ApplyBindingOverride(i, down);
+                    break;
+                case "right":
+                    action.ApplyBindingOverride(i, right);
+                    break;
+            }
+        }
     }
 }

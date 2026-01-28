@@ -48,7 +48,7 @@ public class ChunkView : MonoBehaviour
 
         if (renderMesher != null)
         {
-            meshFilter.sharedMesh = renderMesher.BuildMesh(Chunk);
+            meshFilter.sharedMesh = renderMesher.BuildMesh(Chunk, Coord);
         }
 
         if (solidCollisionMesher != null)

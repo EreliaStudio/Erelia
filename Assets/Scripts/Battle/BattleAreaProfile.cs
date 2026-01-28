@@ -9,6 +9,7 @@ public class BattleAreaProfile : ScriptableObject
     [Range(0f, 1f)][SerializeField] private float noiseStrength = 0.5f;
     [Range(0f, 1f)][SerializeField] private float minEdgeChance = 0.25f;
     [Min(1)][SerializeField] private int minCells = 32;
+    [Min(0)][SerializeField] private int fillRadius = 0;
 
     [Header("Height Sampling")]
     [Min(0)][SerializeField] private int verticalUp = 8;
@@ -19,6 +20,7 @@ public class BattleAreaProfile : ScriptableObject
     public float NoiseStrength => noiseStrength;
     public float MinEdgeChance => minEdgeChance;
     public int MinCells => minCells;
+    public int FillRadius => fillRadius;
     public int VerticalUp => verticalUp;
     public int VerticalDown => verticalDown;
 }

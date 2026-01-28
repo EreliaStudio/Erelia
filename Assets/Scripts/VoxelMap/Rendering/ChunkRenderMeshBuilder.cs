@@ -8,13 +8,24 @@ public class ChunkRenderMeshBuilder : ChunkMesher
 	[NonSerialized] private readonly List<Vector3> vertices = new List<Vector3>();
 	[NonSerialized] private readonly List<int> triangles = new List<int>();
 	[NonSerialized] private readonly List<Vector2> uvs = new List<Vector2>();
+	[NonSerialized] private BattleAreaMask renderMask;
+	private int currentBaseX;
+	private int currentBaseZ;
 
-	public Mesh BuildMesh(Chunk chunk)
+	public void SetRenderMask(BattleAreaMask mask)
+	{
+		renderMask = mask;
+	}
+
+	public Mesh BuildMesh(Chunk chunk, ChunkCoord coord)
 	{
 		var mesh = new Mesh();
 		vertices.Clear();
 		triangles.Clear();
 		uvs.Clear();
+
+		currentBaseX = coord.X * Chunk.SizeX;
+		currentBaseZ = coord.Z * Chunk.SizeZ;
 
 		for (int x = 0; x < Chunk.SizeX; x++)
 		{
@@ -34,6 +45,21 @@ public class ChunkRenderMeshBuilder : ChunkMesher
 		mesh.name = "RenderMesh";
 
 		return mesh;
+	}
+
+	protected override bool TryGetVoxelDefinition(Chunk chunk, int x, int y, int z, out Voxel voxel)
+	{
+		if (!base.TryGetVoxelDefinition(chunk, x, y, z, out voxel))
+		{
+			return false;
+		}
+
+		if (renderMask == null)
+		{
+			return true;
+		}
+
+		return renderMask.ContainsWorldXZ(currentBaseX + x, currentBaseZ + z);
 	}
 
 	private void AddVoxel(Chunk chunk, int x, int y, int z, List<Vector3> vertices, List<int> triangles, List<Vector2> uvs)

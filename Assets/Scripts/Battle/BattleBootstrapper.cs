@@ -8,6 +8,7 @@ public class BattleBootstrapper : MonoBehaviour
     private readonly System.Collections.Generic.List<AudioListener> disabledListeners = new System.Collections.Generic.List<AudioListener>();
     private readonly System.Collections.Generic.List<Camera> disabledCameras = new System.Collections.Generic.List<Camera>();
     private readonly System.Collections.Generic.List<PlayerInput> disabledInputs = new System.Collections.Generic.List<PlayerInput>();
+    private readonly System.Collections.Generic.List<VoxelMap> maskedMaps = new System.Collections.Generic.List<VoxelMap>();
 
     private void Awake()
     {
@@ -35,10 +36,13 @@ public class BattleBootstrapper : MonoBehaviour
         {
             battleInput.enabled = true;
         }
+
+        ApplyBattleMask(request);
     }
 
     private void OnDestroy()
     {
+        ClearBattleMask();
         RestoreListeners();
         RestoreCameras();
         RestorePlayerInputs();
@@ -158,5 +162,46 @@ public class BattleBootstrapper : MonoBehaviour
         }
 
         disabledInputs.Clear();
+    }
+
+    private void ApplyBattleMask(BattleRequest request)
+    {
+        if (request == null || request.Board == null || request.Board.Cells == null || request.Board.Cells.Count == 0)
+        {
+            return;
+        }
+
+        BattleAreaMask mask = BattleAreaMask.FromBoard(request.Board);
+        if (mask == null)
+        {
+            return;
+        }
+
+        VoxelMap[] maps = Object.FindObjectsByType<VoxelMap>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        for (int i = 0; i < maps.Length; i++)
+        {
+            VoxelMap map = maps[i];
+            if (map == null || map.View == null)
+            {
+                continue;
+            }
+
+            map.View.SetRenderMask(mask);
+            maskedMaps.Add(map);
+        }
+    }
+
+    private void ClearBattleMask()
+    {
+        for (int i = 0; i < maskedMaps.Count; i++)
+        {
+            VoxelMap map = maskedMaps[i];
+            if (map != null && map.View != null)
+            {
+                map.View.SetRenderMask(null);
+            }
+        }
+
+        maskedMaps.Clear();
     }
 }

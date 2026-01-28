@@ -10,6 +10,7 @@ public class VoxelMapView
 	[SerializeField] private Transform target;
 	[SerializeField] private int viewRadius = 0;
 	[SerializeField] private int verticalRadius = 0;
+	[SerializeField] private int chunkCreateBudgetPerTick = 2;
 
 	[HideInInspector] public List<ChunkCoord> VisibleCoords = new List<ChunkCoord>();
 
@@ -17,6 +18,10 @@ public class VoxelMapView
 	[SerializeField] private ChunkSolidCollisionMeshBuilder solidCollisionMesher = new ChunkSolidCollisionMeshBuilder();
 	[SerializeField] private ChunkBushTriggerMeshBuilder bushTriggerMesher = new ChunkBushTriggerMeshBuilder();
 	private readonly Dictionary<ChunkCoord, ChunkView> views = new Dictionary<ChunkCoord, ChunkView>();
+	private readonly HashSet<ChunkCoord> desiredCoords = new HashSet<ChunkCoord>();
+	private readonly Queue<ChunkCoord> pendingCreate = new Queue<ChunkCoord>();
+	private readonly HashSet<ChunkCoord> pendingSet = new HashSet<ChunkCoord>();
+	private readonly List<ChunkCoord> desiredList = new List<ChunkCoord>();
 	private ChunkCoord lastCenter;
 	private bool hasCenter;
 	private VoxelMapData mapData;
@@ -55,6 +60,8 @@ public class VoxelMapView
 			hasCenter = true;
 			UpdateVisible(center);
 		}
+
+		ProcessPendingCreation();
 	}
 
 	public void SetRegistry(VoxelRegistry value)
@@ -65,32 +72,46 @@ public class VoxelMapView
 		bushTriggerMesher.SetRegistry(registry);
 	}
 
+	public void SetRenderMask(BattleAreaMask mask)
+	{
+		renderMesher.SetRenderMask(mask);
+		RebuildAllViews();
+	}
+
 	private void UpdateVisible(ChunkCoord center)
 	{
-		var desired = new HashSet<ChunkCoord>();
+		desiredCoords.Clear();
+		pendingCreate.Clear();
+		pendingSet.Clear();
+		desiredList.Clear();
+
+		int radiusSquared = viewRadius * viewRadius;
 
 		for (int x = -viewRadius; x <= viewRadius; x++)
 		{
 			for (int z = -viewRadius; z <= viewRadius; z++)
 			{
+				int distanceSquared = (x * x) + (z * z);
+				if (distanceSquared > radiusSquared)
+				{
+					continue;
+				}
+
 				for (int y = -verticalRadius; y <= verticalRadius; y++)
 				{
 					var coord = new ChunkCoord(center.X + x, center.Y + y, center.Z + z);
-					desired.Add(coord);
-					if (!views.ContainsKey(coord))
-					{
-						Chunk chunk = mapData.GetOrCreateChunk(coord);
-						ChunkView view = CreateChunkView(coord, chunk);
-						views.Add(coord, view);
-					}
+					desiredCoords.Add(coord);
+					desiredList.Add(coord);
 				}
 			}
 		}
 
+		SortPendingByDistance(center);
+
 		var toRemove = new List<ChunkCoord>();
 		foreach (var pair in views)
 		{
-			if (!desired.Contains(pair.Key))
+			if (!desiredCoords.Contains(pair.Key))
 			{
 				toRemove.Add(pair.Key);
 			}
@@ -107,7 +128,73 @@ public class VoxelMapView
 		}
 
 		VisibleCoords.Clear();
-		VisibleCoords.AddRange(desired);
+		VisibleCoords.AddRange(desiredCoords);
+	}
+
+	private void RebuildAllViews()
+	{
+		foreach (var pair in views)
+		{
+			if (pair.Value != null)
+			{
+				pair.Value.RebuildMesh();
+			}
+		}
+	}
+
+	private void SortPendingByDistance(ChunkCoord center)
+	{
+		if (desiredList.Count <= 1)
+		{
+			return;
+		}
+
+		desiredList.Sort((a, b) =>
+		{
+			int aDx = a.X - center.X;
+			int aDz = a.Z - center.Z;
+			int bDx = b.X - center.X;
+			int bDz = b.Z - center.Z;
+
+			int aDist = (aDx * aDx) + (aDz * aDz);
+			int bDist = (bDx * bDx) + (bDz * bDz);
+			return aDist.CompareTo(bDist);
+		});
+
+		for (int i = 0; i < desiredList.Count; i++)
+		{
+			ChunkCoord coord = desiredList[i];
+			if (!views.ContainsKey(coord) && !pendingSet.Contains(coord))
+			{
+				pendingCreate.Enqueue(coord);
+				pendingSet.Add(coord);
+			}
+		}
+	}
+
+	private void ProcessPendingCreation()
+	{
+		if (chunkCreateBudgetPerTick <= 0 || pendingCreate.Count == 0)
+		{
+			return;
+		}
+
+		int created = 0;
+		while (created < chunkCreateBudgetPerTick && pendingCreate.Count > 0)
+		{
+			ChunkCoord coord = pendingCreate.Dequeue();
+			pendingSet.Remove(coord);
+
+			if (!desiredCoords.Contains(coord) || views.ContainsKey(coord))
+			{
+				continue;
+			}
+
+			Chunk chunk = mapData.GetOrCreateChunk(coord);
+			ChunkView view = CreateChunkView(coord, chunk);
+			views.Add(coord, view);
+			created++;
+		}
 	}
 
 	private ChunkView CreateChunkView(ChunkCoord coord, Chunk chunk)
