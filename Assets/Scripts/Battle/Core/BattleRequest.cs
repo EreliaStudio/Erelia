@@ -8,6 +8,7 @@ public class BattleRequest
     public Vector3 CameraLocalPosition;
     public int Seed;
     public BattleAreaProfile AreaProfile;
-    public BattleBoardData Board;
+    public BattleBoard BattleBoard;
+    public VoxelRegistry Registry;
     public string EnemyTableId;
 }

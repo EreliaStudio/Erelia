@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 [Serializable]
 public class Chunk
@@ -21,5 +23,15 @@ public class Chunk
 				}
 			}
 		}
+	}
+
+	public List<Mesh> BuildSolidCollisionMeshes(VoxelSolidCollisionMeshBuilder mesher)
+	{
+		if (mesher == null)
+		{
+			return new List<Mesh>();
+		}
+
+		return mesher.BuildSolidMeshes(Voxels, SizeX, SizeY, SizeZ);
 	}
 }

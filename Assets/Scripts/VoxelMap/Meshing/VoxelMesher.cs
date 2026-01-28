@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class ChunkMesher
+public class VoxelMesher
 {
 	[HideInInspector] protected VoxelRegistry registry;
 	[NonSerialized] private readonly Dictionary<FaceTransformKey, VoxelFace> transformedFaceCache = new Dictionary<FaceTransformKey, VoxelFace>();
@@ -43,7 +43,7 @@ public class ChunkMesher
 		registry = value;
 	}
 
-	protected virtual bool TryGetVoxelDefinition(Chunk chunk, int x, int y, int z, out Voxel voxel)
+	protected virtual bool TryGetVoxelDefinition(VoxelCell[,,] voxels, int sizeX, int sizeY, int sizeZ, int x, int y, int z, out Voxel voxel)
 	{
 		voxel = null;
 		if (registry == null)
@@ -51,18 +51,35 @@ public class ChunkMesher
 			return false;
 		}
 
-		if (x < 0 || x >= Chunk.SizeX || y < 0 || y >= Chunk.SizeY || z < 0 || z >= Chunk.SizeZ)
+		if (!TryGetVoxelCell(voxels, sizeX, sizeY, sizeZ, x, y, z, out VoxelCell cell))
 		{
 			return false;
 		}
 
-		int id = chunk.Voxels[x, y, z].Id;
+		int id = cell.Id;
 		if (id == registry.AirId)
 		{
 			return false;
 		}
 
 		return registry.TryGetVoxel(id, out voxel) && voxel != null;
+	}
+
+	protected bool TryGetVoxelCell(VoxelCell[,,] voxels, int sizeX, int sizeY, int sizeZ, int x, int y, int z, out VoxelCell cell)
+	{
+		cell = default;
+		if (voxels == null)
+		{
+			return false;
+		}
+
+		if (x < 0 || x >= sizeX || y < 0 || y >= sizeY || z < 0 || z >= sizeZ)
+		{
+			return false;
+		}
+
+		cell = voxels[x, y, z];
+		return true;
 	}
 
 	protected static int OrientationToSteps(Orientation orientation)
@@ -246,14 +263,35 @@ public class ChunkMesher
 		OuterShellPlane plane,
 		bool hasNeighbor)
 	{
+		return IsFullyOccludedByNeighbor(chunk != null ? chunk.Voxels : null, Chunk.SizeX, Chunk.SizeY, Chunk.SizeZ,
+			neighbor, neighborX, neighborY, neighborZ, plane, hasNeighbor);
+	}
+
+	protected bool IsFullyOccludedByNeighbor(
+		VoxelCell[,,] voxels,
+		int sizeX,
+		int sizeY,
+		int sizeZ,
+		Voxel neighbor,
+		int neighborX,
+		int neighborY,
+		int neighborZ,
+		OuterShellPlane plane,
+		bool hasNeighbor)
+	{
 		if (!hasNeighbor)
 		{
 			return false;
 		}
 
+		if (!TryGetVoxelCell(voxels, sizeX, sizeY, sizeZ, neighborX, neighborY, neighborZ, out VoxelCell neighborCell))
+		{
+			return false;
+		}
+
 		OuterShellPlane oppositePlane = OuterShellPlaneUtil.GetOppositePlane(plane);
-		Orientation neighborOrientation = chunk.Voxels[neighborX, neighborY, neighborZ].Orientation;
-		FlipOrientation neighborFlipOrientation = chunk.Voxels[neighborX, neighborY, neighborZ].FlipOrientation;
+		Orientation neighborOrientation = neighborCell.Orientation;
+		FlipOrientation neighborFlipOrientation = neighborCell.FlipOrientation;
 		OuterShellPlane neighborLocalPlane = MapWorldPlaneToLocal(oppositePlane, neighborOrientation, neighborFlipOrientation);
 		if (!neighbor.OuterShellFaces.TryGetValue(neighborLocalPlane, out VoxelFace otherFace))
 		{

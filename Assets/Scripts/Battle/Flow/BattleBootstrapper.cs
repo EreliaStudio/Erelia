@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class BattleBootstrapper : MonoBehaviour
 {
@@ -8,7 +9,7 @@ public class BattleBootstrapper : MonoBehaviour
     private readonly System.Collections.Generic.List<AudioListener> disabledListeners = new System.Collections.Generic.List<AudioListener>();
     private readonly System.Collections.Generic.List<Camera> disabledCameras = new System.Collections.Generic.List<Camera>();
     private readonly System.Collections.Generic.List<PlayerInput> disabledInputs = new System.Collections.Generic.List<PlayerInput>();
-    private readonly System.Collections.Generic.List<VoxelMap> maskedMaps = new System.Collections.Generic.List<VoxelMap>();
+    private readonly System.Collections.Generic.List<GameObject> disabledSceneRoots = new System.Collections.Generic.List<GameObject>();
 
     private void Awake()
     {
@@ -31,21 +32,21 @@ public class BattleBootstrapper : MonoBehaviour
         DisableOtherListeners();
         DisableOtherCameras();
         DisableOtherPlayerInputs();
+        DisableOtherSceneRoots();
 
         if (battleInput != null)
         {
             battleInput.enabled = true;
         }
 
-        ApplyBattleMask(request);
     }
 
     private void OnDestroy()
     {
-        ClearBattleMask();
         RestoreListeners();
         RestoreCameras();
         RestorePlayerInputs();
+        RestoreSceneRoots();
     }
 
     private void DisableOtherListeners()
@@ -164,44 +165,44 @@ public class BattleBootstrapper : MonoBehaviour
         disabledInputs.Clear();
     }
 
-    private void ApplyBattleMask(BattleRequest request)
+    private void DisableOtherSceneRoots()
     {
-        if (request == null || request.Board == null || request.Board.Cells == null || request.Board.Cells.Count == 0)
+        Scene battleScene = gameObject.scene;
+        for (int i = 0; i < SceneManager.sceneCount; i++)
         {
-            return;
-        }
-
-        BattleAreaMask mask = BattleAreaMask.FromBoard(request.Board);
-        if (mask == null)
-        {
-            return;
-        }
-
-        VoxelMap[] maps = Object.FindObjectsByType<VoxelMap>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        for (int i = 0; i < maps.Length; i++)
-        {
-            VoxelMap map = maps[i];
-            if (map == null || map.View == null)
+            Scene scene = SceneManager.GetSceneAt(i);
+            if (!scene.isLoaded || scene == battleScene || scene.name == "DontDestroyOnLoad")
             {
                 continue;
             }
 
-            map.View.SetRenderMask(mask);
-            maskedMaps.Add(map);
+            GameObject[] roots = scene.GetRootGameObjects();
+            for (int r = 0; r < roots.Length; r++)
+            {
+                GameObject root = roots[r];
+                if (root == null || !root.activeSelf)
+                {
+                    continue;
+                }
+
+                root.SetActive(false);
+                disabledSceneRoots.Add(root);
+            }
         }
     }
 
-    private void ClearBattleMask()
+    private void RestoreSceneRoots()
     {
-        for (int i = 0; i < maskedMaps.Count; i++)
+        for (int i = 0; i < disabledSceneRoots.Count; i++)
         {
-            VoxelMap map = maskedMaps[i];
-            if (map != null && map.View != null)
+            GameObject root = disabledSceneRoots[i];
+            if (root != null)
             {
-                map.View.SetRenderMask(null);
+                root.SetActive(true);
             }
         }
 
-        maskedMaps.Clear();
+        disabledSceneRoots.Clear();
     }
+
 }

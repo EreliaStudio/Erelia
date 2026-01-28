@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class ChunkSolidCollisionMeshBuilder : ChunkMesher
+public class VoxelSolidCollisionMeshBuilder : VoxelMesher
 {
+	[NonSerialized] private VoxelCell[,,] currentVoxels;
+	[NonSerialized] private int currentSizeX;
+	[NonSerialized] private int currentSizeY;
+	[NonSerialized] private int currentSizeZ;
 	[NonSerialized] private int[] visited;
 	[NonSerialized] private int visitedStamp = 1;
 	[NonSerialized] private readonly Queue<Vector3Int> floodQueue = new Queue<Vector3Int>();
@@ -21,29 +25,34 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 	[NonSerialized] private readonly List<PointKey> loopBuffer = new List<PointKey>();
 	[NonSerialized] private readonly List<int> polygonIndices = new List<int>();
 
-	public List<Mesh> BuildSolidMeshes(Chunk chunk)
+	public List<Mesh> BuildSolidMeshes(VoxelCell[,,] voxels, int sizeX, int sizeY, int sizeZ)
 	{
 		var meshes = new List<Mesh>();
-		if (chunk == null)
+		if (voxels == null || sizeX <= 0 || sizeY <= 0 || sizeZ <= 0)
 		{
 			return meshes;
 		}
 
-		BeginVisitedPass();
-		for (int x = 0; x < Chunk.SizeX; x++)
+		currentVoxels = voxels;
+		currentSizeX = sizeX;
+		currentSizeY = sizeY;
+		currentSizeZ = sizeZ;
+
+		BeginVisitedPass(sizeX, sizeY, sizeZ);
+		for (int x = 0; x < currentSizeX; x++)
 		{
-			for (int y = 0; y < Chunk.SizeY; y++)
+			for (int y = 0; y < currentSizeY; y++)
 			{
-				for (int z = 0; z < Chunk.SizeZ; z++)
+				for (int z = 0; z < currentSizeZ; z++)
 				{
 					int index = GetIndex(x, y, z);
-					if (visited[index] == visitedStamp || !IsSolidAt(chunk, x, y, z))
+					if (visited[index] == visitedStamp || !IsSolidAt(x, y, z))
 					{
 						continue;
 					}
 
-					FloodFillSolid(chunk, x, y, z, islandCells);
-					Mesh islandMesh = BuildIslandMesh(chunk, islandCells);
+					FloodFillSolid(x, y, z, islandCells);
+					Mesh islandMesh = BuildIslandMesh(islandCells);
 					if (islandMesh != null && islandMesh.vertexCount > 0)
 					{
 						islandMesh.name = "SolidCollisionMesh";
@@ -56,7 +65,7 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 		return meshes;
 	}
 
-	private void FloodFillSolid(Chunk chunk, int startX, int startY, int startZ, List<Vector3Int> island)
+	private void FloodFillSolid(int startX, int startY, int startZ, List<Vector3Int> island)
 	{
 		island.Clear();
 		floodQueue.Clear();
@@ -68,24 +77,24 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 			Vector3Int current = floodQueue.Dequeue();
 			island.Add(current);
 
-			TryEnqueueSolid(chunk, current.x + 1, current.y, current.z);
-			TryEnqueueSolid(chunk, current.x - 1, current.y, current.z);
-			TryEnqueueSolid(chunk, current.x, current.y + 1, current.z);
-			TryEnqueueSolid(chunk, current.x, current.y - 1, current.z);
-			TryEnqueueSolid(chunk, current.x, current.y, current.z + 1);
-			TryEnqueueSolid(chunk, current.x, current.y, current.z - 1);
+			TryEnqueueSolid(current.x + 1, current.y, current.z);
+			TryEnqueueSolid(current.x - 1, current.y, current.z);
+			TryEnqueueSolid(current.x, current.y + 1, current.z);
+			TryEnqueueSolid(current.x, current.y - 1, current.z);
+			TryEnqueueSolid(current.x, current.y, current.z + 1);
+			TryEnqueueSolid(current.x, current.y, current.z - 1);
 		}
 	}
 
-	private void TryEnqueueSolid(Chunk chunk, int x, int y, int z)
+	private void TryEnqueueSolid(int x, int y, int z)
 	{
-		if (x < 0 || x >= Chunk.SizeX || y < 0 || y >= Chunk.SizeY || z < 0 || z >= Chunk.SizeZ)
+		if (x < 0 || x >= currentSizeX || y < 0 || y >= currentSizeY || z < 0 || z >= currentSizeZ)
 		{
 			return;
 		}
 
 		int index = GetIndex(x, y, z);
-		if (visited[index] == visitedStamp || !IsSolidAt(chunk, x, y, z))
+		if (visited[index] == visitedStamp || !IsSolidAt(x, y, z))
 		{
 			return;
 		}
@@ -94,7 +103,7 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 		floodQueue.Enqueue(new Vector3Int(x, y, z));
 	}
 
-	private Mesh BuildIslandMesh(Chunk chunk, List<Vector3Int> island)
+	private Mesh BuildIslandMesh(List<Vector3Int> island)
 	{
 		var mesh = new Mesh();
 		vertices.Clear();
@@ -105,7 +114,7 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 		for (int i = 0; i < island.Count; i++)
 		{
 			Vector3Int cell = island[i];
-			AddVoxelCollision(chunk, cell.x, cell.y, cell.z);
+			AddVoxelCollision(cell.x, cell.y, cell.z);
 		}
 
 		foreach (PlaneGroup group in planeGroups.Values)
@@ -125,12 +134,11 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 	}
 
 	private void AddVoxelCollision(
-		Chunk chunk,
 		int x,
 		int y,
 		int z)
 	{
-		if (!TryGetVoxelDefinition(chunk, x, y, z, out Voxel voxel))
+		if (!TryGetVoxelDefinition(currentVoxels, currentSizeX, currentSizeY, currentSizeZ, x, y, z, out Voxel voxel))
 		{
 			return;
 		}
@@ -140,17 +148,22 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 			return;
 		}
 
-		Orientation orientation = chunk.Voxels[x, y, z].Orientation;
-		FlipOrientation flipOrientation = chunk.Voxels[x, y, z].FlipOrientation;
+		if (!TryGetVoxelCell(currentVoxels, currentSizeX, currentSizeY, currentSizeZ, x, y, z, out VoxelCell cell))
+		{
+			return;
+		}
+
+		Orientation orientation = cell.Orientation;
+		FlipOrientation flipOrientation = cell.FlipOrientation;
 		Vector3 position = new Vector3(x, y, z);
 		bool anyOuterVisible = false;
 
-		TryAddOuterFaceCollision(chunk, voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.PosX, ref anyOuterVisible);
-		TryAddOuterFaceCollision(chunk, voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.NegX, ref anyOuterVisible);
-		TryAddOuterFaceCollision(chunk, voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.PosY, ref anyOuterVisible);
-		TryAddOuterFaceCollision(chunk, voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.NegY, ref anyOuterVisible);
-		TryAddOuterFaceCollision(chunk, voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.PosZ, ref anyOuterVisible);
-		TryAddOuterFaceCollision(chunk, voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.NegZ, ref anyOuterVisible);
+		TryAddOuterFaceCollision(voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.PosX, ref anyOuterVisible);
+		TryAddOuterFaceCollision(voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.NegX, ref anyOuterVisible);
+		TryAddOuterFaceCollision(voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.PosY, ref anyOuterVisible);
+		TryAddOuterFaceCollision(voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.NegY, ref anyOuterVisible);
+		TryAddOuterFaceCollision(voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.PosZ, ref anyOuterVisible);
+		TryAddOuterFaceCollision(voxel, orientation, flipOrientation, position, x, y, z, OuterShellPlane.NegZ, ref anyOuterVisible);
 
 		if (anyOuterVisible)
 		{
@@ -163,7 +176,6 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 	}
 
 	private void TryAddOuterFaceCollision(
-		Chunk chunk,
 		Voxel voxel,
 		Orientation orientation,
 		FlipOrientation flipOrientation,
@@ -178,7 +190,7 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 		int neighborX = x + offset.x;
 		int neighborY = y + offset.y;
 		int neighborZ = z + offset.z;
-		bool hasNeighbor = TryGetVoxelDefinition(chunk, neighborX, neighborY, neighborZ, out Voxel neighbor);
+		bool hasNeighbor = TryGetVoxelDefinition(currentVoxels, currentSizeX, currentSizeY, currentSizeZ, neighborX, neighborY, neighborZ, out Voxel neighbor);
 		if (hasNeighbor && neighbor.Collision != VoxelCollision.Solid)
 		{
 			hasNeighbor = false;
@@ -188,7 +200,7 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 
 		if (!voxel.OuterShellFaces.TryGetValue(localPlane, out VoxelFace face))
 		{
-			if (!IsFullyOccludedByNeighbor(chunk, neighbor, neighborX, neighborY, neighborZ, plane, hasNeighbor))
+			if (!IsFullyOccludedByNeighbor(currentVoxels, currentSizeX, currentSizeY, currentSizeZ, neighbor, neighborX, neighborY, neighborZ, plane, hasNeighbor))
 			{
 				anyOuterVisible = true;
 			}
@@ -197,7 +209,7 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 
 		if (face == null || !face.HasRenderablePolygons)
 		{
-			if (!IsFullyOccludedByNeighbor(chunk, neighbor, neighborX, neighborY, neighborZ, plane, hasNeighbor))
+			if (!IsFullyOccludedByNeighbor(currentVoxels, currentSizeX, currentSizeY, currentSizeZ, neighbor, neighborX, neighborY, neighborZ, plane, hasNeighbor))
 			{
 				anyOuterVisible = true;
 			}
@@ -209,8 +221,12 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 		if (hasNeighbor)
 		{
 			OuterShellPlane oppositePlane = OuterShellPlaneUtil.GetOppositePlane(plane);
-			Orientation neighborOrientation = chunk.Voxels[neighborX, neighborY, neighborZ].Orientation;
-			FlipOrientation neighborFlipOrientation = chunk.Voxels[neighborX, neighborY, neighborZ].FlipOrientation;
+			if (!TryGetVoxelCell(currentVoxels, currentSizeX, currentSizeY, currentSizeZ, neighborX, neighborY, neighborZ, out VoxelCell neighborCell))
+			{
+				neighborCell = default;
+			}
+			Orientation neighborOrientation = neighborCell.Orientation;
+			FlipOrientation neighborFlipOrientation = neighborCell.FlipOrientation;
 			OuterShellPlane neighborLocalPlane = MapWorldPlaneToLocal(oppositePlane, neighborOrientation, neighborFlipOrientation);
 			if (neighbor.OuterShellFaces.TryGetValue(neighborLocalPlane, out VoxelFace otherFace))
 			{
@@ -231,9 +247,9 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 		anyOuterVisible = true;
 	}
 
-	private void BeginVisitedPass()
+	private void BeginVisitedPass(int sizeX, int sizeY, int sizeZ)
 	{
-		int size = Chunk.SizeX * Chunk.SizeY * Chunk.SizeZ;
+		int size = sizeX * sizeY * sizeZ;
 		if (visited == null || visited.Length != size)
 		{
 			visited = new int[size];
@@ -249,24 +265,29 @@ public class ChunkSolidCollisionMeshBuilder : ChunkMesher
 		}
 	}
 
-	private static int GetIndex(int x, int y, int z)
+	private int GetIndex(int x, int y, int z)
 	{
-		return (x * Chunk.SizeY + y) * Chunk.SizeZ + z;
+		return (x * currentSizeY + y) * currentSizeZ + z;
 	}
 
-	private bool IsSolidAt(Chunk chunk, int x, int y, int z)
+	private bool IsSolidAt(int x, int y, int z)
 	{
 		if (registry == null)
 		{
 			return false;
 		}
 
-		if (x < 0 || x >= Chunk.SizeX || y < 0 || y >= Chunk.SizeY || z < 0 || z >= Chunk.SizeZ)
+		if (x < 0 || x >= currentSizeX || y < 0 || y >= currentSizeY || z < 0 || z >= currentSizeZ)
 		{
 			return false;
 		}
 
-		int id = chunk.Voxels[x, y, z].Id;
+		if (!TryGetVoxelCell(currentVoxels, currentSizeX, currentSizeY, currentSizeZ, x, y, z, out VoxelCell cell))
+		{
+			return false;
+		}
+
+		int id = cell.Id;
 		if (id == registry.AirId)
 		{
 			return false;

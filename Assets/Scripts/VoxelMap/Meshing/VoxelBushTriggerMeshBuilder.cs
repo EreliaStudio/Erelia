@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class ChunkBushTriggerMeshBuilder : ChunkMesher
+public class VoxelBushTriggerMeshBuilder : VoxelMesher
 {
 	[NonSerialized] private int[] visited;
 	[NonSerialized] private int visitedStamp = 1;

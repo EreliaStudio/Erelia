@@ -14,9 +14,9 @@ public class VoxelMapView
 
 	[HideInInspector] public List<ChunkCoord> VisibleCoords = new List<ChunkCoord>();
 
-	[SerializeField] private ChunkRenderMeshBuilder renderMesher = new ChunkRenderMeshBuilder();
-	[SerializeField] private ChunkSolidCollisionMeshBuilder solidCollisionMesher = new ChunkSolidCollisionMeshBuilder();
-	[SerializeField] private ChunkBushTriggerMeshBuilder bushTriggerMesher = new ChunkBushTriggerMeshBuilder();
+	[SerializeField] private VoxelRenderMeshBuilder renderMesher = new VoxelRenderMeshBuilder();
+	[SerializeField] private VoxelSolidCollisionMeshBuilder solidCollisionMesher = new VoxelSolidCollisionMeshBuilder();
+	[SerializeField] private VoxelBushTriggerMeshBuilder bushTriggerMesher = new VoxelBushTriggerMeshBuilder();
 	private readonly Dictionary<ChunkCoord, ChunkView> views = new Dictionary<ChunkCoord, ChunkView>();
 	private readonly HashSet<ChunkCoord> desiredCoords = new HashSet<ChunkCoord>();
 	private readonly Queue<ChunkCoord> pendingCreate = new Queue<ChunkCoord>();
@@ -70,12 +70,6 @@ public class VoxelMapView
 		renderMesher.SetRegistry(registry);
 		solidCollisionMesher.SetRegistry(registry);
 		bushTriggerMesher.SetRegistry(registry);
-	}
-
-	public void SetRenderMask(BattleAreaMask mask)
-	{
-		renderMesher.SetRenderMask(mask);
-		RebuildAllViews();
 	}
 
 	private void UpdateVisible(ChunkCoord center)

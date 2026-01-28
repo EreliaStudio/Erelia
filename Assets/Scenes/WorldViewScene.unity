@@ -344,6 +344,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3dfe8c06d0889e34f994e98debafac5d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraOrbit
+  keyboardOrbitSpeed: 90
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -552,7 +553,7 @@ MonoBehaviour:
   map: {fileID: 80715303}
   settings: {fileID: 11400000, guid: 26f37bdd4c7686544b09e5651a427bfd, type: 2}
   defaultAreaProfile: {fileID: 11400000, guid: 0edfdb67412598c4fa6ea6dfb490482c, type: 2}
-  battleSceneName: BattleGroundScene
+  battleSceneName: BattleScene
   triggerOnStay: 1
 --- !u!4 &871038140
 Transform:

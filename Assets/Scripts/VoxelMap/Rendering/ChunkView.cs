@@ -6,9 +6,9 @@ public class ChunkView : MonoBehaviour
 	public Chunk Chunk { get; private set; }
 
     private VoxelMap ownerMap;
-    private ChunkRenderMeshBuilder renderMesher;
-    private ChunkSolidCollisionMeshBuilder solidCollisionMesher;
-    private ChunkBushTriggerMeshBuilder bushTriggerMesher;
+    private VoxelRenderMeshBuilder renderMesher;
+    private VoxelSolidCollisionMeshBuilder solidCollisionMesher;
+    private VoxelBushTriggerMeshBuilder bushTriggerMesher;
     private MeshFilter meshFilter;
     private MeshRenderer meshRenderer;
     private MeshCollider solidCollider;
@@ -21,7 +21,7 @@ public class ChunkView : MonoBehaviour
     private readonly System.Collections.Generic.List<MeshFilter> bushFilters = new System.Collections.Generic.List<MeshFilter>();
     private readonly System.Collections.Generic.List<Transform> bushRoots = new System.Collections.Generic.List<Transform>();
 
-	public void Initialize(ChunkCoord coord, Chunk chunk, ChunkRenderMeshBuilder renderMesherInstance, ChunkSolidCollisionMeshBuilder solidCollisionMesherInstance, ChunkBushTriggerMeshBuilder bushTriggerMesherInstance, Material material, VoxelMap owner)
+	public void Initialize(ChunkCoord coord, Chunk chunk, VoxelRenderMeshBuilder renderMesherInstance, VoxelSolidCollisionMeshBuilder solidCollisionMesherInstance, VoxelBushTriggerMeshBuilder bushTriggerMesherInstance, Material material, VoxelMap owner)
 	{
 		Coord = coord;
 		Chunk = chunk;
@@ -48,12 +48,15 @@ public class ChunkView : MonoBehaviour
 
         if (renderMesher != null)
         {
-            meshFilter.sharedMesh = renderMesher.BuildMesh(Chunk, Coord);
+            renderMesher.SetBaseWorldXZ(Coord.X * Chunk.SizeX, Coord.Z * Chunk.SizeZ);
+            Mesh mesh = renderMesher.BuildMesh(Chunk.Voxels, Chunk.SizeX, Chunk.SizeY, Chunk.SizeZ);
+            mesh.name = "RenderMesh";
+            meshFilter.sharedMesh = mesh;
         }
 
         if (solidCollisionMesher != null)
         {
-            var solidMeshes = solidCollisionMesher.BuildSolidMeshes(Chunk);
+            var solidMeshes = Chunk.BuildSolidCollisionMeshes(solidCollisionMesher);
             ApplySolidMeshes(solidMeshes);
         }
         else

@@ -29,6 +29,33 @@ public static class VoxelMapQuery
         return true;
     }
 
+    public static bool TryGetVoxelCell(VoxelMap map, Vector3Int worldCell, out VoxelCell cell)
+    {
+        cell = default;
+        if (map == null || map.Data == null)
+        {
+            return false;
+        }
+
+        ChunkCoord coord = new ChunkCoord(
+            Mathf.FloorToInt((float)worldCell.x / Chunk.SizeX),
+            Mathf.FloorToInt((float)worldCell.y / Chunk.SizeY),
+            Mathf.FloorToInt((float)worldCell.z / Chunk.SizeZ));
+
+        Chunk chunk = map.Data.GetOrCreateChunk(coord);
+        if (chunk == null)
+        {
+            return false;
+        }
+
+        int localX = Mod(worldCell.x, Chunk.SizeX);
+        int localY = Mod(worldCell.y, Chunk.SizeY);
+        int localZ = Mod(worldCell.z, Chunk.SizeZ);
+
+        cell = chunk.Voxels[localX, localY, localZ];
+        return true;
+    }
+
     public static bool TryGetVoxel(VoxelMap map, Vector3Int worldCell, out Voxel voxel, out int id)
     {
         voxel = null;

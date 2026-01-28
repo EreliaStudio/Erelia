@@ -92,8 +92,10 @@ public class EncounterDirector : MonoBehaviour
         }
 
         int seed = Mathf.Abs((int)(Time.time * 1000f)) ^ context.Player.GetInstanceID();
-        var shape = OrganicBoardShapeGenerator.BuildCells(profile.Size, seed, profile.NoiseScale, profile.NoiseStrength, profile.MinEdgeChance, profile.MinCells);
-        BattleBoardData board = WorldSliceExtractor.BuildBoard(context.Map, context.PlayerPosition, shape, profile);
+        int radius = Mathf.Max(1, profile.Size);
+        int cornerRadius = Mathf.Max(1, radius / 3);
+        var shape = RoundedSquareShapeGenerator.BuildCells(radius, cornerRadius);
+        BattleBoard battleBoard = WorldSliceExtractor.BuildBattleBoard(context.Map, context.PlayerPosition, shape, profile);
 
         var request = new BattleRequest
         {
@@ -101,12 +103,13 @@ public class EncounterDirector : MonoBehaviour
             CameraLocalPosition = cameraLocalPosition,
             Seed = seed,
             AreaProfile = profile,
-            Board = board,
+            BattleBoard = battleBoard,
+            Registry = context.Map != null ? context.Map.Registry : null,
             EnemyTableId = settings != null ? settings.EnemyTableId : "default"
         };
 
         BattleRequestStore.Set(request);
-        Debug.Log($"EncounterDirector: Triggering battle at {request.PlayerWorldPosition} with {request.Board?.Cells.Count ?? 0} cells.");
+        Debug.Log($"EncounterDirector: Triggering battle at {request.PlayerWorldPosition} with board {battleBoard.SizeX}x{battleBoard.SizeY}x{battleBoard.SizeZ}.");
         battleLoading = true;
         AsyncOperation op = SceneManager.LoadSceneAsync(battleSceneName, LoadSceneMode.Additive);
         if (op != null)
