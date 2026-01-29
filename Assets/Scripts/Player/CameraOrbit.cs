@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -18,7 +17,8 @@ public class CameraOrbit : MonoBehaviour
 
     private void Start()
     {
-        transform.localPosition = CameraLocalPosition;
+        BattleRequest request = BattleRequestStore.Current;
+        transform.localPosition = request != null ? request.CameraLocalPosition : CameraLocalPosition;
         transform.LookAt(transform.parent != null
             ? transform.parent.TransformPoint(LookAtLocalPosition)
             : transform.TransformPoint(LookAtLocalPosition), Vector3.up);
@@ -27,7 +27,6 @@ public class CameraOrbit : MonoBehaviour
     private void OnEnable()
     {
         ResolveRotateAction();
-        ApplyRotateLayoutOverride(rotateAction);
         rotateAction?.Enable();
     }
 
@@ -88,26 +87,4 @@ public class CameraOrbit : MonoBehaviour
             ?? playerInput.actions.FindAction("RotateCamera", false);
     }
 
-    private static void ApplyRotateLayoutOverride(InputAction action)
-    {
-        if (action == null || Keyboard.current == null)
-        {
-            return;
-        }
-
-        string layout = Keyboard.current.keyboardLayout ?? string.Empty;
-        bool useAzerty = layout.IndexOf("azerty", StringComparison.OrdinalIgnoreCase) >= 0
-            || layout.IndexOf("french", StringComparison.OrdinalIgnoreCase) >= 0;
-        string negativePath = useAzerty ? "<Keyboard>/a" : "<Keyboard>/q";
-
-        for (int i = 0; i < action.bindings.Count; i++)
-        {
-            InputBinding binding = action.bindings[i];
-            if (binding.isPartOfComposite && binding.name == "negative")
-            {
-                action.ApplyBindingOverride(i, negativePath);
-                break;
-            }
-        }
-    }
 }

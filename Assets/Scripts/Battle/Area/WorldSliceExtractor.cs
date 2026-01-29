@@ -7,13 +7,12 @@ public static class WorldSliceExtractor
     {
         Vector3Int originCell = Vector3Int.FloorToInt(playerWorldPosition);
         int radius = profile != null ? Mathf.Max(1, profile.Size) : 0;
-        int verticalUp = profile != null ? profile.VerticalUp : 8;
-        int verticalDown = profile != null ? profile.VerticalDown : 8;
+        int baseChunkY = Mathf.FloorToInt((float)originCell.y / Chunk.SizeY);
 
         int sizeX = radius * 2 + 1;
         int sizeZ = radius * 2 + 1;
-        int sizeY = verticalUp + verticalDown + 1;
-        Vector3Int boardOrigin = new Vector3Int(originCell.x - radius, originCell.y - verticalDown, originCell.z - radius);
+        int sizeY = Chunk.SizeY;
+        Vector3Int boardOrigin = new Vector3Int(originCell.x - radius, baseChunkY * Chunk.SizeY, originCell.z - radius);
         var board = new BattleBoard(boardOrigin, sizeX, sizeY, sizeZ);
 
         if (radius <= 0 || sizeY <= 0)

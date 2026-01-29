@@ -312,9 +312,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 713842116}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 084fb79310301114d855a8277226ed8f, type: 3}
+  m_Script: {fileID: 11500000, guid: 3dfe8c06d0889e34f994e98debafac5d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BattleCameraOrbit
+  m_EditorClassIdentifier: Assembly-CSharp::CameraOrbit
   keyboardOrbitSpeed: 90
 --- !u!1 &871038138
 GameObject:

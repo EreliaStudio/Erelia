@@ -8,6 +8,7 @@ public class BattleCameraController : MonoBehaviour
     [SerializeField] private float moveSpeed = 5f;
     private PlayerInput playerInput;
     private InputAction moveAction;
+    private InputAction rotateAction;
 
     private void Awake()
     {
@@ -17,13 +18,17 @@ public class BattleCameraController : MonoBehaviour
     private void OnEnable()
     {
         ResolveMoveAction();
+        ResolveRotateAction();
         ApplyMoveLayoutOverride(moveAction);
         moveAction?.Enable();
+        ApplyRotateLayoutOverride(rotateAction);
+        rotateAction?.Enable();
     }
 
     private void OnDisable()
     {
         moveAction?.Disable();
+        rotateAction?.Disable();
     }
 
     private void Update()
@@ -67,6 +72,23 @@ public class BattleCameraController : MonoBehaviour
             ?? playerInput.actions.FindAction("Move", false);
     }
 
+    private void ResolveRotateAction()
+    {
+        if (playerInput == null || playerInput.actions == null)
+        {
+            rotateAction = null;
+            return;
+        }
+
+        InputAction actionFromMap = playerInput.currentActionMap != null
+            ? playerInput.currentActionMap.FindAction("RotateCamera", false)
+            : null;
+
+        rotateAction = actionFromMap
+            ?? playerInput.actions.FindAction("Player/RotateCamera", false)
+            ?? playerInput.actions.FindAction("RotateCamera", false);
+    }
+
     private static void ApplyMoveLayoutOverride(InputAction action)
     {
         if (action == null || Keyboard.current == null)
@@ -103,6 +125,39 @@ public class BattleCameraController : MonoBehaviour
                     break;
                 case "right":
                     action.ApplyBindingOverride(i, right);
+                    break;
+            }
+        }
+    }
+
+    private static void ApplyRotateLayoutOverride(InputAction action)
+    {
+        if (action == null || Keyboard.current == null)
+        {
+            return;
+        }
+
+        string layout = Keyboard.current.keyboardLayout ?? string.Empty;
+        bool useAzerty = layout.IndexOf("azerty", StringComparison.OrdinalIgnoreCase) >= 0
+            || layout.IndexOf("french", StringComparison.OrdinalIgnoreCase) >= 0;
+        string negative = useAzerty ? "<Keyboard>/a" : "<Keyboard>/q";
+        string positive = "<Keyboard>/e";
+
+        for (int i = 0; i < action.bindings.Count; i++)
+        {
+            InputBinding binding = action.bindings[i];
+            if (!binding.isPartOfComposite)
+            {
+                continue;
+            }
+
+            switch (binding.name)
+            {
+                case "negative":
+                    action.ApplyBindingOverride(i, negative);
+                    break;
+                case "positive":
+                    action.ApplyBindingOverride(i, positive);
                     break;
             }
         }

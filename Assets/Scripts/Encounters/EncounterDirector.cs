@@ -1,6 +1,8 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
+ 
 public class EncounterDirector : MonoBehaviour
 {
     [SerializeField] private VoxelMap map;
@@ -62,7 +64,7 @@ public class EncounterDirector : MonoBehaviour
         }
 
         lastRollTime = Time.time;
-        if (Random.value > chance)
+        if (UnityEngine.Random.value > chance)
         {
             return;
         }
@@ -93,8 +95,8 @@ public class EncounterDirector : MonoBehaviour
 
         int seed = Mathf.Abs((int)(Time.time * 1000f)) ^ context.Player.GetInstanceID();
         int radius = Mathf.Max(1, profile.Size);
-        int cornerRadius = Mathf.Max(1, radius / 3);
-        var shape = RoundedSquareShapeGenerator.BuildCells(radius, cornerRadius);
+        int cornerRadius = Mathf.Max(1, Mathf.CeilToInt(radius / 3f));
+        var shape = BuildShape(profile, radius, cornerRadius);
         BattleBoard battleBoard = WorldSliceExtractor.BuildBattleBoard(context.Map, context.PlayerPosition, shape, profile);
 
         var request = new BattleRequest
@@ -141,5 +143,10 @@ public class EncounterDirector : MonoBehaviour
         }
 
         return null;
+    }
+
+    private static HashSet<Vector2Int> BuildShape(BattleAreaProfile profile, int radius, int cornerRadius)
+    {
+        return RoundedSquareShapeGenerator.BuildCells(radius, cornerRadius);
     }
 }

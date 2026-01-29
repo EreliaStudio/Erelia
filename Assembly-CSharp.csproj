@@ -59,10 +59,8 @@
     <Compile Include="Assets\Scripts\VoxelMap\Map\VoxelMapView.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Rendering\ChunkView.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\VoxelRegistry.cs" />
-    <Compile Include="Assets\Scripts\Battle\Area\OrganicBoardShapeGenerator.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\FlipOrientation.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Meshing\VoxelMesher.cs" />
-    <Compile Include="Assets\Scripts\Battle\Camera\BattleCameraOrbit.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\Orientation.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Meshing\VoxelRenderMeshBuilder.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\Chunk.cs" />
