@@ -97,7 +97,7 @@ public class EncounterDirector : MonoBehaviour
         int radius = Mathf.Max(1, profile.Size);
         int cornerRadius = Mathf.Max(1, Mathf.CeilToInt(radius / 3f));
         var shape = BuildShape(profile, radius, cornerRadius);
-        BattleBoard battleBoard = WorldSliceExtractor.BuildBattleBoard(context.Map, context.PlayerPosition, shape, profile);
+        BattleBoardData battleBoard = WorldSliceExtractor.BuildBattleBoard(context.Map, context.PlayerPosition, shape, profile);
 
         var request = new BattleRequest
         {

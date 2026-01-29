@@ -6,10 +6,13 @@ public class BattleBootstrapper : MonoBehaviour
 {
 	[SerializeField] private GameObject playerObject = null;
     [SerializeField] private PlayerInput battleInput = null;
+    [SerializeField] private BattleManager battleManagerPrefab = null;
+    [SerializeField] private bool spawnBattleManager = true;
     private readonly System.Collections.Generic.List<AudioListener> disabledListeners = new System.Collections.Generic.List<AudioListener>();
     private readonly System.Collections.Generic.List<Camera> disabledCameras = new System.Collections.Generic.List<Camera>();
     private readonly System.Collections.Generic.List<PlayerInput> disabledInputs = new System.Collections.Generic.List<PlayerInput>();
     private readonly System.Collections.Generic.List<GameObject> disabledSceneRoots = new System.Collections.Generic.List<GameObject>();
+    private BattleManager battleManagerInstance;
 
     private void Awake()
     {
@@ -37,6 +40,11 @@ public class BattleBootstrapper : MonoBehaviour
         if (battleInput != null)
         {
             battleInput.enabled = true;
+        }
+
+        if (spawnBattleManager)
+        {
+            EnsureBattleManager(request);
         }
 
     }
@@ -203,6 +211,25 @@ public class BattleBootstrapper : MonoBehaviour
         }
 
         disabledSceneRoots.Clear();
+    }
+
+    private void EnsureBattleManager(BattleRequest request)
+    {
+        battleManagerInstance = Object.FindFirstObjectByType<BattleManager>(FindObjectsInactive.Include);
+        if (battleManagerInstance == null)
+        {
+            if (battleManagerPrefab != null)
+            {
+                battleManagerInstance = Instantiate(battleManagerPrefab);
+            }
+            else
+            {
+                GameObject managerObject = new GameObject("BattleManager");
+                battleManagerInstance = managerObject.AddComponent<BattleManager>();
+            }
+        }
+
+        battleManagerInstance.Initialize(request);
     }
 
 }

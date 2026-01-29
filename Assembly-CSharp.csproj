@@ -52,9 +52,11 @@
     <Analyzer Include="C:\Users\User\Documents\UnityProject\Erelia\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d\Runtime\MVVM\SourceGenerators\netstandard2.0\MVVMSourceGenerators.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Battle\Meshing\BattleCellCollisionMeshBuilder.cs" />
     <Compile Include="Assets\Scripts\Battle\Area\WorldSliceExtractor.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\VoxelFace.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Map\VoxelMapQuery.cs" />
+    <Compile Include="Assets\Scripts\Battle\Cell\BattleCell.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\CubeVoxel.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Map\VoxelMapView.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Rendering\ChunkView.cs" />
@@ -66,8 +68,13 @@
     <Compile Include="Assets\Scripts\VoxelMap\Core\Chunk.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\CrossPlaneVoxel.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\OuterShellPlane.cs" />
+    <Compile Include="Assets\Scripts\Player\Team\CreatureDefinition.cs" />
+    <Compile Include="Assets\Scripts\Battle\Meshing\BattleCellRenderMeshBuilder.cs" />
+    <Compile Include="Assets\Scripts\Battle\Phase\BattlePlacementPhase.cs" />
+    <Compile Include="Assets\Scripts\Player\Team\PlayerTeam.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\VoxelCollision.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Map\VoxelMap.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleBoard\BattleBoard.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Utils\SpriteUvUtils.cs" />
     <Compile Include="Assets\Scripts\Battle\Flow\BattleBootstrapper.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Map\VoxelMapData.cs" />
@@ -75,24 +82,29 @@
     <Compile Include="Assets\Scripts\VoxelMap\Utils\OuterShellPlaneUtil.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterDirector.cs" />
     <Compile Include="Assets\Scripts\Battle\Area\BattleAreaProfile.cs" />
+    <Compile Include="Assets\Scripts\Battle\Rendering\BattleMaskSpriteMapping.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterSettings.cs" />
-    <Compile Include="Assets\Scripts\Battle\Core\BattleBoard.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\Voxel.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Rendering\BushTriggerEmitter.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\SlopeVoxel.cs" />
+    <Compile Include="Assets\Scripts\Battle\Flow\BattlePhase.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\SlabVoxel.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleRequestStore.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\StairVoxel.cs" />
+    <Compile Include="Assets\Scripts\Battle\Flow\BattleManager.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleRequest.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Meshing\VoxelBushTriggerMeshBuilder.cs" />
-    <Compile Include="Assets\Scripts\Player\CameraOrbit.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\VoxelCell.cs" />
     <Compile Include="Assets\Scripts\Battle\Area\RoundedSquareShapeGenerator.cs" />
+    <Compile Include="Assets\Scripts\Battle\Cell\BattleCellMask.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Utils\GeometryUtils.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleBoard\BattleBoardData.cs" />
     <Compile Include="Assets\Scripts\Battle\Camera\BattleCameraController.cs" />
     <Compile Include="Assets\Scripts\Battle\Rendering\BattleBoardView.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\ChunkCoord.cs" />
+    <Compile Include="Assets\Scripts\Battle\Meshing\BattleCellMesher.cs" />
+    <Compile Include="Assets\Scripts\Camera\CameraOrbit.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Generation\ChunkGenerator.cs" />
   </ItemGroup>
   <ItemGroup>

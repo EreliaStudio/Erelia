@@ -27,7 +27,7 @@ public class BattleCameraController : MonoBehaviour
             return;
         }
 
-        BattleBoard board = request.BattleBoard;
+        BattleBoardData board = request.BattleBoard;
         int radius = Mathf.Max(0, (board.SizeX - 1) / 2);
         int cornerRadius = Mathf.Max(1, Mathf.CeilToInt(radius / 3f));
         allowedCells = RoundedSquareShapeGenerator.BuildCells(radius, cornerRadius);

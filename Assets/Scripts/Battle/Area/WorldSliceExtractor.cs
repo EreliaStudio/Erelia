@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class WorldSliceExtractor
 {
-    public static BattleBoard BuildBattleBoard(VoxelMap map, Vector3 playerWorldPosition, HashSet<Vector2Int> shapeCells, BattleAreaProfile profile)
+    public static BattleBoardData BuildBattleBoard(VoxelMap map, Vector3 playerWorldPosition, HashSet<Vector2Int> shapeCells, BattleAreaProfile profile)
     {
         Vector3Int originCell = Vector3Int.FloorToInt(playerWorldPosition);
         int radius = profile != null ? Mathf.Max(1, profile.Size) : 0;
@@ -13,7 +13,7 @@ public static class WorldSliceExtractor
         int sizeZ = radius * 2 + 1;
         int sizeY = Chunk.SizeY;
         Vector3Int boardOrigin = new Vector3Int(originCell.x - radius, baseChunkY * Chunk.SizeY, originCell.z - radius);
-        var board = new BattleBoard(boardOrigin, sizeX, sizeY, sizeZ);
+        var board = new BattleBoardData(boardOrigin, sizeX, sizeY, sizeZ);
 
         if (radius <= 0 || sizeY <= 0)
         {
