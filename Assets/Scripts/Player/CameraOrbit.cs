@@ -5,7 +5,7 @@ public class CameraOrbit : MonoBehaviour
 {
     private static readonly Vector3 CameraLocalPosition = new Vector3(-10f, 10f, -10f);
     private static readonly Vector3 LookAtLocalPosition = Vector3.zero;
-    private const float OrbitSensitivity = 2.5f;
+    [SerializeField] private float mouseOrbitSensitivity = 0.75f;
     [SerializeField] private float keyboardOrbitSpeed = 90f;
     private PlayerInput playerInput;
     private InputAction rotateAction;
@@ -60,7 +60,7 @@ public class CameraOrbit : MonoBehaviour
                 Vector3 pivot = transform.parent != null
                     ? transform.parent.TransformPoint(LookAtLocalPosition)
                     : transform.TransformPoint(LookAtLocalPosition);
-                transform.RotateAround(pivot, Vector3.up, mouseX * OrbitSensitivity);
+                transform.RotateAround(pivot, Vector3.up, mouseX * mouseOrbitSensitivity);
             }
         }
 

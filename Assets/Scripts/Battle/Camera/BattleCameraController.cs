@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,13 +7,31 @@ public class BattleCameraController : MonoBehaviour
 {
     [SerializeField] private Transform cameraPivot;
     [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float mousePanSensitivity = 2f;
     private PlayerInput playerInput;
     private InputAction moveAction;
     private InputAction rotateAction;
+    private HashSet<Vector2Int> allowedCells;
+    private Vector3Int originCell;
 
     private void Awake()
     {
         playerInput = GetComponent<PlayerInput>();
+    }
+
+    private void Start()
+    {
+        BattleRequest request = BattleRequestStore.Current;
+        if (request == null || request.BattleBoard == null)
+        {
+            return;
+        }
+
+        BattleBoard board = request.BattleBoard;
+        int radius = Mathf.Max(0, (board.SizeX - 1) / 2);
+        int cornerRadius = Mathf.Max(1, Mathf.CeilToInt(radius / 3f));
+        allowedCells = RoundedSquareShapeGenerator.BuildCells(radius, cornerRadius);
+        originCell = board.OriginCell + new Vector3Int(radius, 0, radius);
     }
 
     private void OnEnable()
@@ -46,13 +65,37 @@ public class BattleCameraController : MonoBehaviour
 
         Vector2 moveInput = moveAction.ReadValue<Vector2>();
         Vector3 input = forward * moveInput.y + right * moveInput.x;
-
         if (input.sqrMagnitude > 1f)
         {
             input.Normalize();
         }
 
-        transform.position += input * moveSpeed * Time.deltaTime;
+        Vector3 keyboardDelta = input * moveSpeed * Time.deltaTime;
+        Vector3 current = transform.position;
+        current = ApplyClampedMove(current, current + keyboardDelta);
+
+        Vector3 mouseDelta = Vector3.zero;
+        Mouse mouse = Mouse.current;
+        if (mouse != null && mouse.middleButton.isPressed)
+        {
+            Vector2 delta = mouse.delta.ReadValue();
+            Vector3 pan = forward * -delta.y + right * -delta.x;
+            mouseDelta = pan * mousePanSensitivity;
+        }
+
+        if (mouseDelta.sqrMagnitude > 0.0001f)
+        {
+            const float maxMouseStep = 0.5f;
+            int steps = Mathf.Max(1, Mathf.CeilToInt(mouseDelta.magnitude / maxMouseStep));
+            Vector3 step = mouseDelta / steps;
+            for (int i = 0; i < steps; i++)
+            {
+                Vector3 desired = current + step;
+                current = ApplyClampedMove(current, desired);
+            }
+        }
+
+        transform.position = current;
     }
 
     private void ResolveMoveAction()
@@ -161,5 +204,36 @@ public class BattleCameraController : MonoBehaviour
                     break;
             }
         }
+    }
+
+    private bool IsInsideAllowedCells(Vector3 worldPosition)
+    {
+        Vector3Int cell = Vector3Int.FloorToInt(worldPosition);
+        int offsetX = cell.x - originCell.x;
+        int offsetZ = cell.z - originCell.z;
+        return allowedCells.Contains(new Vector2Int(offsetX, offsetZ));
+    }
+
+    private Vector3 ApplyClampedMove(Vector3 current, Vector3 desired)
+    {
+        if (allowedCells == null || allowedCells.Count == 0)
+        {
+            return desired;
+        }
+
+        Vector3 next = current;
+        Vector3 moveX = new Vector3(desired.x, current.y, current.z);
+        if (IsInsideAllowedCells(moveX))
+        {
+            next.x = desired.x;
+        }
+
+        Vector3 moveZ = new Vector3(next.x, current.y, desired.z);
+        if (IsInsideAllowedCells(moveZ))
+        {
+            next.z = desired.z;
+        }
+
+        return next;
     }
 }
