@@ -84,7 +84,6 @@
     <Compile Include="Assets\Scripts\VoxelMap\Utils\OuterShellPlaneUtil.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterDirector.cs" />
     <Compile Include="Assets\Scripts\Battle\Area\BattleAreaProfile.cs" />
-    <Compile Include="Assets\Scripts\Battle\Rendering\BattleMaskSpriteMapping.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterSettings.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\Voxel.cs" />
@@ -98,13 +97,14 @@
     <Compile Include="Assets\Scripts\Battle\Flow\BattleManager.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleRequest.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Meshing\VoxelBushTriggerMeshBuilder.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleBoard\BattleBoardView.cs" />
+    <Compile Include="Assets\Scripts\Battle\Core\BattleMaskSpriteMapping.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\VoxelCell.cs" />
     <Compile Include="Assets\Scripts\Battle\Area\RoundedSquareShapeGenerator.cs" />
     <Compile Include="Assets\Scripts\Battle\Cell\BattleCellMask.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Utils\GeometryUtils.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\BattleBoardData.cs" />
     <Compile Include="Assets\Scripts\Battle\Camera\BattleCameraController.cs" />
-    <Compile Include="Assets\Scripts\Battle\Rendering\BattleBoardView.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\ChunkCoord.cs" />
     <Compile Include="Assets\Scripts\Battle\Meshing\BattleCellMesher.cs" />
     <Compile Include="Assets\Scripts\Camera\CameraOrbit.cs" />

@@ -363,6 +363,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CameraOrbit
   mouseOrbitSensitivity: 0.07
   keyboardOrbitSpeed: 90
+  zoomSpeed: 5
+  minZoomMultiplier: 0.5
+  maxZoomMultiplier: 2.5
 --- !u!1 &871038138
 GameObject:
   m_ObjectHideFlags: 0

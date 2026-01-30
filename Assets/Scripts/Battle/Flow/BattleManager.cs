@@ -11,21 +11,15 @@ public class BattleManager : MonoBehaviour
     public void Initialize(BattleRequest request)
     {
         CurrentRequest = request;
-        Debug.Log("BattleManager: Initialize");
 
         EnterPhase(BattlePhase.Placement);
     }
 
     public void EnterPhase(BattlePhase phase)
     {
-		if (currentPhase != null)
-		{	
-        	Debug.Log($"BattleManager: ExitingPhase {currentPhase?.Phase}");
-		}
         currentPhase?.OnExit();
 
         currentPhase = ResolvePhase(phase);
-        Debug.Log($"BattleManager: EnterPhase {phase}");
 
         if (currentPhase is BattlePhaseBase phaseBase)
         {

@@ -88,7 +88,6 @@ public class BattleBoardData
         }
 
         cell.AddMask(mask);
-        Debug.Log($"BattleBoardData: AddMask {mask} at ({x},{y},{z})");
     }
 
     public void RemoveMask(int x, int y, int z, BattleCellMask mask)

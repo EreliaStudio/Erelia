@@ -52,7 +52,12 @@ public class BattleCameraController : MonoBehaviour
 
     private void Update()
     {
-        if (cameraPivot == null || moveAction == null)
+        if (cameraPivot == null)
+        {
+            return;
+        }
+
+        if (moveAction == null)
         {
             return;
         }
