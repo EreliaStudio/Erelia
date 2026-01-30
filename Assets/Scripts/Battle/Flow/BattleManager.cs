@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class BattleManager : MonoBehaviour
 {
-    private BattlePlacementPhase placementPhase = null;
+    private BattlePlacementPhase placementPhase = new BattlePlacementPhase();
     [SerializeField] private BattleContext battleContext = new BattleContext();
 
     public BattleRequest CurrentRequest { get; private set; }
@@ -12,10 +12,6 @@ public class BattleManager : MonoBehaviour
     {
         CurrentRequest = request;
         Debug.Log("BattleManager: Initialize");
-        if (placementPhase == null)
-        {
-            placementPhase = FindFirstObjectByType<BattlePlacementPhase>(FindObjectsInactive.Include);
-        }
 
         EnterPhase(BattlePhase.Placement);
     }

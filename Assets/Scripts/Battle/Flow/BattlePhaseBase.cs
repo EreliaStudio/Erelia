@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public abstract class BattlePhaseBase : MonoBehaviour, IBattlePhase
+public abstract class BattlePhaseBase : IBattlePhase
 {
     public BattleContext battleContext = null;
 	

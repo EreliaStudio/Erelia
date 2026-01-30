@@ -67,7 +67,13 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
                         continue;
                     }
 
-                    meshes.Add(BuildCellBoxMesh(x, y, z));
+                    if (!TryGetCellUv(cell, mappings, out Vector2 uvMin, out Vector2 uvMax))
+                    {
+                        uvMin = Vector2.zero;
+                        uvMax = Vector2.one;
+                    }
+
+                    meshes.Add(BuildCellBoxMesh(x, y, z, uvMin, uvMax));
                 }
             }
         }
@@ -97,7 +103,7 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
         }
     }
 
-    private Mesh BuildCellBoxMesh(int x, int y, int z)
+    private Mesh BuildCellBoxMesh(int x, int y, int z, Vector2 uvMin, Vector2 uvMax)
     {
         float left = x;
         float right = x + 1f;
@@ -109,12 +115,34 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
 
         Vector3[] boxVertices =
         {
+            // Bottom face
             new Vector3(left, minY, bottom),
             new Vector3(right, minY, bottom),
             new Vector3(right, minY, top),
             new Vector3(left, minY, top),
+            // Top face
             new Vector3(left, maxY, bottom),
             new Vector3(right, maxY, bottom),
+            new Vector3(right, maxY, top),
+            new Vector3(left, maxY, top),
+            // Left face
+            new Vector3(left, minY, bottom),
+            new Vector3(left, minY, top),
+            new Vector3(left, maxY, top),
+            new Vector3(left, maxY, bottom),
+            // Right face
+            new Vector3(right, minY, bottom),
+            new Vector3(right, maxY, bottom),
+            new Vector3(right, maxY, top),
+            new Vector3(right, minY, top),
+            // Front face
+            new Vector3(left, minY, bottom),
+            new Vector3(left, maxY, bottom),
+            new Vector3(right, maxY, bottom),
+            new Vector3(right, minY, bottom),
+            // Back face
+            new Vector3(left, minY, top),
+            new Vector3(right, minY, top),
             new Vector3(right, maxY, top),
             new Vector3(left, maxY, top)
         };
@@ -123,10 +151,33 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
         {
             0, 2, 1, 0, 3, 2,
             4, 5, 6, 4, 6, 7,
-            0, 1, 5, 0, 5, 4,
-            1, 2, 6, 1, 6, 5,
-            2, 3, 7, 2, 7, 6,
-            3, 0, 4, 3, 4, 7
+            8, 10, 9, 8, 11, 10,
+            12, 14, 13, 12, 15, 14,
+            16, 18, 17, 16, 19, 18,
+            20, 22, 21, 20, 23, 22
+        };
+
+        Vector2 uv00 = new Vector2(0f, 0f);
+        Vector2 uv10 = new Vector2(1f, 0f);
+        Vector2 uv11 = new Vector2(1f, 1f);
+        Vector2 uv01 = new Vector2(0f, 1f);
+        Vector2[] boxUvs =
+        {
+            // Bottom face (default)
+            uv00, uv10, uv11, uv01,
+            // Top face (use sprite UV)
+            new Vector2(uvMin.x, uvMin.y),
+            new Vector2(uvMax.x, uvMin.y),
+            new Vector2(uvMax.x, uvMax.y),
+            new Vector2(uvMin.x, uvMax.y),
+            // Left face (default)
+            uv00, uv10, uv11, uv01,
+            // Right face (default)
+            uv00, uv10, uv11, uv01,
+            // Front face (default)
+            uv00, uv10, uv11, uv01,
+            // Back face (default)
+            uv00, uv10, uv11, uv01
         };
 
         Mesh mesh = new Mesh
@@ -135,7 +186,66 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
         };
         mesh.SetVertices(boxVertices);
         mesh.SetTriangles(boxTriangles, 0);
+        mesh.SetUVs(0, boxUvs);
         mesh.RecalculateBounds();
         return mesh;
+    }
+
+    private static bool TryGetCellUv(
+        BattleCell cell,
+        IReadOnlyList<BattleMaskSpriteMapping> mappings,
+        out Vector2 uvMin,
+        out Vector2 uvMax)
+    {
+        uvMin = Vector2.zero;
+        uvMax = Vector2.one;
+        if (cell == null || mappings == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < mappings.Count; i++)
+        {
+            BattleMaskSpriteMapping mapping = mappings[i];
+            if (!cell.HasMask(mapping.Mask))
+            {
+                continue;
+            }
+
+            if (!TryGetSpriteUv(mapping.Sprite, out uvMin, out uvMax))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetSpriteUv(Sprite sprite, out Vector2 uvMin, out Vector2 uvMax)
+    {
+        uvMin = Vector2.zero;
+        uvMax = Vector2.one;
+        if (sprite == null)
+        {
+            return false;
+        }
+
+        Texture2D texture = sprite.texture;
+        if (texture == null)
+        {
+            return false;
+        }
+
+        Rect rect = sprite.textureRect;
+        float uMin = rect.xMin / texture.width;
+        float uMax = rect.xMax / texture.width;
+        float vMin = rect.yMin / texture.height;
+        float vMax = rect.yMax / texture.height;
+
+        uvMin = new Vector2(uMin, vMin);
+        uvMax = new Vector2(uMax, vMax);
+        return true;
     }
 }

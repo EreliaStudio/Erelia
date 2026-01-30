@@ -10,7 +10,7 @@ public class BattleBoardView
 
     private readonly VoxelRenderMeshBuilder renderMesher = new VoxelRenderMeshBuilder();
     private readonly VoxelSolidCollisionMeshBuilder solidMesher = new VoxelSolidCollisionMeshBuilder();
-    [NonSerialized] private BattleCellRenderMeshBuilder maskRenderMesher;
+    [SerializeField] private BattleCellRenderMeshBuilder maskRenderMesher;
     [NonSerialized] private BattleCellCollisionMeshBuilder maskCollisionMesher;
     private readonly List<MeshCollider> solidColliders = new List<MeshCollider>();
     private readonly List<MeshFilter> solidFilters = new List<MeshFilter>();
@@ -23,7 +23,6 @@ public class BattleBoardView
     private Transform maskRoot;
     private MeshFilter maskFilter;
     private MeshRenderer maskRenderer;
-    private Rigidbody maskRigidbody;
     private Material maskMaterialInstance;
     private Mesh maskRenderMesh;
     private readonly List<Mesh> maskCollisionMeshes = new List<Mesh>();
@@ -168,12 +167,11 @@ public class BattleBoardView
             UnityEngine.Object.Destroy(maskRenderMesh);
         }
         DestroyMaskCollisionMeshes();
+        CleanupMaskChildren();
 
         maskRenderMesh = maskRenderMesher.BuildMesh(board);
         maskFilter.sharedMesh = maskRenderMesh;
-
-        List<Mesh> collisionMeshes = maskCollisionMesher.BuildMeshes(board, maskRenderMesher.Mappings);
-        ApplyMaskMeshes(collisionMeshes);
+        // Mask overlay is render-only. Collision uses the board collider instead.
     }
 
     private void EnsureMaskComponents()
@@ -222,15 +220,10 @@ public class BattleBoardView
             }
         }
 
-        if (maskRigidbody == null)
+        Rigidbody existingBody = maskRoot.GetComponent<Rigidbody>();
+        if (existingBody != null)
         {
-            maskRigidbody = maskRoot.GetComponent<Rigidbody>();
-            if (maskRigidbody == null)
-            {
-                maskRigidbody = maskRoot.gameObject.AddComponent<Rigidbody>();
-            }
-            maskRigidbody.isKinematic = true;
-            maskRigidbody.useGravity = false;
+            UnityEngine.Object.Destroy(existingBody);
         }
     }
 
@@ -391,8 +384,8 @@ public class BattleBoardView
             {
                 collider = root.gameObject.AddComponent<MeshCollider>();
             }
-            collider.isTrigger = true;
             collider.convex = true;
+            collider.isTrigger = true;
 
             MeshFilter filter = root.GetComponent<MeshFilter>();
             if (filter == null)
