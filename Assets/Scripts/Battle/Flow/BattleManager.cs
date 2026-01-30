@@ -1,8 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BattleManager : MonoBehaviour
 {
-    private BattlePlacementPhase placementPhase = new BattlePlacementPhase();
+	private Dictionary<BattlePhase, BattlePhaseBase> battlePhaseDictionary = new Dictionary<BattlePhase, BattlePhaseBase>();
     [SerializeField] private BattleContext battleContext = new BattleContext();
 
     public BattleRequest CurrentRequest { get; private set; }
@@ -11,6 +12,14 @@ public class BattleManager : MonoBehaviour
     public void Initialize(BattleRequest request)
     {
         CurrentRequest = request;
+
+		battlePhaseDictionary.Clear();
+        battlePhaseDictionary[BattlePhase.Placement] = new BattlePlacementPhase();
+
+        foreach (var kvp in battlePhaseDictionary)
+        {
+            kvp.Value.battleContext = battleContext;
+        }
 
         EnterPhase(BattlePhase.Placement);
     }
@@ -21,21 +30,15 @@ public class BattleManager : MonoBehaviour
 
         currentPhase = ResolvePhase(phase);
 
-        if (currentPhase is BattlePhaseBase phaseBase)
-        {
-            phaseBase.battleContext = battleContext;
-        }
         currentPhase?.OnEntry();
     }
 
     private IBattlePhase ResolvePhase(BattlePhase phase)
     {
-        switch (phase)
+		if (battlePhaseDictionary.TryGetValue(phase, out var resolved) == false)
         {
-            case BattlePhase.Placement:
-                return placementPhase;
-            default:
-                return null;
+            return null;
         }
+        return resolved;
     }
 }

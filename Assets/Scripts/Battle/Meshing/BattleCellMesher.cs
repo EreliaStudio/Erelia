@@ -15,11 +15,24 @@ public class BattleCellMesher
         List<int> triangles,
         List<Vector2> uvs)
     {
+        float height = y + MaskHeightOffset;
+        AddQuadAtHeight(x, z, height, uvMin, uvMax, vertices, triangles, uvs);
+    }
+
+    protected void AddQuadAtHeight(
+        int x,
+        int z,
+        float height,
+        Vector2 uvMin,
+        Vector2 uvMax,
+        List<Vector3> vertices,
+        List<int> triangles,
+        List<Vector2> uvs)
+    {
         float left = x;
         float right = x + 1f;
         float bottom = z;
         float top = z + 1f;
-        float height = y + MaskHeightOffset;
 
         int baseIndex = vertices.Count;
         vertices.Add(new Vector3(left, height, bottom));

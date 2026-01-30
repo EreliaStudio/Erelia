@@ -27,6 +27,7 @@ public class BattleBoardView
     private Mesh maskRenderMesh;
     private readonly List<Mesh> maskCollisionMeshes = new List<Mesh>();
     private BattleBoardData currentBoard;
+    private VoxelRegistry currentRegistry;
     private Transform owner;
 
     public void Initialize(BattleBoardData board, VoxelRegistry registry, Transform ownerTransform)
@@ -75,6 +76,7 @@ public class BattleBoardView
 
         EnsureComponents();
         currentBoard = board;
+        currentRegistry = registry;
         renderMesher.SetRegistry(registry);
         solidMesher.SetRegistry(registry);
 
@@ -169,7 +171,7 @@ public class BattleBoardView
         DestroyMaskCollisionMeshes();
         CleanupMaskChildren();
 
-        maskRenderMesh = maskRenderMesher.BuildMesh(board);
+        maskRenderMesh = maskRenderMesher.BuildMesh(board, currentRegistry);
         maskFilter.sharedMesh = maskRenderMesh;
         // Mask overlay is render-only. Collision uses the board collider instead.
     }

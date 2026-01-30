@@ -32,7 +32,13 @@ public class BattlePlacementPhase : BattlePhaseBase
         board.ClearMask(BattleCellMask.Placement);
 
         System.Random rng = useBattleSeed ? new System.Random(request.Seed) : new System.Random();
-        ApplyRandomFloodFill(board, airId, Mathf.Max(1, targetCellCount), rng);
+        int desiredCellCount = targetCellCount;
+        if (request.AreaProfile != null)
+        {
+            desiredCellCount = request.AreaProfile.PlacementCellCount;
+        }
+
+        ApplyRandomFloodFill(board, airId, Mathf.Max(1, desiredCellCount), rng);
         battleContext?.BattleBoard?.RebuildMask();
     }
 
