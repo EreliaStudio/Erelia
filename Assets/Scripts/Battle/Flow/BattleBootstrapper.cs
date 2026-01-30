@@ -6,8 +6,6 @@ public class BattleBootstrapper : MonoBehaviour
 {
 	[SerializeField] private GameObject playerObject = null;
     [SerializeField] private PlayerInput battleInput = null;
-    [SerializeField] private BattleManager battleManagerPrefab = null;
-    [SerializeField] private bool spawnBattleManager = true;
     private readonly System.Collections.Generic.List<AudioListener> disabledListeners = new System.Collections.Generic.List<AudioListener>();
     private readonly System.Collections.Generic.List<Camera> disabledCameras = new System.Collections.Generic.List<Camera>();
     private readonly System.Collections.Generic.List<PlayerInput> disabledInputs = new System.Collections.Generic.List<PlayerInput>();
@@ -42,10 +40,7 @@ public class BattleBootstrapper : MonoBehaviour
             battleInput.enabled = true;
         }
 
-        if (spawnBattleManager)
-        {
-            EnsureBattleManager(request);
-        }
+        EnsureBattleManager(request);
 
     }
 
@@ -218,15 +213,8 @@ public class BattleBootstrapper : MonoBehaviour
         battleManagerInstance = Object.FindFirstObjectByType<BattleManager>(FindObjectsInactive.Include);
         if (battleManagerInstance == null)
         {
-            if (battleManagerPrefab != null)
-            {
-                battleManagerInstance = Instantiate(battleManagerPrefab);
-            }
-            else
-            {
-                GameObject managerObject = new GameObject("BattleManager");
-                battleManagerInstance = managerObject.AddComponent<BattleManager>();
-            }
+            Debug.LogWarning("BattleBootstrapper: No BattleManager found in the scene. Skipping initialization.");
+            return;
         }
 
         battleManagerInstance.Initialize(request);

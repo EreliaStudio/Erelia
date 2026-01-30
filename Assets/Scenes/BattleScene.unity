@@ -148,11 +148,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93a0be264f8a83c4c85daa46033c8ea6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleManager
-  placementPhase: {fileID: 0}
-  battleBoard: {fileID: 0}
-  clearPlacementOnExit: 1
-  maskRenderBuilder:
-    mappings: []
+  battleContext:
+    battleBoard: {fileID: 2137970314}
 --- !u!4 &487548421
 Transform:
   m_ObjectHideFlags: 0
@@ -199,8 +196,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BattleBootstrapper
   playerObject: {fileID: 1251852869}
   battleInput: {fileID: 1251852872}
-  battleManagerPrefab: {fileID: 0}
-  spawnBattleManager: 1
 --- !u!4 &608180267
 Transform:
   m_ObjectHideFlags: 0
@@ -593,18 +588,6 @@ MonoBehaviour:
   view:
     renderMaterial: {fileID: 2100000, guid: 101af6d7eebbe5b44b9190b84c523d1d, type: 2}
     maskMaterial: {fileID: 2100000, guid: 89d476c2549302342970a69d01d5d015, type: 2}
-    maskRenderMesher:
-      mappings:
-      - Mask: 0
-        Sprite: {fileID: 220394479, guid: 42e79522f6f7af5438d4348c7c2b89ce, type: 3}
-      - Mask: 1
-        Sprite: {fileID: 1178860191, guid: 42e79522f6f7af5438d4348c7c2b89ce, type: 3}
-      - Mask: 2
-        Sprite: {fileID: 2142519208, guid: 42e79522f6f7af5438d4348c7c2b89ce, type: 3}
-      - Mask: 3
-        Sprite: {fileID: -1664882880, guid: 42e79522f6f7af5438d4348c7c2b89ce, type: 3}
-      - Mask: 4
-        Sprite: {fileID: 663566218, guid: 42e79522f6f7af5438d4348c7c2b89ce, type: 3}
 --- !u!23 &2137970315
 MeshRenderer:
   m_ObjectHideFlags: 0

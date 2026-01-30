@@ -10,21 +10,23 @@ public class BattleBoardView
 
     private readonly VoxelRenderMeshBuilder renderMesher = new VoxelRenderMeshBuilder();
     private readonly VoxelSolidCollisionMeshBuilder solidMesher = new VoxelSolidCollisionMeshBuilder();
-    [SerializeField] private BattleCellRenderMeshBuilder maskRenderMesher;
-    private BattleCellCollisionMeshBuilder maskCollisionMesher;
+    [NonSerialized] private BattleCellRenderMeshBuilder maskRenderMesher;
+    [NonSerialized] private BattleCellCollisionMeshBuilder maskCollisionMesher;
     private readonly List<MeshCollider> solidColliders = new List<MeshCollider>();
     private readonly List<MeshFilter> solidFilters = new List<MeshFilter>();
     private readonly List<Transform> solidRoots = new List<Transform>();
+    private readonly List<MeshCollider> maskColliders = new List<MeshCollider>();
+    private readonly List<MeshFilter> maskFilters = new List<MeshFilter>();
+    private readonly List<Transform> maskRoots = new List<Transform>();
     private MeshFilter meshFilter;
     private MeshRenderer meshRenderer;
     private Transform maskRoot;
     private MeshFilter maskFilter;
     private MeshRenderer maskRenderer;
-    private MeshCollider maskCollider;
     private Rigidbody maskRigidbody;
     private Material maskMaterialInstance;
     private Mesh maskRenderMesh;
-    private Mesh maskCollisionMesh;
+    private readonly List<Mesh> maskCollisionMeshes = new List<Mesh>();
     private BattleBoardData currentBoard;
     private Transform owner;
 
@@ -165,21 +167,13 @@ public class BattleBoardView
         {
             UnityEngine.Object.Destroy(maskRenderMesh);
         }
-        if (maskCollisionMesh != null)
-        {
-            UnityEngine.Object.Destroy(maskCollisionMesh);
-        }
+        DestroyMaskCollisionMeshes();
 
         maskRenderMesh = maskRenderMesher.BuildMesh(board);
         maskFilter.sharedMesh = maskRenderMesh;
 
-        if (maskCollider != null)
-        {
-            maskCollisionMesh = maskCollisionMesher.BuildMesh(board, maskRenderMesher.Mappings);
-            maskCollider.sharedMesh = maskCollisionMesh;
-            maskCollider.isTrigger = true;
-            maskCollider.convex = false;
-        }
+        List<Mesh> collisionMeshes = maskCollisionMesher.BuildMeshes(board, maskRenderMesher.Mappings);
+        ApplyMaskMeshes(collisionMeshes);
     }
 
     private void EnsureMaskComponents()
@@ -225,15 +219,6 @@ public class BattleBoardView
             if (texture != null)
             {
                 maskRenderer.sharedMaterial.mainTexture = texture;
-            }
-        }
-
-        if (maskCollider == null)
-        {
-            maskCollider = maskRoot.GetComponent<MeshCollider>();
-            if (maskCollider == null)
-            {
-                maskCollider = maskRoot.gameObject.AddComponent<MeshCollider>();
             }
         }
 
@@ -357,6 +342,97 @@ public class BattleBoardView
         solidFilters.Clear();
     }
 
+    private void ApplyMaskMeshes(List<Mesh> meshes)
+    {
+        int desiredCount = meshes == null ? 0 : meshes.Count;
+        if (desiredCount == 0)
+        {
+            DestroyMaskCollisionMeshes();
+            CleanupMaskChildren();
+            return;
+        }
+
+        while (maskRoots.Count > desiredCount)
+        {
+            int last = maskRoots.Count - 1;
+            Transform root = maskRoots[last];
+            if (root != null)
+            {
+                UnityEngine.Object.Destroy(root.gameObject);
+            }
+            maskRoots.RemoveAt(last);
+            maskColliders.RemoveAt(last);
+            maskFilters.RemoveAt(last);
+        }
+
+        DestroyMaskCollisionMeshes();
+        for (int i = 0; i < desiredCount; i++)
+        {
+            EnsureMaskSlot(i);
+            Mesh mesh = meshes[i];
+            maskFilters[i].sharedMesh = mesh;
+            maskColliders[i].sharedMesh = mesh;
+            maskCollisionMeshes.Add(mesh);
+        }
+    }
+
+    private void EnsureMaskSlot(int index)
+    {
+        while (maskRoots.Count <= index)
+        {
+            int slot = maskRoots.Count;
+            string name = "MaskCollider " + slot;
+            Transform existing = maskRoot != null ? maskRoot.Find(name) : null;
+            Transform root = existing != null ? existing : new GameObject(name).transform;
+            root.SetParent(maskRoot, false);
+
+            MeshCollider collider = root.GetComponent<MeshCollider>();
+            if (collider == null)
+            {
+                collider = root.gameObject.AddComponent<MeshCollider>();
+            }
+            collider.isTrigger = true;
+            collider.convex = true;
+
+            MeshFilter filter = root.GetComponent<MeshFilter>();
+            if (filter == null)
+            {
+                filter = root.gameObject.AddComponent<MeshFilter>();
+            }
+
+            MeshRenderer renderer = root.GetComponent<MeshRenderer>();
+            if (renderer == null)
+            {
+                renderer = root.gameObject.AddComponent<MeshRenderer>();
+            }
+            renderer.enabled = false;
+
+            maskRoots.Add(root);
+            maskColliders.Add(collider);
+            maskFilters.Add(filter);
+        }
+    }
+
+    private void CleanupMaskChildren()
+    {
+        if (maskRoot == null)
+        {
+            return;
+        }
+
+        for (int i = maskRoot.childCount - 1; i >= 0; i--)
+        {
+            Transform child = maskRoot.GetChild(i);
+            if (child != null && child.name.StartsWith("MaskCollider "))
+            {
+                UnityEngine.Object.Destroy(child.gameObject);
+            }
+        }
+        maskRoots.Clear();
+        maskColliders.Clear();
+        maskFilters.Clear();
+    }
+
     private void DestroyRuntimeAssets()
     {
         if (maskRenderMesh != null)
@@ -365,16 +441,30 @@ public class BattleBoardView
             maskRenderMesh = null;
         }
 
-        if (maskCollisionMesh != null)
-        {
-            UnityEngine.Object.Destroy(maskCollisionMesh);
-            maskCollisionMesh = null;
-        }
+        DestroyMaskCollisionMeshes();
 
         if (maskMaterialInstance != null)
         {
             UnityEngine.Object.Destroy(maskMaterialInstance);
             maskMaterialInstance = null;
         }
+    }
+
+    private void DestroyMaskCollisionMeshes()
+    {
+        if (maskCollisionMeshes.Count == 0)
+        {
+            return;
+        }
+
+        for (int i = 0; i < maskCollisionMeshes.Count; i++)
+        {
+            Mesh mesh = maskCollisionMeshes[i];
+            if (mesh != null)
+            {
+                UnityEngine.Object.Destroy(mesh);
+            }
+        }
+        maskCollisionMeshes.Clear();
     }
 }

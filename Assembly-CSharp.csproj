@@ -58,6 +58,8 @@
     <Compile Include="Assets\Scripts\VoxelMap\Map\VoxelMapQuery.cs" />
     <Compile Include="Assets\Scripts\Battle\Cell\BattleCell.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\CubeVoxel.cs" />
+    <Compile Include="Assets\Scripts\Battle\Flow\IBattlePhase.cs" />
+    <Compile Include="Assets\Scripts\Battle\Flow\BattleContext.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Map\VoxelMapView.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Rendering\ChunkView.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\VoxelRegistry.cs" />
@@ -90,6 +92,7 @@
     <Compile Include="Assets\Scripts\VoxelMap\Types\SlopeVoxel.cs" />
     <Compile Include="Assets\Scripts\Battle\Flow\BattlePhase.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\SlabVoxel.cs" />
+    <Compile Include="Assets\Scripts\Battle\Flow\BattlePhaseBase.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleRequestStore.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\StairVoxel.cs" />
     <Compile Include="Assets\Scripts\Battle\Flow\BattleManager.cs" />

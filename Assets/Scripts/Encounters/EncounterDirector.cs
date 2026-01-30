@@ -111,8 +111,8 @@ public class EncounterDirector : MonoBehaviour
         };
 
         BattleRequestStore.Set(request);
-        Debug.Log($"EncounterDirector: Triggering battle at {request.PlayerWorldPosition} with board {battleBoard.SizeX}x{battleBoard.SizeY}x{battleBoard.SizeZ}.");
-        battleLoading = true;
+        
+		battleLoading = true;
         AsyncOperation op = SceneManager.LoadSceneAsync(battleSceneName, LoadSceneMode.Additive);
         if (op != null)
         {
