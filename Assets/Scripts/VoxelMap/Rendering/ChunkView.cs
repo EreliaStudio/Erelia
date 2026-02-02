@@ -11,15 +11,10 @@ public class ChunkView : MonoBehaviour
     private VoxelBushTriggerMeshBuilder bushTriggerMesher;
     private MeshFilter meshFilter;
     private MeshRenderer meshRenderer;
-    private MeshCollider solidCollider;
-    private MeshFilter solidFilter;
-    private Transform solidRoot;
     private readonly System.Collections.Generic.List<MeshCollider> solidColliders = new System.Collections.Generic.List<MeshCollider>();
     private readonly System.Collections.Generic.List<MeshFilter> solidFilters = new System.Collections.Generic.List<MeshFilter>();
     private readonly System.Collections.Generic.List<Transform> solidRoots = new System.Collections.Generic.List<Transform>();
-    private readonly System.Collections.Generic.List<MeshCollider> bushColliders = new System.Collections.Generic.List<MeshCollider>();
-    private readonly System.Collections.Generic.List<MeshFilter> bushFilters = new System.Collections.Generic.List<MeshFilter>();
-    private readonly System.Collections.Generic.List<Transform> bushRoots = new System.Collections.Generic.List<Transform>();
+    private readonly System.Collections.Generic.List<BushIslandConfiguration> bushIslandConfigurations = new System.Collections.Generic.List<BushIslandConfiguration>();
 
 	public void Initialize(ChunkCoord coord, Chunk chunk, VoxelRenderMeshBuilder renderMesherInstance, VoxelSolidCollisionMeshBuilder solidCollisionMesherInstance, VoxelBushTriggerMeshBuilder bushTriggerMesherInstance, Material material, VoxelMap owner)
 	{
@@ -214,13 +209,38 @@ public class ChunkView : MonoBehaviour
             return;
         }
 
+        BushIslandConfiguration behavior = root.GetComponent<BushIslandConfiguration>();
+        if (behavior == null)
+        {
+            behavior = root.gameObject.AddComponent<BushIslandConfiguration>();
+        }
+        if (behavior != null)
+        {
+            behavior.EnsureComponents();
+        }
+
         BushTriggerEmitter emitter = root.GetComponent<BushTriggerEmitter>();
         if (emitter == null)
         {
             emitter = root.gameObject.AddComponent<BushTriggerEmitter>();
         }
 
+        if (emitter == null)
+        {
+            Debug.LogError($"ChunkView: Failed to add BushTriggerEmitter on {root.name}.");
+            return;
+        }
+
         emitter.Configure(ownerMap, Coord);
+
+        if (ownerMap != null)
+        {
+            BushIslandConfiguration config = root.GetComponent<BushIslandConfiguration>();
+            if (config != null)
+            {
+                config.SetAreaProfile(ownerMap.BushAreaProfile);
+            }
+        }
     }
 
     private void ApplyBushMeshes(System.Collections.Generic.List<Mesh> meshes)
@@ -230,23 +250,26 @@ public class ChunkView : MonoBehaviour
         {
             CleanupBushChildren();
         }
-        while (bushRoots.Count > desiredCount)
+        while (bushIslandConfigurations.Count > desiredCount)
         {
-            int last = bushRoots.Count - 1;
-            Transform root = bushRoots[last];
-            if (root != null)
+            int last = bushIslandConfigurations.Count - 1;
+            BushIslandConfiguration behavior = bushIslandConfigurations[last];
+            if (behavior != null)
             {
-                Destroy(root.gameObject);
+                Destroy(behavior.gameObject);
             }
-            bushRoots.RemoveAt(last);
-            bushColliders.RemoveAt(last);
-            bushFilters.RemoveAt(last);
+            bushIslandConfigurations.RemoveAt(last);
         }
 
         for (int i = 0; i < desiredCount; i++)
         {
             EnsureBushSlot(i);
-            ApplyCollider(bushColliders[i], bushFilters[i], meshes[i], true);
+            BushIslandConfiguration behavior = bushIslandConfigurations[i];
+            if (behavior == null)
+            {
+                continue;
+            }
+            ApplyCollider(behavior.Collider, behavior.Filter, meshes[i], true);
         }
     }
 
@@ -323,29 +346,31 @@ public class ChunkView : MonoBehaviour
                 Destroy(child.gameObject);
             }
         }
-        bushRoots.Clear();
-        bushColliders.Clear();
-        bushFilters.Clear();
+        bushIslandConfigurations.Clear();
     }
 
     private void EnsureBushSlot(int index)
     {
-        while (bushRoots.Count <= index)
+        while (bushIslandConfigurations.Count <= index)
         {
-            int slot = bushRoots.Count;
+            int slot = bushIslandConfigurations.Count;
             string name = "BushCollider " + slot;
             Transform existing = transform.Find(name);
             Transform root = existing != null ? existing : new GameObject(name).transform;
             root.SetParent(transform, false);
             LayerUtils.ApplyMouseSurfaceLayer(root.gameObject);
 
-            MeshCollider collider = EnsureChildCollider(root);
-            MeshFilter filter = EnsureChildFilter(root);
             EnsureBushEmitter(root);
-
-            bushRoots.Add(root);
-            bushColliders.Add(collider);
-            bushFilters.Add(filter);
+            BushIslandConfiguration behavior = root.GetComponent<BushIslandConfiguration>();
+            if (behavior == null)
+            {
+                behavior = root.gameObject.AddComponent<BushIslandConfiguration>();
+            }
+            if (behavior != null)
+            {
+                behavior.EnsureComponents();
+                bushIslandConfigurations.Add(behavior);
+            }
         }
     }
 

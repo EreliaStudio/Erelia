@@ -122,27 +122,19 @@ public class EncounterDirector : MonoBehaviour
 
     private BattleAreaProfile ResolveBattleAreaProfile(BushTriggerContext context)
     {
-        Vector3Int baseCell = Vector3Int.FloorToInt(context.PlayerPosition);
-        for (int y = -1; y <= 2; y++)
+        if (context.BushIslandConfiguration == null)
         {
-            Vector3Int cell = new Vector3Int(baseCell.x, baseCell.y + y, baseCell.z);
-            if (!VoxelMapQuery.TryGetVoxel(context.Map, cell, out Voxel voxel, out _))
-            {
-                continue;
-            }
-
-            if (voxel.Collision != VoxelCollision.Bush)
-            {
-                continue;
-            }
-
-            if (voxel.BattleAreaProfile != null)
-            {
-                return voxel.BattleAreaProfile;
-            }
+            Debug.LogWarning("EncounterDirector: Missing BushIslandConfiguration on bush collider.");
+            return null;
         }
 
-        return null;
+        BattleAreaProfile profile = context.BushIslandConfiguration.Configuration?.AreaProfile;
+        if (profile == null)
+        {
+            Debug.LogWarning("EncounterDirector: BushIslandConfiguration has no BattleAreaProfile assigned.");
+        }
+
+        return profile;
     }
 
     private static HashSet<Vector2Int> BuildShape(BattleAreaProfile profile, int radius, int cornerRadius)

@@ -30,6 +30,20 @@ public class SlabVoxel : Voxel
 		return faces;
 	}
 
+	protected override List<VoxelFace> ConstructMaskFaces()
+	{
+		const float maskOffset = 0.01f;
+		float height = 0.5f + maskOffset;
+		var faces = new List<VoxelFace>();
+		VoxelFace top = GeometryUtils.CreateRectangle(
+			new GeometryUtils.Vertex { Position = new Vector3(0f, height, 0f), UV = new Vector2(0f, 0f) },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, height, 0f), UV = new Vector2(1f, 0f) },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, height, 1f), UV = new Vector2(1f, 1f) },
+			new GeometryUtils.Vertex { Position = new Vector3(0f, height, 1f), UV = new Vector2(0f, 1f) });
+		faces.Add(top);
+		return faces;
+	}
+
 	protected override Dictionary<OuterShellPlane, VoxelFace> ConstructOuterShellFaces()
 	{
 		var faces = new Dictionary<OuterShellPlane, VoxelFace>();

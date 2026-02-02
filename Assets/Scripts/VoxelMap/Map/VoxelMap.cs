@@ -7,6 +7,7 @@ public class VoxelMap : MonoBehaviour
 	[SerializeField] private VoxelRegistry voxelDataRegistry;
 	[SerializeField] private VoxelMapData data = new VoxelMapData();
 	[SerializeField] private VoxelMapView view = new VoxelMapView();
+	[SerializeField] private BattleAreaProfile bushAreaProfile;
 	[SerializeField] private UnityEvent onPlayerEnterBush = new UnityEvent();
 	[SerializeField] private UnityEvent onPlayerStayInBush = new UnityEvent();
 	[SerializeField] private UnityEvent onPlayerExitBush = new UnityEvent();
@@ -14,6 +15,7 @@ public class VoxelMap : MonoBehaviour
 	public VoxelMapData Data => data;
 	public VoxelMapView View => view;
 	public VoxelRegistry Registry => voxelDataRegistry;
+	public BattleAreaProfile BushAreaProfile => bushAreaProfile;
 	public event Action<BushTriggerContext> PlayerEnteredBush;
 	public event Action<BushTriggerContext> PlayerStayInBush;
 	public event Action<BushTriggerContext> PlayerExitBush;

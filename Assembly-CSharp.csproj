@@ -111,6 +111,7 @@
     <Compile Include="Assets\Scripts\VoxelMap\Core\ChunkCoord.cs" />
     <Compile Include="Assets\Scripts\Battle\Meshing\BattleCellMesher.cs" />
     <Compile Include="Assets\Scripts\Camera\CameraOrbit.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Rendering\BushIslandConfiguration.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Generation\ChunkGenerator.cs" />
   </ItemGroup>
   <ItemGroup>

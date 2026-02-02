@@ -9,8 +9,6 @@ public class BattleCellRenderMeshBuilder : BattleCellMesher
     private readonly List<Vector3> vertices = new List<Vector3>();
     private readonly List<int> triangles = new List<int>();
     private readonly List<Vector2> uvs = new List<Vector2>();
-    private const float MaskHeightOffset = 0.02f;
-
     public IReadOnlyList<BattleMaskSpriteMapping> Mappings => mappings;
 
     public Mesh BuildMesh(BattleBoardData board, VoxelRegistry registry)
@@ -37,7 +35,7 @@ public class BattleCellRenderMeshBuilder : BattleCellMesher
                         continue;
                     }
 
-                    AddMaskQuads(cell, board, registry, x, y, z);
+                    AddMaskFaces(cell, board, registry, x, y, z);
                 }
             }
         }
@@ -50,7 +48,7 @@ public class BattleCellRenderMeshBuilder : BattleCellMesher
         return mesh;
     }
 
-    private void AddMaskQuads(
+    private void AddMaskFaces(
         BattleCell cell,
         BattleBoardData board,
         VoxelRegistry registry,
@@ -58,7 +56,33 @@ public class BattleCellRenderMeshBuilder : BattleCellMesher
         int y,
         int z)
     {
-        float height = ResolveMaskHeight(board, registry, x, y, z);
+        if (board == null || registry == null || board.Voxels == null)
+        {
+            return;
+        }
+
+        if (x < 0 || x >= board.SizeX || y < 0 || y >= board.SizeY || z < 0 || z >= board.SizeZ)
+        {
+            return;
+        }
+
+        VoxelCell voxelCell = board.Voxels[x, y, z];
+        if (voxelCell.Id == registry.AirId)
+        {
+            return;
+        }
+
+        if (!registry.TryGetVoxel(voxelCell.Id, out Voxel voxel) || voxel == null)
+        {
+            return;
+        }
+
+        IReadOnlyList<VoxelFace> maskFaces = voxel.MaskFaces;
+        if (maskFaces == null || maskFaces.Count == 0)
+        {
+            return;
+        }
+
         for (int i = 0; i < mappings.Count; i++)
         {
             BattleMaskSpriteMapping mapping = mappings[i];
@@ -72,118 +96,52 @@ public class BattleCellRenderMeshBuilder : BattleCellMesher
                 continue;
             }
 
-            AddQuadAtHeight(x, z, height, uvMin, uvMax, vertices, triangles, uvs);
-        }
-    }
-
-    private static float ResolveMaskHeight(BattleBoardData board, VoxelRegistry registry, int x, int y, int z)
-    {
-        if (board == null || registry == null)
-        {
-            return y + MaskHeightOffset;
-        }
-
-        int voxelY = y - 1;
-        if (voxelY < 0 || voxelY >= board.SizeY)
-        {
-            return y + MaskHeightOffset;
-        }
-
-        if (board.Voxels == null)
-        {
-            return y + MaskHeightOffset;
-        }
-
-        VoxelCell cell = board.Voxels[x, voxelY, z];
-        if (cell.Id == registry.AirId)
-        {
-            return y + MaskHeightOffset;
-        }
-
-        if (!registry.TryGetVoxel(cell.Id, out Voxel voxel) || voxel == null)
-        {
-            return y + MaskHeightOffset;
-        }
-
-        if (!TryGetMaxVoxelLocalY(voxel, cell.Orientation, cell.FlipOrientation, out float maxLocalY))
-        {
-            return y + MaskHeightOffset;
-        }
-
-        return voxelY + maxLocalY + MaskHeightOffset;
-    }
-
-    private static bool TryGetMaxVoxelLocalY(
-        Voxel voxel,
-        Orientation orientation,
-        FlipOrientation flipOrientation,
-        out float maxLocalY)
-    {
-        maxLocalY = 0f;
-        if (voxel == null)
-        {
-            return false;
-        }
-
-        bool found = false;
-        float maxY = float.MinValue;
-
-        IReadOnlyList<VoxelFace> innerFaces = voxel.InnerFaces;
-        if (innerFaces != null)
-        {
-            for (int i = 0; i < innerFaces.Count; i++)
+            for (int f = 0; f < maskFaces.Count; f++)
             {
-                CollectMaxY(innerFaces[i], orientation, flipOrientation, ref maxY, ref found);
+                AddMaskFace(maskFaces[f], voxelCell.Orientation, voxelCell.FlipOrientation, x, y, z, uvMin, uvMax);
             }
         }
-
-        IReadOnlyDictionary<OuterShellPlane, VoxelFace> outerFaces = voxel.OuterShellFaces;
-        if (outerFaces != null)
-        {
-            foreach (var pair in outerFaces)
-            {
-                CollectMaxY(pair.Value, orientation, flipOrientation, ref maxY, ref found);
-            }
-        }
-
-        if (!found)
-        {
-            return false;
-        }
-
-        maxLocalY = maxY;
-        return true;
     }
 
-    private static void CollectMaxY(
+    private void AddMaskFace(
         VoxelFace face,
         Orientation orientation,
         FlipOrientation flipOrientation,
-        ref float maxY,
-        ref bool found)
+        int x,
+        int y,
+        int z,
+        Vector2 uvMin,
+        Vector2 uvMax)
     {
-        if (face == null || face.Polygons == null)
+        if (face == null || face.Polygons == null || face.Polygons.Count == 0)
         {
             return;
         }
 
+        Vector3 offset = new Vector3(x, y, z);
         List<List<FaceVertex>> polygons = face.Polygons;
         for (int p = 0; p < polygons.Count; p++)
         {
             List<FaceVertex> polygon = polygons[p];
-            if (polygon == null)
+            if (polygon == null || polygon.Count < 3)
             {
                 continue;
             }
 
+            int start = vertices.Count;
             for (int i = 0; i < polygon.Count; i++)
             {
-                Vector3 transformed = TransformPosition(polygon[i].Position, orientation, flipOrientation);
-                if (transformed.y > maxY)
-                {
-                    maxY = transformed.y;
-                }
-                found = true;
+                FaceVertex vertex = polygon[i];
+                Vector3 local = TransformPosition(vertex.Position, orientation, flipOrientation);
+                vertices.Add(offset + local);
+                uvs.Add(MapMaskUv(vertex.TileUV, uvMin, uvMax));
+            }
+
+            for (int i = 1; i < polygon.Count - 1; i++)
+            {
+                triangles.Add(start);
+                triangles.Add(start + i);
+                triangles.Add(start + i + 1);
             }
         }
     }
@@ -249,6 +207,13 @@ public class BattleCellRenderMeshBuilder : BattleCellMesher
         uvMin = new Vector2(uMin, vMin);
         uvMax = new Vector2(uMax, vMax);
         return true;
+    }
+
+    private static Vector2 MapMaskUv(Vector2 baseUv, Vector2 uvMin, Vector2 uvMax)
+    {
+        return new Vector2(
+            Mathf.Lerp(uvMin.x, uvMax.x, baseUv.x),
+            Mathf.Lerp(uvMin.y, uvMax.y, baseUv.y));
     }
 
 }

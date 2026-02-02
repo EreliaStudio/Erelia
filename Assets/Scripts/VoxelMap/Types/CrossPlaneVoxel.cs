@@ -45,6 +45,19 @@ public class CrossPlaneVoxel : Voxel
 		return faces;
 	}
 
+	protected override List<VoxelFace> ConstructMaskFaces()
+	{
+		const float maskOffset = 0.01f;
+		var faces = new List<VoxelFace>();
+		VoxelFace top = GeometryUtils.CreateRectangle(
+			new GeometryUtils.Vertex { Position = new Vector3(0f, 1f + maskOffset, 0f), UV = new Vector2(0f, 0f) },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, 1f + maskOffset, 0f), UV = new Vector2(1f, 0f) },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, 1f + maskOffset, 1f), UV = new Vector2(1f, 1f) },
+			new GeometryUtils.Vertex { Position = new Vector3(0f, 1f + maskOffset, 1f), UV = new Vector2(0f, 1f) });
+		faces.Add(top);
+		return faces;
+	}
+
 	protected override Dictionary<OuterShellPlane, VoxelFace> ConstructOuterShellFaces()
 	{
 		return new Dictionary<OuterShellPlane, VoxelFace>();

@@ -51,6 +51,40 @@ public class StairVoxel : Voxel
 		return faces;
 	}
 
+	protected override List<VoxelFace> ConstructMaskFaces()
+	{
+		const float maskOffset = 0.01f;
+		const float maskXOverhang = 0.01f;
+		var faces = new List<VoxelFace>();
+
+		float upperY = 1f + maskOffset;
+		float lowerY = StepHeight + maskOffset;
+		float right = 1f + maskXOverhang;
+
+		VoxelFace upperTop = GeometryUtils.CreateRectangle(
+			new GeometryUtils.Vertex { Position = new Vector3(0f, upperY, StepDepth), UV = new Vector2(0f, 0f) },
+			new GeometryUtils.Vertex { Position = new Vector3(right, upperY, StepDepth), UV = new Vector2(1f, 0f) },
+			new GeometryUtils.Vertex { Position = new Vector3(right, upperY, 1f), UV = new Vector2(1f, 1f) },
+			new GeometryUtils.Vertex { Position = new Vector3(0f, upperY, 1f), UV = new Vector2(0f, 1f) });
+		faces.Add(upperTop);
+
+		VoxelFace upperRiser = GeometryUtils.CreateRectangle(
+			new GeometryUtils.Vertex { Position = new Vector3(0f, lowerY, StepDepth), UV = new Vector2(0f, 0f) },
+			new GeometryUtils.Vertex { Position = new Vector3(right, lowerY, StepDepth), UV = new Vector2(1f, 0f) },
+			new GeometryUtils.Vertex { Position = new Vector3(right, upperY, StepDepth), UV = new Vector2(1f, 1f) },
+			new GeometryUtils.Vertex { Position = new Vector3(0f, upperY, StepDepth), UV = new Vector2(0f, 1f) });
+		faces.Add(upperRiser);
+
+		VoxelFace lowerTop = GeometryUtils.CreateRectangle(
+			new GeometryUtils.Vertex { Position = new Vector3(0f, lowerY, 0f), UV = new Vector2(0f, 0f) },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, lowerY, 0f), UV = new Vector2(1f, 0f) },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, lowerY, StepDepth), UV = new Vector2(1f, 1f) },
+			new GeometryUtils.Vertex { Position = new Vector3(0f, lowerY, StepDepth), UV = new Vector2(0f, 1f) });
+		faces.Add(lowerTop);
+
+		return faces;
+	}
+
 	protected override Dictionary<OuterShellPlane, VoxelFace> ConstructOuterShellFaces()
 	{
 		var faces = new Dictionary<OuterShellPlane, VoxelFace>();

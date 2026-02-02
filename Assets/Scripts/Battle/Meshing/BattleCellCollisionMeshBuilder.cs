@@ -5,7 +5,6 @@ using UnityEngine;
 [Serializable]
 public class BattleCellCollisionMeshBuilder : BattleCellMesher
 {
-    private const float MaskThickness = 0.1f;
     private readonly List<Vector3> vertices = new List<Vector3>();
     private readonly List<int> triangles = new List<int>();
     private readonly List<Vector2> uvs = new List<Vector2>();
@@ -34,9 +33,14 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
                         continue;
                     }
 
-                    AddMaskQuads(cell, x, y, z, mappings);
+                    AddMaskFaces(cell, board, x, y, z, mappings, vertices, triangles, uvs);
                 }
             }
+        }
+
+        if (vertices.Count == 0)
+        {
+            return mesh;
         }
 
         mesh.SetVertices(vertices);
@@ -68,13 +72,11 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
                         continue;
                     }
 
-                    if (!TryGetCellUv(cell, mappings, out Vector2 uvMin, out Vector2 uvMax))
+                    Mesh mesh = BuildCellMaskMesh(board, cell, x, y, z, mappings);
+                    if (mesh != null && mesh.vertexCount > 0)
                     {
-                        uvMin = Vector2.zero;
-                        uvMax = Vector2.one;
+                        meshes.Add(mesh);
                     }
-
-                    meshes.Add(BuildCellBoxMesh(x, y, z, uvMin, uvMax));
                 }
             }
         }
@@ -82,15 +84,49 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
         return meshes;
     }
 
-    private void AddMaskQuads(
+    private static VoxelRegistry ResolveRegistry()
+    {
+        return BattleRequestStore.Current?.Registry;
+    }
+
+    private static void AddMaskFaces(
         BattleCell cell,
+        BattleBoardData board,
         int x,
         int y,
         int z,
-        IReadOnlyList<BattleMaskSpriteMapping> mappings)
+        IReadOnlyList<BattleMaskSpriteMapping> mappings,
+        List<Vector3> vertices,
+        List<int> triangles,
+        List<Vector2> uvs)
     {
-        Vector2 uvMin = Vector2.zero;
-        Vector2 uvMax = Vector2.one;
+        if (board == null || board.Voxels == null || mappings == null)
+        {
+            return;
+        }
+
+        VoxelRegistry registry = ResolveRegistry();
+        if (registry == null)
+        {
+            return;
+        }
+
+        VoxelCell voxelCell = board.Voxels[x, y, z];
+        if (voxelCell.Id == registry.AirId)
+        {
+            return;
+        }
+
+        if (!registry.TryGetVoxel(voxelCell.Id, out Voxel voxel) || voxel == null)
+        {
+            return;
+        }
+
+        IReadOnlyList<VoxelFace> maskFaces = voxel.MaskFaces;
+        if (maskFaces == null || maskFaces.Count == 0)
+        {
+            return;
+        }
 
         for (int i = 0; i < mappings.Count; i++)
         {
@@ -100,97 +136,179 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
                 continue;
             }
 
-            AddQuad(x, y, z, uvMin, uvMax, vertices, triangles, uvs);
+            if (!TryGetSpriteUv(mapping.Sprite, out Vector2 uvMin, out Vector2 uvMax))
+            {
+                continue;
+            }
+
+            for (int f = 0; f < maskFaces.Count; f++)
+            {
+                AddMaskFace(maskFaces[f], voxelCell.Orientation, voxelCell.FlipOrientation, x, y, z, uvMin, uvMax, vertices, triangles, uvs);
+            }
         }
     }
 
-    private Mesh BuildCellBoxMesh(int x, int y, int z, Vector2 uvMin, Vector2 uvMax)
+    private static Mesh BuildCellMaskMesh(
+        BattleBoardData board,
+        BattleCell cell,
+        int x,
+        int y,
+        int z,
+        IReadOnlyList<BattleMaskSpriteMapping> mappings)
     {
-        float left = x;
-        float right = x + 1f;
-        float bottom = z;
-        float top = z + 1f;
-        float centerY = y + 0.02f;
-        float minY = centerY - (MaskThickness * 0.5f);
-        float maxY = centerY + (MaskThickness * 0.5f);
-
-        Vector3[] boxVertices =
+        if (board == null || board.Voxels == null || mappings == null)
         {
-            // Bottom face
-            new Vector3(left, minY, bottom),
-            new Vector3(right, minY, bottom),
-            new Vector3(right, minY, top),
-            new Vector3(left, minY, top),
-            // Top face
-            new Vector3(left, maxY, bottom),
-            new Vector3(right, maxY, bottom),
-            new Vector3(right, maxY, top),
-            new Vector3(left, maxY, top),
-            // Left face
-            new Vector3(left, minY, bottom),
-            new Vector3(left, minY, top),
-            new Vector3(left, maxY, top),
-            new Vector3(left, maxY, bottom),
-            // Right face
-            new Vector3(right, minY, bottom),
-            new Vector3(right, maxY, bottom),
-            new Vector3(right, maxY, top),
-            new Vector3(right, minY, top),
-            // Front face
-            new Vector3(left, minY, bottom),
-            new Vector3(left, maxY, bottom),
-            new Vector3(right, maxY, bottom),
-            new Vector3(right, minY, bottom),
-            // Back face
-            new Vector3(left, minY, top),
-            new Vector3(right, minY, top),
-            new Vector3(right, maxY, top),
-            new Vector3(left, maxY, top)
-        };
+            return null;
+        }
 
-        int[] boxTriangles =
+        VoxelRegistry registry = ResolveRegistry();
+        if (registry == null)
         {
-            0, 2, 1, 0, 3, 2,
-            4, 5, 6, 4, 6, 7,
-            8, 10, 9, 8, 11, 10,
-            12, 14, 13, 12, 15, 14,
-            16, 18, 17, 16, 19, 18,
-            20, 22, 21, 20, 23, 22
-        };
-        FlipWindingInPlace(boxTriangles);
+            return null;
+        }
 
-        Vector2 uv00 = new Vector2(0f, 0f);
-        Vector2 uv10 = new Vector2(1f, 0f);
-        Vector2 uv11 = new Vector2(1f, 1f);
-        Vector2 uv01 = new Vector2(0f, 1f);
-        Vector2[] boxUvs =
+        VoxelCell voxelCell = board.Voxels[x, y, z];
+        if (voxelCell.Id == registry.AirId)
         {
-            // Bottom face (default)
-            uv00, uv10, uv11, uv01,
-            // Top face (use sprite UV)
-            new Vector2(uvMin.x, uvMin.y),
-            new Vector2(uvMax.x, uvMin.y),
-            new Vector2(uvMax.x, uvMax.y),
-            new Vector2(uvMin.x, uvMax.y),
-            // Left face (default)
-            uv00, uv10, uv11, uv01,
-            // Right face (default)
-            uv00, uv10, uv11, uv01,
-            // Front face (default)
-            uv00, uv10, uv11, uv01,
-            // Back face (default)
-            uv00, uv10, uv11, uv01
-        };
+            return null;
+        }
 
-        Mesh mesh = new Mesh
+        if (!registry.TryGetVoxel(voxelCell.Id, out Voxel voxel) || voxel == null)
         {
-            name = $"BattleCellCollisionBox {x},{y},{z}"
-        };
-        mesh.SetVertices(boxVertices);
-        mesh.SetTriangles(boxTriangles, 0);
-        mesh.SetUVs(0, boxUvs);
+            return null;
+        }
+
+        IReadOnlyList<VoxelFace> maskFaces = voxel.MaskFaces;
+        if (maskFaces == null || maskFaces.Count == 0)
+        {
+            return null;
+        }
+
+        var mesh = new Mesh { name = $"BattleCellCollisionMask {x},{y},{z}" };
+        var localVertices = new List<Vector3>();
+        var localTriangles = new List<int>();
+        var localUvs = new List<Vector2>();
+
+        for (int i = 0; i < mappings.Count; i++)
+        {
+            BattleMaskSpriteMapping mapping = mappings[i];
+            if (!cell.HasMask(mapping.Mask))
+            {
+                continue;
+            }
+
+            if (!TryGetSpriteUv(mapping.Sprite, out Vector2 uvMin, out Vector2 uvMax))
+            {
+                continue;
+            }
+
+            for (int f = 0; f < maskFaces.Count; f++)
+            {
+                AddMaskFace(maskFaces[f], voxelCell.Orientation, voxelCell.FlipOrientation, x, y, z, uvMin, uvMax, localVertices, localTriangles, localUvs);
+            }
+        }
+
+        if (localVertices.Count == 0)
+        {
+            return mesh;
+        }
+
+        mesh.SetVertices(localVertices);
+        FlipWindingInPlace(localTriangles);
+        mesh.SetTriangles(localTriangles, 0);
+        mesh.SetUVs(0, localUvs);
         mesh.RecalculateBounds();
         return mesh;
+    }
+
+    private static void AddMaskFace(
+        VoxelFace face,
+        Orientation orientation,
+        FlipOrientation flipOrientation,
+        int x,
+        int y,
+        int z,
+        Vector2 uvMin,
+        Vector2 uvMax,
+        List<Vector3> vertices,
+        List<int> triangles,
+        List<Vector2> uvs)
+    {
+        if (face == null || face.Polygons == null || face.Polygons.Count == 0)
+        {
+            return;
+        }
+
+        Vector3 offset = new Vector3(x, y, z);
+        List<List<FaceVertex>> polygons = face.Polygons;
+        for (int p = 0; p < polygons.Count; p++)
+        {
+            List<FaceVertex> polygon = polygons[p];
+            if (polygon == null || polygon.Count < 3)
+            {
+                continue;
+            }
+
+            int start = vertices.Count;
+            for (int i = 0; i < polygon.Count; i++)
+            {
+                FaceVertex vertex = polygon[i];
+                Vector3 local = TransformPosition(vertex.Position, orientation, flipOrientation);
+                vertices.Add(offset + local);
+                uvs.Add(MapMaskUv(vertex.TileUV, uvMin, uvMax));
+            }
+
+            for (int i = 1; i < polygon.Count - 1; i++)
+            {
+                triangles.Add(start);
+                triangles.Add(start + i);
+                triangles.Add(start + i + 1);
+            }
+        }
+    }
+
+    private static Vector3 TransformPosition(Vector3 position, Orientation orientation, FlipOrientation flipOrientation)
+    {
+        int steps = OrientationToSteps(orientation);
+        Vector3 local = position;
+        if (steps != 0)
+        {
+            Vector3 pivot = new Vector3(0.5f, 0.5f, 0.5f);
+            Vector3 offset = local - pivot;
+            Quaternion rotation = Quaternion.AngleAxis(-steps * 90f, Vector3.up);
+            local = rotation * offset + pivot;
+        }
+
+        if (flipOrientation == FlipOrientation.NegativeY)
+        {
+            local.y = 1f - local.y;
+        }
+
+        return local;
+    }
+
+    private static int OrientationToSteps(Orientation orientation)
+    {
+        switch (orientation)
+        {
+            case Orientation.PositiveX:
+                return 0;
+            case Orientation.PositiveZ:
+                return 1;
+            case Orientation.NegativeX:
+                return 2;
+            case Orientation.NegativeZ:
+                return 3;
+            default:
+                return 0;
+        }
+    }
+
+    private static Vector2 MapMaskUv(Vector2 baseUv, Vector2 uvMin, Vector2 uvMax)
+    {
+        return new Vector2(
+            Mathf.Lerp(uvMin.x, uvMax.x, baseUv.x),
+            Mathf.Lerp(uvMin.y, uvMax.y, baseUv.y));
     }
 
     private static void FlipWindingInPlace(List<int> indices)
@@ -206,53 +324,6 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
             indices[i + 1] = indices[i + 2];
             indices[i + 2] = temp;
         }
-    }
-
-    private static void FlipWindingInPlace(int[] indices)
-    {
-        if (indices == null)
-        {
-            return;
-        }
-
-        for (int i = 0; i + 2 < indices.Length; i += 3)
-        {
-            int temp = indices[i + 1];
-            indices[i + 1] = indices[i + 2];
-            indices[i + 2] = temp;
-        }
-    }
-
-    private static bool TryGetCellUv(
-        BattleCell cell,
-        IReadOnlyList<BattleMaskSpriteMapping> mappings,
-        out Vector2 uvMin,
-        out Vector2 uvMax)
-    {
-        uvMin = Vector2.zero;
-        uvMax = Vector2.one;
-        if (cell == null || mappings == null)
-        {
-            return false;
-        }
-
-        for (int i = 0; i < mappings.Count; i++)
-        {
-            BattleMaskSpriteMapping mapping = mappings[i];
-            if (!cell.HasMask(mapping.Mask))
-            {
-                continue;
-            }
-
-            if (!TryGetSpriteUv(mapping.Sprite, out uvMin, out uvMax))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        return false;
     }
 
     private static bool TryGetSpriteUv(Sprite sprite, out Vector2 uvMin, out Vector2 uvMax)

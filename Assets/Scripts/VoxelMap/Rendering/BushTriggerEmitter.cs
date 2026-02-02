@@ -8,14 +8,22 @@ public readonly struct BushTriggerContext
     public Transform Player { get; }
     public Collider PlayerCollider { get; }
     public Vector3 PlayerPosition { get; }
+    public BushIslandConfiguration BushIslandConfiguration { get; }
 
-    public BushTriggerContext(VoxelMap map, ChunkCoord coord, Transform player, Collider playerCollider, Vector3 playerPosition)
+    public BushTriggerContext(
+        VoxelMap map,
+        ChunkCoord coord,
+        Transform player,
+        Collider playerCollider,
+        Vector3 playerPosition,
+        BushIslandConfiguration bushIslandConfiguration)
     {
         Map = map;
         Coord = coord;
         Player = player;
         PlayerCollider = playerCollider;
         PlayerPosition = playerPosition;
+        BushIslandConfiguration = bushIslandConfiguration;
     }
 }
 
@@ -25,12 +33,14 @@ public class BushTriggerEmitter : MonoBehaviour
     private VoxelMap ownerMap;
     private ChunkCoord coord;
     private Rigidbody cachedBody;
+    private BushIslandConfiguration cachedConfiguration;
     private readonly Dictionary<int, Vector3Int> lastPlayerCells = new Dictionary<int, Vector3Int>();
 
     public void Configure(VoxelMap owner, ChunkCoord chunkCoord)
     {
         ownerMap = owner;
         coord = chunkCoord;
+        cachedConfiguration = GetComponent<BushIslandConfiguration>();
         EnsureKinematicRigidbody();
     }
 
@@ -67,7 +77,7 @@ public class BushTriggerEmitter : MonoBehaviour
         Vector3Int cell = Vector3Int.FloorToInt(playerPosition);
         int playerId = player.gameObject.GetInstanceID();
         lastPlayerCells[playerId] = cell;
-        var context = new BushTriggerContext(ownerMap, coord, player.transform, other, playerPosition);
+        var context = new BushTriggerContext(ownerMap, coord, player.transform, other, playerPosition, cachedConfiguration);
         ownerMap.NotifyPlayerEnteredBush(context);
     }
 
@@ -95,7 +105,7 @@ public class BushTriggerEmitter : MonoBehaviour
             }
         }
         lastPlayerCells[playerId] = cell;
-        var context = new BushTriggerContext(ownerMap, coord, player.transform, other, playerPosition);
+        var context = new BushTriggerContext(ownerMap, coord, player.transform, other, playerPosition, cachedConfiguration);
         ownerMap.NotifyPlayerStayInBush(context);
     }
 
@@ -114,7 +124,7 @@ public class BushTriggerEmitter : MonoBehaviour
 
         int playerId = player.gameObject.GetInstanceID();
         lastPlayerCells.Remove(playerId);
-        var context = new BushTriggerContext(ownerMap, coord, player.transform, other, player.transform.position);
+        var context = new BushTriggerContext(ownerMap, coord, player.transform, other, player.transform.position, cachedConfiguration);
         ownerMap.NotifyPlayerExitBush(context);
     }
 }
