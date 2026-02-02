@@ -58,6 +58,11 @@ public class CrossPlaneVoxel : Voxel
 		return faces;
 	}
 
+	protected override List<VoxelFace> ConstructFlippedMaskFaces()
+	{
+		return ConstructMaskFaces();
+	}
+
 	protected override Dictionary<OuterShellPlane, VoxelFace> ConstructOuterShellFaces()
 	{
 		return new Dictionary<OuterShellPlane, VoxelFace>();

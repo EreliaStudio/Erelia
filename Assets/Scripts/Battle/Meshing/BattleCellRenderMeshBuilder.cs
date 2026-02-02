@@ -71,7 +71,7 @@ public class BattleCellRenderMeshBuilder : BattleCellMesher
             return;
         }
 
-        IReadOnlyList<VoxelFace> maskFaces = voxel.MaskFaces;
+        IReadOnlyList<VoxelFace> maskFaces = voxelCell.FlipOrientation == FlipOrientation.NegativeY ? voxel.FlippedMaskFaces : voxel.MaskFaces;
         if (maskFaces == null || maskFaces.Count == 0)
         {
             return;
@@ -92,7 +92,7 @@ public class BattleCellRenderMeshBuilder : BattleCellMesher
 
             for (int f = 0; f < maskFaces.Count; f++)
             {
-                AddMaskFace(maskFaces[f], voxelCell.Orientation, voxelCell.FlipOrientation, x, y, z, uvMin, uvMax);
+                AddMaskFace(maskFaces[f], voxelCell.Orientation, x, y, z, uvMin, uvMax);
             }
         }
     }
@@ -100,7 +100,6 @@ public class BattleCellRenderMeshBuilder : BattleCellMesher
     private void AddMaskFace(
         VoxelFace face,
         Orientation orientation,
-        FlipOrientation flipOrientation,
         int x,
         int y,
         int z,
@@ -126,7 +125,7 @@ public class BattleCellRenderMeshBuilder : BattleCellMesher
             for (int i = 0; i < polygon.Count; i++)
             {
                 FaceVertex vertex = polygon[i];
-                Vector3 local = TransformPosition(vertex.Position, orientation, flipOrientation);
+                Vector3 local = TransformPosition(vertex.Position, orientation, FlipOrientation.PositiveY);
                 vertices.Add(offset + local);
                 uvs.Add(MapMaskUv(vertex.TileUV, uvMin, uvMax));
             }

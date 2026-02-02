@@ -55,6 +55,7 @@ public class StairVoxel : Voxel
 	{
 		const float maskOffset = 0.01f;
 		const float maskXOverhang = 0.01f;
+		const float riserZOffset = 0.01f;
 		const float uvStep = 1f / 3f;
 		var faces = new List<VoxelFace>();
 
@@ -69,11 +70,12 @@ public class StairVoxel : Voxel
 			new GeometryUtils.Vertex { Position = new Vector3(0f, upperY, 1f), UV = new Vector2(0f, 1f) });
 		faces.Add(upperTop);
 
+		float riserZ = StepDepth - riserZOffset;
 		VoxelFace upperRiser = GeometryUtils.CreateRectangle(
-			new GeometryUtils.Vertex { Position = new Vector3(0f, lowerY, StepDepth), UV = new Vector2(0f, uvStep) },
-			new GeometryUtils.Vertex { Position = new Vector3(right, lowerY, StepDepth), UV = new Vector2(1f, uvStep) },
-			new GeometryUtils.Vertex { Position = new Vector3(right, upperY, StepDepth), UV = new Vector2(1f, uvStep * 2f) },
-			new GeometryUtils.Vertex { Position = new Vector3(0f, upperY, StepDepth), UV = new Vector2(0f, uvStep * 2f) });
+			new GeometryUtils.Vertex { Position = new Vector3(0f, lowerY, riserZ), UV = new Vector2(0f, uvStep) },
+			new GeometryUtils.Vertex { Position = new Vector3(right, lowerY, riserZ), UV = new Vector2(1f, uvStep) },
+			new GeometryUtils.Vertex { Position = new Vector3(right, upperY, riserZ), UV = new Vector2(1f, uvStep * 2f) },
+			new GeometryUtils.Vertex { Position = new Vector3(0f, upperY, riserZ), UV = new Vector2(0f, uvStep * 2f) });
 		faces.Add(upperRiser);
 
 		VoxelFace lowerTop = GeometryUtils.CreateRectangle(
@@ -83,6 +85,19 @@ public class StairVoxel : Voxel
 			new GeometryUtils.Vertex { Position = new Vector3(0f, lowerY, StepDepth), UV = new Vector2(0f, uvStep) });
 		faces.Add(lowerTop);
 
+		return faces;
+	}
+
+	protected override List<VoxelFace> ConstructFlippedMaskFaces()
+	{
+		const float maskOffset = 0.01f;
+		var faces = new List<VoxelFace>();
+		VoxelFace top = GeometryUtils.CreateRectangle(
+			new GeometryUtils.Vertex { Position = new Vector3(0f, 1f + maskOffset, 0f), UV = new Vector2(0f, 0f) },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, 1f + maskOffset, 0f), UV = new Vector2(1f, 0f) },
+			new GeometryUtils.Vertex { Position = new Vector3(1f, 1f + maskOffset, 1f), UV = new Vector2(1f, 1f) },
+			new GeometryUtils.Vertex { Position = new Vector3(0f, 1f + maskOffset, 1f), UV = new Vector2(0f, 1f) });
+		faces.Add(top);
 		return faces;
 	}
 

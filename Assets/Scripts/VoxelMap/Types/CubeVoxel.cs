@@ -29,6 +29,11 @@ public class CubeVoxel : Voxel
 		return faces;
 	}
 
+	protected override List<VoxelFace> ConstructFlippedMaskFaces()
+	{
+		return ConstructMaskFaces();
+	}
+
 	protected override Dictionary<OuterShellPlane, VoxelFace> ConstructOuterShellFaces()
 	{
 		var faces = new Dictionary<OuterShellPlane, VoxelFace>();

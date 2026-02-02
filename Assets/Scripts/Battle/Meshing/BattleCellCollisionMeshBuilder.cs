@@ -121,12 +121,14 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
             return;
         }
 
-        IReadOnlyList<VoxelFace> maskFaces = voxel.MaskFaces;
+        bool useFlipped = voxelCell.FlipOrientation == FlipOrientation.NegativeY;
+        IReadOnlyList<VoxelFace> maskFaces = useFlipped ? voxel.FlippedMaskFaces : voxel.MaskFaces;
         if (maskFaces == null || maskFaces.Count == 0)
         {
             return;
         }
 
+        FlipOrientation effectiveFlip = FlipOrientation.PositiveY;
         for (int i = 0; i < mappings.Count; i++)
         {
             BattleMaskSpriteMapping mapping = mappings[i];
@@ -142,7 +144,7 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
 
             for (int f = 0; f < maskFaces.Count; f++)
             {
-                AddMaskFace(maskFaces[f], voxelCell.Orientation, voxelCell.FlipOrientation, x, y, z, uvMin, uvMax, vertices, triangles, uvs);
+                AddMaskFace(maskFaces[f], voxelCell.Orientation, effectiveFlip, x, y, z, uvMin, uvMax, vertices, triangles, uvs);
             }
         }
     }
@@ -176,12 +178,14 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
             return null;
         }
 
-        IReadOnlyList<VoxelFace> maskFaces = voxel.MaskFaces;
+        bool useFlipped = voxelCell.FlipOrientation == FlipOrientation.NegativeY;
+        IReadOnlyList<VoxelFace> maskFaces = useFlipped ? voxel.FlippedMaskFaces : voxel.MaskFaces;
         if (maskFaces == null || maskFaces.Count == 0)
         {
             return null;
         }
 
+        FlipOrientation effectiveFlip = FlipOrientation.PositiveY;
         var mesh = new Mesh { name = $"BattleCellCollisionMask {x},{y},{z}" };
         var localVertices = new List<Vector3>();
         var localTriangles = new List<int>();
@@ -202,7 +206,7 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
 
             for (int f = 0; f < maskFaces.Count; f++)
             {
-                AddMaskFace(maskFaces[f], voxelCell.Orientation, voxelCell.FlipOrientation, x, y, z, uvMin, uvMax, localVertices, localTriangles, localUvs);
+                AddMaskFace(maskFaces[f], voxelCell.Orientation, effectiveFlip, x, y, z, uvMin, uvMax, localVertices, localTriangles, localUvs);
             }
         }
 
@@ -309,6 +313,7 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
             Mathf.Lerp(uvMin.y, uvMax.y, baseUv.y));
     }
 
+
     private static void FlipWindingInPlace(List<int> indices)
     {
         if (indices == null)
@@ -349,6 +354,7 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
         uvMax = new Vector2(uMax, vMax);
         return true;
     }
+
 
     private static bool TryGetMaskVoxelCell(
         BattleBoardData board,
