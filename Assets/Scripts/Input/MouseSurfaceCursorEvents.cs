@@ -30,10 +30,7 @@ public class MouseSurfaceCursorEvents : MonoBehaviour
 
         if (MouseRaycastUtility.TryGetHit(targetCamera, mask, maxDistance, triggerInteraction, out RaycastHit hit))
         {
-            Vector3Int cell = new Vector3Int(
-                Mathf.FloorToInt(hit.point.x),
-                Mathf.FloorToInt(hit.point.y),
-                Mathf.FloorToInt(hit.point.z));
+            Vector3Int cell = ResolveCell(hit);
 
             if (!hasHit || cell != lastCell)
             {
@@ -49,5 +46,15 @@ public class MouseSurfaceCursorEvents : MonoBehaviour
             hasHit = false;
             MouseLeaveModel?.Invoke();
         }
+    }
+
+    private static Vector3Int ResolveCell(RaycastHit hit)
+    {
+        const float epsilon = 0.001f;
+        Vector3 biased = hit.point - (hit.normal * epsilon);
+        return new Vector3Int(
+            Mathf.FloorToInt(biased.x),
+            Mathf.FloorToInt(biased.y),
+            Mathf.FloorToInt(biased.z));
     }
 }

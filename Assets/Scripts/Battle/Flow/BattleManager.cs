@@ -9,6 +9,8 @@ public class BattleManager : MonoBehaviour
 
 	public BattleRequest CurrentRequest { get; private set; }
 	private IBattlePhase currentPhase;
+	private bool hasSelectedCell;
+	private Vector3Int selectedCell;
 
 	private void OnEnable()
 	{
@@ -63,11 +65,73 @@ public class BattleManager : MonoBehaviour
 
 	private void HandleMouseSurfaceMove(Vector3Int cell, RaycastHit hit)
 	{
+		BattleBoard board = battleContext != null ? battleContext.BattleBoard : null;
+		BattleBoardData data = board != null ? board.Data : null;
+		if (data == null)
+		{
+			return;
+		}
+
+		Vector3Int localCell = cell - data.OriginCell;
+		if (!IsValidCell(data, localCell))
+		{
+			ClearSelectedCell(board, data);
+			return;
+		}
+
+		if (hasSelectedCell && localCell == selectedCell)
+		{
+			return;
+		}
+
+		ClearSelectedCell(board, data);
+		data.AddMask(localCell.x, localCell.y, localCell.z, BattleCellMask.Selected);
+		board.RebuildMask();
+
+		hasSelectedCell = true;
+		selectedCell = localCell;
+
 		Debug.Log("Mouse surface cell: " + cell);
 	}
 
 	private void HandleMouseSurfaceLeave()
 	{
-		Debug.Log("Mouse left battle board");
+		BattleBoard board = battleContext != null ? battleContext.BattleBoard : null;
+		BattleBoardData data = board != null ? board.Data : null;
+		if (data == null)
+		{
+			return;
+		}
+
+		ClearSelectedCell(board, data);
+	}
+
+	private void ClearSelectedCell(BattleBoard board, BattleBoardData data)
+	{
+		if (!hasSelectedCell)
+		{
+			return;
+		}
+
+		if (IsValidCell(data, selectedCell))
+		{
+			data.RemoveMask(selectedCell.x, selectedCell.y, selectedCell.z, BattleCellMask.Selected);
+			board.RebuildMask();
+		}
+
+		hasSelectedCell = false;
+		selectedCell = default;
+	}
+
+	private static bool IsValidCell(BattleBoardData data, Vector3Int cell)
+	{
+		if (data == null)
+		{
+			return false;
+		}
+
+		return cell.x >= 0 && cell.x < data.SizeX
+			&& cell.y >= 0 && cell.y < data.SizeY
+			&& cell.z >= 0 && cell.z < data.SizeZ;
 	}
 }
