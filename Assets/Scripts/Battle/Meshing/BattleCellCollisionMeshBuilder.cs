@@ -111,8 +111,7 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
             return;
         }
 
-        VoxelCell voxelCell = board.Voxels[x, y, z];
-        if (voxelCell.Id == registry.AirId)
+        if (!TryGetMaskVoxelCell(board, registry, x, y, z, out VoxelCell voxelCell))
         {
             return;
         }
@@ -167,8 +166,7 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
             return null;
         }
 
-        VoxelCell voxelCell = board.Voxels[x, y, z];
-        if (voxelCell.Id == registry.AirId)
+        if (!TryGetMaskVoxelCell(board, registry, x, y, z, out VoxelCell voxelCell))
         {
             return null;
         }
@@ -350,5 +348,28 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
         uvMin = new Vector2(uMin, vMin);
         uvMax = new Vector2(uMax, vMax);
         return true;
+    }
+
+    private static bool TryGetMaskVoxelCell(
+        BattleBoardData board,
+        VoxelRegistry registry,
+        int x,
+        int y,
+        int z,
+        out VoxelCell voxelCell)
+    {
+        voxelCell = default;
+        if (board == null || board.Voxels == null || registry == null)
+        {
+            return false;
+        }
+
+        if (x < 0 || x >= board.SizeX || y < 0 || y >= board.SizeY || z < 0 || z >= board.SizeZ)
+        {
+            return false;
+        }
+
+        voxelCell = board.Voxels[x, y, z];
+        return voxelCell.Id != registry.AirId;
     }
 }

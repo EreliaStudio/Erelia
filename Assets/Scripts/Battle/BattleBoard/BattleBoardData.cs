@@ -138,7 +138,7 @@ public class BattleBoardData
         }
     }
 
-    public bool TryGetSurfaceY(int x, int z, int airId, out int surfaceY)
+    public bool TryGetSurfaceY(int x, int z, int airId, VoxelRegistry registry, out int surfaceY)
     {
         surfaceY = -1;
         if (voxels == null || x < 0 || x >= SizeX || z < 0 || z >= SizeZ)
@@ -148,11 +148,25 @@ public class BattleBoardData
 
         for (int y = SizeY - 1; y >= 0; y--)
         {
-            if (Voxels[x, y, z].Id != airId)
+            int id = Voxels[x, y, z].Id;
+            if (id == airId)
+            {
+                continue;
+            }
+
+            if (registry == null || !registry.TryGetVoxel(id, out Voxel voxel) || voxel == null)
             {
                 surfaceY = y + 1;
                 return surfaceY < SizeY;
             }
+
+            if (voxel.Traversal == VoxelTraversal.Walkable)
+            {
+                continue;
+            }
+
+            surfaceY = y + 1;
+            return surfaceY < SizeY;
         }
 
         return false;

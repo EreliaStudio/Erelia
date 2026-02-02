@@ -5,7 +5,6 @@ using UnityEngine;
 public class BattlePlacementPhase : BattlePhaseBase
 {
     [SerializeField, Min(1)] private int targetCellCount = 12;
-    [SerializeField] private bool useBattleSeed = true;
 
     public override BattlePhase Phase => BattlePhase.Placement;
 
@@ -31,7 +30,7 @@ public class BattlePlacementPhase : BattlePhaseBase
         int airId = request.Registry != null ? request.Registry.AirId : 0;
         board.ClearMask(BattleCellMask.Placement);
 
-        System.Random rng = useBattleSeed ? new System.Random(request.Seed) : new System.Random();
+        System.Random rng = new System.Random(request.Seed);
         int desiredCellCount = targetCellCount;
         if (request.AreaProfile != null)
         {
@@ -82,20 +81,22 @@ public class BattlePlacementPhase : BattlePhaseBase
         }
 
         Vector2Int start = surfaceCells[rng.Next(surfaceCells.Count)];
+        if (!surfaceHeights.TryGetValue(start, out int startY))
+        {
+            return;
+        }
+
         var visited = new System.Collections.Generic.HashSet<Vector2Int>();
         var queue = new System.Collections.Generic.Queue<Vector2Int>();
-        queue.Enqueue(start);
+
+        board.AddMask(start.x, startY, start.y, BattleCellMask.Placement);
+        targetCount--;
         visited.Add(start);
+        queue.Enqueue(start);
 
         while (queue.Count > 0 && targetCount > 0)
         {
             Vector2Int cell = queue.Dequeue();
-            if (surfaceHeights.TryGetValue(cell, out int placementY))
-            {
-                board.AddMask(cell.x, placementY, cell.y, BattleCellMask.Placement);
-                targetCount--;
-            }
-
             foreach (Vector2Int neighbor in GetNeighbors(cell))
             {
                 if (neighbor.x < 0 || neighbor.x >= board.SizeX || neighbor.y < 0 || neighbor.y >= board.SizeZ)
@@ -103,14 +104,22 @@ public class BattlePlacementPhase : BattlePhaseBase
                     continue;
                 }
 
-                if (!surfaceHeights.ContainsKey(neighbor))
+                if (!surfaceHeights.TryGetValue(neighbor, out int placementY))
                 {
                     continue;
                 }
 
-                if (visited.Add(neighbor))
+                if (!visited.Add(neighbor))
                 {
-                    queue.Enqueue(neighbor);
+                    continue;
+                }
+
+                board.AddMask(neighbor.x, placementY, neighbor.y, BattleCellMask.Placement);
+                targetCount--;
+                queue.Enqueue(neighbor);
+                if (targetCount <= 0)
+                {
+                    break;
                 }
             }
         }
@@ -124,13 +133,14 @@ public class BattlePlacementPhase : BattlePhaseBase
             return false;
         }
 
-        if (!board.TryGetSurfaceY(x, z, airId, out int surfaceAirY))
+        VoxelRegistry registry = BattleRequestStore.Current?.Registry;
+        if (!board.TryGetSurfaceY(x, z, airId, registry, out int surfaceAirY))
         {
             return false;
         }
 
-        placementY = surfaceAirY;
-        return true;
+        placementY = surfaceAirY - 1;
+        return placementY >= 0;
     }
 
     private static readonly Vector2Int[] NeighborOffsets =

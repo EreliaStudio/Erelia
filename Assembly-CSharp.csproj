@@ -62,6 +62,7 @@
     <Compile Include="Assets\Scripts\Battle\Flow\BattleContext.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Map\VoxelMapView.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Rendering\ChunkView.cs" />
+    <Compile Include="Assets\Scripts\VoxelMap\Core\VoxelTraversal.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\VoxelRegistry.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\FlipOrientation.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Meshing\VoxelMesher.cs" />

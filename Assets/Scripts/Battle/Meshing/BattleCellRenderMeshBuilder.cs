@@ -61,13 +61,7 @@ public class BattleCellRenderMeshBuilder : BattleCellMesher
             return;
         }
 
-        if (x < 0 || x >= board.SizeX || y < 0 || y >= board.SizeY || z < 0 || z >= board.SizeZ)
-        {
-            return;
-        }
-
-        VoxelCell voxelCell = board.Voxels[x, y, z];
-        if (voxelCell.Id == registry.AirId)
+        if (!TryGetMaskVoxelCell(board, registry, x, y, z, out VoxelCell voxelCell))
         {
             return;
         }
@@ -214,6 +208,29 @@ public class BattleCellRenderMeshBuilder : BattleCellMesher
         return new Vector2(
             Mathf.Lerp(uvMin.x, uvMax.x, baseUv.x),
             Mathf.Lerp(uvMin.y, uvMax.y, baseUv.y));
+    }
+
+    private static bool TryGetMaskVoxelCell(
+        BattleBoardData board,
+        VoxelRegistry registry,
+        int x,
+        int y,
+        int z,
+        out VoxelCell voxelCell)
+    {
+        voxelCell = default;
+        if (board == null || board.Voxels == null || registry == null)
+        {
+            return false;
+        }
+
+        if (x < 0 || x >= board.SizeX || y < 0 || y >= board.SizeY || z < 0 || z >= board.SizeZ)
+        {
+            return false;
+        }
+
+        voxelCell = board.Voxels[x, y, z];
+        return voxelCell.Id != registry.AirId;
     }
 
 }

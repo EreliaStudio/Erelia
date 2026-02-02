@@ -4,6 +4,7 @@ using UnityEngine;
 public abstract class Voxel : ScriptableObject
 {
     [SerializeField] private VoxelCollision collision = VoxelCollision.Solid;
+    [SerializeField] private VoxelTraversal traversal = VoxelTraversal.Obstacle;
     protected List<VoxelFace> innerFaces = new List<VoxelFace>();
     protected Dictionary<OuterShellPlane, VoxelFace> outerShellByPlane = new Dictionary<OuterShellPlane, VoxelFace>();
     protected List<VoxelFace> maskFaces = new List<VoxelFace>();
@@ -12,6 +13,7 @@ public abstract class Voxel : ScriptableObject
     public IReadOnlyDictionary<OuterShellPlane, VoxelFace> OuterShellFaces => outerShellByPlane;
     public IReadOnlyList<VoxelFace> MaskFaces => maskFaces;
     public VoxelCollision Collision => collision;
+    public VoxelTraversal Traversal => traversal;
 
 	protected abstract List<VoxelFace> ConstructInnerFaces();
 	protected abstract Dictionary<OuterShellPlane, VoxelFace> ConstructOuterShellFaces();

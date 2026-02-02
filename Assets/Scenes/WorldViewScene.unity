@@ -170,6 +170,7 @@ MonoBehaviour:
     verticalRadius: 0
     chunkCreateBudgetPerTick: 2
     VisibleCoords: []
+  bushAreaProfile: {fileID: 11400000, guid: 0edfdb67412598c4fa6ea6dfb490482c, type: 2}
   onPlayerEnterBush:
     m_PersistentCalls:
       m_Calls: []
