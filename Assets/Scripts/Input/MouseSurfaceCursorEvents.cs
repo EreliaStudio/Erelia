@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,29 +9,45 @@ public class MouseSurfaceCursorEvents : MonoBehaviour
 	private QueryTriggerInteraction triggerInteraction = QueryTriggerInteraction.Ignore;
 	private float maxDistance = 500.0f;
 
+    public event System.Action<Vector3Int, RaycastHit> MoveMouseCursor;
+    public event System.Action MouseLeaveModel;
+
+    private bool hasHit;
+    private Vector3Int lastCell;
+
     private void Update()
     {
-        Vector2 screenPosition = Mouse.current.position.ReadValue();
-        Ray ray = targetCamera.ScreenPointToRay(screenPosition);
-        // Debug.Log(
-        //     $"MouseSurface TryGetHit params cam={targetCamera.name} camPos={targetCamera.transform.position} " +
-        //     $"mouse={screenPosition} " +
-        //     $"mask={mask.value} maxDistance={maxDistance} trigger={triggerInteraction} " +
-        //     $"screen={screenPosition} rayOrigin={ray.origin} rayDir={ray.direction}");
+        if (targetCamera == null)
+        {
+            return;
+        }
+
+        Mouse mouse = Mouse.current;
+        if (mouse == null)
+        {
+            return;
+        }
 
         if (MouseRaycastUtility.TryGetHit(targetCamera, mask, maxDistance, triggerInteraction, out RaycastHit hit))
         {
-            Collider collider = hit.collider;
-            string colliderName = collider != null ? collider.name : "<null>";
-            int layer = collider != null ? collider.gameObject.layer : -1;
-            string layerName = collider != null ? LayerMask.LayerToName(layer) : "<none>";
-            Debug.Log(
-                $"MouseSurface hit {colliderName} layer={layerName} " +
-                $"point={hit.point} normal={hit.normal} distance={hit.distance}");
+            Vector3Int cell = new Vector3Int(
+                Mathf.FloorToInt(hit.point.x),
+                Mathf.FloorToInt(hit.point.y),
+                Mathf.FloorToInt(hit.point.z));
+
+            if (!hasHit || cell != lastCell)
+            {
+                hasHit = true;
+                lastCell = cell;
+                MoveMouseCursor?.Invoke(cell, hit);
+            }
+            return;
         }
-        else
+
+        if (hasHit)
         {
-            Debug.Log("MouseSurface no hit");
+            hasHit = false;
+            MouseLeaveModel?.Invoke();
         }
     }
 }

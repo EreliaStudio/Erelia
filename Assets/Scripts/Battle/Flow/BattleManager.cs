@@ -14,7 +14,8 @@ public class BattleManager : MonoBehaviour
 	{
 		if (mouseSurfaceEvents != null)
 		{
-			// mouseSurfaceEvents.MoveMouseCursor += HandleMouseSurfaceHit;
+			mouseSurfaceEvents.MoveMouseCursor += HandleMouseSurfaceMove;
+			mouseSurfaceEvents.MouseLeaveModel += HandleMouseSurfaceLeave;
 		}
 	}
 
@@ -22,7 +23,8 @@ public class BattleManager : MonoBehaviour
 	{
 		if (mouseSurfaceEvents != null)
 		{
-			// mouseSurfaceEvents.MoveMouseCursor -= HandleMouseSurfaceHit;
+			mouseSurfaceEvents.MoveMouseCursor -= HandleMouseSurfaceMove;
+			mouseSurfaceEvents.MouseLeaveModel -= HandleMouseSurfaceLeave;
 		}
 	}
 
@@ -57,5 +59,15 @@ public class BattleManager : MonoBehaviour
 			return null;
 		}
 		return resolved;
+	}
+
+	private void HandleMouseSurfaceMove(Vector3Int cell, RaycastHit hit)
+	{
+		Debug.Log("Mouse surface cell: " + cell);
+	}
+
+	private void HandleMouseSurfaceLeave()
+	{
+		Debug.Log("Mouse left battle board");
 	}
 }

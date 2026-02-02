@@ -40,6 +40,7 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
         }
 
         mesh.SetVertices(vertices);
+        FlipWindingInPlace(triangles);
         mesh.SetTriangles(triangles, 0);
         mesh.SetUVs(0, uvs);
         mesh.RecalculateBounds();
@@ -156,6 +157,7 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
             16, 18, 17, 16, 19, 18,
             20, 22, 21, 20, 23, 22
         };
+        FlipWindingInPlace(boxTriangles);
 
         Vector2 uv00 = new Vector2(0f, 0f);
         Vector2 uv10 = new Vector2(1f, 0f);
@@ -189,6 +191,36 @@ public class BattleCellCollisionMeshBuilder : BattleCellMesher
         mesh.SetUVs(0, boxUvs);
         mesh.RecalculateBounds();
         return mesh;
+    }
+
+    private static void FlipWindingInPlace(List<int> indices)
+    {
+        if (indices == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i + 2 < indices.Count; i += 3)
+        {
+            int temp = indices[i + 1];
+            indices[i + 1] = indices[i + 2];
+            indices[i + 2] = temp;
+        }
+    }
+
+    private static void FlipWindingInPlace(int[] indices)
+    {
+        if (indices == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i + 2 < indices.Length; i += 3)
+        {
+            int temp = indices[i + 1];
+            indices[i + 1] = indices[i + 2];
+            indices[i + 2] = temp;
+        }
     }
 
     private static bool TryGetCellUv(

@@ -111,9 +111,25 @@ public class VoxelBushTriggerMeshBuilder : VoxelMesher
 		}
 
 		mesh.SetVertices(vertices);
+		FlipWindingInPlace(triangles);
 		mesh.SetTriangles(triangles, 0);
 		mesh.SetUVs(0, uvs);
 		return mesh;
+	}
+
+	private static void FlipWindingInPlace(List<int> indices)
+	{
+		if (indices == null)
+		{
+			return;
+		}
+
+		for (int i = 0; i + 2 < indices.Count; i += 3)
+		{
+			int temp = indices[i + 1];
+			indices[i + 1] = indices[i + 2];
+			indices[i + 2] = temp;
+		}
 	}
 
 	private void TryAddBushFace(
