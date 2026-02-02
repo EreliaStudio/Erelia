@@ -86,6 +86,7 @@
     <Compile Include="Assets\Scripts\Battle\Area\BattleAreaProfile.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterSettings.cs" />
+    <Compile Include="Assets\Scripts\Input\MouseRaycastUtility.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\Voxel.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Rendering\BushTriggerEmitter.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\SlopeVoxel.cs" />
@@ -93,6 +94,7 @@
     <Compile Include="Assets\Scripts\VoxelMap\Types\SlabVoxel.cs" />
     <Compile Include="Assets\Scripts\Battle\Flow\BattlePhaseBase.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleRequestStore.cs" />
+    <Compile Include="Assets\Scripts\Input\MouseSurfaceCursorEvents.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Types\StairVoxel.cs" />
     <Compile Include="Assets\Scripts\Battle\Flow\BattleManager.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleRequest.cs" />
@@ -104,6 +106,7 @@
     <Compile Include="Assets\Scripts\Battle\Cell\BattleCellMask.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Utils\GeometryUtils.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\BattleBoardData.cs" />
+    <Compile Include="Assets\Scripts\Utils\LayerUtils.cs" />
     <Compile Include="Assets\Scripts\Battle\Camera\BattleCameraController.cs" />
     <Compile Include="Assets\Scripts\VoxelMap\Core\ChunkCoord.cs" />
     <Compile Include="Assets\Scripts\Battle\Meshing\BattleCellMesher.cs" />

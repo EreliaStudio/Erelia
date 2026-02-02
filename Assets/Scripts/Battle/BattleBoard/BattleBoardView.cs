@@ -289,6 +289,7 @@ public class BattleBoardView
             Transform existing = owner.Find(name);
             Transform root = existing != null ? existing : new GameObject(name).transform;
             root.SetParent(owner, false);
+            LayerUtils.ApplyMouseSurfaceLayer(root.gameObject);
 
             MeshCollider collider = root.GetComponent<MeshCollider>();
             if (collider == null)
@@ -380,6 +381,7 @@ public class BattleBoardView
             Transform existing = maskRoot != null ? maskRoot.Find(name) : null;
             Transform root = existing != null ? existing : new GameObject(name).transform;
             root.SetParent(maskRoot, false);
+            LayerUtils.ApplyMouseSurfaceLayer(root.gameObject);
 
             MeshCollider collider = root.GetComponent<MeshCollider>();
             if (collider == null)
@@ -407,6 +409,7 @@ public class BattleBoardView
             maskFilters.Add(filter);
         }
     }
+
 
     private void CleanupMaskChildren()
     {

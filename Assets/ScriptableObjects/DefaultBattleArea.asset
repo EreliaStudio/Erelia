@@ -13,9 +13,4 @@ MonoBehaviour:
   m_Name: DefaultBattleArea
   m_EditorClassIdentifier: Assembly-CSharp::BattleAreaProfile
   size: 8
-  noiseScale: 0.15
-  noiseStrength: 0.5
-  minEdgeChance: 0.25
-  minCells: 32
-  verticalUp: 8
-  verticalDown: 8
+  placementCellCount: 24

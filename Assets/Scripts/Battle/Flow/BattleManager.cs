@@ -4,41 +4,58 @@ using UnityEngine;
 public class BattleManager : MonoBehaviour
 {
 	private Dictionary<BattlePhase, BattlePhaseBase> battlePhaseDictionary = new Dictionary<BattlePhase, BattlePhaseBase>();
-    [SerializeField] private BattleContext battleContext = new BattleContext();
+	[SerializeField] private BattleContext battleContext = new BattleContext();
+	[SerializeField] private MouseSurfaceCursorEvents mouseSurfaceEvents = null;
 
-    public BattleRequest CurrentRequest { get; private set; }
-    private IBattlePhase currentPhase;
+	public BattleRequest CurrentRequest { get; private set; }
+	private IBattlePhase currentPhase;
 
-    public void Initialize(BattleRequest request)
-    {
-        CurrentRequest = request;
+	private void OnEnable()
+	{
+		if (mouseSurfaceEvents != null)
+		{
+			// mouseSurfaceEvents.MoveMouseCursor += HandleMouseSurfaceHit;
+		}
+	}
+
+	private void OnDisable()
+	{
+		if (mouseSurfaceEvents != null)
+		{
+			// mouseSurfaceEvents.MoveMouseCursor -= HandleMouseSurfaceHit;
+		}
+	}
+
+	public void Initialize(BattleRequest request)
+	{
+		CurrentRequest = request;
 
 		battlePhaseDictionary.Clear();
-        battlePhaseDictionary[BattlePhase.Placement] = new BattlePlacementPhase();
+		battlePhaseDictionary[BattlePhase.Placement] = new BattlePlacementPhase();
 
-        foreach (var kvp in battlePhaseDictionary)
-        {
-            kvp.Value.battleContext = battleContext;
-        }
+		foreach (var kvp in battlePhaseDictionary)
+		{
+			kvp.Value.battleContext = battleContext;
+		}
 
-        EnterPhase(BattlePhase.Placement);
-    }
+		EnterPhase(BattlePhase.Placement);
+	}
 
-    public void EnterPhase(BattlePhase phase)
-    {
-        currentPhase?.OnExit();
+	public void EnterPhase(BattlePhase phase)
+	{
+		currentPhase?.OnExit();
 
-        currentPhase = ResolvePhase(phase);
+		currentPhase = ResolvePhase(phase);
 
-        currentPhase?.OnEntry();
-    }
+		currentPhase?.OnEntry();
+	}
 
-    private IBattlePhase ResolvePhase(BattlePhase phase)
-    {
+	private IBattlePhase ResolvePhase(BattlePhase phase)
+	{
 		if (battlePhaseDictionary.TryGetValue(phase, out var resolved) == false)
-        {
-            return null;
-        }
-        return resolved;
-    }
+		{
+			return null;
+		}
+		return resolved;
+	}
 }

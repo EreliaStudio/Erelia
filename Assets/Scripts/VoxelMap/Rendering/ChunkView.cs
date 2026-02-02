@@ -287,6 +287,7 @@ public class ChunkView : MonoBehaviour
             Transform existing = transform.Find(name);
             Transform root = existing != null ? existing : new GameObject(name).transform;
             root.SetParent(transform, false);
+            LayerUtils.ApplyMouseSurfaceLayer(root.gameObject);
 
             MeshCollider collider = EnsureChildCollider(root);
             MeshFilter filter = EnsureChildFilter(root);
@@ -336,6 +337,7 @@ public class ChunkView : MonoBehaviour
             Transform existing = transform.Find(name);
             Transform root = existing != null ? existing : new GameObject(name).transform;
             root.SetParent(transform, false);
+            LayerUtils.ApplyMouseSurfaceLayer(root.gameObject);
 
             MeshCollider collider = EnsureChildCollider(root);
             MeshFilter filter = EnsureChildFilter(root);
@@ -346,4 +348,5 @@ public class ChunkView : MonoBehaviour
             bushFilters.Add(filter);
         }
     }
+
 }
