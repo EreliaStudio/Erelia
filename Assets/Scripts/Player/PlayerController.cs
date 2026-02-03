@@ -24,6 +24,19 @@ public class PlayerController : MonoBehaviour
         ResolveRotateAction();
     }
 
+    public void Configure(Transform pivot, float speed)
+    {
+        if (pivot != null)
+        {
+            cameraPivot = pivot;
+        }
+
+        if (speed > 0f)
+        {
+            moveSpeed = speed;
+        }
+    }
+
     private void OnEnable()
     {
         ApplyMoveLayoutOverride(moveAction);
