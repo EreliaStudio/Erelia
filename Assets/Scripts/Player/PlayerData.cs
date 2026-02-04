@@ -6,6 +6,7 @@ public class PlayerData : MonoBehaviour
     [SerializeField] private Transform cameraPivot;
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private TrainerData trainerData = new TrainerData();
+    [SerializeField] private TeamDataAsset startingTeam;
 
     public PlayerController Controller => controller;
     public TrainerData TrainerData => trainerData;
@@ -15,6 +16,7 @@ public class PlayerData : MonoBehaviour
         ResolveController();
         ApplyControllerConfig();
         trainerData?.Initialize();
+        trainerData?.ApplyTeamAsset(startingTeam);
     }
 
     private void Reset()
