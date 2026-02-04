@@ -12,6 +12,21 @@ public class TeamData
 
     public CreatureData[] Creatures => creatures;
 
+    public void CopyFrom(CreatureData[] source)
+    {
+        if (source == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < creatures.Length; i++)
+        {
+            creatures[i] = i < source.Length && source[i] != null ? source[i].Clone() : null;
+        }
+
+        Changed?.Invoke();
+    }
+
     public bool TryGetCreature(int index, out CreatureData creature)
     {
         creature = null;

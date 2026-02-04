@@ -18,6 +18,11 @@ public class CreatureData
         Nickname = nickname;
     }
 
+    public CreatureData Clone()
+    {
+        return new CreatureData(SpeciesId, Nickname);
+    }
+
     public void SetSpeciesId(int speciesId)
     {
         if (SpeciesId == speciesId)

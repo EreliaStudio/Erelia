@@ -25,6 +25,22 @@ public class TrainerData
         isHooked = true;
     }
 
+    public void ApplyTeamAsset(TeamDataAsset teamAsset)
+    {
+        if (teamAsset == null)
+        {
+            return;
+        }
+
+        if (Team == null)
+        {
+            Team = new TeamData();
+        }
+
+        teamAsset.ApplyTo(Team);
+        TeamChanged?.Invoke();
+    }
+
     public void NotifyTeamChanged()
     {
         TeamChanged?.Invoke();
