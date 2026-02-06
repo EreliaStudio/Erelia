@@ -15,13 +15,13 @@ namespace World.Chunk.Controller
 		[NonSerialized] private readonly List<Vector3> vertices = new List<Vector3>();
 		[NonSerialized] private readonly List<int> triangles = new List<int>();
 		[NonSerialized] private readonly List<Vector2> uvs = new List<Vector2>();
-		[NonSerialized] private readonly Dictionary<PlaneKey, PlaneGroup> planeGroups = new Dictionary<PlaneKey, PlaneGroup>();
-		[NonSerialized] private readonly Dictionary<PointKey, Vector3> pointKeyTo3D = new Dictionary<PointKey, Vector3>();
-		[NonSerialized] private readonly Dictionary<PointKey, Vector2> pointKeyTo2D = new Dictionary<PointKey, Vector2>();
-		[NonSerialized] private readonly Dictionary<EdgeKey, Edge> edges = new Dictionary<EdgeKey, Edge>();
-		[NonSerialized] private readonly Dictionary<PointKey, List<int>> adjacency = new Dictionary<PointKey, List<int>>();
-		[NonSerialized] private readonly List<Edge> edgeList = new List<Edge>();
-		[NonSerialized] private readonly List<PointKey> loopBuffer = new List<PointKey>();
+		[NonSerialized] private readonly Dictionary<Utils.PolygonMerge.PlaneKey, Utils.PolygonMerge.PlaneGroup> planeGroups = new Dictionary<Utils.PolygonMerge.PlaneKey, Utils.PolygonMerge.PlaneGroup>();
+		[NonSerialized] private readonly Dictionary<Utils.PolygonMerge.PointKey, Vector3> pointKeyTo3D = new Dictionary<Utils.PolygonMerge.PointKey, Vector3>();
+		[NonSerialized] private readonly Dictionary<Utils.PolygonMerge.PointKey, Vector2> pointKeyTo2D = new Dictionary<Utils.PolygonMerge.PointKey, Vector2>();
+		[NonSerialized] private readonly Dictionary<Utils.PolygonMerge.EdgeKey, Utils.PolygonMerge.Edge> edges = new Dictionary<Utils.PolygonMerge.EdgeKey, Utils.PolygonMerge.Edge>();
+		[NonSerialized] private readonly Dictionary<Utils.PolygonMerge.PointKey, List<int>> adjacency = new Dictionary<Utils.PolygonMerge.PointKey, List<int>>();
+		[NonSerialized] private readonly List<Utils.PolygonMerge.Edge> edgeList = new List<Utils.PolygonMerge.Edge>();
+		[NonSerialized] private readonly List<Utils.PolygonMerge.PointKey> loopBuffer = new List<Utils.PolygonMerge.PointKey>();
 		[NonSerialized] private readonly List<int> polygonIndices = new List<int>();
 
 		protected abstract bool IsAcceptableDefinition(Voxel.Model.Definition definition);
@@ -124,7 +124,7 @@ namespace World.Chunk.Controller
 				AddVoxelCollision(cells, sizeX, sizeY, sizeZ, cell.x, cell.y, cell.z);
 			}
 
-			foreach (PlaneGroup group in planeGroups.Values)
+			foreach (Utils.PolygonMerge.PlaneGroup group in planeGroups.Values)
 			{
 				AppendMergedPlane(group);
 			}
@@ -342,7 +342,7 @@ namespace World.Chunk.Controller
 			}
 
 			Voxel.Model.Face rotatedOtherFace = TransformFaceCached(otherFace, neighborOrientation, neighborFlipOrientation);
-			if (!Geometry.IsFaceCoplanarWithPlane(rotatedOtherFace, plane))
+			if (!Utils.Geometry.IsFaceCoplanarWithPlane(rotatedOtherFace, plane))
 			{
 				return false;
 			}
@@ -395,19 +395,19 @@ namespace World.Chunk.Controller
 
 			normal.Normalize();
 			float distance = Vector3.Dot(normal, a);
-			PlaneKey key = PlaneKey.From(normal, distance);
-			if (!planeGroups.TryGetValue(key, out PlaneGroup group))
+			Utils.PolygonMerge.PlaneKey key = Utils.PolygonMerge.PlaneKey.From(normal, distance);
+			if (!planeGroups.TryGetValue(key, out Utils.PolygonMerge.PlaneGroup group))
 			{
-				group = new PlaneGroup(normal, distance);
+				group = new Utils.PolygonMerge.PlaneGroup(normal, distance);
 				planeGroups.Add(key, group);
 			}
 
 			group.Polygons.Add(polygon);
 		}
 
-		private void AppendMergedPlane(PlaneGroup group)
+		private void AppendMergedPlane(Utils.PolygonMerge.PlaneGroup group)
 		{
-			if (!TryBuildBasis(group.Normal, out Vector3 tangent, out Vector3 bitangent))
+			if (!Utils.Geometry.TryBuildBasis(group.Normal, out Vector3 tangent, out Vector3 bitangent))
 			{
 				return;
 			}
@@ -430,7 +430,7 @@ namespace World.Chunk.Controller
 				{
 					Vector3 position = polygon[i];
 					Vector2 projected = new Vector2(Vector3.Dot(position, tangent), Vector3.Dot(position, bitangent));
-					PointKey key = PointKey.From(projected);
+					Utils.PolygonMerge.PointKey key = Utils.PolygonMerge.PointKey.From(projected);
 					if (!pointKeyTo2D.ContainsKey(key))
 					{
 						pointKeyTo2D[key] = projected;
@@ -439,22 +439,22 @@ namespace World.Chunk.Controller
 
 					Vector3 nextPosition = polygon[(i + 1) % polygon.Count];
 					Vector2 nextProjected = new Vector2(Vector3.Dot(nextPosition, tangent), Vector3.Dot(nextPosition, bitangent));
-					PointKey nextKey = PointKey.From(nextProjected);
+					Utils.PolygonMerge.PointKey nextKey = Utils.PolygonMerge.PointKey.From(nextProjected);
 					if (!pointKeyTo2D.ContainsKey(nextKey))
 					{
 						pointKeyTo2D[nextKey] = nextProjected;
 						pointKeyTo3D[nextKey] = nextPosition;
 					}
 
-					EdgeKey edgeKey = new EdgeKey(key, nextKey);
-					EdgeKey reverseKey = new EdgeKey(nextKey, key);
+					Utils.PolygonMerge.EdgeKey edgeKey = new Utils.PolygonMerge.EdgeKey(key, nextKey);
+					Utils.PolygonMerge.EdgeKey reverseKey = new Utils.PolygonMerge.EdgeKey(nextKey, key);
 					if (edges.ContainsKey(reverseKey))
 					{
 						edges.Remove(reverseKey);
 					}
 					else
 					{
-						edges[edgeKey] = new Edge(key, nextKey);
+						edges[edgeKey] = new Utils.PolygonMerge.Edge(key, nextKey);
 					}
 				}
 			}
@@ -464,7 +464,7 @@ namespace World.Chunk.Controller
 				return;
 			}
 
-			foreach (Edge edge in edges.Values)
+			foreach (Utils.PolygonMerge.Edge edge in edges.Values)
 			{
 				int index = edgeList.Count;
 				edgeList.Add(edge);
@@ -498,9 +498,9 @@ namespace World.Chunk.Controller
 		{
 			loopBuffer.Clear();
 
-			Edge startEdge = edgeList[startEdgeIndex];
-			PointKey start = startEdge.A;
-			PointKey current = startEdge.B;
+			Utils.PolygonMerge.Edge startEdge = edgeList[startEdgeIndex];
+			Utils.PolygonMerge.PointKey start = startEdge.A;
+			Utils.PolygonMerge.PointKey current = startEdge.B;
 			loopBuffer.Add(start);
 			loopBuffer.Add(current);
 			used[startEdgeIndex] = true;
@@ -514,7 +514,7 @@ namespace World.Chunk.Controller
 				}
 
 				int nextEdgeIndex = -1;
-				PointKey nextPoint = default;
+				Utils.PolygonMerge.PointKey nextPoint = default;
 				for (int i = 0; i < connected.Count; i++)
 				{
 					int edgeIndex = connected[i];
@@ -523,7 +523,7 @@ namespace World.Chunk.Controller
 						continue;
 					}
 
-					Edge edge = edgeList[edgeIndex];
+					Utils.PolygonMerge.Edge edge = edgeList[edgeIndex];
 					nextPoint = edge.A.Equals(current) ? edge.B : edge.A;
 					nextEdgeIndex = edgeIndex;
 					break;
@@ -548,7 +548,7 @@ namespace World.Chunk.Controller
 			}
 		}
 
-		private void AppendTriangulatedLoop(List<PointKey> loop)
+		private void AppendTriangulatedLoop(List<Utils.PolygonMerge.PointKey> loop)
 		{
 			int count = loop.Count;
 			if (count < 3)
@@ -560,7 +560,7 @@ namespace World.Chunk.Controller
 			var poly3D = new List<Vector3>(count);
 			for (int i = 0; i < count; i++)
 			{
-				PointKey key = loop[i];
+				Utils.PolygonMerge.PointKey key = loop[i];
 				if (!pointKeyTo2D.TryGetValue(key, out Vector2 p2D) || !pointKeyTo3D.TryGetValue(key, out Vector3 p3D))
 				{
 					return;
@@ -569,13 +569,13 @@ namespace World.Chunk.Controller
 				poly3D.Add(p3D);
 			}
 
-			RemoveCollinear(poly2D, poly3D);
+			Utils.Geometry.RemoveCollinear(poly2D, poly3D);
 			if (poly2D.Count < 3)
 			{
 				return;
 			}
 
-			if (SignedArea(poly2D) < 0f)
+			if (Utils.Geometry.SignedArea(poly2D) < 0f)
 			{
 				poly2D.Reverse();
 				poly3D.Reverse();
@@ -613,12 +613,12 @@ namespace World.Chunk.Controller
 					Vector2 a = polygon[prevIndex];
 					Vector2 b = polygon[currIndex];
 					Vector2 c = polygon[nextIndex];
-					if (!IsConvex(a, b, c))
+					if (!Utils.Geometry.IsConvex(a, b, c))
 					{
 						continue;
 					}
 
-					if (ContainsPointInTriangle(polygon, polygonIndices, prevIndex, currIndex, nextIndex))
+					if (Utils.Geometry.ContainsPointInTriangle(polygon, polygonIndices, prevIndex, currIndex, nextIndex))
 					{
 						continue;
 					}
@@ -649,249 +649,6 @@ namespace World.Chunk.Controller
 			}
 		}
 
-		private static bool ContainsPointInTriangle(List<Vector2> polygon, List<int> indices, int aIndex, int bIndex, int cIndex)
-		{
-			Vector2 a = polygon[aIndex];
-			Vector2 b = polygon[bIndex];
-			Vector2 c = polygon[cIndex];
-			for (int i = 0; i < indices.Count; i++)
-			{
-				int idx = indices[i];
-				if (idx == aIndex || idx == bIndex || idx == cIndex)
-				{
-					continue;
-				}
 
-				if (IsPointInTriangle(polygon[idx], a, b, c))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		private static bool IsPointInTriangle(Vector2 p, Vector2 a, Vector2 b, Vector2 c)
-		{
-			float area = Cross(b - a, c - a);
-			float area1 = Cross(b - a, p - a);
-			float area2 = Cross(c - b, p - b);
-			float area3 = Cross(a - c, p - c);
-			bool hasNeg = (area1 < 0f) || (area2 < 0f) || (area3 < 0f);
-			bool hasPos = (area1 > 0f) || (area2 > 0f) || (area3 > 0f);
-			if (area < 0f)
-			{
-				hasNeg = (area1 > 0f) || (area2 > 0f) || (area3 > 0f);
-				hasPos = (area1 < 0f) || (area2 < 0f) || (area3 < 0f);
-			}
-			return !(hasNeg && hasPos);
-		}
-
-		private static bool IsConvex(Vector2 a, Vector2 b, Vector2 c)
-		{
-			return Cross(b - a, c - b) > 0f;
-		}
-
-		private static float Cross(Vector2 a, Vector2 b)
-		{
-			return a.x * b.y - a.y * b.x;
-		}
-
-		private static float SignedArea(List<Vector2> polygon)
-		{
-			float area = 0f;
-			for (int i = 0; i < polygon.Count; i++)
-			{
-				Vector2 a = polygon[i];
-				Vector2 b = polygon[(i + 1) % polygon.Count];
-				area += a.x * b.y - b.x * a.y;
-			}
-			return area * 0.5f;
-		}
-
-		private static void RemoveCollinear(List<Vector2> poly2D, List<Vector3> poly3D)
-		{
-			int i = 0;
-			while (i < poly2D.Count && poly2D.Count >= 3)
-			{
-				int prev = (i - 1 + poly2D.Count) % poly2D.Count;
-				int next = (i + 1) % poly2D.Count;
-				Vector2 a = poly2D[prev];
-				Vector2 b = poly2D[i];
-				Vector2 c = poly2D[next];
-				if (Mathf.Abs(Cross(b - a, c - b)) < 0.0001f)
-				{
-					poly2D.RemoveAt(i);
-					poly3D.RemoveAt(i);
-					if (i > 0)
-					{
-						i--;
-					}
-					continue;
-				}
-				i++;
-			}
-		}
-
-		private static bool TryBuildBasis(Vector3 normal, out Vector3 tangent, out Vector3 bitangent)
-		{
-			if (normal.sqrMagnitude < 0.000001f)
-			{
-				tangent = Vector3.zero;
-				bitangent = Vector3.zero;
-				return false;
-			}
-
-			Vector3 n = normal.normalized;
-			Vector3 up = Mathf.Abs(n.y) < 0.99f ? Vector3.up : Vector3.right;
-			tangent = Vector3.Cross(up, n).normalized;
-			bitangent = Vector3.Cross(n, tangent);
-			return true;
-		}
-
-		private readonly struct PlaneKey : IEquatable<PlaneKey>
-		{
-			private const float Scale = 10000f;
-			private readonly int nx;
-			private readonly int ny;
-			private readonly int nz;
-			private readonly int d;
-
-			private PlaneKey(int nx, int ny, int nz, int d)
-			{
-				this.nx = nx;
-				this.ny = ny;
-				this.nz = nz;
-				this.d = d;
-			}
-
-			public static PlaneKey From(Vector3 normal, float distance)
-			{
-				int nx = Mathf.RoundToInt(normal.x * Scale);
-				int ny = Mathf.RoundToInt(normal.y * Scale);
-				int nz = Mathf.RoundToInt(normal.z * Scale);
-				int d = Mathf.RoundToInt(distance * Scale);
-				return new PlaneKey(nx, ny, nz, d);
-			}
-
-			public bool Equals(PlaneKey other)
-			{
-				return nx == other.nx && ny == other.ny && nz == other.nz && d == other.d;
-			}
-
-			public override bool Equals(object obj)
-			{
-				return obj is PlaneKey other && Equals(other);
-			}
-
-			public override int GetHashCode()
-			{
-				int hash = nx;
-				unchecked
-				{
-					hash = (hash * 397) ^ ny;
-					hash = (hash * 397) ^ nz;
-					hash = (hash * 397) ^ d;
-				}
-				return hash;
-			}
-		}
-
-		private sealed class PlaneGroup
-		{
-			public readonly Vector3 Normal;
-			public readonly float Distance;
-			public readonly List<List<Vector3>> Polygons = new List<List<Vector3>>();
-
-			public PlaneGroup(Vector3 normal, float distance)
-			{
-				Normal = normal;
-				Distance = distance;
-			}
-		}
-
-		private readonly struct PointKey : IEquatable<PointKey>
-		{
-			private const float Scale = 10000f;
-			private readonly int x;
-			private readonly int y;
-
-			private PointKey(int x, int y)
-			{
-				this.x = x;
-				this.y = y;
-			}
-
-			public static PointKey From(Vector2 value)
-			{
-				int x = Mathf.RoundToInt(value.x * Scale);
-				int y = Mathf.RoundToInt(value.y * Scale);
-				return new PointKey(x, y);
-			}
-
-			public bool Equals(PointKey other)
-			{
-				return x == other.x && y == other.y;
-			}
-
-			public override bool Equals(object obj)
-			{
-				return obj is PointKey other && Equals(other);
-			}
-
-			public override int GetHashCode()
-			{
-				int hash = x;
-				unchecked
-				{
-					hash = (hash * 397) ^ y;
-				}
-				return hash;
-			}
-		}
-
-		private readonly struct EdgeKey : IEquatable<EdgeKey>
-		{
-			private readonly PointKey a;
-			private readonly PointKey b;
-
-			public EdgeKey(PointKey a, PointKey b)
-			{
-				this.a = a;
-				this.b = b;
-			}
-
-			public bool Equals(EdgeKey other)
-			{
-				return a.Equals(other.a) && b.Equals(other.b);
-			}
-
-			public override bool Equals(object obj)
-			{
-				return obj is EdgeKey other && Equals(other);
-			}
-
-			public override int GetHashCode()
-			{
-				int hash = a.GetHashCode();
-				unchecked
-				{
-					hash = (hash * 397) ^ b.GetHashCode();
-				}
-				return hash;
-			}
-		}
-
-		private readonly struct Edge
-		{
-			public readonly PointKey A;
-			public readonly PointKey B;
-
-			public Edge(PointKey a, PointKey b)
-			{
-				A = a;
-				B = b;
-			}
-		}
 	}
 }

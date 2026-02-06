@@ -64,6 +64,7 @@
     <Compile Include="Assets\Script\Voxel\View\Shapes\CrossPlaneVoxel.cs" />
     <Compile Include="Assets\Script\Voxel\View\Shapes\CubeVoxel.cs" />
     <Compile Include="Assets\Script\Utils\Geometry.cs" />
+    <Compile Include="Assets\Script\Utils\PolygonMerge.cs" />
     <Compile Include="Assets\Script\Voxel\Model\FaceByOrientationKey.cs" />
     <Compile Include="Assets\Script\Voxel\Model\Definition.cs" />
     <Compile Include="Assets\Script\Voxel\View\Shapes\StairVoxel.cs" />

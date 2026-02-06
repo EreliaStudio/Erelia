@@ -239,7 +239,7 @@ namespace Utils
 			return false;
 		}
 
-		private static bool TryBuildBasis(Vector3 normal, out Vector3 tangent, out Vector3 bitangent)
+		public static bool TryBuildBasis(Vector3 normal, out Vector3 tangent, out Vector3 bitangent)
 		{
 			if (normal.sqrMagnitude < NormalEpsilon)
 			{
@@ -295,6 +295,90 @@ namespace Utils
 
 			float lenSq = (b - a).sqrMagnitude;
 			return dot <= lenSq + 0.0001f;
+		}
+
+		public static float Cross(Vector2 a, Vector2 b)
+		{
+			return a.x * b.y - a.y * b.x;
+		}
+
+		public static float SignedArea(List<Vector2> polygon)
+		{
+			float area = 0f;
+			for (int i = 0; i < polygon.Count; i++)
+			{
+				Vector2 a = polygon[i];
+				Vector2 b = polygon[(i + 1) % polygon.Count];
+				area += a.x * b.y - b.x * a.y;
+			}
+			return area * 0.5f;
+		}
+
+		public static bool IsConvex(Vector2 a, Vector2 b, Vector2 c)
+		{
+			return Cross(b - a, c - b) > 0f;
+		}
+
+		public static bool IsPointInTriangle(Vector2 p, Vector2 a, Vector2 b, Vector2 c)
+		{
+			float area = Cross(b - a, c - a);
+			float area1 = Cross(b - a, p - a);
+			float area2 = Cross(c - b, p - b);
+			float area3 = Cross(a - c, p - c);
+			bool hasNeg = (area1 < 0f) || (area2 < 0f) || (area3 < 0f);
+			bool hasPos = (area1 > 0f) || (area2 > 0f) || (area3 > 0f);
+			if (area < 0f)
+			{
+				hasNeg = (area1 > 0f) || (area2 > 0f) || (area3 > 0f);
+				hasPos = (area1 < 0f) || (area2 < 0f) || (area3 < 0f);
+			}
+			return !(hasNeg && hasPos);
+		}
+
+		public static bool ContainsPointInTriangle(List<Vector2> polygon, List<int> indices, int aIndex, int bIndex, int cIndex)
+		{
+			Vector2 a = polygon[aIndex];
+			Vector2 b = polygon[bIndex];
+			Vector2 c = polygon[cIndex];
+			for (int i = 0; i < indices.Count; i++)
+			{
+				int idx = indices[i];
+				if (idx == aIndex || idx == bIndex || idx == cIndex)
+				{
+					continue;
+				}
+
+				if (IsPointInTriangle(polygon[idx], a, b, c))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		public static void RemoveCollinear(List<Vector2> poly2D, List<Vector3> poly3D)
+		{
+			int i = 0;
+			while (i < poly2D.Count && poly2D.Count >= 3)
+			{
+				int prev = (i - 1 + poly2D.Count) % poly2D.Count;
+				int next = (i + 1) % poly2D.Count;
+				Vector2 a = poly2D[prev];
+				Vector2 b = poly2D[i];
+				Vector2 c = poly2D[next];
+				if (Mathf.Abs(Cross(b - a, c - b)) < 0.0001f)
+				{
+					poly2D.RemoveAt(i);
+					poly3D.RemoveAt(i);
+					if (i > 0)
+					{
+						i--;
+					}
+					continue;
+				}
+				i++;
+			}
 		}
 
 		public static bool TryFromNormal(Vector3 normal, out Voxel.View.Shape.AxisPlane plane)
