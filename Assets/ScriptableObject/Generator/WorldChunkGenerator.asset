@@ -9,6 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1381b630a7b9262459346b5d3bcacdfd, type: 3}
+  m_Script: {fileID: 11500000, guid: 878e2878b4a7c4c46a08201a40a3e327, type: 3}
   m_Name: WorldChunkGenerator
-  m_EditorClassIdentifier: Assembly-CSharp::World.Chunk.TestGenerator
+  m_EditorClassIdentifier: Assembly-CSharp::World.Chunk.Model.TestGenerator

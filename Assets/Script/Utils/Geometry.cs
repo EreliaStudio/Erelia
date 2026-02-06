@@ -8,32 +8,32 @@ namespace Utils
 		public const float NormalEpsilon = 0.001f;
 		public const float PointEpsilon = 0.001f;
 
-		private static readonly Voxel.View.Face FullPosXFace = Utils.Geometry.CreateRectangle(
+		private static readonly Voxel.Model.Face FullPosXFace = Utils.Geometry.CreateRectangle(
 			new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 0f), UV = Vector2.zero });
-		private static readonly Voxel.View.Face FullNegXFace = Utils.Geometry.CreateRectangle(
+		private static readonly Voxel.Model.Face FullNegXFace = Utils.Geometry.CreateRectangle(
 			new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 0f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = Vector2.zero });
-		private static readonly Voxel.View.Face FullPosYFace = Utils.Geometry.CreateRectangle(
+		private static readonly Voxel.Model.Face FullPosYFace = Utils.Geometry.CreateRectangle(
 			new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 0f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 0f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = Vector2.zero });
-		private static readonly Voxel.View.Face FullNegYFace = Utils.Geometry.CreateRectangle(
+		private static readonly Voxel.Model.Face FullNegYFace = Utils.Geometry.CreateRectangle(
 			new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = Vector2.zero });
-		private static readonly Voxel.View.Face FullPosZFace = Utils.Geometry.CreateRectangle(
+		private static readonly Voxel.Model.Face FullPosZFace = Utils.Geometry.CreateRectangle(
 			new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = Vector2.zero });
-		private static readonly Voxel.View.Face FullNegZFace = Utils.Geometry.CreateRectangle(
+		private static readonly Voxel.Model.Face FullNegZFace = Utils.Geometry.CreateRectangle(
 			new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = Vector2.zero },
 			new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 0f), UV = Vector2.zero },
@@ -45,44 +45,59 @@ namespace Utils
 			public Vector2 UV;
 		}
 
-		public static Voxel.View.Face CreateRectangle(Vertex a, Vertex b, Vertex c, Vertex d)
+		public static Voxel.Model.Face CreateRectangle(Vertex a, Vertex b, Vertex c, Vertex d)
 		{
-			var face = new Voxel.View.Face();
+			var face = new Voxel.Model.Face();
 			face.AddPolygon(CreateRectanglePolygon(a, b, c, d));
 			return face;
 		}
 
-		public static Voxel.View.Face CreateTriangle(Vertex a, Vertex b, Vertex c)
+		public static Voxel.Model.Face CreateTriangle(Vertex a, Vertex b, Vertex c)
 		{
-			var face = new Voxel.View.Face();
+			var face = new Voxel.Model.Face();
 			face.AddPolygon(CreateTrianglePolygon(a, b, c));
 			return face;
 		}
 
-		public static List<Voxel.View.Face.Vertex> CreateRectanglePolygon(Vertex a, Vertex b, Vertex c, Vertex d)
+		public static void FlipWindingInPlace(List<int> indices)
 		{
-			var verts = new List<Voxel.View.Face.Vertex>(4)
+			if (indices == null)
+			{
+				return;
+			}
+
+			for (int i = 0; i + 2 < indices.Count; i += 3)
+			{
+				int temp = indices[i + 1];
+				indices[i + 1] = indices[i + 2];
+				indices[i + 2] = temp;
+			}
+		}
+
+		public static List<Voxel.Model.Face.Vertex> CreateRectanglePolygon(Vertex a, Vertex b, Vertex c, Vertex d)
 		{
-			new Voxel.View.Face.Vertex { Position = a.Position, TileUV = a.UV },
-			new Voxel.View.Face.Vertex { Position = b.Position, TileUV = b.UV },
-			new Voxel.View.Face.Vertex { Position = c.Position, TileUV = c.UV },
-			new Voxel.View.Face.Vertex { Position = d.Position, TileUV = d.UV }
+			var verts = new List<Voxel.Model.Face.Vertex>(4)
+		{
+			new Voxel.Model.Face.Vertex { Position = a.Position, TileUV = a.UV },
+			new Voxel.Model.Face.Vertex { Position = b.Position, TileUV = b.UV },
+			new Voxel.Model.Face.Vertex { Position = c.Position, TileUV = c.UV },
+			new Voxel.Model.Face.Vertex { Position = d.Position, TileUV = d.UV }
 		};
 			return verts;
 		}
 
-		public static List<Voxel.View.Face.Vertex> CreateTrianglePolygon(Vertex a, Vertex b, Vertex c)
+		public static List<Voxel.Model.Face.Vertex> CreateTrianglePolygon(Vertex a, Vertex b, Vertex c)
 		{
-			var verts = new List<Voxel.View.Face.Vertex>(3)
+			var verts = new List<Voxel.Model.Face.Vertex>(3)
 		{
-			new Voxel.View.Face.Vertex { Position = a.Position, TileUV = a.UV },
-			new Voxel.View.Face.Vertex { Position = b.Position, TileUV = b.UV },
-			new Voxel.View.Face.Vertex { Position = c.Position, TileUV = c.UV }
+			new Voxel.Model.Face.Vertex { Position = a.Position, TileUV = a.UV },
+			new Voxel.Model.Face.Vertex { Position = b.Position, TileUV = b.UV },
+			new Voxel.Model.Face.Vertex { Position = c.Position, TileUV = c.UV }
 		};
 			return verts;
 		}
 
-		public static Vector3 GetNormal(List<Voxel.View.Face.Vertex> verts)
+		public static Vector3 GetNormal(List<Voxel.Model.Face.Vertex> verts)
 		{
 			Vector3 a = verts[0].Position;
 			Vector3 b = verts[1].Position;
@@ -90,7 +105,7 @@ namespace Utils
 			return Vector3.Cross(b - a, c - a);
 		}
 
-		public static bool IsPolygonContained(List<Voxel.View.Face.Vertex> polygon, List<Voxel.View.Face.Vertex> container, Vector3 normal)
+		public static bool IsPolygonContained(List<Voxel.Model.Face.Vertex> polygon, List<Voxel.Model.Face.Vertex> container, Vector3 normal)
 		{
 			if (polygon == null || container == null || polygon.Count < 3 || container.Count < 3)
 			{
@@ -128,7 +143,7 @@ namespace Utils
 			return true;
 		}
 
-		public static bool IsPolygonContainedInUnion(List<Voxel.View.Face.Vertex> polygon, List<List<Voxel.View.Face.Vertex>> containers, Vector3 normal)
+		public static bool IsPolygonContainedInUnion(List<Voxel.Model.Face.Vertex> polygon, List<List<Voxel.Model.Face.Vertex>> containers, Vector3 normal)
 		{
 			if (polygon == null || polygon.Count < 3 || containers == null)
 			{
@@ -150,7 +165,7 @@ namespace Utils
 			var container2Ds = new List<List<Vector2>>(containers.Count);
 			for (int i = 0; i < containers.Count; i++)
 			{
-				List<Voxel.View.Face.Vertex> container = containers[i];
+				List<Voxel.Model.Face.Vertex> container = containers[i];
 				if (container == null || container.Count < 3)
 				{
 					continue;
@@ -377,32 +392,32 @@ namespace Utils
 					return plane;
 			}
 		}
-		public static int OrientationToSteps(Orientation orientation)
+		public static int OrientationToSteps(Voxel.Model.Orientation orientation)
 		{
 			switch (orientation)
 			{
-				case Orientation.PositiveX:
+				case Voxel.Model.Orientation.PositiveX:
 					return 0;
-				case Orientation.PositiveZ:
+				case Voxel.Model.Orientation.PositiveZ:
 					return 1;
-				case Orientation.NegativeX:
+				case Voxel.Model.Orientation.NegativeX:
 					return 2;
-				case Orientation.NegativeZ:
+				case Voxel.Model.Orientation.NegativeZ:
 					return 3;
 				default:
 					return 0;
 			}
 		}
 
-		public static Voxel.View.Shape.AxisPlane MapWorldPlaneToLocal(Voxel.View.Shape.AxisPlane plane, Orientation orientation)
+		public static Voxel.View.Shape.AxisPlane MapWorldPlaneToLocal(Voxel.View.Shape.AxisPlane plane, Voxel.Model.Orientation orientation)
 		{
 			return RotatePlane(plane, -OrientationToSteps(orientation));
 		}
 
-		public static Voxel.View.Shape.AxisPlane MapWorldPlaneToLocal(Voxel.View.Shape.AxisPlane plane, Orientation orientation, FlipOrientation flipOrientation)
+		public static Voxel.View.Shape.AxisPlane MapWorldPlaneToLocal(Voxel.View.Shape.AxisPlane plane, Voxel.Model.Orientation orientation, Voxel.Model.FlipOrientation flipOrientation)
 		{
 			Voxel.View.Shape.AxisPlane rotated = RotatePlane(plane, -OrientationToSteps(orientation));
-			if (flipOrientation == FlipOrientation.NegativeY)
+			if (flipOrientation == Voxel.Model.FlipOrientation.NegativeY)
 			{
 				return FlipPlaneY(rotated);
 			}
@@ -442,7 +457,7 @@ namespace Utils
 			}
 		}
 
-		public static Voxel.View.Face TransformFace(Voxel.View.Face face, Orientation orientation, FlipOrientation flipOrientation)
+		public static Voxel.Model.Face TransformFace(Voxel.Model.Face face, Voxel.Model.Orientation orientation, Voxel.Model.FlipOrientation flipOrientation)
 		{
 			if (face == null || face.Polygons == null || face.Polygons.Count == 0)
 			{
@@ -450,21 +465,21 @@ namespace Utils
 			}
 
 			int steps = OrientationToSteps(orientation);
-			var rotated = new Voxel.View.Face();
+			var rotated = new Voxel.Model.Face();
 			Vector3 pivot = new Vector3(0.5f, 0.5f, 0.5f);
-			List<List<Voxel.View.Face.Vertex>> sourcePolygons = face.Polygons;
+			List<List<Voxel.Model.Face.Vertex>> sourcePolygons = face.Polygons;
 			for (int p = 0; p < sourcePolygons.Count; p++)
 			{
-				List<Voxel.View.Face.Vertex> sourceVertices = sourcePolygons[p];
+				List<Voxel.Model.Face.Vertex> sourceVertices = sourcePolygons[p];
 				if (sourceVertices == null || sourceVertices.Count == 0)
 				{
 					continue;
 				}
 
-				var rotatedPolygon = new List<Voxel.View.Face.Vertex>(sourceVertices.Count);
+				var rotatedPolygon = new List<Voxel.Model.Face.Vertex>(sourceVertices.Count);
 				for (int i = 0; i < sourceVertices.Count; i++)
 				{
-					Voxel.View.Face.Vertex vertex = sourceVertices[i];
+					Voxel.Model.Face.Vertex vertex = sourceVertices[i];
 					Vector3 local = vertex.Position;
 					if (steps != 0)
 					{
@@ -473,7 +488,7 @@ namespace Utils
 						local = rotation * offset + pivot;
 					}
 
-					if (flipOrientation == FlipOrientation.NegativeY)
+					if (flipOrientation == Voxel.Model.FlipOrientation.NegativeY)
 					{
 						local.y = 1f - local.y;
 					}
@@ -482,7 +497,7 @@ namespace Utils
 					rotatedPolygon.Add(vertex);
 				}
 
-				if (flipOrientation == FlipOrientation.NegativeY)
+				if (flipOrientation == Voxel.Model.FlipOrientation.NegativeY)
 				{
 					rotatedPolygon.Reverse();
 				}
@@ -493,7 +508,7 @@ namespace Utils
 			return rotated;
 		}
 
-		public static Voxel.View.Face GetFullOuterFace(Voxel.View.Shape.AxisPlane plane)
+		public static Voxel.Model.Face GetFullOuterFace(Voxel.View.Shape.AxisPlane plane)
 		{
 			switch (plane)
 			{
@@ -514,7 +529,7 @@ namespace Utils
 			}
 		}
 
-		public static bool IsFaceCoplanarWithPlane(Voxel.View.Face face, Voxel.View.Shape.AxisPlane plane)
+		public static bool IsFaceCoplanarWithPlane(Voxel.Model.Face face, Voxel.View.Shape.AxisPlane plane)
 		{
 			if (face == null || face.Polygons == null || face.Polygons.Count == 0)
 			{
@@ -551,10 +566,10 @@ namespace Utils
 					break;
 			}
 
-			List<List<Voxel.View.Face.Vertex>> polygons = face.Polygons;
+			List<List<Voxel.Model.Face.Vertex>> polygons = face.Polygons;
 			for (int p = 0; p < polygons.Count; p++)
 			{
-				List<Voxel.View.Face.Vertex> polygon = polygons[p];
+				List<Voxel.Model.Face.Vertex> polygon = polygons[p];
 				if (polygon == null)
 				{
 					continue;
@@ -574,14 +589,14 @@ namespace Utils
 			return true;
 		}
 
-		public static bool IsFullFace(Voxel.View.Face face, Voxel.View.Shape.AxisPlane plane)
+		public static bool IsFullFace(Voxel.Model.Face face, Voxel.View.Shape.AxisPlane plane)
 		{
 			if (face == null || !face.HasRenderablePolygons)
 			{
 				return false;
 			}
 
-			Voxel.View.Face fullFace = GetFullOuterFace(plane);
+			Voxel.Model.Face fullFace = GetFullOuterFace(plane);
 			if (fullFace == null)
 			{
 				return false;

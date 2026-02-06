@@ -4,13 +4,13 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using Utils;
 
-namespace Voxel.Core
+namespace World.Chunk.Core
 {
 	public class Mesher
 	{
-		private static readonly Voxel.View.FaceByOrientationCollection transformedFaceCache = new Voxel.View.FaceByOrientationCollection();
+		private static readonly Voxel.Model.FaceByOrientationCollection transformedFaceCache = new Voxel.Model.FaceByOrientationCollection();
 
-		protected bool TryGetCell(World.Chunk.Cell[,,] cellPack, int x, int y, int z, out World.Chunk.Cell cell)
+		protected bool TryGetCell(World.Chunk.Model.Cell[,,] cellPack, int x, int y, int z, out World.Chunk.Model.Cell cell)
 		{
 			cell = default;
 			if (cellPack == null ||
@@ -25,10 +25,10 @@ namespace Voxel.Core
 			return true;
 		}
 
-		protected bool TryGetDefinition(World.Chunk.Cell cell, out Voxel.Core.Definition definition)
+		protected bool TryGetDefinition(World.Chunk.Model.Cell cell, out Voxel.Model.Definition definition)
 		{
 			definition = null;
-			if (ServiceLocator.Instance.VoxelService.TryGetDefinition(cell.Id, out Voxel.Core.Definition output))
+			if (ServiceLocator.Instance.VoxelService.TryGetDefinition(cell.Id, out Voxel.Model.Definition output))
 			{
 				definition = output;
 				return true;
@@ -37,7 +37,7 @@ namespace Voxel.Core
 		}
 
 		protected void AddFace(
-			Voxel.View.Face face,
+			Voxel.Model.Face face,
 			Vector3 positionOffset,
 			List<Vector3> vertices,
 			List<int> triangles,
@@ -48,11 +48,11 @@ namespace Voxel.Core
 				return;
 			}
 
-			List<List<Voxel.View.Face.Vertex>> facePolygons = face.Polygons;
+			List<List<Voxel.Model.Face.Vertex>> facePolygons = face.Polygons;
 
 			for (int p = 0; p < facePolygons.Count; p++)
 			{
-				List<Voxel.View.Face.Vertex> faceVertices = facePolygons[p];
+				List<Voxel.Model.Face.Vertex> faceVertices = facePolygons[p];
 				if (faceVertices == null || faceVertices.Count < 3)
 				{
 					continue;
@@ -61,7 +61,7 @@ namespace Voxel.Core
 				int start = vertices.Count;
 				for (int i = 0; i < faceVertices.Count; i++)
 				{
-					Voxel.View.Face.Vertex vertex = faceVertices[i];
+					Voxel.Model.Face.Vertex vertex = faceVertices[i];
 					vertices.Add(positionOffset + vertex.Position);
 					uvs.Add(vertex.TileUV);
 				}
@@ -75,14 +75,14 @@ namespace Voxel.Core
 			}
 		}
 
-		protected Voxel.View.Face TransformFaceCached(Voxel.View.Face face, Orientation orientation, FlipOrientation flipOrientation)
+		protected Voxel.Model.Face TransformFaceCached(Voxel.Model.Face face, Voxel.Model.Orientation orientation, Voxel.Model.FlipOrientation flipOrientation)
 		{
 			if (face == null)
 			{
 				return null;
 			}
 
-			if (transformedFaceCache.TryGetValue(face, orientation, flipOrientation, out Voxel.View.Face output))
+			if (transformedFaceCache.TryGetValue(face, orientation, flipOrientation, out Voxel.Model.Face output))
 			{
 				return output;
 			}

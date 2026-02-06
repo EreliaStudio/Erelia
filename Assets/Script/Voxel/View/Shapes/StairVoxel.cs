@@ -19,9 +19,9 @@ namespace Voxel.View
 		private const float StepHeight = 0.5f;
 		private const float StepDepth = 0.5f;
 
-		protected override List<Voxel.View.Face> ConstructInnerFaces()
+		protected override List<Voxel.Model.Face> ConstructInnerFaces()
 		{
-			var faces = new List<Voxel.View.Face>();
+			var faces = new List<Voxel.Model.Face>();
 
 			Utils.SpriteUv.GetSpriteUvRect(spriteStepTop, out Vector2 uvAnchor, out Vector2 uvSize);
 			Vector2 halfUvSize = new Vector2(uvSize.x, uvSize.y * 0.5f);
@@ -30,7 +30,7 @@ namespace Voxel.View
 			Vector2 uvB = halfUvAnchor + new Vector2(halfUvSize.x, 0f);
 			Vector2 uvC = halfUvAnchor + halfUvSize;
 			Vector2 uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
-			Voxel.View.Face stepTop = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face stepTop = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, StepHeight, 0f), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, StepHeight, 0f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, StepHeight, StepDepth), UV = uvC },
@@ -44,7 +44,7 @@ namespace Voxel.View
 			uvB = halfUvAnchor + new Vector2(halfUvSize.x, 0f);
 			uvC = halfUvAnchor + halfUvSize;
 			uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
-			Voxel.View.Face stepRiser = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face stepRiser = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, StepHeight, StepDepth), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, StepHeight, StepDepth), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, StepDepth), UV = uvC },
@@ -54,19 +54,19 @@ namespace Voxel.View
 			return faces;
 		}
 
-		protected override List<Voxel.View.Face> ConstructMaskFaces()
+		protected override List<Voxel.Model.Face> ConstructMaskFaces()
 		{
 			const float maskOffset = 0.01f;
 			const float maskXOverhang = 0.01f;
 			const float riserZOffset = 0.01f;
 			const float uvStep = 1f / 3f;
-			var faces = new List<Voxel.View.Face>();
+			var faces = new List<Voxel.Model.Face>();
 
 			float upperY = 1f + maskOffset;
 			float lowerY = StepHeight + maskOffset;
 			float right = 1f + maskXOverhang;
 
-			Voxel.View.Face upperTop = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face upperTop = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, upperY, StepDepth), UV = new Vector2(0f, uvStep * 2f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(right, upperY, StepDepth), UV = new Vector2(1f, uvStep * 2f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(right, upperY, 1f), UV = new Vector2(1f, 1f) },
@@ -74,14 +74,14 @@ namespace Voxel.View
 			faces.Add(upperTop);
 
 			float riserZ = StepDepth - riserZOffset;
-			Voxel.View.Face upperRiser = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face upperRiser = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, lowerY, riserZ), UV = new Vector2(0f, uvStep) },
 				new Utils.Geometry.Vertex { Position = new Vector3(right, lowerY, riserZ), UV = new Vector2(1f, uvStep) },
 				new Utils.Geometry.Vertex { Position = new Vector3(right, upperY, riserZ), UV = new Vector2(1f, uvStep * 2f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, upperY, riserZ), UV = new Vector2(0f, uvStep * 2f) });
 			faces.Add(upperRiser);
 
-			Voxel.View.Face lowerTop = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face lowerTop = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, lowerY, 0f), UV = new Vector2(0f, 0f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, lowerY, 0f), UV = new Vector2(1f, 0f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, lowerY, StepDepth), UV = new Vector2(1f, uvStep) },
@@ -91,11 +91,11 @@ namespace Voxel.View
 			return faces;
 		}
 
-		protected override List<Voxel.View.Face> ConstructFlippedMaskFaces()
+		protected override List<Voxel.Model.Face> ConstructFlippedMaskFaces()
 		{
 			const float maskOffset = 0.01f;
-			var faces = new List<Voxel.View.Face>();
-			Voxel.View.Face top = Utils.Geometry.CreateRectangle(
+			var faces = new List<Voxel.Model.Face>();
+			Voxel.Model.Face top = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f + maskOffset, 0f), UV = new Vector2(0f, 0f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f + maskOffset, 0f), UV = new Vector2(1f, 0f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f + maskOffset, 1f), UV = new Vector2(1f, 1f) },
@@ -104,9 +104,9 @@ namespace Voxel.View
 			return faces;
 		}
 
-		protected override Dictionary<AxisPlane, Voxel.View.Face> ConstructOuterShellFaces()
+		protected override Dictionary<AxisPlane, Voxel.Model.Face> ConstructOuterShellFaces()
 		{
-			var faces = new Dictionary<AxisPlane, Voxel.View.Face>();
+			var faces = new Dictionary<AxisPlane, Voxel.Model.Face>();
 			Vector2 uvAnchor = Vector2.zero;
 			Vector2 uvSize = Vector2.zero;
 			Vector2 halfUvSize = Vector2.zero;
@@ -123,20 +123,20 @@ namespace Voxel.View
 			float v0 = uvAnchor.y;
 			float v1 = uvAnchor.y + uvSize.y * 0.5f;
 			float v2 = uvAnchor.y + uvSize.y;
-			var posX = new Voxel.View.Face();
-			posX.AddPolygon(new List<Voxel.View.Face.Vertex>
+			var posX = new Voxel.Model.Face();
+			posX.AddPolygon(new List<Voxel.Model.Face.Vertex>
 		{
-			new Voxel.View.Face.Vertex { Position = new Vector3(1f, 0f, 0f), TileUV = new Vector2(u2, v0) },
-			new Voxel.View.Face.Vertex { Position = new Vector3(1f, 0f, StepDepth), TileUV = new Vector2(u1, v0) },
-			new Voxel.View.Face.Vertex { Position = new Vector3(1f, StepHeight, StepDepth), TileUV = new Vector2(u1, v1) },
-			new Voxel.View.Face.Vertex { Position = new Vector3(1f, StepHeight, 0f), TileUV = new Vector2(u2, v1) }
+			new Voxel.Model.Face.Vertex { Position = new Vector3(1f, 0f, 0f), TileUV = new Vector2(u2, v0) },
+			new Voxel.Model.Face.Vertex { Position = new Vector3(1f, 0f, StepDepth), TileUV = new Vector2(u1, v0) },
+			new Voxel.Model.Face.Vertex { Position = new Vector3(1f, StepHeight, StepDepth), TileUV = new Vector2(u1, v1) },
+			new Voxel.Model.Face.Vertex { Position = new Vector3(1f, StepHeight, 0f), TileUV = new Vector2(u2, v1) }
 		});
-			posX.AddPolygon(new List<Voxel.View.Face.Vertex>
+			posX.AddPolygon(new List<Voxel.Model.Face.Vertex>
 		{
-			new Voxel.View.Face.Vertex { Position = new Vector3(1f, 0f, StepDepth), TileUV = new Vector2(u1, v0) },
-			new Voxel.View.Face.Vertex { Position = new Vector3(1f, 0f, 1f), TileUV = new Vector2(u0, v0) },
-			new Voxel.View.Face.Vertex { Position = new Vector3(1f, 1f, 1f), TileUV = new Vector2(u0, v2) },
-			new Voxel.View.Face.Vertex { Position = new Vector3(1f, 1f, StepDepth), TileUV = new Vector2(u1, v2) }
+			new Voxel.Model.Face.Vertex { Position = new Vector3(1f, 0f, StepDepth), TileUV = new Vector2(u1, v0) },
+			new Voxel.Model.Face.Vertex { Position = new Vector3(1f, 0f, 1f), TileUV = new Vector2(u0, v0) },
+			new Voxel.Model.Face.Vertex { Position = new Vector3(1f, 1f, 1f), TileUV = new Vector2(u0, v2) },
+			new Voxel.Model.Face.Vertex { Position = new Vector3(1f, 1f, StepDepth), TileUV = new Vector2(u1, v2) }
 		});
 			faces[AxisPlane.PosX] = posX;
 
@@ -147,20 +147,20 @@ namespace Voxel.View
 			v0 = uvAnchor.y;
 			v1 = uvAnchor.y + uvSize.y * 0.5f;
 			v2 = uvAnchor.y + uvSize.y;
-			var negX = new Voxel.View.Face();
-			negX.AddPolygon(new List<Voxel.View.Face.Vertex>
+			var negX = new Voxel.Model.Face();
+			negX.AddPolygon(new List<Voxel.Model.Face.Vertex>
 		{
-			new Voxel.View.Face.Vertex { Position = new Vector3(0f, 0f, 0f), TileUV = new Vector2(u2, v0) },
-			new Voxel.View.Face.Vertex { Position = new Vector3(0f, StepHeight, 0f), TileUV = new Vector2(u2, v1) },
-			new Voxel.View.Face.Vertex { Position = new Vector3(0f, StepHeight, StepDepth), TileUV = new Vector2(u1, v1) },
-			new Voxel.View.Face.Vertex { Position = new Vector3(0f, 0f, StepDepth), TileUV = new Vector2(u1, v0) }
+			new Voxel.Model.Face.Vertex { Position = new Vector3(0f, 0f, 0f), TileUV = new Vector2(u2, v0) },
+			new Voxel.Model.Face.Vertex { Position = new Vector3(0f, StepHeight, 0f), TileUV = new Vector2(u2, v1) },
+			new Voxel.Model.Face.Vertex { Position = new Vector3(0f, StepHeight, StepDepth), TileUV = new Vector2(u1, v1) },
+			new Voxel.Model.Face.Vertex { Position = new Vector3(0f, 0f, StepDepth), TileUV = new Vector2(u1, v0) }
 		});
-			negX.AddPolygon(new List<Voxel.View.Face.Vertex>
+			negX.AddPolygon(new List<Voxel.Model.Face.Vertex>
 		{
-			new Voxel.View.Face.Vertex { Position = new Vector3(0f, 0f, StepDepth), TileUV = new Vector2(u1, v0) },
-			new Voxel.View.Face.Vertex { Position = new Vector3(0f, 1f, StepDepth), TileUV = new Vector2(u1, v2) },
-			new Voxel.View.Face.Vertex { Position = new Vector3(0f, 1f, 1f), TileUV = new Vector2(u0, v2) },
-			new Voxel.View.Face.Vertex { Position = new Vector3(0f, 0f, 1f), TileUV = new Vector2(u0, v0) }
+			new Voxel.Model.Face.Vertex { Position = new Vector3(0f, 0f, StepDepth), TileUV = new Vector2(u1, v0) },
+			new Voxel.Model.Face.Vertex { Position = new Vector3(0f, 1f, StepDepth), TileUV = new Vector2(u1, v2) },
+			new Voxel.Model.Face.Vertex { Position = new Vector3(0f, 1f, 1f), TileUV = new Vector2(u0, v2) },
+			new Voxel.Model.Face.Vertex { Position = new Vector3(0f, 0f, 1f), TileUV = new Vector2(u0, v0) }
 		});
 			faces[AxisPlane.NegX] = negX;
 
@@ -171,7 +171,7 @@ namespace Voxel.View
 			uvB = halfUvAnchor + new Vector2(halfUvSize.x, 0f);
 			uvC = halfUvAnchor + halfUvSize;
 			uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
-			Voxel.View.Face negZ = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face negZ = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, StepHeight, 0f), UV = uvC },
@@ -183,7 +183,7 @@ namespace Voxel.View
 			uvB = uvAnchor + new Vector2(uvSize.x, 0f);
 			uvC = uvAnchor + uvSize;
 			uvD = uvAnchor + new Vector2(0f, uvSize.y);
-			Voxel.View.Face posZ = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face posZ = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvC },
@@ -197,7 +197,7 @@ namespace Voxel.View
 			uvB = halfUvAnchor + new Vector2(halfUvSize.x, 0f);
 			uvC = halfUvAnchor + halfUvSize;
 			uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
-			Voxel.View.Face posY = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face posY = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, StepDepth), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, StepDepth), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvC },
@@ -209,7 +209,7 @@ namespace Voxel.View
 			uvB = uvAnchor + new Vector2(uvSize.x, 0f);
 			uvC = uvAnchor + uvSize;
 			uvD = uvAnchor + new Vector2(0f, uvSize.y);
-			Voxel.View.Face negY = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face negY = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvC },

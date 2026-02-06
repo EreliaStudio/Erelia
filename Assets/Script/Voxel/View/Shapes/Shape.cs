@@ -28,27 +28,27 @@ namespace Voxel.View
 			AxisPlane.NegZ
 		};
 
-		[SerializeField] protected List<Voxel.View.Face> innerFaces = new List<Voxel.View.Face>();
-		[SerializeField] protected Dictionary<AxisPlane, Voxel.View.Face> outerShellFaces = new Dictionary<AxisPlane, Voxel.View.Face>();
-		[SerializeField] protected List<Voxel.View.Face> maskFaces = new List<Voxel.View.Face>();
-		[SerializeField] protected List<Voxel.View.Face> flippedMaskFaces = new List<Voxel.View.Face>();
+		[SerializeField] protected List<Voxel.Model.Face> innerFaces = new List<Voxel.Model.Face>();
+		[SerializeField] protected Dictionary<AxisPlane, Voxel.Model.Face> outerShellFaces = new Dictionary<AxisPlane, Voxel.Model.Face>();
+		[SerializeField] protected List<Voxel.Model.Face> maskFaces = new List<Voxel.Model.Face>();
+		[SerializeField] protected List<Voxel.Model.Face> flippedMaskFaces = new List<Voxel.Model.Face>();
 
-		public IReadOnlyList<Voxel.View.Face> InnerFaces => innerFaces;
-		public IReadOnlyDictionary<AxisPlane, Voxel.View.Face> OuterShellFaces => outerShellFaces;
-		public IReadOnlyList<Voxel.View.Face> MaskFaces => maskFaces;
-		public IReadOnlyList<Voxel.View.Face> FlippedMaskFaces => flippedMaskFaces;
+		public IReadOnlyList<Voxel.Model.Face> InnerFaces => innerFaces;
+		public IReadOnlyDictionary<AxisPlane, Voxel.Model.Face> OuterShellFaces => outerShellFaces;
+		public IReadOnlyList<Voxel.Model.Face> MaskFaces => maskFaces;
+		public IReadOnlyList<Voxel.Model.Face> FlippedMaskFaces => flippedMaskFaces;
 
-		protected abstract List<Voxel.View.Face> ConstructInnerFaces();
-		protected abstract Dictionary<AxisPlane, Voxel.View.Face> ConstructOuterShellFaces();
-		protected abstract List<Voxel.View.Face> ConstructMaskFaces();
-		protected abstract List<Voxel.View.Face> ConstructFlippedMaskFaces();
+		protected abstract List<Voxel.Model.Face> ConstructInnerFaces();
+		protected abstract Dictionary<AxisPlane, Voxel.Model.Face> ConstructOuterShellFaces();
+		protected abstract List<Voxel.Model.Face> ConstructMaskFaces();
+		protected abstract List<Voxel.Model.Face> ConstructFlippedMaskFaces();
 
 		protected virtual void OnEnable()
 		{
-			innerFaces = ConstructInnerFaces() ?? new List<Voxel.View.Face>();
-			outerShellFaces = ConstructOuterShellFaces() ?? new Dictionary<AxisPlane, Voxel.View.Face>();
-			maskFaces = ConstructMaskFaces() ?? new List<Voxel.View.Face>();
-			flippedMaskFaces = ConstructFlippedMaskFaces() ?? new List<Voxel.View.Face>();
+			innerFaces = ConstructInnerFaces() ?? new List<Voxel.Model.Face>();
+			outerShellFaces = ConstructOuterShellFaces() ?? new Dictionary<AxisPlane, Voxel.Model.Face>();
+			maskFaces = ConstructMaskFaces() ?? new List<Voxel.Model.Face>();
+			flippedMaskFaces = ConstructFlippedMaskFaces() ?? new List<Voxel.Model.Face>();
 		}
 	}
 }

@@ -14,16 +14,16 @@ namespace Voxel.View
 		[SerializeField] private Sprite spritePosZ;
 		[SerializeField] private Sprite spriteNegZ;
 
-		protected override List<Voxel.View.Face> ConstructInnerFaces()
+		protected override List<Voxel.Model.Face> ConstructInnerFaces()
 		{
-			var faces = new List<Voxel.View.Face>();
+			var faces = new List<Voxel.Model.Face>();
 
 			Utils.SpriteUv.GetSpriteUvRect(spritePosY, out Vector2 uvAnchor, out Vector2 uvSize);
 			Vector2 uvA = uvAnchor;
 			Vector2 uvB = uvAnchor + new Vector2(uvSize.x, 0f);
 			Vector2 uvC = uvAnchor + uvSize;
 			Vector2 uvD = uvAnchor + new Vector2(0f, uvSize.y);
-			Voxel.View.Face posY = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face posY = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0.5f, 0f), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0.5f, 0f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0.5f, 1f), UV = uvC },
@@ -33,12 +33,12 @@ namespace Voxel.View
 			return faces;
 		}
 
-		protected override List<Voxel.View.Face> ConstructMaskFaces()
+		protected override List<Voxel.Model.Face> ConstructMaskFaces()
 		{
 			const float maskOffset = 0.01f;
 			float height = 0.5f + maskOffset;
-			var faces = new List<Voxel.View.Face>();
-			Voxel.View.Face top = Utils.Geometry.CreateRectangle(
+			var faces = new List<Voxel.Model.Face>();
+			Voxel.Model.Face top = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, height, 0f), UV = new Vector2(0f, 0f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, height, 0f), UV = new Vector2(1f, 0f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, height, 1f), UV = new Vector2(1f, 1f) },
@@ -47,11 +47,11 @@ namespace Voxel.View
 			return faces;
 		}
 
-		protected override List<Voxel.View.Face> ConstructFlippedMaskFaces()
+		protected override List<Voxel.Model.Face> ConstructFlippedMaskFaces()
 		{
 			const float maskOffset = 0.01f;
-			var faces = new List<Voxel.View.Face>();
-			Voxel.View.Face top = Utils.Geometry.CreateRectangle(
+			var faces = new List<Voxel.Model.Face>();
+			Voxel.Model.Face top = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f + maskOffset, 0f), UV = new Vector2(0f, 0f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f + maskOffset, 0f), UV = new Vector2(1f, 0f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f + maskOffset, 1f), UV = new Vector2(1f, 1f) },
@@ -60,9 +60,9 @@ namespace Voxel.View
 			return faces;
 		}
 
-		protected override Dictionary<AxisPlane, Voxel.View.Face> ConstructOuterShellFaces()
+		protected override Dictionary<AxisPlane, Voxel.Model.Face> ConstructOuterShellFaces()
 		{
-			var faces = new Dictionary<AxisPlane, Voxel.View.Face>();
+			var faces = new Dictionary<AxisPlane, Voxel.Model.Face>();
 
 			Utils.SpriteUv.GetSpriteUvRect(spritePosX, out Vector2 uvAnchor, out Vector2 uvSize);
 			Vector2 halfUvSize = new Vector2(uvSize.x, uvSize.y * 0.5f);
@@ -71,7 +71,7 @@ namespace Voxel.View
 			Vector2 uvB = halfUvAnchor + new Vector2(halfUvSize.x, 0f);
 			Vector2 uvC = halfUvAnchor + halfUvSize;
 			Vector2 uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
-			Voxel.View.Face posX = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face posX = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0.5f, 1f), UV = uvC },
@@ -85,7 +85,7 @@ namespace Voxel.View
 			uvB = halfUvAnchor + new Vector2(halfUvSize.x, 0f);
 			uvC = halfUvAnchor + halfUvSize;
 			uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
-			Voxel.View.Face negX = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face negX = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0.5f, 0f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0.5f, 1f), UV = uvC },
@@ -97,7 +97,7 @@ namespace Voxel.View
 			uvB = uvAnchor + new Vector2(uvSize.x, 0f);
 			uvC = uvAnchor + uvSize;
 			uvD = uvAnchor + new Vector2(0f, uvSize.y);
-			Voxel.View.Face negY = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face negY = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvC },
@@ -111,7 +111,7 @@ namespace Voxel.View
 			uvB = halfUvAnchor + new Vector2(halfUvSize.x, 0f);
 			uvC = halfUvAnchor + halfUvSize;
 			uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
-			Voxel.View.Face posZ = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face posZ = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0.5f, 1f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0.5f, 1f), UV = uvC },
@@ -125,7 +125,7 @@ namespace Voxel.View
 			uvB = halfUvAnchor + new Vector2(halfUvSize.x, 0f);
 			uvC = halfUvAnchor + halfUvSize;
 			uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
-			Voxel.View.Face negZ = Utils.Geometry.CreateRectangle(
+			Voxel.Model.Face negZ = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0.5f, 0f), UV = uvC },

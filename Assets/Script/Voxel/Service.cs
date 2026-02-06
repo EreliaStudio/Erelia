@@ -20,7 +20,7 @@ namespace Voxel
 
 		private readonly Dictionary<int, Voxel.Model.Definition> data = new Dictionary<int, Voxel.Model.Definition>();
 		public IReadOnlyDictionary<int, Voxel.Model.Definition> Data => data;
-		public int AirID = -1;
+		[HideInInspector] public static readonly int AirID = -1;
 		
 		public void Init()
 		{
@@ -79,8 +79,7 @@ namespace Voxel
 					continue;
 				}
 
-				definition.Shape.EnsureBuilt();
-				data[entry.Id] = new Voxel.Model.Definition(definition.Data, definition.Shape);
+				data[entry.Id] = definition;
 			}
 		}
 	}

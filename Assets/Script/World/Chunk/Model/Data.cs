@@ -8,7 +8,7 @@ namespace World.Chunk.Model
 		public const int SizeY = 64;
 		public const int SizeZ = 16;
 
-		public World.Chunk.Cell[,,] Cells = new World.Chunk.Cell[SizeX, SizeY, SizeZ];
+		public World.Chunk.Model.Cell[,,] Cells = new World.Chunk.Model.Cell[SizeX, SizeY, SizeZ];
 
 		public Data()
 		{
@@ -18,7 +18,7 @@ namespace World.Chunk.Model
 				{
 					for (int k = 0; k < SizeX; k++)
 					{
-						Cells[i, j, k] = new World.Chunk.Cell(-1);
+						Cells[i, j, k] = new World.Chunk.Model.Cell(-1);
 					}
 				}
 			}

@@ -6,7 +6,7 @@ using Utils;
 namespace World.Chunk.Controller
 {
 	[Serializable]
-	public abstract class CollisionMesher : World.Chunk.Model.Mesher
+	public abstract class CollisionMesher : World.Chunk.Core.Mesher
 	{
 		[NonSerialized] private int[] visited;
 		[NonSerialized] private int visitedStamp = 1;
@@ -28,7 +28,7 @@ namespace World.Chunk.Controller
 
 		protected virtual string MeshName => "CollisionMesh";
 
-		public List<Mesh> BuildMeshes(World.Chunk.Cell[,,] cells)
+		public List<Mesh> BuildMeshes(World.Chunk.Model.Cell[,,] cells)
 		{
 			var meshes = new List<Mesh>();
 			if (cells == null)
@@ -72,7 +72,7 @@ namespace World.Chunk.Controller
 			return meshes;
 		}
 
-		private void FloodFillAcceptable(World.Chunk.Cell[,,] cells, int sizeX, int sizeY, int sizeZ, int startX, int startY, int startZ)
+		private void FloodFillAcceptable(World.Chunk.Model.Cell[,,] cells, int sizeX, int sizeY, int sizeZ, int startX, int startY, int startZ)
 		{
 			islandCells.Clear();
 			floodQueue.Clear();
@@ -93,7 +93,7 @@ namespace World.Chunk.Controller
 			}
 		}
 
-		private void TryEnqueueAcceptable(World.Chunk.Cell[,,] cells, int sizeX, int sizeY, int sizeZ, int x, int y, int z)
+		private void TryEnqueueAcceptable(World.Chunk.Model.Cell[,,] cells, int sizeX, int sizeY, int sizeZ, int x, int y, int z)
 		{
 			if (x < 0 || x >= sizeX || y < 0 || y >= sizeY || z < 0 || z >= sizeZ)
 			{
@@ -110,7 +110,7 @@ namespace World.Chunk.Controller
 			floodQueue.Enqueue(new Vector3Int(x, y, z));
 		}
 
-		private Mesh BuildIslandMesh(World.Chunk.Cell[,,] cells, int sizeX, int sizeY, int sizeZ)
+		private Mesh BuildIslandMesh(World.Chunk.Model.Cell[,,] cells, int sizeX, int sizeY, int sizeZ)
 		{
 			var mesh = new Mesh();
 			vertices.Clear();
@@ -135,30 +135,15 @@ namespace World.Chunk.Controller
 			}
 
 			mesh.SetVertices(vertices);
-			FlipWindingInPlace(triangles);
+			Utils.Geometry.FlipWindingInPlace(triangles);
 			mesh.SetTriangles(triangles, 0);
 			mesh.SetUVs(0, uvs);
 			return mesh;
 		}
 
-		private static void FlipWindingInPlace(List<int> indices)
+		private void AddVoxelCollision(World.Chunk.Model.Cell[,,] cells, int sizeX, int sizeY, int sizeZ, int x, int y, int z)
 		{
-			if (indices == null)
-			{
-				return;
-			}
-
-			for (int i = 0; i + 2 < indices.Count; i += 3)
-			{
-				int temp = indices[i + 1];
-				indices[i + 1] = indices[i + 2];
-				indices[i + 2] = temp;
-			}
-		}
-
-		private void AddVoxelCollision(World.Chunk.Cell[,,] cells, int sizeX, int sizeY, int sizeZ, int x, int y, int z)
-		{
-			if (!TryGetCell(cells, x, y, z, out World.Chunk.Cell cell))
+			if (!TryGetCell(cells, x, y, z, out World.Chunk.Model.Cell cell))
 			{
 				return;
 			}
@@ -179,8 +164,8 @@ namespace World.Chunk.Controller
 				return;
 			}
 
-			Orientation orientation = cell.Orientation;
-			FlipOrientation flipOrientation = cell.FlipOrientation;
+			Voxel.Model.Orientation orientation = cell.Orientation;
+			Voxel.Model.FlipOrientation flipOrientation = cell.FlipOrientation;
 			Vector3 position = new Vector3(x, y, z);
 			bool anyOuterVisible = false;
 
@@ -191,7 +176,7 @@ namespace World.Chunk.Controller
 
 			if (anyOuterVisible)
 			{
-				IReadOnlyList<Voxel.View.Face> innerFaces = shape.InnerFaces;
+				IReadOnlyList<Voxel.Model.Face> innerFaces = shape.InnerFaces;
 				for (int i = 0; i < innerFaces.Count; i++)
 				{
 					CollectFace(TransformFaceCached(innerFaces[i], orientation, flipOrientation), position);
@@ -200,13 +185,13 @@ namespace World.Chunk.Controller
 		}
 
 		private void TryAddOuterFaceCollision(
-			World.Chunk.Cell[,,] cells,
+			World.Chunk.Model.Cell[,,] cells,
 			int sizeX,
 			int sizeY,
 			int sizeZ,
 			Voxel.View.Shape shape,
-			Orientation orientation,
-			FlipOrientation flipOrientation,
+			Voxel.Model.Orientation orientation,
+			Voxel.Model.FlipOrientation flipOrientation,
 			Vector3 position,
 			int x,
 			int y,
@@ -214,12 +199,12 @@ namespace World.Chunk.Controller
 			Voxel.View.Shape.AxisPlane plane,
 			ref bool anyOuterVisible)
 		{
-			Vector3Int offset = Geometry.PlaneToOffset(plane);
+			Vector3Int offset = Utils.Geometry.PlaneToOffset(plane);
 			int neighborX = x + offset.x;
 			int neighborY = y + offset.y;
 			int neighborZ = z + offset.z;
 
-			bool hasNeighbor = TryGetCell(cells, neighborX, neighborY, neighborZ, out World.Chunk.Cell neighborCell);
+			bool hasNeighbor = TryGetCell(cells, neighborX, neighborY, neighborZ, out World.Chunk.Model.Cell neighborCell);
 			Voxel.Model.Definition neighborDefinition = null;
 			if (hasNeighbor && !TryGetDefinition(neighborCell, out neighborDefinition))
 			{
@@ -232,9 +217,9 @@ namespace World.Chunk.Controller
 
 			Voxel.View.Shape neighborShape = hasNeighbor ? neighborDefinition.Shape : null;
 
-			Voxel.View.Shape.AxisPlane localPlane = Geometry.MapWorldPlaneToLocal(plane, orientation, flipOrientation);
+			Voxel.View.Shape.AxisPlane localPlane = Utils.Geometry.MapWorldPlaneToLocal(plane, orientation, flipOrientation);
 
-			if (!shape.OuterShellFaces.TryGetValue(localPlane, out Voxel.View.Face face))
+			if (!shape.OuterShellFaces.TryGetValue(localPlane, out Voxel.Model.Face face))
 			{
 				if (!IsFullyOccludedByNeighbor(cells, neighborShape, neighborX, neighborY, neighborZ, plane, hasNeighbor))
 				{
@@ -253,16 +238,16 @@ namespace World.Chunk.Controller
 			}
 
 			bool isOccluded = false;
-			Voxel.View.Face rotatedFace = TransformFaceCached(face, orientation, flipOrientation);
+			Voxel.Model.Face rotatedFace = TransformFaceCached(face, orientation, flipOrientation);
 			if (hasNeighbor && neighborShape != null)
 			{
-				Voxel.View.Shape.AxisPlane oppositePlane = Geometry.GetOppositePlane(plane);
-				Orientation neighborOrientation = neighborCell != null ? neighborCell.Orientation : Orientation.PositiveX;
-				FlipOrientation neighborFlipOrientation = neighborCell != null ? neighborCell.FlipOrientation : FlipOrientation.PositiveY;
-				Voxel.View.Shape.AxisPlane neighborLocalPlane = Geometry.MapWorldPlaneToLocal(oppositePlane, neighborOrientation, neighborFlipOrientation);
-				if (neighborShape.OuterShellFaces.TryGetValue(neighborLocalPlane, out Voxel.View.Face otherFace))
+				Voxel.View.Shape.AxisPlane oppositePlane = Utils.Geometry.GetOppositePlane(plane);
+				Voxel.Model.Orientation neighborOrientation = neighborCell != null ? neighborCell.Orientation : Voxel.Model.Orientation.PositiveX;
+				Voxel.Model.FlipOrientation neighborFlipOrientation = neighborCell != null ? neighborCell.FlipOrientation : Voxel.Model.FlipOrientation.PositiveY;
+				Voxel.View.Shape.AxisPlane neighborLocalPlane = Utils.Geometry.MapWorldPlaneToLocal(oppositePlane, neighborOrientation, neighborFlipOrientation);
+				if (neighborShape.OuterShellFaces.TryGetValue(neighborLocalPlane, out Voxel.Model.Face otherFace))
 				{
-					Voxel.View.Face rotatedOtherFace = TransformFaceCached(otherFace, neighborOrientation, neighborFlipOrientation);
+					Voxel.Model.Face rotatedOtherFace = TransformFaceCached(otherFace, neighborOrientation, neighborFlipOrientation);
 					if (rotatedFace.IsOccludedBy(rotatedOtherFace))
 					{
 						isOccluded = true;
@@ -302,20 +287,20 @@ namespace World.Chunk.Controller
 			return (x * sizeY + y) * sizeZ + z;
 		}
 
-		private bool IsAcceptableAt(World.Chunk.Cell[,,] cells, int sizeX, int sizeY, int sizeZ, int x, int y, int z)
+		private bool IsAcceptableAt(World.Chunk.Model.Cell[,,] cells, int sizeX, int sizeY, int sizeZ, int x, int y, int z)
 		{
 			if (x < 0 || x >= sizeX || y < 0 || y >= sizeY || z < 0 || z >= sizeZ)
 			{
 				return false;
 			}
 
-			if (!TryGetCell(cells, x, y, z, out World.Chunk.Cell cell))
+			if (!TryGetCell(cells, x, y, z, out World.Chunk.Model.Cell cell))
 			{
 				return false;
 			}
 
 			int id = cell.Id;
-			if (ServiceLocator.Instance.VoxelService.AirID == id)
+			if (id == Voxel.Service.AirID)
 			{
 				return false;
 			}
@@ -329,7 +314,7 @@ namespace World.Chunk.Controller
 		}
 
 		private bool IsFullyOccludedByNeighbor(
-			World.Chunk.Cell[,,] cells,
+			World.Chunk.Model.Cell[,,] cells,
 			Voxel.View.Shape neighborShape,
 			int neighborX,
 			int neighborY,
@@ -342,41 +327,41 @@ namespace World.Chunk.Controller
 				return false;
 			}
 
-			if (!TryGetCell(cells, neighborX, neighborY, neighborZ, out World.Chunk.Cell neighborCell) || neighborCell == null)
+			if (!TryGetCell(cells, neighborX, neighborY, neighborZ, out World.Chunk.Model.Cell neighborCell) || neighborCell == null)
 			{
 				return false;
 			}
 
-			Voxel.View.Shape.AxisPlane oppositePlane = Geometry.GetOppositePlane(plane);
-			Orientation neighborOrientation = neighborCell.Orientation;
-			FlipOrientation neighborFlipOrientation = neighborCell.FlipOrientation;
-			Voxel.View.Shape.AxisPlane neighborLocalPlane = Geometry.MapWorldPlaneToLocal(oppositePlane, neighborOrientation, neighborFlipOrientation);
-			if (!neighborShape.OuterShellFaces.TryGetValue(neighborLocalPlane, out Voxel.View.Face otherFace))
+			Voxel.View.Shape.AxisPlane oppositePlane = Utils.Geometry.GetOppositePlane(plane);
+			Voxel.Model.Orientation neighborOrientation = neighborCell.Orientation;
+			Voxel.Model.FlipOrientation neighborFlipOrientation = neighborCell.FlipOrientation;
+			Voxel.View.Shape.AxisPlane neighborLocalPlane = Utils.Geometry.MapWorldPlaneToLocal(oppositePlane, neighborOrientation, neighborFlipOrientation);
+			if (!neighborShape.OuterShellFaces.TryGetValue(neighborLocalPlane, out Voxel.Model.Face otherFace))
 			{
 				return false;
 			}
 
-			Voxel.View.Face rotatedOtherFace = TransformFaceCached(otherFace, neighborOrientation, neighborFlipOrientation);
+			Voxel.Model.Face rotatedOtherFace = TransformFaceCached(otherFace, neighborOrientation, neighborFlipOrientation);
 			if (!Geometry.IsFaceCoplanarWithPlane(rotatedOtherFace, plane))
 			{
 				return false;
 			}
 
-			Voxel.View.Face fullFace = Geometry.GetFullOuterFace(plane);
+			Voxel.Model.Face fullFace = Utils.Geometry.GetFullOuterFace(plane);
 			return fullFace != null && fullFace.IsOccludedBy(rotatedOtherFace);
 		}
 
-		private void CollectFace(Voxel.View.Face face, Vector3 offset)
+		private void CollectFace(Voxel.Model.Face face, Vector3 offset)
 		{
 			if (face == null || face.Polygons == null || face.Polygons.Count == 0)
 			{
 				return;
 			}
 
-			List<List<Voxel.View.Face.Vertex>> facePolygons = face.Polygons;
+			List<List<Voxel.Model.Face.Vertex>> facePolygons = face.Polygons;
 			for (int p = 0; p < facePolygons.Count; p++)
 			{
-				List<Voxel.View.Face.Vertex> polygon = facePolygons[p];
+				List<Voxel.Model.Face.Vertex> polygon = facePolygons[p];
 				if (polygon == null || polygon.Count < 3)
 				{
 					continue;
@@ -907,11 +892,6 @@ namespace World.Chunk.Controller
 				A = a;
 				B = b;
 			}
-		}
-	
-		public static List<Mesh> Build(World.Chunk.Cell[,,] cells)
-		{
-			return new CollisionMesher().BuildMeshes(cells);
 		}
 	}
 }

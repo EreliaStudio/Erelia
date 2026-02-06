@@ -45,7 +45,7 @@ namespace Voxel.Model
 
 		private readonly Dictionary<Key, Voxel.Model.Face> _collection = new Dictionary<Key, Voxel.Model.Face>();
 
-		public bool TryGetValue(Voxel.View.Face face, Voxel.Model.Orientation orientation, Voxel.Model.FlipOrientation flipOrientation, out Voxel.Model.Face output)
+		public bool TryGetValue(Voxel.Model.Face face, Voxel.Model.Orientation orientation, Voxel.Model.FlipOrientation flipOrientation, out Voxel.Model.Face output)
 		{
 			output = null;
 			if (face == null)

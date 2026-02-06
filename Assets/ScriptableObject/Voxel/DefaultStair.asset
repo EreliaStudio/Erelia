@@ -9,19 +9,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34994424b87889149b3e9d9ce6ee3cd0, type: 3}
+  m_Script: {fileID: 11500000, guid: 414dc3fc124f91a4db2abeec4230b880, type: 3}
   m_Name: DefaultStair
-  m_EditorClassIdentifier: Assembly-CSharp::Voxel.Definition
+  m_EditorClassIdentifier: Assembly-CSharp::Voxel.Model.Definition
   data:
     collision: 1
     traversal: 0
   shapeType: 3
   shape:
-    rid: 3708920026052952148
+    rid: 3708920051439239235
   references:
     version: 2
     RefIds:
-    - rid: 3708920026052952148
+    - rid: 3708920051439239235
       type: {class: Stair, ns: Voxel.View, asm: Assembly-CSharp}
       data:
         spriteFront: {fileID: 0}

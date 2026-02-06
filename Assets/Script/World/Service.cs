@@ -7,7 +7,7 @@ namespace World
 	[Serializable]
 	public class Service
 	{	
-		[SerializeField] private World.Chunk.IGenerator generator = null;
+		[SerializeField] private World.Chunk.Model.IGenerator generator = null;
 		
 		private Dictionary<World.Chunk.Model.Coordinates, World.Chunk.Model.Data> chunks = new Dictionary<World.Chunk.Model.Coordinates, World.Chunk.Model.Data>();
 
@@ -22,7 +22,7 @@ namespace World
 			chunks.Clear();
 		}
 
-		public Chunk.Data GetOrCreateChunk(Chunk.Coordinates coord)
+		public Chunk.Model.Data GetOrCreateChunk(Chunk.Model.Coordinates coord)
 		{
 			if (generator == null)
 			{
@@ -30,7 +30,7 @@ namespace World
 				return null;
 			}
 
-			if (!chunks.TryGetValue(coord, out Chunk.Data chunk))
+			if (!chunks.TryGetValue(coord, out Chunk.Model.Data chunk))
 			{
 				chunk = generator.Generate(coord);
 				chunks.Add(coord, chunk);

@@ -3,7 +3,7 @@ using UnityEngine;
 namespace World.Chunk.Model
 {
 	[CreateAssetMenu(fileName = "WorldChunkGenerator", menuName = "World/TestGenerator")]
-	public class TestGenerator : World.Chunk.IGenerator 
+	public class TestGenerator : World.Chunk.Model.IGenerator 
 	{
 		public override World.Chunk.Model.Data Generate(World.Chunk.Model.Coordinates coordinate)
 		{
@@ -42,7 +42,7 @@ namespace World.Chunk.Model
 							}
 						}
 
-						chunk.Cells[x, y, z] = new World.Chunk.Cell(dataId);
+						chunk.Cells[x, y, z] = new World.Chunk.Model.Cell(dataId);
 					}
 				}
 			}
