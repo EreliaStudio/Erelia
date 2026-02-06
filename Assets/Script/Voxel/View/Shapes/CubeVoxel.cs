@@ -37,9 +37,9 @@ namespace Voxel.View
 			return ConstructMaskFaces();
 		}
 
-		protected override Dictionary<OuterShellPlane, Voxel.View.Face> ConstructOuterShellFaces()
+		protected override Dictionary<AxisPlane, Voxel.View.Face> ConstructOuterShellFaces()
 		{
-			var faces = new Dictionary<OuterShellPlane, Voxel.View.Face>();
+			var faces = new Dictionary<AxisPlane, Voxel.View.Face>();
 
 			Utils.SpriteUv.GetSpriteUvRect(spritePosX, out Vector2 uvAnchor, out Vector2 uvSize);
 			Vector2 uvA = uvAnchor;
@@ -51,7 +51,7 @@ namespace Voxel.View
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvC },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 0f), UV = uvD });
-			faces[OuterShellPlane.PosX] = posX;
+			faces[AxisPlane.PosX] = posX;
 
 			Utils.SpriteUv.GetSpriteUvRect(spriteNegX, out uvAnchor, out uvSize);
 			uvA = uvAnchor;
@@ -63,7 +63,7 @@ namespace Voxel.View
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 0f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = uvC },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvD });
-			faces[OuterShellPlane.NegX] = negX;
+			faces[AxisPlane.NegX] = negX;
 
 			Utils.SpriteUv.GetSpriteUvRect(spritePosY, out uvAnchor, out uvSize);
 			uvA = uvAnchor;
@@ -75,7 +75,7 @@ namespace Voxel.View
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 0f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvC },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = uvD });
-			faces[OuterShellPlane.PosY] = posY;
+			faces[AxisPlane.PosY] = posY;
 
 			Utils.SpriteUv.GetSpriteUvRect(spriteNegY, out uvAnchor, out uvSize);
 			uvA = uvAnchor;
@@ -87,7 +87,7 @@ namespace Voxel.View
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvC },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvD });
-			faces[OuterShellPlane.NegY] = negY;
+			faces[AxisPlane.NegY] = negY;
 
 			Utils.SpriteUv.GetSpriteUvRect(spritePosZ, out uvAnchor, out uvSize);
 			uvA = uvAnchor;
@@ -99,7 +99,7 @@ namespace Voxel.View
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvC },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvD });
-			faces[OuterShellPlane.PosZ] = posZ;
+			faces[AxisPlane.PosZ] = posZ;
 
 			Utils.SpriteUv.GetSpriteUvRect(spriteNegZ, out uvAnchor, out uvSize);
 			uvA = uvAnchor;
@@ -111,7 +111,7 @@ namespace Voxel.View
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 0f), UV = uvC },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 0f), UV = uvD });
-			faces[OuterShellPlane.NegZ] = negZ;
+			faces[AxisPlane.NegZ] = negZ;
 
 			return faces;
 		}

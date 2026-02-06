@@ -66,9 +66,9 @@ namespace Voxel.View
 			return ConstructMaskFaces();
 		}
 
-		protected override Dictionary<OuterShellPlane, Voxel.View.Face> ConstructOuterShellFaces()
+		protected override Dictionary<AxisPlane, Voxel.View.Face> ConstructOuterShellFaces()
 		{
-			return new Dictionary<OuterShellPlane, Voxel.View.Face>();
+			return new Dictionary<AxisPlane, Voxel.View.Face>();
 		}
 	}
 }

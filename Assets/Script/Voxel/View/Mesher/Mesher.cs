@@ -74,5 +74,20 @@ namespace Voxel.View
 				}
 			}
 		}
+
+		protected Voxel.View.Face TransformFaceCached(Voxel.View.Face face, Orientation orientation, FlipOrientation flipOrientation)
+		{
+			if (face == null)
+			{
+				return null;
+			}
+
+			if (transformedFaceCache.TryGetValue(face, orientation, flipOrientation, out Voxel.View.Face output))
+			{
+				return output;
+			}
+
+			return face;
+		}
 	}
 }

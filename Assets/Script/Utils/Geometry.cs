@@ -282,11 +282,11 @@ namespace Utils
 			return dot <= lenSq + 0.0001f;
 		}
 
-		public static bool TryFromNormal(Vector3 normal, out Voxel.View.Shape.OuterShellPlane plane)
+		public static bool TryFromNormal(Vector3 normal, out Voxel.View.Shape.AxisPlane plane)
 		{
 			if (normal.sqrMagnitude < NormalEpsilon)
 			{
-				plane = Voxel.View.Shape.OuterShellPlane.PosX;
+				plane = Voxel.View.Shape.AxisPlane.PosX;
 				return false;
 			}
 
@@ -297,82 +297,82 @@ namespace Utils
 
 			if (ax >= 1f - NormalEpsilon && ay <= NormalEpsilon && az <= NormalEpsilon)
 			{
-				plane = n.x >= 0f ? Voxel.View.Shape.OuterShellPlane.PosX : Voxel.View.Shape.OuterShellPlane.NegX;
+				plane = n.x >= 0f ? Voxel.View.Shape.AxisPlane.PosX : Voxel.View.Shape.AxisPlane.NegX;
 				return true;
 			}
 			if (ay >= 1f - NormalEpsilon && ax <= NormalEpsilon && az <= NormalEpsilon)
 			{
-				plane = n.y >= 0f ? Voxel.View.Shape.OuterShellPlane.PosY : Voxel.View.Shape.OuterShellPlane.NegY;
+				plane = n.y >= 0f ? Voxel.View.Shape.AxisPlane.PosY : Voxel.View.Shape.AxisPlane.NegY;
 				return true;
 			}
 			if (az >= 1f - NormalEpsilon && ax <= NormalEpsilon && ay <= NormalEpsilon)
 			{
-				plane = n.z >= 0f ? Voxel.View.Shape.OuterShellPlane.PosZ : Voxel.View.Shape.OuterShellPlane.NegZ;
+				plane = n.z >= 0f ? Voxel.View.Shape.AxisPlane.PosZ : Voxel.View.Shape.AxisPlane.NegZ;
 				return true;
 			}
 
-			plane = Voxel.View.Shape.OuterShellPlane.PosX;
+			plane = Voxel.View.Shape.AxisPlane.PosX;
 			return false;
 		}
 
-		public static Vector3 PlaneToNormal(Voxel.View.Shape.OuterShellPlane plane)
+		public static Vector3 PlaneToNormal(Voxel.View.Shape.AxisPlane plane)
 		{
 			switch (plane)
 			{
-				case Voxel.View.Shape.OuterShellPlane.PosX:
+				case Voxel.View.Shape.AxisPlane.PosX:
 					return Vector3.right;
-				case Voxel.View.Shape.OuterShellPlane.NegX:
+				case Voxel.View.Shape.AxisPlane.NegX:
 					return Vector3.left;
-				case Voxel.View.Shape.OuterShellPlane.PosY:
+				case Voxel.View.Shape.AxisPlane.PosY:
 					return Vector3.up;
-				case Voxel.View.Shape.OuterShellPlane.NegY:
+				case Voxel.View.Shape.AxisPlane.NegY:
 					return Vector3.down;
-				case Voxel.View.Shape.OuterShellPlane.PosZ:
+				case Voxel.View.Shape.AxisPlane.PosZ:
 					return Vector3.forward;
-				case Voxel.View.Shape.OuterShellPlane.NegZ:
+				case Voxel.View.Shape.AxisPlane.NegZ:
 					return Vector3.back;
 				default:
 					return Vector3.zero;
 			}
 		}
 
-		public static Vector3Int PlaneToOffset(Voxel.View.Shape.OuterShellPlane plane)
+		public static Vector3Int PlaneToOffset(Voxel.View.Shape.AxisPlane plane)
 		{
 			switch (plane)
 			{
-				case Voxel.View.Shape.OuterShellPlane.PosX:
+				case Voxel.View.Shape.AxisPlane.PosX:
 					return new Vector3Int(1, 0, 0);
-				case Voxel.View.Shape.OuterShellPlane.NegX:
+				case Voxel.View.Shape.AxisPlane.NegX:
 					return new Vector3Int(-1, 0, 0);
-				case Voxel.View.Shape.OuterShellPlane.PosY:
+				case Voxel.View.Shape.AxisPlane.PosY:
 					return new Vector3Int(0, 1, 0);
-				case Voxel.View.Shape.OuterShellPlane.NegY:
+				case Voxel.View.Shape.AxisPlane.NegY:
 					return new Vector3Int(0, -1, 0);
-				case Voxel.View.Shape.OuterShellPlane.PosZ:
+				case Voxel.View.Shape.AxisPlane.PosZ:
 					return new Vector3Int(0, 0, 1);
-				case Voxel.View.Shape.OuterShellPlane.NegZ:
+				case Voxel.View.Shape.AxisPlane.NegZ:
 					return new Vector3Int(0, 0, -1);
 				default:
 					return Vector3Int.zero;
 			}
 		}
 
-		public static Voxel.View.Shape.OuterShellPlane GetOppositePlane(Voxel.View.Shape.OuterShellPlane plane)
+		public static Voxel.View.Shape.AxisPlane GetOppositePlane(Voxel.View.Shape.AxisPlane plane)
 		{
 			switch (plane)
 			{
-				case Voxel.View.Shape.OuterShellPlane.PosX:
-					return Voxel.View.Shape.OuterShellPlane.NegX;
-				case Voxel.View.Shape.OuterShellPlane.NegX:
-					return Voxel.View.Shape.OuterShellPlane.PosX;
-				case Voxel.View.Shape.OuterShellPlane.PosY:
-					return Voxel.View.Shape.OuterShellPlane.NegY;
-				case Voxel.View.Shape.OuterShellPlane.NegY:
-					return Voxel.View.Shape.OuterShellPlane.PosY;
-				case Voxel.View.Shape.OuterShellPlane.PosZ:
-					return Voxel.View.Shape.OuterShellPlane.NegZ;
-				case Voxel.View.Shape.OuterShellPlane.NegZ:
-					return Voxel.View.Shape.OuterShellPlane.PosZ;
+				case Voxel.View.Shape.AxisPlane.PosX:
+					return Voxel.View.Shape.AxisPlane.NegX;
+				case Voxel.View.Shape.AxisPlane.NegX:
+					return Voxel.View.Shape.AxisPlane.PosX;
+				case Voxel.View.Shape.AxisPlane.PosY:
+					return Voxel.View.Shape.AxisPlane.NegY;
+				case Voxel.View.Shape.AxisPlane.NegY:
+					return Voxel.View.Shape.AxisPlane.PosY;
+				case Voxel.View.Shape.AxisPlane.PosZ:
+					return Voxel.View.Shape.AxisPlane.NegZ;
+				case Voxel.View.Shape.AxisPlane.NegZ:
+					return Voxel.View.Shape.AxisPlane.PosZ;
 				default:
 					return plane;
 			}
@@ -394,14 +394,14 @@ namespace Utils
 			}
 		}
 
-		public static Voxel.View.Shape.OuterShellPlane MapWorldPlaneToLocal(Voxel.View.Shape.OuterShellPlane plane, Orientation orientation)
+		public static Voxel.View.Shape.AxisPlane MapWorldPlaneToLocal(Voxel.View.Shape.AxisPlane plane, Orientation orientation)
 		{
 			return RotatePlane(plane, -OrientationToSteps(orientation));
 		}
 
-		public static Voxel.View.Shape.OuterShellPlane MapWorldPlaneToLocal(Voxel.View.Shape.OuterShellPlane plane, Orientation orientation, FlipOrientation flipOrientation)
+		public static Voxel.View.Shape.AxisPlane MapWorldPlaneToLocal(Voxel.View.Shape.AxisPlane plane, Orientation orientation, FlipOrientation flipOrientation)
 		{
-			Voxel.View.Shape.OuterShellPlane rotated = RotatePlane(plane, -OrientationToSteps(orientation));
+			Voxel.View.Shape.AxisPlane rotated = RotatePlane(plane, -OrientationToSteps(orientation));
 			if (flipOrientation == FlipOrientation.NegativeY)
 			{
 				return FlipPlaneY(rotated);
@@ -410,7 +410,7 @@ namespace Utils
 			return rotated;
 		}
 
-		public static Voxel.View.Shape.OuterShellPlane RotatePlane(Voxel.View.Shape.OuterShellPlane plane, int steps)
+		public static Voxel.View.Shape.AxisPlane RotatePlane(Voxel.View.Shape.AxisPlane plane, int steps)
 		{
 			int normalized = ((steps % 4) + 4) % 4;
 			if (normalized == 0)
@@ -421,7 +421,7 @@ namespace Utils
 			Vector3 normal = PlaneToNormal(plane);
 			Quaternion rotation = Quaternion.AngleAxis(-normalized * 90f, Vector3.up);
 			Vector3 rotatedNormal = rotation * normal;
-			if (TryFromNormal(rotatedNormal, out Voxel.View.Shape.OuterShellPlane rotatedPlane))
+			if (TryFromNormal(rotatedNormal, out Voxel.View.Shape.AxisPlane rotatedPlane))
 			{
 				return rotatedPlane;
 			}
@@ -429,14 +429,14 @@ namespace Utils
 			return plane;
 		}
 
-		public static Voxel.View.Shape.OuterShellPlane FlipPlaneY(Voxel.View.Shape.OuterShellPlane plane)
+		public static Voxel.View.Shape.AxisPlane FlipPlaneY(Voxel.View.Shape.AxisPlane plane)
 		{
 			switch (plane)
 			{
-				case Voxel.View.Shape.OuterShellPlane.PosY:
-					return Voxel.View.Shape.OuterShellPlane.NegY;
-				case Voxel.View.Shape.OuterShellPlane.NegY:
-					return Voxel.View.Shape.OuterShellPlane.PosY;
+				case Voxel.View.Shape.AxisPlane.PosY:
+					return Voxel.View.Shape.AxisPlane.NegY;
+				case Voxel.View.Shape.AxisPlane.NegY:
+					return Voxel.View.Shape.AxisPlane.PosY;
 				default:
 					return plane;
 			}
@@ -493,28 +493,28 @@ namespace Utils
 			return rotated;
 		}
 
-		public static Voxel.View.Face GetFullOuterFace(Voxel.View.Shape.OuterShellPlane plane)
+		public static Voxel.View.Face GetFullOuterFace(Voxel.View.Shape.AxisPlane plane)
 		{
 			switch (plane)
 			{
-				case Voxel.View.Shape.OuterShellPlane.PosX:
+				case Voxel.View.Shape.AxisPlane.PosX:
 					return FullPosXFace;
-				case Voxel.View.Shape.OuterShellPlane.NegX:
+				case Voxel.View.Shape.AxisPlane.NegX:
 					return FullNegXFace;
-				case Voxel.View.Shape.OuterShellPlane.PosY:
+				case Voxel.View.Shape.AxisPlane.PosY:
 					return FullPosYFace;
-				case Voxel.View.Shape.OuterShellPlane.NegY:
+				case Voxel.View.Shape.AxisPlane.NegY:
 					return FullNegYFace;
-				case Voxel.View.Shape.OuterShellPlane.PosZ:
+				case Voxel.View.Shape.AxisPlane.PosZ:
 					return FullPosZFace;
-				case Voxel.View.Shape.OuterShellPlane.NegZ:
+				case Voxel.View.Shape.AxisPlane.NegZ:
 					return FullNegZFace;
 				default:
 					return null;
 			}
 		}
 
-		public static bool IsFaceCoplanarWithPlane(Voxel.View.Face face, Voxel.View.Shape.OuterShellPlane plane)
+		public static bool IsFaceCoplanarWithPlane(Voxel.View.Face face, Voxel.View.Shape.AxisPlane plane)
 		{
 			if (face == null || face.Polygons == null || face.Polygons.Count == 0)
 			{
@@ -525,27 +525,27 @@ namespace Utils
 			int axis = 0;
 			switch (plane)
 			{
-				case Voxel.View.Shape.OuterShellPlane.PosX:
+				case Voxel.View.Shape.AxisPlane.PosX:
 					axis = 0;
 					target = 1f;
 					break;
-				case Voxel.View.Shape.OuterShellPlane.NegX:
+				case Voxel.View.Shape.AxisPlane.NegX:
 					axis = 0;
 					target = 0f;
 					break;
-				case Voxel.View.Shape.OuterShellPlane.PosY:
+				case Voxel.View.Shape.AxisPlane.PosY:
 					axis = 1;
 					target = 1f;
 					break;
-				case Voxel.View.Shape.OuterShellPlane.NegY:
+				case Voxel.View.Shape.AxisPlane.NegY:
 					axis = 1;
 					target = 0f;
 					break;
-				case Voxel.View.Shape.OuterShellPlane.PosZ:
+				case Voxel.View.Shape.AxisPlane.PosZ:
 					axis = 2;
 					target = 1f;
 					break;
-				case Voxel.View.Shape.OuterShellPlane.NegZ:
+				case Voxel.View.Shape.AxisPlane.NegZ:
 					axis = 2;
 					target = 0f;
 					break;
@@ -574,7 +574,7 @@ namespace Utils
 			return true;
 		}
 
-		public static bool IsFullFace(Voxel.View.Face face, Voxel.View.Shape.OuterShellPlane plane)
+		public static bool IsFullFace(Voxel.View.Face face, Voxel.View.Shape.AxisPlane plane)
 		{
 			if (face == null || !face.HasRenderablePolygons)
 			{
