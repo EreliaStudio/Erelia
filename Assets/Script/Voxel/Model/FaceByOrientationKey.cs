@@ -2,17 +2,17 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Voxel.View
+namespace Voxel.Model
 {
 	public class FaceByOrientationCollection
 	{
 		public struct Key : IEquatable<Key>
 		{
-			private readonly Voxel.View.Face face;
+			private readonly Voxel.Model.Face face;
 			private readonly Orientation orientation;
 			private readonly FlipOrientation flipOrientation;
 
-			public Key(Voxel.View.Face face, Orientation orientation, FlipOrientation flipOrientation)
+			public Key(Voxel.Model.Face face, Orientation orientation, FlipOrientation flipOrientation)
 			{
 				this.face = face;
 				this.orientation = orientation;
@@ -43,9 +43,9 @@ namespace Voxel.View
 			}
 		}
 
-		private readonly Dictionary<Key, Voxel.View.Face> _collection = new Dictionary<Key, Voxel.View.Face>();
+		private readonly Dictionary<Key, Voxel.Model.Face> _collection = new Dictionary<Key, Voxel.Model.Face>();
 
-		public bool TryGetValue(Voxel.View.Face face, Orientation orientation, FlipOrientation flipOrientation, out Voxel.View.Face output)
+		public bool TryGetValue(Voxel.View.Face face, Voxel.Model.Orientation orientation, Voxel.Model.FlipOrientation flipOrientation, out Voxel.Model.Face output)
 		{
 			output = null;
 			if (face == null)
@@ -54,7 +54,7 @@ namespace Voxel.View
 			}
 
 			var key = new Key(face, orientation, flipOrientation);
-			if (_collection.TryGetValue(key, out Voxel.View.Face cached))
+			if (_collection.TryGetValue(key, out Voxel.Model.Face cached))
 			{
 				output = cached;
 				return true;

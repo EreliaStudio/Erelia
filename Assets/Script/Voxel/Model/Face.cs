@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Voxel.View
+namespace Voxel.Model
 {
 	public class Face
 	{

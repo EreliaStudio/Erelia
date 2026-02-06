@@ -1,11 +1,11 @@
 using UnityEngine;
 
-namespace World.Chunk
+namespace World.Chunk.Model
 {
 	[CreateAssetMenu(fileName = "WorldChunkGenerator", menuName = "World/TestGenerator")]
 	public class TestGenerator : World.Chunk.IGenerator 
 	{
-		public override World.Chunk.Data Generate(World.Chunk.Coordinates coordinate)
+		public override World.Chunk.Model.Data Generate(World.Chunk.Model.Coordinates coordinate)
 		{
 			var chunk = new Data();
 

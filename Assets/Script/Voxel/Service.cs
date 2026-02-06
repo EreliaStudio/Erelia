@@ -11,15 +11,15 @@ namespace Voxel
 		public struct Entry
 		{
 			public int Id;
-			public Voxel.Definition Definition;
+			public Voxel.Model.Definition Definition;
 		}
 
 		[SerializeField] private List<Entry> entries = new List<Entry>();
 
 		
 
-		private readonly Dictionary<int, Definition> data = new Dictionary<int, Definition>();
-		public IReadOnlyDictionary<int, Definition> Data => data;
+		private readonly Dictionary<int, Voxel.Model.Definition> data = new Dictionary<int, Voxel.Model.Definition>();
+		public IReadOnlyDictionary<int, Voxel.Model.Definition> Data => data;
 		public int AirID = -1;
 		
 		public void Init()
@@ -27,7 +27,7 @@ namespace Voxel
 			RebuildDictionary(entries);
 		}
 
-		public bool TryGetDefinition(int id, out Definition definition)
+		public bool TryGetDefinition(int id, out Voxel.Model.Definition definition)
 		{
 			if (data.TryGetValue(id, out definition) == false)
 			{
@@ -38,7 +38,7 @@ namespace Voxel
 
 		public bool TryGetData(int id, out Voxel.Model.Data voxel)
 		{
-			if (TryGetDefinition(id, out Definition definition) == false)
+			if (TryGetDefinition(id, out Voxel.Model.Definition definition) == false)
 			{
 				voxel = default;
 				return false;
@@ -50,7 +50,7 @@ namespace Voxel
 
 		public bool TryGetShape(int id, out Voxel.View.Shape voxel)
 		{
-			if (TryGetDefinition(id, out Definition definition) == false)
+			if (TryGetDefinition(id, out Voxel.Model.Definition definition) == false)
 			{
 				voxel = default;
 				return false;
@@ -80,7 +80,7 @@ namespace Voxel
 				}
 
 				definition.Shape.EnsureBuilt();
-				data[entry.Id] = new Element(definition.Data, definition.Shape);
+				data[entry.Id] = new Voxel.Model.Definition(definition.Data, definition.Shape);
 			}
 		}
 	}

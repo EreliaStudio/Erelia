@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Utils;
 
-namespace Voxel.View
+namespace World.Chunk.View
 {
-	public class RenderMesher : Voxel.View.Mesher
+	public class RenderMesher : World.Chunk.View.Mesher
 	{
 		[NonSerialized] private readonly List<Vector3> vertices = new List<Vector3>();
 		[NonSerialized] private readonly List<int> triangles = new List<int>();
@@ -53,7 +53,7 @@ namespace Voxel.View
 				return;
 			}
 
-			if (!TryGetDefinition(cell, out Voxel.Definition definition))
+			if (!TryGetDefinition(cell, out Voxel.Model.Definition definition))
 			{
 				return;
 			}
@@ -101,7 +101,7 @@ namespace Voxel.View
 			int neighborY = y + offset.y;
 			int neighborZ = z + offset.z;
 			bool hasNeighbor = TryGetCell(cells, neighborX, neighborY, neighborZ, out World.Chunk.Cell neighborCell);
-			Voxel.Definition neighborDefinition = null;
+			Voxel.Model.Definition neighborDefinition = null;
 			if (hasNeighbor && !TryGetDefinition(neighborCell, out neighborDefinition))
 			{
 				hasNeighbor = false;
@@ -186,6 +186,11 @@ namespace Voxel.View
 
 			Voxel.View.Face fullFace = Geometry.GetFullOuterFace(plane);
 			return fullFace != null && fullFace.IsOccludedBy(rotatedOtherFace);
+		}
+	
+		public static Mesh Build(World.Chunk.Cell[,,] cells)
+		{
+			return new RenderMesher().BuildMesh(cells);
 		}
 	}
 }

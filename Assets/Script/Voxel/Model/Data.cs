@@ -6,10 +6,10 @@ namespace Voxel.Model
 	[Serializable]
 	public class Data
 	{
-    	[SerializeField] private Collision collision = Collision.Solid;
-    	[SerializeField] private Traversal traversal = Traversal.Obstacle;
+    	[SerializeField] private Voxel.Model.Collision collision = Voxel.Model.Collision.Solid;
+    	[SerializeField] private Voxel.Model.Traversal traversal = Voxel.Model.Traversal.Obstacle;
 
-    	public Voxel.Collision Collision => collision;
-    	public Voxel.Traversal Traversal => traversal;
+    	public Voxel.Model.Collision Collision => collision;
+    	public Voxel.Model.Traversal Traversal => traversal;
 	}
 }

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Voxel
+namespace Voxel.Model
 {
 	[CreateAssetMenu(menuName = "Voxel/Definition")]
 	public class Definition : ScriptableObject

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace World.Chunk
+namespace World.Chunk.Model
 {
 	public class Data
 	{

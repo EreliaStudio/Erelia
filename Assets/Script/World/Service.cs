@@ -9,7 +9,7 @@ namespace World
 	{	
 		[SerializeField] private World.Chunk.IGenerator generator = null;
 		
-		private Dictionary<World.Chunk.Coordinates, World.Chunk.Data> chunks = new Dictionary<World.Chunk.Coordinates, World.Chunk.Data>();
+		private Dictionary<World.Chunk.Model.Coordinates, World.Chunk.Model.Data> chunks = new Dictionary<World.Chunk.Model.Coordinates, World.Chunk.Model.Data>();
 
 		public void Init()
 		{

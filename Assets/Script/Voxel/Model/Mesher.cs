@@ -4,11 +4,11 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using Utils;
 
-namespace Voxel.View
+namespace Voxel.Core
 {
 	public class Mesher
 	{
-		private readonly Voxel.View.FaceByOrientationCollection transformedFaceCache = new Voxel.View.FaceByOrientationCollection();
+		private static readonly Voxel.View.FaceByOrientationCollection transformedFaceCache = new Voxel.View.FaceByOrientationCollection();
 
 		protected bool TryGetCell(World.Chunk.Cell[,,] cellPack, int x, int y, int z, out World.Chunk.Cell cell)
 		{
@@ -25,10 +25,10 @@ namespace Voxel.View
 			return true;
 		}
 
-		protected bool TryGetDefinition(World.Chunk.Cell cell, out Voxel.Definition definition)
+		protected bool TryGetDefinition(World.Chunk.Cell cell, out Voxel.Core.Definition definition)
 		{
 			definition = null;
-			if (ServiceLocator.Instance.VoxelService.TryGetDefinition(cell.Id, out Voxel.Definition output))
+			if (ServiceLocator.Instance.VoxelService.TryGetDefinition(cell.Id, out Voxel.Core.Definition output))
 			{
 				definition = output;
 				return true;

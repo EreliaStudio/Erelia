@@ -1,7 +1,7 @@
 using UnityEngine;
 using System;
 
-namespace Voxel
+namespace Voxel.Model
 {
 	public enum Collision
 	{
@@ -15,5 +15,19 @@ namespace Voxel
 		Obstacle,
 		Walkable,
 		Air
+	}
+
+	public enum Orientation
+	{
+		PositiveX,
+		PositiveZ,
+		NegativeX,
+		NegativeZ
+	}
+
+	public enum FlipOrientation
+	{
+		PositiveY,
+		NegativeY
 	}
 }

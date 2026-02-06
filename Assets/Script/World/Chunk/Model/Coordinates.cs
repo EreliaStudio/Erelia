@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace World.Chunk
+namespace World.Chunk.Model
 {
 	public class Coordinates
 	{
@@ -17,9 +17,9 @@ namespace World.Chunk
 
 		public static Coordinates FromWorld(Vector3 worldPosition)
 		{
-			int x = Mathf.FloorToInt(worldPosition.x / World.Chunk.Data.SizeX);
-			int y = Mathf.FloorToInt(worldPosition.y / World.Chunk.Data.SizeY);
-			int z = Mathf.FloorToInt(worldPosition.z / World.Chunk.Data.SizeZ);
+			int x = Mathf.FloorToInt(worldPosition.x / World.Chunk.Model.Data.SizeX);
+			int y = Mathf.FloorToInt(worldPosition.y / World.Chunk.Model.Data.SizeY);
+			int z = Mathf.FloorToInt(worldPosition.z / World.Chunk.Model.Data.SizeZ);
 			return new Coordinates(x, y, z);
 		}
 
