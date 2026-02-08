@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -15,6 +16,9 @@ namespace Player.Controller
 		private PlayerInput playerInput;
 		private InputAction moveAction;
 		private InputAction rotateAction;
+		private World.Chunk.Model.Coordinates lastChunkCoordinates = null;
+
+		public event Action<World.Chunk.Model.Coordinates> ChunkCoordinateChanged;
 
 		private void Awake()
 		{
@@ -51,6 +55,7 @@ namespace Player.Controller
 		{
 			ApplyMovement();
 			ApplyRotation();
+			UpdateChunkCoordinates();
 		}
 
 		private void ApplyMovement()
@@ -116,6 +121,18 @@ namespace Player.Controller
 			rotateAction = actionFromMap
 				?? playerInput.actions.FindAction($"Player/{rotateActionName}", false)
 				?? playerInput.actions.FindAction(rotateActionName, false);
+		}
+
+		private void UpdateChunkCoordinates()
+		{
+			World.Chunk.Model.Coordinates current = World.Chunk.Model.Coordinates.FromWorld(transform.position);
+			if (lastChunkCoordinates != null && lastChunkCoordinates.Equals(current))
+			{
+				return;
+			}
+
+			lastChunkCoordinates = current;
+			ChunkCoordinateChanged?.Invoke(current);
 		}
 
 	}
