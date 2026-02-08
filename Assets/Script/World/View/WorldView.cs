@@ -6,7 +6,6 @@ namespace World.View
 	public class WorldView : MonoBehaviour
 	{
 		[SerializeField] private Material chunkMaterial = null;
-		[SerializeField] private Transform target = null;
 		[SerializeField] private Player.Controller.KeyboardMotionController playerController = null;
 		[SerializeField] private Vector3Int viewRange = new Vector3Int(1, 0, 1);
 
@@ -15,29 +14,12 @@ namespace World.View
 
 		private void Awake()
 		{
-			if (Utils.ServiceLocator.Instance != null)
-			{
-				worldService = Utils.ServiceLocator.Instance.WorldService;
-			}
-
-			if (target == null && playerController != null)
-			{
-				target = playerController.transform;
-			}
+			worldService = Utils.ServiceLocator.Instance.WorldService;
 		}
 
-		public void Configure(Material material, Transform newTarget, Player.Controller.KeyboardMotionController controller, Vector3Int range)
+		public void Configure(Material material, Player.Controller.KeyboardMotionController controller, Vector3Int range)
 		{
-			if (material != null)
-			{
-				chunkMaterial = material;
-			}
-
-			if (newTarget != null)
-			{
-				target = newTarget;
-			}
-
+			chunkMaterial = material;
 			playerController = controller;
 			viewRange = range;
 		}
@@ -77,13 +59,13 @@ namespace World.View
 				return;
 			}
 
-			if (target == null)
+			if (playerController == null)
 			{
-				Debug.LogError("WorldView: Target is not assigned.");
+				Debug.LogError("WorldView: Player controller is not assigned.");
 				return;
 			}
 
-			World.Chunk.Model.Coordinates center = World.Chunk.Model.Coordinates.FromWorld(target.position);
+			World.Chunk.Model.Coordinates center = World.Chunk.Model.Coordinates.FromWorld(playerController.transform.position);
 
 			var needed = new HashSet<World.Chunk.Model.Coordinates>();
 			for (int x = -viewRange.x; x <= viewRange.x; x++)

@@ -24,9 +24,9 @@ MonoBehaviour:
     - rid: 3708920051439239233
       type: {class: Slab, ns: Voxel.View, asm: Assembly-CSharp}
       data:
-        spritePosX: {fileID: 0}
-        spriteNegX: {fileID: 0}
-        spritePosY: {fileID: 0}
-        spriteNegY: {fileID: 0}
-        spritePosZ: {fileID: 0}
-        spriteNegZ: {fileID: 0}
+        spritePosX: {fileID: -466251264, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+        spriteNegX: {fileID: -466251264, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+        spritePosY: {fileID: 1850431327, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+        spriteNegY: {fileID: 1850431327, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+        spritePosZ: {fileID: -466251264, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+        spriteNegZ: {fileID: -466251264, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}

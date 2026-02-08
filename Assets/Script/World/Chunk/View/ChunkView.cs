@@ -56,12 +56,14 @@ namespace World.View
 			if (data == null)
 			{
 				meshFilter.sharedMesh = null;
+				Debug.LogWarning("ChunkView: Rebuild received null data for " + Coordinates, this);
 				return;
 			}
 
 			Mesh mesh = World.Chunk.View.RenderMesher.Build(data.Cells);
 			mesh.name = "ChunkMesh " + Coordinates;
 			meshFilter.sharedMesh = mesh;
+			Debug.Log("ChunkView: Set mesh for " + Coordinates + " (vertices: " + mesh.vertexCount + ", triangles: " + (mesh.triangles != null ? mesh.triangles.Length / 3 : 0) + ")", this);
 		}
 	}
 }

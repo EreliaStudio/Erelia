@@ -24,8 +24,8 @@ MonoBehaviour:
     - rid: 3708920051439239234
       type: {class: Slope, ns: Voxel.View, asm: Assembly-CSharp}
       data:
-        spriteBack: {fileID: 0}
-        spriteBottom: {fileID: 0}
-        spriteSlope: {fileID: 0}
-        spriteSideLeft: {fileID: 0}
-        spriteSideRight: {fileID: 0}
+        spriteBack: {fileID: 738025050, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+        spriteBottom: {fileID: 738025050, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+        spriteSlope: {fileID: 310415147, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+        spriteSideLeft: {fileID: -935574153, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}
+        spriteSideRight: {fileID: -935574153, guid: 29d6f3e0555aad347bd4a5275ed4b110, type: 3}

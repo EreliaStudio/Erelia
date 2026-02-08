@@ -16,8 +16,6 @@ namespace Voxel
 
 		[SerializeField] private List<Entry> entries = new List<Entry>();
 
-		
-
 		private readonly Dictionary<int, Voxel.Model.Definition> data = new Dictionary<int, Voxel.Model.Definition>();
 		public IReadOnlyDictionary<int, Voxel.Model.Definition> Data => data;
 		[HideInInspector] public static readonly int AirID = -1;

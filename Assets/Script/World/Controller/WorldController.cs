@@ -5,7 +5,6 @@ namespace World.Controller
 {
 	public class WorldController : MonoBehaviour
 	{
-		[SerializeField] private Transform target = null;
 		[SerializeField] private Player.Controller.KeyboardMotionController playerController = null;
 		[SerializeField] private Vector3Int viewRange = new Vector3Int(1, 0, 1);
 
@@ -18,20 +17,10 @@ namespace World.Controller
 			{
 				worldService = Utils.ServiceLocator.Instance.WorldService;
 			}
-
-			if (target == null && playerController != null)
-			{
-				target = playerController.transform;
-			}
 		}
 
-		public void Configure(Transform newTarget, Player.Controller.KeyboardMotionController controller, Vector3Int range)
+		public void Configure(Player.Controller.KeyboardMotionController controller, Vector3Int range)
 		{
-			if (newTarget != null)
-			{
-				target = newTarget;
-			}
-
 			playerController = controller;
 			viewRange = range;
 		}
@@ -65,13 +54,13 @@ namespace World.Controller
 				return;
 			}
 
-			if (target == null)
+			if (playerController == null)
 			{
-				Debug.LogError("WorldController: Target is not assigned.");
+				Debug.LogError("WorldController: Player controller is not assigned.");
 				return;
 			}
 
-			World.Chunk.Model.Coordinates center = World.Chunk.Model.Coordinates.FromWorld(target.position);
+			World.Chunk.Model.Coordinates center = World.Chunk.Model.Coordinates.FromWorld(playerController.transform.position);
 
 			var needed = new HashSet<World.Chunk.Model.Coordinates>();
 			for (int x = -viewRange.x; x <= viewRange.x; x++)
