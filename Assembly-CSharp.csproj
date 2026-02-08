@@ -66,9 +66,12 @@
     <Compile Include="Assets\Script\Utils\Geometry.cs" />
     <Compile Include="Assets\Script\Utils\PolygonMerge.cs" />
     <Compile Include="Assets\Script\Voxel\Model\FaceByOrientationKey.cs" />
+    <Compile Include="Assets\Script\Player\Model\Data.cs" />
     <Compile Include="Assets\Script\Voxel\Model\Definition.cs" />
     <Compile Include="Assets\Script\Voxel\View\Shapes\StairVoxel.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
+    <Compile Include="Assets\Script\Camera\Controller\OrbitingController.cs" />
+    <Compile Include="Assets\Script\Player\Controller\KeyboardController.cs" />
     <Compile Include="Assets\Script\World\Chunk\View\RenderMesher.cs" />
     <Compile Include="Assets\Script\Voxel\View\Shapes\SlopeVoxel.cs" />
     <Compile Include="Assets\Script\Voxel\Model\enums.cs" />

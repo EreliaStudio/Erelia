@@ -1,123 +1,140 @@
-namespace Camera.Controller
-{
-	public class OrbitingController : MonoBehavior
-	{
-		//This class manage a game object, holding a Camera component, by allowing it to orbit around the center of the local space.
-	}
-}
-
-/*
-Exemple of previous implementation : 
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class CameraOrbit : MonoBehaviour
+namespace Camera.Controller
 {
-    private static readonly Vector3 CameraLocalPosition = new Vector3(-10f, 10f, -10f);
-    private static readonly Vector3 LookAtLocalPosition = Vector3.zero;
-    [SerializeField] private float mouseOrbitSensitivity = 0.75f;
-    [SerializeField] private float keyboardOrbitSpeed = 90f;
-    [SerializeField] private float zoomSpeed = 0.2f;
-    [SerializeField] private float minZoomMultiplier = 0.5f;
-    [SerializeField] private float maxZoomMultiplier = 2.5f;
-    private PlayerInput playerInput;
-    private InputAction rotateAction;
-    private float baseZoomDistance;
+	public class OrbitingController : MonoBehaviour
+	{
+		[SerializeField] private Vector3 localCameraPosition = new Vector3(-10f, 10f, -10f);
+		[SerializeField] private Vector3 localLookAtPosition = Vector3.zero;
+		[SerializeField] private float mouseOrbitSensitivity = 0.75f;
+		[SerializeField] private float zoomSpeed = 0.2f;
+		[SerializeField] private float minZoomMultiplier = 0.5f;
+		[SerializeField] private float maxZoomMultiplier = 2.5f;
+		[SerializeField] private string rotateActionName = "OrbitingCamera";
 
-    private void Awake()
-    {
-        playerInput = GetComponentInParent<PlayerInput>();
-    }
+		private PlayerInput playerInput;
+		private InputAction rotateAction;
+		private float baseZoomDistance = 1f;
 
-    private void Start()
-    {
-        BattleRequest request = BattleRequestStore.Current;
-        transform.localPosition = request != null ? request.CameraLocalPosition : CameraLocalPosition;
-        baseZoomDistance = Mathf.Max(0.01f, transform.localPosition.magnitude);
-        transform.LookAt(transform.parent != null
-            ? transform.parent.TransformPoint(LookAtLocalPosition)
-            : transform.TransformPoint(LookAtLocalPosition), Vector3.up);
-    }
+		private void Awake()
+		{
+			playerInput = GetComponentInParent<PlayerInput>();
+			ResolveRotateAction();
+		}
 
-    private void OnEnable()
-    {
-        ResolveRotateAction();
-        rotateAction?.Enable();
-    }
+		private void Start()
+		{
+			if (localCameraPosition.sqrMagnitude > 0.0001f)
+			{
+				transform.localPosition = localCameraPosition;
+			}
 
-    private void OnDisable()
-    {
-        rotateAction?.Disable();
-    }
+			baseZoomDistance = Mathf.Max(0.01f, transform.localPosition.magnitude);
+			LookAtLocalPivot();
+		}
 
-    private void LateUpdate()
-    {
-        float rotateInput = rotateAction != null ? rotateAction.ReadValue<float>() : 0f;
-        if (Mathf.Abs(rotateInput) > 0.01f)
-        {
-            Vector3 pivot = transform.parent != null
-                ? transform.parent.TransformPoint(LookAtLocalPosition)
-                : transform.TransformPoint(LookAtLocalPosition);
-            transform.RotateAround(pivot, Vector3.up, rotateInput * keyboardOrbitSpeed * Time.deltaTime);
-        }
+		private void OnEnable()
+		{
+			rotateAction?.Enable();
+		}
 
-        Mouse mouse = Mouse.current;
-        if (mouse == null)
-        {
-            return;
-        }
+		private void OnDisable()
+		{
+			rotateAction?.Disable();
+		}
 
-        float scroll = mouse.scroll.ReadValue().y;
-        if (Mathf.Abs(scroll) > 0.01f)
-        {
-            Vector3 current = transform.localPosition;
-            float distance = current.magnitude;
-            if (distance > 0.0001f)
-            {
-                float scrollSteps = scroll / 120f;
-                float scale = 1f - scrollSteps * zoomSpeed;
-                float minDistance = baseZoomDistance * minZoomMultiplier;
-                float maxDistance = baseZoomDistance * maxZoomMultiplier;
-                float newDistance = Mathf.Clamp(distance * scale, minDistance, maxDistance);
-                transform.localPosition = current.normalized * newDistance;
-            }
-        }
+		private void LateUpdate()
+		{
+			InputState state = ReadInputState();
+			ApplyOrbitAndZoom(state);
+			LookAtLocalPivot();
+		}
 
-        if (mouse.rightButton.isPressed)
-        {
-            float mouseX = mouse.delta.ReadValue().x;
-            if (Mathf.Abs(mouseX) > 0.01f)
-            {
-                Vector3 pivot = transform.parent != null
-                    ? transform.parent.TransformPoint(LookAtLocalPosition)
-                    : transform.TransformPoint(LookAtLocalPosition);
-                transform.RotateAround(pivot, Vector3.up, mouseX * mouseOrbitSensitivity);
-            }
-        }
+		private InputState ReadInputState()
+		{
+			InputState state = new InputState();
 
-        Vector3 lookPoint = transform.parent != null
-            ? transform.parent.TransformPoint(LookAtLocalPosition)
-            : transform.TransformPoint(LookAtLocalPosition);
-        transform.LookAt(lookPoint, Vector3.up);
-    }
+			if (rotateAction == null)
+			{
+				return state;
+			}
 
-    private void ResolveRotateAction()
-    {
-        if (playerInput == null || playerInput.actions == null)
-        {
-            rotateAction = null;
-            return;
-        }
+			Mouse mouse = Mouse.current;
+			if (mouse == null)
+			{
+				return state;
+			}
 
-        InputAction actionFromMap = playerInput.currentActionMap != null
-            ? playerInput.currentActionMap.FindAction("RotateCamera", false)
-            : null;
+			state.scroll = mouse.scroll.ReadValue().y;
+			state.mouseOrbit = mouse.rightButton.isPressed ? rotateAction.ReadValue<float>() : 0f;
 
-        rotateAction = actionFromMap
-            ?? playerInput.actions.FindAction("Player/RotateCamera", false)
-            ?? playerInput.actions.FindAction("RotateCamera", false);
-    }
+			return state;
+		}
 
+		private void ApplyOrbitAndZoom(InputState state)
+		{
+			if (Mathf.Abs(state.scroll) > 0.01f)
+			{
+				Vector3 current = transform.localPosition;
+				float distance = current.magnitude;
+				if (distance > 0.0001f)
+				{
+					float scrollSteps = state.scroll / 120f;
+					float scale = 1f - scrollSteps * zoomSpeed;
+					float minDistance = baseZoomDistance * minZoomMultiplier;
+					float maxDistance = baseZoomDistance * maxZoomMultiplier;
+					float newDistance = Mathf.Clamp(distance * scale, minDistance, maxDistance);
+					transform.localPosition = current.normalized * newDistance;
+				}
+			}
+
+			if (Mathf.Abs(state.mouseOrbit) > 0.01f)
+			{
+				TransformAroundLocalPivot(state.mouseOrbit * mouseOrbitSensitivity);
+			}
+		}
+
+		private void TransformAroundLocalPivot(float angle)
+		{
+			Vector3 pivot = localLookAtPosition;
+			Vector3 offset = transform.localPosition - pivot;
+			Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+			transform.localPosition = pivot + rotation * offset;
+		}
+
+		private void LookAtLocalPivot()
+		{
+			Vector3 toPivot = localLookAtPosition - transform.localPosition;
+			if (toPivot.sqrMagnitude <= 0.0001f)
+			{
+				return;
+			}
+
+			transform.localRotation = Quaternion.LookRotation(toPivot.normalized, Vector3.up);
+		}
+
+		private void ResolveRotateAction()
+		{
+			if (playerInput == null || playerInput.actions == null)
+			{
+				rotateAction = null;
+				return;
+			}
+
+			InputAction actionFromMap = playerInput.currentActionMap != null
+				? playerInput.currentActionMap.FindAction(rotateActionName, false)
+				: null;
+
+			rotateAction = actionFromMap
+				?? playerInput.actions.FindAction($"Player/{rotateActionName}", false)
+				?? playerInput.actions.FindAction(rotateActionName, false);
+		}
+
+		private struct InputState
+		{
+			public float scroll;
+			public float mouseOrbit;
+		}
+	}
 }
-
-*/

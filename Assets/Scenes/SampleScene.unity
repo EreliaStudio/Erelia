@@ -413,7 +413,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Utils.ServiceLocator
   worldService:
-    generator: {fileID: 0}
+    generator: {fileID: 11400000, guid: 58da88e5854dd6f49be656ad6b912bb4, type: 2}
   voxelService:
     entries:
     - Id: 0
@@ -426,7 +426,6 @@ MonoBehaviour:
       Definition: {fileID: 11400000, guid: b5f40821d664ee44bbda07cd169ac44a, type: 2}
     - Id: 4
       Definition: {fileID: 11400000, guid: 18f477b3604e0044c9d663da833be270, type: 2}
-    AirID: -1
 --- !u!4 &681371443
 Transform:
   m_ObjectHideFlags: 0
