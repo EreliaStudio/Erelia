@@ -99,7 +99,7 @@ namespace Camera.Controller
 		{
 			Vector3 pivot = localLookAtPosition;
 			Vector3 offset = transform.localPosition - pivot;
-			Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+			Quaternion rotation = Quaternion.AngleAxis(angle, Vector3.up);
 			transform.localPosition = pivot + rotation * offset;
 		}
 
