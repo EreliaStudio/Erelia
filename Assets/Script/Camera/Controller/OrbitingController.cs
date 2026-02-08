@@ -67,7 +67,7 @@ namespace Camera.Controller
 			}
 
 			state.scroll = mouse.scroll.ReadValue().y;
-			state.mouseOrbit = mouse.rightButton.isPressed ? rotateAction.ReadValue<float>() : 0f;
+			state.mouseOrbit = rotateAction.ReadValue<float>();
 
 			return state;
 		}
