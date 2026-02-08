@@ -77,6 +77,7 @@ namespace Voxel
 					continue;
 				}
 
+				definition.Shape.Initialize();
 				data[entry.Id] = definition;
 			}
 		}

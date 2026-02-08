@@ -43,7 +43,7 @@ namespace Voxel.View
 		protected abstract List<Voxel.Model.Face> ConstructMaskFaces();
 		protected abstract List<Voxel.Model.Face> ConstructFlippedMaskFaces();
 
-		protected virtual void OnEnable()
+		public virtual void Initialize()
 		{
 			innerFaces = ConstructInnerFaces() ?? new List<Voxel.Model.Face>();
 			outerShellFaces = ConstructOuterShellFaces() ?? new Dictionary<AxisPlane, Voxel.Model.Face>();
