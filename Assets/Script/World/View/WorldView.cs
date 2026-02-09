@@ -10,11 +10,10 @@ namespace World.View
 		[SerializeField] private Vector3Int viewRange = new Vector3Int(1, 0, 1);
 
 		private readonly Dictionary<World.Chunk.Model.Coordinates, World.View.ChunkView> views = new Dictionary<World.Chunk.Model.Coordinates, World.View.ChunkView>();
-		private World.Service worldService = null;
 
 		private void Awake()
 		{
-			worldService = Utils.ServiceLocator.Instance.WorldService;
+			
 		}
 
 		public void Configure(Material material, Player.Controller.KeyboardMotionController controller, Vector3Int range)
@@ -47,7 +46,7 @@ namespace World.View
 
 		public void RefreshVisible()
 		{
-			if (worldService == null)
+			if (Utils.ServiceLocator.Instance.WorldService == null)
 			{
 				Debug.LogError("WorldView: World.Service is not available (ServiceLocator missing).");
 				return;
@@ -108,7 +107,7 @@ namespace World.View
 				return existing;
 			}
 
-			World.Chunk.Model.Data data = worldService.GetOrCreateChunk(coord);
+			World.Chunk.Model.Data data = Utils.ServiceLocator.Instance.WorldService.GetOrCreateChunk(coord);
 			if (data == null)
 			{
 				return null;

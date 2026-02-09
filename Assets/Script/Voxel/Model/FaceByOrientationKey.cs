@@ -60,8 +60,8 @@ namespace Voxel.Model
 				return true;
 			}
 
-			cached = Utils.Geometry.TransformFace(face, orientation, flipOrientation);
-			_collection[key] = cached;
+			output = Utils.Geometry.TransformFace(face, orientation, flipOrientation);
+			_collection[key] = output;
 			return true;
 		}	
 	}
