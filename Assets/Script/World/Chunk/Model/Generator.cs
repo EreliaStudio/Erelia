@@ -15,14 +15,13 @@ namespace World.Chunk.Model
 				{
 					for (int z = 0; z < Data.SizeZ; z++)
 					{
-						int localY = y;
 						int dataId = -1;
 
-						if (localY == 0)
+						if (y == 0)
 						{
 							dataId = 0;
 						}
-						else if (localY == 1)
+						else if (y == 1)
 						{
 							if (x == 0 || z == 0)
 							{

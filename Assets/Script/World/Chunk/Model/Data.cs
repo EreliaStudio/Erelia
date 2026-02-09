@@ -14,9 +14,9 @@ namespace World.Chunk.Model
 		{
 			for (int i = 0; i < SizeX; i++)
 			{
-				for (int j = 0; j < SizeX; j++)
+				for (int j = 0; j < SizeY; j++)
 				{
-					for (int k = 0; k < SizeX; k++)
+					for (int k = 0; k < SizeZ; k++)
 					{
 						Cells[i, j, k] = new World.Chunk.Model.Cell(-1);
 					}
