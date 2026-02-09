@@ -332,9 +332,9 @@ namespace World.Chunk.Controller
 					worldVerts.Add(positionOffset + faceVertices[i].Position);
 				}
 
-				if (TryExtractAxisAlignedRect(worldVerts, out Rect2D rect))
+				if (TryExtractRectOnPlane(worldVerts, out Rect2D rect))
 				{
-					var key = new RectKey(rect.Plane, rect.PlaneCoord);
+					var key = new RectKey(rect.PlaneNormal, rect.PlaneD);
 					if (!rectGroups.TryGetValue(key, out List<Rect2D> list))
 					{
 						list = new List<Rect2D>();
@@ -349,7 +349,7 @@ namespace World.Chunk.Controller
 			}
 		}
 
-		private bool TryExtractAxisAlignedRect(List<Vector3> worldVerts, out Rect2D rect)
+		private bool TryExtractRectOnPlane(List<Vector3> worldVerts, out Rect2D rect)
 		{
 			rect = default;
 			if (worldVerts == null || worldVerts.Count != 4)
@@ -358,24 +358,28 @@ namespace World.Chunk.Controller
 			}
 
 			Vector3 normal = Vector3.Cross(worldVerts[1] - worldVerts[0], worldVerts[2] - worldVerts[0]);
-			if (!Geometry.TryFromNormal(normal, out Voxel.View.Shape.AxisPlane plane))
+			if (normal.sqrMagnitude < Geometry.NormalEpsilon)
 			{
 				return false;
 			}
 
-			int axis = PlaneToAxis(plane);
-			float coord = axis == 0 ? worldVerts[0].x : axis == 1 ? worldVerts[0].y : worldVerts[0].z;
+			Vector3 canonicalNormal = CanonicalizeNormal(normal.normalized);
+			if (!Geometry.TryBuildBasis(canonicalNormal, out Vector3 tangent, out Vector3 bitangent))
+			{
+				return false;
+			}
 
+			float planeD = Vector3.Dot(canonicalNormal, worldVerts[0]);
 			for (int i = 1; i < worldVerts.Count; i++)
 			{
-				float value = axis == 0 ? worldVerts[i].x : axis == 1 ? worldVerts[i].y : worldVerts[i].z;
-				if (Mathf.Abs(value - coord) > MergeEpsilon)
+				float d = Vector3.Dot(canonicalNormal, worldVerts[i]);
+				if (Mathf.Abs(d - planeD) > MergeEpsilon)
 				{
 					return false;
 				}
 			}
 
-			GetPlaneUV(plane, worldVerts[0], out float u0, out float v0);
+			GetPlaneUV(tangent, bitangent, worldVerts[0], out float u0, out float v0);
 			float minU = u0;
 			float maxU = u0;
 			float minV = v0;
@@ -383,7 +387,7 @@ namespace World.Chunk.Controller
 
 			for (int i = 1; i < worldVerts.Count; i++)
 			{
-				GetPlaneUV(plane, worldVerts[i], out float u, out float v);
+				GetPlaneUV(tangent, bitangent, worldVerts[i], out float u, out float v);
 				minU = Mathf.Min(minU, u);
 				maxU = Mathf.Max(maxU, u);
 				minV = Mathf.Min(minV, v);
@@ -397,7 +401,7 @@ namespace World.Chunk.Controller
 
 			for (int i = 0; i < worldVerts.Count; i++)
 			{
-				GetPlaneUV(plane, worldVerts[i], out float u, out float v);
+				GetPlaneUV(tangent, bitangent, worldVerts[i], out float u, out float v);
 				if (!Approximately(u, minU) && !Approximately(u, maxU))
 				{
 					return false;
@@ -409,52 +413,31 @@ namespace World.Chunk.Controller
 				}
 			}
 
-			rect = new Rect2D(plane, coord, minU, maxU, minV, maxV);
+			rect = new Rect2D(canonicalNormal, planeD, tangent, bitangent, minU, maxU, minV, maxV);
 			return true;
 		}
 
-		private static int PlaneToAxis(Voxel.View.Shape.AxisPlane plane)
+		private static Vector3 CanonicalizeNormal(Vector3 normal)
 		{
-			switch (plane)
+			Vector3 n = normal.normalized;
+			float ax = Mathf.Abs(n.x);
+			float ay = Mathf.Abs(n.y);
+			float az = Mathf.Abs(n.z);
+			if (ax >= ay && ax >= az)
 			{
-				case Voxel.View.Shape.AxisPlane.PosX:
-				case Voxel.View.Shape.AxisPlane.NegX:
-					return 0;
-				case Voxel.View.Shape.AxisPlane.PosY:
-				case Voxel.View.Shape.AxisPlane.NegY:
-					return 1;
-				case Voxel.View.Shape.AxisPlane.PosZ:
-				case Voxel.View.Shape.AxisPlane.NegZ:
-					return 2;
-				default:
-					return 0;
+				return n.x < 0f ? -n : n;
 			}
+			if (ay >= az)
+			{
+				return n.y < 0f ? -n : n;
+			}
+			return n.z < 0f ? -n : n;
 		}
 
-		private static void GetPlaneUV(Voxel.View.Shape.AxisPlane plane, Vector3 position, out float u, out float v)
+		private static void GetPlaneUV(Vector3 tangent, Vector3 bitangent, Vector3 position, out float u, out float v)
 		{
-			switch (plane)
-			{
-				case Voxel.View.Shape.AxisPlane.PosX:
-				case Voxel.View.Shape.AxisPlane.NegX:
-					u = position.z;
-					v = position.y;
-					break;
-				case Voxel.View.Shape.AxisPlane.PosY:
-				case Voxel.View.Shape.AxisPlane.NegY:
-					u = position.x;
-					v = position.z;
-					break;
-				case Voxel.View.Shape.AxisPlane.PosZ:
-				case Voxel.View.Shape.AxisPlane.NegZ:
-					u = position.x;
-					v = position.y;
-					break;
-				default:
-					u = 0f;
-					v = 0f;
-					break;
-			}
+			u = Vector3.Dot(position, tangent);
+			v = Vector3.Dot(position, bitangent);
 		}
 
 		private static bool Approximately(float a, float b)
@@ -497,7 +480,7 @@ NextIteration:
 		private static bool TryMerge(Rect2D a, Rect2D b, out Rect2D merged)
 		{
 			merged = a;
-			if (a.Plane != b.Plane || !Approximately(a.PlaneCoord, b.PlaneCoord))
+			if (!Approximately(Vector3.Dot(a.PlaneNormal, b.PlaneNormal), 1f) || !Approximately(a.PlaneD, b.PlaneD))
 			{
 				return false;
 			}
@@ -509,7 +492,7 @@ NextIteration:
 			{
 				float minU = Mathf.Min(a.MinU, b.MinU);
 				float maxU = Mathf.Max(a.MaxU, b.MaxU);
-				merged = new Rect2D(a.Plane, a.PlaneCoord, minU, maxU, a.MinV, a.MaxV);
+				merged = new Rect2D(a.PlaneNormal, a.PlaneD, a.Tangent, a.Bitangent, minU, maxU, a.MinV, a.MaxV);
 				return true;
 			}
 
@@ -517,7 +500,7 @@ NextIteration:
 			{
 				float minV = Mathf.Min(a.MinV, b.MinV);
 				float maxV = Mathf.Max(a.MaxV, b.MaxV);
-				merged = new Rect2D(a.Plane, a.PlaneCoord, a.MinU, a.MaxU, minV, maxV);
+				merged = new Rect2D(a.PlaneNormal, a.PlaneD, a.Tangent, a.Bitangent, a.MinU, a.MaxU, minV, maxV);
 				return true;
 			}
 
@@ -526,63 +509,19 @@ NextIteration:
 
 		private static List<Vector3> RectToPolygon(Rect2D rect)
 		{
-			float x = rect.PlaneCoord;
-			float y = rect.PlaneCoord;
-			float z = rect.PlaneCoord;
+			Vector3 origin = rect.PlaneNormal * rect.PlaneD;
+			Vector3 uMin = rect.Tangent * rect.MinU;
+			Vector3 uMax = rect.Tangent * rect.MaxU;
+			Vector3 vMin = rect.Bitangent * rect.MinV;
+			Vector3 vMax = rect.Bitangent * rect.MaxV;
 
-			switch (rect.Plane)
+			return new List<Vector3>
 			{
-				case Voxel.View.Shape.AxisPlane.PosX:
-					return new List<Vector3>
-					{
-						new Vector3(x, rect.MinV, rect.MinU),
-						new Vector3(x, rect.MinV, rect.MaxU),
-						new Vector3(x, rect.MaxV, rect.MaxU),
-						new Vector3(x, rect.MaxV, rect.MinU)
-					};
-				case Voxel.View.Shape.AxisPlane.NegX:
-					return new List<Vector3>
-					{
-						new Vector3(x, rect.MinV, rect.MinU),
-						new Vector3(x, rect.MaxV, rect.MinU),
-						new Vector3(x, rect.MaxV, rect.MaxU),
-						new Vector3(x, rect.MinV, rect.MaxU)
-					};
-				case Voxel.View.Shape.AxisPlane.PosY:
-					return new List<Vector3>
-					{
-						new Vector3(rect.MinU, y, rect.MinV),
-						new Vector3(rect.MaxU, y, rect.MinV),
-						new Vector3(rect.MaxU, y, rect.MaxV),
-						new Vector3(rect.MinU, y, rect.MaxV)
-					};
-				case Voxel.View.Shape.AxisPlane.NegY:
-					return new List<Vector3>
-					{
-						new Vector3(rect.MinU, y, rect.MinV),
-						new Vector3(rect.MinU, y, rect.MaxV),
-						new Vector3(rect.MaxU, y, rect.MaxV),
-						new Vector3(rect.MaxU, y, rect.MinV)
-					};
-				case Voxel.View.Shape.AxisPlane.PosZ:
-					return new List<Vector3>
-					{
-						new Vector3(rect.MinU, rect.MinV, z),
-						new Vector3(rect.MinU, rect.MaxV, z),
-						new Vector3(rect.MaxU, rect.MaxV, z),
-						new Vector3(rect.MaxU, rect.MinV, z)
-					};
-				case Voxel.View.Shape.AxisPlane.NegZ:
-					return new List<Vector3>
-					{
-						new Vector3(rect.MinU, rect.MinV, z),
-						new Vector3(rect.MaxU, rect.MinV, z),
-						new Vector3(rect.MaxU, rect.MaxV, z),
-						new Vector3(rect.MinU, rect.MaxV, z)
-					};
-				default:
-					return new List<Vector3>();
-			}
+				origin + uMin + vMin,
+				origin + uMax + vMin,
+				origin + uMax + vMax,
+				origin + uMin + vMax
+			};
 		}
 
 		private void BuildMeshesFromPolygons(List<List<Vector3>> polygons, List<Mesh> meshes)
@@ -647,18 +586,25 @@ NextIteration:
 
 		private readonly struct RectKey : IEquatable<RectKey>
 		{
-			public readonly Voxel.View.Shape.AxisPlane Plane;
-			public readonly int CoordKey;
+			public readonly int NormalX;
+			public readonly int NormalY;
+			public readonly int NormalZ;
+			public readonly int DKey;
 
-			public RectKey(Voxel.View.Shape.AxisPlane plane, float coord)
+			public RectKey(Vector3 normal, float planeD)
 			{
-				Plane = plane;
-				CoordKey = Mathf.RoundToInt(coord / MergeEpsilon);
+				NormalX = Mathf.RoundToInt(normal.x / MergeEpsilon);
+				NormalY = Mathf.RoundToInt(normal.y / MergeEpsilon);
+				NormalZ = Mathf.RoundToInt(normal.z / MergeEpsilon);
+				DKey = Mathf.RoundToInt(planeD / MergeEpsilon);
 			}
 
 			public bool Equals(RectKey other)
 			{
-				return Plane == other.Plane && CoordKey == other.CoordKey;
+				return NormalX == other.NormalX
+					&& NormalY == other.NormalY
+					&& NormalZ == other.NormalZ
+					&& DKey == other.DKey;
 			}
 
 			public override bool Equals(object obj)
@@ -670,24 +616,32 @@ NextIteration:
 			{
 				unchecked
 				{
-					return ((int)Plane * 397) ^ CoordKey;
+					int hash = NormalX;
+					hash = (hash * 397) ^ NormalY;
+					hash = (hash * 397) ^ NormalZ;
+					hash = (hash * 397) ^ DKey;
+					return hash;
 				}
 			}
 		}
 
 		private readonly struct Rect2D
 		{
-			public readonly Voxel.View.Shape.AxisPlane Plane;
-			public readonly float PlaneCoord;
+			public readonly Vector3 PlaneNormal;
+			public readonly float PlaneD;
+			public readonly Vector3 Tangent;
+			public readonly Vector3 Bitangent;
 			public readonly float MinU;
 			public readonly float MaxU;
 			public readonly float MinV;
 			public readonly float MaxV;
 
-			public Rect2D(Voxel.View.Shape.AxisPlane plane, float planeCoord, float minU, float maxU, float minV, float maxV)
+			public Rect2D(Vector3 planeNormal, float planeD, Vector3 tangent, Vector3 bitangent, float minU, float maxU, float minV, float maxV)
 			{
-				Plane = plane;
-				PlaneCoord = planeCoord;
+				PlaneNormal = planeNormal;
+				PlaneD = planeD;
+				Tangent = tangent;
+				Bitangent = bitangent;
 				MinU = minU;
 				MaxU = maxU;
 				MinV = minV;
