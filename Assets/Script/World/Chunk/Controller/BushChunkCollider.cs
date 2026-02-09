@@ -64,6 +64,10 @@ namespace World.Controller
 			go.transform.SetParent(root, false);
 			var collider = go.AddComponent<MeshCollider>();
 			collider.sharedMesh = mesh;
+			if (isTrigger)
+			{
+				collider.convex = true;
+			}
 			collider.isTrigger = isTrigger;
 			colliderObjects.Add(go);
 		}

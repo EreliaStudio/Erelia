@@ -50,7 +50,11 @@ namespace World.Chunk.Controller
 				}
 			}
 
-			BuildMeshesFromPolygons(polygons, meshes);
+			List<List<List<Vector3>>> islands = SplitPolygonsIntoIslands(polygons);
+			for (int i = 0; i < islands.Count; i++)
+			{
+				BuildMeshesFromPolygons(islands[i], meshes, $"{MeshName}_Island{i}");
+			}
 			return meshes;
 		}
 
@@ -525,7 +529,7 @@ NextIteration:
 			};
 		}
 
-		private void BuildMeshesFromPolygons(List<List<Vector3>> polygons, List<Mesh> meshes)
+		private void BuildMeshesFromPolygons(List<List<Vector3>> polygons, List<Mesh> meshes, string namePrefix)
 		{
 			if (polygons == null || meshes == null)
 			{
@@ -546,7 +550,7 @@ NextIteration:
 
 				if (vertices.Count + polygon.Count > MaxVerticesPerMesh)
 				{
-					AddMesh(vertices, triangles, meshes, ref meshIndex);
+					AddMesh(vertices, triangles, meshes, ref meshIndex, namePrefix);
 				}
 
 				int start = vertices.Count;
@@ -565,15 +569,15 @@ NextIteration:
 
 			if (vertices.Count > 0)
 			{
-				AddMesh(vertices, triangles, meshes, ref meshIndex);
+				AddMesh(vertices, triangles, meshes, ref meshIndex, namePrefix);
 			}
 		}
 
-		private void AddMesh(List<Vector3> vertices, List<int> triangles, List<Mesh> meshes, ref int meshIndex)
+		private void AddMesh(List<Vector3> vertices, List<int> triangles, List<Mesh> meshes, ref int meshIndex, string namePrefix)
 		{
 			var mesh = new Mesh
 			{
-				name = meshIndex == 0 ? MeshName : $"{MeshName}_{meshIndex}"
+				name = meshIndex == 0 ? namePrefix : $"{namePrefix}_{meshIndex}"
 			};
 			mesh.SetVertices(vertices);
 			mesh.SetTriangles(triangles, 0);
@@ -583,6 +587,103 @@ NextIteration:
 			meshIndex++;
 			vertices.Clear();
 			triangles.Clear();
+		}
+
+		private static List<List<List<Vector3>>> SplitPolygonsIntoIslands(List<List<Vector3>> polygons)
+		{
+			var islands = new List<List<List<Vector3>>>();
+			if (polygons == null || polygons.Count == 0)
+			{
+				return islands;
+			}
+
+			var validIndices = new List<int>(polygons.Count);
+			for (int i = 0; i < polygons.Count; i++)
+			{
+				List<Vector3> polygon = polygons[i];
+				if (polygon != null && polygon.Count >= 3)
+				{
+					validIndices.Add(i);
+				}
+			}
+
+			if (validIndices.Count == 0)
+			{
+				return islands;
+			}
+
+			var vertexToPolygons = new Dictionary<VertexKey, List<int>>();
+			var polygonVertexKeys = new Dictionary<int, VertexKey[]>();
+
+			for (int i = 0; i < validIndices.Count; i++)
+			{
+				int polygonIndex = validIndices[i];
+				List<Vector3> polygon = polygons[polygonIndex];
+				var keys = new VertexKey[polygon.Count];
+				for (int v = 0; v < polygon.Count; v++)
+				{
+					VertexKey key = new VertexKey(polygon[v]);
+					keys[v] = key;
+					if (!vertexToPolygons.TryGetValue(key, out List<int> polyList))
+					{
+						polyList = new List<int>();
+						vertexToPolygons.Add(key, polyList);
+					}
+					polyList.Add(polygonIndex);
+				}
+				polygonVertexKeys.Add(polygonIndex, keys);
+			}
+
+			var visited = new HashSet<int>();
+			var queue = new Queue<int>();
+
+			for (int i = 0; i < validIndices.Count; i++)
+			{
+				int startIndex = validIndices[i];
+				if (visited.Contains(startIndex))
+				{
+					continue;
+				}
+
+				var islandPolygons = new List<List<Vector3>>();
+				queue.Enqueue(startIndex);
+				visited.Add(startIndex);
+
+				while (queue.Count > 0)
+				{
+					int current = queue.Dequeue();
+					islandPolygons.Add(polygons[current]);
+
+					if (!polygonVertexKeys.TryGetValue(current, out VertexKey[] keys))
+					{
+						continue;
+					}
+
+					for (int k = 0; k < keys.Length; k++)
+					{
+						if (!vertexToPolygons.TryGetValue(keys[k], out List<int> neighbors))
+						{
+							continue;
+						}
+
+						for (int n = 0; n < neighbors.Count; n++)
+						{
+							int neighborIndex = neighbors[n];
+							if (visited.Add(neighborIndex))
+							{
+								queue.Enqueue(neighborIndex);
+							}
+						}
+					}
+				}
+
+				if (islandPolygons.Count > 0)
+				{
+					islands.Add(islandPolygons);
+				}
+			}
+
+			return islands;
 		}
 
 		private readonly struct RectKey : IEquatable<RectKey>
@@ -621,6 +722,41 @@ NextIteration:
 					hash = (hash * 397) ^ NormalY;
 					hash = (hash * 397) ^ NormalZ;
 					hash = (hash * 397) ^ DKey;
+					return hash;
+				}
+			}
+		}
+
+		private readonly struct VertexKey : IEquatable<VertexKey>
+		{
+			public readonly int X;
+			public readonly int Y;
+			public readonly int Z;
+
+			public VertexKey(Vector3 position)
+			{
+				X = Mathf.RoundToInt(position.x / MergeEpsilon);
+				Y = Mathf.RoundToInt(position.y / MergeEpsilon);
+				Z = Mathf.RoundToInt(position.z / MergeEpsilon);
+			}
+
+			public bool Equals(VertexKey other)
+			{
+				return X == other.X && Y == other.Y && Z == other.Z;
+			}
+
+			public override bool Equals(object obj)
+			{
+				return obj is VertexKey other && Equals(other);
+			}
+
+			public override int GetHashCode()
+			{
+				unchecked
+				{
+					int hash = X;
+					hash = (hash * 397) ^ Y;
+					hash = (hash * 397) ^ Z;
 					return hash;
 				}
 			}
