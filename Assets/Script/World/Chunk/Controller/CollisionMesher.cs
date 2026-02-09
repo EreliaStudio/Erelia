@@ -241,12 +241,13 @@ namespace World.Chunk.Controller
 				return false;
 			}
 
-			if (!Geometry.IsFaceCoplanarWithPlane(neighborFace, plane))
+			Voxel.View.Shape.AxisPlane oppositePlane = Geometry.GetOppositePlane(plane);
+			if (!Geometry.IsFaceCoplanarWithPlane(neighborFace, oppositePlane))
 			{
 				return false;
 			}
 
-			Voxel.Model.Face fullFace = Geometry.GetFullOuterFace(plane);
+			Voxel.Model.Face fullFace = Geometry.GetFullOuterFace(oppositePlane);
 			return fullFace != null && fullFace.IsOccludedBy(neighborFace);
 		}
 
