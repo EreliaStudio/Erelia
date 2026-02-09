@@ -8,6 +8,13 @@ namespace Voxel.View
 	public abstract class Shape
 	{
 		[Serializable]
+		public enum CollisionMode
+		{
+			RealMesh,
+			CubeEnvelope
+		}
+
+		[Serializable]
 		public enum AxisPlane
 		{
 			PosX,
@@ -32,11 +39,13 @@ namespace Voxel.View
 		[SerializeField] protected Dictionary<AxisPlane, Voxel.Model.Face> outerShellFaces = new Dictionary<AxisPlane, Voxel.Model.Face>();
 		[SerializeField] protected List<Voxel.Model.Face> maskFaces = new List<Voxel.Model.Face>();
 		[SerializeField] protected List<Voxel.Model.Face> flippedMaskFaces = new List<Voxel.Model.Face>();
+		[SerializeField] private CollisionMode collisionMode = CollisionMode.RealMesh;
 
 		public IReadOnlyList<Voxel.Model.Face> InnerFaces => innerFaces;
 		public IReadOnlyDictionary<AxisPlane, Voxel.Model.Face> OuterShellFaces => outerShellFaces;
 		public IReadOnlyList<Voxel.Model.Face> MaskFaces => maskFaces;
 		public IReadOnlyList<Voxel.Model.Face> FlippedMaskFaces => flippedMaskFaces;
+		public CollisionMode Collision => collisionMode;
 
 		protected abstract List<Voxel.Model.Face> ConstructInnerFaces();
 		protected abstract Dictionary<AxisPlane, Voxel.Model.Face> ConstructOuterShellFaces();
