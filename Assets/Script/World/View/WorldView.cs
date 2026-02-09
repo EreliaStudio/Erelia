@@ -23,22 +23,6 @@ namespace World.View
 			viewRange = range;
 		}
 
-		private void OnEnable()
-		{
-			if (playerController != null)
-			{
-				playerController.ChunkCoordinateChanged += HandlePlayerChunkChanged;
-			}
-		}
-
-		private void OnDisable()
-		{
-			if (playerController != null)
-			{
-				playerController.ChunkCoordinateChanged -= HandlePlayerChunkChanged;
-			}
-		}
-
 		private void Start()
 		{
 			RefreshVisible();
@@ -93,11 +77,6 @@ namespace World.View
 			{
 				RemoveChunk(toRemove[i]);
 			}
-		}
-
-		private void HandlePlayerChunkChanged(World.Chunk.Model.Coordinates coord)
-		{
-			RefreshVisible();
 		}
 
 		public World.View.ChunkView EnsureChunk(World.Chunk.Model.Coordinates coord)

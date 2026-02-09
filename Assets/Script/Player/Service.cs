@@ -13,5 +13,10 @@ namespace Player
 		{
 			
 		}
+
+		public void NotifyChunkCoordinateChanged(World.Chunk.Model.Coordinates coord)
+		{
+			PlayerChunkCoordinateChanged?.Invoke(coord);
+		}
 	}
 }

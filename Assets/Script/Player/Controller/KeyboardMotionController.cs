@@ -103,7 +103,7 @@ namespace Player.Controller
 			}
 
 			lastChunkCoordinates = current;
-			ServiceLocator.Instance.PlayerService.PlayerChunkCoordinateChanged.Invoke(current);
+			ServiceLocator.Instance.PlayerService.NotifyChunkCoordinateChanged(current);
 		}
 
 	}

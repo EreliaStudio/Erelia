@@ -15,8 +15,22 @@ namespace World
 		{
 			InitializeWorldView();
 			InitializeWorldController();
+		}
 
-			//Need to subscribe to the event inside player service, thought the service locator, to call for the worldView and worldController update of the visible chunks
+		private void OnEnable()
+		{
+			Utils.ServiceLocator.Instance.PlayerService.PlayerChunkCoordinateChanged += HandlePlayerChunkChanged;
+		}
+
+		private void OnDisable()
+		{
+			Utils.ServiceLocator.Instance.PlayerService.PlayerChunkCoordinateChanged -= HandlePlayerChunkChanged;
+		}
+
+		private void HandlePlayerChunkChanged(World.Chunk.Model.Coordinates coord)
+		{
+			worldView.RefreshVisible();
+			worldController.RefreshActive();
 		}
 
 		private void InitializeWorldView()
