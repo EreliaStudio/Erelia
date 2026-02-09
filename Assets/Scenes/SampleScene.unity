@@ -433,7 +433,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::World.WorldManager
   playerController: {fileID: 1558882487}
-  viewRange: {x: 0, y: 0, z: 0}
+  viewRange: {x: 1, y: 0, z: 1}
   chunkMaterial: {fileID: 2100000, guid: 101af6d7eebbe5b44b9190b84c523d1d, type: 2}
 --- !u!4 &426742592
 Transform:

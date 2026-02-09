@@ -58,6 +58,7 @@
     <Compile Include="Assets\Script\World\Controller\WorldController.cs" />
     <Compile Include="Assets\Script\World\Service.cs" />
     <Compile Include="Assets\Script\Voxel\Model\Face.cs" />
+    <Compile Include="Assets\Script\Player\Service.cs" />
     <Compile Include="Assets\Script\World\Chunk\Model\Generator.cs" />
     <Compile Include="Assets\Script\Object\ServiceLocator.cs" />
     <Compile Include="Assets\Script\Voxel\View\Shapes\Shape.cs" />

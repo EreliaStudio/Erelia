@@ -15,6 +15,8 @@ namespace World
 		{
 			InitializeWorldView();
 			InitializeWorldController();
+
+			//Need to subscribe to the event inside player service, thought the service locator, to call for the worldView and worldController update of the visible chunks
 		}
 
 		private void InitializeWorldView()

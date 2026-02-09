@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Utils;
 
 namespace Player.Controller
 {
@@ -14,8 +15,6 @@ namespace Player.Controller
 		private PlayerInput playerInput;
 		private InputAction moveAction;
 		private World.Chunk.Model.Coordinates lastChunkCoordinates = null;
-
-		public event Action<World.Chunk.Model.Coordinates> ChunkCoordinateChanged;
 
 		private void Awake()
 		{
@@ -104,7 +103,7 @@ namespace Player.Controller
 			}
 
 			lastChunkCoordinates = current;
-			ChunkCoordinateChanged?.Invoke(current);
+			ServiceLocator.Instance.PlayerService.PlayerChunkCoordinateChanged.Invoke(current);
 		}
 
 	}

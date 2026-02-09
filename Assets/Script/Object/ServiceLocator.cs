@@ -15,6 +15,9 @@ namespace Utils
 		
 		[SerializeField] private Voxel.Service voxelService = new Voxel.Service();
 		public Voxel.Service VoxelService => voxelService;
+		
+		[SerializeField] private Player.Service playerService = new Player.Service();
+		public Player.Service PlayerService => playerService;
 
 		private void Awake()
 		{
@@ -29,6 +32,7 @@ namespace Utils
 			
 			worldService.Init();
 			voxelService.Init();
+			playerService.Init();
 		}
 	}
 }
