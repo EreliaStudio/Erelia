@@ -38,5 +38,14 @@ namespace World
 
 			return chunk;
 		}
+
+		public Voxel.Model.Cell[,,] ExtrudeCells(Vector2Int center, Vector2Int size)
+		{
+			Voxel.Model.Cell[,,] result = new Voxel.Model.Cell[size.x, World.Chunk.Model.Data.SizeY, size.y];
+
+			//We need to get the content of the cells in world space within center - size/2 and center + size/2. For this, i need to 
+		
+			return result;
+		}
 	}
 }

@@ -14,7 +14,7 @@ namespace Utils.Mesher
 			return definition != null && definition.Data.Collision == Voxel.Model.Collision.Solid;
 		}
 	
-		public static List<Mesh> Build(World.Chunk.Model.Cell[,,] cells)
+		public static List<Mesh> Build(Voxel.Model.Cell[,,] cells)
 		{
 			return new SolidCollisionMesher().BuildMeshes(cells);
 		}

@@ -1,57 +1,46 @@
 using UnityEngine;
 using System;
-using System.Collections.Generic;
+using Utils;
 
 namespace Player
 {
 	[Serializable]
 	public class Service
-	{			
+	{
 		public event Action<World.Chunk.Model.Coordinates> PlayerChunkCoordinateChanged;
-		[SerializeField] private GameObject playerObject = null;
-		private Vector3Int lastBushGrid = new Vector3Int(0, 0, 0);
-		private World.Chunk.Model.Coordinates currentChunk = new World.Chunk.Model.Coordinates(0, 0, 0);
-		private Battle.EncounterTable.Model.Data currentEncounterTable = null;
+		private readonly Player.Model.Data playerData = new Player.Model.Data();
+		private Vector3Int lastBushCell = new Vector3Int();
+		private World.Chunk.Model.Coordinates lastChunkCoordinates = new World.Chunk.Model.Coordinates();
+
+		public Player.Model.Data PlayerData => playerData;
 
 		public void Init()
 		{
-			
+			lastBushCell = new Vector3Int(playerData.CellPosition.x - 1, playerData.CellPosition.y - 1, playerData.CellPosition.z - 1);
+			lastChunkCoordinates = new World.Chunk.Model.Coordinates(playerData.ChunkCoordinates.X - 1, playerData.ChunkCoordinates.Y - 1, playerData.ChunkCoordinates.Z - 1);
 		}
 
-		public void NotifyChunkCoordinateChanged()
+		public void UpdatePlayerPosition(Vector3 worldPosition)
 		{
-			if (playerObject == null)
-			{
-				Debug.LogError("Player.Service: playerObject is not assigned.");
-				return;
-			}
+			playerData.UpdateFromWorld(worldPosition);
 
-			World.Chunk.Model.Coordinates coord = World.Chunk.Model.Coordinates.FromWorld(playerObject.transform.position);
-			currentChunk = coord;
-			currentEncounterTable = Utils.ServiceLocator.Instance.EncounterService.GetEncounterTable(coord);
-			PlayerChunkCoordinateChanged?.Invoke(coord);
+			if (!lastChunkCoordinates.Equals(playerData.ChunkCoordinates))
+			{
+				lastChunkCoordinates = playerData.ChunkCoordinates;
+				PlayerChunkCoordinateChanged?.Invoke(playerData.ChunkCoordinates);
+			}
 		}
 
 		public void NotifyPlayerWalkingInBush()
 		{
-			if (playerObject == null)
-			{
-				Debug.LogError("Player.Service: playerObject is not assigned.");
-				return;
-			}
-
-			Vector3Int grid = Vector3Int.FloorToInt(playerObject.transform.position);
-			if (grid == lastBushGrid || currentEncounterTable == null)
+			if (playerData.CellPosition == lastBushCell)
 			{
 				return;
 			}
-			lastBushGrid = grid;
 
-			float roll = UnityEngine.Random.value;
-			if (roll <= currentEncounterTable.FightChance)
-			{
-				Debug.Log($"Encounter triggered (roll {roll:0.000} <= {currentEncounterTable.FightChance:0.000}).");
-			}
+			lastBushCell = playerData.CellPosition;
+
+			ServiceLocator.Instance.EncounterService.TryStartEncounter();
 		}
 	}
 }

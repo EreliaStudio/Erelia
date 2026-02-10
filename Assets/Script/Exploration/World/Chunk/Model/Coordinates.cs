@@ -8,6 +8,11 @@ namespace World.Chunk.Model
 		public int Y;
 		public int Z;
 
+		public Coordinates()
+		{
+			
+		}
+		
 		public Coordinates(int x, int y, int z)
 		{
 			X = x;

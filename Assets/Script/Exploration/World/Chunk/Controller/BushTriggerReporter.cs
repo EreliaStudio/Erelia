@@ -12,7 +12,6 @@ namespace World.Controller
 
 		private void HandleTrigger(Collider other)
 		{
-			Debug.Log("Coucou");
 			if (other == null || !other.CompareTag("Player"))
 			{
 				return;

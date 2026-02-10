@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace World
 {
-	public class WorldManager : MonoBehaviour
+	public class Manager : MonoBehaviour
 	{
 		[SerializeField] private Player.Controller.KeyboardMotionController playerController = null;
 		[SerializeField] private Vector3Int viewRange = new Vector3Int(1, 0, 1);

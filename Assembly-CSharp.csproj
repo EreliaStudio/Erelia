@@ -53,6 +53,9 @@
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\CubeVoxel.cs" />
     <Compile Include="Assets\Script\Exploration\Player\Controller\KeyboardMotionController.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Model\Face.cs" />
+    <Compile Include="Assets\Script\Battle\Board\Manager.cs" />
+    <Compile Include="Assets\Script\Battle\Board\Service.cs" />
+    <Compile Include="Assets\Script\Battle\Board\View\BoardView.cs" />
     <Compile Include="Assets\Script\Exploration\World\Service.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\Shape.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\View\ChunkView.cs" />
@@ -61,9 +64,11 @@
     <Compile Include="Assets\Script\Utils\Mesher\BushChunkCollider.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushTriggerReporter.cs" />
     <Compile Include="Assets\Script\Utils\Mesher\SolidCollisionMesher.cs" />
+    <Compile Include="Assets\Script\Battle\Board\Model\CellMask.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\StairVoxel.cs" />
     <Compile Include="Assets\Script\Generic\Camera\Controller\OrbitingController.cs" />
     <Compile Include="Assets\Script\Generic\ServiceLocator.cs" />
+    <Compile Include="Assets\Script\Battle\Board\Controller\BoardController.cs" />
     <Compile Include="Assets\Script\Exploration\Utils\SpriteUv.cs" />
     <Compile Include="Assets\Script\Utils\Mesher\Mesher.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Model\FaceByOrientationKey.cs" />
@@ -80,9 +85,9 @@
     <Compile Include="Assets\Script\Exploration\Player\Model\Data.cs" />
     <Compile Include="Assets\Script\Battle\Board\Model\Data.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\CrossPlaneVoxel.cs" />
-    <Compile Include="Assets\Script\Exploration\World\WorldManager.cs" />
     <Compile Include="Assets\Script\Generic\SceneLoader.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\SlabVoxel.cs" />
+    <Compile Include="Assets\Script\Battle\Board\Model\Cell.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Model\Cell.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Model\Definition.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Coordinates.cs" />
@@ -90,6 +95,7 @@
     <Compile Include="Assets\Script\Exploration\Utils\Geometry.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Data.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushCollisionMesher.cs" />
+    <Compile Include="Assets\Script\Exploration\World\Manager.cs" />
     <Compile Include="Assets\Script\Exploration\World\Controller\WorldController.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\SlopeVoxel.cs" />
   </ItemGroup>

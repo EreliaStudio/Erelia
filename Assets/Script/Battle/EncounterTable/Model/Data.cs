@@ -6,7 +6,9 @@ namespace Battle.EncounterTable.Model
 	public class Data : ScriptableObject
 	{
 		[SerializeField, Range(0f, 1f)] private float fightChance = 0.1f;
-
 		public float FightChance => fightChance;
+		
+		[SerializeField] private Vector2Int boardArea = new Vector2Int(10, 10);
+		public Vector2Int BoardArea => boardArea;
 	}
 }

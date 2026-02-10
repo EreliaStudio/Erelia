@@ -14,8 +14,6 @@ namespace Player.Controller
 
 		private PlayerInput playerInput;
 		private InputAction moveAction;
-		private World.Chunk.Model.Coordinates lastChunkCoordinates = null;
-
 		private void Awake()
 		{
 			playerInput = GetComponent<PlayerInput>();
@@ -48,7 +46,7 @@ namespace Player.Controller
 		private void Update()
 		{
 			ApplyMovement();
-			UpdateChunkCoordinates();
+			ServiceLocator.Instance.PlayerService.UpdatePlayerPosition(transform.position);
 		}
 
 		private void ApplyMovement()
@@ -93,18 +91,5 @@ namespace Player.Controller
 			moveAction = playerInput.actions.FindAction($"Player/{moveActionName}", false)
 				?? playerInput.actions.FindAction(moveActionName, false);
 		}
-
-		private void UpdateChunkCoordinates()
-		{
-			World.Chunk.Model.Coordinates current = World.Chunk.Model.Coordinates.FromWorld(transform.position);
-			if (lastChunkCoordinates != null && lastChunkCoordinates.Equals(current))
-			{
-				return;
-			}
-
-			lastChunkCoordinates = current;
-			ServiceLocator.Instance.PlayerService.NotifyChunkCoordinateChanged();
-		}
-
 	}
 }

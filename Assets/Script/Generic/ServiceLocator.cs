@@ -21,6 +21,9 @@ namespace Utils
 
 		[SerializeField] private Exploration.Encounter.Service encounterService = new Exploration.Encounter.Service();
 		public Exploration.Encounter.Service EncounterService => encounterService;
+
+		[SerializeField] private Battle.Board.Service battleBoardService = new Battle.Board.Service();
+		public Battle.Board.Service BattleBoardService => battleBoardService;
 		
 		[SerializeField] private SceneLoader sceneLoader = new SceneLoader();
 		public SceneLoader SceneLoader => sceneLoader;
@@ -40,6 +43,7 @@ namespace Utils
 			voxelService.Init();
 			playerService.Init();
 			encounterService.Init();
+			battleBoardService.Init();
 		}
 	}
 }

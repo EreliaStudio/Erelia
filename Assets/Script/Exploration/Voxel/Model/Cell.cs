@@ -1,4 +1,4 @@
-namespace World.Chunk.Model
+namespace Voxel.Model
 {
 	public class Cell
 	{
