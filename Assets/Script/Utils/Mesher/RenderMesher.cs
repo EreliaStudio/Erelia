@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Utils;
 
-namespace World.Chunk.View
+namespace Utils.Mesher
 {
-	public class RenderMesher : World.Chunk.Core.Mesher
+	public class RenderMesher : Utils.Mesher.Mesher
 	{
 		[NonSerialized] private readonly List<Vector3> vertices = new List<Vector3>();
 		[NonSerialized] private readonly List<int> triangles = new List<int>();

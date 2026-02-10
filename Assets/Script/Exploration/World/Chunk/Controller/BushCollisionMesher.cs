@@ -5,7 +5,7 @@ using UnityEngine;
 namespace World.Chunk.Controller
 {
 	[Serializable]
-	public class BushCollisionMesher : World.Chunk.Controller.CollisionMesher
+	public class BushCollisionMesher : Utils.Mesher.CollisionMesher
 	{
 		protected override string MeshName => "BushCollisionMesh";
 

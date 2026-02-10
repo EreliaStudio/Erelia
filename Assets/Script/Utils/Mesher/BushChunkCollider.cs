@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace World.Controller
+namespace Utils.Mesher
 {
 	public class BushChunkCollider : MonoBehaviour
 	{
-		[SerializeField] private Transform root = null;
-		[SerializeField] private bool isTrigger = true;
+		private Transform root = null;
 
 		private readonly List<GameObject> colliderObjects = new List<GameObject>();
 
@@ -30,11 +29,6 @@ namespace World.Controller
 			var go = new GameObject("BushColliders");
 			go.transform.SetParent(transform, false);
 			root = go.transform;
-		}
-
-		public void Initialize(World.Chunk.Model.Data data)
-		{
-			Rebuild(data);
 		}
 
 		public void Rebuild(World.Chunk.Model.Data data)
@@ -64,11 +58,8 @@ namespace World.Controller
 			go.transform.SetParent(root, false);
 			var collider = go.AddComponent<MeshCollider>();
 			collider.sharedMesh = mesh;
-			if (isTrigger)
-			{
-				collider.convex = true;
-			}
-			collider.isTrigger = isTrigger;
+			collider.convex = true;
+			collider.isTrigger = true;
 			go.AddComponent<BushTriggerReporter>();
 			colliderObjects.Add(go);
 		}

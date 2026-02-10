@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using Utils;
 
-namespace World.Chunk.Controller
+namespace Utils.Mesher
 {
 	[Serializable]
-	public abstract class CollisionMesher : World.Chunk.Core.Mesher
+	public abstract class CollisionMesher : Utils.Mesher.Mesher
 	{
 		private const int MaxVerticesPerMesh = 65000;
 		private const float MergeEpsilon = 0.001f;

@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace World.Chunk.Controller
+namespace Utils.Mesher
 {
 	[Serializable]
-	public class SolidCollisionMesher : World.Chunk.Controller.CollisionMesher
+	public class SolidCollisionMesher : Utils.Mesher.CollisionMesher
 	{
 		protected override string MeshName => "SolidCollisionMesh";
 

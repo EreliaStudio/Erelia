@@ -5,7 +5,7 @@ namespace World.Controller
 	public class ChunkController : MonoBehaviour
 	{
 		[SerializeField] private SolidChunkCollider solidCollider = null;
-		[SerializeField] private BushChunkCollider bushCollider = null;
+		[SerializeField] private Utils.Mesher.BushChunkCollider bushCollider = null;
 
 		public World.Chunk.Model.Coordinates Coordinates { get; private set; }
 
@@ -34,12 +34,12 @@ namespace World.Controller
 
 			if (bushCollider == null)
 			{
-				bushCollider = GetComponentInChildren<BushChunkCollider>();
+				bushCollider = GetComponentInChildren<Utils.Mesher.BushChunkCollider>();
 				if (bushCollider == null)
 				{
 					var go = new GameObject("BushChunkCollider");
 					go.transform.SetParent(transform, false);
-					bushCollider = go.AddComponent<BushChunkCollider>();
+					bushCollider = go.AddComponent<Utils.Mesher.BushChunkCollider>();
 				}
 			}
 		}

@@ -31,11 +31,6 @@ namespace World.Controller
 			root = go.transform;
 		}
 
-		public void Initialize(World.Chunk.Model.Data data)
-		{
-			Rebuild(data);
-		}
-
 		public void Rebuild(World.Chunk.Model.Data data)
 		{
 			Clear();
@@ -45,7 +40,7 @@ namespace World.Controller
 				return;
 			}
 
-			List<Mesh> meshes = World.Chunk.Controller.SolidCollisionMesher.Build(data.Cells);
+			List<Mesh> meshes = Utils.Mesher.SolidCollisionMesher.Build(data.Cells);
 			for (int i = 0; i < meshes.Count; i++)
 			{
 				CreateCollider(meshes[i]);
