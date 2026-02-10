@@ -48,18 +48,19 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.1f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Script\Battle\Board\View\Presenter.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Service.cs" />
+    <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\Collider.cs" />
     <Compile Include="Assets\Script\Battle\EncounterTable\Model\Data.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\CubeVoxel.cs" />
+    <Compile Include="Assets\Script\Exploration\World\View\Presenter.cs" />
     <Compile Include="Assets\Script\Exploration\Player\Controller\KeyboardMotionController.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Model\Face.cs" />
     <Compile Include="Assets\Script\Battle\Board\Manager.cs" />
     <Compile Include="Assets\Script\Battle\Board\Service.cs" />
-    <Compile Include="Assets\Script\Battle\Board\View\BoardView.cs" />
     <Compile Include="Assets\Script\Exploration\World\Service.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\Shape.cs" />
     <Compile Include="Assets\Script\Utils\Mesher\BushCollisionMesher.cs" />
-    <Compile Include="Assets\Script\Exploration\World\Chunk\View\ChunkView.cs" />
     <Compile Include="Assets\Script\Utils\Mesher\CollisionMesher.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Model\enums.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushTriggerReporter.cs" />
@@ -68,26 +69,26 @@
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\StairVoxel.cs" />
     <Compile Include="Assets\Script\Generic\Camera\Controller\OrbitingController.cs" />
     <Compile Include="Assets\Script\Generic\ServiceLocator.cs" />
-    <Compile Include="Assets\Script\Battle\Board\Controller\BoardController.cs" />
     <Compile Include="Assets\Script\Exploration\Utils\SpriteUv.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushChunkCollider.cs" />
     <Compile Include="Assets\Script\Utils\Mesher\Mesher.cs" />
+    <Compile Include="Assets\Script\Battle\Board\Controller\Collider.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Model\FaceByOrientationKey.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
-    <Compile Include="Assets\Script\Exploration\World\View\WorldView.cs" />
     <Compile Include="Assets\Script\Exploration\Player\Service.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Model\Data.cs" />
     <Compile Include="Assets\Script\Exploration\Encounter\Service.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Generator.cs" />
-    <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\ChunkController.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\IGenerator.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\SolidChunkCollider.cs" />
     <Compile Include="Assets\Script\Exploration\Utils\PolygonMerge.cs" />
     <Compile Include="Assets\Script\Exploration\Player\Model\Data.cs" />
     <Compile Include="Assets\Script\Battle\Board\Model\Data.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\CrossPlaneVoxel.cs" />
+    <Compile Include="Assets\Script\Exploration\World\Controller\Collider.cs" />
     <Compile Include="Assets\Script\Generic\SceneLoader.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\SlabVoxel.cs" />
+    <Compile Include="Assets\Script\Exploration\World\Chunk\View\Presenter.cs" />
     <Compile Include="Assets\Script\Battle\Board\Model\Cell.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Model\Cell.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Model\Definition.cs" />
@@ -96,7 +97,6 @@
     <Compile Include="Assets\Script\Exploration\Utils\Geometry.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Data.cs" />
     <Compile Include="Assets\Script\Exploration\World\Manager.cs" />
-    <Compile Include="Assets\Script\Exploration\World\Controller\WorldController.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\SlopeVoxel.cs" />
   </ItemGroup>
   <ItemGroup>

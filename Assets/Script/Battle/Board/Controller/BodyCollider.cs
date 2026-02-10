@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Battle.Board.Controller
 {
-	public class BoardController : MonoBehaviour
+	public class BodyCollider : MonoBehaviour
 	{
 		private void Awake()
 		{

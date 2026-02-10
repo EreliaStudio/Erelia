@@ -1,42 +1,50 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace World.Controller
+namespace World.View
 {
-	public class WorldController : MonoBehaviour
+	public class Presenter : MonoBehaviour
 	{
+		[SerializeField] private Material voxelMaterial = null;
 		[SerializeField] private Player.Controller.KeyboardMotionController playerController = null;
 		[SerializeField] private Vector3Int viewRange = new Vector3Int(1, 0, 1);
 
-		private readonly Dictionary<World.Chunk.Model.Coordinates, World.Chunk.Controller.ChunkController> controllers = new Dictionary<World.Chunk.Model.Coordinates, World.Chunk.Controller.ChunkController>();
+		private readonly Dictionary<World.Chunk.Model.Coordinates, World.Chunk.View.Presenter> views = new Dictionary<World.Chunk.Model.Coordinates, World.Chunk.View.Presenter>();
 
 		private void Awake()
 		{
 			
 		}
 
-		public void Configure(Player.Controller.KeyboardMotionController controller, Vector3Int range)
+		public void Configure(Material material, Player.Controller.KeyboardMotionController controller, Vector3Int range)
 		{
+			voxelMaterial = material;
 			playerController = controller;
 			viewRange = range;
 		}
 
 		private void Start()
 		{
-			RefreshActive();
+			RefreshVisible();
 		}
 
-		public void RefreshActive()
+		public void RefreshVisible()
 		{
 			if (Utils.ServiceLocator.Instance.WorldService == null)
 			{
-				Debug.LogError("WorldController: World.Service is not available (ServiceLocator missing).");
+				Debug.LogError("World.Presenter: World.Service is not available (ServiceLocator missing).");
+				return;
+			}
+
+			if (voxelMaterial == null)
+			{
+				Debug.LogError("World.Presenter: Chunk material is not assigned.");
 				return;
 			}
 
 			if (playerController == null)
 			{
-				Debug.LogError("WorldController: Player controller is not assigned.");
+				Debug.LogError("World.Presenter: Player controller is not assigned.");
 				return;
 			}
 
@@ -57,7 +65,7 @@ namespace World.Controller
 			}
 
 			var toRemove = new List<World.Chunk.Model.Coordinates>();
-			foreach (KeyValuePair<World.Chunk.Model.Coordinates, World.Chunk.Controller.ChunkController> pair in controllers)
+			foreach (KeyValuePair<World.Chunk.Model.Coordinates, World.Chunk.View.Presenter> pair in views)
 			{
 				if (!needed.Contains(pair.Key))
 				{
@@ -71,9 +79,9 @@ namespace World.Controller
 			}
 		}
 
-		public World.Chunk.Controller.ChunkController EnsureChunk(World.Chunk.Model.Coordinates coord)
+		public World.Chunk.View.Presenter EnsureChunk(World.Chunk.Model.Coordinates coord)
 		{
-			if (controllers.TryGetValue(coord, out World.Chunk.Controller.ChunkController existing))
+			if (views.TryGetValue(coord, out World.Chunk.View.Presenter existing))
 			{
 				return existing;
 			}
@@ -84,7 +92,7 @@ namespace World.Controller
 				return null;
 			}
 
-			var chunkObject = new GameObject("ChunkController " + coord);
+			var chunkObject = new GameObject("ChunkPresenter " + coord);
 			chunkObject.transform.SetParent(transform, false);
 			chunkObject.transform.localPosition = new Vector3(
 				coord.X * World.Chunk.Model.Data.SizeX,
@@ -92,26 +100,26 @@ namespace World.Controller
 				coord.Z * World.Chunk.Model.Data.SizeZ
 			);
 
-			var controller = chunkObject.AddComponent<World.Chunk.Controller.ChunkController>();
-			controller.Initialize(coord, data);
-			controllers.Add(coord, controller);
+			var view = chunkObject.AddComponent<World.Chunk.View.Presenter>();
+			view.Initialize(coord, data, voxelMaterial);
+			views.Add(coord, view);
 
-			return controller;
+			return view;
 		}
 
 		public void RemoveChunk(World.Chunk.Model.Coordinates coord)
 		{
-			if (!controllers.TryGetValue(coord, out World.Chunk.Controller.ChunkController controller))
+			if (!views.TryGetValue(coord, out World.Chunk.View.Presenter view))
 			{
 				return;
 			}
 
-			if (controller != null)
+			if (view != null)
 			{
-				Destroy(controller.gameObject);
+				Destroy(view.gameObject);
 			}
 
-			controllers.Remove(coord);
+			views.Remove(coord);
 		}
 	}
 }

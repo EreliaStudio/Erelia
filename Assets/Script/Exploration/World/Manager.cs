@@ -8,13 +8,13 @@ namespace World
 		[SerializeField] private Vector3Int viewRange = new Vector3Int(1, 0, 1);
 		[SerializeField] private Material voxelMaterial = null;
 
-		private World.View.WorldView worldView = null;
-		private World.Controller.WorldController worldController = null;
+		private World.View.Presenter worldPresenter = null;
+		private World.Controller.BodyCollider worldCollider = null;
 
 		private void Awake()
 		{
-			InitializeWorldView();
-			InitializeWorldController();
+			InitializeWorldPresenter();
+			InitializeWorldCollider();
 		}
 
 		private void OnEnable()
@@ -29,24 +29,24 @@ namespace World
 
 		private void HandlePlayerChunkChanged(World.Chunk.Model.Coordinates coord)
 		{
-			worldView.RefreshVisible();
-			worldController.RefreshActive();
+			worldPresenter.RefreshVisible();
+			worldCollider.RefreshActive();
 		}
 
-		private void InitializeWorldView()
+		private void InitializeWorldPresenter()
 		{
-			var go = new GameObject("WorldView");
+			var go = new GameObject("WorldPresenter");
 			go.transform.SetParent(transform, false);
-			worldView = go.AddComponent<World.View.WorldView>();
-			worldView.Configure(voxelMaterial, playerController, viewRange);
+			worldPresenter = go.AddComponent<World.View.Presenter>();
+			worldPresenter.Configure(voxelMaterial, playerController, viewRange);
 		}
 
-		private void InitializeWorldController()
+		private void InitializeWorldCollider()
 		{
-			var go = new GameObject("WorldController");
+			var go = new GameObject("WorldCollider");
 			go.transform.SetParent(transform, false);
-			worldController = go.AddComponent<World.Controller.WorldController>();
-			worldController.Configure(playerController, viewRange);
+			worldCollider = go.AddComponent<World.Controller.BodyCollider>();
+			worldCollider.Configure(playerController, viewRange);
 		}
 	}
 }

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace World.Chunk.View
 {
-	public class ChunkView : MonoBehaviour
+	public class Presenter : MonoBehaviour
 	{
 		[SerializeField] private MeshFilter meshFilter = null;
 		[SerializeField] private MeshRenderer meshRenderer = null;
@@ -56,7 +56,7 @@ namespace World.Chunk.View
 			if (data == null)
 			{
 				meshFilter.sharedMesh = null;
-				Debug.LogWarning("ChunkView: Rebuild received null data for " + Coordinates, this);
+				Debug.LogWarning("Chunk.Presenter: Rebuild received null data for " + Coordinates, this);
 				return;
 			}
 

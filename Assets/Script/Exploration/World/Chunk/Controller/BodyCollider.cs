@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace World.Chunk.Controller
 {
-	public class ChunkController : MonoBehaviour
+	public class BodyCollider : MonoBehaviour
 	{
 		[SerializeField] private World.Chunk.Controller.SolidChunkCollider solidCollider = null;
 		[SerializeField] private World.Chunk.Controller.BushChunkCollider bushCollider = null;

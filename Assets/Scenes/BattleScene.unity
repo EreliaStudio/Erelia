@@ -220,6 +220,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1185092665}
+  - component: {fileID: 1185092666}
   m_Layer: 0
   m_Name: BoardManager
   m_TagString: Untagged
@@ -242,6 +243,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1185092666
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1185092664}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7909f1fd2c2bdc84a8ee56f53d3de623, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Battle.Board.Manager
+  voxelMaterial: {fileID: 2100000, guid: 101af6d7eebbe5b44b9190b84c523d1d, type: 2}
+  cellMaskMaterial: {fileID: 2100000, guid: 89d476c2549302342970a69d01d5d015, type: 2}
 --- !u!1 &2079075345
 GameObject:
   m_ObjectHideFlags: 0

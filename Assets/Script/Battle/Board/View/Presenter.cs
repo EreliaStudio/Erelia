@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Battle.Board.View
 {
-	public class BoardView : MonoBehaviour
+	public class Presenter : MonoBehaviour
 	{
 		[SerializeField] private Material voxelMaterial = null;
 		[SerializeField] private Material cellMaskMaterial = null;

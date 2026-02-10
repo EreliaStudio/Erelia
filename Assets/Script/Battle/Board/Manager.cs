@@ -7,29 +7,29 @@ namespace Battle.Board
 		[SerializeField] private Material voxelMaterial = null;
 		[SerializeField] private Material cellMaskMaterial = null;
 
-		private Battle.Board.View.BoardView boardView = null;
-		private Battle.Board.Controller.BoardController boardController = null;
+		private Battle.Board.View.Presenter boardPresenter = null;
+		private Battle.Board.Controller.BodyCollider boardCollider = null;
 
 		private void Awake()
 		{
-			InitializeBoardView();
-			InitializeBoardController();
+			InitializeBoardPresenter();
+			InitializeBoardCollider();
 		}
 
-		private void InitializeBoardView()
+		private void InitializeBoardPresenter()
 		{
-			var go = new GameObject("BoardView");
+			var go = new GameObject("BoardPresenter");
 			go.transform.SetParent(transform, false);
-			boardView = go.AddComponent<Board.View.BoardView>();
-			boardView.Configure(voxelMaterial, cellMaskMaterial);
+			boardPresenter = go.AddComponent<Board.View.Presenter>();
+			boardPresenter.Configure(voxelMaterial, cellMaskMaterial);
 		}
 
-		private void InitializeBoardController()
+		private void InitializeBoardCollider()
 		{
-			var go = new GameObject("BoardController");
+			var go = new GameObject("BoardCollider");
 			go.transform.SetParent(transform, false);
-			boardController = go.AddComponent<Board.Controller.BoardController>();
-			boardController.Configure();
+			boardCollider = go.AddComponent<Board.Controller.BodyCollider>();
+			boardCollider.Configure();
 		}
 	}
 }
