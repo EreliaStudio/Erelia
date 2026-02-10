@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace World.Controller
+namespace World.Chunk.Controller
 {
 	public class SolidChunkCollider : MonoBehaviour
 	{

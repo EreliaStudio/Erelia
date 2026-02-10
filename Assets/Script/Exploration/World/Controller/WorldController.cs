@@ -8,7 +8,7 @@ namespace World.Controller
 		[SerializeField] private Player.Controller.KeyboardMotionController playerController = null;
 		[SerializeField] private Vector3Int viewRange = new Vector3Int(1, 0, 1);
 
-		private readonly Dictionary<World.Chunk.Model.Coordinates, World.Controller.ChunkController> controllers = new Dictionary<World.Chunk.Model.Coordinates, World.Controller.ChunkController>();
+		private readonly Dictionary<World.Chunk.Model.Coordinates, World.Chunk.Controller.ChunkController> controllers = new Dictionary<World.Chunk.Model.Coordinates, World.Chunk.Controller.ChunkController>();
 
 		private void Awake()
 		{
@@ -57,7 +57,7 @@ namespace World.Controller
 			}
 
 			var toRemove = new List<World.Chunk.Model.Coordinates>();
-			foreach (KeyValuePair<World.Chunk.Model.Coordinates, World.Controller.ChunkController> pair in controllers)
+			foreach (KeyValuePair<World.Chunk.Model.Coordinates, World.Chunk.Controller.ChunkController> pair in controllers)
 			{
 				if (!needed.Contains(pair.Key))
 				{
@@ -71,9 +71,9 @@ namespace World.Controller
 			}
 		}
 
-		public World.Controller.ChunkController EnsureChunk(World.Chunk.Model.Coordinates coord)
+		public World.Chunk.Controller.ChunkController EnsureChunk(World.Chunk.Model.Coordinates coord)
 		{
-			if (controllers.TryGetValue(coord, out World.Controller.ChunkController existing))
+			if (controllers.TryGetValue(coord, out World.Chunk.Controller.ChunkController existing))
 			{
 				return existing;
 			}
@@ -92,7 +92,7 @@ namespace World.Controller
 				coord.Z * World.Chunk.Model.Data.SizeZ
 			);
 
-			var controller = chunkObject.AddComponent<World.Controller.ChunkController>();
+			var controller = chunkObject.AddComponent<World.Chunk.Controller.ChunkController>();
 			controller.Initialize(coord, data);
 			controllers.Add(coord, controller);
 
@@ -101,7 +101,7 @@ namespace World.Controller
 
 		public void RemoveChunk(World.Chunk.Model.Coordinates coord)
 		{
-			if (!controllers.TryGetValue(coord, out World.Controller.ChunkController controller))
+			if (!controllers.TryGetValue(coord, out World.Chunk.Controller.ChunkController controller))
 			{
 				return;
 			}

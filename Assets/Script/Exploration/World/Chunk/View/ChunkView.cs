@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace World.View
+namespace World.Chunk.View
 {
 	public class ChunkView : MonoBehaviour
 	{

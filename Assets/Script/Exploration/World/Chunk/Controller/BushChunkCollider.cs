@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Utils.Mesher
+namespace World.Chunk.Controller
 {
 	public class BushChunkCollider : MonoBehaviour
 	{
@@ -40,7 +40,7 @@ namespace Utils.Mesher
 				return;
 			}
 
-			List<Mesh> meshes = World.Chunk.Controller.BushCollisionMesher.Build(data.Cells);
+			List<Mesh> meshes = Utils.Mesher.BushCollisionMesher.Build(data.Cells);
 			for (int i = 0; i < meshes.Count; i++)
 			{
 				CreateCollider(meshes[i]);
@@ -60,7 +60,7 @@ namespace Utils.Mesher
 			collider.sharedMesh = mesh;
 			collider.convex = true;
 			collider.isTrigger = true;
-			go.AddComponent<World.Controller.BushTriggerReporter>();
+			go.AddComponent<World.Chunk.Controller.BushTriggerReporter>();
 			colliderObjects.Add(go);
 		}
 

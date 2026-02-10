@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace World.Chunk.Controller
+namespace Utils.Mesher
 {
 	[Serializable]
 	public class BushCollisionMesher : Utils.Mesher.CollisionMesher

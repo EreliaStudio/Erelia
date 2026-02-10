@@ -6,7 +6,7 @@ namespace World
 	{
 		[SerializeField] private Player.Controller.KeyboardMotionController playerController = null;
 		[SerializeField] private Vector3Int viewRange = new Vector3Int(1, 0, 1);
-		[SerializeField] private Material chunkMaterial = null;
+		[SerializeField] private Material voxelMaterial = null;
 
 		private World.View.WorldView worldView = null;
 		private World.Controller.WorldController worldController = null;
@@ -38,7 +38,7 @@ namespace World
 			var go = new GameObject("WorldView");
 			go.transform.SetParent(transform, false);
 			worldView = go.AddComponent<World.View.WorldView>();
-			worldView.Configure(chunkMaterial, playerController, viewRange);
+			worldView.Configure(voxelMaterial, playerController, viewRange);
 		}
 
 		private void InitializeWorldController()

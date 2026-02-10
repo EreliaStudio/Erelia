@@ -1,11 +1,11 @@
 using UnityEngine;
 
-namespace World.Controller
+namespace World.Chunk.Controller
 {
 	public class ChunkController : MonoBehaviour
 	{
-		[SerializeField] private SolidChunkCollider solidCollider = null;
-		[SerializeField] private Utils.Mesher.BushChunkCollider bushCollider = null;
+		[SerializeField] private World.Chunk.Controller.SolidChunkCollider solidCollider = null;
+		[SerializeField] private World.Chunk.Controller.BushChunkCollider bushCollider = null;
 
 		public World.Chunk.Model.Coordinates Coordinates { get; private set; }
 
@@ -34,12 +34,12 @@ namespace World.Controller
 
 			if (bushCollider == null)
 			{
-				bushCollider = GetComponentInChildren<Utils.Mesher.BushChunkCollider>();
+				bushCollider = GetComponentInChildren<World.Chunk.Controller.BushChunkCollider>();
 				if (bushCollider == null)
 				{
 					var go = new GameObject("BushChunkCollider");
 					go.transform.SetParent(transform, false);
-					bushCollider = go.AddComponent<Utils.Mesher.BushChunkCollider>();
+					bushCollider = go.AddComponent<World.Chunk.Controller.BushChunkCollider>();
 				}
 			}
 		}

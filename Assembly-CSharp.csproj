@@ -58,10 +58,10 @@
     <Compile Include="Assets\Script\Battle\Board\View\BoardView.cs" />
     <Compile Include="Assets\Script\Exploration\World\Service.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\Shape.cs" />
+    <Compile Include="Assets\Script\Utils\Mesher\BushCollisionMesher.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\View\ChunkView.cs" />
     <Compile Include="Assets\Script\Utils\Mesher\CollisionMesher.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Model\enums.cs" />
-    <Compile Include="Assets\Script\Utils\Mesher\BushChunkCollider.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushTriggerReporter.cs" />
     <Compile Include="Assets\Script\Utils\Mesher\SolidCollisionMesher.cs" />
     <Compile Include="Assets\Script\Battle\Board\Model\CellMask.cs" />
@@ -70,6 +70,7 @@
     <Compile Include="Assets\Script\Generic\ServiceLocator.cs" />
     <Compile Include="Assets\Script\Battle\Board\Controller\BoardController.cs" />
     <Compile Include="Assets\Script\Exploration\Utils\SpriteUv.cs" />
+    <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushChunkCollider.cs" />
     <Compile Include="Assets\Script\Utils\Mesher\Mesher.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Model\FaceByOrientationKey.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
@@ -94,7 +95,6 @@
     <Compile Include="Assets\Script\Utils\Mesher\RenderMesher.cs" />
     <Compile Include="Assets\Script\Exploration\Utils\Geometry.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Data.cs" />
-    <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushCollisionMesher.cs" />
     <Compile Include="Assets\Script\Exploration\World\Manager.cs" />
     <Compile Include="Assets\Script\Exploration\World\Controller\WorldController.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\SlopeVoxel.cs" />

@@ -5,11 +5,11 @@ namespace World.View
 {
 	public class WorldView : MonoBehaviour
 	{
-		[SerializeField] private Material chunkMaterial = null;
+		[SerializeField] private Material voxelMaterial = null;
 		[SerializeField] private Player.Controller.KeyboardMotionController playerController = null;
 		[SerializeField] private Vector3Int viewRange = new Vector3Int(1, 0, 1);
 
-		private readonly Dictionary<World.Chunk.Model.Coordinates, World.View.ChunkView> views = new Dictionary<World.Chunk.Model.Coordinates, World.View.ChunkView>();
+		private readonly Dictionary<World.Chunk.Model.Coordinates, World.Chunk.View.ChunkView> views = new Dictionary<World.Chunk.Model.Coordinates, World.Chunk.View.ChunkView>();
 
 		private void Awake()
 		{
@@ -18,7 +18,7 @@ namespace World.View
 
 		public void Configure(Material material, Player.Controller.KeyboardMotionController controller, Vector3Int range)
 		{
-			chunkMaterial = material;
+			voxelMaterial = material;
 			playerController = controller;
 			viewRange = range;
 		}
@@ -36,7 +36,7 @@ namespace World.View
 				return;
 			}
 
-			if (chunkMaterial == null)
+			if (voxelMaterial == null)
 			{
 				Debug.LogError("WorldView: Chunk material is not assigned.");
 				return;
@@ -65,7 +65,7 @@ namespace World.View
 			}
 
 			var toRemove = new List<World.Chunk.Model.Coordinates>();
-			foreach (KeyValuePair<World.Chunk.Model.Coordinates, World.View.ChunkView> pair in views)
+			foreach (KeyValuePair<World.Chunk.Model.Coordinates, World.Chunk.View.ChunkView> pair in views)
 			{
 				if (!needed.Contains(pair.Key))
 				{
@@ -79,9 +79,9 @@ namespace World.View
 			}
 		}
 
-		public World.View.ChunkView EnsureChunk(World.Chunk.Model.Coordinates coord)
+		public World.Chunk.View.ChunkView EnsureChunk(World.Chunk.Model.Coordinates coord)
 		{
-			if (views.TryGetValue(coord, out World.View.ChunkView existing))
+			if (views.TryGetValue(coord, out World.Chunk.View.ChunkView existing))
 			{
 				return existing;
 			}
@@ -100,8 +100,8 @@ namespace World.View
 				coord.Z * World.Chunk.Model.Data.SizeZ
 			);
 
-			var view = chunkObject.AddComponent<World.View.ChunkView>();
-			view.Initialize(coord, data, chunkMaterial);
+			var view = chunkObject.AddComponent<World.Chunk.View.ChunkView>();
+			view.Initialize(coord, data, voxelMaterial);
 			views.Add(coord, view);
 
 			return view;
@@ -109,7 +109,7 @@ namespace World.View
 
 		public void RemoveChunk(World.Chunk.Model.Coordinates coord)
 		{
-			if (!views.TryGetValue(coord, out World.View.ChunkView view))
+			if (!views.TryGetValue(coord, out World.Chunk.View.ChunkView view))
 			{
 				return;
 			}

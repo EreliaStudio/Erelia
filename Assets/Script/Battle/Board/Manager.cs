@@ -4,8 +4,8 @@ namespace Battle.Board
 {
 	public class Manager : MonoBehaviour
 	{
-		[SerializeField] private Player.Controller.KeyboardMotionController playerController = null;
-		[SerializeField] private Material chunkMaterial = null;
+		[SerializeField] private Material voxelMaterial = null;
+		[SerializeField] private Material cellMaskMaterial = null;
 
 		private Battle.Board.View.BoardView boardView = null;
 		private Battle.Board.Controller.BoardController boardController = null;
@@ -21,7 +21,7 @@ namespace Battle.Board
 			var go = new GameObject("BoardView");
 			go.transform.SetParent(transform, false);
 			boardView = go.AddComponent<Board.View.BoardView>();
-			boardView.Configure(chunkMaterial, playerController, viewRange);
+			boardView.Configure(voxelMaterial, cellMaskMaterial);
 		}
 
 		private void InitializeBoardController()
@@ -29,7 +29,7 @@ namespace Battle.Board
 			var go = new GameObject("BoardController");
 			go.transform.SetParent(transform, false);
 			boardController = go.AddComponent<Board.Controller.BoardController>();
-			boardController.Configure(playerController, viewRange);
+			boardController.Configure();
 		}
 	}
 }

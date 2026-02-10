@@ -4,16 +4,18 @@ namespace Battle.Board.View
 {
 	public class BoardView : MonoBehaviour
 	{
-		[SerializeField] private Material chunkMaterial = null;
+		[SerializeField] private Material voxelMaterial = null;
+		[SerializeField] private Material cellMaskMaterial = null;
 
 		private void Awake()
 		{
 			
 		}
 
-		public void Configure(Material material)
+		public void Configure(Material inputVoxelMaterial, Material inputCellMaskMaterial)
 		{
-			chunkMaterial = material;
+			voxelMaterial = inputVoxelMaterial;
+			cellMaskMaterial = inputCellMaskMaterial;
 		}
 	}
 }
