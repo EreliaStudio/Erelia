@@ -15,7 +15,7 @@ namespace World.Chunk.Controller
 
 		protected virtual string MeshName => "CollisionMesh";
 
-		public List<Mesh> BuildMeshes(World.Chunk.Model.Cell[,,] cells)
+		public List<Mesh> BuildMeshes(Voxel.Model.Cell[,,] cells)
 		{
 			var meshes = new List<Mesh>();
 			if (cells == null)
@@ -59,14 +59,14 @@ namespace World.Chunk.Controller
 		}
 
 		private void AddVoxel(
-			World.Chunk.Model.Cell[,,] cells,
+			Voxel.Model.Cell[,,] cells,
 			int x,
 			int y,
 			int z,
 			Dictionary<RectKey, List<Rect2D>> rectGroups,
 			List<List<Vector3>> polygons)
 		{
-			if (!TryGetCell(cells, x, y, z, out World.Chunk.Model.Cell cell))
+			if (!TryGetCell(cells, x, y, z, out Voxel.Model.Cell cell))
 			{
 				return;
 			}
@@ -143,7 +143,7 @@ namespace World.Chunk.Controller
 		}
 
 		private void TryAddCubeEnvelopeFace(
-			World.Chunk.Model.Cell[,,] cells,
+			Voxel.Model.Cell[,,] cells,
 			Vector3 position,
 			int x,
 			int y,
@@ -167,7 +167,7 @@ namespace World.Chunk.Controller
 		}
 
 		private void TryAddOuterFace(
-			World.Chunk.Model.Cell[,,] cells,
+			Voxel.Model.Cell[,,] cells,
 			Voxel.View.Shape shape,
 			Voxel.Model.Orientation orientation,
 			Voxel.Model.FlipOrientation flipOrientation,
@@ -214,7 +214,7 @@ namespace World.Chunk.Controller
 
 		private bool IsFaceOccludedByNeighbor(
 			Voxel.Model.Face face,
-			World.Chunk.Model.Cell[,,] cells,
+			Voxel.Model.Cell[,,] cells,
 			int neighborX,
 			int neighborY,
 			int neighborZ,
@@ -229,7 +229,7 @@ namespace World.Chunk.Controller
 		}
 
 		private bool IsFullFaceOccludedByNeighbor(
-			World.Chunk.Model.Cell[,,] cells,
+			Voxel.Model.Cell[,,] cells,
 			int neighborX,
 			int neighborY,
 			int neighborZ,
@@ -256,7 +256,7 @@ namespace World.Chunk.Controller
 		}
 
 		private bool TryGetOccludingNeighborFace(
-			World.Chunk.Model.Cell[,,] cells,
+			Voxel.Model.Cell[,,] cells,
 			int neighborX,
 			int neighborY,
 			int neighborZ,
@@ -265,7 +265,7 @@ namespace World.Chunk.Controller
 		{
 			neighborFace = null;
 
-			if (!TryGetCell(cells, neighborX, neighborY, neighborZ, out World.Chunk.Model.Cell neighborCell))
+			if (!TryGetCell(cells, neighborX, neighborY, neighborZ, out Voxel.Model.Cell neighborCell))
 			{
 				return false;
 			}

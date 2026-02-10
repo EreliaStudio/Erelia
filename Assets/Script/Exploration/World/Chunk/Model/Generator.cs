@@ -41,7 +41,7 @@ namespace World.Chunk.Model
 							}
 						}
 
-						chunk.Cells[x, y, z] = new World.Chunk.Model.Cell(dataId);
+						chunk.Cells[x, y, z] = new Voxel.Model.Cell(dataId);
 					}
 				}
 			}

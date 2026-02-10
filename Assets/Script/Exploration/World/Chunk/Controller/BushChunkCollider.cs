@@ -69,6 +69,7 @@ namespace World.Controller
 				collider.convex = true;
 			}
 			collider.isTrigger = isTrigger;
+			go.AddComponent<BushTriggerReporter>();
 			colliderObjects.Add(go);
 		}
 

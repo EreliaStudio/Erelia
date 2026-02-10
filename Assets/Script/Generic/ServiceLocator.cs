@@ -18,6 +18,9 @@ namespace Utils
 		
 		[SerializeField] private Player.Service playerService = new Player.Service();
 		public Player.Service PlayerService => playerService;
+		
+		[SerializeField] private SceneLoader sceneLoader = new SceneLoader();
+		public SceneLoader SceneLoader => sceneLoader;
 
 		private void Awake()
 		{

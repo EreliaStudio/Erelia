@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Voxel.Model
 {
-	[CreateAssetMenu(menuName = "Voxel/Definition")]
+	[CreateAssetMenu(menuName = "Voxel/Definition", fileName = "NewVoxelDefinition")]
 	public class Definition : ScriptableObject
 	{
 		public enum ShapeType

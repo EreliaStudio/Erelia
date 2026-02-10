@@ -62,6 +62,7 @@
     <Compile Include="Assets\Script\World\Chunk\Model\Generator.cs" />
     <Compile Include="Assets\Script\Object\ServiceLocator.cs" />
     <Compile Include="Assets\Script\Voxel\View\Shapes\Shape.cs" />
+    <Compile Include="Assets\Script\World\Chunk\Controller\BushTriggerReporter.cs" />
     <Compile Include="Assets\Script\Utils\SpriteUv.cs" />
     <Compile Include="Assets\Script\World\Chunk\Model\Data.cs" />
     <Compile Include="Assets\Script\Voxel\View\Shapes\CrossPlaneVoxel.cs" />
