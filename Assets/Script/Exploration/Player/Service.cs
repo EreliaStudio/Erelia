@@ -41,13 +41,11 @@ namespace Player
 			}
 
 			Vector3Int grid = Vector3Int.FloorToInt(playerObject.transform.position);
-			Debug.Log("Player moved thought bush");
 			if (grid == lastBushGrid || currentEncounterTable == null)
 			{
 				return;
 			}
 			lastBushGrid = grid;
-			Debug.Log("Player moved to a new cell in bush");
 
 			float roll = UnityEngine.Random.value;
 			if (roll <= currentEncounterTable.FightChance)
