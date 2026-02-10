@@ -1,6 +1,6 @@
 namespace Utils
 {
-	class SceneLoader
+	public class SceneLoader
 	{
 		public void LoadExplorationScene()
 		{

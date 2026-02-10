@@ -60,7 +60,7 @@ namespace Utils.Mesher
 			collider.sharedMesh = mesh;
 			collider.convex = true;
 			collider.isTrigger = true;
-			go.AddComponent<BushTriggerReporter>();
+			go.AddComponent<World.Controller.BushTriggerReporter>();
 			colliderObjects.Add(go);
 		}
 

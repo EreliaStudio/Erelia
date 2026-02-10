@@ -12,12 +12,13 @@ namespace World.Controller
 
 		private void HandleTrigger(Collider other)
 		{
-			if (other == null || !other.CompareTag("player"))
+			Debug.Log("Coucou");
+			if (other == null || !other.CompareTag("Player"))
 			{
 				return;
 			}
 
-			ServiceLocator.Instance.PlayerService.NotifyPlayerWalkingInBush(other.transform.position);
+			ServiceLocator.Instance.PlayerService.NotifyPlayerWalkingInBush();
 		}
 	}
 }

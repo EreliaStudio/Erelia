@@ -8,6 +8,7 @@ namespace Player
 	public class Service
 	{			
 		public event Action<World.Chunk.Model.Coordinates> PlayerChunkCoordinateChanged;
+		[SerializeField] private GameObject playerObject = null;
 		private Vector3Int lastBushGrid = new Vector3Int(0, 0, 0);
 		private World.Chunk.Model.Coordinates currentChunk = new World.Chunk.Model.Coordinates(0, 0, 0);
 		private Battle.EncounterTable.Model.Data currentEncounterTable = null;
@@ -17,21 +18,36 @@ namespace Player
 			
 		}
 
-		public void NotifyChunkCoordinateChanged(World.Chunk.Model.Coordinates coord)
+		public void NotifyChunkCoordinateChanged()
 		{
+			if (playerObject == null)
+			{
+				Debug.LogError("Player.Service: playerObject is not assigned.");
+				return;
+			}
+
+			World.Chunk.Model.Coordinates coord = World.Chunk.Model.Coordinates.FromWorld(playerObject.transform.position);
 			currentChunk = coord;
 			currentEncounterTable = Utils.ServiceLocator.Instance.EncounterService.GetEncounterTable(coord);
 			PlayerChunkCoordinateChanged?.Invoke(coord);
 		}
 
-		public void NotifyPlayerWalkingInBush(Vector3 worldPosition)
+		public void NotifyPlayerWalkingInBush()
 		{
-			Vector3Int grid = Vector3Int.FloorToInt(worldPosition);
+			if (playerObject == null)
+			{
+				Debug.LogError("Player.Service: playerObject is not assigned.");
+				return;
+			}
+
+			Vector3Int grid = Vector3Int.FloorToInt(playerObject.transform.position);
+			Debug.Log("Player moved thought bush");
 			if (grid == lastBushGrid || currentEncounterTable == null)
 			{
 				return;
 			}
 			lastBushGrid = grid;
+			Debug.Log("Player moved to a new cell in bush");
 
 			float roll = UnityEngine.Random.value;
 			if (roll <= currentEncounterTable.FightChance)

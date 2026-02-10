@@ -14,7 +14,7 @@ namespace World.Chunk.Controller
 			return definition != null && definition.Data.Collision == Voxel.Model.Collision.Bush;
 		}
 
-		public static List<Mesh> Build(Voxel.Model.Cell[,,] cells)
+		public static List<Mesh> Build(World.Chunk.Model.Cell[,,] cells)
 		{
 			return new BushCollisionMesher().BuildMeshes(cells);
 		}

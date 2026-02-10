@@ -10,7 +10,7 @@ namespace Utils.Mesher
 		[NonSerialized] private readonly List<Vector3> vertices = new List<Vector3>();
 		[NonSerialized] private readonly List<int> triangles = new List<int>();
 		[NonSerialized] private readonly List<Vector2> uvs = new List<Vector2>();
-		public Mesh BuildMesh(Voxel.Model.Cell[,,] cells)
+		public Mesh BuildMesh(World.Chunk.Model.Cell[,,] cells)
 		{
 			if (cells == null)
 			{
@@ -44,9 +44,9 @@ namespace Utils.Mesher
 			return mesh;
 		}
 
-		private void AddVoxel(Voxel.Model.Cell[,,] cells, int x, int y, int z)
+		private void AddVoxel(World.Chunk.Model.Cell[,,] cells, int x, int y, int z)
 		{
-			if (!TryGetCell(cells, x, y, z, out Voxel.Model.Cell cell))
+			if (!TryGetCell(cells, x, y, z, out World.Chunk.Model.Cell cell))
 			{
 				return;
 			}
@@ -93,7 +93,7 @@ namespace Utils.Mesher
 		}
 
 		private void TryAddOuterFace(
-			Voxel.Model.Cell[,,] cells,
+			World.Chunk.Model.Cell[,,] cells,
 			Voxel.View.Shape shape,
 			Voxel.Model.Orientation orientation,
 			Voxel.Model.FlipOrientation flipOrientation,
@@ -108,7 +108,7 @@ namespace Utils.Mesher
 			int neighborX = x + offset.x;
 			int neighborY = y + offset.y;
 			int neighborZ = z + offset.z;
-			bool hasNeighbor = TryGetCell(cells, neighborX, neighborY, neighborZ, out Voxel.Model.Cell neighborCell);
+			bool hasNeighbor = TryGetCell(cells, neighborX, neighborY, neighborZ, out World.Chunk.Model.Cell neighborCell);
 			Voxel.Model.Definition neighborDefinition = null;
 			if (hasNeighbor && !TryGetDefinition(neighborCell, out neighborDefinition))
 			{
@@ -161,7 +161,7 @@ namespace Utils.Mesher
 		}
 
 		private bool IsFullyOccludedByNeighbor(
-			Voxel.Model.Cell[,,] cells,
+			World.Chunk.Model.Cell[,,] cells,
 			Voxel.View.Shape neighborShape,
 			int neighborX,
 			int neighborY,
@@ -174,7 +174,7 @@ namespace Utils.Mesher
 				return false;
 			}
 
-			if (!TryGetCell(cells, neighborX, neighborY, neighborZ, out Voxel.Model.Cell neighborCell) || neighborCell == null)
+			if (!TryGetCell(cells, neighborX, neighborY, neighborZ, out World.Chunk.Model.Cell neighborCell) || neighborCell == null)
 			{
 				return false;
 			}
@@ -198,7 +198,7 @@ namespace Utils.Mesher
 			return fullFace != null && fullFace.IsOccludedBy(rotatedOtherFace);
 		}
 	
-		public static Mesh Build(Voxel.Model.Cell[,,] cells)
+		public static Mesh Build(World.Chunk.Model.Cell[,,] cells)
 		{
 			return new RenderMesher().BuildMesh(cells);
 		}

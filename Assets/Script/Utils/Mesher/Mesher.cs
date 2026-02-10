@@ -10,7 +10,7 @@ namespace Utils.Mesher
 	{
 		private static readonly Voxel.Model.FaceByOrientationCollection transformedFaceCache = new Voxel.Model.FaceByOrientationCollection();
 
-		protected bool TryGetCell(Voxel.Model.Cell[,,] cellPack, int x, int y, int z, out Voxel.Model.Cell cell)
+		protected bool TryGetCell(World.Chunk.Model.Cell[,,] cellPack, int x, int y, int z, out World.Chunk.Model.Cell cell)
 		{
 			cell = default;
 			if (cellPack == null ||
@@ -25,7 +25,7 @@ namespace Utils.Mesher
 			return true;
 		}
 
-		protected bool TryGetDefinition(Voxel.Model.Cell cell, out Voxel.Model.Definition definition)
+		protected bool TryGetDefinition(World.Chunk.Model.Cell cell, out Voxel.Model.Definition definition)
 		{
 			definition = null;
 			if (ServiceLocator.Instance.VoxelService.TryGetDefinition(cell.Id, out Voxel.Model.Definition output))

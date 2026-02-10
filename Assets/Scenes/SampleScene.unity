@@ -459,7 +459,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 681371443}
-  - component: {fileID: 681371442}
+  - component: {fileID: 681371444}
   m_Layer: 0
   m_Name: ServiceLocator
   m_TagString: Untagged
@@ -467,7 +467,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &681371442
+--- !u!4 &681371443
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 681371441}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: -0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &681371444
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -476,7 +491,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 681371441}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 256acd9567c66794c942f92798def7a7, type: 3}
+  m_Script: {fileID: 11500000, guid: 5317306506cdd35419909bcbfdbe2ae8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Utils.ServiceLocator
   worldService:
@@ -493,21 +508,10 @@ MonoBehaviour:
       Definition: {fileID: 11400000, guid: b5f40821d664ee44bbda07cd169ac44a, type: 2}
     - Id: 4
       Definition: {fileID: 11400000, guid: 18f477b3604e0044c9d663da833be270, type: 2}
---- !u!4 &681371443
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 681371441}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: -0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  playerService:
+    playerObject: {fileID: 0}
+  encounterService:
+    defaultEncounterTable: {fileID: 11400000, guid: 7b10e152cd297d248b3e76ff8be7708d, type: 2}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -682,7 +686,7 @@ GameObject:
   - component: {fileID: 1558882487}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
