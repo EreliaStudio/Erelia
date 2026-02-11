@@ -11,30 +11,9 @@ namespace World
 		
 		private Dictionary<World.Chunk.Model.Coordinates, World.Chunk.Model.Data> chunks = new Dictionary<World.Chunk.Model.Coordinates, World.Chunk.Model.Data>();
 
-		public Service()
-		{
-			Initialize();
-		}
-
 		public Service(Chunk.Model.IGenerator generator)
 		{
 			this.generator = generator;
-			Initialize();
-		}
-
-		public void Init()
-		{
-			Initialize();
-		}
-
-		private void Initialize()
-		{
-			if (generator == null)
-			{
-				Debug.LogError("World.Service Init failed: generator is not assigned.");
-				return;
-			}
-
 			chunks.Clear();
 		}
 

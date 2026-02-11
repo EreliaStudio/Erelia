@@ -20,27 +20,12 @@ namespace Voxel
 		public IReadOnlyDictionary<int, Voxel.Model.Definition> Data => data;
 		[HideInInspector] public static readonly int AirID = -1;
 
-		public Service()
-		{
-			Initialize();
-		}
-
 		public Service(List<Entry> entries)
 		{
 			if (entries != null)
 			{
 				this.entries = new List<Entry>(entries);
 			}
-			Initialize();
-		}
-		
-		public void Init()
-		{
-			Initialize();
-		}
-
-		private void Initialize()
-		{
 			RebuildDictionary(entries);
 		}
 
