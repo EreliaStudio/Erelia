@@ -48,6 +48,7 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.1f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Script\Utils\ServiceLocatorConfig.cs" />
     <Compile Include="Assets\Script\Battle\Board\Controller\BodyCollider.cs" />
     <Compile Include="Assets\Script\Battle\Board\View\Presenter.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Service.cs" />
@@ -60,7 +61,6 @@
     <Compile Include="Assets\Script\Exploration\Voxel\Model\Face.cs" />
     <Compile Include="Assets\Script\Battle\Board\Manager.cs" />
     <Compile Include="Assets\Script\Battle\Board\Service.cs" />
-    <Compile Include="Assets\Script\Generic\ServiceLocatorBootstrap.cs" />
     <Compile Include="Assets\Script\Exploration\World\Service.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\Shape.cs" />
     <Compile Include="Assets\Script\Utils\Mesher\BushCollisionMesher.cs" />
@@ -70,26 +70,25 @@
     <Compile Include="Assets\Script\Utils\Mesher\SolidCollisionMesher.cs" />
     <Compile Include="Assets\Script\Battle\Board\Model\CellMask.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\StairVoxel.cs" />
-    <Compile Include="Assets\Script\Generic\Camera\Controller\OrbitingController.cs" />
-    <Compile Include="Assets\Script\Generic\ServiceLocator.cs" />
-    <Compile Include="Assets\Script\Generic\ServiceLocatorConfig.cs" />
     <Compile Include="Assets\Script\Exploration\Utils\SpriteUv.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushChunkCollider.cs" />
     <Compile Include="Assets\Script\Utils\Mesher\Mesher.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Model\FaceByOrientationKey.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
+    <Compile Include="Assets\Script\Utils\ServiceLocatorBootstrap.cs" />
     <Compile Include="Assets\Script\Exploration\Player\Service.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Model\Data.cs" />
     <Compile Include="Assets\Script\Exploration\Encounter\Service.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Generator.cs" />
+    <Compile Include="Assets\Script\Utils\ServiceLocator.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\IGenerator.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\SolidChunkCollider.cs" />
     <Compile Include="Assets\Script\Exploration\Utils\PolygonMerge.cs" />
     <Compile Include="Assets\Script\Exploration\Player\Model\Data.cs" />
     <Compile Include="Assets\Script\Battle\Board\Model\Data.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\CrossPlaneVoxel.cs" />
-    <Compile Include="Assets\Script\Generic\SceneLoader.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\SlabVoxel.cs" />
+    <Compile Include="Assets\Script\Utils\Camera\Controller\OrbitingController.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\View\Presenter.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BodyCollider.cs" />
     <Compile Include="Assets\Script\Battle\Board\Model\Cell.cs" />
@@ -101,6 +100,7 @@
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Data.cs" />
     <Compile Include="Assets\Script\Exploration\World\Manager.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\SlopeVoxel.cs" />
+    <Compile Include="Assets\Script\Utils\SceneLoader.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
