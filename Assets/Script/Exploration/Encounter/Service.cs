@@ -9,7 +9,23 @@ namespace Exploration.Encounter
 	{
 		[SerializeField] private Battle.EncounterTable.Model.Data defaultEncounterTable = null;
 
+		public Service()
+		{
+			Initialize();
+		}
+
+		public Service(Battle.EncounterTable.Model.Data defaultEncounterTable)
+		{
+			this.defaultEncounterTable = defaultEncounterTable;
+			Initialize();
+		}
+
 		public void Init()
+		{
+			Initialize();
+		}
+
+		private void Initialize()
 		{
 		}
 

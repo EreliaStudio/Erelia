@@ -11,37 +11,22 @@ namespace World.Chunk.Controller
 
 		private void Awake()
 		{
-			CacheComponents();
+			InitializeSolidCollider();
+			InitializeBushCollider();
 		}
 
-		private void Reset()
+		private void InitializeSolidCollider()
 		{
-			CacheComponents();
+			var go = new GameObject("SolidChunkCollider");
+			go.transform.SetParent(transform, false);
+			solidCollider = go.AddComponent<SolidChunkCollider>();
 		}
 
-		private void CacheComponents()
+		private void InitializeBushCollider()
 		{
-			if (solidCollider == null)
-			{
-				solidCollider = GetComponentInChildren<SolidChunkCollider>();
-				if (solidCollider == null)
-				{
-					var go = new GameObject("SolidChunkCollider");
-					go.transform.SetParent(transform, false);
-					solidCollider = go.AddComponent<SolidChunkCollider>();
-				}
-			}
-
-			if (bushCollider == null)
-			{
-				bushCollider = GetComponentInChildren<World.Chunk.Controller.BushChunkCollider>();
-				if (bushCollider == null)
-				{
-					var go = new GameObject("BushChunkCollider");
-					go.transform.SetParent(transform, false);
-					bushCollider = go.AddComponent<World.Chunk.Controller.BushChunkCollider>();
-				}
-			}
+			var go = new GameObject("BushChunkCollider");
+			go.transform.SetParent(transform, false);
+			bushCollider = go.AddComponent<World.Chunk.Controller.BushChunkCollider>();
 		}
 
 		public void Initialize(World.Chunk.Model.Coordinates coord, World.Chunk.Model.Data data)

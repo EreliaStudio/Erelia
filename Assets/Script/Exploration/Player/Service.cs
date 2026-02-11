@@ -14,7 +14,17 @@ namespace Player
 
 		public Player.Model.Data PlayerData => playerData;
 
+		public Service()
+		{
+			Initialize();
+		}
+
 		public void Init()
+		{
+			Initialize();
+		}
+
+		private void Initialize()
 		{
 			lastBushCell = new Vector3Int(playerData.CellPosition.x - 1, playerData.CellPosition.y - 1, playerData.CellPosition.z - 1);
 			lastChunkCoordinates = new World.Chunk.Model.Coordinates(playerData.ChunkCoordinates.X - 1, playerData.ChunkCoordinates.Y - 1, playerData.ChunkCoordinates.Z - 1);

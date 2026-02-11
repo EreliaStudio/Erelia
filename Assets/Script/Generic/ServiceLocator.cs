@@ -1,49 +1,51 @@
-using Unity;
 using System;
 using UnityEngine;
 
 namespace Utils
 {
-	public class ServiceLocator : MonoBehaviour
+	public class ServiceLocator
 	{
 		private static ServiceLocator _instance = null;
 
 		public static ServiceLocator Instance => _instance;
 
-		[SerializeField] private World.Service worldService = new World.Service();
+		private readonly World.Service worldService = null;
 		public World.Service WorldService => worldService;
 		
-		[SerializeField] private Voxel.Service voxelService = new Voxel.Service();
+		private readonly Voxel.Service voxelService = null;
 		public Voxel.Service VoxelService => voxelService;
 		
-		[SerializeField] private Player.Service playerService = new Player.Service();
+		private readonly Player.Service playerService = null;
 		public Player.Service PlayerService => playerService;
 
-		[SerializeField] private Exploration.Encounter.Service encounterService = new Exploration.Encounter.Service();
+		private readonly Exploration.Encounter.Service encounterService = null;
 		public Exploration.Encounter.Service EncounterService => encounterService;
 
-		[SerializeField] private Battle.Board.Service battleBoardService = new Battle.Board.Service();
+		private readonly Battle.Board.Service battleBoardService = null;
 		public Battle.Board.Service BattleBoardService => battleBoardService;
 		
-		[SerializeField] private SceneLoader sceneLoader = new SceneLoader();
+		private readonly SceneLoader sceneLoader = null;
 		public SceneLoader SceneLoader => sceneLoader;
 
-		private void Awake()
+		private ServiceLocator(ServiceLocatorConfig config)
 		{
-			if (_instance != null && _instance != this)
+			worldService = new World.Service(config != null ? config.WorldGenerator : null);
+			voxelService = new Voxel.Service(config != null ? config.VoxelEntries : null);
+			playerService = new Player.Service();
+			encounterService = new Exploration.Encounter.Service(config != null ? config.DefaultEncounterTable : null);
+			battleBoardService = new Battle.Board.Service();
+			sceneLoader = new SceneLoader();
+		}
+
+		public static void Initialize(ServiceLocatorConfig config)
+		{
+			if (_instance != null)
 			{
-				Destroy(gameObject);
-				return ;
+				Debug.LogWarning("ServiceLocator.Initialize was called more than once. Using existing instance.");
+				return;
 			}
 
-			_instance = this;
-			DontDestroyOnLoad(gameObject);
-			
-			worldService.Init();
-			voxelService.Init();
-			playerService.Init();
-			encounterService.Init();
-			battleBoardService.Init();
+			_instance = new ServiceLocator(config);
 		}
 	}
 }

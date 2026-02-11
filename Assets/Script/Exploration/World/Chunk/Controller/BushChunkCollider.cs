@@ -5,31 +5,7 @@ namespace World.Chunk.Controller
 {
 	public class BushChunkCollider : MonoBehaviour
 	{
-		private Transform root = null;
-
 		private readonly List<GameObject> colliderObjects = new List<GameObject>();
-
-		private void Awake()
-		{
-			EnsureRoot();
-		}
-
-		private void Reset()
-		{
-			EnsureRoot();
-		}
-
-		private void EnsureRoot()
-		{
-			if (root != null)
-			{
-				return;
-			}
-
-			var go = new GameObject("BushColliders");
-			go.transform.SetParent(transform, false);
-			root = go.transform;
-		}
 
 		public void Rebuild(World.Chunk.Model.Data data)
 		{
@@ -55,7 +31,7 @@ namespace World.Chunk.Controller
 			}
 
 			var go = new GameObject(mesh.name);
-			go.transform.SetParent(root, false);
+			go.transform.SetParent(transform, false);
 			var collider = go.AddComponent<MeshCollider>();
 			collider.sharedMesh = mesh;
 			collider.convex = true;
