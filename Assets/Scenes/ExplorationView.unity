@@ -450,66 +450,6 @@ MonoBehaviour:
   playerController: {fileID: 1558882487}
   viewRange: {x: 1, y: 0, z: 1}
   voxelMaterial: {fileID: 2100000, guid: 101af6d7eebbe5b44b9190b84c523d1d, type: 2}
---- !u!1 &681371441
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 681371443}
-  - component: {fileID: 681371444}
-  m_Layer: 0
-  m_Name: ServiceLocator
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &681371443
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 681371441}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: -0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &681371444
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 681371441}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5317306506cdd35419909bcbfdbe2ae8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Utils.ServiceLocator
-  worldService:
-    generator: {fileID: 11400000, guid: 58da88e5854dd6f49be656ad6b912bb4, type: 2}
-  voxelService:
-    entries:
-    - Id: 0
-      Definition: {fileID: 11400000, guid: 86fb335856e5af84f9ff8fe122c50dac, type: 2}
-    - Id: 1
-      Definition: {fileID: 11400000, guid: fd4e8c25dbac3134680f5071a133e603, type: 2}
-    - Id: 2
-      Definition: {fileID: 11400000, guid: 2e2c0aef888b05940a52d522954a88cc, type: 2}
-    - Id: 3
-      Definition: {fileID: 11400000, guid: b5f40821d664ee44bbda07cd169ac44a, type: 2}
-    - Id: 4
-      Definition: {fileID: 11400000, guid: 18f477b3604e0044c9d663da833be270, type: 2}
-  encounterService:
-    defaultEncounterTable: {fileID: 11400000, guid: 7b10e152cd297d248b3e76ff8be7708d, type: 2}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -785,6 +725,5 @@ SceneRoots:
   m_Roots:
   - {fileID: 410087041}
   - {fileID: 832575519}
-  - {fileID: 681371443}
   - {fileID: 426742592}
   - {fileID: 1558882489}

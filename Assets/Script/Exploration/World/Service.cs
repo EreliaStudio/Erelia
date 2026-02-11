@@ -58,10 +58,42 @@ namespace World
 		public Voxel.Model.Cell[,,] ExtrudeCells(Vector2Int center, Vector2Int size)
 		{
 			Voxel.Model.Cell[,,] result = new Voxel.Model.Cell[size.x, World.Chunk.Model.Data.SizeY, size.y];
+			int startX = center.x - (size.x / 2);
+			int startZ = center.y - (size.y / 2);
 
-			//We need to get the content of the cells in world space within center - size/2 and center + size/2. For this, i need to 
-		
+			for (int x = 0; x < size.x; x++)
+			{
+				int worldX = startX + x;
+				for (int z = 0; z < size.y; z++)
+				{
+					int worldZ = startZ + z;
+					for (int y = 0; y < World.Chunk.Model.Data.SizeY; y++)
+					{
+						result[x, y, z] = GetCellAtWorld(worldX, y, worldZ);
+					}
+				}
+			}
+
 			return result;
+		}
+
+		private Voxel.Model.Cell GetCellAtWorld(int worldX, int worldY, int worldZ)
+		{
+			int chunkX = Mathf.FloorToInt((float)worldX / World.Chunk.Model.Data.SizeX);
+			int chunkY = Mathf.FloorToInt((float)worldY / World.Chunk.Model.Data.SizeY);
+			int chunkZ = Mathf.FloorToInt((float)worldZ / World.Chunk.Model.Data.SizeZ);
+
+			int localX = worldX - (chunkX * World.Chunk.Model.Data.SizeX);
+			int localY = worldY - (chunkY * World.Chunk.Model.Data.SizeY);
+			int localZ = worldZ - (chunkZ * World.Chunk.Model.Data.SizeZ);
+
+			World.Chunk.Model.Data chunk = GetOrCreateChunk(new World.Chunk.Model.Coordinates(chunkX, chunkY, chunkZ));
+			if (chunk == null)
+			{
+				return new Voxel.Model.Cell(-1);
+			}
+
+			return chunk.Cells[localX, localY, localZ];
 		}
 	}
 }

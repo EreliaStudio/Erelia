@@ -3,6 +3,7 @@ namespace Battle.Board
 	public class Service
 	{
 		private Battle.Board.Model.Data data;
+		public bool HasData => data != null;
 
 		public void Init()
 		{

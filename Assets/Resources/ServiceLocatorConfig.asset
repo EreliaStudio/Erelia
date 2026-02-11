@@ -12,6 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f38376d0bebca594398d4b836bd6c392, type: 3}
   m_Name: ServiceLocatorConfig
   m_EditorClassIdentifier: Assembly-CSharp::Utils.ServiceLocatorConfig
-  worldGenerator: {fileID: 0}
-  voxelEntries: []
-  defaultEncounterTable: {fileID: 0}
+  worldGenerator: {fileID: 11400000, guid: 58da88e5854dd6f49be656ad6b912bb4, type: 2}
+  voxelEntries:
+  - Id: 0
+    Definition: {fileID: 11400000, guid: 86fb335856e5af84f9ff8fe122c50dac, type: 2}
+  - Id: 1
+    Definition: {fileID: 11400000, guid: fd4e8c25dbac3134680f5071a133e603, type: 2}
+  - Id: 2
+    Definition: {fileID: 11400000, guid: b5f40821d664ee44bbda07cd169ac44a, type: 2}
+  - Id: 3
+    Definition: {fileID: 11400000, guid: 2e2c0aef888b05940a52d522954a88cc, type: 2}
+  - Id: 4
+    Definition: {fileID: 11400000, guid: 18f477b3604e0044c9d663da833be270, type: 2}
+  defaultEncounterTable: {fileID: 11400000, guid: 7b10e152cd297d248b3e76ff8be7708d, type: 2}

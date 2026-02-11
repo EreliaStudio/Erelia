@@ -52,6 +52,7 @@
     <Compile Include="Assets\Script\Battle\Board\View\Presenter.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\Service.cs" />
     <Compile Include="Assets\Script\Battle\EncounterTable\Model\Data.cs" />
+    <Compile Include="Assets\Script\Battle\Debug\BattleDebugBootstrap.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\CubeVoxel.cs" />
     <Compile Include="Assets\Script\Exploration\World\View\Presenter.cs" />
     <Compile Include="Assets\Script\Exploration\World\Controller\BodyCollider.cs" />
