@@ -30,8 +30,8 @@ namespace Utils
 		private readonly SceneLoader sceneLoader = null;
 		public SceneLoader SceneLoader => sceneLoader;
 
-		private readonly MouseRaycastService mouseRaycastService = null;
-		public MouseRaycastService MouseRaycastService => mouseRaycastService;
+		private readonly global::Camera.Service cameraService = null;
+		public global::Camera.Service CameraService => cameraService;
 
 		private ServiceLocator(ServiceLocatorConfig config)
 		{
@@ -42,7 +42,7 @@ namespace Utils
 			battleBoardService = new Battle.Board.Service();
 			sceneLoader = new SceneLoader();
 			maskService = new Mask.Service(config != null ? config.SpriteMappings : new Mask.SpriteMapping());
-			mouseRaycastService = new MouseRaycastService();
+			cameraService = new global::Camera.Service();
 		}
 
 		public static void Initialize(ServiceLocatorConfig config)

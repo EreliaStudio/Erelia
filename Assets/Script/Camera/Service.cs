@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Utils
+namespace Camera
 {
-	public class MouseRaycastService
+	public class Service
 	{
 
 		public bool TryGetWorldPosition(

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Utils.Camera.Controller
+namespace Camera.Controller
 {
 	public class OrbitingController : MonoBehaviour
 	{
