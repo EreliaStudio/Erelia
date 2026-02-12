@@ -5,7 +5,7 @@ using Utils;
 
 namespace Utils.Mesher
 {
-	public class RenderMesher : Utils.Mesher.Mesher
+	public class VoxelRenderMesher : Utils.Mesher.Mesher
 	{
 		[NonSerialized] private readonly List<Vector3> vertices = new List<Vector3>();
 		[NonSerialized] private readonly List<int> triangles = new List<int>();
@@ -200,7 +200,7 @@ namespace Utils.Mesher
 	
 		public static Mesh Build(Voxel.Model.Cell[,,] cells)
 		{
-			return new RenderMesher().BuildMesh(cells);
+			return new VoxelRenderMesher().BuildMesh(cells);
 		}
 	}
 }

@@ -43,7 +43,7 @@ namespace Exploration.Encounter
 
 			Debug.Log($"Encounter triggered (roll {roll:0.000} <= {encounterTable.FightChance:0.000}).");
 
-			ServiceLocator.Instance.BattleBoardService.Setup(
+			ServiceLocator.Instance.BattleBoardService.SetData(
 				ServiceLocator.Instance.WorldService.ExtrudeCells(
 					new Vector2Int(playerData.CellPosition.x, playerData.CellPosition.y),
 					encounterTable.BoardArea));

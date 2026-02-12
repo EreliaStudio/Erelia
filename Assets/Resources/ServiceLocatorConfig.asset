@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f38376d0bebca594398d4b836bd6c392, type: 3}
+  m_Script: {fileID: 11500000, guid: 5f89e7e3a45b7944c8041dc14a4de064, type: 3}
   m_Name: ServiceLocatorConfig
   m_EditorClassIdentifier: Assembly-CSharp::Utils.ServiceLocatorConfig
   worldGenerator: {fileID: 11400000, guid: 58da88e5854dd6f49be656ad6b912bb4, type: 2}

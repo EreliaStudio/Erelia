@@ -1,4 +1,5 @@
 using UnityEngine;
+using Utils;
 
 namespace Battle.Board
 {
@@ -16,12 +17,22 @@ namespace Battle.Board
 			InitializeBoardCollider();
 		}
 
+		private void OnEnable()
+		{
+			Utils.ServiceLocator.Instance.BattleBoardService.DataUpdated += Refresh;
+		}
+
+		private void OnDisable()
+		{
+			Utils.ServiceLocator.Instance.BattleBoardService.DataUpdated -= Refresh;
+		}
+
 		private void InitializeBoardPresenter()
 		{
 			var go = new GameObject("BoardPresenter");
 			go.transform.SetParent(transform, false);
 			boardPresenter = go.AddComponent<Board.View.Presenter>();
-			boardPresenter.Configure(voxelMaterial, cellMaskMaterial);
+			boardPresenter.Initialize(voxelMaterial, cellMaskMaterial);
 		}
 
 		private void InitializeBoardCollider()
@@ -29,7 +40,12 @@ namespace Battle.Board
 			var go = new GameObject("BoardCollider");
 			go.transform.SetParent(transform, false);
 			boardCollider = go.AddComponent<Board.Controller.BodyCollider>();
-			boardCollider.Configure();
+		}
+
+		public void Refresh(Battle.Board.Model.Data data)
+		{
+			boardPresenter.Rebuild(data);
+			boardCollider.Rebuild(data);
 		}
 	}
 }

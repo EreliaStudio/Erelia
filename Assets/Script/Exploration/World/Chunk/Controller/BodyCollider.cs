@@ -19,7 +19,7 @@ namespace World.Chunk.Controller
 		{
 			var go = new GameObject("SolidChunkCollider");
 			go.transform.SetParent(transform, false);
-			solidCollider = go.AddComponent<SolidChunkCollider>();
+			solidCollider = go.AddComponent<World.Chunk.Controller.SolidChunkCollider>();
 		}
 
 		private void InitializeBushCollider()
@@ -37,15 +37,8 @@ namespace World.Chunk.Controller
 
 		public void Rebuild(World.Chunk.Model.Data data)
 		{
-			if (solidCollider != null)
-			{
-				solidCollider.Rebuild(data);
-			}
-
-			if (bushCollider != null)
-			{
-				bushCollider.Rebuild(data);
-			}
+			solidCollider.Rebuild(data);
+			bushCollider.Rebuild(data);
 		}
 	}
 }

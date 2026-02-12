@@ -8,7 +8,7 @@ namespace Battle.EncounterTable.Model
 		[SerializeField, Range(0f, 1f)] private float fightChance = 0.1f;
 		public float FightChance => fightChance;
 		
-		[SerializeField] private Vector2Int boardArea = new Vector2Int(10, 10);
+		[SerializeField] private Vector2Int boardArea = new Vector2Int(25, 25);
 		public Vector2Int BoardArea => boardArea;
 	}
 }

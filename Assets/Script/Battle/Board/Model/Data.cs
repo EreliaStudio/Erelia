@@ -1,6 +1,6 @@
 namespace Battle.Board.Model
 {
-	class Data
+	public class Data
 	{
 		public int SizeX = 0;
 		public int SizeY = 0;

@@ -60,7 +60,7 @@ namespace World.Chunk.View
 				return;
 			}
 
-			Mesh mesh = Utils.Mesher.RenderMesher.Build(data.Cells);
+			Mesh mesh = Utils.Mesher.VoxelRenderMesher.Build(data.Cells);
 			mesh.name = "ChunkMesh " + Coordinates;
 			meshFilter.sharedMesh = mesh;
 		}

@@ -31,7 +31,7 @@ namespace Battle.Debugging
 				return;
 			}
 
-			if (locator.BattleBoardService != null && locator.BattleBoardService.HasData)
+			if (locator.BattleBoardService != null && locator.BattleBoardService.Data != null)
 			{
 				return;
 			}
@@ -53,27 +53,16 @@ namespace Battle.Debugging
 				}
 			}
 
-			int centerX = (World.Chunk.Model.Data.SizeX * 1) + (World.Chunk.Model.Data.SizeX / 2);
-			int centerZ = (World.Chunk.Model.Data.SizeZ * 1) + (World.Chunk.Model.Data.SizeZ / 2);
-			var centerWorldPosition = new Vector3(centerX, 0, centerZ);
+			int generatedSizeX = World.Chunk.Model.Data.SizeX * 3;
+			int generatedSizeZ = World.Chunk.Model.Data.SizeZ * 3;
 
-			if (locator.PlayerService != null)
-			{
-				locator.PlayerService.UpdatePlayerPosition(centerWorldPosition);
-			}
+			int sizeX = Mathf.FloorToInt(generatedSizeX / 2.0f);
+			int sizeZ = Mathf.FloorToInt(generatedSizeZ / 2.0f);
+			int centerX = generatedSizeX / 2;
+			int centerZ = generatedSizeZ / 2;
 
-			Vector2Int boardArea = new Vector2Int(10, 10);
-			if (locator.EncounterService != null)
-			{
-				var encounterTable = locator.EncounterService.GetEncounterTable(new World.Chunk.Model.Coordinates(1, 0, 1));
-				if (encounterTable != null)
-				{
-					boardArea = encounterTable.BoardArea;
-				}
-			}
-
-			Voxel.Model.Cell[,,] cells = worldService.ExtrudeCells(new Vector2Int(centerX, centerZ), boardArea);
-			locator.BattleBoardService.Setup(cells);
+			Voxel.Model.Cell[,,] cells = worldService.ExtrudeCells(new Vector2Int(centerX, centerZ), new Vector2Int(sizeX, sizeZ));
+			locator.BattleBoardService.SetData(cells);
 
 			Debug.Log("BattleDebugBootstrap: Mocked world chunks 0/0/0 to 2/0/2 and initialized battle board.");
 		}
