@@ -62,6 +62,7 @@
     <Compile Include="Assets\Script\Exploration\Voxel\Model\Face.cs" />
     <Compile Include="Assets\Script\Battle\Board\Manager.cs" />
     <Compile Include="Assets\Script\Battle\Board\Service.cs" />
+    <Compile Include="Assets\Script\Utils\MouseRaycastService.cs" />
     <Compile Include="Assets\Script\Exploration\World\Service.cs" />
     <Compile Include="Assets\Script\Exploration\Voxel\View\Shapes\Shape.cs" />
     <Compile Include="Assets\Script\Utils\Mesher\BushCollisionMesher.cs" />
