@@ -88,7 +88,6 @@
     <Compile Include="Assets\Script\Utils\ServiceLocator.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\IGenerator.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\SolidChunkCollider.cs" />
-    <Compile Include="Assets\Script\Battle\Board\Controller\MaskCollider.cs" />
     <Compile Include="Assets\Script\Exploration\Utils\PolygonMerge.cs" />
     <Compile Include="Assets\Script\Exploration\Player\Model\Data.cs" />
     <Compile Include="Assets\Script\Battle\Board\Model\Data.cs" />
