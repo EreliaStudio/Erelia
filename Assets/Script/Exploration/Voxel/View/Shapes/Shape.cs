@@ -37,27 +37,23 @@ namespace Voxel.View
 
 		[SerializeField] protected List<Voxel.Model.Face> innerFaces = new List<Voxel.Model.Face>();
 		[SerializeField] protected Dictionary<AxisPlane, Voxel.Model.Face> outerShellFaces = new Dictionary<AxisPlane, Voxel.Model.Face>();
-		[SerializeField] protected List<Voxel.Model.Face> maskFaces = new List<Voxel.Model.Face>();
-		[SerializeField] protected List<Voxel.Model.Face> flippedMaskFaces = new List<Voxel.Model.Face>();
+		[SerializeField] protected Dictionary<Voxel.Model.FlipOrientation, List<Voxel.Model.Face>> maskFaces = new Dictionary<Voxel.Model.FlipOrientation, List<Voxel.Model.Face>>();
 		[SerializeField] private CollisionMode collisionMode = CollisionMode.RealMesh;
 
 		public IReadOnlyList<Voxel.Model.Face> InnerFaces => innerFaces;
 		public IReadOnlyDictionary<AxisPlane, Voxel.Model.Face> OuterShellFaces => outerShellFaces;
-		public IReadOnlyList<Voxel.Model.Face> MaskFaces => maskFaces;
-		public IReadOnlyList<Voxel.Model.Face> FlippedMaskFaces => flippedMaskFaces;
+		public IReadOnlyDictionary<Voxel.Model.FlipOrientation, List<Voxel.Model.Face>> MaskFaces => maskFaces;
 		public CollisionMode Collision => collisionMode;
 
 		protected abstract List<Voxel.Model.Face> ConstructInnerFaces();
 		protected abstract Dictionary<AxisPlane, Voxel.Model.Face> ConstructOuterShellFaces();
-		protected abstract List<Voxel.Model.Face> ConstructMaskFaces();
-		protected abstract List<Voxel.Model.Face> ConstructFlippedMaskFaces();
+		protected abstract Dictionary<Voxel.Model.FlipOrientation, List<Voxel.Model.Face>> ConstructMaskFaces();
 
 		public virtual void Initialize()
 		{
 			innerFaces = ConstructInnerFaces() ?? new List<Voxel.Model.Face>();
 			outerShellFaces = ConstructOuterShellFaces() ?? new Dictionary<AxisPlane, Voxel.Model.Face>();
-			maskFaces = ConstructMaskFaces() ?? new List<Voxel.Model.Face>();
-			flippedMaskFaces = ConstructFlippedMaskFaces() ?? new List<Voxel.Model.Face>();
+			maskFaces = ConstructMaskFaces() ?? new Dictionary<Voxel.Model.FlipOrientation, List<Voxel.Model.Face>>();
 		}
 	}
 }

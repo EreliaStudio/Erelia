@@ -48,7 +48,7 @@ namespace Voxel.View
 			return faces;
 		}
 
-		protected override List<Voxel.Model.Face> ConstructMaskFaces()
+		protected override Dictionary<Voxel.Model.FlipOrientation, List<Voxel.Model.Face>> ConstructMaskFaces()
 		{
 			const float maskOffset = 0.01f;
 			var faces = new List<Voxel.Model.Face>();
@@ -58,12 +58,11 @@ namespace Voxel.View
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f + maskOffset, 1f), UV = new Vector2(1f, 1f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f + maskOffset, 1f), UV = new Vector2(0f, 1f) });
 			faces.Add(top);
-			return faces;
-		}
-
-		protected override List<Voxel.Model.Face> ConstructFlippedMaskFaces()
-		{
-			return ConstructMaskFaces();
+			return new Dictionary<Voxel.Model.FlipOrientation, List<Voxel.Model.Face>>
+			{
+				[Voxel.Model.FlipOrientation.PositiveY] = faces,
+				[Voxel.Model.FlipOrientation.NegativeY] = new List<Voxel.Model.Face>(faces)
+			};
 		}
 
 		protected override Dictionary<AxisPlane, Voxel.Model.Face> ConstructOuterShellFaces()

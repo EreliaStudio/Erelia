@@ -19,24 +19,6 @@ namespace Voxel.View
 			return new List<Voxel.Model.Face>();
 		}
 
-		protected override List<Voxel.Model.Face> ConstructMaskFaces()
-		{
-			const float maskOffset = 0.01f;
-			var faces = new List<Voxel.Model.Face>();
-			Voxel.Model.Face top = Utils.Geometry.CreateRectangle(
-				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f + maskOffset, 0f), UV = new Vector2(0f, 0f) },
-				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f + maskOffset, 0f), UV = new Vector2(1f, 0f) },
-				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f + maskOffset, 1f), UV = new Vector2(1f, 1f) },
-				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f + maskOffset, 1f), UV = new Vector2(0f, 1f) });
-			faces.Add(top);
-			return faces;
-		}
-
-		protected override List<Voxel.Model.Face> ConstructFlippedMaskFaces()
-		{
-			return ConstructMaskFaces();
-		}
-
 		protected override Dictionary<AxisPlane, Voxel.Model.Face> ConstructOuterShellFaces()
 		{
 			var faces = new Dictionary<AxisPlane, Voxel.Model.Face>();
@@ -114,6 +96,23 @@ namespace Voxel.View
 			faces[AxisPlane.NegZ] = negZ;
 
 			return faces;
+		}
+
+		protected override Dictionary<Voxel.Model.FlipOrientation, List<Voxel.Model.Face>> ConstructMaskFaces()
+		{
+			const float maskOffset = 0.01f;
+			var faces = new List<Voxel.Model.Face>();
+			Voxel.Model.Face top = Utils.Geometry.CreateRectangle(
+				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f + maskOffset, 0f), UV = new Vector2(0f, 0f) },
+				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f + maskOffset, 0f), UV = new Vector2(1f, 0f) },
+				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f + maskOffset, 1f), UV = new Vector2(1f, 1f) },
+				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f + maskOffset, 1f), UV = new Vector2(0f, 1f) });
+			faces.Add(top);
+			return new Dictionary<Voxel.Model.FlipOrientation, List<Voxel.Model.Face>>
+			{
+				[Voxel.Model.FlipOrientation.PositiveY] = faces,
+				[Voxel.Model.FlipOrientation.NegativeY] = new List<Voxel.Model.Face>(faces)
+			};
 		}
 	}
 }

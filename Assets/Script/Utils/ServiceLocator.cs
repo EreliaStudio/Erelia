@@ -23,6 +23,9 @@ namespace Utils
 
 		private readonly Battle.Board.Service battleBoardService = null;
 		public Battle.Board.Service BattleBoardService => battleBoardService;
+
+		private readonly Mask.Service maskService = null;
+		public Mask.Service MaskService => maskService;
 		
 		private readonly SceneLoader sceneLoader = null;
 		public SceneLoader SceneLoader => sceneLoader;
@@ -35,6 +38,7 @@ namespace Utils
 			encounterService = new Exploration.Encounter.Service(config != null ? config.DefaultEncounterTable : null);
 			battleBoardService = new Battle.Board.Service();
 			sceneLoader = new SceneLoader();
+			maskService = new Mask.Service(config != null ? config.SpriteMappings : new Mask.SpriteMapping());
 		}
 
 		public static void Initialize(ServiceLocatorConfig config)
