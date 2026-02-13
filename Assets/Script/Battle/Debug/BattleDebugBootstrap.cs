@@ -60,7 +60,6 @@ namespace Battle.Debugging
 			int centerX = generatedSizeX / 2;
 			int centerZ = generatedSizeZ / 2;
 
-
 			Core.Voxel.Model.Cell[,,] cells = worldService.ExtrudeCells(new Vector2Int(centerX, centerZ), new Vector2Int(sizeX, sizeZ));
 			
 			locator.BattleBoardService.SetData(cells);
