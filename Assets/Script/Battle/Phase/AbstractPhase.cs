@@ -4,10 +4,13 @@ namespace Battle.Phase
 	{
 		protected Battle.Phase.Manager manager;
 		public Battle.Phase.Manager Manager => manager;
+		protected Battle.Player.Controller.BattleController playerController;
+		public Battle.Player.Controller.BattleController PlayerController => playerController;
 
-		public void SetManager(Battle.Phase.Manager manager)
+		public void Setup(Battle.Phase.Manager manager, Battle.Player.Controller.BattleController playerController)
 		{
 			this.manager = manager;
+			this.playerController = playerController;
 		}
 
 		abstract public void OnEnter();

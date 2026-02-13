@@ -8,7 +8,7 @@ namespace Battle.Player.Controller
 	public class BattleController : MonoBehaviour
 	{
 		[SerializeField] public Core.Camera.Controller.MouseCellCursorController MouseCellController = null;
-	
+
 		private Vector3Int lastHoveredCell;
 		private bool hasLastCellHovered = false;
 
@@ -25,7 +25,7 @@ namespace Battle.Player.Controller
 			MouseCellController.HoverCleared -= OnHoverCleared;
 		}
 
-		void OnCellHovered(Vector3Int cellCoordinates, RaycastHit hit)
+		private void OnCellHovered(Vector3Int cellCoordinates, RaycastHit hit)
 		{
 			if (hasLastCellHovered == true)
 			{
@@ -33,16 +33,28 @@ namespace Battle.Player.Controller
 			}
 			lastHoveredCell = cellCoordinates;
 			ServiceLocator.Instance.BattleBoardService.Data.MaskCells[lastHoveredCell.x, lastHoveredCell.y, lastHoveredCell.z].AddMask(Core.Mask.Model.Value.Selected);
+			ServiceLocator.Instance.BattleBoardService.Data.ValidateMask();
 			hasLastCellHovered = true;
 		}
 
-		void OnHoverCleared()
+		private void OnHoverCleared()
 		{
 			if (hasLastCellHovered == true)
 			{
 				ServiceLocator.Instance.BattleBoardService.Data.MaskCells[lastHoveredCell.x, lastHoveredCell.y, lastHoveredCell.z].RemoveMask(Core.Mask.Model.Value.Selected);
+				ServiceLocator.Instance.BattleBoardService.Data.ValidateMask();
 				hasLastCellHovered = false;
 			}
+		}
+
+		public bool HasSelectedCell()
+		{
+			return hasLastCellHovered;
+		}
+
+		public Vector3Int SelectedCell()
+		{
+			return lastHoveredCell;
 		}
 	}
 }

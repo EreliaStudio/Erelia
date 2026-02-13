@@ -10,6 +10,8 @@ namespace Battle.Phase
 
 		private Dictionary<Battle.Phase.Mode, Battle.Phase.AbstractPhase> phaseDictionary = new Dictionary<Battle.Phase.Mode, Battle.Phase.AbstractPhase>();
 
+		[SerializeField] private Battle.Player.Controller.BattleController battleController;
+
 		void Awake()
 		{
 			phaseDictionary[Mode.Initialization] = new InitializationPhase();
@@ -37,7 +39,7 @@ namespace Battle.Phase
 
 			if (activePhase != null)
 			{
-				activePhase.SetManager(this);
+				activePhase.Setup(this, battleController);
 				activePhase.OnEnter();
 			}
 		}
