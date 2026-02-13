@@ -15,6 +15,17 @@ namespace Battle.Board.Model
 			SizeZ = data.GetLength(2);
 			Cells = data;
 			MaskCells = new Core.Mask.Model.Cell[SizeX, SizeY, SizeZ];
+
+			for (int i = 0; i < SizeX; i++)
+			{
+				for (int j = 0; j < SizeY; j++)
+				{
+					for (int k = 0; k < SizeZ; k++)
+					{
+						MaskCells[i, j, k] = new Core.Mask.Model.Cell();
+					}
+				}
+			}
 		}
 	}
 }

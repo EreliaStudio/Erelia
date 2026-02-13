@@ -96,7 +96,7 @@
     <Compile Include="Assets\Script\Core\Utils\Mesher\VoxelRenderMesher.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Generator.cs" />
     <Compile Include="Assets\Script\Utils\ServiceLocator.cs" />
-    <Compile Include="Assets\Script\Exploration\World\Chunk\Model\IGenerator.cs" />
+    <Compile Include="Assets\Script\Exploration\World\Chunk\Model\AbstractGenerator.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\SolidChunkCollider.cs" />
     <Compile Include="Assets\Script\Core\Mask\Model\Cell.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\enums.cs" />

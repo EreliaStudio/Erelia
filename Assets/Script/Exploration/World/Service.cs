@@ -7,11 +7,11 @@ namespace Exploration.World
 	[Serializable]
 	public class Service
 	{	
-		[SerializeField] private Exploration.World.Chunk.Model.IGenerator generator = null;
+		[SerializeField] private Exploration.World.Chunk.Model.AbstractGenerator generator = null;
 		
 		private Dictionary<Exploration.World.Chunk.Model.Coordinates, Exploration.World.Chunk.Model.Data> chunks = new Dictionary<Exploration.World.Chunk.Model.Coordinates, Exploration.World.Chunk.Model.Data>();
 
-		public Service(Chunk.Model.IGenerator generator)
+		public Service(Chunk.Model.AbstractGenerator generator)
 		{
 			this.generator = generator;
 			chunks.Clear();

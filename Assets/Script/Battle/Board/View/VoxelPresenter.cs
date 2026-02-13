@@ -22,7 +22,8 @@ namespace Battle.Board.View
 		{
 			if (data == null)
 			{
-				Debug.Log("Data is null");	
+				meshFilter.sharedMesh = null;
+				return;
 			}
 			Mesh mesh = Core.Utils.Mesher.VoxelRenderMesher.Build(data.Cells);
 			mesh.name = "VoxelRenderMesh";

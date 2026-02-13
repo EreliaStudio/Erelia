@@ -65,6 +65,12 @@ namespace Core.Voxel
 		private void RebuildDictionary(List<Entry> entries)
 		{
 			data.Clear();
+
+			if (entries == null)
+			{
+				return ;
+			}
+
 			for (int i = 0; i < entries.Count; i++)
 			{
 				var entry = entries[i];
