@@ -1,11 +1,23 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Utils;
 
 namespace Battle.Board.Controller
 {
 	public class VoxelCollider : MonoBehaviour
 	{
 		private readonly List<GameObject> colliderObjects = new List<GameObject>();
+
+		private void OnEnable()
+		{
+			ServiceLocator.Instance.BattleBoardService.Data.OnVoxelEdition += Rebuild;
+			Rebuild(ServiceLocator.Instance.BattleBoardService.Data);
+		}
+
+		private void OnDisable()
+		{
+			ServiceLocator.Instance.BattleBoardService.Data.OnVoxelEdition -= Rebuild;
+		}
 
 		public void Rebuild(Battle.Board.Model.Data data)
 		{

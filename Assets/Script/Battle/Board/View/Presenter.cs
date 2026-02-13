@@ -1,4 +1,5 @@
 using UnityEngine;
+using Utils;
 
 namespace Battle.Board.View
 {
@@ -11,6 +12,20 @@ namespace Battle.Board.View
 		{
 			InitializeVoxelPresenter();
 			InitializeMaskPresenter();
+		}
+
+		private void OnEnable()
+		{
+			ServiceLocator.Instance.BattleBoardService.Data.OnVoxelEdition += RebuildVoxels;
+			ServiceLocator.Instance.BattleBoardService.Data.OnMaskEdition += RebuildMask;
+			RebuildVoxels(ServiceLocator.Instance.BattleBoardService.Data);
+			RebuildMask(ServiceLocator.Instance.BattleBoardService.Data);
+		}
+
+		private void OnDisable()
+		{
+			ServiceLocator.Instance.BattleBoardService.Data.OnVoxelEdition -= RebuildVoxels;
+			ServiceLocator.Instance.BattleBoardService.Data.OnMaskEdition -= RebuildMask;
 		}
 
 		private void InitializeVoxelPresenter()
@@ -41,6 +56,7 @@ namespace Battle.Board.View
 
 		public void RebuildVoxels(Battle.Board.Model.Data data)
 		{
+			Debug.Log("Rebuilding voxels in Presenter");
 			voxelPresenter.Rebuild(data);
 		}
 

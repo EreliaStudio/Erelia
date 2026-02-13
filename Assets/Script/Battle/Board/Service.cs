@@ -4,8 +4,6 @@ namespace Battle.Board
 {
 	public class Service
 	{
-		public event Action<Battle.Board.Model.Data> DataUpdated;
-
 		private Battle.Board.Model.Data data = null;
 		public Battle.Board.Model.Data Data => data;
 
@@ -17,12 +15,12 @@ namespace Battle.Board
 		public void SetData(Core.Voxel.Model.Cell [,,] cells)
 		{
 			data = new Battle.Board.Model.Data(cells);
-			EmitBoardUpdate();
+			data.Validate();
 		}
 
 		public void EmitBoardUpdate()
 		{
-			DataUpdated?.Invoke(data);
+			data.Validate();
 		}
 	}
 }

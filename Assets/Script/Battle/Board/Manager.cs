@@ -17,16 +17,6 @@ namespace Battle.Board
 			InitializeBoardCollider();
 		}
 
-		private void OnEnable()
-		{
-			Utils.ServiceLocator.Instance.BattleBoardService.DataUpdated += Refresh;
-		}
-
-		private void OnDisable()
-		{
-			Utils.ServiceLocator.Instance.BattleBoardService.DataUpdated -= Refresh;
-		}
-
 		private void InitializeBoardPresenter()
 		{
 			var go = new GameObject("BoardPresenter");

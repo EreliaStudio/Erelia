@@ -72,6 +72,7 @@
     <Compile Include="Assets\Script\Core\Utils\Mesher\CollisionMesher.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\FaceByOrientationKey.cs" />
     <Compile Include="Assets\Script\Exploration\World\Service.cs" />
+    <Compile Include="Assets\Script\Battle\Player\Controller\BattleController.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Service.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Cell.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\Mesher.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushChunkCollider.cs" />
     <Compile Include="Assets\Script\Core\Utils\SpriteUv.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
+    <Compile Include="Assets\Script\Battle\Debug\BattleDebugBootstrapper.cs" />
     <Compile Include="Assets\Script\Battle\Board\View\MaskPresenter.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\Shape.cs" />
     <Compile Include="Assets\Script\Utils\ServiceLocatorBootstrap.cs" />

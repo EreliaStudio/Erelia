@@ -10,8 +10,7 @@ namespace Battle.Debugging
 		private const string BattleSceneName = "BattleScene";
 		private static bool hasRun = false;
 
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-		private static void TryBootstrap()
+		public static void TryBootstrap()
 		{
 			if (hasRun)
 			{
@@ -61,7 +60,9 @@ namespace Battle.Debugging
 			int centerX = generatedSizeX / 2;
 			int centerZ = generatedSizeZ / 2;
 
+
 			Core.Voxel.Model.Cell[,,] cells = worldService.ExtrudeCells(new Vector2Int(centerX, centerZ), new Vector2Int(sizeX, sizeZ));
+			
 			locator.BattleBoardService.SetData(cells);
 
 			Debug.Log("BattleDebugBootstrap: Mocked world chunks 0/0/0 to 2/0/2 and initialized battle board.");

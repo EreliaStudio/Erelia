@@ -1,3 +1,5 @@
+using System;
+
 namespace Battle.Board.Model
 {
 	public class Data
@@ -7,6 +9,9 @@ namespace Battle.Board.Model
 		public int SizeZ = 0;
 		public Core.Voxel.Model.Cell[,,] Cells;
 		public Core.Mask.Model.Cell[,,] MaskCells;
+
+		public event Action<Battle.Board.Model.Data> OnVoxelEdition;
+		public event Action<Battle.Board.Model.Data> OnMaskEdition;
 
 		public Data(Core.Voxel.Model.Cell[,,] data)
 		{
@@ -26,6 +31,22 @@ namespace Battle.Board.Model
 					}
 				}
 			}
+		}
+
+		public void Validate()
+		{
+			ValidateVoxel();
+			ValidateMask();
+		}
+
+		public void ValidateVoxel()
+		{
+			OnVoxelEdition?.Invoke(this);
+		}
+
+		public void ValidateMask()
+		{
+			OnMaskEdition?.Invoke(this);
 		}
 	}
 }
