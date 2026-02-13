@@ -4,7 +4,7 @@ namespace Exploration.World
 {
 	public class Manager : MonoBehaviour
 	{
-		[SerializeField] private Core.Player.Controller.KeyboardMotionController playerController = null;
+		[SerializeField] private Exploration.Player.Controller.KeyboardMotionController playerController = null;
 		[SerializeField] private Vector3Int viewRange = new Vector3Int(1, 0, 1);
 		[SerializeField] private Material voxelMaterial = null;
 

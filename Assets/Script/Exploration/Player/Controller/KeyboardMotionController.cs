@@ -3,12 +3,13 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using Utils;
 
-namespace Core.Player.Controller
+namespace Exploration.Player.Controller
 {
 	[RequireComponent(typeof(PlayerInput))]
 	public class KeyboardMotionController : MonoBehaviour
 	{
 		[SerializeField] private Transform cameraTransform;
+		[SerializeField] private Transform bodyTransform;
 		[SerializeField] private float moveSpeed = 5f;
 		[SerializeField] private string moveActionName = "Move";
 
@@ -75,6 +76,12 @@ namespace Core.Player.Controller
 			if (input.sqrMagnitude > 1f)
 			{
 				input.Normalize();
+			}
+
+			if (input.sqrMagnitude > 0.0001f && bodyTransform != null)
+			{
+				Quaternion targetRotation = Quaternion.LookRotation(input, Vector3.up);
+				bodyTransform.rotation = targetRotation;
 			}
 
 			transform.position += input * moveSpeed * Time.deltaTime;

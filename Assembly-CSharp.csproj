@@ -56,6 +56,8 @@
     <Compile Include="Assets\Script\Battle\Debug\BattleDebugBootstrap.cs" />
     <Compile Include="Assets\Script\Exploration\World\View\Presenter.cs" />
     <Compile Include="Assets\Script\Exploration\World\Controller\BodyCollider.cs" />
+    <Compile Include="Assets\Script\Exploration\Player\Controller\KeyboardMotionController.cs" />
+    <Compile Include="Assets\Script\Battle\Player\Controller\KeyboardMotionController.cs" />
     <Compile Include="Assets\Script\Core\Camera\Service.cs" />
     <Compile Include="Assets\Script\Core\Camera\Controller\MouseCellCursorController.cs" />
     <Compile Include="Assets\Script\Core\Encounter\Service.cs" />
@@ -64,12 +66,12 @@
     <Compile Include="Assets\Script\Battle\Board\Manager.cs" />
     <Compile Include="Assets\Script\Core\Mask\Model\Value.cs" />
     <Compile Include="Assets\Script\Battle\Board\Service.cs" />
+    <Compile Include="Assets\Script\Exploration\World\Chunk\Model\AbstractGenerator.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Data.cs" />
     <Compile Include="Assets\Script\Core\Encounter\EncounterTable\Model\Data.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\CollisionMesher.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\FaceByOrientationKey.cs" />
     <Compile Include="Assets\Script\Exploration\World\Service.cs" />
-    <Compile Include="Assets\Script\Core\Utils\PolygonMerge.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Service.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Cell.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\Mesher.cs" />
@@ -81,13 +83,11 @@
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushTriggerReporter.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Face.cs" />
     <Compile Include="Assets\Script\Core\Utils\Geometry.cs" />
-    <Compile Include="Assets\Script\Battle\Board\Model\CellMask.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\SlabVoxel.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\CrossPlaneVoxel.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushChunkCollider.cs" />
     <Compile Include="Assets\Script\Core\Utils\SpriteUv.cs" />
     <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
-    <Compile Include="Assets\Script\Core\Player\Controller\KeyboardMotionController.cs" />
     <Compile Include="Assets\Script\Battle\Board\View\MaskPresenter.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\Shape.cs" />
     <Compile Include="Assets\Script\Utils\ServiceLocatorBootstrap.cs" />
@@ -96,7 +96,6 @@
     <Compile Include="Assets\Script\Core\Utils\Mesher\VoxelRenderMesher.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Generator.cs" />
     <Compile Include="Assets\Script\Utils\ServiceLocator.cs" />
-    <Compile Include="Assets\Script\Exploration\World\Chunk\Model\AbstractGenerator.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\SolidChunkCollider.cs" />
     <Compile Include="Assets\Script\Core\Mask\Model\Cell.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\enums.cs" />
@@ -104,7 +103,6 @@
     <Compile Include="Assets\Script\Core\Utils\Mesher\BushCollisionMesher.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\View\Presenter.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BodyCollider.cs" />
-    <Compile Include="Assets\Script\Battle\Board\Model\Cell.cs" />
     <Compile Include="Assets\Script\Core\Mask\Service.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Coordinates.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Data.cs" />

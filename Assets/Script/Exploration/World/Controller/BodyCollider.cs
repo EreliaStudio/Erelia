@@ -5,7 +5,7 @@ namespace Exploration.World.Controller
 {
 	public class BodyCollider : MonoBehaviour
 	{
-		[SerializeField] private Core.Player.Controller.KeyboardMotionController playerController = null;
+		[SerializeField] private Exploration.Player.Controller.KeyboardMotionController playerController = null;
 		[SerializeField] private Vector3Int viewRange = new Vector3Int(1, 0, 1);
 
 		private readonly Dictionary<Exploration.World.Chunk.Model.Coordinates, Exploration.World.Chunk.Controller.BodyCollider> controllers = new Dictionary<Exploration.World.Chunk.Model.Coordinates, Exploration.World.Chunk.Controller.BodyCollider>();
@@ -15,7 +15,7 @@ namespace Exploration.World.Controller
 			
 		}
 
-		public void Configure(Core.Player.Controller.KeyboardMotionController controller, Vector3Int range)
+		public void Configure(Exploration.Player.Controller.KeyboardMotionController controller, Vector3Int range)
 		{
 			playerController = controller;
 			viewRange = range;

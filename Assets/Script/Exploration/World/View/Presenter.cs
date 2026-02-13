@@ -6,7 +6,7 @@ namespace Exploration.World.View
 	public class Presenter : MonoBehaviour
 	{
 		[SerializeField] private Material voxelMaterial = null;
-		[SerializeField] private Core.Player.Controller.KeyboardMotionController playerController = null;
+		[SerializeField] private Exploration.Player.Controller.KeyboardMotionController playerController = null;
 		[SerializeField] private Vector3Int viewRange = new Vector3Int(1, 0, 1);
 
 		private readonly Dictionary<Exploration.World.Chunk.Model.Coordinates, Exploration.World.Chunk.View.Presenter> views = new Dictionary<Exploration.World.Chunk.Model.Coordinates, Exploration.World.Chunk.View.Presenter>();
@@ -16,7 +16,7 @@ namespace Exploration.World.View
 			
 		}
 
-		public void Configure(Material material, Core.Player.Controller.KeyboardMotionController controller, Vector3Int range)
+		public void Configure(Material material, Exploration.Player.Controller.KeyboardMotionController controller, Vector3Int range)
 		{
 			voxelMaterial = material;
 			playerController = controller;

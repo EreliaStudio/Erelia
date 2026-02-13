@@ -715,8 +715,9 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 70c6db1e3392b214686ed90b77ca3efe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Core.Player.Controller.KeyboardMotionController
+  m_EditorClassIdentifier: Assembly-CSharp::Exploration.Player.Controller.KeyboardMotionController
   cameraTransform: {fileID: 225627952}
+  bodyTransform: {fileID: 1247758779}
   moveSpeed: 5
   moveActionName: Move
 --- !u!1660057539 &9223372036854775807
