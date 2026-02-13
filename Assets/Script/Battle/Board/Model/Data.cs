@@ -5,16 +5,16 @@ namespace Battle.Board.Model
 		public int SizeX = 0;
 		public int SizeY = 0;
 		public int SizeZ = 0;
-		public Voxel.Model.Cell[,,] Cells;
-		public Mask.Model.Cell[,,] MaskCells;
+		public Core.Voxel.Model.Cell[,,] Cells;
+		public Core.Mask.Model.Cell[,,] MaskCells;
 
-		public Data(Voxel.Model.Cell[,,] data)
+		public Data(Core.Voxel.Model.Cell[,,] data)
 		{
 			SizeX = data.GetLength(0);
 			SizeY = data.GetLength(1);
 			SizeZ = data.GetLength(2);
 			Cells = data;
-			MaskCells = new Mask.Model.Cell[SizeX, SizeY, SizeZ];
+			MaskCells = new Core.Mask.Model.Cell[SizeX, SizeY, SizeZ];
 		}
 	}
 }

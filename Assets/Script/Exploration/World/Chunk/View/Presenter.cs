@@ -1,13 +1,13 @@
 using UnityEngine;
 
-namespace World.Chunk.View
+namespace Exploration.World.Chunk.View
 {
 	public class Presenter : MonoBehaviour
 	{
 		[SerializeField] private MeshFilter meshFilter = null;
 		[SerializeField] private MeshRenderer meshRenderer = null;
 
-		public World.Chunk.Model.Coordinates Coordinates { get; private set; }
+		public Exploration.World.Chunk.Model.Coordinates Coordinates { get; private set; }
 
 		private void Reset()
 		{
@@ -40,7 +40,7 @@ namespace World.Chunk.View
 			}
 		}
 
-		public void Initialize(World.Chunk.Model.Coordinates coord, World.Chunk.Model.Data data, Material material)
+		public void Initialize(Exploration.World.Chunk.Model.Coordinates coord, Exploration.World.Chunk.Model.Data data, Material material)
 		{
 			Coordinates = coord;
 			if (material != null)
@@ -51,7 +51,7 @@ namespace World.Chunk.View
 			Rebuild(data);
 		}
 
-		public void Rebuild(World.Chunk.Model.Data data)
+		public void Rebuild(Exploration.World.Chunk.Model.Data data)
 		{
 			if (data == null)
 			{
@@ -60,7 +60,7 @@ namespace World.Chunk.View
 				return;
 			}
 
-			Mesh mesh = Utils.Mesher.VoxelRenderMesher.Build(data.Cells);
+			Mesh mesh = Core.Utils.Mesher.VoxelRenderMesher.Build(data.Cells);
 			mesh.name = "ChunkMesh " + Coordinates;
 			meshFilter.sharedMesh = mesh;
 		}

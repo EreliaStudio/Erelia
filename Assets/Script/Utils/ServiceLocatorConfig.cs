@@ -8,15 +8,15 @@ namespace Utils
 	{
 		private const string ResourcesName = "ServiceLocatorConfig";
 
-		[SerializeField] private World.Chunk.Model.IGenerator worldGenerator = null;
-		[SerializeField] private List<Voxel.Service.Entry> voxelEntries = new List<Voxel.Service.Entry>();
-		[SerializeField] private Mask.SpriteMapping maskMappings = new Mask.SpriteMapping();
-		[SerializeField] private Battle.EncounterTable.Model.Data defaultEncounterTable = null;
+		[SerializeField] private Exploration.World.Chunk.Model.IGenerator worldGenerator = null;
+		[SerializeField] private List<Core.Voxel.Service.Entry> voxelEntries = new List<Core.Voxel.Service.Entry>();
+		[SerializeField] private Core.Mask.SpriteMapping maskMappings = new Core.Mask.SpriteMapping();
+		[SerializeField] private Core.Encounter.Table.Model.Data defaultEncounterTable = null;
 
-		public World.Chunk.Model.IGenerator WorldGenerator => worldGenerator;
-		public List<Voxel.Service.Entry> VoxelEntries => voxelEntries;
-		public Mask.SpriteMapping SpriteMappings => maskMappings;
-		public Battle.EncounterTable.Model.Data DefaultEncounterTable => defaultEncounterTable;
+		public Exploration.World.Chunk.Model.IGenerator WorldGenerator => worldGenerator;
+		public List<Core.Voxel.Service.Entry> VoxelEntries => voxelEntries;
+		public Core.Mask.SpriteMapping SpriteMappings => maskMappings;
+		public Core.Encounter.Table.Model.Data DefaultEncounterTable => defaultEncounterTable;
 
 		public static ServiceLocatorConfig LoadFromResources()
 		{

@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace World.Chunk.Controller
+namespace Exploration.World.Chunk.Controller
 {
 	public class SolidChunkCollider : MonoBehaviour
 	{
 		private readonly List<GameObject> colliderObjects = new List<GameObject>();
 
-		public void Rebuild(World.Chunk.Model.Data data)
+		public void Rebuild(Exploration.World.Chunk.Model.Data data)
 		{
 			Clear();
 
@@ -16,7 +16,7 @@ namespace World.Chunk.Controller
 				return;
 			}
 
-			List<Mesh> meshes = Utils.Mesher.SolidCollisionMesher.Build(data.Cells);
+			List<Mesh> meshes = Core.Utils.Mesher.SolidCollisionMesher.Build(data.Cells);
 			for (int i = 0; i < meshes.Count; i++)
 			{
 				CreateCollider(meshes[i]);

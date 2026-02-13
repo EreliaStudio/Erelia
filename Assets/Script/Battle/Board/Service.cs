@@ -14,7 +14,7 @@ namespace Battle.Board
 			
 		}
 
-		public void SetData(Voxel.Model.Cell [,,] cells)
+		public void SetData(Core.Voxel.Model.Cell [,,] cells)
 		{
 			data = new Battle.Board.Model.Data(cells);
 			EmitBoardUpdate();

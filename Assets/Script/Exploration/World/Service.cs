@@ -2,14 +2,14 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 
-namespace World
+namespace Exploration.World
 {
 	[Serializable]
 	public class Service
 	{	
-		[SerializeField] private World.Chunk.Model.IGenerator generator = null;
+		[SerializeField] private Exploration.World.Chunk.Model.IGenerator generator = null;
 		
-		private Dictionary<World.Chunk.Model.Coordinates, World.Chunk.Model.Data> chunks = new Dictionary<World.Chunk.Model.Coordinates, World.Chunk.Model.Data>();
+		private Dictionary<Exploration.World.Chunk.Model.Coordinates, Exploration.World.Chunk.Model.Data> chunks = new Dictionary<Exploration.World.Chunk.Model.Coordinates, Exploration.World.Chunk.Model.Data>();
 
 		public Service(Chunk.Model.IGenerator generator)
 		{
@@ -21,7 +21,7 @@ namespace World
 		{
 			if (generator == null)
 			{
-				Debug.LogError("World.Service is not initialized. Call Init() before use.");
+				Debug.LogError("Exploration.World.Service is not initialized. Call Init() before use.");
 				return null;
 			}
 
@@ -34,9 +34,9 @@ namespace World
 			return chunk;
 		}
 
-		public Voxel.Model.Cell[,,] ExtrudeCells(Vector2Int center, Vector2Int size)
+		public Core.Voxel.Model.Cell[,,] ExtrudeCells(Vector2Int center, Vector2Int size)
 		{
-			Voxel.Model.Cell[,,] result = new Voxel.Model.Cell[size.x, World.Chunk.Model.Data.SizeY, size.y];
+			Core.Voxel.Model.Cell[,,] result = new Core.Voxel.Model.Cell[size.x, Exploration.World.Chunk.Model.Data.SizeY, size.y];
 			int startX = center.x - (size.x / 2);
 			int startZ = center.y - (size.y / 2);
 
@@ -46,7 +46,7 @@ namespace World
 				for (int z = 0; z < size.y; z++)
 				{
 					int worldZ = startZ + z;
-					for (int y = 0; y < World.Chunk.Model.Data.SizeY; y++)
+					for (int y = 0; y < Exploration.World.Chunk.Model.Data.SizeY; y++)
 					{
 						result[x, y, z] = GetCellAtWorld(worldX, y, worldZ);
 					}
@@ -56,20 +56,20 @@ namespace World
 			return result;
 		}
 
-		private Voxel.Model.Cell GetCellAtWorld(int worldX, int worldY, int worldZ)
+		private Core.Voxel.Model.Cell GetCellAtWorld(int worldX, int worldY, int worldZ)
 		{
-			int chunkX = Mathf.FloorToInt((float)worldX / World.Chunk.Model.Data.SizeX);
-			int chunkY = Mathf.FloorToInt((float)worldY / World.Chunk.Model.Data.SizeY);
-			int chunkZ = Mathf.FloorToInt((float)worldZ / World.Chunk.Model.Data.SizeZ);
+			int chunkX = Mathf.FloorToInt((float)worldX / Exploration.World.Chunk.Model.Data.SizeX);
+			int chunkY = Mathf.FloorToInt((float)worldY / Exploration.World.Chunk.Model.Data.SizeY);
+			int chunkZ = Mathf.FloorToInt((float)worldZ / Exploration.World.Chunk.Model.Data.SizeZ);
 
-			int localX = worldX - (chunkX * World.Chunk.Model.Data.SizeX);
-			int localY = worldY - (chunkY * World.Chunk.Model.Data.SizeY);
-			int localZ = worldZ - (chunkZ * World.Chunk.Model.Data.SizeZ);
+			int localX = worldX - (chunkX * Exploration.World.Chunk.Model.Data.SizeX);
+			int localY = worldY - (chunkY * Exploration.World.Chunk.Model.Data.SizeY);
+			int localZ = worldZ - (chunkZ * Exploration.World.Chunk.Model.Data.SizeZ);
 
-			World.Chunk.Model.Data chunk = GetOrCreateChunk(new World.Chunk.Model.Coordinates(chunkX, chunkY, chunkZ));
+			Exploration.World.Chunk.Model.Data chunk = GetOrCreateChunk(new Exploration.World.Chunk.Model.Coordinates(chunkX, chunkY, chunkZ));
 			if (chunk == null)
 			{
-				return new Voxel.Model.Cell(-1);
+				return new Core.Voxel.Model.Cell(-1);
 			}
 
 			return chunk.Cells[localX, localY, localZ];

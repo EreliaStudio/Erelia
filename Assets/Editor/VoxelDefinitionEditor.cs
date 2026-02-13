@@ -1,11 +1,11 @@
 using UnityEditor;
 using UnityEngine;
-using Voxel;
-using Voxel.View;
+using Core.Voxel;
+using Core.Voxel.Geometry;
 
 namespace Erelia.Editor
 {
-	[CustomEditor(typeof(Voxel.Model.Definition))]
+	[CustomEditor(typeof(Core.Voxel.Model.Definition))]
 	public class VoxelDefinitionEditor : UnityEditor.Editor
 	{
 		private SerializedProperty dataProp;
@@ -47,7 +47,7 @@ namespace Erelia.Editor
 
 		private void EnsureShapeInstance(bool forceReplace)
 		{
-			var shapeType = (Voxel.Model.Definition.ShapeType)shapeTypeProp.enumValueIndex;
+			var shapeType = (Core.Voxel.Model.Definition.ShapeType)shapeTypeProp.enumValueIndex;
 			var expectedType = GetShapeClassType(shapeType);
 			var current = shapeProp.managedReferenceValue;
 
@@ -57,37 +57,37 @@ namespace Erelia.Editor
 			}
 		}
 
-		private static System.Type GetShapeClassType(Voxel.Model.Definition.ShapeType shapeType)
+		private static System.Type GetShapeClassType(Core.Voxel.Model.Definition.ShapeType shapeType)
 		{
 			switch (shapeType)
 			{
-				case Voxel.Model.Definition.ShapeType.Slab:
+				case Core.Voxel.Model.Definition.ShapeType.Slab:
 					return typeof(Slab);
-				case Voxel.Model.Definition.ShapeType.Slope:
+				case Core.Voxel.Model.Definition.ShapeType.Slope:
 					return typeof(Slope);
-				case Voxel.Model.Definition.ShapeType.Stair:
+				case Core.Voxel.Model.Definition.ShapeType.Stair:
 					return typeof(Stair);
-				case Voxel.Model.Definition.ShapeType.CrossPlane:
+				case Core.Voxel.Model.Definition.ShapeType.CrossPlane:
 					return typeof(CrossPlane);
-				case Voxel.Model.Definition.ShapeType.Cube:
+				case Core.Voxel.Model.Definition.ShapeType.Cube:
 				default:
 					return typeof(Cube);
 			}
 		}
 
-		private static Shape CreateShapeInstance(Voxel.Model.Definition.ShapeType shapeType)
+		private static Shape CreateShapeInstance(Core.Voxel.Model.Definition.ShapeType shapeType)
 		{
 			switch (shapeType)
 			{
-				case Voxel.Model.Definition.ShapeType.Slab:
+				case Core.Voxel.Model.Definition.ShapeType.Slab:
 					return new Slab();
-				case Voxel.Model.Definition.ShapeType.Slope:
+				case Core.Voxel.Model.Definition.ShapeType.Slope:
 					return new Slope();
-				case Voxel.Model.Definition.ShapeType.Stair:
+				case Core.Voxel.Model.Definition.ShapeType.Stair:
 					return new Stair();
-				case Voxel.Model.Definition.ShapeType.CrossPlane:
+				case Core.Voxel.Model.Definition.ShapeType.CrossPlane:
 					return new CrossPlane();
-				case Voxel.Model.Definition.ShapeType.Cube:
+				case Core.Voxel.Model.Definition.ShapeType.Cube:
 				default:
 					return new Cube();
 			}

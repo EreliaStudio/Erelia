@@ -36,10 +36,10 @@ namespace Battle.Debugging
 				return;
 			}
 
-			World.Service worldService = locator.WorldService;
+			Exploration.World.Service worldService = locator.WorldService;
 			if (worldService == null)
 			{
-				Debug.LogError("BattleDebugBootstrap: World.Service is not available.");
+				Debug.LogError("BattleDebugBootstrap: Exploration.World.Service is not available.");
 				return;
 			}
 
@@ -49,19 +49,19 @@ namespace Battle.Debugging
 			{
 				for (int z = 0; z <= 2; z++)
 				{
-					worldService.GetOrCreateChunk(new World.Chunk.Model.Coordinates(x, 0, z));
+					worldService.GetOrCreateChunk(new Exploration.World.Chunk.Model.Coordinates(x, 0, z));
 				}
 			}
 
-			int generatedSizeX = World.Chunk.Model.Data.SizeX * 3;
-			int generatedSizeZ = World.Chunk.Model.Data.SizeZ * 3;
+			int generatedSizeX = Exploration.World.Chunk.Model.Data.SizeX * 3;
+			int generatedSizeZ = Exploration.World.Chunk.Model.Data.SizeZ * 3;
 
 			int sizeX = Mathf.FloorToInt(generatedSizeX / 2.0f);
 			int sizeZ = Mathf.FloorToInt(generatedSizeZ / 2.0f);
 			int centerX = generatedSizeX / 2;
 			int centerZ = generatedSizeZ / 2;
 
-			Voxel.Model.Cell[,,] cells = worldService.ExtrudeCells(new Vector2Int(centerX, centerZ), new Vector2Int(sizeX, sizeZ));
+			Core.Voxel.Model.Cell[,,] cells = worldService.ExtrudeCells(new Vector2Int(centerX, centerZ), new Vector2Int(sizeX, sizeZ));
 			locator.BattleBoardService.SetData(cells);
 
 			Debug.Log("BattleDebugBootstrap: Mocked world chunks 0/0/0 to 2/0/2 and initialized battle board.");

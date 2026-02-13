@@ -1,22 +1,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace World.View
+namespace Exploration.World.View
 {
 	public class Presenter : MonoBehaviour
 	{
 		[SerializeField] private Material voxelMaterial = null;
-		[SerializeField] private Player.Controller.KeyboardMotionController playerController = null;
+		[SerializeField] private Core.Player.Controller.KeyboardMotionController playerController = null;
 		[SerializeField] private Vector3Int viewRange = new Vector3Int(1, 0, 1);
 
-		private readonly Dictionary<World.Chunk.Model.Coordinates, World.Chunk.View.Presenter> views = new Dictionary<World.Chunk.Model.Coordinates, World.Chunk.View.Presenter>();
+		private readonly Dictionary<Exploration.World.Chunk.Model.Coordinates, Exploration.World.Chunk.View.Presenter> views = new Dictionary<Exploration.World.Chunk.Model.Coordinates, Exploration.World.Chunk.View.Presenter>();
 
 		private void Awake()
 		{
 			
 		}
 
-		public void Configure(Material material, Player.Controller.KeyboardMotionController controller, Vector3Int range)
+		public void Configure(Material material, Core.Player.Controller.KeyboardMotionController controller, Vector3Int range)
 		{
 			voxelMaterial = material;
 			playerController = controller;
@@ -48,24 +48,24 @@ namespace World.View
 				return;
 			}
 
-			World.Chunk.Model.Coordinates center = World.Chunk.Model.Coordinates.FromWorld(playerController.transform.position);
+			Exploration.World.Chunk.Model.Coordinates center = Exploration.World.Chunk.Model.Coordinates.FromWorld(playerController.transform.position);
 
-			var needed = new HashSet<World.Chunk.Model.Coordinates>();
+			var needed = new HashSet<Exploration.World.Chunk.Model.Coordinates>();
 			for (int x = -viewRange.x; x <= viewRange.x; x++)
 			{
 				for (int y = -viewRange.y; y <= viewRange.y; y++)
 				{
 					for (int z = -viewRange.z; z <= viewRange.z; z++)
 					{
-						var coord = new World.Chunk.Model.Coordinates(center.X + x, center.Y + y, center.Z + z);
+						var coord = new Exploration.World.Chunk.Model.Coordinates(center.X + x, center.Y + y, center.Z + z);
 						needed.Add(coord);
 						EnsureChunk(coord);
 					}
 				}
 			}
 
-			var toRemove = new List<World.Chunk.Model.Coordinates>();
-			foreach (KeyValuePair<World.Chunk.Model.Coordinates, World.Chunk.View.Presenter> pair in views)
+			var toRemove = new List<Exploration.World.Chunk.Model.Coordinates>();
+			foreach (KeyValuePair<Exploration.World.Chunk.Model.Coordinates, Exploration.World.Chunk.View.Presenter> pair in views)
 			{
 				if (!needed.Contains(pair.Key))
 				{
@@ -79,14 +79,14 @@ namespace World.View
 			}
 		}
 
-		public World.Chunk.View.Presenter EnsureChunk(World.Chunk.Model.Coordinates coord)
+		public Exploration.World.Chunk.View.Presenter EnsureChunk(Exploration.World.Chunk.Model.Coordinates coord)
 		{
-			if (views.TryGetValue(coord, out World.Chunk.View.Presenter existing))
+			if (views.TryGetValue(coord, out Exploration.World.Chunk.View.Presenter existing))
 			{
 				return existing;
 			}
 
-			World.Chunk.Model.Data data = Utils.ServiceLocator.Instance.WorldService.GetOrCreateChunk(coord);
+			Exploration.World.Chunk.Model.Data data = Utils.ServiceLocator.Instance.WorldService.GetOrCreateChunk(coord);
 			if (data == null)
 			{
 				return null;
@@ -95,21 +95,21 @@ namespace World.View
 			var chunkObject = new GameObject("ChunkPresenter " + coord);
 			chunkObject.transform.SetParent(transform, false);
 			chunkObject.transform.localPosition = new Vector3(
-				coord.X * World.Chunk.Model.Data.SizeX,
-				coord.Y * World.Chunk.Model.Data.SizeY,
-				coord.Z * World.Chunk.Model.Data.SizeZ
+				coord.X * Exploration.World.Chunk.Model.Data.SizeX,
+				coord.Y * Exploration.World.Chunk.Model.Data.SizeY,
+				coord.Z * Exploration.World.Chunk.Model.Data.SizeZ
 			);
 
-			var view = chunkObject.AddComponent<World.Chunk.View.Presenter>();
+			var view = chunkObject.AddComponent<Exploration.World.Chunk.View.Presenter>();
 			view.Initialize(coord, data, voxelMaterial);
 			views.Add(coord, view);
 
 			return view;
 		}
 
-		public void RemoveChunk(World.Chunk.Model.Coordinates coord)
+		public void RemoveChunk(Exploration.World.Chunk.Model.Coordinates coord)
 		{
-			if (!views.TryGetValue(coord, out World.Chunk.View.Presenter view))
+			if (!views.TryGetValue(coord, out Exploration.World.Chunk.View.Presenter view))
 			{
 				return;
 			}

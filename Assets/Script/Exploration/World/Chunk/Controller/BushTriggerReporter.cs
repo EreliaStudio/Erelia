@@ -1,7 +1,7 @@
 using UnityEngine;
 using Utils;
 
-namespace World.Chunk.Controller
+namespace Exploration.World.Chunk.Controller
 {
 	public class BushTriggerReporter : MonoBehaviour
 	{

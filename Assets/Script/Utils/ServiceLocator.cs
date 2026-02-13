@@ -9,40 +9,40 @@ namespace Utils
 
 		public static ServiceLocator Instance => _instance;
 
-		private readonly World.Service worldService = null;
-		public World.Service WorldService => worldService;
+		private readonly Exploration.World.Service worldService = null;
+		public Exploration.World.Service WorldService => worldService;
 		
-		private readonly Voxel.Service voxelService = null;
-		public Voxel.Service VoxelService => voxelService;
+		private readonly Core.Voxel.Service voxelService = null;
+		public Core.Voxel.Service VoxelService => voxelService;
 		
-		private readonly Player.Service playerService = null;
-		public Player.Service PlayerService => playerService;
+		private readonly Core.Player.Service playerService = null;
+		public Core.Player.Service PlayerService => playerService;
 
-		private readonly Exploration.Encounter.Service encounterService = null;
-		public Exploration.Encounter.Service EncounterService => encounterService;
+		private readonly Core.Encounter.Service encounterService = null;
+		public Core.Encounter.Service EncounterService => encounterService;
 
 		private readonly Battle.Board.Service battleBoardService = null;
 		public Battle.Board.Service BattleBoardService => battleBoardService;
 
-		private readonly Mask.Service maskService = null;
-		public Mask.Service MaskService => maskService;
+		private readonly Core.Mask.Service maskService = null;
+		public Core.Mask.Service MaskService => maskService;
 		
 		private readonly SceneLoader sceneLoader = null;
 		public SceneLoader SceneLoader => sceneLoader;
 
-		private readonly global::Camera.Service cameraService = null;
-		public global::Camera.Service CameraService => cameraService;
+		private readonly Core.Camera.Service cameraService = null;
+		public Core.Camera.Service CameraService => cameraService;
 
 		private ServiceLocator(ServiceLocatorConfig config)
 		{
-			worldService = new World.Service(config != null ? config.WorldGenerator : null);
-			voxelService = new Voxel.Service(config != null ? config.VoxelEntries : null);
-			playerService = new Player.Service();
-			encounterService = new Exploration.Encounter.Service(config != null ? config.DefaultEncounterTable : null);
+			worldService = new Exploration.World.Service(config != null ? config.WorldGenerator : null);
+			voxelService = new Core.Voxel.Service(config != null ? config.VoxelEntries : null);
+			playerService = new Core.Player.Service();
+			encounterService = new Core.Encounter.Service(config != null ? config.DefaultEncounterTable : null);
 			battleBoardService = new Battle.Board.Service();
 			sceneLoader = new SceneLoader();
-			maskService = new Mask.Service(config != null ? config.SpriteMappings : new Mask.SpriteMapping());
-			cameraService = new global::Camera.Service();
+			maskService = new Core.Mask.Service(config != null ? config.SpriteMappings : new Core.Mask.SpriteMapping());
+			cameraService = new Core.Camera.Service();
 		}
 
 		public static void Initialize(ServiceLocatorConfig config)

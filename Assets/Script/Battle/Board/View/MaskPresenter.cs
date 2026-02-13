@@ -20,7 +20,7 @@ namespace Battle.Board.View
 
 		public void Rebuild(Battle.Board.Model.Data data)
 		{
-			Mesh mesh = Utils.Mesher.VoxelMaskRenderMesher.Build(data.Cells, data.MaskCells);
+			Mesh mesh = Core.Utils.Mesher.VoxelMaskRenderMesher.Build(data.Cells, data.MaskCells);
 			mesh.name = "VoxelMaskRenderMesh";
 			meshFilter.sharedMesh = mesh;
 		}

@@ -16,7 +16,7 @@ namespace Battle.Board.Controller
 				return;
 			}
 
-			List<Mesh> meshes = Utils.Mesher.SolidCollisionMesher.Build(data.Cells);
+			List<Mesh> meshes = Core.Utils.Mesher.SolidCollisionMesher.Build(data.Cells);
 			for (int i = 0; i < meshes.Count; i++)
 			{
 				CreateCollider(meshes[i]);

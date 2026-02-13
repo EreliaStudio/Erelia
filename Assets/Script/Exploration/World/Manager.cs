@@ -1,15 +1,15 @@
 using UnityEngine;
 
-namespace World
+namespace Exploration.World
 {
 	public class Manager : MonoBehaviour
 	{
-		[SerializeField] private Player.Controller.KeyboardMotionController playerController = null;
+		[SerializeField] private Core.Player.Controller.KeyboardMotionController playerController = null;
 		[SerializeField] private Vector3Int viewRange = new Vector3Int(1, 0, 1);
 		[SerializeField] private Material voxelMaterial = null;
 
-		private World.View.Presenter worldPresenter = null;
-		private World.Controller.BodyCollider worldCollider = null;
+		private Exploration.World.View.Presenter worldPresenter = null;
+		private Exploration.World.Controller.BodyCollider worldCollider = null;
 
 		private void Awake()
 		{
@@ -27,7 +27,7 @@ namespace World
 			Utils.ServiceLocator.Instance.PlayerService.PlayerChunkCoordinateChanged -= HandlePlayerChunkChanged;
 		}
 
-		private void HandlePlayerChunkChanged(World.Chunk.Model.Coordinates coord)
+		private void HandlePlayerChunkChanged(Exploration.World.Chunk.Model.Coordinates coord)
 		{
 			worldPresenter.RefreshVisible();
 			worldCollider.RefreshActive();
@@ -37,7 +37,7 @@ namespace World
 		{
 			var go = new GameObject("WorldPresenter");
 			go.transform.SetParent(transform, false);
-			worldPresenter = go.AddComponent<World.View.Presenter>();
+			worldPresenter = go.AddComponent<Exploration.World.View.Presenter>();
 			worldPresenter.Configure(voxelMaterial, playerController, viewRange);
 		}
 
@@ -45,7 +45,7 @@ namespace World
 		{
 			var go = new GameObject("WorldCollider");
 			go.transform.SetParent(transform, false);
-			worldCollider = go.AddComponent<World.Controller.BodyCollider>();
+			worldCollider = go.AddComponent<Exploration.World.Controller.BodyCollider>();
 			worldCollider.Configure(playerController, viewRange);
 		}
 	}

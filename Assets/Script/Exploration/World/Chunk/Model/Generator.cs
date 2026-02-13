@@ -1,11 +1,11 @@
 using UnityEngine;
 
-namespace World.Chunk.Model
+namespace Exploration.World.Chunk.Model
 {
-	[CreateAssetMenu(fileName = "WorldChunkGenerator", menuName = "World/TestGenerator")]
-	public class TestGenerator : World.Chunk.Model.IGenerator 
+	[CreateAssetMenu(fileName = "Exploration.WorldChunkGenerator", menuName = "Exploration.World/TestGenerator")]
+	public class TestGenerator : Exploration.World.Chunk.Model.IGenerator 
 	{
-		public override World.Chunk.Model.Data Generate(World.Chunk.Model.Coordinates coordinate)
+		public override Exploration.World.Chunk.Model.Data Generate(Exploration.World.Chunk.Model.Coordinates coordinate)
 		{
 			var chunk = new Data();
 
@@ -41,7 +41,7 @@ namespace World.Chunk.Model
 							}
 						}
 
-						chunk.Cells[x, y, z] = new Voxel.Model.Cell(dataId);
+						chunk.Cells[x, y, z] = new Core.Voxel.Model.Cell(dataId);
 					}
 				}
 			}

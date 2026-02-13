@@ -24,4 +24,10 @@ MonoBehaviour:
     Definition: {fileID: 11400000, guid: 2e2c0aef888b05940a52d522954a88cc, type: 2}
   - Id: 4
     Definition: {fileID: 11400000, guid: 18f477b3604e0044c9d663da833be270, type: 2}
+  maskMappings:
+    PlacementSprite: {fileID: 220394479, guid: 42e79522f6f7af5438d4348c7c2b89ce, type: 3}
+    AttackRangeSprite: {fileID: 1178860191, guid: 42e79522f6f7af5438d4348c7c2b89ce, type: 3}
+    MovementRangeSprite: {fileID: 2142519208, guid: 42e79522f6f7af5438d4348c7c2b89ce, type: 3}
+    AreaOfEffectSprite: {fileID: -1664882880, guid: 42e79522f6f7af5438d4348c7c2b89ce, type: 3}
+    SelectedSprite: {fileID: 663566218, guid: 42e79522f6f7af5438d4348c7c2b89ce, type: 3}
   defaultEncounterTable: {fileID: 11400000, guid: 7b10e152cd297d248b3e76ff8be7708d, type: 2}
