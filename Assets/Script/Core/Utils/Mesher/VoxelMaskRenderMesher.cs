@@ -66,11 +66,6 @@ namespace Core.Utils.Mesher
 				return;
 			}
 
-			if (!TryGetMaskSprite(maskCell, out Sprite maskSprite))
-			{
-				return;
-			}
-
 			if (!TryGetDefinition(cell, out Core.Voxel.Model.Definition definition))
 			{
 				return;
@@ -100,22 +95,25 @@ namespace Core.Utils.Mesher
 				return;
 			}
 
-			for (int i = 0; i < maskFacesForFlip.Count; i++)
+			IReadOnlyList<Core.Mask.Model.Value> masks = maskCell.Masks;
+			for (int m = 0; m < masks.Count; m++)
 			{
-				Core.Voxel.Model.Face rotatedFace = TransformFaceCached(maskFacesForFlip[i], orientation, Core.Voxel.Model.FlipOrientation.PositiveY);
-				AddFaceWithSprite(rotatedFace, position, maskSprite, vertices, triangles, uvs);
+				if (!TryGetMaskSprite(masks[m], out Sprite maskSprite))
+				{
+					continue;
+				}
+
+				for (int i = 0; i < maskFacesForFlip.Count; i++)
+				{
+					Core.Voxel.Model.Face rotatedFace = TransformFaceCached(maskFacesForFlip[i], orientation, Core.Voxel.Model.FlipOrientation.PositiveY);
+					AddFaceWithSprite(rotatedFace, position, maskSprite, vertices, triangles, uvs);
+				}
 			}
 		}
 
-		private bool TryGetMaskSprite(Core.Mask.Model.Cell maskCell, out Sprite sprite)
+		private bool TryGetMaskSprite(Core.Mask.Model.Value maskValue, out Sprite sprite)
 		{
 			sprite = null;
-			if (maskCell == null || maskCell.Masks == null || maskCell.Masks.Count == 0)
-			{
-				return false;
-			}
-
-			Core.Mask.Model.Value maskValue = maskCell.Masks[maskCell.Masks.Count - 1];
 			if (ServiceLocator.Instance == null || ServiceLocator.Instance.MaskService == null)
 			{
 				return false;

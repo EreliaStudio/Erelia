@@ -68,7 +68,6 @@ namespace Core.Camera.Controller
 
 		private static Vector3Int ResolveCell(RaycastHit hit)
 		{
-			Debug.Log("Base input value : " + hit.point);
 			const float epsilon = 0.001f;
 			Vector3 biased = hit.point - (hit.normal * epsilon);
 			return new Vector3Int(
