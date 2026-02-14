@@ -368,16 +368,16 @@ namespace Core.Utils.Mesher
 				return false;
 			}
 
-			Vector3 canonicalNormal = CanonicalizeNormal(normal.normalized);
-			if (!Geometry.TryBuildBasis(canonicalNormal, out Vector3 tangent, out Vector3 bitangent))
+			Vector3 planeNormal = normal.normalized;
+			if (!Geometry.TryBuildBasis(planeNormal, out Vector3 tangent, out Vector3 bitangent))
 			{
 				return false;
 			}
 
-			float planeD = Vector3.Dot(canonicalNormal, worldVerts[0]);
+			float planeD = Vector3.Dot(planeNormal, worldVerts[0]);
 			for (int i = 1; i < worldVerts.Count; i++)
 			{
-				float d = Vector3.Dot(canonicalNormal, worldVerts[i]);
+				float d = Vector3.Dot(planeNormal, worldVerts[i]);
 				if (Mathf.Abs(d - planeD) > MergeEpsilon)
 				{
 					return false;
@@ -418,25 +418,8 @@ namespace Core.Utils.Mesher
 				}
 			}
 
-			rect = new Rect2D(canonicalNormal, planeD, tangent, bitangent, minU, maxU, minV, maxV);
+			rect = new Rect2D(planeNormal, planeD, tangent, bitangent, minU, maxU, minV, maxV);
 			return true;
-		}
-
-		private static Vector3 CanonicalizeNormal(Vector3 normal)
-		{
-			Vector3 n = normal.normalized;
-			float ax = Mathf.Abs(n.x);
-			float ay = Mathf.Abs(n.y);
-			float az = Mathf.Abs(n.z);
-			if (ax >= ay && ax >= az)
-			{
-				return n.x < 0f ? -n : n;
-			}
-			if (ay >= az)
-			{
-				return n.y < 0f ? -n : n;
-			}
-			return n.z < 0f ? -n : n;
 		}
 
 		private static void GetPlaneUV(Vector3 tangent, Vector3 bitangent, Vector3 position, out float u, out float v)
