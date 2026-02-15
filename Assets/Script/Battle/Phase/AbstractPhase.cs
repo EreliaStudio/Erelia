@@ -1,17 +1,18 @@
+using UnityEngine;
+
 namespace Battle.Phase
 {
 	public abstract class AbstractPhase
 	{
 		protected Battle.Phase.Manager manager;
 		public Battle.Phase.Manager Manager => manager;
-		protected Battle.Player.Controller.BattleController playerController;
-		public Battle.Player.Controller.BattleController PlayerController => playerController;
 
-		public void Setup(Battle.Phase.Manager manager, Battle.Player.Controller.BattleController playerController)
+		public void Initialize(Battle.Phase.Manager manager, GameObject playerObject)
 		{
 			this.manager = manager;
-			this.playerController = playerController;
+			Configure(playerObject);
 		}
+		abstract public void Configure(GameObject playerObject);
 
 		abstract public void OnEnter();
 		abstract public void OnUpdate();

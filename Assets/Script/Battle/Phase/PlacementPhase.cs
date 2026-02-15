@@ -1,7 +1,20 @@
+using Battle.Board.Controller;
+using UnityEngine;
+using Utils;
+
+
 namespace Battle.Phase
 {
 	class PlacementPhase : Battle.Phase.AbstractPhase
 	{
+		protected Battle.Player.Controller.BattleController playerController;
+		public Battle.Player.Controller.BattleController PlayerController => playerController;
+
+		public override void Configure(GameObject playerObject)
+		{
+			playerController = playerObject.GetComponent<Battle.Player.Controller.BattleController>();
+		}
+
 		public override void OnEnter()
 		{
 			ClearPlacementMask();
@@ -56,18 +69,71 @@ namespace Battle.Phase
 			for (int y = data.SizeY - 1; y >= 0; y--)
 			{
 				Core.Voxel.Model.Cell cell = data.Cells[x, y, z];
-				if (cell == null)
+				if (!IsSolidCell(cell))
 				{
 					continue;
 				}
 
-				if (cell.Id != Core.Voxel.Service.AirID)
+				if (!HasVerticalSpace(data, x, y, z, 2))
 				{
-					return y;
+					continue;
 				}
+
+				return y;
 			}
 
 			return -1;
+		}
+
+		private bool HasVerticalSpace(Battle.Board.Model.Data data, int x, int y, int z, int required)
+		{
+			for (int offset = 1; offset <= required; offset++)
+			{
+				int checkY = y + offset;
+				if (checkY >= data.SizeY)
+				{
+					return false;
+				}
+
+				Core.Voxel.Model.Cell cell = data.Cells[x, checkY, z];
+				if (!IsAirOrWalkableCell(cell))
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		private bool IsSolidCell(Core.Voxel.Model.Cell cell)
+		{
+			if (cell == null || cell.Id == Core.Voxel.Service.AirID)
+			{
+				return false;
+			}
+
+			if (!ServiceLocator.Instance.VoxelService.TryGetDefinition(cell.Id, out Core.Voxel.Model.Definition voxelDefinition))
+			{
+				return false;
+			}
+
+			return voxelDefinition.Data.Traversal == Core.Voxel.Model.Traversal.Obstacle;
+		}
+
+		private bool IsAirOrWalkableCell(Core.Voxel.Model.Cell cell)
+		{
+			if (cell == null || cell.Id == Core.Voxel.Service.AirID)
+			{
+				return true;
+			}
+
+			if (!ServiceLocator.Instance.VoxelService.TryGetDefinition(cell.Id, out Core.Voxel.Model.Definition voxelDefinition))
+			{
+				return false;
+			}
+
+			Core.Voxel.Model.Traversal traversal = voxelDefinition.Data.Traversal;
+			return traversal == Core.Voxel.Model.Traversal.Air || traversal == Core.Voxel.Model.Traversal.Walkable;
 		}
 
 		private void ClearPlacementMask()
