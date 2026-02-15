@@ -9,6 +9,8 @@ namespace Core.Player.Model
 
 		public Vector3 WorldPosition => new Vector3(CellPosition.x, CellPosition.y, CellPosition.z);
 
+		public Core.Team.Data team = new Core.Team.Data();
+
 		public void UpdateFromWorld(Vector3 worldPosition)
 		{
 			CellPosition = Vector3Int.FloorToInt(worldPosition);

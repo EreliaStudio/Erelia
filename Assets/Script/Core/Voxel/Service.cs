@@ -14,18 +14,12 @@ namespace Core.Voxel
 			public Core.Voxel.Model.Definition Definition;
 		}
 
-		[SerializeField] private List<Entry> entries = new List<Entry>();
-
 		private readonly Dictionary<int, Core.Voxel.Model.Definition> data = new Dictionary<int, Core.Voxel.Model.Definition>();
 		public IReadOnlyDictionary<int, Core.Voxel.Model.Definition> Data => data;
 		[HideInInspector] public static readonly int AirID = -1;
 
 		public Service(List<Entry> entries)
 		{
-			if (entries != null)
-			{
-				this.entries = new List<Entry>(entries);
-			}
 			RebuildDictionary(entries);
 		}
 
