@@ -292,7 +292,7 @@ MonoBehaviour:
   icon: {fileID: 5877310260297888328}
   nameLabel: {fileID: 77655536954442650}
   button: {fileID: 4714707596723256753}
-  defaultColor: {r: 0.12, g: 0.12, b: 0.12, a: 0.75}
+  defaultColor: {r: 0.6698113, g: 0.6698113, b: 0.6698113, a: 0.75}
   selectedColor: {r: 1, g: 0.88631666, b: 0.023584902, a: 0.9}
   placedColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.9}
 --- !u!114 &3236513836610204337

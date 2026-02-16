@@ -10,6 +10,7 @@ namespace Battle.Phase
 {
 	public class PlacementPhase : Battle.Phase.AbstractPhase
 	{
+		private const int UnselectedSlotIndex = -1;
 		protected Battle.Player.Controller.BattleController playerController;
 		public Battle.Player.Controller.BattleController PlayerController => playerController;
 		private Battle.Context.Model.TeamPlacement playerPlacement;
@@ -30,7 +31,7 @@ namespace Battle.Phase
 		public override void OnEnter()
 		{
 			InitializePlacementData();
-			activeSlotIndex = FindNextUnplacedSlot(0);
+			activeSlotIndex = UnselectedSlotIndex;
 			ClearPlacementMask();
 			ApplyPlacementMask();
 			Utils.ServiceLocator.Instance.BattleBoardService.Data.ValidateMask();
@@ -131,6 +132,11 @@ namespace Battle.Phase
 				return false;
 			}
 
+			if (activeSlotIndex < 0 || activeSlotIndex >= playerPlacement.SlotCount)
+			{
+				return false;
+			}
+
 			if (!playerController.HasSelectedCell())
 			{
 				return false;
@@ -147,30 +153,10 @@ namespace Battle.Phase
 				return false;
 			}
 
-			activeSlotIndex = FindNextUnplacedSlot(activeSlotIndex + 1);
+			activeSlotIndex = UnselectedSlotIndex;
 			PlacementChanged?.Invoke();
 			ActiveSlotChanged?.Invoke(activeSlotIndex);
 			return true;
-		}
-
-		private int FindNextUnplacedSlot(int startIndex)
-		{
-			if (playerPlacement == null || playerPlacement.SlotCount == 0)
-			{
-				return 0;
-			}
-
-			int slotCount = playerPlacement.SlotCount;
-			for (int offset = 0; offset < slotCount; offset++)
-			{
-				int index = (startIndex + offset) % slotCount;
-				if (!playerPlacement.Instances[index].HasPlacement)
-				{
-					return index;
-				}
-			}
-
-			return 0;
 		}
 
 		private bool IsPlacementCell(Vector3Int cell)

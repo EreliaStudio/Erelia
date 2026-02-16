@@ -10,6 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 19747325f3357284bae824f966970a54, type: 3}
-  m_Name: CreatureB
+  m_Name: CreatureA
   m_EditorClassIdentifier: Assembly-CSharp::Core.Creature.Model.Species
-  displayName: CreatureB
+  familyName: DefaultName
+  sprite: {fileID: -24772351, guid: d886125f3956507488f299895c5e0728, type: 3}
