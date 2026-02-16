@@ -56,6 +56,7 @@
     <Compile Include="Assets\Script\Battle\Debug\BattleDebugBootstrap.cs" />
     <Compile Include="Assets\Script\Exploration\World\View\Presenter.cs" />
     <Compile Include="Assets\Script\Exploration\World\Controller\BodyCollider.cs" />
+    <Compile Include="Assets\Script\Core\Creature\Model\Definition.cs" />
     <Compile Include="Assets\Script\Battle\Phase\InitializationPhase.cs" />
     <Compile Include="Assets\Script\Exploration\Player\Controller\KeyboardMotionController.cs" />
     <Compile Include="Assets\Script\Battle\Player\Controller\KeyboardMotionController.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="Assets\Script\Core\Mask\Model\Value.cs" />
     <Compile Include="Assets\Script\Battle\Board\Service.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\AbstractGenerator.cs" />
+    <Compile Include="Assets\Script\Core\Creature\Model\Species.cs" />
     <Compile Include="Assets\Script\Battle\Phase\Manager.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Data.cs" />
     <Compile Include="Assets\Script\Core\Encounter\EncounterTable\Model\Data.cs" />
@@ -76,6 +78,7 @@
     <Compile Include="Assets\Script\Exploration\World\Service.cs" />
     <Compile Include="Assets\Script\Battle\Player\Controller\BattleController.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Service.cs" />
+    <Compile Include="Assets\Script\Core\Creature\Service.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Cell.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\Mesher.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\VoxelMaskRenderMesher.cs" />
@@ -88,6 +91,7 @@
     <Compile Include="Assets\Script\Core\Utils\Geometry.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\SlabVoxel.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\CrossPlaneVoxel.cs" />
+    <Compile Include="Assets\Script\Battle\Context\Service.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushChunkCollider.cs" />
     <Compile Include="Assets\Script\Core\Utils\SpriteUv.cs" />
     <Compile Include="Assets\Script\Battle\Phase\PlacementPhase.cs" />
@@ -97,6 +101,7 @@
     <Compile Include="Assets\Script\Utils\ServiceLocatorBootstrap.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\SlopeVoxel.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\SolidCollisionMesher.cs" />
+    <Compile Include="Assets\Script\Battle\Context\Model\Side.cs" />
     <Compile Include="Assets\Script\Battle\Phase\AbstractPhase.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\VoxelRenderMesher.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Generator.cs" />
@@ -109,6 +114,9 @@
     <Compile Include="Assets\Script\Core\Utils\Mesher\BushCollisionMesher.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\View\Presenter.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BodyCollider.cs" />
+    <Compile Include="Assets\Script\Core\Creature\Model\Team.cs" />
+    <Compile Include="Assets\Script\Battle\Context\Model\CreatureInstance.cs" />
+    <Compile Include="Assets\Script\Battle\Context\Model\TeamPlacement.cs" />
     <Compile Include="Assets\Script\Core\Mask\Service.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Coordinates.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Data.cs" />

@@ -14,6 +14,9 @@ namespace Utils
 		
 		private readonly Core.Voxel.Service voxelService = null;
 		public Core.Voxel.Service VoxelService => voxelService;
+
+		private readonly Core.Creature.Service creatureService = null;
+		public Core.Creature.Service CreatureService => creatureService;
 		
 		private readonly Core.Player.Service playerService = null;
 		public Core.Player.Service PlayerService => playerService;
@@ -23,6 +26,9 @@ namespace Utils
 
 		private readonly Battle.Board.Service battleBoardService = null;
 		public Battle.Board.Service BattleBoardService => battleBoardService;
+
+		private readonly Battle.Context.Service battleContextService = null;
+		public Battle.Context.Service BattleContextService => battleContextService;
 
 		private readonly Core.Mask.Service maskService = null;
 		public Core.Mask.Service MaskService => maskService;
@@ -37,9 +43,11 @@ namespace Utils
 		{
 			worldService = new Exploration.World.Service(config != null ? config.WorldGenerator : null);
 			voxelService = new Core.Voxel.Service(config != null ? config.VoxelEntries : null);
-			playerService = new Core.Player.Service();
+			creatureService = new Core.Creature.Service(config != null ? config.CreatureEntries : null);
+			playerService = new Core.Player.Service(config != null ? config.PlayerTeam : new Core.Creature.Model.Team());
 			encounterService = new Core.Encounter.Service(config != null ? config.DefaultEncounterTable : null);
 			battleBoardService = new Battle.Board.Service();
+			battleContextService = new Battle.Context.Service();
 			maskService = new Core.Mask.Service(config != null ? config.SpriteMappings : new Core.Mask.SpriteMapping());
 			sceneLoader = new SceneLoader();
 			cameraService = new Core.Camera.Service();

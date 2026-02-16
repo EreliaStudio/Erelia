@@ -1,6 +1,7 @@
 using Battle.Board.Controller;
 using UnityEngine;
 using Utils;
+using UnityEngine.InputSystem;
 
 
 namespace Battle.Phase
@@ -9,6 +10,8 @@ namespace Battle.Phase
 	{
 		protected Battle.Player.Controller.BattleController playerController;
 		public Battle.Player.Controller.BattleController PlayerController => playerController;
+		private Battle.Context.Model.TeamPlacement playerPlacement;
+		private int activeSlotIndex;
 
 		public override void Configure(GameObject playerObject)
 		{
@@ -17,6 +20,8 @@ namespace Battle.Phase
 
 		public override void OnEnter()
 		{
+			InitializePlacementData();
+			activeSlotIndex = FindNextUnplacedSlot(0);
 			ClearPlacementMask();
 			ApplyPlacementMask();
 			Utils.ServiceLocator.Instance.BattleBoardService.Data.ValidateMask();
@@ -24,7 +29,16 @@ namespace Battle.Phase
 
 		public override void OnUpdate()
 		{
+			if (playerController == null || playerPlacement == null)
+			{
+				return;
+			}
 
+			Mouse mouse = Mouse.current;
+			if (mouse != null && mouse.leftButton.wasPressedThisFrame)
+			{
+				TryPlaceActiveAtSelectedCell();
+			}
 		}
 
 		public override void OnExit()
@@ -62,6 +76,98 @@ namespace Battle.Phase
 					data.MaskCells[x, topY, z].AddMask(Core.Mask.Model.Value.Placement);
 				}
 			}
+		}
+
+		private void InitializePlacementData()
+		{
+			Battle.Context.Service contextService = Utils.ServiceLocator.Instance.BattleContextService;
+			if (contextService == null)
+			{
+				playerPlacement = null;
+				return;
+			}
+
+			if (contextService.PlayerPlacement == null)
+			{
+				contextService.InitializeFromPlayerTeam(Utils.ServiceLocator.Instance.PlayerService.Team);
+			}
+
+			playerPlacement = contextService.PlayerPlacement;
+		}
+
+		public bool TrySetActiveSlot(int slotIndex)
+		{
+			if (playerPlacement == null)
+			{
+				return false;
+			}
+
+			if (slotIndex < 0 || slotIndex >= playerPlacement.SlotCount)
+			{
+				return false;
+			}
+
+			activeSlotIndex = slotIndex;
+			return true;
+		}
+
+		public bool TryPlaceActiveAtSelectedCell()
+		{
+			if (playerController == null || playerPlacement == null)
+			{
+				return false;
+			}
+
+			if (!playerController.HasSelectedCell())
+			{
+				return false;
+			}
+
+			Vector3Int cell = playerController.SelectedCell();
+			if (!IsPlacementCell(cell))
+			{
+				return false;
+			}
+
+			if (!playerPlacement.TryPlace(activeSlotIndex, cell))
+			{
+				return false;
+			}
+
+			activeSlotIndex = FindNextUnplacedSlot(activeSlotIndex + 1);
+			return true;
+		}
+
+		private int FindNextUnplacedSlot(int startIndex)
+		{
+			if (playerPlacement == null || playerPlacement.SlotCount == 0)
+			{
+				return 0;
+			}
+
+			int slotCount = playerPlacement.SlotCount;
+			for (int offset = 0; offset < slotCount; offset++)
+			{
+				int index = (startIndex + offset) % slotCount;
+				if (!playerPlacement.Instances[index].HasPlacement)
+				{
+					return index;
+				}
+			}
+
+			return 0;
+		}
+
+		private bool IsPlacementCell(Vector3Int cell)
+		{
+			Battle.Board.Model.Data data = Utils.ServiceLocator.Instance.BattleBoardService.Data;
+
+			if (cell.x < 0 || cell.x >= data.SizeX || cell.y < 0 || cell.y >= data.SizeY || cell.z < 0 || cell.z >= data.SizeZ)
+			{
+				return false;
+			}
+
+			return data.MaskCells[cell.x, cell.y, cell.z].HasMask(Core.Mask.Model.Value.Placement);
 		}
 
 		private int FindTopmostSolidY(Battle.Board.Model.Data data, int x, int z)

@@ -11,7 +11,11 @@ namespace Battle.Phase
 
 		public override void OnEnter()
 		{
-			
+			Battle.Context.Service contextService = Utils.ServiceLocator.Instance.BattleContextService;
+			if (contextService != null)
+			{
+				contextService.InitializeFromPlayerTeam(Utils.ServiceLocator.Instance.PlayerService.Team);
+			}
 		}
 
 		public override void OnUpdate()
