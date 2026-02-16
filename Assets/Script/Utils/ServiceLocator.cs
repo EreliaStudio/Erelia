@@ -21,6 +21,9 @@ namespace Utils
 		private readonly Core.Player.Service playerService = null;
 		public Core.Player.Service PlayerService => playerService;
 
+		private readonly Core.Creature.Model.Team playerTeam = null;
+		public Core.Creature.Model.Team PlayerTeam => playerTeam;
+
 		private readonly Core.Encounter.Service encounterService = null;
 		public Core.Encounter.Service EncounterService => encounterService;
 
@@ -44,7 +47,8 @@ namespace Utils
 			worldService = new Exploration.World.Service(config != null ? config.WorldGenerator : null);
 			voxelService = new Core.Voxel.Service(config != null ? config.VoxelEntries : null);
 			creatureService = new Core.Creature.Service(config != null ? config.CreatureEntries : null);
-			playerService = new Core.Player.Service(config != null ? config.PlayerTeam : new Core.Creature.Model.Team());
+			playerService = new Core.Player.Service();
+			playerTeam = config != null ? config.PlayerTeam : new Core.Creature.Model.Team();
 			encounterService = new Core.Encounter.Service(config != null ? config.DefaultEncounterTable : null);
 			battleBoardService = new Battle.Board.Service();
 			battleContextService = new Battle.Context.Service();

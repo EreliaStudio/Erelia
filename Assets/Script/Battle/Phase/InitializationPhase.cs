@@ -14,7 +14,7 @@ namespace Battle.Phase
 			Battle.Context.Service contextService = Utils.ServiceLocator.Instance.BattleContextService;
 			if (contextService != null)
 			{
-				contextService.InitializeFromPlayerTeam(Utils.ServiceLocator.Instance.PlayerService.Team);
+				contextService.InitializeFromPlayerTeam(Utils.ServiceLocator.Instance.PlayerTeam);
 			}
 		}
 

@@ -11,5 +11,17 @@ namespace Core.Creature.Model
 
 		public Species Species => species;
 		public string NickName => nickName;
+		public string DisplayName
+		{
+			get
+			{
+				if (!string.IsNullOrWhiteSpace(nickName))
+				{
+					return nickName;
+				}
+
+				return species != null ? species.FamilyName : "Unknown";
+			}
+		}
 	}
 }

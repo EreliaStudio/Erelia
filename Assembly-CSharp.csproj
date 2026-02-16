@@ -92,9 +92,11 @@
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\SlabVoxel.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\CrossPlaneVoxel.cs" />
     <Compile Include="Assets\Script\Battle\Context\Service.cs" />
+    <Compile Include="Assets\Script\UI\Battle\Placement\TeamPlacementSlotView.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushChunkCollider.cs" />
     <Compile Include="Assets\Script\Core\Utils\SpriteUv.cs" />
     <Compile Include="Assets\Script\Battle\Phase\PlacementPhase.cs" />
+    <Compile Include="Assets\Script\UI\Battle\Placement\TeamPlacementPanel.cs" />
     <Compile Include="Assets\Script\Battle\Debug\BattleDebugBootstrapper.cs" />
     <Compile Include="Assets\Script\Battle\Board\View\MaskPresenter.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\Shape.cs" />

@@ -1,17 +1,26 @@
+using System;
 using Battle.Board.Controller;
 using UnityEngine;
 using Utils;
 using UnityEngine.InputSystem;
+using UI.Battle.Placement;
 
 
 namespace Battle.Phase
 {
-	class PlacementPhase : Battle.Phase.AbstractPhase
+	public class PlacementPhase : Battle.Phase.AbstractPhase
 	{
 		protected Battle.Player.Controller.BattleController playerController;
 		public Battle.Player.Controller.BattleController PlayerController => playerController;
 		private Battle.Context.Model.TeamPlacement playerPlacement;
 		private int activeSlotIndex;
+		private TeamPlacementPanel teamPlacementPanel;
+
+		public event Action<int> ActiveSlotChanged;
+		public event Action PlacementChanged;
+
+		public int ActiveSlotIndex => activeSlotIndex;
+		public Battle.Context.Model.TeamPlacement PlayerPlacement => playerPlacement;
 
 		public override void Configure(GameObject playerObject)
 		{
@@ -25,6 +34,8 @@ namespace Battle.Phase
 			ClearPlacementMask();
 			ApplyPlacementMask();
 			Utils.ServiceLocator.Instance.BattleBoardService.Data.ValidateMask();
+			BindTeamPanel();
+			ActiveSlotChanged?.Invoke(activeSlotIndex);
 		}
 
 		public override void OnUpdate()
@@ -45,6 +56,7 @@ namespace Battle.Phase
 		{
 			ClearPlacementMask();
 			Utils.ServiceLocator.Instance.BattleBoardService.Data.ValidateMask();
+			UnbindTeamPanel();
 		}
 
 		private void ApplyPlacementMask()
@@ -89,7 +101,7 @@ namespace Battle.Phase
 
 			if (contextService.PlayerPlacement == null)
 			{
-				contextService.InitializeFromPlayerTeam(Utils.ServiceLocator.Instance.PlayerService.Team);
+				contextService.InitializeFromPlayerTeam(Utils.ServiceLocator.Instance.PlayerTeam);
 			}
 
 			playerPlacement = contextService.PlayerPlacement;
@@ -108,6 +120,7 @@ namespace Battle.Phase
 			}
 
 			activeSlotIndex = slotIndex;
+			ActiveSlotChanged?.Invoke(activeSlotIndex);
 			return true;
 		}
 
@@ -135,6 +148,8 @@ namespace Battle.Phase
 			}
 
 			activeSlotIndex = FindNextUnplacedSlot(activeSlotIndex + 1);
+			PlacementChanged?.Invoke();
+			ActiveSlotChanged?.Invoke(activeSlotIndex);
 			return true;
 		}
 
@@ -256,6 +271,33 @@ namespace Battle.Phase
 					}
 				}
 			}
+		}
+
+		private void BindTeamPanel()
+		{
+			if (teamPlacementPanel != null)
+			{
+				return;
+			}
+
+			teamPlacementPanel = UnityEngine.Object.FindFirstObjectByType<TeamPlacementPanel>();
+			if (teamPlacementPanel == null)
+			{
+				return;
+			}
+
+			teamPlacementPanel.Bind(this);
+		}
+
+		private void UnbindTeamPanel()
+		{
+			if (teamPlacementPanel == null)
+			{
+				return;
+			}
+
+			teamPlacementPanel.Unbind();
+			teamPlacementPanel = null;
 		}
 	}
 }
