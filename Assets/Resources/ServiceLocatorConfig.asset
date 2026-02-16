@@ -24,6 +24,37 @@ MonoBehaviour:
     Definition: {fileID: 11400000, guid: 2e2c0aef888b05940a52d522954a88cc, type: 2}
   - Id: 4
     Definition: {fileID: 11400000, guid: 18f477b3604e0044c9d663da833be270, type: 2}
+  creatureEntries:
+  - Id: 0
+    data: {fileID: 11400000, guid: 246d4d8b3f1041b41ac2bda887325701, type: 2}
+  - Id: 1
+    data: {fileID: 11400000, guid: 0eb08485e966a62449e01520d76e104b, type: 2}
+  playerTeam:
+    creatures:
+    - species: {fileID: 11400000, guid: 246d4d8b3f1041b41ac2bda887325701, type: 2}
+      nickname: 
+      level: 1
+      exp: 0
+    - species: {fileID: 11400000, guid: 246d4d8b3f1041b41ac2bda887325701, type: 2}
+      nickname: NickName
+      level: 1
+      exp: 0
+    - species: {fileID: 11400000, guid: 0eb08485e966a62449e01520d76e104b, type: 2}
+      nickname: 
+      level: 1
+      exp: 0
+    - species: {fileID: 0}
+      nickname: 
+      level: 1
+      exp: 0
+    - species: {fileID: 0}
+      nickname: 
+      level: 1
+      exp: 0
+    - species: {fileID: 0}
+      nickname: 
+      level: 1
+      exp: 0
   maskMappings:
     PlacementSprite: {fileID: 220394479, guid: 42e79522f6f7af5438d4348c7c2b89ce, type: 3}
     AttackRangeSprite: {fileID: 1178860191, guid: 42e79522f6f7af5438d4348c7c2b89ce, type: 3}

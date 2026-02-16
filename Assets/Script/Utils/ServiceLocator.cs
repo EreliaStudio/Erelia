@@ -27,9 +27,6 @@ namespace Utils
 		private readonly Core.Mask.Service maskService = null;
 		public Core.Mask.Service MaskService => maskService;
 
-		private readonly Core.Creature.Service creatureService = null;
-		public Core.Creature.Service CreatureService => creatureService;
-		
 		private readonly SceneLoader sceneLoader = null;
 		public SceneLoader SceneLoader => sceneLoader;
 
@@ -44,7 +41,6 @@ namespace Utils
 			encounterService = new Core.Encounter.Service(config != null ? config.DefaultEncounterTable : null);
 			battleBoardService = new Battle.Board.Service();
 			maskService = new Core.Mask.Service(config != null ? config.SpriteMappings : new Core.Mask.SpriteMapping());
-			creatureService = new Core.Creature.Service(config != null ? config.CreatureEntries : null);
 			sceneLoader = new SceneLoader();
 			cameraService = new Core.Camera.Service();
 		}

@@ -56,9 +56,7 @@
     <Compile Include="Assets\Script\Battle\Debug\BattleDebugBootstrap.cs" />
     <Compile Include="Assets\Script\Exploration\World\View\Presenter.cs" />
     <Compile Include="Assets\Script\Exploration\World\Controller\BodyCollider.cs" />
-    <Compile Include="Assets\Script\Core\Creature\Model\Definition.cs" />
     <Compile Include="Assets\Script\Battle\Phase\InitializationPhase.cs" />
-    <Compile Include="Assets\Script\Core\Team\Model\Data.cs" />
     <Compile Include="Assets\Script\Exploration\Player\Controller\KeyboardMotionController.cs" />
     <Compile Include="Assets\Script\Battle\Player\Controller\KeyboardMotionController.cs" />
     <Compile Include="Assets\Script\Core\Camera\Service.cs" />
@@ -78,7 +76,6 @@
     <Compile Include="Assets\Script\Exploration\World\Service.cs" />
     <Compile Include="Assets\Script\Battle\Player\Controller\BattleController.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Service.cs" />
-    <Compile Include="Assets\Script\Core\Creature\Service.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Cell.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\Mesher.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\VoxelMaskRenderMesher.cs" />
@@ -94,7 +91,6 @@
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushChunkCollider.cs" />
     <Compile Include="Assets\Script\Core\Utils\SpriteUv.cs" />
     <Compile Include="Assets\Script\Battle\Phase\PlacementPhase.cs" />
-    <Compile Include="Assets\TutorialInfo\Scripts\Readme.cs" />
     <Compile Include="Assets\Script\Battle\Debug\BattleDebugBootstrapper.cs" />
     <Compile Include="Assets\Script\Battle\Board\View\MaskPresenter.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\Shape.cs" />
@@ -106,7 +102,6 @@
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Generator.cs" />
     <Compile Include="Assets\Script\Battle\Phase\Mode.cs" />
     <Compile Include="Assets\Script\Utils\ServiceLocator.cs" />
-    <Compile Include="Assets\Script\Core\Creature\Model\Data.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\SolidChunkCollider.cs" />
     <Compile Include="Assets\Script\Core\Mask\Model\Cell.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\enums.cs" />
@@ -119,6 +114,31 @@
     <Compile Include="Assets\Script\Exploration\World\Chunk\Model\Data.cs" />
     <Compile Include="Assets\Script\Exploration\World\Manager.cs" />
     <Compile Include="Assets\Script\Utils\SceneLoader.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMPro.cginc" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMP_SDF-Mobile Overlay.shader" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMP_SDF-Mobile-2-Pass.shader" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMP_Bitmap.shader" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMPro_Mobile.cginc" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMP_SDF SSD.shader" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMP_SDF-Surface-Mobile.shader" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\SDFFunctions.hlsl" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMP_SDF-Surface.shader" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Sprites\EmojiOne Attribution.txt" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMP_Bitmap-Custom-Atlas.shader" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMP_SDF.shader" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMP_SDF-Mobile SSD.shader" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Fonts\LiberationSans - OFL.txt" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMP_SDF-Mobile.shader" />
+    <None Include="Assets\ExternalResources\TextMesh Pro\Shaders\TMP_Sprite.shader" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

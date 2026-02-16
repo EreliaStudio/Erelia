@@ -1,4 +1,4 @@
-using UnityEngine; 
+using UnityEngine;
 
 namespace Battle.Phase
 {
@@ -11,7 +11,7 @@ namespace Battle.Phase
 
 		public override void OnEnter()
 		{
-
+			
 		}
 
 		public override void OnUpdate()
