@@ -45,7 +45,7 @@ namespace Core.Encounter
 
 			ServiceLocator.Instance.BattleBoardService.SetData(
 				ServiceLocator.Instance.WorldService.ExtrudeCells(
-					new Vector2Int(playerData.CellPosition.x, playerData.CellPosition.y),
+					new Vector2Int(playerData.CellPosition.x, playerData.CellPosition.z),
 					encounterTable.BoardArea));
 
 			ServiceLocator.Instance.SceneLoader.LoadBattleScene();
