@@ -3,7 +3,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
-namespace UI.Battle.Placement
+namespace Battle.Placement.UI
 {
 	public class TeamPlacementSlotView : MonoBehaviour
 	{
@@ -68,6 +68,32 @@ namespace UI.Battle.Placement
 					background.color = defaultColor;
 				}
 			}
+		}
+
+		public void ConfigurePlacementSlot(Sprite sprite, bool isFilled, Action onClick)
+		{
+			if (nameLabel != null)
+			{
+				nameLabel.text = string.Empty;
+			}
+
+			if (icon != null)
+			{
+				icon.sprite = sprite;
+				icon.enabled = sprite != null;
+			}
+
+			if (button != null)
+			{
+				button.onClick.RemoveAllListeners();
+				button.interactable = isFilled && onClick != null;
+				if (button.interactable)
+				{
+					button.onClick.AddListener(() => onClick());
+				}
+			}
+
+			SetState(false, isFilled);
 		}
 	}
 }

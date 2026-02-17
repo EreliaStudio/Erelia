@@ -237,9 +237,9 @@ GameObject:
   m_Component:
   - component: {fileID: 2807781101012165910}
   - component: {fileID: 4172488934262183719}
-  - component: {fileID: 1682049818135388384}
   - component: {fileID: 3236513836610204337}
   - component: {fileID: 4714707596723256753}
+  - component: {fileID: 7236500292282766708}
   m_Layer: 5
   m_Name: CreatureCardUIElement
   m_TagString: Untagged
@@ -276,25 +276,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8094853970514077480}
   m_CullTransparentMesh: 1
---- !u!114 &1682049818135388384
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8094853970514077480}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e9262103965c8ef41bc4ad00f88c9b8c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::UI.Battle.Placement.TeamPlacementSlotView
-  background: {fileID: 3236513836610204337}
-  icon: {fileID: 5877310260297888328}
-  nameLabel: {fileID: 77655536954442650}
-  button: {fileID: 4714707596723256753}
-  defaultColor: {r: 0.6698113, g: 0.6698113, b: 0.6698113, a: 0.75}
-  selectedColor: {r: 1, g: 0.88631666, b: 0.023584902, a: 0.9}
-  placedColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.9}
 --- !u!114 &3236513836610204337
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -369,3 +350,22 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &7236500292282766708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8094853970514077480}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ab8151a291ff6541b0ce10320c33a3b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Battle.Placement.UI.TeamPlacementSlotView
+  background: {fileID: 3236513836610204337}
+  icon: {fileID: 5877310260297888328}
+  nameLabel: {fileID: 77655536954442650}
+  button: {fileID: 4714707596723256753}
+  defaultColor: {r: 0.5, g: 0.48820755, b: 0.48820755, a: 0.75}
+  selectedColor: {r: 0.8490566, g: 0.8354111, b: 0.04405483, a: 0.9}
+  placedColor: {r: 0.2264151, g: 0.22321111, b: 0.22321111, a: 0.9}

@@ -4,19 +4,17 @@ using Battle.Board.Controller;
 using UnityEngine;
 using Utils;
 using UnityEngine.InputSystem;
-using UI.Battle.Placement;
 
-
-namespace Battle.Phase
+namespace Battle.Phase.Placement
 {
-	public class PlacementPhase : Battle.Phase.AbstractPhase
+	public class Phase : Battle.Phase.AbstractPhase
 	{
 		private const int UnselectedSlotIndex = -1;
 		protected Battle.Player.Controller.BattleController playerController;
 		public Battle.Player.Controller.BattleController PlayerController => playerController;
 		private Battle.Context.Model.TeamPlacement playerPlacement;
 		private int activeSlotIndex;
-		private TeamPlacementPanel teamPlacementPanel;
+		private Battle.Placement.UI.TeamPlacementPanel teamPlacementPanel;
 		private GameObject placementPhaseHud;
 		private Transform placementRoot;
 		private readonly Dictionary<int, GameObject> placementCreatures = new Dictionary<int, GameObject>();
@@ -35,7 +33,7 @@ namespace Battle.Phase
 			placementPhaseHud = FindHudObject("PlacementPhaseHUD");
 			if (placementPhaseHud == null)
 			{
-				Debug.LogWarning("PlacementPhase: PlacementPhaseHUD was not found in the scene.");
+				Debug.LogWarning("Placement.Phase: PlacementPhaseHUD was not found in the scene.");
 			}
 		}
 
@@ -216,6 +214,23 @@ namespace Battle.Phase
 			}
 
 			return false;
+		}
+
+		public bool TryClearSlot(int slotIndex)
+		{
+			if (playerPlacement == null)
+			{
+				return false;
+			}
+
+			if (!playerPlacement.TryClear(slotIndex))
+			{
+				return false;
+			}
+
+			RemovePlacementCreature(slotIndex);
+			PlacementChanged?.Invoke();
+			return true;
 		}
 
 		private bool TryClearAtHoveredCreature()
@@ -404,7 +419,7 @@ namespace Battle.Phase
 				return;
 			}
 
-			teamPlacementPanel = UnityEngine.Object.FindFirstObjectByType<TeamPlacementPanel>();
+			teamPlacementPanel = UnityEngine.Object.FindFirstObjectByType<Battle.Placement.UI.TeamPlacementPanel>();
 			if (teamPlacementPanel == null)
 			{
 				return;

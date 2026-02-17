@@ -58,12 +58,15 @@
     <Compile Include="Assets\Script\Exploration\World\View\Presenter.cs" />
     <Compile Include="Assets\Script\Exploration\World\Controller\BodyCollider.cs" />
     <Compile Include="Assets\Script\Battle\Phase\InitializationPhase.cs" />
+    <Compile Include="Assets\Script\Battle\Phase\Placement\View\PlacedCreaturePanel.cs" />
     <Compile Include="Assets\Script\Exploration\Player\Controller\KeyboardMotionController.cs" />
     <Compile Include="Assets\Script\Core\Creature\Species\View\Presenter.cs" />
     <Compile Include="Assets\Script\Battle\Player\Controller\KeyboardMotionController.cs" />
+    <Compile Include="Assets\Script\Battle\Phase\Placement\Phase.cs" />
     <Compile Include="Assets\Script\Core\Camera\Service.cs" />
     <Compile Include="Assets\Script\Core\Camera\Controller\MouseCellCursorController.cs" />
     <Compile Include="Assets\Script\Core\Encounter\Service.cs" />
+    <Compile Include="Assets\Script\Battle\Phase\Placement\UI\TeamPlacementSlotView.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\StairVoxel.cs" />
     <Compile Include="Assets\Script\Core\Player\Service.cs" />
     <Compile Include="Assets\Script\Battle\Board\Manager.cs" />
@@ -81,6 +84,7 @@
     <Compile Include="Assets\Script\Core\Voxel\Service.cs" />
     <Compile Include="Assets\Script\Core\Creature\Service.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Cell.cs" />
+    <Compile Include="Assets\Script\Battle\Phase\Placement\UI\TeamPlacementPanel.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\Mesher.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\VoxelMaskRenderMesher.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Definition.cs" />
@@ -94,11 +98,8 @@
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\SlabVoxel.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\CrossPlaneVoxel.cs" />
     <Compile Include="Assets\Script\Battle\Context\Service.cs" />
-    <Compile Include="Assets\Script\UI\Battle\Placement\TeamPlacementSlotView.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\BushChunkCollider.cs" />
     <Compile Include="Assets\Script\Core\Utils\SpriteUv.cs" />
-    <Compile Include="Assets\Script\Battle\Phase\PlacementPhase.cs" />
-    <Compile Include="Assets\Script\UI\Battle\Placement\TeamPlacementPanel.cs" />
     <Compile Include="Assets\Script\Battle\Debug\BattleDebugBootstrapper.cs" />
     <Compile Include="Assets\Script\Battle\Board\View\MaskPresenter.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\Shape.cs" />
@@ -114,6 +115,7 @@
     <Compile Include="Assets\Script\Core\Creature\Model\Data.cs" />
     <Compile Include="Assets\Script\Core\Creature\Species\Definition.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\SolidChunkCollider.cs" />
+    <Compile Include="Assets\Script\Battle\Phase\Placement\View\PlacedCreatureSlot.cs" />
     <Compile Include="Assets\Script\Core\Mask\Model\Cell.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\enums.cs" />
     <Compile Include="Assets\Script\Battle\Board\Model\Data.cs" />
@@ -1209,6 +1211,10 @@
       <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.2D.Sprite.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.2D.Sprite.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
       <Private>False</Private>
@@ -1399,6 +1405,10 @@
     </Reference>
     <Reference Include="Unity.RenderPipelines.Core.Editor.Shared">
       <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Editor.Shared.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.2D.Sprite.AIIntegration.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.2D.Sprite.AIIntegration.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.InputSystem">

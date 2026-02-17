@@ -15,7 +15,7 @@ namespace Battle.Phase
 		void Awake()
 		{
 			phaseDictionary[Mode.Initialization] = new InitializationPhase();
-			phaseDictionary[Mode.Placement] = new PlacementPhase();
+			phaseDictionary[Mode.Placement] = new Placement.Phase();
 
 			SetPhase(Mode.Initialization);
 		}

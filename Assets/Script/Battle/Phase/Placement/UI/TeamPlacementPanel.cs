@@ -1,22 +1,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
-namespace UI.Battle.Placement
+namespace Battle.Placement.UI
 {
 	public class TeamPlacementPanel : MonoBehaviour
 	{
 		[SerializeField] private RectTransform contentRoot = null;
 		[SerializeField] private TeamPlacementSlotView slotPrefab = null;
-		[SerializeField] private TMP_Text placementCountLabel = null;
+		[SerializeField] private global::Battle.Phase.Placement.View.PlacedCreaturePanel placedCreaturePanel = null;
 		[SerializeField] private Button validateButton = null;
 		[SerializeField] private bool hideWhenUnbound = true;
 
 		private readonly List<TeamPlacementSlotView> slotViews = new List<TeamPlacementSlotView>();
-		private global::Battle.Phase.PlacementPhase phase;
+		private global::Battle.Phase.Placement.Phase phase;
 
-		public void Bind(global::Battle.Phase.PlacementPhase placementPhase)
+		public void Bind(global::Battle.Phase.Placement.Phase placementPhase)
 		{
 			Unbind();
 
@@ -35,6 +34,10 @@ namespace UI.Battle.Placement
 			phase.PlacementChanged += HandlePlacementChanged;
 
 			RebuildSlots();
+			if (placedCreaturePanel != null)
+			{
+				placedCreaturePanel.Bind(phase);
+			}
 			Refresh();
 			BindValidateButton();
 
@@ -54,6 +57,11 @@ namespace UI.Battle.Placement
 			}
 
 			UnbindValidateButton();
+			ClearSlots();
+			if (placedCreaturePanel != null)
+			{
+				placedCreaturePanel.Unbind();
+			}
 
 			if (hideWhenUnbound)
 			{
@@ -171,11 +179,6 @@ namespace UI.Battle.Placement
 		{
 			if (phase == null || phase.PlayerPlacement == null)
 			{
-				if (placementCountLabel != null)
-				{
-					placementCountLabel.text = "0/0";
-				}
-
 				if (validateButton != null)
 				{
 					validateButton.interactable = false;
@@ -186,11 +189,6 @@ namespace UI.Battle.Placement
 
 			int placed = phase.PlayerPlacement.PlacedCount;
 			int max = phase.PlayerPlacement.MaxPlacements;
-
-			if (placementCountLabel != null)
-			{
-				placementCountLabel.text = $"{placed}/{max}";
-			}
 
 			if (validateButton != null)
 			{
