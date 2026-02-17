@@ -67,6 +67,11 @@ namespace Battle.Phase
 			Mouse mouse = Mouse.current;
 			if (mouse != null && mouse.rightButton.wasPressedThisFrame)
 			{
+				if (TryClearAtHoveredCreature())
+				{
+					return;
+				}
+
 				TryClearAtSelectedCell();
 				return;
 			}
@@ -213,6 +218,68 @@ namespace Battle.Phase
 			return false;
 		}
 
+		private bool TryClearAtHoveredCreature()
+		{
+			if (playerController == null || playerPlacement == null || placementCreatures.Count == 0)
+			{
+				return false;
+			}
+
+			var mouseController = playerController.MouseCellController;
+			if (mouseController == null)
+			{
+				return false;
+			}
+
+			if (!mouseController.TryGetRay(out Ray ray))
+			{
+				return false;
+			}
+
+			if (!Physics.Raycast(ray, out RaycastHit hit, mouseController.MaxDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+			{
+				return false;
+			}
+
+			int slotIndex = FindPlacementSlot(hit.transform);
+			if (slotIndex < 0)
+			{
+				return false;
+			}
+
+			if (!playerPlacement.TryClear(slotIndex))
+			{
+				return false;
+			}
+
+			RemovePlacementCreature(slotIndex);
+			PlacementChanged?.Invoke();
+			return true;
+		}
+
+		private int FindPlacementSlot(Transform hitTransform)
+		{
+			if (hitTransform == null)
+			{
+				return -1;
+			}
+
+			foreach (var pair in placementCreatures)
+			{
+				if (pair.Value == null)
+				{
+					continue;
+				}
+
+				if (hitTransform.IsChildOf(pair.Value.transform))
+				{
+					return pair.Key;
+				}
+			}
+
+			return -1;
+		}
+
 		public bool TryValidatePlacement()
 		{
 			if (playerPlacement == null)
@@ -357,6 +424,7 @@ namespace Battle.Phase
 			teamPlacementPanel = null;
 		}
 
+
 		private void EnsurePlacementRoot()
 		{
 			if (placementRoot != null)
@@ -437,6 +505,7 @@ namespace Battle.Phase
 			{
 				EnsurePlacementRoot();
 				creature = UnityEngine.Object.Instantiate(prefab, placementRoot);
+				creature.tag = "Creature";
 				placementCreatures[slotIndex] = creature;
 			}
 

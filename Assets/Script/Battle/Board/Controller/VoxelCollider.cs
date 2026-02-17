@@ -44,6 +44,7 @@ namespace Battle.Board.Controller
 
 			var go = new GameObject(mesh.name);
 			go.transform.SetParent(transform, false);
+			go.tag = "Board";
 			var collider = go.AddComponent<MeshCollider>();
 			collider.sharedMesh = mesh;
 			collider.isTrigger = false;
