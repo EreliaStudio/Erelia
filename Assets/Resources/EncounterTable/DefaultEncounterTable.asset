@@ -13,3 +13,5 @@ MonoBehaviour:
   m_Name: DefaultEncounterTable
   m_EditorClassIdentifier: Assembly-CSharp::Battle.EncounterTable.Model.Data
   fightChance: 0.1
+  boardArea: {x: 25, y: 25}
+  maxCreaturesToPlace: 1

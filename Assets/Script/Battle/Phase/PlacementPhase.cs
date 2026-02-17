@@ -17,12 +17,14 @@ namespace Battle.Phase
 		private Battle.Context.Model.TeamPlacement playerPlacement;
 		private int activeSlotIndex;
 		private TeamPlacementPanel teamPlacementPanel;
+		private GameObject placementPhaseHud;
 		private Transform placementRoot;
 		private readonly Dictionary<int, GameObject> placementCreatures = new Dictionary<int, GameObject>();
 		private readonly Core.Voxel.Model.CardinalPointSetByOrientationCollection entryPointCache = new Core.Voxel.Model.CardinalPointSetByOrientationCollection();
 
 		public event Action<int> ActiveSlotChanged;
 		public event Action PlacementChanged;
+		public event Action PlacementValidated;
 
 		public int ActiveSlotIndex => activeSlotIndex;
 		public Battle.Context.Model.TeamPlacement PlayerPlacement => playerPlacement;
@@ -30,10 +32,20 @@ namespace Battle.Phase
 		public override void Configure(GameObject playerObject)
 		{
 			playerController = playerObject.GetComponent<Battle.Player.Controller.BattleController>();
+			placementPhaseHud = FindHudObject("PlacementPhaseHUD");
+			if (placementPhaseHud == null)
+			{
+				Debug.LogWarning("PlacementPhase: PlacementPhaseHUD was not found in the scene.");
+			}
 		}
 
 		public override void OnEnter()
 		{
+			if (placementPhaseHud != null)
+			{
+				placementPhaseHud.SetActive(true);
+			}
+
 			InitializePlacementData();
 			activeSlotIndex = UnselectedSlotIndex;
 			ClearPlacementMask();
@@ -53,6 +65,12 @@ namespace Battle.Phase
 			}
 
 			Mouse mouse = Mouse.current;
+			if (mouse != null && mouse.rightButton.wasPressedThisFrame)
+			{
+				TryClearAtSelectedCell();
+				return;
+			}
+
 			if (mouse != null && mouse.leftButton.wasPressedThisFrame)
 			{
 				TryPlaceActiveAtSelectedCell();
@@ -65,6 +83,11 @@ namespace Battle.Phase
 			Utils.ServiceLocator.Instance.BattleBoardService.Data.ValidateMask();
 			ClearPlacementCreatures();
 			UnbindTeamPanel();
+
+			if (placementPhaseHud != null)
+			{
+				placementPhaseHud.SetActive(false);
+			}
 		}
 
 		private void ApplyPlacementMask()
@@ -164,6 +187,46 @@ namespace Battle.Phase
 			activeSlotIndex = UnselectedSlotIndex;
 			PlacementChanged?.Invoke();
 			ActiveSlotChanged?.Invoke(activeSlotIndex);
+			return true;
+		}
+
+		public bool TryClearAtSelectedCell()
+		{
+			if (playerController == null || playerPlacement == null)
+			{
+				return false;
+			}
+
+			if (!playerController.HasSelectedCell())
+			{
+				return false;
+			}
+
+			Vector3Int cell = playerController.SelectedCell();
+			if (playerPlacement.TryClearAtCell(cell, out int slotIndex))
+			{
+				RemovePlacementCreature(slotIndex);
+				PlacementChanged?.Invoke();
+				return true;
+			}
+
+			return false;
+		}
+
+		public bool TryValidatePlacement()
+		{
+			if (playerPlacement == null)
+			{
+				return false;
+			}
+
+			if (playerPlacement.PlacedCount <= 0)
+			{
+				return false;
+			}
+
+			PlacementValidated?.Invoke();
+			Debug.Log($"Placement validated ({playerPlacement.PlacedCount}/{playerPlacement.MaxPlacements}).");
 			return true;
 		}
 
@@ -421,6 +484,42 @@ namespace Battle.Phase
 			}
 
 			return new Vector3(cell.x + 0.5f, cell.y + 1f, cell.z + 0.5f);
+		}
+
+		private GameObject FindHudObject(string objectName)
+		{
+			if (string.IsNullOrWhiteSpace(objectName))
+			{
+				return null;
+			}
+
+			GameObject found = GameObject.Find(objectName);
+			if (found != null)
+			{
+				return found;
+			}
+
+			var allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
+			for (int i = 0; i < allObjects.Length; i++)
+			{
+				GameObject candidate = allObjects[i];
+				if (candidate == null)
+				{
+					continue;
+				}
+
+				if (!candidate.scene.IsValid())
+				{
+					continue;
+				}
+
+				if (candidate.name == objectName)
+				{
+					return candidate;
+				}
+			}
+
+			return null;
 		}
 	}
 }

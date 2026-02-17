@@ -10,5 +10,8 @@ namespace Core.Encounter.Table.Model
 		
 		[SerializeField] private Vector2Int boardArea = new Vector2Int(25, 25);
 		public Vector2Int BoardArea => boardArea;
+
+		[SerializeField, Range(0, Core.Creature.Model.Team.MaxSize)] private int maxCreaturesToPlace = Core.Creature.Model.Team.MaxSize;
+		public int MaxCreaturesToPlace => maxCreaturesToPlace;
 	}
 }

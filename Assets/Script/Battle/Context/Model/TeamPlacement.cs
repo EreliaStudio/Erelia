@@ -6,14 +6,18 @@ namespace Battle.Context.Model
 	public class TeamPlacement
 	{
 		private readonly Core.Creature.Model.Team team;
+		private readonly int maxPlacements;
 		private readonly List<CreatureInstance> instances = new List<CreatureInstance>();
 
 		public IReadOnlyList<CreatureInstance> Instances => instances;
 		public int SlotCount => instances.Count;
+		public int MaxPlacements => maxPlacements;
+		public int PlacedCount => CountPlaced();
 
-		public TeamPlacement(Core.Creature.Model.Team team, Side side)
+		public TeamPlacement(Core.Creature.Model.Team team, Side side, int maxPlacements)
 		{
 			this.team = team;
+			this.maxPlacements = Mathf.Max(0, maxPlacements);
 
 			int count = team != null ? team.Count : 0;
 			for (int i = 0; i < count; i++)
@@ -25,6 +29,11 @@ namespace Battle.Context.Model
 		public bool TryPlace(int slotIndex, Vector3Int cell)
 		{
 			if (!IsValidSlot(slotIndex))
+			{
+				return false;
+			}
+
+			if (!instances[slotIndex].HasPlacement && PlacedCount >= maxPlacements)
 			{
 				return false;
 			}
@@ -47,6 +56,30 @@ namespace Battle.Context.Model
 
 			instances[slotIndex].ClearPlacement();
 			return true;
+		}
+
+		public bool TryClearAtCell(Vector3Int cell, out int slotIndex)
+		{
+			slotIndex = -1;
+
+			for (int i = 0; i < instances.Count; i++)
+			{
+				if (!instances[i].HasPlacement)
+				{
+					continue;
+				}
+
+				if (instances[i].Cell != cell)
+				{
+					continue;
+				}
+
+				instances[i].ClearPlacement();
+				slotIndex = i;
+				return true;
+			}
+
+			return false;
 		}
 
 		public bool TryGetPlacement(int slotIndex, out Vector3Int cell)
@@ -93,6 +126,20 @@ namespace Battle.Context.Model
 		private bool IsValidSlot(int slotIndex)
 		{
 			return slotIndex >= 0 && slotIndex < instances.Count;
+		}
+
+		private int CountPlaced()
+		{
+			int count = 0;
+			for (int i = 0; i < instances.Count; i++)
+			{
+				if (instances[i].HasPlacement)
+				{
+					count++;
+				}
+			}
+
+			return count;
 		}
 	}
 }

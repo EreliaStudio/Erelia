@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 namespace UI.Battle.Placement
 {
@@ -7,6 +9,8 @@ namespace UI.Battle.Placement
 	{
 		[SerializeField] private RectTransform contentRoot = null;
 		[SerializeField] private TeamPlacementSlotView slotPrefab = null;
+		[SerializeField] private TMP_Text placementCountLabel = null;
+		[SerializeField] private Button validateButton = null;
 		[SerializeField] private bool hideWhenUnbound = true;
 
 		private readonly List<TeamPlacementSlotView> slotViews = new List<TeamPlacementSlotView>();
@@ -32,6 +36,7 @@ namespace UI.Battle.Placement
 
 			RebuildSlots();
 			Refresh();
+			BindValidateButton();
 
 			if (hideWhenUnbound)
 			{
@@ -47,6 +52,8 @@ namespace UI.Battle.Placement
 				phase.PlacementChanged -= HandlePlacementChanged;
 				phase = null;
 			}
+
+			UnbindValidateButton();
 
 			if (hideWhenUnbound)
 			{
@@ -101,6 +108,8 @@ namespace UI.Battle.Placement
 				bool isPlaced = instances[i].HasPlacement;
 				slotViews[i].SetState(isSelected, isPlaced);
 			}
+
+			UpdatePlacementControls();
 		}
 
 		private void HandleSlotClicked(int slotIndex)
@@ -124,6 +133,69 @@ namespace UI.Battle.Placement
 		private void HandlePlacementChanged()
 		{
 			Refresh();
+		}
+
+		private void BindValidateButton()
+		{
+			if (validateButton == null)
+			{
+				return;
+			}
+
+			validateButton.onClick.RemoveAllListeners();
+			validateButton.onClick.AddListener(HandleValidateClicked);
+			UpdatePlacementControls();
+		}
+
+		private void UnbindValidateButton()
+		{
+			if (validateButton == null)
+			{
+				return;
+			}
+
+			validateButton.onClick.RemoveAllListeners();
+		}
+
+		private void HandleValidateClicked()
+		{
+			if (phase == null)
+			{
+				return;
+			}
+
+			phase.TryValidatePlacement();
+		}
+
+		private void UpdatePlacementControls()
+		{
+			if (phase == null || phase.PlayerPlacement == null)
+			{
+				if (placementCountLabel != null)
+				{
+					placementCountLabel.text = "0/0";
+				}
+
+				if (validateButton != null)
+				{
+					validateButton.interactable = false;
+				}
+
+				return;
+			}
+
+			int placed = phase.PlayerPlacement.PlacedCount;
+			int max = phase.PlayerPlacement.MaxPlacements;
+
+			if (placementCountLabel != null)
+			{
+				placementCountLabel.text = $"{placed}/{max}";
+			}
+
+			if (validateButton != null)
+			{
+				validateButton.interactable = placed > 0;
+			}
 		}
 
 		private void OnDisable()
