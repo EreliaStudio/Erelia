@@ -11,7 +11,7 @@ namespace UI.Battle.Placement
 		[SerializeField] private Image icon = null;
 		[SerializeField] private TMP_Text nameLabel = null;
 		[SerializeField] private Button button = null;
-
+ 
 		[SerializeField] private Color defaultColor = new Color(0.12f, 0.12f, 0.12f, 0.75f);
 		[SerializeField] private Color selectedColor = new Color(0.15f, 0.5f, 0.2f, 0.9f);
 		[SerializeField] private Color placedColor = new Color(0.2f, 0.2f, 0.2f, 0.9f);
@@ -21,11 +21,13 @@ namespace UI.Battle.Placement
 		public void Initialize(Core.Creature.Definition definition, int slotIndex, Action<int> onClick)
 		{
 			SlotIndex = slotIndex;
+			bool hasCreature = definition != null && definition.SpeciesDefinition != null;
 
 			if (button != null)
 			{
 				button.onClick.RemoveAllListeners();
-				if (onClick != null)
+				button.interactable = hasCreature;
+				if (onClick != null && hasCreature)
 				{
 					button.onClick.AddListener(() => onClick(slotIndex));
 				}
@@ -33,13 +35,12 @@ namespace UI.Battle.Placement
 
 			if (nameLabel != null)
 			{
-				nameLabel.text = definition != null ? definition.DisplayName : "Unknown";
+				nameLabel.text = hasCreature ? definition.DisplayName : "-----";
 			}
 
 			if (icon != null)
 			{
-				Sprite sprite = definition != null &&
-					definition.SpeciesDefinition != null &&
+				Sprite sprite = hasCreature &&
 					definition.SpeciesDefinition.Presenter != null
 					? definition.SpeciesDefinition.Presenter.Icon
 					: null;

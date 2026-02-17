@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Exploration.World.Chunk.Model
 {
-	[CreateAssetMenu(fileName = "Exploration.WorldChunkGenerator", menuName = "Exploration.World/TestGenerator")]
+	[CreateAssetMenu(menuName = "Exploration/World/TestGenerator", fileName = "NewWorldGenerator")]
 	public class TestGenerator : Exploration.World.Chunk.Model.AbstractGenerator 
 	{
 		public override Exploration.World.Chunk.Model.Data Generate(Exploration.World.Chunk.Model.Coordinates coordinate)

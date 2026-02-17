@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Core.Creature.Model
 {
-	[CreateAssetMenu(menuName = "Creature/Team", fileName = "CreatureTeam")]
+	[CreateAssetMenu(menuName = "Core/Creature/Team", fileName = "CreatureTeam")]
 	public class Team : ScriptableObject
 	{
 		public const int MaxSize = 6;

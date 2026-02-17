@@ -1,9 +1,10 @@
+using System;
 using UnityEngine;
 
 namespace Core.Creature
 {
-	[CreateAssetMenu(menuName = "Creature/Definition", fileName = "CreatureDefinition")]
-	public class Definition : ScriptableObject
+	[Serializable]
+	public class Definition
 	{
 		[SerializeField] private Core.Creature.Species.Definition speciesDefinition = null;
 		[SerializeField] private Core.Creature.Model.Data data = new Core.Creature.Model.Data();

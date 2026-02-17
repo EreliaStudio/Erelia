@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Core.Creature.Species
 {
-	[CreateAssetMenu(menuName = "Creature/SpeciesDefinition", fileName = "CreatureSpeciesDefinition")]
+	[CreateAssetMenu(menuName = "Core/Creature/Species", fileName = "CreatureSpecies")]
 	public class Definition : ScriptableObject
 	{
 		[SerializeField] private Core.Creature.Species.Model.Data data = new Core.Creature.Species.Model.Data();

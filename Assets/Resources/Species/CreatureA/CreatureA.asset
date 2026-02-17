@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: CreatureA
   m_EditorClassIdentifier: Assembly-CSharp::Core.Creature.Species.Definition
   data:
-    familyName: DefaultName
+    familyName: CreatureA
   presenter:
     modelPrefab: {fileID: 4431822322392889108, guid: b4fbf127133e69747b944ed59986453c, type: 3}
     icon: {fileID: -24772351, guid: d886125f3956507488f299895c5e0728, type: 3}
