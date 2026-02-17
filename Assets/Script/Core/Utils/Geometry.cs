@@ -592,6 +592,26 @@ namespace Core.Utils
 			return rotated;
 		}
 
+		public static Vector3 TransformPoint(Vector3 point, Core.Voxel.Model.Orientation orientation, Core.Voxel.Model.FlipOrientation flipOrientation)
+		{
+			int steps = OrientationToSteps(orientation);
+			Vector3 pivot = new Vector3(0.5f, 0.5f, 0.5f);
+			Vector3 local = point;
+			if (steps != 0)
+			{
+				Vector3 offset = local - pivot;
+				Quaternion rotation = Quaternion.AngleAxis(-steps * 90f, Vector3.up);
+				local = rotation * offset + pivot;
+			}
+
+			if (flipOrientation == Core.Voxel.Model.FlipOrientation.NegativeY)
+			{
+				local.y = 1f - local.y;
+			}
+
+			return local;
+		}
+
 		public static Core.Voxel.Model.Face GetFullOuterFace(Core.Voxel.Geometry.Shape.AxisPlane plane)
 		{
 			switch (plane)

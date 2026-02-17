@@ -25,7 +25,7 @@ MonoBehaviour:
   - Id: 4
     Definition: {fileID: 11400000, guid: 18f477b3604e0044c9d663da833be270, type: 2}
   creatureEntries:
-  - {fileID: 11400000, guid: f501717abb6e0024d9abe836d36a3ac5, type: 2}
+  - {fileID: 11400000, guid: e53b1880256c2ad4fa0def4640711e92, type: 2}
   - {fileID: 11400000, guid: 6d848414140597c4f884a252e2e9de34, type: 2}
   playerTeam: {fileID: 11400000, guid: 60a0b6f985645c24c9e4f48b6f127707, type: 2}
   maskMappings:

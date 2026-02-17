@@ -4,7 +4,7 @@ namespace Battle.Context.Model
 {
 	public class CreatureInstance
 	{
-		public Core.Creature.Model.Definition Source { get; }
+		public Core.Creature.Definition Source { get; }
 		public Side Side { get; }
 		public int SlotIndex { get; }
 
@@ -14,7 +14,7 @@ namespace Battle.Context.Model
 		public bool HasPlacement => hasPlacement; 
 		public Vector3Int Cell => cell;
 
-		public CreatureInstance(Core.Creature.Model.Definition source, Side side, int slotIndex)
+		public CreatureInstance(Core.Creature.Definition source, Side side, int slotIndex)
 		{
 			Source = source;
 			Side = side;

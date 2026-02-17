@@ -10,14 +10,14 @@ namespace Utils
 
 		[SerializeField] private Exploration.World.Chunk.Model.AbstractGenerator worldGenerator = null;
 		[SerializeField] private List<Core.Voxel.Service.Entry> voxelEntries = new List<Core.Voxel.Service.Entry>();
-		[SerializeField] private List<Core.Creature.Model.Species> creatureEntries = new List<Core.Creature.Model.Species>();
+		[SerializeField] private List<Core.Creature.Species.Definition> creatureEntries = new List<Core.Creature.Species.Definition>();
 		[SerializeField] private Core.Creature.Model.Team playerTeam = null;
 		[SerializeField] private Core.Mask.SpriteMapping maskMappings = new Core.Mask.SpriteMapping();
 		[SerializeField] private Core.Encounter.Table.Model.Data defaultEncounterTable = null;
 
 		public Exploration.World.Chunk.Model.AbstractGenerator WorldGenerator => worldGenerator;
 		public List<Core.Voxel.Service.Entry> VoxelEntries => voxelEntries;
-		public List<Core.Creature.Model.Species> CreatureEntries => creatureEntries;
+		public List<Core.Creature.Species.Definition> CreatureEntries => creatureEntries;
 		public Core.Creature.Model.Team PlayerTeam => playerTeam; 
 		public Core.Mask.SpriteMapping SpriteMappings => maskMappings;
 		public Core.Encounter.Table.Model.Data DefaultEncounterTable => defaultEncounterTable;

@@ -18,7 +18,7 @@ namespace UI.Battle.Placement
 
 		public int SlotIndex { get; private set; }
 
-		public void Initialize(Core.Creature.Model.Definition definition, int slotIndex, Action<int> onClick)
+		public void Initialize(Core.Creature.Definition definition, int slotIndex, Action<int> onClick)
 		{
 			SlotIndex = slotIndex;
 
@@ -38,7 +38,11 @@ namespace UI.Battle.Placement
 
 			if (icon != null)
 			{
-				Sprite sprite = definition != null && definition.Species != null ? definition.Species.Sprite : null;
+				Sprite sprite = definition != null &&
+					definition.SpeciesDefinition != null &&
+					definition.SpeciesDefinition.Presenter != null
+					? definition.SpeciesDefinition.Presenter.Icon
+					: null;
 				icon.sprite = sprite;
 				icon.enabled = sprite != null;
 			}

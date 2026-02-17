@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Battle.Board.Controller;
 using UnityEngine;
 using Utils;
@@ -16,6 +17,9 @@ namespace Battle.Phase
 		private Battle.Context.Model.TeamPlacement playerPlacement;
 		private int activeSlotIndex;
 		private TeamPlacementPanel teamPlacementPanel;
+		private Transform placementRoot;
+		private readonly Dictionary<int, GameObject> placementCreatures = new Dictionary<int, GameObject>();
+		private readonly Core.Voxel.Model.CardinalPointSetByOrientationCollection entryPointCache = new Core.Voxel.Model.CardinalPointSetByOrientationCollection();
 
 		public event Action<int> ActiveSlotChanged;
 		public event Action PlacementChanged;
@@ -35,6 +39,8 @@ namespace Battle.Phase
 			ClearPlacementMask();
 			ApplyPlacementMask();
 			Utils.ServiceLocator.Instance.BattleBoardService.Data.ValidateMask();
+			EnsurePlacementRoot();
+			SyncAllPlacementCreatures();
 			BindTeamPanel();
 			ActiveSlotChanged?.Invoke(activeSlotIndex);
 		}
@@ -57,6 +63,7 @@ namespace Battle.Phase
 		{
 			ClearPlacementMask();
 			Utils.ServiceLocator.Instance.BattleBoardService.Data.ValidateMask();
+			ClearPlacementCreatures();
 			UnbindTeamPanel();
 		}
 
@@ -153,6 +160,7 @@ namespace Battle.Phase
 				return false;
 			}
 
+			SyncPlacementCreature(activeSlotIndex);
 			activeSlotIndex = UnselectedSlotIndex;
 			PlacementChanged?.Invoke();
 			ActiveSlotChanged?.Invoke(activeSlotIndex);
@@ -284,6 +292,135 @@ namespace Battle.Phase
 
 			teamPlacementPanel.Unbind();
 			teamPlacementPanel = null;
+		}
+
+		private void EnsurePlacementRoot()
+		{
+			if (placementRoot != null)
+			{
+				return;
+			}
+
+			var go = new GameObject("PlacementCreatures");
+			if (manager != null)
+			{
+				go.transform.SetParent(manager.transform, false);
+			}
+
+			placementRoot = go.transform;
+		}
+
+		private void ClearPlacementCreatures()
+		{
+			foreach (var pair in placementCreatures)
+			{
+				if (pair.Value != null)
+				{
+					UnityEngine.Object.Destroy(pair.Value);
+				}
+			}
+
+			placementCreatures.Clear();
+
+			if (placementRoot != null)
+			{
+				UnityEngine.Object.Destroy(placementRoot.gameObject);
+				placementRoot = null;
+			}
+		}
+
+		private void SyncAllPlacementCreatures()
+		{
+			if (playerPlacement == null)
+			{
+				return;
+			}
+
+			for (int i = 0; i < playerPlacement.SlotCount; i++)
+			{
+				SyncPlacementCreature(i);
+			}
+		}
+
+		private void SyncPlacementCreature(int slotIndex)
+		{
+			if (playerPlacement == null)
+			{
+				return;
+			}
+
+			if (slotIndex < 0 || slotIndex >= playerPlacement.SlotCount)
+			{
+				return;
+			}
+
+			var instance = playerPlacement.Instances[slotIndex];
+			if (instance == null || instance.Source == null || instance.Source.SpeciesDefinition == null)
+			{
+				RemovePlacementCreature(slotIndex);
+				return;
+			}
+
+			GameObject prefab = instance.Source.SpeciesDefinition.Presenter != null
+				? instance.Source.SpeciesDefinition.Presenter.ModelPrefab
+				: null;
+			if (prefab == null || !instance.HasPlacement)
+			{
+				RemovePlacementCreature(slotIndex);
+				return;
+			}
+
+			if (!placementCreatures.TryGetValue(slotIndex, out GameObject creature) || creature == null)
+			{
+				EnsurePlacementRoot();
+				creature = UnityEngine.Object.Instantiate(prefab, placementRoot);
+				placementCreatures[slotIndex] = creature;
+			}
+
+			creature.transform.position = CellToWorld(instance.Cell);
+		}
+
+		private void RemovePlacementCreature(int slotIndex)
+		{
+			if (!placementCreatures.TryGetValue(slotIndex, out GameObject creature))
+			{
+				return;
+			}
+
+			if (creature != null)
+			{
+				UnityEngine.Object.Destroy(creature);
+			}
+
+			placementCreatures.Remove(slotIndex);
+		}
+
+		private Vector3 CellToWorld(Vector3Int cell)
+		{
+			Battle.Board.Model.Data boardData = Utils.ServiceLocator.Instance.BattleBoardService.Data;
+			if (boardData != null &&
+				cell.x >= 0 && cell.x < boardData.SizeX &&
+				cell.y >= 0 && cell.y < boardData.SizeY &&
+				cell.z >= 0 && cell.z < boardData.SizeZ)
+			{
+				Core.Voxel.Model.Cell voxelCell = boardData.Cells[cell.x, cell.y, cell.z];
+				if (voxelCell != null &&
+					voxelCell.Id != Core.Voxel.Service.AirID &&
+					ServiceLocator.Instance.VoxelService.TryGetDefinition(voxelCell.Id, out Core.Voxel.Model.Definition definition) &&
+					definition != null)
+				{
+					Vector3 origin = new Vector3(0.5f, 1f, 0.5f);
+					Core.Voxel.Geometry.Shape shape = definition.Shape;
+					if (shape != null && entryPointCache.TryGetValue(shape.CardinalPoints, voxelCell.Orientation, voxelCell.FlipOrientation, out Core.Voxel.Model.CardinalPointSet entryPoints))
+					{
+						origin = entryPoints.Get(Core.Voxel.Model.CardinalPoint.Stationary);
+					}
+
+					return new Vector3(cell.x, cell.y, cell.z) + origin;
+				}
+			}
+
+			return new Vector3(cell.x + 0.5f, cell.y + 1f, cell.z + 0.5f);
 		}
 	}
 }

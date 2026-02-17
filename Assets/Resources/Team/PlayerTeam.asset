@@ -13,7 +13,5 @@ MonoBehaviour:
   m_Name: PlayerTeam
   m_EditorClassIdentifier: Assembly-CSharp::Core.Creature.Model.Team
   members:
-  - species: {fileID: 11400000, guid: f501717abb6e0024d9abe836d36a3ac5, type: 2}
-    nickName: CustomName
-  - species: {fileID: 11400000, guid: 6d848414140597c4f884a252e2e9de34, type: 2}
-    nickName: 
+  - {fileID: 11400000, guid: ea6ca20639b88a9408a827f61ad39dd8, type: 2}
+  - {fileID: 11400000, guid: 6ee702020dc7091438f3efd798d52266, type: 2}

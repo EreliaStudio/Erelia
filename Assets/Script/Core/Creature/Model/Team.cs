@@ -8,12 +8,12 @@ namespace Core.Creature.Model
 	{
 		public const int MaxSize = 6;
 
-		[SerializeField] private List<Definition> members = new List<Definition>();
+		[SerializeField] private List<Core.Creature.Definition> members = new List<Core.Creature.Definition>();
 
-		public IReadOnlyList<Definition> Members => members;
+		public IReadOnlyList<Core.Creature.Definition> Members => members;
 		public int Count => members.Count;
 
-		public Definition GetAt(int index)
+		public Core.Creature.Definition GetAt(int index)
 		{
 			if (index < 0 || index >= members.Count)
 			{

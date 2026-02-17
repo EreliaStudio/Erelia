@@ -38,22 +38,26 @@ namespace Core.Voxel.Geometry
 		[SerializeField] protected List<Core.Voxel.Model.Face> innerFaces = new List<Core.Voxel.Model.Face>();
 		[SerializeField] protected Dictionary<AxisPlane, Core.Voxel.Model.Face> outerShellFaces = new Dictionary<AxisPlane, Core.Voxel.Model.Face>();
 		[SerializeField] protected Dictionary<Core.Voxel.Model.FlipOrientation, List<Core.Voxel.Model.Face>> maskFaces = new Dictionary<Core.Voxel.Model.FlipOrientation, List<Core.Voxel.Model.Face>>();
+		[SerializeField] protected Core.Voxel.Model.CardinalPointSet entryPoints = new Core.Voxel.Model.CardinalPointSet();
 		[SerializeField] private CollisionMode collisionMode = CollisionMode.RealMesh;
 
 		public IReadOnlyList<Core.Voxel.Model.Face> InnerFaces => innerFaces;
 		public IReadOnlyDictionary<AxisPlane, Core.Voxel.Model.Face> OuterShellFaces => outerShellFaces;
 		public IReadOnlyDictionary<Core.Voxel.Model.FlipOrientation, List<Core.Voxel.Model.Face>> MaskFaces => maskFaces;
+		public Core.Voxel.Model.CardinalPointSet CardinalPoints => entryPoints;
 		public CollisionMode Collision => collisionMode;
 
 		protected abstract List<Core.Voxel.Model.Face> ConstructInnerFaces();
 		protected abstract Dictionary<AxisPlane, Core.Voxel.Model.Face> ConstructOuterShellFaces();
 		protected abstract Dictionary<Core.Voxel.Model.FlipOrientation, List<Core.Voxel.Model.Face>> ConstructMaskFaces();
+		protected virtual Core.Voxel.Model.CardinalPointSet ConstructCardinalPoints() => Core.Voxel.Model.CardinalPointSet.CreateDefault();
 
 		public virtual void Initialize()
 		{
 			innerFaces = ConstructInnerFaces() ?? new List<Core.Voxel.Model.Face>();
 			outerShellFaces = ConstructOuterShellFaces() ?? new Dictionary<AxisPlane, Core.Voxel.Model.Face>();
 			maskFaces = ConstructMaskFaces() ?? new Dictionary<Core.Voxel.Model.FlipOrientation, List<Core.Voxel.Model.Face>>();
+			entryPoints = ConstructCardinalPoints() ?? Core.Voxel.Model.CardinalPointSet.CreateDefault();
 		}
 	}
 }

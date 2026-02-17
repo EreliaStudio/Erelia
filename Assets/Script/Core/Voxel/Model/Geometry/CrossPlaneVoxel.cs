@@ -69,5 +69,15 @@ namespace Core.Voxel.Geometry
 		{
 			return new Dictionary<AxisPlane, Core.Voxel.Model.Face>();
 		}
+
+		protected override Core.Voxel.Model.CardinalPointSet ConstructCardinalPoints()
+		{
+			return new Core.Voxel.Model.CardinalPointSet(
+				positiveX: new Vector3(1f, 1f, 0.5f),
+				negativeX: new Vector3(0f, 1f, 0.5f),
+				positiveZ: new Vector3(0.5f, 1f, 1f),
+				negativeZ: new Vector3(0.5f, 1f, 0f),
+				stationary: new Vector3(0.5f, 1f, 0.5f));
+		}
 	}
 }

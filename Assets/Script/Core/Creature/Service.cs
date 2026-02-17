@@ -7,20 +7,20 @@ namespace Core.Creature
 	[Serializable]
 	public class Service
 	{
-		private readonly Dictionary<string, Core.Creature.Model.Species> data = new Dictionary<string, Core.Creature.Model.Species>();
-		public IReadOnlyDictionary<string, Core.Creature.Model.Species> Data => data;
+		private readonly Dictionary<string, Core.Creature.Species.Definition> data = new Dictionary<string, Core.Creature.Species.Definition>();
+		public IReadOnlyDictionary<string, Core.Creature.Species.Definition> Data => data;
 
-		public Service(List<Core.Creature.Model.Species> speciesList)
+		public Service(List<Core.Creature.Species.Definition> speciesList)
 		{
 			RebuildDictionary(speciesList);
 		}
 
-		public bool TryGetSpecies(string familyName, out Core.Creature.Model.Species species)
+		public bool TryGetSpecies(string familyName, out Core.Creature.Species.Definition species)
 		{
 			return data.TryGetValue(familyName, out species);
 		}
 
-		private void RebuildDictionary(List<Core.Creature.Model.Species> speciesList)
+		private void RebuildDictionary(List<Core.Creature.Species.Definition> speciesList)
 		{
 			data.Clear();
 
