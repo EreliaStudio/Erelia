@@ -4,15 +4,15 @@ using UnityEngine.UI;
 
 namespace Battle.Placement.UI
 {
-	public class TeamPlacementPanel : MonoBehaviour
+	public class AvailableCreaturePanel : MonoBehaviour
 	{
 		[SerializeField] private RectTransform contentRoot = null;
-		[SerializeField] private TeamPlacementSlotView slotPrefab = null;
-		[SerializeField] private global::Battle.Phase.Placement.View.PlacedCreaturePanel placedCreaturePanel = null;
+		[SerializeField] private AvailableCreatureSlot slotPrefab = null;
+		[SerializeField] private global::Battle.Phase.Placement.UI.PlacedCreaturePanel placedCreaturePanel = null;
 		[SerializeField] private Button validateButton = null;
 		[SerializeField] private bool hideWhenUnbound = true;
 
-		private readonly List<TeamPlacementSlotView> slotViews = new List<TeamPlacementSlotView>();
+		private readonly List<AvailableCreatureSlot> slotViews = new List<AvailableCreatureSlot>();
 		private global::Battle.Phase.Placement.Phase phase;
 
 		public void Bind(global::Battle.Phase.Placement.Phase placementPhase)

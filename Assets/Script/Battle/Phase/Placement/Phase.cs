@@ -14,7 +14,7 @@ namespace Battle.Phase.Placement
 		public Battle.Player.Controller.BattleController PlayerController => playerController;
 		private Battle.Context.Model.TeamPlacement playerPlacement;
 		private int activeSlotIndex;
-		private Battle.Placement.UI.TeamPlacementPanel teamPlacementPanel;
+		private Battle.Placement.UI.AvailableCreaturePanel teamPlacementPanel;
 		private GameObject placementPhaseHud;
 		private Transform placementRoot;
 		private readonly Dictionary<int, GameObject> placementCreatures = new Dictionary<int, GameObject>();
@@ -419,7 +419,7 @@ namespace Battle.Phase.Placement
 				return;
 			}
 
-			teamPlacementPanel = UnityEngine.Object.FindFirstObjectByType<Battle.Placement.UI.TeamPlacementPanel>();
+			teamPlacementPanel = UnityEngine.Object.FindFirstObjectByType<Battle.Placement.UI.AvailableCreaturePanel>();
 			if (teamPlacementPanel == null)
 			{
 				return;

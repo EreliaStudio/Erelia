@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Battle.Phase.Placement.View
+namespace Battle.Phase.Placement.UI
 {
 	public class PlacedCreaturePanel : MonoBehaviour
 	{

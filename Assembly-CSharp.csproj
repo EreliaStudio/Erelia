@@ -58,7 +58,6 @@
     <Compile Include="Assets\Script\Exploration\World\View\Presenter.cs" />
     <Compile Include="Assets\Script\Exploration\World\Controller\BodyCollider.cs" />
     <Compile Include="Assets\Script\Battle\Phase\InitializationPhase.cs" />
-    <Compile Include="Assets\Script\Battle\Phase\Placement\View\PlacedCreaturePanel.cs" />
     <Compile Include="Assets\Script\Exploration\Player\Controller\KeyboardMotionController.cs" />
     <Compile Include="Assets\Script\Core\Creature\Species\View\Presenter.cs" />
     <Compile Include="Assets\Script\Battle\Player\Controller\KeyboardMotionController.cs" />
@@ -66,7 +65,6 @@
     <Compile Include="Assets\Script\Core\Camera\Service.cs" />
     <Compile Include="Assets\Script\Core\Camera\Controller\MouseCellCursorController.cs" />
     <Compile Include="Assets\Script\Core\Encounter\Service.cs" />
-    <Compile Include="Assets\Script\Battle\Phase\Placement\UI\TeamPlacementSlotView.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Geometry\StairVoxel.cs" />
     <Compile Include="Assets\Script\Core\Player\Service.cs" />
     <Compile Include="Assets\Script\Battle\Board\Manager.cs" />
@@ -79,15 +77,16 @@
     <Compile Include="Assets\Script\Core\Encounter\EncounterTable\Model\Data.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\CollisionMesher.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\FaceByOrientationKey.cs" />
+    <Compile Include="Assets\Script\Battle\Phase\Placement\UI\PlacedCreatureSlot.cs" />
     <Compile Include="Assets\Script\Exploration\World\Service.cs" />
     <Compile Include="Assets\Script\Battle\Player\Controller\BattleController.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Service.cs" />
     <Compile Include="Assets\Script\Core\Creature\Service.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Cell.cs" />
-    <Compile Include="Assets\Script\Battle\Phase\Placement\UI\TeamPlacementPanel.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\Mesher.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\VoxelMaskRenderMesher.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\Definition.cs" />
+    <Compile Include="Assets\Script\Battle\Phase\Placement\UI\AvailableCreaturePanel.cs" />
     <Compile Include="Assets\Script\Core\Camera\Controller\OrbitingController.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\CardinalPointSet.cs" />
     <Compile Include="Assets\Script\Battle\Board\Controller\VoxelCollider.cs" />
@@ -115,11 +114,12 @@
     <Compile Include="Assets\Script\Core\Creature\Model\Data.cs" />
     <Compile Include="Assets\Script\Core\Creature\Species\Definition.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\Controller\SolidChunkCollider.cs" />
-    <Compile Include="Assets\Script\Battle\Phase\Placement\View\PlacedCreatureSlot.cs" />
+    <Compile Include="Assets\Script\Battle\Phase\Placement\UI\PlacedCreaturePanel.cs" />
     <Compile Include="Assets\Script\Core\Mask\Model\Cell.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\enums.cs" />
     <Compile Include="Assets\Script\Battle\Board\Model\Data.cs" />
     <Compile Include="Assets\Script\Core\Creature\Species\Model\Data.cs" />
+    <Compile Include="Assets\Script\Battle\Phase\Placement\UI\AvailableCreatureSlot.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\BushCollisionMesher.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\CardinalPointSetByOrientationCollection.cs" />
     <Compile Include="Assets\Script\Exploration\World\Chunk\View\Presenter.cs" />

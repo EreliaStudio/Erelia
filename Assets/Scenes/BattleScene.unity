@@ -579,7 +579,7 @@ GameObject:
   - component: {fileID: 748213631}
   - component: {fileID: 748213632}
   m_Layer: 5
-  m_Name: PlacementPanel
+  m_Name: AvailableCreaturePanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1281,7 +1281,7 @@ GameObject:
   - component: {fileID: 1838546192}
   - component: {fileID: 1838546196}
   m_Layer: 5
-  m_Name: PlacementSlotViewPanel
+  m_Name: PlacedCreaturePanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1393,11 +1393,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1838546190}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3a99f7546299aa546b5d1269d3249124, type: 3}
+  m_Script: {fileID: 11500000, guid: 69994efaab59e4a458368ffe30b10327, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Battle.Phase.Placement.View.PlacedCreaturePanel
+  m_EditorClassIdentifier: Assembly-CSharp::Battle.Phase.Placement.UI.PlacedCreaturePanel
   contentRoot: {fileID: 1838546191}
-  slotPrefab: {fileID: 249956608229804060, guid: 07578d68318cf8749a5a3329873675f4, type: 3}
+  slotPrefab: {fileID: -4290739565006718869, guid: 07578d68318cf8749a5a3329873675f4, type: 3}
 --- !u!1 &2079075345
 GameObject:
   m_ObjectHideFlags: 0

@@ -241,7 +241,7 @@ GameObject:
   - component: {fileID: 4714707596723256753}
   - component: {fileID: 7236500292282766708}
   m_Layer: 5
-  m_Name: CreatureCardUIElement
+  m_Name: AvailableCreatureSlotPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

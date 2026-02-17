@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace Battle.Placement.UI
 {
-	public class TeamPlacementSlotView : MonoBehaviour
+	public class AvailableCreatureSlot : MonoBehaviour
 	{
 		[SerializeField] private Image background = null;
 		[SerializeField] private Image icon = null;

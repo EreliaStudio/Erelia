@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Battle.Phase.Placement.View
+namespace Battle.Phase.Placement.UI
 {
 	public class PlacedCreatureSlot : MonoBehaviour
 	{
