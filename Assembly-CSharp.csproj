@@ -79,6 +79,7 @@
     <Compile Include="Assets\Script\Core\Voxel\Model\Data.cs" />
     <Compile Include="Assets\Script\Core\Encounter\EncounterTable\Model\Data.cs" />
     <Compile Include="Assets\Script\Core\Utils\Mesher\CollisionMesher.cs" />
+    <Compile Include="Assets\Script\Battle\Agent\Model\PlacementAreaBuilder.cs" />
     <Compile Include="Assets\Script\Battle\Agent\Model\Data.cs" />
     <Compile Include="Assets\Script\Core\Voxel\Model\FaceByOrientationKey.cs" />
     <Compile Include="Assets\Script\Battle\Phase\Placement\UI\PlacedCreatureSlot.cs" />

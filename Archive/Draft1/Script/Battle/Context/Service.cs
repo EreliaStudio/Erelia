@@ -6,6 +6,8 @@ namespace Battle.Context
 	{
 		private Model.TeamPlacement playerPlacement;
 		public Model.TeamPlacement PlayerPlacement => playerPlacement;
+		private Battle.Agent.Model.PlacementAreas enemyPlacementAreas;
+		public Battle.Agent.Model.PlacementAreas EnemyPlacementAreas => enemyPlacementAreas;
 
 		public void InitializeFromPlayerTeam(Core.Creature.Model.Team team)
 		{
@@ -23,6 +25,12 @@ namespace Battle.Context
 			}
 
 			playerPlacement = new Model.TeamPlacement(team, Model.Side.Player, maxPlacements);
+		}
+
+		public void InitializeEnemyPlacementAreas()
+		{
+			var boardData = Utils.ServiceLocator.Instance.BattleBoardService.Data;
+			enemyPlacementAreas = Battle.Agent.Model.PlacementAreaBuilder.BuildForSide(boardData, Model.Side.Enemy);
 		}
 	}
 }

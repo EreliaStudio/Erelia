@@ -15,6 +15,7 @@ namespace Battle.Phase
 			if (contextService != null)
 			{
 				contextService.InitializeFromPlayerTeam(Utils.ServiceLocator.Instance.PlayerTeam);
+				contextService.InitializeEnemyPlacementAreas();
 			}
 		}
 

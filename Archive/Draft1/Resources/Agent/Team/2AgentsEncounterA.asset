@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 37c2bb0c9017c3448a04162359b33386, type: 3}
-  m_Name: EncounterA
+  m_Name: 2AgentsEncounterA
   m_EditorClassIdentifier: Assembly-CSharp::Battle.Agent.Model.AgentTeam
   entries:
   - placementPolicy:
       rid: 3708920317691560201
-    agent: {fileID: 0}
+    agent: {fileID: 11400000, guid: d37adc96eade4c544a914418f2787994, type: 2}
   - placementPolicy:
       rid: 3708920317691560203
-    agent: {fileID: 0}
+    agent: {fileID: 11400000, guid: 3c65d0d54e76cf643af99ddf7469f55e, type: 2}
   references:
     version: 2
     RefIds:

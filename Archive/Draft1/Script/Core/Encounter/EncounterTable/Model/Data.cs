@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Core.Encounter.Table.Model
 {
@@ -13,5 +14,8 @@ namespace Core.Encounter.Table.Model
 
 		[SerializeField, Range(0, Core.Creature.Model.Team.MaxSize)] private int maxCreaturesToPlace = Core.Creature.Model.Team.MaxSize;
 		public int MaxCreaturesToPlace => maxCreaturesToPlace;
+
+		[SerializeField] private List<Battle.Agent.Model.AgentTeam> agentTeams = new List<Battle.Agent.Model.AgentTeam>();
+		public IReadOnlyList<Battle.Agent.Model.AgentTeam> AgentTeams => agentTeams;
 	}
 }

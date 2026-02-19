@@ -15,3 +15,5 @@ MonoBehaviour:
   fightChance: 0.1
   boardArea: {x: 25, y: 25}
   maxCreaturesToPlace: 1
+  agentTeams:
+  - {fileID: 11400000, guid: 2d4ef64e57e3d86448b91aa684218a46, type: 2}
