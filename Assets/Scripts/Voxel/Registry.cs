@@ -1,11 +1,28 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Voxel
 {
 	public static class Registry
 	{
 		private static readonly Dictionary<int, Voxel.Definition> registeredDefinition = new();
+
+		private const string ResourcesPath = "Voxel/VoxelLibrary";
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+		private static void Initialize()
+		{
+			VoxelLibrary library = Resources.Load<VoxelLibrary>(ResourcesPath);
+			if (library == null)
+			{
+				Debug.LogWarning($"VoxelLibrary not found at Resources path '{ResourcesPath}'. Registry not initialized.");
+				return;
+			}
+
+			int registered = library.RegisterAll(clearRegistry: true);
+			Debug.Log($"Voxel Registry initialized with {registered} definitions from '{library.name}'.");
+		}
 
 		public static void Add(int id, Voxel.Definition definition)
 		{

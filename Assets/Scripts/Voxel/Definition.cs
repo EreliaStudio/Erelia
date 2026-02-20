@@ -15,14 +15,11 @@ namespace Voxel
 			CrossPlane
 		}
 
-		[SerializeField] private int id = -1;
-
 		[SerializeField] private Voxel.Data data = new Voxel.Data();
 		[SerializeField] private ShapeType shapeType = ShapeType.Cube;
 
 		[SerializeReference] private Voxel.Shape shape = null;
 
-		public int Id => id;
 		public Voxel.Data Data => data;
 		public ShapeType Type => shapeType;
 		public Voxel.Shape Shape => shape;

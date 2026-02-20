@@ -5,44 +5,21 @@ namespace Voxel
 {
 	public static class Loader
 	{
-		public static int Load(string resourcesFolder)
+		public static int LoadLibrary(string resourcesPath)
 		{
-			if (string.IsNullOrWhiteSpace(resourcesFolder))
+			if (string.IsNullOrWhiteSpace(resourcesPath))
 			{
-				throw new ArgumentException("resourcesFolder cannot be null/empty.", nameof(resourcesFolder));
+				throw new ArgumentException("resourcesPath cannot be null/empty.", nameof(resourcesPath));
 			}
 
-			Registry.Clear();
-
-			Definition[] definitions = Resources.LoadAll<Definition>(resourcesFolder);
-			int registered = 0;
-
-			for (int i = 0; i < definitions.Length; i++)
+			VoxelLibrary library = Resources.Load<VoxelLibrary>(resourcesPath);
+			if (library == null)
 			{
-				Definition def = definitions[i];
-				if (def == null)
-				{
-					continue;
-				}
-
-				if (Registry.Contains(def.Id))
-				{
-					Debug.LogError($"Duplicate voxel id '{def.Id}'. Asset '{def.name}' skipped.");
-					continue;
-				}
-
-				try
-				{
-					Registry.Add(def.Id, def);
-					registered++;
-				}
-				catch (Exception ex)
-				{
-					Debug.LogError($"Failed to register voxel definition '{def.name}' (Id={def.Id}): {ex.Message}");
-				}
+				Debug.LogWarning($"VoxelLibrary not found at Resources path '{resourcesPath}'.");
+				return 0;
 			}
 
-			return registered;
+			return library.RegisterAll(clearRegistry: true);
 		}
 	}
 }

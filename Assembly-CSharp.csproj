@@ -58,6 +58,7 @@
     <Compile Include="Assets\Scripts\World\Manager.cs" />
     <Compile Include="Assets\Scripts\Voxel\Registry.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\Slab.cs" />
+    <Compile Include="Assets\Scripts\Voxel\VoxelLibrary.cs" />
     <Compile Include="Assets\Scripts\World\Data.cs" />
     <Compile Include="Assets\Scripts\Voxel\CardinalPoint.cs" />
     <Compile Include="Assets\Scripts\Voxel\Enums.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="Assets\Scripts\World\Coordinates.cs" />
     <Compile Include="Assets\Scripts\Voxel\Data.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape.cs" />
+    <Compile Include="Assets\Scripts\Voxel\VoxelBootstrap.cs" />
     <Compile Include="Assets\Scripts\Voxel\Loader.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\Stair.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\Cube.cs" />
