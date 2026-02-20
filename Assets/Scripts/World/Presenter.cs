@@ -10,8 +10,7 @@ namespace Erelia.World
 		[SerializeField] private float updateIntervalSeconds = 0.05f;
 
 		private Erelia.World.Model worldModel;
-		private readonly Dictionary<Erelia.World.Chunk.Coordinates, Erelia.World.Chunk.Presenter> presenters =
-			new Dictionary<Erelia.World.Chunk.Coordinates, Erelia.World.Chunk.Presenter>();
+		private readonly Dictionary<Erelia.World.Chunk.Coordinates, Erelia.World.Chunk.Presenter> presenters = new Dictionary<Erelia.World.Chunk.Coordinates, Erelia.World.Chunk.Presenter>();
 		private readonly Queue<Erelia.World.Chunk.Coordinates> pendingChunks = new Queue<Erelia.World.Chunk.Coordinates>();
 		private readonly HashSet<Vector2Int> queuedChunkKeys = new HashSet<Vector2Int>();
 		private float updateTimer;

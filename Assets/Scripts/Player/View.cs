@@ -4,8 +4,8 @@ namespace Erelia.Player
 {
 	public sealed class View : MonoBehaviour
 	{
-		[SerializeField] private Transform target;
+		[SerializeField] private Transform linkedCamera;
 
-		public Transform Target => target != null ? target : transform;
+		public Transform LinkedCamera => linkedCamera != null ? linkedCamera : transform;
 	}
 }

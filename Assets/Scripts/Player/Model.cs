@@ -19,5 +19,6 @@ namespace Erelia.Player
 			CurrentChunk = coordinates;
 			return true;
 		}
+
 	}
 }

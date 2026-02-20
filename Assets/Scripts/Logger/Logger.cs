@@ -28,7 +28,7 @@ namespace Erelia
 
 		public static void RaiseException(string message)
 		{
-			Debug.LogError(message);
+			RaiseError(message);
 			throw new Exception(message);
 		}
 	}

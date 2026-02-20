@@ -68,14 +68,17 @@
     <Compile Include="Assets\Scripts\Events\Events.cs" />
     <Compile Include="Assets\Scripts\Voxel\Enums.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\CrossPlane.cs" />
+    <Compile Include="Assets\Scripts\Camera\Model.cs" />
     <Compile Include="Assets\Scripts\Voxel\Face.cs" />
     <Compile Include="Assets\Scripts\Voxel\Mesher.cs" />
     <Compile Include="Assets\Scripts\World\Chunk\Presenter.cs" />
+    <Compile Include="Assets\Scripts\Camera\Presenter.cs" />
     <Compile Include="Assets\Scripts\World\Presenter.cs" />
     <Compile Include="Assets\Scripts\Voxel\Data.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape.cs" />
     <Compile Include="Assets\Scripts\Player\Model.cs" />
     <Compile Include="Assets\Scripts\Voxel\Loader.cs" />
+    <Compile Include="Assets\Scripts\Camera\View.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\Stair.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\Cube.cs" />
     <Compile Include="Assets\Scripts\World\Model.cs" />
