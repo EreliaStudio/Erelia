@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c8e227760dbdab4ab4dc5732a6c466c, type: 3}
+  m_Name: Stair
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Voxel.Definition
+  data:
+    collision: 1
+    traversal: 0
+  shapeType: 3
+  shape:
+    rid: 3708920363310121331
+  references:
+    version: 2
+    RefIds:
+    - rid: 3708920363310121331
+      type: {class: Stair, ns: Erelia.Voxel.ShapeType, asm: Assembly-CSharp}
+      data:
+        spriteFront: {fileID: -1168464288, guid: 0904e940b770c4c488037236797d3790, type: 3}
+        spriteBack: {fileID: 482027737, guid: 0904e940b770c4c488037236797d3790, type: 3}
+        spriteBottom: {fileID: 482027737, guid: 0904e940b770c4c488037236797d3790, type: 3}
+        spriteTop: {fileID: -1214638521, guid: 0904e940b770c4c488037236797d3790, type: 3}
+        spriteSideLeft: {fileID: 1388158363, guid: 0904e940b770c4c488037236797d3790, type: 3}
+        spriteSideRight: {fileID: 1388158363, guid: 0904e940b770c4c488037236797d3790, type: 3}
+        spriteStepTop: {fileID: -1214638521, guid: 0904e940b770c4c488037236797d3790, type: 3}
+        spriteStepRiser: {fileID: -1168464288, guid: 0904e940b770c4c488037236797d3790, type: 3}

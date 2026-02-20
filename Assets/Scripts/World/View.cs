@@ -6,6 +6,11 @@ namespace Erelia.World
 	{
 		[SerializeField] private Erelia.World.Chunk.View chunkViewPrefab;
 		[SerializeField] private Transform chunkRoot;
+		[SerializeField] private Transform viewTarget;
+		[SerializeField] private int viewRadius = 6;
+
+		public Transform ViewTarget => viewTarget;
+		public int ViewRadius => viewRadius;
 
 		public Erelia.World.Chunk.View CreateChunkView(Erelia.World.Chunk.Coordinates coordinates)
 		{
