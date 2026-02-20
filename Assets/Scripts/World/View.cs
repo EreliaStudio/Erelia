@@ -25,10 +25,12 @@ namespace Erelia.World
 			if (coordinates != null)
 			{
 				view.transform.position = coordinates.WorldOrigin();
+				view.gameObject.name = $"ChunkView {coordinates}";
 			}
 			else
 			{
 				Erelia.Logger.RaiseWarning("[Erelia.World.View] Coordinates were null. Chunk view positioned at prefab default.");
+				view.gameObject.name = "ChunkView (unknown)";
 			}
 
 			Erelia.Logger.Log("[Erelia.World.View] Created chunk view" + (coordinates != null ? (" for " + coordinates) : "."));

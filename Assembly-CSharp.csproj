@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Voxel\Definition.cs" />
     <Compile Include="Assets\Scripts\World\Chunk\Generation\SimpleDebugChunkGenerator.cs" />
+    <Compile Include="Assets\Scripts\World\Chunk\SolidView.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\Slope.cs" />
     <Compile Include="Assets\Scripts\Voxel\Cell.cs" />
     <Compile Include="Assets\Scripts\World\View.cs" />
@@ -68,6 +69,7 @@
     <Compile Include="Assets\Scripts\Events\Events.cs" />
     <Compile Include="Assets\Scripts\Voxel\Enums.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\CrossPlane.cs" />
+    <Compile Include="Assets\Scripts\World\Chunk\BushView.cs" />
     <Compile Include="Assets\Scripts\Camera\Model.cs" />
     <Compile Include="Assets\Scripts\Voxel\Face.cs" />
     <Compile Include="Assets\Scripts\Voxel\Mesher.cs" />
@@ -1184,16 +1186,16 @@
       <HintPath>Library\ScriptAssemblies\Unity.AI.Navigation.Updater.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.2D.Common.Editor">
-      <HintPath>Library\ScriptAssemblies\Unity.2D.Common.Editor.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Unity.AI.Navigation.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.AI.Navigation.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.AI.Assistant.Integrations.Profiler.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.AI.Assistant.Integrations.Profiler.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.2D.Common.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.2D.Common.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.RenderPipelines.Core.Runtime.Shared">
@@ -1380,12 +1382,16 @@
       <HintPath>Library\ScriptAssemblies\Unity.Mathematics.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.Core.Runtime">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
+    <Reference Include="vhacd">
+      <HintPath>Library\ScriptAssemblies\vhacd.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.AppUI.MVVM">
       <HintPath>Library\ScriptAssemblies\Unity.AppUI.MVVM.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Runtime">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.AI.Assistant.Runtime">

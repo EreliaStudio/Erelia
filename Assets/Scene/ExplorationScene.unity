@@ -216,6 +216,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!114 &435618962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Zoom
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 85ff8cbe84b18734c818b62f8c52aa6d, type: 3}
+  m_ActionId: 1a2b3c4d-5e6f-4789-9a0b-c1d2e3f4a5b6
 --- !u!1 &769879281
 GameObject:
   m_ObjectHideFlags: 0
@@ -262,7 +276,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 59164849a7ca3ef4cb4fa966f8de29a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Erelia.Player.View
-  target: {fileID: 769879282}
+  linkedCamera: {fileID: 1155390733}
 --- !u!114 &769879284
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -276,6 +290,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Erelia.Player.Presenter
   view: {fileID: 769879283}
+  moveAction: {fileID: 1163598497}
+  moveSpeed: 5
+--- !u!114 &782290147
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Look
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 85ff8cbe84b18734c818b62f8c52aa6d, type: 3}
+  m_ActionId: f1a2b3c4-d5e6-4f70-8a90-b1c2d3e4f5a6
 --- !u!1 &1062964282
 GameObject:
   m_ObjectHideFlags: 0
@@ -317,6 +347,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1155390733}
+  - component: {fileID: 1155390735}
+  - component: {fileID: 1155390734}
   - component: {fileID: 1155390732}
   - component: {fileID: 1155390731}
   m_Layer: 0
@@ -400,6 +432,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 769879282}
   m_LocalEulerAnglesHint: {x: 45, y: 45, z: 0}
+--- !u!114 &1155390734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1155390730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a673a9eacba80048a126e354623e8ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Camera.View
+--- !u!114 &1155390735
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1155390730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4141577c71807374d8110b6cb612734a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Camera.Presenter
+  view: {fileID: 1155390734}
+  lookAction: {fileID: 782290147}
+  orbitAction: {fileID: 2001250469}
+  zoomAction: {fileID: 435618962}
+  mouseOrbitSensitivity: 0.12
+  keyOrbitSpeed: 90
+  zoomSpeed: 2
+  minOrbitDistance: 2
+  maxOrbitDistance: 25
+--- !u!114 &1163598497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Move
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 85ff8cbe84b18734c818b62f8c52aa6d, type: 3}
+  m_ActionId: 52d5c2b1-4a1d-4b58-8e2a-7f6d3a2b1c90
 --- !u!1 &1448763373
 GameObject:
   m_ObjectHideFlags: 0
@@ -464,6 +543,20 @@ MonoBehaviour:
   worldView: {fileID: 1448763375}
   chunksPerFrame: 2
   updateIntervalSeconds: 0.05
+--- !u!114 &2001250469
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Orbit
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 85ff8cbe84b18734c818b62f8c52aa6d, type: 3}
+  m_ActionId: a9b8c7d6-e5f4-4321-9a0b-1c2d3e4f5a6b
 --- !u!1 &2106864556
 GameObject:
   m_ObjectHideFlags: 0

@@ -24,6 +24,16 @@ namespace Erelia.World.Chunk
 			{
 				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.Presenter] Bind called with null model.");
 			}
+
+			if (view != null)
+			{
+				view.SolidCollisionEntered += OnSolidCollisionEntered;
+				view.BushTriggerEntered += OnBushTriggerEntered;
+			}
+			else
+			{
+				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.Presenter] Bind called with null view.");
+			}
 		}
 
 		public void Unbind()
@@ -36,6 +46,12 @@ namespace Erelia.World.Chunk
 			else
 			{
 				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.Presenter] Unbind called with null model.");
+			}
+
+			if (view != null)
+			{
+				view.SolidCollisionEntered -= OnSolidCollisionEntered;
+				view.BushTriggerEntered -= OnBushTriggerEntered;
 			}
 		}
 
@@ -59,14 +75,56 @@ namespace Erelia.World.Chunk
 				return;
 			}
 
-			if (!Erelia.Voxel.Mesher.TryBuild(model.Cells, out Mesh renderMesh, out Mesh collisionMesh))
+			if (!Erelia.Voxel.Mesher.TryBuild(model.Cells, out Mesh solidRenderMesh, out Mesh solidCollisionMesh, IsSolidCell))
 			{
-				Erelia.Logger.RaiseError("[Erelia.World.Chunk.Presenter] Mesher failed to build chunk meshes.");
+				Erelia.Logger.RaiseError("[Erelia.World.Chunk.Presenter] Mesher failed to build solid chunk meshes.");
 				return;
 			}
 
-			view.ApplyMeshes(renderMesh, collisionMesh);
+			if (!Erelia.Voxel.Mesher.TryBuild(model.Cells, out Mesh bushRenderMesh, out Mesh bushCollisionMesh, IsBushCell))
+			{
+				Erelia.Logger.RaiseError("[Erelia.World.Chunk.Presenter] Mesher failed to build bush chunk meshes.");
+				return;
+			}
+
+			view.ApplyMeshes(solidRenderMesh, solidCollisionMesh, bushRenderMesh, bushCollisionMesh);
 			Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Meshes applied to view.");
+		}
+
+		private static bool IsSolidCell(
+			Erelia.Voxel.Cell[,,] cells,
+			int x,
+			int y,
+			int z,
+			Erelia.Voxel.Cell cell,
+			Erelia.Voxel.Definition definition)
+		{
+			return definition != null
+				&& definition.Data != null
+				&& definition.Data.Collision == Erelia.Voxel.Collision.Solid;
+		}
+
+		private static bool IsBushCell(
+			Erelia.Voxel.Cell[,,] cells,
+			int x,
+			int y,
+			int z,
+			Erelia.Voxel.Cell cell,
+			Erelia.Voxel.Definition definition)
+		{
+			return definition != null
+				&& definition.Data != null
+				&& definition.Data.Collision == Erelia.Voxel.Collision.Bush;
+		}
+
+		private void OnSolidCollisionEntered(Collision collision)
+		{
+			Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Solid collision entered.");
+		}
+
+		private void OnBushTriggerEntered(Collider collider)
+		{
+			Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Bush trigger entered.");
 		}
 	}
 }
