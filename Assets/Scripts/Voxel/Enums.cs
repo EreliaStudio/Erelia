@@ -1,7 +1,7 @@
 using UnityEngine;
 using System;
 
-namespace Voxel
+namespace Erelia.Voxel
 {
 	public enum Collision
 	{
@@ -31,3 +31,4 @@ namespace Voxel
 		NegativeY
 	}
 }
+

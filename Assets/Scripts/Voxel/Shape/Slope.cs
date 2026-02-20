@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-namespace Voxel.ShapeType
+namespace Erelia.Voxel.ShapeType
 {
 	[Serializable]
-	public class Slope : Voxel.Shape
+	public class Slope : Erelia.Voxel.Shape
 	{
 		[Header("Textures")]
 		[SerializeField] private Sprite spriteBack;
@@ -21,63 +21,63 @@ namespace Voxel.ShapeType
 				outerShell: ConstructOuterShellFaces());
 		}
 
-		protected override Dictionary<Voxel.FlipOrientation, List<Voxel.Face>> ConstructMaskFaces()
+		protected override Dictionary<Erelia.Voxel.FlipOrientation, List<Erelia.Voxel.Face>> ConstructMaskFaces()
 		{
 			const float maskOffset = 0.01f;
 
-			var faces = new List<Voxel.Face>();
-			Voxel.Face slope = Utils.Geometry.CreateRectangle(
+			var faces = new List<Erelia.Voxel.Face>();
+			Erelia.Voxel.Face slope = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f + maskOffset, 0f), UV = new Vector2(0f, 0f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f + maskOffset, 0f), UV = new Vector2(1f, 0f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f + maskOffset, 1f), UV = new Vector2(1f, 1f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f + maskOffset, 1f), UV = new Vector2(0f, 1f) });
 			faces.Add(slope);
 
-			var flippedFaces = new List<Voxel.Face>();
-			Voxel.Face top = Utils.Geometry.CreateRectangle(
+			var flippedFaces = new List<Erelia.Voxel.Face>();
+			Erelia.Voxel.Face top = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f + maskOffset, 0f), UV = new Vector2(0f, 0f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f + maskOffset, 0f), UV = new Vector2(1f, 0f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f + maskOffset, 1f), UV = new Vector2(1f, 1f) },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f + maskOffset, 1f), UV = new Vector2(0f, 1f) });
 			flippedFaces.Add(top);
 
-			return new Dictionary<Voxel.FlipOrientation, List<Voxel.Face>>
+			return new Dictionary<Erelia.Voxel.FlipOrientation, List<Erelia.Voxel.Face>>
 			{
-				[Voxel.FlipOrientation.PositiveY] = faces,
-				[Voxel.FlipOrientation.NegativeY] = flippedFaces
+				[Erelia.Voxel.FlipOrientation.PositiveY] = faces,
+				[Erelia.Voxel.FlipOrientation.NegativeY] = flippedFaces
 			};
 		}
 
-		protected override Dictionary<Voxel.FlipOrientation, Dictionary<Voxel.CardinalPoint, Vector3>> ConstructCardinalPoints()
+		protected override Dictionary<Erelia.Voxel.FlipOrientation, Dictionary<Erelia.Voxel.CardinalPoint, Vector3>> ConstructCardinalPoints()
 		{
-			var nonFlipped = new Dictionary<Voxel.CardinalPoint, Vector3>
+			var nonFlipped = new Dictionary<Erelia.Voxel.CardinalPoint, Vector3>
 			{
-				[Voxel.CardinalPoint.PositiveX] = new Vector3(1f, 0.5f, 0.5f),
-				[Voxel.CardinalPoint.NegativeX] = new Vector3(0f, 0.5f, 0.5f),
-				[Voxel.CardinalPoint.PositiveZ] = new Vector3(0.5f, 1f, 1f),
-				[Voxel.CardinalPoint.NegativeZ] = new Vector3(0.5f, 0f, 0f),
-				[Voxel.CardinalPoint.Stationary] = new Vector3(0.5f, 0.5f, 0.5f),
+				[Erelia.Voxel.CardinalPoint.PositiveX] = new Vector3(1f, 0.5f, 0.5f),
+				[Erelia.Voxel.CardinalPoint.NegativeX] = new Vector3(0f, 0.5f, 0.5f),
+				[Erelia.Voxel.CardinalPoint.PositiveZ] = new Vector3(0.5f, 1f, 1f),
+				[Erelia.Voxel.CardinalPoint.NegativeZ] = new Vector3(0.5f, 0f, 0f),
+				[Erelia.Voxel.CardinalPoint.Stationary] = new Vector3(0.5f, 0.5f, 0.5f),
 			};
 
-			var flipped = new Dictionary<Voxel.CardinalPoint, Vector3>
+			var flipped = new Dictionary<Erelia.Voxel.CardinalPoint, Vector3>
 			{
-				[Voxel.CardinalPoint.PositiveX] = new Vector3(1f, 1f, 0.5f),
-				[Voxel.CardinalPoint.NegativeX] = new Vector3(0f, 1f, 0.5f),
-				[Voxel.CardinalPoint.PositiveZ] = new Vector3(0.5f, 1f, 1f),
-				[Voxel.CardinalPoint.NegativeZ] = new Vector3(0.5f, 1f, 0f),
-				[Voxel.CardinalPoint.Stationary] = new Vector3(0.5f, 1f, 0.5f),
+				[Erelia.Voxel.CardinalPoint.PositiveX] = new Vector3(1f, 1f, 0.5f),
+				[Erelia.Voxel.CardinalPoint.NegativeX] = new Vector3(0f, 1f, 0.5f),
+				[Erelia.Voxel.CardinalPoint.PositiveZ] = new Vector3(0.5f, 1f, 1f),
+				[Erelia.Voxel.CardinalPoint.NegativeZ] = new Vector3(0.5f, 1f, 0f),
+				[Erelia.Voxel.CardinalPoint.Stationary] = new Vector3(0.5f, 1f, 0.5f),
 			};
 
-			return new Dictionary<Voxel.FlipOrientation, Dictionary<Voxel.CardinalPoint, Vector3>>
+			return new Dictionary<Erelia.Voxel.FlipOrientation, Dictionary<Erelia.Voxel.CardinalPoint, Vector3>>
 			{
-				[Voxel.FlipOrientation.PositiveY] = nonFlipped,
-				[Voxel.FlipOrientation.NegativeY] = flipped
+				[Erelia.Voxel.FlipOrientation.PositiveY] = nonFlipped,
+				[Erelia.Voxel.FlipOrientation.NegativeY] = flipped
 			};
 		}
 
-		private List<Voxel.Face> ConstructInnerFaces()
+		private List<Erelia.Voxel.Face> ConstructInnerFaces()
 		{
-			var faces = new List<Voxel.Face>();
+			var faces = new List<Erelia.Voxel.Face>();
 
 			Utils.SpriteUv.GetSpriteUvRect(spriteSlope, out Vector2 uvAnchor, out Vector2 uvSize);
 			Vector2 uvA = uvAnchor;
@@ -85,7 +85,7 @@ namespace Voxel.ShapeType
 			Vector2 uvC = uvAnchor + uvSize;
 			Vector2 uvD = uvAnchor + new Vector2(0f, uvSize.y);
 
-			Voxel.Face slope = Utils.Geometry.CreateRectangle(
+			Erelia.Voxel.Face slope = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvC },
@@ -95,9 +95,9 @@ namespace Voxel.ShapeType
 			return faces;
 		}
 
-		private Dictionary<AxisPlane, Voxel.Face> ConstructOuterShellFaces()
+		private Dictionary<AxisPlane, Erelia.Voxel.Face> ConstructOuterShellFaces()
 		{
-			var faces = new Dictionary<AxisPlane, Voxel.Face>();
+			var faces = new Dictionary<AxisPlane, Erelia.Voxel.Face>();
 
 			Vector2 uvAnchor = Vector2.zero;
 			Vector2 uvSize = Vector2.zero;
@@ -116,7 +116,7 @@ namespace Voxel.ShapeType
 			uvTriB = uvAnchor + new Vector2(uvSize.x, 0f);
 			uvTriC = uvAnchor + new Vector2(0f, uvSize.y);
 
-			Voxel.Face posX = Utils.Geometry.CreateTriangle(
+			Erelia.Voxel.Face posX = Utils.Geometry.CreateTriangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvTriA },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvTriB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvTriC });
@@ -127,7 +127,7 @@ namespace Voxel.ShapeType
 			uvTriB = uvAnchor + new Vector2(uvSize.x, 0f);
 			uvTriC = uvAnchor + new Vector2(0f, uvSize.y);
 
-			Voxel.Face negX = Utils.Geometry.CreateTriangle(
+			Erelia.Voxel.Face negX = Utils.Geometry.CreateTriangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvTriA },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = uvTriB },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvTriC });
@@ -139,7 +139,7 @@ namespace Voxel.ShapeType
 			uvC = uvAnchor + uvSize;
 			uvD = uvAnchor + new Vector2(0f, uvSize.y);
 
-			Voxel.Face negY = Utils.Geometry.CreateRectangle(
+			Erelia.Voxel.Face negY = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvC },
@@ -152,7 +152,7 @@ namespace Voxel.ShapeType
 			uvC = uvAnchor + uvSize;
 			uvD = uvAnchor + new Vector2(0f, uvSize.y);
 
-			Voxel.Face posZ = Utils.Geometry.CreateRectangle(
+			Erelia.Voxel.Face posZ = Utils.Geometry.CreateRectangle(
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvA },
 				new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = uvB },
 				new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvC },
@@ -163,3 +163,4 @@ namespace Voxel.ShapeType
 		}
 	}
 }
+

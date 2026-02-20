@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Voxel
+namespace Erelia.Voxel
 {
 	[CreateAssetMenu(menuName = "Voxel/Definition", fileName = "NewVoxelDefinition")]
 	public class Definition : ScriptableObject
@@ -15,14 +15,14 @@ namespace Voxel
 			CrossPlane
 		}
 
-		[SerializeField] private Voxel.Data data = new Voxel.Data();
+		[SerializeField] private Erelia.Voxel.Data data = new Erelia.Voxel.Data();
 		[SerializeField] private ShapeType shapeType = ShapeType.Cube;
 
-		[SerializeReference] private Voxel.Shape shape = null;
+		[SerializeReference] private Erelia.Voxel.Shape shape = null;
 
-		public Voxel.Data Data => data;
+		public Erelia.Voxel.Data Data => data;
 		public ShapeType Type => shapeType;
-		public Voxel.Shape Shape => shape;
+		public Erelia.Voxel.Shape Shape => shape;
 
 		private void OnEnable()
 		{
@@ -37,3 +37,5 @@ namespace Voxel
 #endif
 	}
 }
+
+

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Voxel
+namespace Erelia.Voxel
 {
 	public enum CardinalPoint
 	{
@@ -12,3 +12,4 @@ namespace Voxel
 		Stationary
 	}
 }
+

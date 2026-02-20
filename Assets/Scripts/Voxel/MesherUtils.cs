@@ -8,11 +8,11 @@ namespace Mesherutils
 	{
 		private struct Key : IEquatable<Key>
 		{
-			private readonly Voxel.Face face;
-			private readonly Voxel.Orientation orientation;
-			private readonly Voxel.FlipOrientation flipOrientation;
+			private readonly Erelia.Voxel.Face face;
+			private readonly Erelia.Voxel.Orientation orientation;
+			private readonly Erelia.Voxel.FlipOrientation flipOrientation;
 
-			public Key(Voxel.Face face, Voxel.Orientation orientation, Voxel.FlipOrientation flipOrientation)
+			public Key(Erelia.Voxel.Face face, Erelia.Voxel.Orientation orientation, Erelia.Voxel.FlipOrientation flipOrientation)
 			{
 				this.face = face;
 				this.orientation = orientation;
@@ -43,9 +43,9 @@ namespace Mesherutils
 			}
 		}
 
-		private static readonly Dictionary<Key, Voxel.Face> Collection = new Dictionary<Key, Voxel.Face>();
+		private static readonly Dictionary<Key, Erelia.Voxel.Face> Collection = new Dictionary<Key, Erelia.Voxel.Face>();
 
-		public static bool TryGetValue(Voxel.Face face, Voxel.Orientation orientation, Voxel.FlipOrientation flipOrientation, out Voxel.Face output)
+		public static bool TryGetValue(Erelia.Voxel.Face face, Erelia.Voxel.Orientation orientation, Erelia.Voxel.FlipOrientation flipOrientation, out Erelia.Voxel.Face output)
 		{
 			output = null;
 			if (face == null)
@@ -54,7 +54,7 @@ namespace Mesherutils
 			}
 
 			var key = new Key(face, orientation, flipOrientation);
-			if (Collection.TryGetValue(key, out Voxel.Face cached))
+			if (Collection.TryGetValue(key, out Erelia.Voxel.Face cached))
 			{
 				output = cached;
 				return true;
@@ -70,10 +70,10 @@ namespace Mesherutils
 	{
 		private struct FacePairKey : IEquatable<FacePairKey>
 		{
-			private readonly Voxel.Face face;
-			private readonly Voxel.Face occluder;
+			private readonly Erelia.Voxel.Face face;
+			private readonly Erelia.Voxel.Face occluder;
 
-			public FacePairKey(Voxel.Face face, Voxel.Face occluder)
+			public FacePairKey(Erelia.Voxel.Face face, Erelia.Voxel.Face occluder)
 			{
 				this.face = face;
 				this.occluder = occluder;
@@ -102,7 +102,7 @@ namespace Mesherutils
 
 		private static readonly Dictionary<FacePairKey, bool> Collection = new Dictionary<FacePairKey, bool>();
 
-		public static bool TryGetValue(Voxel.Face face, Voxel.Face occluder, out bool isOccluded)
+		public static bool TryGetValue(Erelia.Voxel.Face face, Erelia.Voxel.Face occluder, out bool isOccluded)
 		{
 			isOccluded = false;
 			if (face == null || occluder == null)
@@ -123,3 +123,4 @@ namespace Mesherutils
 		}
 	}
 }
+

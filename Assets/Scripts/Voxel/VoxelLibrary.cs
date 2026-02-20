@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Voxel
+namespace Erelia.Voxel
 {
 	[CreateAssetMenu(menuName = "Voxel/Library", fileName = "VoxelLibrary")]
 	public class VoxelLibrary : ScriptableObject
@@ -11,7 +11,7 @@ namespace Voxel
 		public struct Entry
 		{
 			public int Id;
-			public Voxel.Definition Definition;
+			public Erelia.Voxel.Definition Definition;
 		}
 
 		[SerializeField] private List<Entry> entries = new List<Entry>();
@@ -33,7 +33,7 @@ namespace Voxel
 				Entry entry = entries[i];
 				if (entry.Definition == null)
 				{
-					Debug.LogWarning($"VoxelLibrary '{name}' has a null Definition at index {i}.");
+					Erelia.Logger.RaiseWarning($"VoxelLibrary '{name}' has a null Definition at index {i}.");
 					continue;
 				}
 
@@ -64,3 +64,5 @@ namespace Voxel
 		}
 	}
 }
+
+

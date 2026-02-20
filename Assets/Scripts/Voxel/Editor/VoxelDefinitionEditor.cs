@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Erelia.Editor
 {
-	[CustomEditor(typeof(Voxel.Definition))]
+	[CustomEditor(typeof(Erelia.Voxel.Definition))]
 	public class VoxelDefinitionEditor : UnityEditor.Editor
 	{
 		private SerializedProperty dataProp;
@@ -37,7 +37,7 @@ namespace Erelia.Editor
 
 		private void EnsureShapeInstance(bool forceReplace)
 		{
-			var shapeType = (Voxel.Definition.ShapeType)shapeTypeProp.enumValueIndex;
+			var shapeType = (Erelia.Voxel.Definition.ShapeType)shapeTypeProp.enumValueIndex;
 			var expectedType = GetShapeClassType(shapeType);
 			var current = shapeProp.managedReferenceValue;
 
@@ -47,40 +47,41 @@ namespace Erelia.Editor
 			}
 		}
 
-		private static System.Type GetShapeClassType(Voxel.Definition.ShapeType shapeType)
+		private static System.Type GetShapeClassType(Erelia.Voxel.Definition.ShapeType shapeType)
 		{
 			switch (shapeType)
 			{
-				case Voxel.Definition.ShapeType.Slab:
-					return typeof(Voxel.ShapeType.Slab);
-				case Voxel.Definition.ShapeType.Slope:
-					return typeof(Voxel.ShapeType.Slope);
-				case Voxel.Definition.ShapeType.Stair:
-					return typeof(Voxel.ShapeType.Stair);
-				case Voxel.Definition.ShapeType.CrossPlane:
-					return typeof(Voxel.ShapeType.CrossPlane);
-				case Voxel.Definition.ShapeType.Cube:
+				case Erelia.Voxel.Definition.ShapeType.Slab:
+					return typeof(Erelia.Voxel.ShapeType.Slab);
+				case Erelia.Voxel.Definition.ShapeType.Slope:
+					return typeof(Erelia.Voxel.ShapeType.Slope);
+				case Erelia.Voxel.Definition.ShapeType.Stair:
+					return typeof(Erelia.Voxel.ShapeType.Stair);
+				case Erelia.Voxel.Definition.ShapeType.CrossPlane:
+					return typeof(Erelia.Voxel.ShapeType.CrossPlane);
+				case Erelia.Voxel.Definition.ShapeType.Cube:
 				default:
-					return typeof(Voxel.ShapeType.Cube);
+					return typeof(Erelia.Voxel.ShapeType.Cube);
 			}
 		}
 
-		private static Voxel.Shape CreateShapeInstance(Voxel.Definition.ShapeType shapeType)
+		private static Erelia.Voxel.Shape CreateShapeInstance(Erelia.Voxel.Definition.ShapeType shapeType)
 		{
 			switch (shapeType)
 			{
-				case Voxel.Definition.ShapeType.Slab:
-					return new Voxel.ShapeType.Slab();
-				case Voxel.Definition.ShapeType.Slope:
-					return new Voxel.ShapeType.Slope();
-				case Voxel.Definition.ShapeType.Stair:
-					return new Voxel.ShapeType.Stair();
-				case Voxel.Definition.ShapeType.CrossPlane:
-					return new Voxel.ShapeType.CrossPlane();
-				case Voxel.Definition.ShapeType.Cube:
+				case Erelia.Voxel.Definition.ShapeType.Slab:
+					return new Erelia.Voxel.ShapeType.Slab();
+				case Erelia.Voxel.Definition.ShapeType.Slope:
+					return new Erelia.Voxel.ShapeType.Slope();
+				case Erelia.Voxel.Definition.ShapeType.Stair:
+					return new Erelia.Voxel.ShapeType.Stair();
+				case Erelia.Voxel.Definition.ShapeType.CrossPlane:
+					return new Erelia.Voxel.ShapeType.CrossPlane();
+				case Erelia.Voxel.Definition.ShapeType.Cube:
 				default:
-					return new Voxel.ShapeType.Cube();
+					return new Erelia.Voxel.ShapeType.Cube();
 			}
 		}
 	}
 }
+

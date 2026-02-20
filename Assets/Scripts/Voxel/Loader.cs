@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Voxel
+namespace Erelia.Voxel
 {
 	public static class Loader
 	{
@@ -23,3 +23,4 @@ namespace Voxel
 		}
 	}
 }
+

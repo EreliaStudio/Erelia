@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Voxel
+namespace Erelia.Voxel
 {
 	public static class Registry
 	{
-		private static readonly Dictionary<int, Voxel.Definition> registeredDefinition = new();
+		private static readonly Dictionary<int, Erelia.Voxel.Definition> registeredDefinition = new();
 
 		private const string ResourcesPath = "Voxel/VoxelLibrary";
 
@@ -24,7 +24,7 @@ namespace Voxel
 			Debug.Log($"Voxel Registry initialized with {registered} definitions from '{library.name}'.");
 		}
 
-		public static void Add(int id, Voxel.Definition definition)
+		public static void Add(int id, Erelia.Voxel.Definition definition)
 		{
 			if (definition == null)
 			{
@@ -39,7 +39,7 @@ namespace Voxel
 			registeredDefinition.Add(id, definition);
 		}
 
-		public static bool TryGet(int id, out Voxel.Definition definition)
+		public static bool TryGet(int id, out Erelia.Voxel.Definition definition)
 		{
 			return registeredDefinition.TryGetValue(id, out definition);
 		}
@@ -57,3 +57,4 @@ namespace Voxel
 		public static int Count => registeredDefinition.Count;
 	}
 }
+

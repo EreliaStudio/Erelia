@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Voxel
+namespace Erelia.Voxel
 {
 	public class Face
 	{
@@ -104,3 +104,4 @@ namespace Voxel
 		}
 	}
 }
+
