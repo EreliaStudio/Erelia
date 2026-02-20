@@ -14,8 +14,6 @@ namespace Erelia.World
 			new Dictionary<Erelia.World.Chunk.Coordinates, Erelia.World.Chunk.Presenter>();
 		private readonly Queue<Erelia.World.Chunk.Coordinates> pendingChunks = new Queue<Erelia.World.Chunk.Coordinates>();
 		private readonly HashSet<Vector2Int> queuedChunkKeys = new HashSet<Vector2Int>();
-		private Vector2Int lastCenterChunk;
-		private bool hasCenterChunk;
 		private float updateTimer;
 
 		private void Awake()
@@ -138,13 +136,7 @@ namespace Erelia.World
 				return;
 			}
 
-			Vector2Int centerKey = coordinates.ToVector2Int();
-			if (!hasCenterChunk || centerKey != lastCenterChunk || pendingChunks.Count == 0)
-			{
-				RebuildPending(centerKey, radius);
-				lastCenterChunk = centerKey;
-				hasCenterChunk = true;
-			}
+			RebuildPending(coordinates.ToVector2Int(), radius);
 		}
 
 		private void RebuildPending(Vector2Int center, int radius)
