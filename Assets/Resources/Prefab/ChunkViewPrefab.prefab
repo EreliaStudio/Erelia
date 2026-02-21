@@ -10,9 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 2344468941625654633}
   - component: {fileID: 3949408341328526713}
-  - component: {fileID: 6177682965619148671}
   - component: {fileID: 8177957520671689797}
   - component: {fileID: 1365241024233244033}
+  - component: {fileID: 6177682965619148671}
   m_Layer: 0
   m_Name: ChunkViewPrefab
   m_TagString: Untagged
@@ -47,31 +47,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 384f5263de1184e45a001d4fbd3af2c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Erelia.World.Chunk.View
-  meshFilter: {fileID: 0}
-  meshRenderer: {fileID: 0}
-  meshCollider: {fileID: 0}
---- !u!64 &6177682965619148671
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7249910555705620265}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 0}
+  meshFilter: {fileID: 8177957520671689797}
+  meshRenderer: {fileID: 1365241024233244033}
+  meshCollider: {fileID: 6177682965619148671}
 --- !u!33 &8177957520671689797
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -129,3 +107,25 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!64 &6177682965619148671
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7249910555705620265}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}

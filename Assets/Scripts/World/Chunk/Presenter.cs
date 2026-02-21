@@ -73,8 +73,27 @@ namespace Erelia.World.Chunk
 				return;
 			}
 
-			Mesh renderMesh = Erelia.Voxel.Mesher.BuildRenderMesh(model.Cells, null);
-			Mesh collisionMesh = Erelia.Voxel.Mesher.BuildCollisionMesh(model.Cells, IsObstacleCell);
+			if (!Erelia.Voxel.Mesher.TryBuild(model.Cells, out Mesh renderMesh, out Mesh unusedCollisionMesh, null))
+			{
+				DestroyMesh(renderMesh);
+				DestroyMesh(unusedCollisionMesh);
+				view.DisposeMeshes();
+				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.Presenter] Mesh build failed. Cleared view meshes.");
+				return;
+			}
+
+			Mesh collisionMesh = null;
+			if (Erelia.Voxel.Mesher.TryBuild(model.Cells, out Mesh unusedRenderMesh, out Mesh builtCollisionMesh, IsObstacleCell))
+			{
+				collisionMesh = builtCollisionMesh;
+			}
+			else
+			{
+				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.Presenter] Collision mesh build failed. Using render mesh only.");
+			}
+
+			DestroyMesh(unusedCollisionMesh);
+			DestroyMesh(unusedRenderMesh);
 
 			view.ApplyMeshes(renderMesh, collisionMesh);
 			Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Meshes applied to view.");
@@ -96,6 +115,23 @@ namespace Erelia.World.Chunk
 		private void OnSolidCollisionEntered(Collision collision)
 		{
 			Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Solid collision entered.");
+		}
+
+		private static void DestroyMesh(Mesh mesh)
+		{
+			if (mesh == null)
+			{
+				return;
+			}
+
+			if (Application.isPlaying)
+			{
+				Object.Destroy(mesh);
+			}
+			else
+			{
+				Object.DestroyImmediate(mesh);
+			}
 		}
 
 	}
