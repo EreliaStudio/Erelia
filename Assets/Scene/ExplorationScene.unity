@@ -542,7 +542,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Erelia.World.Presenter
   worldView: {fileID: 1448763375}
   chunksPerFrame: 2
-  updateIntervalSeconds: 0.05
+  updateIntervalSeconds: 0.1
 --- !u!114 &2001250469
 MonoBehaviour:
   m_ObjectHideFlags: 0

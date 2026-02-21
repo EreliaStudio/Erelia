@@ -16,12 +16,12 @@ namespace Erelia.Voxel
 			VoxelLibrary library = Resources.Load<VoxelLibrary>(ResourcesPath);
 			if (library == null)
 			{
-				Debug.LogWarning($"VoxelLibrary not found at Resources path '{ResourcesPath}'. Registry not initialized.");
+				Erelia.Logger.RaiseWarning($"VoxelLibrary not found at Resources path '{ResourcesPath}'. Registry not initialized.");
 				return;
 			}
 
 			int registered = library.RegisterAll(clearRegistry: true);
-			Debug.Log($"Voxel Registry initialized with {registered} definitions from '{library.name}'.");
+			Erelia.Logger.Log($"Voxel Registry initialized with {registered} definitions from '{library.name}'.");
 		}
 
 		public static void Add(int id, Erelia.Voxel.Definition definition)
