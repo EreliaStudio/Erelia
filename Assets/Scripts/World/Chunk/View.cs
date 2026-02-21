@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.World.Chunk
@@ -44,13 +45,17 @@ namespace Erelia.World.Chunk
 			}
 		}
 
-		public void ApplyMeshes(Mesh solidRenderMesh, Mesh solidCollisionMesh, Mesh bushRenderMesh, Mesh bushCollisionMesh)
+		public void ApplyMeshes(
+			Mesh solidRenderMesh,
+			List<Mesh> solidCollisionMeshes,
+			Mesh bushRenderMesh,
+			List<Mesh> bushCollisionMeshes)
 		{
 			DisposeMeshes();
 
 			if (solidView != null)
 			{
-				solidView.ApplyMeshes(solidRenderMesh, solidCollisionMesh);
+				solidView.ApplyMeshes(solidRenderMesh, solidCollisionMeshes);
 			}
 			else
 			{
@@ -59,7 +64,7 @@ namespace Erelia.World.Chunk
 
 			if (bushView != null)
 			{
-				bushView.ApplyMeshes(bushRenderMesh, bushCollisionMesh);
+				bushView.ApplyMeshes(bushRenderMesh, bushCollisionMeshes);
 			}
 			else
 			{

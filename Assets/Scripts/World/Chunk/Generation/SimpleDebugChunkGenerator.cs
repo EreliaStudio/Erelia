@@ -50,6 +50,11 @@ namespace Erelia.World.Chunk.Generation
 			{
 				chunk.SetCell(x, 1, maxZ, new Erelia.Voxel.Cell(4));
 			}
+			
+			for (int x = 0; x <= maxX; x++)
+			{
+				chunk.SetCell(x, 1, 5, new Erelia.Voxel.Cell(4));
+			}
 		}
 	}
 }

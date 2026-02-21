@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.World.Chunk
@@ -75,19 +76,13 @@ namespace Erelia.World.Chunk
 				return;
 			}
 
-			if (!Erelia.Voxel.Mesher.TryBuild(model.Cells, out Mesh solidRenderMesh, out Mesh solidCollisionMesh, IsSolidCell))
-			{
-				Erelia.Logger.RaiseError("[Erelia.World.Chunk.Presenter] Mesher failed to build solid chunk meshes.");
-				return;
-			}
+			Mesh solidRenderMesh = Erelia.Voxel.Mesher.BuildRenderMesh(model.Cells, IsSolidCell);
+			List<Mesh> solidCollisionMeshes = Erelia.Voxel.Mesher.BuildCollisionMeshes(model.Cells, IsSolidCell, NeedConvexification: true);
 
-			if (!Erelia.Voxel.Mesher.TryBuild(model.Cells, out Mesh bushRenderMesh, out Mesh bushCollisionMesh, IsBushCell))
-			{
-				Erelia.Logger.RaiseError("[Erelia.World.Chunk.Presenter] Mesher failed to build bush chunk meshes.");
-				return;
-			}
+			Mesh bushRenderMesh = Erelia.Voxel.Mesher.BuildRenderMesh(model.Cells, IsBushCell);
+			List<Mesh> bushCollisionMeshes = Erelia.Voxel.Mesher.BuildCollisionMeshes(model.Cells, IsBushCell, NeedConvexification: true);
 
-			view.ApplyMeshes(solidRenderMesh, solidCollisionMesh, bushRenderMesh, bushCollisionMesh);
+			view.ApplyMeshes(solidRenderMesh, solidCollisionMeshes, bushRenderMesh, bushCollisionMeshes);
 			Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Meshes applied to view.");
 		}
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.World.Chunk
@@ -7,6 +8,9 @@ namespace Erelia.World.Chunk
 		[SerializeField] private MeshFilter meshFilter;
 		[SerializeField] private MeshRenderer meshRenderer;
 		[SerializeField] private MeshCollider meshCollider;
+
+		private readonly List<MeshCollider> collisionColliders = new List<MeshCollider>();
+		private Transform collisionRoot;
 
 		public event System.Action<Collider> TriggerEntered;
 
@@ -20,7 +24,7 @@ namespace Erelia.World.Chunk
 			EnsureTrigger();
 		}
 
-		public void ApplyMeshes(Mesh renderMesh, Mesh collisionMesh)
+		public void ApplyMeshes(Mesh renderMesh, List<Mesh> collisionMeshes)
 		{
 			DisposeMeshes();
 
@@ -33,14 +37,7 @@ namespace Erelia.World.Chunk
 				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.BushView] MeshFilter is not assigned.");
 			}
 
-			if (meshCollider != null)
-			{
-				meshCollider.sharedMesh = collisionMesh;
-			}
-			else
-			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.BushView] MeshCollider is not assigned.");
-			}
+			CreateCollisionColliders(collisionMeshes);
 		}
 
 		public void DisposeMeshes()
@@ -56,6 +53,8 @@ namespace Erelia.World.Chunk
 				DestroyMesh(meshCollider.sharedMesh);
 				meshCollider.sharedMesh = null;
 			}
+
+			DestroyCollisionColliders();
 		}
 
 		private void OnTriggerEnter(Collider other)
@@ -69,6 +68,73 @@ namespace Erelia.World.Chunk
 			{
 				meshCollider.isTrigger = true;
 			}
+		}
+
+		private void CreateCollisionColliders(List<Mesh> collisionMeshes)
+		{
+			if (collisionMeshes == null || collisionMeshes.Count == 0)
+			{
+				return;
+			}
+
+			EnsureCollisionRoot();
+			for (int i = 0; i < collisionMeshes.Count; i++)
+			{
+				Mesh mesh = collisionMeshes[i];
+				if (mesh == null)
+				{
+					continue;
+				}
+
+				GameObject child = new GameObject($"BushCollision_{i}");
+				child.transform.SetParent(collisionRoot, false);
+				MeshCollider collider = child.AddComponent<MeshCollider>();
+				collider.sharedMesh = mesh;
+				collider.convex = true;
+				collider.isTrigger = true;
+				collisionColliders.Add(collider);
+			}
+		}
+
+		private void EnsureCollisionRoot()
+		{
+			if (collisionRoot != null)
+			{
+				return;
+			}
+
+			GameObject root = new GameObject("BushCollisionRoot");
+			root.transform.SetParent(transform, false);
+			collisionRoot = root.transform;
+		}
+
+		private void DestroyCollisionColliders()
+		{
+			for (int i = 0; i < collisionColliders.Count; i++)
+			{
+				MeshCollider collider = collisionColliders[i];
+				if (collider == null)
+				{
+					continue;
+				}
+
+				if (collider.sharedMesh != null)
+				{
+					DestroyMesh(collider.sharedMesh);
+					collider.sharedMesh = null;
+				}
+
+				if (Application.isPlaying)
+				{
+					Destroy(collider.gameObject);
+				}
+				else
+				{
+					DestroyImmediate(collider.gameObject);
+				}
+			}
+
+			collisionColliders.Clear();
 		}
 
 		private static void DestroyMesh(Mesh mesh)
