@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.World.Chunk
@@ -29,7 +28,6 @@ namespace Erelia.World.Chunk
 			if (view != null)
 			{
 				view.SolidCollisionEntered += OnSolidCollisionEntered;
-				view.BushTriggerEntered += OnBushTriggerEntered;
 			}
 			else
 			{
@@ -52,7 +50,6 @@ namespace Erelia.World.Chunk
 			if (view != null)
 			{
 				view.SolidCollisionEntered -= OnSolidCollisionEntered;
-				view.BushTriggerEntered -= OnBushTriggerEntered;
 			}
 		}
 
@@ -76,17 +73,14 @@ namespace Erelia.World.Chunk
 				return;
 			}
 
-			Mesh solidRenderMesh = Erelia.Voxel.Mesher.BuildRenderMesh(model.Cells, IsSolidCell);
-			List<Mesh> solidCollisionMeshes = Erelia.Voxel.Mesher.BuildCollisionMeshes(model.Cells, IsSolidCell, NeedConvexification: true);
+			Mesh renderMesh = Erelia.Voxel.Mesher.BuildRenderMesh(model.Cells, null);
+			Mesh collisionMesh = Erelia.Voxel.Mesher.BuildCollisionMesh(model.Cells, IsObstacleCell);
 
-			Mesh bushRenderMesh = Erelia.Voxel.Mesher.BuildRenderMesh(model.Cells, IsBushCell);
-			List<Mesh> bushCollisionMeshes = Erelia.Voxel.Mesher.BuildCollisionMeshes(model.Cells, IsBushCell, NeedConvexification: true);
-
-			view.ApplyMeshes(solidRenderMesh, solidCollisionMeshes, bushRenderMesh, bushCollisionMeshes);
+			view.ApplyMeshes(renderMesh, collisionMesh);
 			Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Meshes applied to view.");
 		}
 
-		private static bool IsSolidCell(
+		private static bool IsObstacleCell(
 			Erelia.Voxel.Cell[,,] cells,
 			int x,
 			int y,
@@ -96,20 +90,7 @@ namespace Erelia.World.Chunk
 		{
 			return definition != null
 				&& definition.Data != null
-				&& definition.Data.Collision == Erelia.Voxel.Collision.Solid;
-		}
-
-		private static bool IsBushCell(
-			Erelia.Voxel.Cell[,,] cells,
-			int x,
-			int y,
-			int z,
-			Erelia.Voxel.Cell cell,
-			Erelia.Voxel.Definition definition)
-		{
-			return definition != null
-				&& definition.Data != null
-				&& definition.Data.Collision == Erelia.Voxel.Collision.Bush;
+				&& definition.Data.Traversal == Erelia.Voxel.Traversal.Obstacle;
 		}
 
 		private void OnSolidCollisionEntered(Collision collision)
@@ -117,10 +98,6 @@ namespace Erelia.World.Chunk
 			Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Solid collision entered.");
 		}
 
-		private void OnBushTriggerEntered(Collider collider)
-		{
-			Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Bush trigger entered.");
-		}
 	}
 }
 

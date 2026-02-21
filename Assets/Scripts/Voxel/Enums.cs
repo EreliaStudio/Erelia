@@ -3,18 +3,10 @@ using System;
 
 namespace Erelia.Voxel
 {
-	public enum Collision
-	{
-		None,
-		Solid,
-		Bush
-	}
-
 	public enum Traversal
 	{
 		Obstacle,
-		Walkable,
-		Air
+		Walkable
 	}
 
 	public enum Orientation

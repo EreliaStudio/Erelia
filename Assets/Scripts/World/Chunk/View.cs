@@ -1,74 +1,35 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.World.Chunk
 {
 	public sealed class View : MonoBehaviour
 	{
-		[SerializeField] private Erelia.World.Chunk.SolidView solidView;
-		[SerializeField] private Erelia.World.Chunk.BushView bushView;
+		[SerializeField] private MeshFilter meshFilter;
+		[SerializeField] private MeshRenderer meshRenderer;
+		[SerializeField] private MeshCollider meshCollider;
 
 		public event System.Action<Collision> SolidCollisionEntered;
-		public event System.Action<Collider> BushTriggerEntered;
 
-		private void OnEnable()
-		{
-			if (solidView != null)
-			{
-				solidView.CollisionEntered += OnSolidCollisionEntered;
-			}
-			else
-			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.View] Solid view is not assigned.");
-			}
-
-			if (bushView != null)
-			{
-				bushView.TriggerEntered += OnBushTriggerEntered;
-			}
-			else
-			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.View] Bush view is not assigned.");
-			}
-		}
-
-		private void OnDisable()
-		{
-			if (solidView != null)
-			{
-				solidView.CollisionEntered -= OnSolidCollisionEntered;
-			}
-
-			if (bushView != null)
-			{
-				bushView.TriggerEntered -= OnBushTriggerEntered;
-			}
-		}
-
-		public void ApplyMeshes(
-			Mesh solidRenderMesh,
-			List<Mesh> solidCollisionMeshes,
-			Mesh bushRenderMesh,
-			List<Mesh> bushCollisionMeshes)
+		public void ApplyMeshes(Mesh renderMesh, Mesh collisionMesh)
 		{
 			DisposeMeshes();
 
-			if (solidView != null)
+			if (meshFilter != null)
 			{
-				solidView.ApplyMeshes(solidRenderMesh, solidCollisionMeshes);
+				meshFilter.sharedMesh = renderMesh;
 			}
 			else
 			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.View] Solid view is not assigned.");
+				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.View] MeshFilter is not assigned.");
 			}
 
-			if (bushView != null)
+			if (meshCollider != null)
 			{
-				bushView.ApplyMeshes(bushRenderMesh, bushCollisionMeshes);
+				meshCollider.sharedMesh = collisionMesh;
 			}
 			else
 			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.View] Bush view is not assigned.");
+				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.View] MeshCollider is not assigned.");
 			}
 
 			Erelia.Logger.Log("[Erelia.World.Chunk.View] Meshes applied.");
@@ -76,25 +37,39 @@ namespace Erelia.World.Chunk
 
 		public void DisposeMeshes()
 		{
-			if (solidView != null)
+			if (meshFilter != null && meshFilter.sharedMesh != null)
 			{
-				solidView.DisposeMeshes();
+				DestroyMesh(meshFilter.sharedMesh);
+				meshFilter.sharedMesh = null;
 			}
 
-			if (bushView != null)
+			if (meshCollider != null && meshCollider.sharedMesh != null)
 			{
-				bushView.DisposeMeshes();
+				DestroyMesh(meshCollider.sharedMesh);
+				meshCollider.sharedMesh = null;
 			}
 		}
 
-		private void OnSolidCollisionEntered(Collision collision)
+		private void OnCollisionEnter(Collision collision)
 		{
 			SolidCollisionEntered?.Invoke(collision);
 		}
 
-		private void OnBushTriggerEntered(Collider collider)
+		private static void DestroyMesh(Mesh mesh)
 		{
-			BushTriggerEntered?.Invoke(collider);
+			if (mesh == null)
+			{
+				return;
+			}
+
+			if (Application.isPlaying)
+			{
+				Destroy(mesh);
+			}
+			else
+			{
+				DestroyImmediate(mesh);
+			}
 		}
 	}
 }
