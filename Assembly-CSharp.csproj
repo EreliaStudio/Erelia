@@ -51,6 +51,7 @@
     <Analyzer Include="C:\Users\User\Documents\UnityProject\Erelia\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d\Runtime\MVVM\SourceGenerators\netstandard2.0\MVVMSourceGenerators.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Events\PlayerMotion.cs" />
     <Compile Include="Assets\Scripts\Voxel\Definition.cs" />
     <Compile Include="Assets\Scripts\World\Chunk\Generation\SimpleDebugChunkGenerator.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\Slope.cs" />
@@ -64,7 +65,6 @@
     <Compile Include="Assets\Scripts\Voxel\VoxelLibrary.cs" />
     <Compile Include="Assets\Scripts\Events\PlayerChunkMotion.cs" />
     <Compile Include="Assets\Scripts\World\Chunk\View.cs" />
-    <Compile Include="Assets\Scripts\Events\Bus.cs" />
     <Compile Include="Assets\Scripts\Voxel\CardinalPoint.cs" />
     <Compile Include="Assets\Scripts\World\Chunk\Coordinates.cs" />
     <Compile Include="Assets\Scripts\Voxel\Enums.cs" />
@@ -72,16 +72,19 @@
     <Compile Include="Assets\Scripts\Camera\Model.cs" />
     <Compile Include="Assets\Scripts\Voxel\Face.cs" />
     <Compile Include="Assets\Scripts\Voxel\Mesher.cs" />
+    <Compile Include="Assets\Scripts\Player\ChunkMotionEmitter.cs" />
     <Compile Include="Assets\Scripts\World\Chunk\Presenter.cs" />
     <Compile Include="Assets\Scripts\Camera\Presenter.cs" />
     <Compile Include="Assets\Scripts\World\Presenter.cs" />
     <Compile Include="Assets\Scripts\Voxel\Data.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape.cs" />
     <Compile Include="Assets\Scripts\Player\Model.cs" />
+    <Compile Include="Assets\Scripts\Events\Bus.cs" />
     <Compile Include="Assets\Scripts\Voxel\Loader.cs" />
     <Compile Include="Assets\Scripts\Camera\View.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\Stair.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\Cube.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerMotionEmitter.cs" />
     <Compile Include="Assets\Scripts\World\Model.cs" />
     <Compile Include="Assets\Scripts\Player\View.cs" />
     <Compile Include="Assets\Scripts\Voxel\MesherUtils.cs" />

@@ -9,7 +9,6 @@ namespace Erelia.Player
 		[SerializeField] private InputActionReference moveAction;
 		[SerializeField] private float moveSpeed = 5f;
 
-		private Erelia.Player.Model model;
 		private InputAction resolvedMoveAction;
 
 		private void Awake()
@@ -19,11 +18,7 @@ namespace Erelia.Player
 				Erelia.Logger.RaiseException("[Erelia.Player.Presenter] View is not assigned.");
 			}
 
-			model = new Erelia.Player.Model();
 			ResolveActions();
-
-			Erelia.World.Chunk.Coordinates current = Erelia.World.Chunk.Coordinates.FromWorld(view.gameObject.transform.position);
-			model.SetChunk(current - new World.Chunk.Coordinates(1, 1));
 		}
 
 		private void OnEnable()
@@ -39,7 +34,6 @@ namespace Erelia.Player
 		private void Update()
 		{
 			ApplyMovement();
-			UpdateChunk();
 		}
 
 		private void ApplyMovement()
@@ -79,16 +73,6 @@ namespace Erelia.Player
 			}
 
 			view.gameObject.transform.position += input * moveSpeed * Time.deltaTime;
-		}
-
-		private void UpdateChunk()
-		{
-			Erelia.World.Chunk.Coordinates current = Erelia.World.Chunk.Coordinates.FromWorld(view.gameObject.transform.position);
-
-			if (model.SetChunk(current))
-			{
-				Erelia.Event.Bus.Emit(new Erelia.Event.PlayerChunkMotion(current));
-			}
 		}
 
 		private void ResolveActions()
