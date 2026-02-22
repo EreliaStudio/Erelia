@@ -24,15 +24,6 @@ namespace Erelia.World.Chunk
 			{
 				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.Presenter] Bind called with null model.");
 			}
-
-			if (view != null)
-			{
-				view.SolidCollisionEntered += OnSolidCollisionEntered;
-			}
-			else
-			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.Presenter] Bind called with null view.");
-			}
 		}
 
 		public void Unbind()
@@ -45,11 +36,6 @@ namespace Erelia.World.Chunk
 			else
 			{
 				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.Presenter] Unbind called with null model.");
-			}
-
-			if (view != null)
-			{
-				view.SolidCollisionEntered -= OnSolidCollisionEntered;
 			}
 		}
 
@@ -73,48 +59,10 @@ namespace Erelia.World.Chunk
 				return;
 			}
 
-			if (!Erelia.Voxel.Mesher.TryBuild(model.Cells, out Mesh renderMesh, out Mesh unusedCollisionMesh, null))
-			{
-				DestroyMesh(renderMesh);
-				DestroyMesh(unusedCollisionMesh);
-				view.DisposeMeshes();
-				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.Presenter] Mesh build failed. Cleared view meshes.");
-				return;
-			}
+			view.SetRenderMesh(Erelia.Voxel.Mesher.BuildRenderMesh(model.Cells, Erelia.Voxel.Mesher.AnyVoxelPredicate));
+			view.SetCollisionMesh(Erelia.Voxel.Mesher.BuildCollisionMesh(model.Cells, Erelia.Voxel.Mesher.OnlyObstacleVoxelPredicate));
 
-			Mesh collisionMesh = null;
-			if (Erelia.Voxel.Mesher.TryBuild(model.Cells, out Mesh unusedRenderMesh, out Mesh builtCollisionMesh, IsObstacleCell))
-			{
-				collisionMesh = builtCollisionMesh;
-			}
-			else
-			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.Presenter] Collision mesh build failed. Using render mesh only.");
-			}
-
-			DestroyMesh(unusedCollisionMesh);
-			DestroyMesh(unusedRenderMesh);
-
-			view.ApplyMeshes(renderMesh, collisionMesh);
 			Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Meshes applied to view.");
-		}
-
-		private static bool IsObstacleCell(
-			Erelia.Voxel.Cell[,,] cells,
-			int x,
-			int y,
-			int z,
-			Erelia.Voxel.Cell cell,
-			Erelia.Voxel.Definition definition)
-		{
-			return definition != null
-				&& definition.Data != null
-				&& definition.Data.Traversal == Erelia.Voxel.Traversal.Obstacle;
-		}
-
-		private void OnSolidCollisionEntered(Collision collision)
-		{
-			Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Solid collision entered.");
 		}
 
 		private static void DestroyMesh(Mesh mesh)

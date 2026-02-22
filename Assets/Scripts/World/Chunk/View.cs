@@ -8,34 +8,7 @@ namespace Erelia.World.Chunk
 		[SerializeField] private MeshRenderer meshRenderer;
 		[SerializeField] private MeshCollider meshCollider;
 
-		public event System.Action<Collision> SolidCollisionEntered;
-
-		public void ApplyMeshes(Mesh renderMesh, Mesh collisionMesh)
-		{
-			DisposeMeshes();
-
-			if (meshFilter != null)
-			{
-				meshFilter.sharedMesh = renderMesh;
-			}
-			else
-			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.View] MeshFilter is not assigned.");
-			}
-
-			if (meshCollider != null)
-			{
-				meshCollider.sharedMesh = collisionMesh;
-			}
-			else
-			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.View] MeshCollider is not assigned.");
-			}
-
-			Erelia.Logger.Log("[Erelia.World.Chunk.View] Meshes applied.");
-		}
-
-		public void DisposeMeshes()
+		public void SetRenderMesh(Mesh renderMesh)
 		{
 			if (meshFilter != null && meshFilter.sharedMesh != null)
 			{
@@ -43,16 +16,20 @@ namespace Erelia.World.Chunk
 				meshFilter.sharedMesh = null;
 			}
 
+			meshFilter.sharedMesh = renderMesh;
+			Erelia.Logger.Log("[Erelia.World.Chunk.View] Render mesh applied.");
+		}
+
+		public void SetCollisionMesh(Mesh collisionMesh)
+		{
+			
 			if (meshCollider != null && meshCollider.sharedMesh != null)
 			{
 				DestroyMesh(meshCollider.sharedMesh);
 				meshCollider.sharedMesh = null;
 			}
-		}
-
-		private void OnCollisionEnter(Collision collision)
-		{
-			SolidCollisionEntered?.Invoke(collision);
+			meshCollider.sharedMesh = collisionMesh;
+			Erelia.Logger.Log("[Erelia.World.Chunk.View] Collision mesh applied.");
 		}
 
 		private static void DestroyMesh(Mesh mesh)
