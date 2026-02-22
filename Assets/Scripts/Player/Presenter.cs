@@ -87,7 +87,7 @@ namespace Erelia.Player
 
 			if (model.SetChunk(current))
 			{
-				Erelia.Events.PlayerChunkChanged?.Invoke(current);
+				Erelia.Event.Bus.Emit(new Erelia.Event.PlayerChunkMotion(current));
 			}
 		}
 

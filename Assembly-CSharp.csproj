@@ -62,10 +62,11 @@
     <Compile Include="Assets\Scripts\Voxel\Shape\Slab.cs" />
     <Compile Include="Assets\Scripts\World\Chunk\Generation\IGenerator.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelLibrary.cs" />
+    <Compile Include="Assets\Scripts\Events\PlayerChunkMotion.cs" />
     <Compile Include="Assets\Scripts\World\Chunk\View.cs" />
+    <Compile Include="Assets\Scripts\Events\Bus.cs" />
     <Compile Include="Assets\Scripts\Voxel\CardinalPoint.cs" />
     <Compile Include="Assets\Scripts\World\Chunk\Coordinates.cs" />
-    <Compile Include="Assets\Scripts\Events\Events.cs" />
     <Compile Include="Assets\Scripts\Voxel\Enums.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\CrossPlane.cs" />
     <Compile Include="Assets\Scripts\Camera\Model.cs" />

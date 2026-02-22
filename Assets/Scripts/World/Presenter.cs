@@ -23,12 +23,12 @@ namespace Erelia.World
 
 		private void OnEnable()
 		{
-			Erelia.Events.PlayerChunkChanged += OnPlayerChunkChanged;
+			Erelia.Event.Bus.Subscribe<Erelia.Event.PlayerChunkMotion>(OnPlayerChunkMotion);
 		}
 
 		private void OnDisable()
 		{
-			Erelia.Events.PlayerChunkChanged -= OnPlayerChunkChanged;
+			Erelia.Event.Bus.Unsubscribe<Erelia.Event.PlayerChunkMotion>(OnPlayerChunkMotion);
 		}
 
 		public Erelia.World.Chunk.Model CreateChunk(Erelia.World.Chunk.Coordinates coordinates)
@@ -122,13 +122,14 @@ namespace Erelia.World
 			}
 		}
 
-		private void OnPlayerChunkChanged(Erelia.World.Chunk.Coordinates coordinates)
+		private void OnPlayerChunkMotion(Erelia.Event.PlayerChunkMotion evt)
 		{
-			if (coordinates == null)
+			if (evt == null || evt.Coordinates == null)
 			{
 				return;
 			}
 
+			Erelia.World.Chunk.Coordinates coordinates = evt.Coordinates;
 			int radius = worldView != null ? worldView.ViewRadius : 0;
 			if (radius <= 0)
 			{
@@ -197,5 +198,3 @@ namespace Erelia.World
 		}
 	}
 }
-
-
