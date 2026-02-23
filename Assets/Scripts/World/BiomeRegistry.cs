@@ -27,6 +27,7 @@ namespace Erelia.World
 		protected override void Rebuild()
 		{
 			biomes.Clear();
+			Erelia.EncounterTableRegistry.Clear();
 
 			for (int i = 0; i < entries.Count; i++)
 			{
@@ -37,6 +38,10 @@ namespace Erelia.World
 				}
 
 				biomes[entry.Type] = entry.Data;
+				if (entry.Data.EncounterTable != null)
+				{
+					Erelia.EncounterTableRegistry.Register(entry.Data.EncounterTable);
+				}
 			}
 		}
 

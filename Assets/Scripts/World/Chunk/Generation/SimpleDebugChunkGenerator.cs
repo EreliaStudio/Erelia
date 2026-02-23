@@ -1,8 +1,21 @@
+using UnityEngine;
+
 namespace Erelia.World.Chunk.Generation
 {
+	[CreateAssetMenu(menuName = "World/Chunk Generator/Simple Debug", fileName = "SimpleDebugChunkGenerator")]
 	public sealed class SimpleDebugChunkGenerator : IGenerator
 	{
-		public void Generate(Erelia.World.Chunk.Model chunk, Erelia.World.Chunk.Coordinates coordinates, Erelia.World.Model worldModel)
+		[SerializeField] private Erelia.World.BiomeRegistry biomeRegistry;
+
+		private void OnEnable()
+		{
+			if (biomeRegistry == null)
+			{
+				throw new System.InvalidOperationException("BiomeRegistry must be assigned on SimpleDebugChunkGenerator.");
+			}
+		}
+
+		public override void Generate(Erelia.World.Chunk.Model chunk, Erelia.World.Chunk.Coordinates coordinates, Erelia.World.Model worldModel)
 		{
 			if (chunk == null)
 			{
@@ -23,6 +36,30 @@ namespace Erelia.World.Chunk.Generation
 				for (int z = 0; z <= maxZ; z++)
 				{
 					chunk.SetCell(x, 0, z, new VoxelKit.Cell(0));
+				}
+			}
+
+			int encounterId = Erelia.World.Chunk.Model.NoEncounterId;
+			if (biomeRegistry.Entries.Count > 0)
+			{
+				Erelia.World.BiomeData data = biomeRegistry.Entries[0].Data;
+				if (data != null && data.EncounterTable != null)
+				{
+					encounterId = Erelia.EncounterTableRegistry.Register(data.EncounterTable);
+				}
+			}
+
+			if (encounterId != Erelia.World.Chunk.Model.NoEncounterId)
+			{
+				for (int x = 0; x <= maxX; x++)
+				{
+					for (int y = 0; y <= maxY; y++)
+					{
+						for (int z = 0; z <= maxZ; z++)
+						{
+							chunk.SetEncounterId(x, y, z, encounterId);
+						}
+					}
 				}
 			}
 

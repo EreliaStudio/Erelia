@@ -4,6 +4,8 @@ namespace Erelia.Player
 {
 	public sealed class EncounterTriggerEmitter : MonoBehaviour
 	{
+		[SerializeField] private Erelia.World.Presenter worldPresenter;
+
 		private void OnEnable()
 		{
 			Erelia.Event.Bus.Subscribe<Erelia.Event.PlayerMotion>(OnPlayerMotion);
@@ -21,7 +23,48 @@ namespace Erelia.Player
 				return;
 			}
 
-			Erelia.Event.Bus.Emit(new Erelia.Event.EncounterTriggerEvent());
+			Erelia.World.Model worldModel = worldPresenter.WorldModel;
+
+			Vector3 worldPosition = evt.WorldPosition;
+			Erelia.World.Chunk.Coordinates chunkCoords = Erelia.World.Chunk.Coordinates.FromWorld(worldPosition);
+
+			if (!worldModel.Chunks.TryGetValue(chunkCoords, out Erelia.World.Chunk.Model chunk))
+			{
+				return;
+			}
+
+			Vector3Int cell = WorldToCell(worldPosition);
+			int localX = cell.x - (chunkCoords.X * Erelia.World.Chunk.Model.SizeX);
+			int localZ = cell.z - (chunkCoords.Z * Erelia.World.Chunk.Model.SizeZ);
+			int localY = cell.y;
+
+			if (localX < 0 || localX >= Erelia.World.Chunk.Model.SizeX ||
+				localY < 0 || localY >= Erelia.World.Chunk.Model.SizeY ||
+				localZ < 0 || localZ >= Erelia.World.Chunk.Model.SizeZ)
+			{
+				return;
+			}
+
+			int encounterId = chunk.GetEncounterId(localX, localY, localZ);
+			if (encounterId == Erelia.World.Chunk.Model.NoEncounterId)
+			{
+				return;
+			}
+
+			if (!Erelia.EncounterTableRegistry.TryGetTable(encounterId, out Erelia.Encounter.EncounterTable table))
+			{
+				return;
+			}
+
+			Erelia.Event.Bus.Emit(new Erelia.Event.EncounterTriggerEvent(table));
+		}
+
+		private static Vector3Int WorldToCell(Vector3 worldPosition)
+		{
+			return new Vector3Int(
+				Mathf.FloorToInt(worldPosition.x),
+				Mathf.FloorToInt(worldPosition.y),
+				Mathf.FloorToInt(worldPosition.z));
 		}
 	}
 }

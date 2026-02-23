@@ -8,21 +8,21 @@ namespace Erelia.World
 		[SerializeField] private Erelia.World.View worldView;
 		[SerializeField] private int chunksPerFrame = 2;
 		[SerializeField] private float updateIntervalSeconds = 0.05f;
-		[SerializeField] private Erelia.World.BiomeRegistry biomeRegistry;
+		[SerializeField] private Erelia.World.Chunk.Generation.IGenerator chunkGenerator;
 
-		private Erelia.World.Chunk.Generation.IGenerator chunkGenerator;
 		private Erelia.World.Model worldModel;
 		private readonly Dictionary<Erelia.World.Chunk.Coordinates, Erelia.World.Chunk.Presenter> presenters = new Dictionary<Erelia.World.Chunk.Coordinates, Erelia.World.Chunk.Presenter>();
 		private readonly Queue<Erelia.World.Chunk.Coordinates> pendingChunks = new Queue<Erelia.World.Chunk.Coordinates>();
 		private readonly HashSet<Vector2Int> queuedChunkKeys = new HashSet<Vector2Int>();
 		private float updateTimer;
 
+		public Erelia.World.Model WorldModel => worldModel;
+
 		private void Awake()
 		{
-			chunkGenerator = new Erelia.World.Chunk.Generation.SimpleDebugChunkGenerator();
-			if (biomeRegistry == null)
+			if (chunkGenerator == null)
 			{
-				biomeRegistry = Erelia.World.BiomeRegistry.Instance;
+				throw new System.InvalidOperationException("Chunk generator must be assigned on World.Presenter.");
 			}
 
 			worldModel = new Erelia.World.Model();
@@ -78,10 +78,9 @@ namespace Erelia.World
 		{
 			if (worldModel == null)
 			{
-				chunkGenerator = chunkGenerator ?? new Erelia.World.Chunk.Generation.SimpleDebugChunkGenerator();
-				if (biomeRegistry == null)
+				if (chunkGenerator == null)
 				{
-					biomeRegistry = Erelia.World.BiomeRegistry.Instance;
+					throw new System.InvalidOperationException("Chunk generator must be assigned on World.Presenter.");
 				}
 
 				worldModel = new Erelia.World.Model();
