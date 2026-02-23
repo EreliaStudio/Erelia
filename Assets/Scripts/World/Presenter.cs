@@ -9,7 +9,6 @@ namespace Erelia.World
 		[SerializeField] private int chunksPerFrame = 2;
 		[SerializeField] private float updateIntervalSeconds = 0.05f;
 		[SerializeField] private Erelia.World.BiomeRegistry biomeRegistry;
-		[SerializeField] private Erelia.Encounter.EncounterTableRegistry encounterTableRegistry;
 
 		private Erelia.World.Chunk.Generation.IGenerator chunkGenerator;
 		private Erelia.World.Model worldModel;
@@ -26,12 +25,7 @@ namespace Erelia.World
 				biomeRegistry = Erelia.World.BiomeRegistry.Instance;
 			}
 
-			if (encounterTableRegistry == null)
-			{
-				encounterTableRegistry = Erelia.Encounter.EncounterTableRegistry.Instance;
-			}
-
-			worldModel = new Erelia.World.Model(biomeRegistry, encounterTableRegistry);
+			worldModel = new Erelia.World.Model();
 		}
 
 		private void OnEnable()
@@ -90,12 +84,7 @@ namespace Erelia.World
 					biomeRegistry = Erelia.World.BiomeRegistry.Instance;
 				}
 
-				if (encounterTableRegistry == null)
-				{
-					encounterTableRegistry = Erelia.Encounter.EncounterTableRegistry.Instance;
-				}
-
-				worldModel = new Erelia.World.Model(biomeRegistry, encounterTableRegistry);
+				worldModel = new Erelia.World.Model();
 			}
 
 			Erelia.World.Chunk.Model model = worldModel.GetOrCreateChunk(coordinates);

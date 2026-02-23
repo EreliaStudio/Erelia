@@ -58,7 +58,6 @@
     <Compile Include="Assets\Scripts\Voxel\Shape\Slope.cs" />
     <Compile Include="Assets\Scripts\Voxel\Cell.cs" />
     <Compile Include="Assets\Scripts\World\View.cs" />
-    <Compile Include="Assets\Scripts\Encounter\EncounterTableRegistry.cs" />
     <Compile Include="Assets\Scripts\Voxel\Utils.cs" />
     <Compile Include="Assets\Scripts\Player\Presenter.cs" />
     <Compile Include="Assets\Scripts\Voxel\Registry.cs" />

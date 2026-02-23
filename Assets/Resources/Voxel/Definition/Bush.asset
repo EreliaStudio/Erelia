@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Bush
   m_EditorClassIdentifier: Assembly-CSharp::Erelia.BattleVoxel.Definition
   data:
-    traversal: 0
+    traversal: 1
   shapeType: 4
   shape:
     rid: 3708920431402025264
@@ -29,4 +29,3 @@ MonoBehaviour:
     - rid: 3708920431402025265
       type: {class: CrossPlane, ns: Erelia.BattleVoxel.ShapeType, asm: Assembly-CSharp}
       data: 
-
