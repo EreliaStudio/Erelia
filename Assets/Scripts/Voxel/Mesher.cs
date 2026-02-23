@@ -1,25 +1,26 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-namespace Erelia.Voxel
+namespace VoxelKit
 {
 	static class Mesher
 	{
-		public static readonly Func<Erelia.Voxel.Definition, bool> AnyVoxelPredicate = (definition) => true;
-		public static readonly Func<Erelia.Voxel.Definition, bool> OnlyObstacleVoxelPredicate = (definition) => definition.Data.Traversal == Erelia.Voxel.Traversal.Obstacle;
-		public static readonly Func<Erelia.Voxel.Definition, bool> OnlyWalkableVoxelPredicate = (definition) => definition.Data.Traversal == Erelia.Voxel.Traversal.Walkable;
+		public static readonly Func<VoxelKit.Definition, bool> AnyVoxelPredicate = (definition) => true;
+		public static readonly Func<VoxelKit.Definition, bool> OnlyObstacleVoxelPredicate = (definition) => definition.Data.Traversal == VoxelKit.Traversal.Obstacle;
+		public static readonly Func<VoxelKit.Definition, bool> OnlyWalkableVoxelPredicate = (definition) => definition.Data.Traversal == VoxelKit.Traversal.Walkable;
 
 		private const float MergeEpsilon = 0.001f;
 
 		static public UnityEngine.Mesh BuildRenderMesh(
-			Erelia.Voxel.Cell[,,] cells,
-			Func<Erelia.Voxel.Definition, bool> predicate)
+			VoxelKit.Cell[,,] cells,
+			VoxelKit.Registry registry,
+			Func<VoxelKit.Definition, bool> predicate)
 		{
 			var vertices = new List<Vector3>();
 			var triangles = new List<int>();
 			var uvs = new List<Vector2>();
 
-			if (cells == null)
+			if (cells == null || registry == null)
 			{
 				return new UnityEngine.Mesh();
 			}
@@ -34,41 +35,41 @@ namespace Erelia.Voxel
 				{
 					for (int z = 0; z < sizeZ; z++)
 					{
-						if (!TryGetDefinition(cells[x, y, z], predicate, out Erelia.Voxel.Definition definition, out Erelia.Voxel.Cell cell))
+						if (!TryGetDefinition(cells[x, y, z], registry, predicate, out VoxelKit.Definition definition, out VoxelKit.Cell cell))
 						{
 							continue;
 						}
 
-						Erelia.Voxel.Shape shape = definition.Shape;
+						VoxelKit.Shape shape = definition.Shape;
 						if (shape == null)
 						{
 							continue;
 						}
 
-						Erelia.Voxel.Shape.FaceSet faceSet = shape.RenderFaces;
+						VoxelKit.Shape.FaceSet faceSet = shape.RenderFaces;
 						Vector3 offset = new Vector3(x, y, z);
 
 						bool anyOuterVisible = false;
-						for (int i = 0; i < Erelia.Voxel.Shape.AxisPlanes.Length; i++)
+						for (int i = 0; i < VoxelKit.Shape.AxisPlanes.Length; i++)
 						{
-							Erelia.Voxel.Shape.AxisPlane worldPlane = Erelia.Voxel.Shape.AxisPlanes[i];
-							Erelia.Voxel.Shape.AxisPlane localPlane = Utils.Geometry.MapWorldPlaneToLocal(worldPlane, cell.Orientation, cell.FlipOrientation);
+							VoxelKit.Shape.AxisPlane worldPlane = VoxelKit.Shape.AxisPlanes[i];
+							VoxelKit.Shape.AxisPlane localPlane = VoxelKit.Utils.Geometry.MapWorldPlaneToLocal(worldPlane, cell.Orientation, cell.FlipOrientation);
 
 							if (faceSet.OuterShell != null
-								&& faceSet.OuterShell.TryGetValue(localPlane, out Erelia.Voxel.Face localFace)
+								&& faceSet.OuterShell.TryGetValue(localPlane, out VoxelKit.Face localFace)
 								&& localFace != null
 								&& localFace.HasRenderablePolygons)
 							{
-								if (!IsFaceOccludedByNeighbor(cells, sizeX, sizeY, sizeZ, x, y, z, cell, localFace, worldPlane, predicate, useCollision: false))
+								if (!IsFaceOccludedByNeighbor(cells, sizeX, sizeY, sizeZ, x, y, z, cell, localFace, worldPlane, registry, predicate, useCollision: false))
 								{
-									Erelia.Voxel.Face transformed = TransformFaceCached(localFace, cell.Orientation, cell.FlipOrientation);
+									VoxelKit.Face transformed = TransformFaceCached(localFace, cell.Orientation, cell.FlipOrientation);
 									AddFace(transformed, offset, vertices, triangles, uvs);
 									anyOuterVisible = true;
 								}
 							}
 							else
 							{
-								if (!IsFullFaceOccludedByNeighbor(cells, sizeX, sizeY, sizeZ, x, y, z, worldPlane, predicate, useCollision: false))
+								if (!IsFullFaceOccludedByNeighbor(cells, sizeX, sizeY, sizeZ, x, y, z, worldPlane, registry, predicate, useCollision: false))
 								{
 									anyOuterVisible = true;
 								}
@@ -79,7 +80,7 @@ namespace Erelia.Voxel
 						{
 							for (int i = 0; i < faceSet.Inner.Count; i++)
 							{
-								Erelia.Voxel.Face innerFace = TransformFaceCached(faceSet.Inner[i], cell.Orientation, cell.FlipOrientation);
+								VoxelKit.Face innerFace = TransformFaceCached(faceSet.Inner[i], cell.Orientation, cell.FlipOrientation);
 								AddFace(innerFace, offset, vertices, triangles, uvs);
 							}
 						}
@@ -102,10 +103,11 @@ namespace Erelia.Voxel
 		}
 	
 		static public UnityEngine.Mesh BuildCollisionMesh(
-			Erelia.Voxel.Cell[,,] cells,
-			Func<Erelia.Voxel.Definition, bool> predicate)
+			VoxelKit.Cell[,,] cells,
+			VoxelKit.Registry registry,
+			Func<VoxelKit.Definition, bool> predicate)
 		{
-			if (cells == null)
+			if (cells == null || registry == null)
 			{
 				return new UnityEngine.Mesh();
 			}
@@ -123,41 +125,41 @@ namespace Erelia.Voxel
 				{
 					for (int z = 0; z < sizeZ; z++)
 					{
-						if (!TryGetDefinition(cells[x, y, z], predicate, out Erelia.Voxel.Definition definition, out Erelia.Voxel.Cell cell))
+						if (!TryGetDefinition(cells[x, y, z], registry, predicate, out VoxelKit.Definition definition, out VoxelKit.Cell cell))
 						{
 							continue;
 						}
 
-						Erelia.Voxel.Shape shape = definition.Shape;
+						VoxelKit.Shape shape = definition.Shape;
 						if (shape == null)
 						{
 							continue;
 						}
 
-						Erelia.Voxel.Shape.FaceSet faceSet = shape.CollisionFaces;
+						VoxelKit.Shape.FaceSet faceSet = shape.CollisionFaces;
 						Vector3 offset = new Vector3(x, y, z);
 
 						bool anyOuterVisible = false;
-						for (int i = 0; i < Erelia.Voxel.Shape.AxisPlanes.Length; i++)
+						for (int i = 0; i < VoxelKit.Shape.AxisPlanes.Length; i++)
 						{
-							Erelia.Voxel.Shape.AxisPlane worldPlane = Erelia.Voxel.Shape.AxisPlanes[i];
-							Erelia.Voxel.Shape.AxisPlane localPlane = Utils.Geometry.MapWorldPlaneToLocal(worldPlane, cell.Orientation, cell.FlipOrientation);
+							VoxelKit.Shape.AxisPlane worldPlane = VoxelKit.Shape.AxisPlanes[i];
+							VoxelKit.Shape.AxisPlane localPlane = VoxelKit.Utils.Geometry.MapWorldPlaneToLocal(worldPlane, cell.Orientation, cell.FlipOrientation);
 
 							if (faceSet.OuterShell != null
-								&& faceSet.OuterShell.TryGetValue(localPlane, out Erelia.Voxel.Face localFace)
+								&& faceSet.OuterShell.TryGetValue(localPlane, out VoxelKit.Face localFace)
 								&& localFace != null
 								&& localFace.HasRenderablePolygons)
 							{
-								if (!IsFaceOccludedByNeighbor(cells, sizeX, sizeY, sizeZ, x, y, z, cell, localFace, worldPlane, predicate, useCollision: true))
+								if (!IsFaceOccludedByNeighbor(cells, sizeX, sizeY, sizeZ, x, y, z, cell, localFace, worldPlane, registry, predicate, useCollision: true))
 								{
-									Erelia.Voxel.Face transformed = TransformFaceCached(localFace, cell.Orientation, cell.FlipOrientation);
+									VoxelKit.Face transformed = TransformFaceCached(localFace, cell.Orientation, cell.FlipOrientation);
 									AddFacePolygons(transformed, offset, rectGroups, polygons);
 									anyOuterVisible = true;
 								}
 							}
 							else
 							{
-								if (!IsFullFaceOccludedByNeighbor(cells, sizeX, sizeY, sizeZ, x, y, z, worldPlane, predicate, useCollision: true))
+								if (!IsFullFaceOccludedByNeighbor(cells, sizeX, sizeY, sizeZ, x, y, z, worldPlane, registry, predicate, useCollision: true))
 								{
 									anyOuterVisible = true;
 								}
@@ -168,7 +170,7 @@ namespace Erelia.Voxel
 						{
 							for (int i = 0; i < faceSet.Inner.Count; i++)
 							{
-								Erelia.Voxel.Face innerFace = TransformFaceCached(faceSet.Inner[i], cell.Orientation, cell.FlipOrientation);
+								VoxelKit.Face innerFace = TransformFaceCached(faceSet.Inner[i], cell.Orientation, cell.FlipOrientation);
 								AddFacePolygons(innerFace, offset, rectGroups, polygons);
 							}
 						}
@@ -224,19 +226,20 @@ namespace Erelia.Voxel
 		}
 
 		private static bool TryGetDefinition(
-			Erelia.Voxel.Cell cell,
-			Func<Erelia.Voxel.Definition, bool> predicate,
-			out Erelia.Voxel.Definition definition,
-			out Erelia.Voxel.Cell resolvedCell)
+			VoxelKit.Cell cell,
+			VoxelKit.Registry registry,
+			Func<VoxelKit.Definition, bool> predicate,
+			out VoxelKit.Definition definition,
+			out VoxelKit.Cell resolvedCell)
 		{
 			definition = null;
 			resolvedCell = cell;
-			if (cell == null || cell.Id < 0)
+			if (cell == null || cell.Id < 0 || registry == null)
 			{
 				return false;
 			}
 
-			if (!Erelia.Voxel.Registry.TryGet(cell.Id, out definition))
+			if (!registry.TryGet(cell.Id, out definition))
 			{
 				return false;
 			}
@@ -249,17 +252,17 @@ namespace Erelia.Voxel
 			return true;
 		}
 
-		private static Erelia.Voxel.Face TransformFaceCached(
-			Erelia.Voxel.Face face,
-			Erelia.Voxel.Orientation orientation,
-			Erelia.Voxel.FlipOrientation flipOrientation)
+		private static VoxelKit.Face TransformFaceCached(
+			VoxelKit.Face face,
+			VoxelKit.Orientation orientation,
+			VoxelKit.FlipOrientation flipOrientation)
 		{
 			if (face == null)
 			{
 				return null;
 			}
 
-			if (Mesherutils.FaceByOrientationCache.TryGetValue(face, orientation, flipOrientation, out Erelia.Voxel.Face output))
+			if (VoxelKit.Mesherutils.FaceByOrientationCache.TryGetValue(face, orientation, flipOrientation, out VoxelKit.Face output))
 			{
 				return output;
 			}
@@ -268,7 +271,7 @@ namespace Erelia.Voxel
 		}
 
 		private static void AddFace(
-			Erelia.Voxel.Face face,
+			VoxelKit.Face face,
 			Vector3 positionOffset,
 			List<Vector3> vertices,
 			List<int> triangles,
@@ -279,10 +282,10 @@ namespace Erelia.Voxel
 				return;
 			}
 
-			List<List<Erelia.Voxel.Face.Vertex>> facePolygons = face.Polygons;
+			List<List<VoxelKit.Face.Vertex>> facePolygons = face.Polygons;
 			for (int p = 0; p < facePolygons.Count; p++)
 			{
-				List<Erelia.Voxel.Face.Vertex> faceVertices = facePolygons[p];
+				List<VoxelKit.Face.Vertex> faceVertices = facePolygons[p];
 				if (faceVertices == null || faceVertices.Count < 3)
 				{
 					continue;
@@ -291,7 +294,7 @@ namespace Erelia.Voxel
 				int start = vertices.Count;
 				for (int i = 0; i < faceVertices.Count; i++)
 				{
-					Erelia.Voxel.Face.Vertex vertex = faceVertices[i];
+					VoxelKit.Face.Vertex vertex = faceVertices[i];
 					vertices.Add(positionOffset + vertex.Position);
 					uvs.Add(vertex.TileUV);
 				}
@@ -306,20 +309,21 @@ namespace Erelia.Voxel
 		}
 
 		private static bool IsFaceOccludedByNeighbor(
-			Erelia.Voxel.Cell[,,] cells,
+			VoxelKit.Cell[,,] cells,
 			int sizeX,
 			int sizeY,
 			int sizeZ,
 			int x,
 			int y,
 			int z,
-			Erelia.Voxel.Cell cell,
-			Erelia.Voxel.Face localFace,
-			Erelia.Voxel.Shape.AxisPlane worldPlane,
-			Func<Erelia.Voxel.Definition, bool> predicate,
+			VoxelKit.Cell cell,
+			VoxelKit.Face localFace,
+			VoxelKit.Shape.AxisPlane worldPlane,
+			VoxelKit.Registry registry,
+			Func<VoxelKit.Definition, bool> predicate,
 			bool useCollision)
 		{
-			Vector3Int offset = Utils.Geometry.PlaneToOffset(worldPlane);
+			Vector3Int offset = VoxelKit.Utils.Geometry.PlaneToOffset(worldPlane);
 			int nx = x + offset.x;
 			int ny = y + offset.y;
 			int nz = z + offset.z;
@@ -329,39 +333,39 @@ namespace Erelia.Voxel
 				return false;
 			}
 
-			if (!TryGetDefinition(cells[nx, ny, nz], predicate, out Erelia.Voxel.Definition neighborDefinition, out Erelia.Voxel.Cell neighborCell))
+			if (!TryGetDefinition(cells[nx, ny, nz], registry, predicate, out VoxelKit.Definition neighborDefinition, out VoxelKit.Cell neighborCell))
 			{
 				return false;
 			}
 
-			Erelia.Voxel.Shape neighborShape = neighborDefinition.Shape;
+			VoxelKit.Shape neighborShape = neighborDefinition.Shape;
 			if (neighborShape == null)
 			{
 				return false;
 			}
 
-			Erelia.Voxel.Shape.FaceSet neighborFaceSet = useCollision ? neighborShape.CollisionFaces : neighborShape.RenderFaces;
+			VoxelKit.Shape.FaceSet neighborFaceSet = useCollision ? neighborShape.CollisionFaces : neighborShape.RenderFaces;
 
-			Erelia.Voxel.Shape.AxisPlane oppositePlane = Utils.Geometry.GetOppositePlane(worldPlane);
-			Erelia.Voxel.Shape.AxisPlane neighborLocalPlane = Utils.Geometry.MapWorldPlaneToLocal(oppositePlane, neighborCell.Orientation, neighborCell.FlipOrientation);
+			VoxelKit.Shape.AxisPlane oppositePlane = VoxelKit.Utils.Geometry.GetOppositePlane(worldPlane);
+			VoxelKit.Shape.AxisPlane neighborLocalPlane = VoxelKit.Utils.Geometry.MapWorldPlaneToLocal(oppositePlane, neighborCell.Orientation, neighborCell.FlipOrientation);
 
 			if (neighborFaceSet.OuterShell == null
-				|| !neighborFaceSet.OuterShell.TryGetValue(neighborLocalPlane, out Erelia.Voxel.Face neighborLocalFace)
+				|| !neighborFaceSet.OuterShell.TryGetValue(neighborLocalPlane, out VoxelKit.Face neighborLocalFace)
 				|| neighborLocalFace == null
 				|| !neighborLocalFace.HasRenderablePolygons)
 			{
 				return false;
 			}
 
-			Erelia.Voxel.Face faceWorld = TransformFaceCached(localFace, cell.Orientation, cell.FlipOrientation);
-			Erelia.Voxel.Face neighborWorld = TransformFaceCached(neighborLocalFace, neighborCell.Orientation, neighborCell.FlipOrientation);
+			VoxelKit.Face faceWorld = TransformFaceCached(localFace, cell.Orientation, cell.FlipOrientation);
+			VoxelKit.Face neighborWorld = TransformFaceCached(neighborLocalFace, neighborCell.Orientation, neighborCell.FlipOrientation);
 
 			if (faceWorld == null || neighborWorld == null)
 			{
 				return false;
 			}
 
-			if (Mesherutils.FaceVsFaceOcclusionCache.TryGetValue(faceWorld, neighborWorld, out bool occluded))
+			if (VoxelKit.Mesherutils.FaceVsFaceOcclusionCache.TryGetValue(faceWorld, neighborWorld, out bool occluded))
 			{
 				return occluded;
 			}
@@ -370,18 +374,19 @@ namespace Erelia.Voxel
 		}
 
 		private static bool IsFullFaceOccludedByNeighbor(
-			Erelia.Voxel.Cell[,,] cells,
+			VoxelKit.Cell[,,] cells,
 			int sizeX,
 			int sizeY,
 			int sizeZ,
 			int x,
 			int y,
 			int z,
-			Erelia.Voxel.Shape.AxisPlane worldPlane,
-			Func<Erelia.Voxel.Definition, bool> predicate,
+			VoxelKit.Shape.AxisPlane worldPlane,
+			VoxelKit.Registry registry,
+			Func<VoxelKit.Definition, bool> predicate,
 			bool useCollision)
 		{
-			Vector3Int offset = Utils.Geometry.PlaneToOffset(worldPlane);
+			Vector3Int offset = VoxelKit.Utils.Geometry.PlaneToOffset(worldPlane);
 			int nx = x + offset.x;
 			int ny = y + offset.y;
 			int nz = z + offset.z;
@@ -391,52 +396,52 @@ namespace Erelia.Voxel
 				return false;
 			}
 
-			if (!TryGetDefinition(cells[nx, ny, nz], predicate, out Erelia.Voxel.Definition neighborDefinition, out Erelia.Voxel.Cell neighborCell))
+			if (!TryGetDefinition(cells[nx, ny, nz], registry, predicate, out VoxelKit.Definition neighborDefinition, out VoxelKit.Cell neighborCell))
 			{
 				return false;
 			}
 
-			Erelia.Voxel.Shape neighborShape = neighborDefinition.Shape;
+			VoxelKit.Shape neighborShape = neighborDefinition.Shape;
 			if (neighborShape == null)
 			{
 				return false;
 			}
 
-			Erelia.Voxel.Shape.FaceSet neighborFaceSet = useCollision ? neighborShape.CollisionFaces : neighborShape.RenderFaces;
+			VoxelKit.Shape.FaceSet neighborFaceSet = useCollision ? neighborShape.CollisionFaces : neighborShape.RenderFaces;
 
-			Erelia.Voxel.Shape.AxisPlane oppositePlane = Utils.Geometry.GetOppositePlane(worldPlane);
-			Erelia.Voxel.Shape.AxisPlane neighborLocalPlane = Utils.Geometry.MapWorldPlaneToLocal(oppositePlane, neighborCell.Orientation, neighborCell.FlipOrientation);
+			VoxelKit.Shape.AxisPlane oppositePlane = VoxelKit.Utils.Geometry.GetOppositePlane(worldPlane);
+			VoxelKit.Shape.AxisPlane neighborLocalPlane = VoxelKit.Utils.Geometry.MapWorldPlaneToLocal(oppositePlane, neighborCell.Orientation, neighborCell.FlipOrientation);
 
 			if (neighborFaceSet.OuterShell == null
-				|| !neighborFaceSet.OuterShell.TryGetValue(neighborLocalPlane, out Erelia.Voxel.Face neighborLocalFace)
+				|| !neighborFaceSet.OuterShell.TryGetValue(neighborLocalPlane, out VoxelKit.Face neighborLocalFace)
 				|| neighborLocalFace == null
 				|| !neighborLocalFace.HasRenderablePolygons)
 			{
 				return false;
 			}
 
-			Erelia.Voxel.Face neighborWorld = TransformFaceCached(neighborLocalFace, neighborCell.Orientation, neighborCell.FlipOrientation);
+			VoxelKit.Face neighborWorld = TransformFaceCached(neighborLocalFace, neighborCell.Orientation, neighborCell.FlipOrientation);
 			if (neighborWorld == null)
 			{
 				return false;
 			}
 
-			Erelia.Voxel.Face fullFace = Utils.Geometry.GetFullOuterFace(oppositePlane);
+			VoxelKit.Face fullFace = VoxelKit.Utils.Geometry.GetFullOuterFace(oppositePlane);
 			if (fullFace == null)
 			{
 				return false;
 			}
 
-			if (Mesherutils.FaceVsFaceOcclusionCache.TryGetValue(fullFace, neighborWorld, out bool occluded))
+			if (VoxelKit.Mesherutils.FaceVsFaceOcclusionCache.TryGetValue(fullFace, neighborWorld, out bool occluded))
 			{
 				return occluded;
 			}
 
-			return Utils.Geometry.IsFullFace(neighborWorld, oppositePlane);
+			return VoxelKit.Utils.Geometry.IsFullFace(neighborWorld, oppositePlane);
 		}
 
 		private static void AddFacePolygons(
-			Erelia.Voxel.Face face,
+			VoxelKit.Face face,
 			Vector3 positionOffset,
 			Dictionary<RectKey, List<Rect2D>> rectGroups,
 			List<List<Vector3>> polygons)
@@ -446,10 +451,10 @@ namespace Erelia.Voxel
 				return;
 			}
 
-			List<List<Erelia.Voxel.Face.Vertex>> facePolygons = face.Polygons;
+			List<List<VoxelKit.Face.Vertex>> facePolygons = face.Polygons;
 			for (int p = 0; p < facePolygons.Count; p++)
 			{
-				List<Erelia.Voxel.Face.Vertex> faceVertices = facePolygons[p];
+				List<VoxelKit.Face.Vertex> faceVertices = facePolygons[p];
 				if (faceVertices == null || faceVertices.Count < 3)
 				{
 					continue;
@@ -487,13 +492,13 @@ namespace Erelia.Voxel
 			}
 
 			Vector3 normal = Vector3.Cross(worldVerts[1] - worldVerts[0], worldVerts[2] - worldVerts[0]);
-			if (normal.sqrMagnitude < Utils.Geometry.NormalEpsilon)
+			if (normal.sqrMagnitude < VoxelKit.Utils.Geometry.NormalEpsilon)
 			{
 				return false;
 			}
 
 			Vector3 planeNormal = normal.normalized;
-			if (!Utils.Geometry.TryBuildBasis(planeNormal, out Vector3 tangent, out Vector3 bitangent))
+			if (!VoxelKit.Utils.Geometry.TryBuildBasis(planeNormal, out Vector3 tangent, out Vector3 bitangent))
 			{
 				return false;
 			}
@@ -702,3 +707,5 @@ NextIteration:
 		}
 	}
 }
+
+

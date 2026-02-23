@@ -23,7 +23,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 3708920431402025268
-      type: {class: Slope, ns: Erelia.Voxel.ShapeType, asm: Assembly-CSharp}
+      type: {class: Slope, ns: VoxelKit.ShapeType, asm: Assembly-CSharp}
       data:
         spriteBack: {fileID: -185238634, guid: 0904e940b770c4c488037236797d3790, type: 3}
         spriteBottom: {fileID: -185238634, guid: 0904e940b770c4c488037236797d3790, type: 3}
@@ -33,3 +33,4 @@ MonoBehaviour:
     - rid: 3708920431402025269
       type: {class: Slope, ns: Erelia.BattleVoxel.ShapeType, asm: Assembly-CSharp}
       data: 
+

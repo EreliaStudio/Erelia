@@ -23,7 +23,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 3708920431402025270
-      type: {class: Stair, ns: Erelia.Voxel.ShapeType, asm: Assembly-CSharp}
+      type: {class: Stair, ns: VoxelKit.ShapeType, asm: Assembly-CSharp}
       data:
         spriteFront: {fileID: -1168464288, guid: 0904e940b770c4c488037236797d3790, type: 3}
         spriteBack: {fileID: 482027737, guid: 0904e940b770c4c488037236797d3790, type: 3}
@@ -36,3 +36,4 @@ MonoBehaviour:
     - rid: 3708920431402025271
       type: {class: Stair, ns: Erelia.BattleVoxel.ShapeType, asm: Assembly-CSharp}
       data: 
+

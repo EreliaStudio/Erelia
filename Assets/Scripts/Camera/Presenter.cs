@@ -23,7 +23,7 @@ namespace Erelia.Camera
 		{
 			if (view == null)
 			{
-				Erelia.Logger.RaiseException("[Erelia.Camera.Presenter] View is not assigned.");
+				throw new System.Exception("[Erelia.Camera.Presenter] View is not assigned.");
 			}
 
 			ResolveActions();
@@ -79,17 +79,17 @@ namespace Erelia.Camera
 		{
 			if (lookAction == null || lookAction.action == null)
 			{
-				Erelia.Logger.RaiseException("[Erelia.Camera.Presenter] Look action is not assigned.");
+				throw new System.Exception("[Erelia.Camera.Presenter] Look action is not assigned.");
 			}
 
 			if (orbitAction == null || orbitAction.action == null)
 			{
-				Erelia.Logger.RaiseException("[Erelia.Camera.Presenter] Orbit action is not assigned.");
+				throw new System.Exception("[Erelia.Camera.Presenter] Orbit action is not assigned.");
 			}
 
 			if (zoomAction == null || zoomAction.action == null)
 			{
-				Erelia.Logger.RaiseException("[Erelia.Camera.Presenter] Zoom action is not assigned.");
+				throw new System.Exception("[Erelia.Camera.Presenter] Zoom action is not assigned.");
 			}
 
 			resolvedLookAction = lookAction.action;

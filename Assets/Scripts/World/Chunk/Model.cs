@@ -11,18 +11,18 @@ namespace Erelia.World.Chunk
 		
 		public event Action<Model> Validated;
 
-		public Erelia.Voxel.Cell[,,] Cells = Erelia.Voxel.Cell.CreatePack(SizeX, SizeY, SizeZ);
+		public VoxelKit.Cell[,,] Cells = VoxelKit.Cell.CreatePack(SizeX, SizeY, SizeZ);
 
 		public void Validate()
 		{
-			Erelia.Logger.Log("[Erelia.World.Chunk.Model] Validate called.");
 			Validated?.Invoke(this);
 		}
 
-		public void SetCell(int x, int y, int z, Erelia.Voxel.Cell cell)
+		public void SetCell(int x, int y, int z, VoxelKit.Cell cell)
 		{
 			Cells[x, y, z] = cell;
 		}
 	}
 }
+
 

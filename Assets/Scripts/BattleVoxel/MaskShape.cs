@@ -6,23 +6,24 @@ namespace Erelia.BattleVoxel
 	[System.Serializable]
 	public abstract class MaskShape
 	{
-		private Dictionary<Erelia.Voxel.FlipOrientation, List<Erelia.Voxel.Face>> maskFaces
-			= new Dictionary<Erelia.Voxel.FlipOrientation, List<Erelia.Voxel.Face>>();
-		private Dictionary<Erelia.Voxel.FlipOrientation, Dictionary<Erelia.Voxel.CardinalPoint, Vector3>> cardinalPoints
-			= new Dictionary<Erelia.Voxel.FlipOrientation, Dictionary<Erelia.Voxel.CardinalPoint, Vector3>>();
+		private Dictionary<VoxelKit.FlipOrientation, List<VoxelKit.Face>> maskFaces
+			= new Dictionary<VoxelKit.FlipOrientation, List<VoxelKit.Face>>();
+		private Dictionary<VoxelKit.FlipOrientation, Dictionary<VoxelKit.CardinalPoint, Vector3>> cardinalPoints
+			= new Dictionary<VoxelKit.FlipOrientation, Dictionary<VoxelKit.CardinalPoint, Vector3>>();
 
-		public IReadOnlyDictionary<Erelia.Voxel.FlipOrientation, List<Erelia.Voxel.Face>> MaskFaces => maskFaces;
+		public IReadOnlyDictionary<VoxelKit.FlipOrientation, List<VoxelKit.Face>> MaskFaces => maskFaces;
 
-		public IReadOnlyDictionary<Erelia.Voxel.FlipOrientation, Dictionary<Erelia.Voxel.CardinalPoint, Vector3>> CardinalPoints => cardinalPoints;
+		public IReadOnlyDictionary<VoxelKit.FlipOrientation, Dictionary<VoxelKit.CardinalPoint, Vector3>> CardinalPoints => cardinalPoints;
 
-		protected abstract Dictionary<Erelia.Voxel.FlipOrientation, List<Erelia.Voxel.Face>> ConstructMaskFaces();
-		protected abstract Dictionary<Erelia.Voxel.FlipOrientation, Dictionary<Erelia.Voxel.CardinalPoint, Vector3>> ConstructCardinalPoints();
+		protected abstract Dictionary<VoxelKit.FlipOrientation, List<VoxelKit.Face>> ConstructMaskFaces();
+		protected abstract Dictionary<VoxelKit.FlipOrientation, Dictionary<VoxelKit.CardinalPoint, Vector3>> ConstructCardinalPoints();
 
 		public void Initialize()
 		{
-			maskFaces = ConstructMaskFaces() ?? new Dictionary<Erelia.Voxel.FlipOrientation, List<Erelia.Voxel.Face>>();
+			maskFaces = ConstructMaskFaces() ?? new Dictionary<VoxelKit.FlipOrientation, List<VoxelKit.Face>>();
 			cardinalPoints = ConstructCardinalPoints()
-				?? new Dictionary<Erelia.Voxel.FlipOrientation, Dictionary<Erelia.Voxel.CardinalPoint, Vector3>>();
+				?? new Dictionary<VoxelKit.FlipOrientation, Dictionary<VoxelKit.CardinalPoint, Vector3>>();
 		}
 	}
 }
+

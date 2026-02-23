@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Erelia.Voxel
+namespace VoxelKit
 {
 	[Serializable]
 	public abstract class Shape
@@ -23,15 +23,15 @@ namespace Erelia.Voxel
 		[Serializable]
 		public struct FaceSet
 		{
-			public List<Erelia.Voxel.Face> Inner;
-			public Dictionary<AxisPlane, Erelia.Voxel.Face> OuterShell;
+			public List<VoxelKit.Face> Inner;
+			public Dictionary<AxisPlane, VoxelKit.Face> OuterShell;
 
 			public FaceSet(
-				List<Erelia.Voxel.Face> inner,
-				Dictionary<AxisPlane, Erelia.Voxel.Face> outerShell)
+				List<VoxelKit.Face> inner,
+				Dictionary<AxisPlane, VoxelKit.Face> outerShell)
 			{
-				Inner = inner ?? new List<Erelia.Voxel.Face>();
-				OuterShell = outerShell ?? new Dictionary<AxisPlane, Erelia.Voxel.Face>();
+				Inner = inner ?? new List<VoxelKit.Face>();
+				OuterShell = outerShell ?? new Dictionary<AxisPlane, VoxelKit.Face>();
 			}
 		}
 
@@ -66,5 +66,6 @@ namespace Erelia.Voxel
 		}
 	}
 }
+
 
 

@@ -8,6 +8,7 @@ namespace Erelia.World
 		[SerializeField] private Erelia.World.View worldView;
 		[SerializeField] private int chunksPerFrame = 2;
 		[SerializeField] private float updateIntervalSeconds = 0.05f;
+		[SerializeField] private VoxelKit.Registry registry;
 
 		private Erelia.World.Model worldModel;
 		private readonly Dictionary<Erelia.World.Chunk.Coordinates, Erelia.World.Chunk.Presenter> presenters = new Dictionary<Erelia.World.Chunk.Coordinates, Erelia.World.Chunk.Presenter>();
@@ -17,8 +18,11 @@ namespace Erelia.World
 
 		private void Awake()
 		{
-			Erelia.Logger.Log("[Erelia.World.Presenter] Awake - initializing world model.");
 			worldModel = new Erelia.World.Model(new Erelia.World.Chunk.Generation.SimpleDebugChunkGenerator());
+			if (registry != null)
+			{
+				registry.RebuildFromEntries();
+			}
 		}
 
 		private void OnEnable()
@@ -71,7 +75,6 @@ namespace Erelia.World
 		{
 			if (worldModel == null)
 			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Presenter] World model was null. Recreating.");
 				worldModel = new Erelia.World.Model(new Erelia.World.Chunk.Generation.SimpleDebugChunkGenerator());
 			}
 
@@ -79,28 +82,16 @@ namespace Erelia.World
 
 			if (presenters.ContainsKey(coordinates))
 			{
-				Erelia.Logger.Log("[Erelia.World.Presenter] Chunk presenter already exists for coordinates " + coordinates + ".");
 				return model;
 			}
 
-			if (worldView == null)
-			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Presenter] World view is not assigned. Chunk view will be null for " + coordinates + ".");
-			}
-
 			Erelia.World.Chunk.View view = worldView != null ? worldView.CreateChunkView(coordinates) : null;
-			
-			if (view == null)
-			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Presenter] Chunk view could not be created for " + coordinates + ".");
-			}
 
-			var presenter = new Erelia.World.Chunk.Presenter(model, view);
+			var presenter = new Erelia.World.Chunk.Presenter(model, view, registry);
 			presenter.Bind();
 			presenter.ForceRebuild();
 
 			presenters.Add(coordinates, presenter);
-			Erelia.Logger.Log("[Erelia.World.Presenter] Chunk presenter created for " + coordinates + ".");
 			return model;
 		}
 
@@ -189,7 +180,6 @@ namespace Erelia.World
 
 		private void OnDestroy()
 		{
-			Erelia.Logger.Log("[Erelia.World.Presenter] OnDestroy - unbinding chunk presenters.");
 			foreach (var pair in presenters)
 			{
 				pair.Value.Unbind();

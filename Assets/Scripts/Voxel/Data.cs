@@ -1,15 +1,16 @@
 using UnityEngine;
 using System;
 
-namespace Erelia.Voxel
+namespace VoxelKit
 {
 	[Serializable]
 	public class Data
 	{
-    	[SerializeField] private Erelia.Voxel.Traversal traversal = Erelia.Voxel.Traversal.Obstacle;
+    	[SerializeField] private VoxelKit.Traversal traversal = VoxelKit.Traversal.Obstacle;
 
-    	public Erelia.Voxel.Traversal Traversal => traversal;
+    	public VoxelKit.Traversal Traversal => traversal;
 	}
 }
+
 
 

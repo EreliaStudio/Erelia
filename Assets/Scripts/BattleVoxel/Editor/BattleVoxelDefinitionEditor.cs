@@ -1,10 +1,10 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Erelia.Editor
+namespace VoxelKit.Editor
 {
 	[CustomEditor(typeof(Erelia.BattleVoxel.Definition))]
-	public class BattleVoxelDefinitionEditor : Erelia.Editor.VoxelDefinitionEditor
+	public class BattleVoxelDefinitionEditor : VoxelKit.Editor.VoxelDefinitionEditor
 	{
 		private SerializedProperty battleDataProp;
 		private SerializedProperty maskShapeProp;
@@ -29,7 +29,7 @@ namespace Erelia.Editor
 
 		private void EnsureMaskShapeInstance(bool forceReplace)
 		{
-			var shapeType = (Erelia.Voxel.Definition.ShapeType)shapeTypeProp.enumValueIndex;
+			var shapeType = (VoxelKit.Definition.ShapeType)shapeTypeProp.enumValueIndex;
 			var expectedType = GetMaskShapeClassType(shapeType);
 			var current = maskShapeProp.managedReferenceValue;
 
@@ -39,40 +39,41 @@ namespace Erelia.Editor
 			}
 		}
 
-		private static System.Type GetMaskShapeClassType(Erelia.Voxel.Definition.ShapeType shapeType)
+		private static System.Type GetMaskShapeClassType(VoxelKit.Definition.ShapeType shapeType)
 		{
 			switch (shapeType)
 			{
-				case Erelia.Voxel.Definition.ShapeType.Slab:
+				case VoxelKit.Definition.ShapeType.Slab:
 					return typeof(Erelia.BattleVoxel.ShapeType.Slab);
-				case Erelia.Voxel.Definition.ShapeType.Slope:
+				case VoxelKit.Definition.ShapeType.Slope:
 					return typeof(Erelia.BattleVoxel.ShapeType.Slope);
-				case Erelia.Voxel.Definition.ShapeType.Stair:
+				case VoxelKit.Definition.ShapeType.Stair:
 					return typeof(Erelia.BattleVoxel.ShapeType.Stair);
-				case Erelia.Voxel.Definition.ShapeType.CrossPlane:
+				case VoxelKit.Definition.ShapeType.CrossPlane:
 					return typeof(Erelia.BattleVoxel.ShapeType.CrossPlane);
-				case Erelia.Voxel.Definition.ShapeType.Cube:
+				case VoxelKit.Definition.ShapeType.Cube:
 				default:
 					return typeof(Erelia.BattleVoxel.ShapeType.Cube);
 			}
 		}
 
-		private static Erelia.BattleVoxel.MaskShape CreateMaskShapeInstance(Erelia.Voxel.Definition.ShapeType shapeType)
+		private static Erelia.BattleVoxel.MaskShape CreateMaskShapeInstance(VoxelKit.Definition.ShapeType shapeType)
 		{
 			switch (shapeType)
 			{
-				case Erelia.Voxel.Definition.ShapeType.Slab:
+				case VoxelKit.Definition.ShapeType.Slab:
 					return new Erelia.BattleVoxel.ShapeType.Slab();
-				case Erelia.Voxel.Definition.ShapeType.Slope:
+				case VoxelKit.Definition.ShapeType.Slope:
 					return new Erelia.BattleVoxel.ShapeType.Slope();
-				case Erelia.Voxel.Definition.ShapeType.Stair:
+				case VoxelKit.Definition.ShapeType.Stair:
 					return new Erelia.BattleVoxel.ShapeType.Stair();
-				case Erelia.Voxel.Definition.ShapeType.CrossPlane:
+				case VoxelKit.Definition.ShapeType.CrossPlane:
 					return new Erelia.BattleVoxel.ShapeType.CrossPlane();
-				case Erelia.Voxel.Definition.ShapeType.Cube:
+				case VoxelKit.Definition.ShapeType.Cube:
 				default:
 					return new Erelia.BattleVoxel.ShapeType.Cube();
 			}
 		}
 	}
 }
+

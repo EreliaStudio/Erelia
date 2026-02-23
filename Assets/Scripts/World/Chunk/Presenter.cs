@@ -6,11 +6,13 @@ namespace Erelia.World.Chunk
 	{
 		private readonly Erelia.World.Chunk.Model model;
 		private readonly Erelia.World.Chunk.View view;
+		private readonly VoxelKit.Registry registry;
 
-		public Presenter(Erelia.World.Chunk.Model model, Erelia.World.Chunk.View view)
+		public Presenter(Erelia.World.Chunk.Model model, Erelia.World.Chunk.View view, VoxelKit.Registry registry)
 		{
 			this.model = model;
 			this.view = view;
+			this.registry = registry;
 		}
 
 		public void Bind()
@@ -18,11 +20,6 @@ namespace Erelia.World.Chunk
 			if (model != null)
 			{
 				model.Validated += OnValidated;
-				Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Bound to model validation.");
-			}
-			else
-			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.Presenter] Bind called with null model.");
 			}
 		}
 
@@ -31,23 +28,16 @@ namespace Erelia.World.Chunk
 			if (model != null)
 			{
 				model.Validated -= OnValidated;
-				Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Unbound from model validation.");
-			}
-			else
-			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.Presenter] Unbind called with null model.");
 			}
 		}
 
 		public void ForceRebuild()
 		{
-			Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Force rebuild requested.");
 			RebuildMeshes();
 		}
 
 		private void OnValidated(Erelia.World.Chunk.Model validatedModel)
 		{
-			Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Model validated. Rebuilding meshes.");
 			RebuildMeshes();
 		}
 
@@ -55,14 +45,12 @@ namespace Erelia.World.Chunk
 		{
 			if (model == null || view == null)
 			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.Chunk.Presenter] Cannot rebuild meshes. Model or view is null.");
 				return;
 			}
 
-			view.SetRenderMesh(Erelia.Voxel.Mesher.BuildRenderMesh(model.Cells, Erelia.Voxel.Mesher.AnyVoxelPredicate));
-			view.SetCollisionMesh(Erelia.Voxel.Mesher.BuildCollisionMesh(model.Cells, Erelia.Voxel.Mesher.OnlyObstacleVoxelPredicate));
+			view.SetRenderMesh(VoxelKit.Mesher.BuildRenderMesh(model.Cells, registry, VoxelKit.Mesher.AnyVoxelPredicate));
+			view.SetCollisionMesh(VoxelKit.Mesher.BuildCollisionMesh(model.Cells, registry, VoxelKit.Mesher.OnlyObstacleVoxelPredicate));
 
-			Erelia.Logger.Log("[Erelia.World.Chunk.Presenter] Meshes applied to view.");
 		}
 
 		private static void DestroyMesh(Mesh mesh)
@@ -84,4 +72,5 @@ namespace Erelia.World.Chunk
 
 	}
 }
+
 

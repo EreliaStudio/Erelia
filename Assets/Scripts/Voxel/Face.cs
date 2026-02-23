@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Erelia.Voxel
+namespace VoxelKit
 {
 	public class Face
 	{
@@ -73,15 +73,15 @@ namespace Erelia.Voxel
 				List<Vertex> polygon = Polygons[p];
 				if (polygon != null && polygon.Count >= 3)
 				{
-					normal = Utils.Geometry.GetNormal(polygon);
-					if (normal.sqrMagnitude >= Utils.Geometry.NormalEpsilon)
+					normal = VoxelKit.Utils.Geometry.GetNormal(polygon);
+					if (normal.sqrMagnitude >= VoxelKit.Utils.Geometry.NormalEpsilon)
 					{
 						break;
 					}
 				}
 			}
 
-			if (normal.sqrMagnitude < Utils.Geometry.NormalEpsilon)
+			if (normal.sqrMagnitude < VoxelKit.Utils.Geometry.NormalEpsilon)
 			{
 				return false;
 			}
@@ -94,7 +94,7 @@ namespace Erelia.Voxel
 					continue;
 				}
 
-				if (!Utils.Geometry.IsPolygonContainedInUnion(polygon, other.Polygons, normal))
+				if (!VoxelKit.Utils.Geometry.IsPolygonContainedInUnion(polygon, other.Polygons, normal))
 				{
 					return false;
 				}
@@ -104,4 +104,6 @@ namespace Erelia.Voxel
 		}
 	}
 }
+
+
 

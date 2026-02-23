@@ -17,7 +17,6 @@ namespace Erelia.World.Chunk
 			}
 
 			meshFilter.sharedMesh = renderMesh;
-			Erelia.Logger.Log("[Erelia.World.Chunk.View] Render mesh applied.");
 		}
 
 		public void SetCollisionMesh(Mesh collisionMesh)
@@ -29,7 +28,6 @@ namespace Erelia.World.Chunk
 				meshCollider.sharedMesh = null;
 			}
 			meshCollider.sharedMesh = collisionMesh;
-			Erelia.Logger.Log("[Erelia.World.Chunk.View] Collision mesh applied.");
 		}
 
 		private static void DestroyMesh(Mesh mesh)

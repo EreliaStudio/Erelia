@@ -3,7 +3,7 @@ using UnityEngine;
 namespace Erelia.BattleVoxel
 {
 	[CreateAssetMenu(menuName = "BattleVoxel/Definition", fileName = "NewBattleVoxelDefinition")]
-	public class Definition : Erelia.Voxel.Definition
+	public class Definition : VoxelKit.Definition
 	{
 		[SerializeField] private Erelia.BattleVoxel.Cell battleData = new Erelia.BattleVoxel.Cell();
 		[HideInInspector] [SerializeReference] private Erelia.BattleVoxel.MaskShape maskShape = null;
@@ -18,3 +18,4 @@ namespace Erelia.BattleVoxel
 		}
 	}
 }
+

@@ -24,10 +24,8 @@ namespace Erelia.World
 			var chunk = new Erelia.World.Chunk.Model();
 			chunkGenerator?.Generate(chunk, coordinates);
 			chunks.Add(coordinates, chunk);
-			Erelia.Logger.Log("[Erelia.World.Model] Created chunk model at " + coordinates + ".");
 			return chunk;
 		}
 	}
 }
-
 

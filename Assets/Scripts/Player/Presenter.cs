@@ -15,7 +15,7 @@ namespace Erelia.Player
 		{
 			if (view == null)
 			{
-				Erelia.Logger.RaiseException("[Erelia.Player.Presenter] View is not assigned.");
+				throw new System.Exception("[Erelia.Player.Presenter] View is not assigned.");
 			}
 
 			ResolveActions();
@@ -79,7 +79,7 @@ namespace Erelia.Player
 		{
 			if (moveAction == null || moveAction.action == null)
 			{
-				Erelia.Logger.RaiseException("[Erelia.Player.Presenter] Move action is not assigned.");
+				throw new System.Exception("[Erelia.Player.Presenter] Move action is not assigned.");
 			}
 
 			resolvedMoveAction = moveAction.action;

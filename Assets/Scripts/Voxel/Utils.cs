@@ -1,43 +1,43 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Utils
+namespace VoxelKit.Utils
 {
 	public static class Geometry
 	{
 		public const float NormalEpsilon = 0.001f;
 		public const float PointEpsilon = 0.001f;
 
-		private static readonly Erelia.Voxel.Face FullPosXFace = Utils.Geometry.CreateRectangle(
-			new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 0f), UV = Vector2.zero });
-		private static readonly Erelia.Voxel.Face FullNegXFace = Utils.Geometry.CreateRectangle(
-			new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 0f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = Vector2.zero });
-		private static readonly Erelia.Voxel.Face FullPosYFace = Utils.Geometry.CreateRectangle(
-			new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 0f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 0f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = Vector2.zero });
-		private static readonly Erelia.Voxel.Face FullNegYFace = Utils.Geometry.CreateRectangle(
-			new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = Vector2.zero });
-		private static readonly Erelia.Voxel.Face FullPosZFace = Utils.Geometry.CreateRectangle(
-			new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = Vector2.zero });
-		private static readonly Erelia.Voxel.Face FullNegZFace = Utils.Geometry.CreateRectangle(
-			new Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 0f), UV = Vector2.zero },
-			new Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 0f), UV = Vector2.zero });
+		private static readonly VoxelKit.Face FullPosXFace = VoxelKit.Utils.Geometry.CreateRectangle(
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 0f), UV = Vector2.zero });
+		private static readonly VoxelKit.Face FullNegXFace = VoxelKit.Utils.Geometry.CreateRectangle(
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 0f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = Vector2.zero });
+		private static readonly VoxelKit.Face FullPosYFace = VoxelKit.Utils.Geometry.CreateRectangle(
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 0f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 0f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = Vector2.zero });
+		private static readonly VoxelKit.Face FullNegYFace = VoxelKit.Utils.Geometry.CreateRectangle(
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = Vector2.zero });
+		private static readonly VoxelKit.Face FullPosZFace = VoxelKit.Utils.Geometry.CreateRectangle(
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = Vector2.zero });
+		private static readonly VoxelKit.Face FullNegZFace = VoxelKit.Utils.Geometry.CreateRectangle(
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 0f), UV = Vector2.zero },
+			new VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 0f), UV = Vector2.zero });
 
 		public struct Vertex
 		{
@@ -45,16 +45,16 @@ namespace Utils
 			public Vector2 UV;
 		}
 
-		public static Erelia.Voxel.Face CreateRectangle(Vertex a, Vertex b, Vertex c, Vertex d)
+		public static VoxelKit.Face CreateRectangle(Vertex a, Vertex b, Vertex c, Vertex d)
 		{
-			var face = new Erelia.Voxel.Face();
+			var face = new VoxelKit.Face();
 			face.AddPolygon(CreateRectanglePolygon(a, b, c, d));
 			return face;
 		}
 
-		public static Erelia.Voxel.Face CreateTriangle(Vertex a, Vertex b, Vertex c)
+		public static VoxelKit.Face CreateTriangle(Vertex a, Vertex b, Vertex c)
 		{
-			var face = new Erelia.Voxel.Face();
+			var face = new VoxelKit.Face();
 			face.AddPolygon(CreateTrianglePolygon(a, b, c));
 			return face;
 		}
@@ -74,30 +74,30 @@ namespace Utils
 			}
 		}
 
-		public static List<Erelia.Voxel.Face.Vertex> CreateRectanglePolygon(Vertex a, Vertex b, Vertex c, Vertex d)
+		public static List<VoxelKit.Face.Vertex> CreateRectanglePolygon(Vertex a, Vertex b, Vertex c, Vertex d)
 		{
-			var verts = new List<Erelia.Voxel.Face.Vertex>(4)
+			var verts = new List<VoxelKit.Face.Vertex>(4)
 		{
-			new Erelia.Voxel.Face.Vertex { Position = a.Position, TileUV = a.UV },
-			new Erelia.Voxel.Face.Vertex { Position = b.Position, TileUV = b.UV },
-			new Erelia.Voxel.Face.Vertex { Position = c.Position, TileUV = c.UV },
-			new Erelia.Voxel.Face.Vertex { Position = d.Position, TileUV = d.UV }
+			new VoxelKit.Face.Vertex { Position = a.Position, TileUV = a.UV },
+			new VoxelKit.Face.Vertex { Position = b.Position, TileUV = b.UV },
+			new VoxelKit.Face.Vertex { Position = c.Position, TileUV = c.UV },
+			new VoxelKit.Face.Vertex { Position = d.Position, TileUV = d.UV }
 		};
 			return verts;
 		}
 
-		public static List<Erelia.Voxel.Face.Vertex> CreateTrianglePolygon(Vertex a, Vertex b, Vertex c)
+		public static List<VoxelKit.Face.Vertex> CreateTrianglePolygon(Vertex a, Vertex b, Vertex c)
 		{
-			var verts = new List<Erelia.Voxel.Face.Vertex>(3)
+			var verts = new List<VoxelKit.Face.Vertex>(3)
 		{
-			new Erelia.Voxel.Face.Vertex { Position = a.Position, TileUV = a.UV },
-			new Erelia.Voxel.Face.Vertex { Position = b.Position, TileUV = b.UV },
-			new Erelia.Voxel.Face.Vertex { Position = c.Position, TileUV = c.UV }
+			new VoxelKit.Face.Vertex { Position = a.Position, TileUV = a.UV },
+			new VoxelKit.Face.Vertex { Position = b.Position, TileUV = b.UV },
+			new VoxelKit.Face.Vertex { Position = c.Position, TileUV = c.UV }
 		};
 			return verts;
 		}
 
-		public static Vector3 GetNormal(List<Erelia.Voxel.Face.Vertex> verts)
+		public static Vector3 GetNormal(List<VoxelKit.Face.Vertex> verts)
 		{
 			Vector3 a = verts[0].Position;
 			Vector3 b = verts[1].Position;
@@ -105,7 +105,7 @@ namespace Utils
 			return Vector3.Cross(b - a, c - a);
 		}
 
-		public static bool IsPolygonContained(List<Erelia.Voxel.Face.Vertex> polygon, List<Erelia.Voxel.Face.Vertex> container, Vector3 normal)
+		public static bool IsPolygonContained(List<VoxelKit.Face.Vertex> polygon, List<VoxelKit.Face.Vertex> container, Vector3 normal)
 		{
 			if (polygon == null || container == null || polygon.Count < 3 || container.Count < 3)
 			{
@@ -143,7 +143,7 @@ namespace Utils
 			return true;
 		}
 
-		public static bool IsPolygonContainedInUnion(List<Erelia.Voxel.Face.Vertex> polygon, List<List<Erelia.Voxel.Face.Vertex>> containers, Vector3 normal)
+		public static bool IsPolygonContainedInUnion(List<VoxelKit.Face.Vertex> polygon, List<List<VoxelKit.Face.Vertex>> containers, Vector3 normal)
 		{
 			if (polygon == null || polygon.Count < 3 || containers == null)
 			{
@@ -165,7 +165,7 @@ namespace Utils
 			var container2Ds = new List<List<Vector2>>(containers.Count);
 			for (int i = 0; i < containers.Count; i++)
 			{
-				List<Erelia.Voxel.Face.Vertex> container = containers[i];
+				List<VoxelKit.Face.Vertex> container = containers[i];
 				if (container == null || container.Count < 3)
 				{
 					continue;
@@ -381,11 +381,11 @@ namespace Utils
 			}
 		}
 
-		public static bool TryFromNormal(Vector3 normal, out Erelia.Voxel.Shape.AxisPlane plane)
+		public static bool TryFromNormal(Vector3 normal, out VoxelKit.Shape.AxisPlane plane)
 		{
 			if (normal.sqrMagnitude < NormalEpsilon)
 			{
-				plane = Erelia.Voxel.Shape.AxisPlane.PosX;
+				plane = VoxelKit.Shape.AxisPlane.PosX;
 				return false;
 			}
 
@@ -396,112 +396,112 @@ namespace Utils
 
 			if (ax >= 1f - NormalEpsilon && ay <= NormalEpsilon && az <= NormalEpsilon)
 			{
-				plane = n.x >= 0f ? Erelia.Voxel.Shape.AxisPlane.PosX : Erelia.Voxel.Shape.AxisPlane.NegX;
+				plane = n.x >= 0f ? VoxelKit.Shape.AxisPlane.PosX : VoxelKit.Shape.AxisPlane.NegX;
 				return true;
 			}
 			if (ay >= 1f - NormalEpsilon && ax <= NormalEpsilon && az <= NormalEpsilon)
 			{
-				plane = n.y >= 0f ? Erelia.Voxel.Shape.AxisPlane.PosY : Erelia.Voxel.Shape.AxisPlane.NegY;
+				plane = n.y >= 0f ? VoxelKit.Shape.AxisPlane.PosY : VoxelKit.Shape.AxisPlane.NegY;
 				return true;
 			}
 			if (az >= 1f - NormalEpsilon && ax <= NormalEpsilon && ay <= NormalEpsilon)
 			{
-				plane = n.z >= 0f ? Erelia.Voxel.Shape.AxisPlane.PosZ : Erelia.Voxel.Shape.AxisPlane.NegZ;
+				plane = n.z >= 0f ? VoxelKit.Shape.AxisPlane.PosZ : VoxelKit.Shape.AxisPlane.NegZ;
 				return true;
 			}
 
-			plane = Erelia.Voxel.Shape.AxisPlane.PosX;
+			plane = VoxelKit.Shape.AxisPlane.PosX;
 			return false;
 		}
 
-		public static Vector3 PlaneToNormal(Erelia.Voxel.Shape.AxisPlane plane)
+		public static Vector3 PlaneToNormal(VoxelKit.Shape.AxisPlane plane)
 		{
 			switch (plane)
 			{
-				case Erelia.Voxel.Shape.AxisPlane.PosX:
+				case VoxelKit.Shape.AxisPlane.PosX:
 					return Vector3.right;
-				case Erelia.Voxel.Shape.AxisPlane.NegX:
+				case VoxelKit.Shape.AxisPlane.NegX:
 					return Vector3.left;
-				case Erelia.Voxel.Shape.AxisPlane.PosY:
+				case VoxelKit.Shape.AxisPlane.PosY:
 					return Vector3.up;
-				case Erelia.Voxel.Shape.AxisPlane.NegY:
+				case VoxelKit.Shape.AxisPlane.NegY:
 					return Vector3.down;
-				case Erelia.Voxel.Shape.AxisPlane.PosZ:
+				case VoxelKit.Shape.AxisPlane.PosZ:
 					return Vector3.forward;
-				case Erelia.Voxel.Shape.AxisPlane.NegZ:
+				case VoxelKit.Shape.AxisPlane.NegZ:
 					return Vector3.back;
 				default:
 					return Vector3.zero;
 			}
 		}
 
-		public static Vector3Int PlaneToOffset(Erelia.Voxel.Shape.AxisPlane plane)
+		public static Vector3Int PlaneToOffset(VoxelKit.Shape.AxisPlane plane)
 		{
 			switch (plane)
 			{
-				case Erelia.Voxel.Shape.AxisPlane.PosX:
+				case VoxelKit.Shape.AxisPlane.PosX:
 					return new Vector3Int(1, 0, 0);
-				case Erelia.Voxel.Shape.AxisPlane.NegX:
+				case VoxelKit.Shape.AxisPlane.NegX:
 					return new Vector3Int(-1, 0, 0);
-				case Erelia.Voxel.Shape.AxisPlane.PosY:
+				case VoxelKit.Shape.AxisPlane.PosY:
 					return new Vector3Int(0, 1, 0);
-				case Erelia.Voxel.Shape.AxisPlane.NegY:
+				case VoxelKit.Shape.AxisPlane.NegY:
 					return new Vector3Int(0, -1, 0);
-				case Erelia.Voxel.Shape.AxisPlane.PosZ:
+				case VoxelKit.Shape.AxisPlane.PosZ:
 					return new Vector3Int(0, 0, 1);
-				case Erelia.Voxel.Shape.AxisPlane.NegZ:
+				case VoxelKit.Shape.AxisPlane.NegZ:
 					return new Vector3Int(0, 0, -1);
 				default:
 					return Vector3Int.zero;
 			}
 		}
 
-		public static Erelia.Voxel.Shape.AxisPlane GetOppositePlane(Erelia.Voxel.Shape.AxisPlane plane)
+		public static VoxelKit.Shape.AxisPlane GetOppositePlane(VoxelKit.Shape.AxisPlane plane)
 		{
 			switch (plane)
 			{
-				case Erelia.Voxel.Shape.AxisPlane.PosX:
-					return Erelia.Voxel.Shape.AxisPlane.NegX;
-				case Erelia.Voxel.Shape.AxisPlane.NegX:
-					return Erelia.Voxel.Shape.AxisPlane.PosX;
-				case Erelia.Voxel.Shape.AxisPlane.PosY:
-					return Erelia.Voxel.Shape.AxisPlane.NegY;
-				case Erelia.Voxel.Shape.AxisPlane.NegY:
-					return Erelia.Voxel.Shape.AxisPlane.PosY;
-				case Erelia.Voxel.Shape.AxisPlane.PosZ:
-					return Erelia.Voxel.Shape.AxisPlane.NegZ;
-				case Erelia.Voxel.Shape.AxisPlane.NegZ:
-					return Erelia.Voxel.Shape.AxisPlane.PosZ;
+				case VoxelKit.Shape.AxisPlane.PosX:
+					return VoxelKit.Shape.AxisPlane.NegX;
+				case VoxelKit.Shape.AxisPlane.NegX:
+					return VoxelKit.Shape.AxisPlane.PosX;
+				case VoxelKit.Shape.AxisPlane.PosY:
+					return VoxelKit.Shape.AxisPlane.NegY;
+				case VoxelKit.Shape.AxisPlane.NegY:
+					return VoxelKit.Shape.AxisPlane.PosY;
+				case VoxelKit.Shape.AxisPlane.PosZ:
+					return VoxelKit.Shape.AxisPlane.NegZ;
+				case VoxelKit.Shape.AxisPlane.NegZ:
+					return VoxelKit.Shape.AxisPlane.PosZ;
 				default:
 					return plane;
 			}
 		}
-		public static int OrientationToSteps(Erelia.Voxel.Orientation orientation)
+		public static int OrientationToSteps(VoxelKit.Orientation orientation)
 		{
 			switch (orientation)
 			{
-				case Erelia.Voxel.Orientation.PositiveX:
+				case VoxelKit.Orientation.PositiveX:
 					return 0;
-				case Erelia.Voxel.Orientation.PositiveZ:
+				case VoxelKit.Orientation.PositiveZ:
 					return 1;
-				case Erelia.Voxel.Orientation.NegativeX:
+				case VoxelKit.Orientation.NegativeX:
 					return 2;
-				case Erelia.Voxel.Orientation.NegativeZ:
+				case VoxelKit.Orientation.NegativeZ:
 					return 3;
 				default:
 					return 0;
 			}
 		}
 
-		public static Erelia.Voxel.Shape.AxisPlane MapWorldPlaneToLocal(Erelia.Voxel.Shape.AxisPlane plane, Erelia.Voxel.Orientation orientation)
+		public static VoxelKit.Shape.AxisPlane MapWorldPlaneToLocal(VoxelKit.Shape.AxisPlane plane, VoxelKit.Orientation orientation)
 		{
 			return RotatePlane(plane, -OrientationToSteps(orientation));
 		}
 
-		public static Erelia.Voxel.Shape.AxisPlane MapWorldPlaneToLocal(Erelia.Voxel.Shape.AxisPlane plane, Erelia.Voxel.Orientation orientation, Erelia.Voxel.FlipOrientation flipOrientation)
+		public static VoxelKit.Shape.AxisPlane MapWorldPlaneToLocal(VoxelKit.Shape.AxisPlane plane, VoxelKit.Orientation orientation, VoxelKit.FlipOrientation flipOrientation)
 		{
-			Erelia.Voxel.Shape.AxisPlane rotated = RotatePlane(plane, -OrientationToSteps(orientation));
-			if (flipOrientation == Erelia.Voxel.FlipOrientation.NegativeY)
+			VoxelKit.Shape.AxisPlane rotated = RotatePlane(plane, -OrientationToSteps(orientation));
+			if (flipOrientation == VoxelKit.FlipOrientation.NegativeY)
 			{
 				return FlipPlaneY(rotated);
 			}
@@ -509,7 +509,7 @@ namespace Utils
 			return rotated;
 		}
 
-		public static Erelia.Voxel.Shape.AxisPlane RotatePlane(Erelia.Voxel.Shape.AxisPlane plane, int steps)
+		public static VoxelKit.Shape.AxisPlane RotatePlane(VoxelKit.Shape.AxisPlane plane, int steps)
 		{
 			int normalized = ((steps % 4) + 4) % 4;
 			if (normalized == 0)
@@ -520,7 +520,7 @@ namespace Utils
 			Vector3 normal = PlaneToNormal(plane);
 			Quaternion rotation = Quaternion.AngleAxis(-normalized * 90f, Vector3.up);
 			Vector3 rotatedNormal = rotation * normal;
-			if (TryFromNormal(rotatedNormal, out Erelia.Voxel.Shape.AxisPlane rotatedPlane))
+			if (TryFromNormal(rotatedNormal, out VoxelKit.Shape.AxisPlane rotatedPlane))
 			{
 				return rotatedPlane;
 			}
@@ -528,20 +528,20 @@ namespace Utils
 			return plane;
 		}
 
-		public static Erelia.Voxel.Shape.AxisPlane FlipPlaneY(Erelia.Voxel.Shape.AxisPlane plane)
+		public static VoxelKit.Shape.AxisPlane FlipPlaneY(VoxelKit.Shape.AxisPlane plane)
 		{
 			switch (plane)
 			{
-				case Erelia.Voxel.Shape.AxisPlane.PosY:
-					return Erelia.Voxel.Shape.AxisPlane.NegY;
-				case Erelia.Voxel.Shape.AxisPlane.NegY:
-					return Erelia.Voxel.Shape.AxisPlane.PosY;
+				case VoxelKit.Shape.AxisPlane.PosY:
+					return VoxelKit.Shape.AxisPlane.NegY;
+				case VoxelKit.Shape.AxisPlane.NegY:
+					return VoxelKit.Shape.AxisPlane.PosY;
 				default:
 					return plane;
 			}
 		}
 
-		public static Erelia.Voxel.Face TransformFace(Erelia.Voxel.Face face, Erelia.Voxel.Orientation orientation, Erelia.Voxel.FlipOrientation flipOrientation)
+		public static VoxelKit.Face TransformFace(VoxelKit.Face face, VoxelKit.Orientation orientation, VoxelKit.FlipOrientation flipOrientation)
 		{
 			if (face == null || face.Polygons == null || face.Polygons.Count == 0)
 			{
@@ -549,21 +549,21 @@ namespace Utils
 			}
 
 			int steps = OrientationToSteps(orientation);
-			var rotated = new Erelia.Voxel.Face();
+			var rotated = new VoxelKit.Face();
 			Vector3 pivot = new Vector3(0.5f, 0.5f, 0.5f);
-			List<List<Erelia.Voxel.Face.Vertex>> sourcePolygons = face.Polygons;
+			List<List<VoxelKit.Face.Vertex>> sourcePolygons = face.Polygons;
 			for (int p = 0; p < sourcePolygons.Count; p++)
 			{
-				List<Erelia.Voxel.Face.Vertex> sourceVertices = sourcePolygons[p];
+				List<VoxelKit.Face.Vertex> sourceVertices = sourcePolygons[p];
 				if (sourceVertices == null || sourceVertices.Count == 0)
 				{
 					continue;
 				}
 
-				var rotatedPolygon = new List<Erelia.Voxel.Face.Vertex>(sourceVertices.Count);
+				var rotatedPolygon = new List<VoxelKit.Face.Vertex>(sourceVertices.Count);
 				for (int i = 0; i < sourceVertices.Count; i++)
 				{
-					Erelia.Voxel.Face.Vertex vertex = sourceVertices[i];
+					VoxelKit.Face.Vertex vertex = sourceVertices[i];
 					Vector3 local = vertex.Position;
 					if (steps != 0)
 					{
@@ -572,7 +572,7 @@ namespace Utils
 						local = rotation * offset + pivot;
 					}
 
-					if (flipOrientation == Erelia.Voxel.FlipOrientation.NegativeY)
+					if (flipOrientation == VoxelKit.FlipOrientation.NegativeY)
 					{
 						local.y = 1f - local.y;
 					}
@@ -581,7 +581,7 @@ namespace Utils
 					rotatedPolygon.Add(vertex);
 				}
 
-				if (flipOrientation == Erelia.Voxel.FlipOrientation.NegativeY)
+				if (flipOrientation == VoxelKit.FlipOrientation.NegativeY)
 				{
 					rotatedPolygon.Reverse();
 				}
@@ -592,7 +592,7 @@ namespace Utils
 			return rotated;
 		}
 
-		public static Vector3 TransformPoint(Vector3 point, Erelia.Voxel.Orientation orientation, Erelia.Voxel.FlipOrientation flipOrientation)
+		public static Vector3 TransformPoint(Vector3 point, VoxelKit.Orientation orientation, VoxelKit.FlipOrientation flipOrientation)
 		{
 			int steps = OrientationToSteps(orientation);
 			Vector3 pivot = new Vector3(0.5f, 0.5f, 0.5f);
@@ -604,7 +604,7 @@ namespace Utils
 				local = rotation * offset + pivot;
 			}
 
-			if (flipOrientation == Erelia.Voxel.FlipOrientation.NegativeY)
+			if (flipOrientation == VoxelKit.FlipOrientation.NegativeY)
 			{
 				local.y = 1f - local.y;
 			}
@@ -612,28 +612,28 @@ namespace Utils
 			return local;
 		}
 
-		public static Erelia.Voxel.Face GetFullOuterFace(Erelia.Voxel.Shape.AxisPlane plane)
+		public static VoxelKit.Face GetFullOuterFace(VoxelKit.Shape.AxisPlane plane)
 		{
 			switch (plane)
 			{
-				case Erelia.Voxel.Shape.AxisPlane.PosX:
+				case VoxelKit.Shape.AxisPlane.PosX:
 					return FullPosXFace;
-				case Erelia.Voxel.Shape.AxisPlane.NegX:
+				case VoxelKit.Shape.AxisPlane.NegX:
 					return FullNegXFace;
-				case Erelia.Voxel.Shape.AxisPlane.PosY:
+				case VoxelKit.Shape.AxisPlane.PosY:
 					return FullPosYFace;
-				case Erelia.Voxel.Shape.AxisPlane.NegY:
+				case VoxelKit.Shape.AxisPlane.NegY:
 					return FullNegYFace;
-				case Erelia.Voxel.Shape.AxisPlane.PosZ:
+				case VoxelKit.Shape.AxisPlane.PosZ:
 					return FullPosZFace;
-				case Erelia.Voxel.Shape.AxisPlane.NegZ:
+				case VoxelKit.Shape.AxisPlane.NegZ:
 					return FullNegZFace;
 				default:
 					return null;
 			}
 		}
 
-		public static bool IsFaceCoplanarWithPlane(Erelia.Voxel.Face face, Erelia.Voxel.Shape.AxisPlane plane)
+		public static bool IsFaceCoplanarWithPlane(VoxelKit.Face face, VoxelKit.Shape.AxisPlane plane)
 		{
 			if (face == null || face.Polygons == null || face.Polygons.Count == 0)
 			{
@@ -644,36 +644,36 @@ namespace Utils
 			int axis = 0;
 			switch (plane)
 			{
-				case Erelia.Voxel.Shape.AxisPlane.PosX:
+				case VoxelKit.Shape.AxisPlane.PosX:
 					axis = 0;
 					target = 1f;
 					break;
-				case Erelia.Voxel.Shape.AxisPlane.NegX:
+				case VoxelKit.Shape.AxisPlane.NegX:
 					axis = 0;
 					target = 0f;
 					break;
-				case Erelia.Voxel.Shape.AxisPlane.PosY:
+				case VoxelKit.Shape.AxisPlane.PosY:
 					axis = 1;
 					target = 1f;
 					break;
-				case Erelia.Voxel.Shape.AxisPlane.NegY:
+				case VoxelKit.Shape.AxisPlane.NegY:
 					axis = 1;
 					target = 0f;
 					break;
-				case Erelia.Voxel.Shape.AxisPlane.PosZ:
+				case VoxelKit.Shape.AxisPlane.PosZ:
 					axis = 2;
 					target = 1f;
 					break;
-				case Erelia.Voxel.Shape.AxisPlane.NegZ:
+				case VoxelKit.Shape.AxisPlane.NegZ:
 					axis = 2;
 					target = 0f;
 					break;
 			}
 
-			List<List<Erelia.Voxel.Face.Vertex>> polygons = face.Polygons;
+			List<List<VoxelKit.Face.Vertex>> polygons = face.Polygons;
 			for (int p = 0; p < polygons.Count; p++)
 			{
-				List<Erelia.Voxel.Face.Vertex> polygon = polygons[p];
+				List<VoxelKit.Face.Vertex> polygon = polygons[p];
 				if (polygon == null)
 				{
 					continue;
@@ -683,7 +683,7 @@ namespace Utils
 				{
 					Vector3 pos = polygon[i].Position;
 					float value = axis == 0 ? pos.x : axis == 1 ? pos.y : pos.z;
-					if (Mathf.Abs(value - target) > Utils.Geometry.PointEpsilon)
+					if (Mathf.Abs(value - target) > VoxelKit.Utils.Geometry.PointEpsilon)
 					{
 						return false;
 					}
@@ -693,14 +693,14 @@ namespace Utils
 			return true;
 		}
 
-		public static bool IsFullFace(Erelia.Voxel.Face face, Erelia.Voxel.Shape.AxisPlane plane)
+		public static bool IsFullFace(VoxelKit.Face face, VoxelKit.Shape.AxisPlane plane)
 		{
 			if (face == null || !face.HasRenderablePolygons)
 			{
 				return false;
 			}
 
-			Erelia.Voxel.Face fullFace = GetFullOuterFace(plane);
+			VoxelKit.Face fullFace = GetFullOuterFace(plane);
 			if (fullFace == null)
 			{
 				return false;
@@ -741,4 +741,6 @@ namespace Utils
 		}
 	}
 }
+
+
 

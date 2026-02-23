@@ -1,7 +1,7 @@
 using UnityEngine;
 using System;
 
-namespace Erelia.Voxel
+namespace VoxelKit
 {
 	public enum Traversal
 	{
@@ -23,4 +23,5 @@ namespace Erelia.Voxel
 		NegativeY
 	}
 }
+
 

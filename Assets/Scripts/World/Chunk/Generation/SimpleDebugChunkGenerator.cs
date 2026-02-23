@@ -22,7 +22,7 @@ namespace Erelia.World.Chunk.Generation
 			{
 				for (int z = 0; z <= maxZ; z++)
 				{
-					chunk.SetCell(x, 0, z, new Erelia.Voxel.Cell(0));
+					chunk.SetCell(x, 0, z, new VoxelKit.Cell(0));
 				}
 			}
 
@@ -33,28 +33,29 @@ namespace Erelia.World.Chunk.Generation
 
 			for (int z = 0; z <= maxZ; z++)
 			{
-				chunk.SetCell(0, 1, z, new Erelia.Voxel.Cell(1));
+				chunk.SetCell(0, 1, z, new VoxelKit.Cell(1));
 			}
 
 			for (int z = 0; z <= maxZ; z++)
 			{
-				chunk.SetCell(maxX, 1, z, new Erelia.Voxel.Cell(2));
+				chunk.SetCell(maxX, 1, z, new VoxelKit.Cell(2));
 			}
 
 			for (int x = 0; x <= maxX; x++)
 			{
-				chunk.SetCell(x, 1, 0, new Erelia.Voxel.Cell(3));
+				chunk.SetCell(x, 1, 0, new VoxelKit.Cell(3));
 			}
 			
 			for (int x = 0; x <= maxX; x++)
 			{
-				chunk.SetCell(x, 1, maxZ, new Erelia.Voxel.Cell(4));
+				chunk.SetCell(x, 1, maxZ, new VoxelKit.Cell(4));
 			}
 			
 			for (int x = 0; x <= maxX; x++)
 			{
-				chunk.SetCell(x, 1, 5, new Erelia.Voxel.Cell(4));
+				chunk.SetCell(x, 1, 5, new VoxelKit.Cell(4));
 			}
 		}
 	}
 }
+

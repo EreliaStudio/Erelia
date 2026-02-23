@@ -569,6 +569,7 @@ MonoBehaviour:
   worldView: {fileID: 1448763375}
   chunksPerFrame: 2
   updateIntervalSeconds: 0.1
+  registry: {fileID: 11400000, guid: 3f29bcbf6f6489347935be9e083b5421, type: 2}
 --- !u!114 &2001250469
 MonoBehaviour:
   m_ObjectHideFlags: 0

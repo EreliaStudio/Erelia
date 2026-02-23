@@ -16,7 +16,6 @@ namespace Erelia.World
 		{
 			if (chunkViewPrefab == null)
 			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.View] Chunk view prefab is not assigned.");
 				return null;
 			}
 
@@ -29,11 +28,9 @@ namespace Erelia.World
 			}
 			else
 			{
-				Erelia.Logger.RaiseWarning("[Erelia.World.View] Coordinates were null. Chunk view positioned at prefab default.");
 				view.gameObject.name = "ChunkView (unknown)";
 			}
 
-			Erelia.Logger.Log("[Erelia.World.View] Created chunk view" + (coordinates != null ? (" for " + coordinates) : "."));
 			return view;
 		}
 	}

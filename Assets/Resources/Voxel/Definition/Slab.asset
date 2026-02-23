@@ -23,7 +23,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 3708920431402025266
-      type: {class: Slab, ns: Erelia.Voxel.ShapeType, asm: Assembly-CSharp}
+      type: {class: Slab, ns: VoxelKit.ShapeType, asm: Assembly-CSharp}
       data:
         spritePosX: {fileID: 458550512, guid: 0904e940b770c4c488037236797d3790, type: 3}
         spriteNegX: {fileID: 458550512, guid: 0904e940b770c4c488037236797d3790, type: 3}
@@ -34,3 +34,4 @@ MonoBehaviour:
     - rid: 3708920431402025267
       type: {class: Slab, ns: Erelia.BattleVoxel.ShapeType, asm: Assembly-CSharp}
       data: 
+
