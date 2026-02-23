@@ -24,15 +24,20 @@ namespace Erelia.Voxel
 		public ShapeType Type => shapeType;
 		public Erelia.Voxel.Shape Shape => shape;
 
-		private void OnEnable()
+		protected virtual void Initialize()
 		{
 			shape?.Initialize();
+		}
+
+		private void OnEnable()
+		{
+			Initialize();
 		}
 
 #if UNITY_EDITOR
 		private void OnValidate()
 		{
-			shape?.Initialize();
+			Initialize();
 		}
 #endif
 	}

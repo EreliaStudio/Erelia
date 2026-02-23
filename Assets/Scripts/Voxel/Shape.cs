@@ -49,33 +49,20 @@ namespace Erelia.Voxel
 		}
 
 		private Channels channels;
-		private Dictionary<Erelia.Voxel.FlipOrientation, List<Erelia.Voxel.Face>> maskFaces = new Dictionary<Erelia.Voxel.FlipOrientation, List<Erelia.Voxel.Face>>();
-		private Dictionary<Erelia.Voxel.FlipOrientation, Dictionary<Erelia.Voxel.CardinalPoint, Vector3>> cardinalPoints
-			= new Dictionary<Erelia.Voxel.FlipOrientation, Dictionary<Erelia.Voxel.CardinalPoint, Vector3>>();
 
 		public FaceSet RenderFaces => channels.Render;
 		public FaceSet CollisionFaces => channels.Collision;
-
-		public IReadOnlyDictionary<Erelia.Voxel.FlipOrientation, List<Erelia.Voxel.Face>> MaskFaces => maskFaces;
-		public IReadOnlyDictionary<Erelia.Voxel.FlipOrientation, Dictionary<Erelia.Voxel.CardinalPoint, Vector3>> CardinalPoints => cardinalPoints;
 
 		protected abstract FaceSet ConstructRenderFaces();
 		protected virtual FaceSet ConstructCollisionFaces()
 		{
 			return ConstructRenderFaces();
 		}
-		protected abstract Dictionary<Erelia.Voxel.FlipOrientation, List<Erelia.Voxel.Face>> ConstructMaskFaces();
-		protected abstract Dictionary<Erelia.Voxel.FlipOrientation, Dictionary<Erelia.Voxel.CardinalPoint, Vector3>> ConstructCardinalPoints();
-
 		public virtual void Initialize()
 		{
 			channels = new Channels(
 				ConstructRenderFaces(),
 				ConstructCollisionFaces());
-
-			maskFaces = ConstructMaskFaces() ?? new Dictionary<Erelia.Voxel.FlipOrientation, List<Erelia.Voxel.Face>>();
-			cardinalPoints = ConstructCardinalPoints()
-				?? new Dictionary<Erelia.Voxel.FlipOrientation, Dictionary<Erelia.Voxel.CardinalPoint, Vector3>>();
 		}
 	}
 }

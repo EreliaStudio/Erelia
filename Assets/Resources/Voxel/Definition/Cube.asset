@@ -9,19 +9,20 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c8e227760dbdab4ab4dc5732a6c466c, type: 3}
+  m_Script: {fileID: 11500000, guid: f153d1d610e115f4787bbe60b15d5910, type: 3}
   m_Name: Cube
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Voxel.Definition
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.BattleVoxel.Definition
   data:
-    collision: 1
     traversal: 0
   shapeType: 0
   shape:
-    rid: 3708920363310121301
+    rid: 3708920431402025254
+  maskShape:
+    rid: 3708920431402025255
   references:
     version: 2
     RefIds:
-    - rid: 3708920363310121301
+    - rid: 3708920431402025254
       type: {class: Cube, ns: Erelia.Voxel.ShapeType, asm: Assembly-CSharp}
       data:
         spritePosX: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
@@ -30,3 +31,6 @@ MonoBehaviour:
         spriteNegY: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
         spritePosZ: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
         spriteNegZ: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
+    - rid: 3708920431402025255
+      type: {class: Cube, ns: Erelia.BattleVoxel.ShapeType, asm: Assembly-CSharp}
+      data: 

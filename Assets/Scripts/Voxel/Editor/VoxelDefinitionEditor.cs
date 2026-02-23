@@ -3,14 +3,14 @@ using UnityEngine;
 
 namespace Erelia.Editor
 {
-	[CustomEditor(typeof(Erelia.Voxel.Definition))]
+	[CustomEditor(typeof(Erelia.Voxel.Definition), true)]
 	public class VoxelDefinitionEditor : UnityEditor.Editor
 	{
-		private SerializedProperty dataProp;
-		private SerializedProperty shapeTypeProp;
-		private SerializedProperty shapeProp;
+		protected SerializedProperty dataProp;
+		protected SerializedProperty shapeTypeProp;
+		protected SerializedProperty shapeProp;
 
-		private void OnEnable()
+		protected virtual void OnEnable()
 		{
 			dataProp = serializedObject.FindProperty("data");
 			shapeTypeProp = serializedObject.FindProperty("shapeType");
@@ -28,14 +28,25 @@ namespace Erelia.Editor
 			bool shapeTypeChanged = EditorGUI.EndChangeCheck();
 
 			EnsureShapeInstance(shapeTypeChanged);
+			AfterEnsureShapeInstance(shapeTypeChanged);
 
 			EditorGUI.BeginChangeCheck();
 			EditorGUILayout.PropertyField(shapeProp, true);
 
+			DrawCustomFields();
+
 			serializedObject.ApplyModifiedProperties();
 		}
 
-		private void EnsureShapeInstance(bool forceReplace)
+		protected virtual void DrawCustomFields()
+		{
+		}
+
+		protected virtual void AfterEnsureShapeInstance(bool shapeTypeChanged)
+		{
+		}
+
+		protected void EnsureShapeInstance(bool forceReplace)
 		{
 			var shapeType = (Erelia.Voxel.Definition.ShapeType)shapeTypeProp.enumValueIndex;
 			var expectedType = GetShapeClassType(shapeType);
@@ -47,7 +58,7 @@ namespace Erelia.Editor
 			}
 		}
 
-		private static System.Type GetShapeClassType(Erelia.Voxel.Definition.ShapeType shapeType)
+		protected virtual System.Type GetShapeClassType(Erelia.Voxel.Definition.ShapeType shapeType)
 		{
 			switch (shapeType)
 			{
@@ -65,7 +76,7 @@ namespace Erelia.Editor
 			}
 		}
 
-		private static Erelia.Voxel.Shape CreateShapeInstance(Erelia.Voxel.Definition.ShapeType shapeType)
+		protected virtual Erelia.Voxel.Shape CreateShapeInstance(Erelia.Voxel.Definition.ShapeType shapeType)
 		{
 			switch (shapeType)
 			{
