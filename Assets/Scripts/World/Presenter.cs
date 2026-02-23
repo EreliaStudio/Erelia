@@ -8,8 +8,10 @@ namespace Erelia.World
 		[SerializeField] private Erelia.World.View worldView;
 		[SerializeField] private int chunksPerFrame = 2;
 		[SerializeField] private float updateIntervalSeconds = 0.05f;
-		[SerializeField] private VoxelKit.Registry registry;
+		[SerializeField] private Erelia.World.BiomeRegistry biomeRegistry;
+		[SerializeField] private Erelia.Encounter.EncounterTableRegistry encounterTableRegistry;
 
+		private Erelia.World.Chunk.Generation.IGenerator chunkGenerator;
 		private Erelia.World.Model worldModel;
 		private readonly Dictionary<Erelia.World.Chunk.Coordinates, Erelia.World.Chunk.Presenter> presenters = new Dictionary<Erelia.World.Chunk.Coordinates, Erelia.World.Chunk.Presenter>();
 		private readonly Queue<Erelia.World.Chunk.Coordinates> pendingChunks = new Queue<Erelia.World.Chunk.Coordinates>();
@@ -18,11 +20,18 @@ namespace Erelia.World
 
 		private void Awake()
 		{
-			worldModel = new Erelia.World.Model(new Erelia.World.Chunk.Generation.SimpleDebugChunkGenerator());
-			if (registry != null)
+			chunkGenerator = new Erelia.World.Chunk.Generation.SimpleDebugChunkGenerator();
+			if (biomeRegistry == null)
 			{
-				registry.RebuildFromEntries();
+				biomeRegistry = Erelia.World.BiomeRegistry.Instance;
 			}
+
+			if (encounterTableRegistry == null)
+			{
+				encounterTableRegistry = Erelia.Encounter.EncounterTableRegistry.Instance;
+			}
+
+			worldModel = new Erelia.World.Model(biomeRegistry, encounterTableRegistry);
 		}
 
 		private void OnEnable()
@@ -75,10 +84,22 @@ namespace Erelia.World
 		{
 			if (worldModel == null)
 			{
-				worldModel = new Erelia.World.Model(new Erelia.World.Chunk.Generation.SimpleDebugChunkGenerator());
+				chunkGenerator = chunkGenerator ?? new Erelia.World.Chunk.Generation.SimpleDebugChunkGenerator();
+				if (biomeRegistry == null)
+				{
+					biomeRegistry = Erelia.World.BiomeRegistry.Instance;
+				}
+
+				if (encounterTableRegistry == null)
+				{
+					encounterTableRegistry = Erelia.Encounter.EncounterTableRegistry.Instance;
+				}
+
+				worldModel = new Erelia.World.Model(biomeRegistry, encounterTableRegistry);
 			}
 
 			Erelia.World.Chunk.Model model = worldModel.GetOrCreateChunk(coordinates);
+			chunkGenerator?.Generate(model, coordinates, worldModel);
 
 			if (presenters.ContainsKey(coordinates))
 			{
@@ -87,7 +108,7 @@ namespace Erelia.World
 
 			Erelia.World.Chunk.View view = worldView != null ? worldView.CreateChunkView(coordinates) : null;
 
-			var presenter = new Erelia.World.Chunk.Presenter(model, view, registry);
+			var presenter = new Erelia.World.Chunk.Presenter(model, view);
 			presenter.Bind();
 			presenter.ForceRebuild();
 

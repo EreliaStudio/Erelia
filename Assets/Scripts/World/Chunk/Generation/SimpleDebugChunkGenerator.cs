@@ -2,7 +2,7 @@ namespace Erelia.World.Chunk.Generation
 {
 	public sealed class SimpleDebugChunkGenerator : IGenerator
 	{
-		public void Generate(Erelia.World.Chunk.Model chunk, Erelia.World.Chunk.Coordinates coordinates)
+		public void Generate(Erelia.World.Chunk.Model chunk, Erelia.World.Chunk.Coordinates coordinates, Erelia.World.Model worldModel)
 		{
 			if (chunk == null)
 			{

@@ -6,13 +6,11 @@ namespace Erelia.World.Chunk
 	{
 		private readonly Erelia.World.Chunk.Model model;
 		private readonly Erelia.World.Chunk.View view;
-		private readonly VoxelKit.Registry registry;
 
-		public Presenter(Erelia.World.Chunk.Model model, Erelia.World.Chunk.View view, VoxelKit.Registry registry)
+		public Presenter(Erelia.World.Chunk.Model model, Erelia.World.Chunk.View view)
 		{
 			this.model = model;
 			this.view = view;
-			this.registry = registry;
 		}
 
 		public void Bind()
@@ -47,6 +45,8 @@ namespace Erelia.World.Chunk
 			{
 				return;
 			}
+
+			VoxelKit.Registry registry = Erelia.VoxelRegistry.Instance;
 
 			view.SetRenderMesh(VoxelKit.Mesher.BuildRenderMesh(model.Cells, registry, VoxelKit.Mesher.AnyVoxelPredicate));
 			view.SetCollisionMesh(VoxelKit.Mesher.BuildCollisionMesh(model.Cells, registry, VoxelKit.Mesher.OnlyObstacleVoxelPredicate));
