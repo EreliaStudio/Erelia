@@ -4,7 +4,7 @@ namespace Erelia
 {
 	public static class VoxelRegistry
 	{
-		public const string ResourcePath = "VoxelRegistry";
+		public const string ResourcePath = "Voxel/VoxelRegistry";
 
 		private static VoxelKit.Registry instance;
 

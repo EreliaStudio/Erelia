@@ -7,7 +7,7 @@ namespace Erelia.World
 	[CreateAssetMenu(menuName = "World/BiomeRegistry", fileName = "BiomeRegistry")]
 	public sealed class BiomeRegistry : Erelia.SingletonRegistry<BiomeRegistry>
 	{
-		protected override string ResourcePath => "BiomeRegistry";
+		protected override string ResourcePath => "Biome/BiomeRegistry";
 
 		[Serializable]
 		public struct Entry

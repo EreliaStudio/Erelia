@@ -56,6 +56,13 @@ namespace Erelia.Player
 				return;
 			}
 
+			float encounterChance = Mathf.Clamp01(table.EncounterChance);
+			if (Random.value > encounterChance)
+			{
+				return;
+			}
+
+			Debug.Log($"Encounter trigger: id={encounterId} world={worldPosition} cell=({localX},{localY},{localZ})");
 			Erelia.Event.Bus.Emit(new Erelia.Event.EncounterTriggerEvent(table));
 		}
 

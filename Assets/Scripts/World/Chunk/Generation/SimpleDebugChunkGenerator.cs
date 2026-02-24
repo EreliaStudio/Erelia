@@ -43,23 +43,10 @@ namespace Erelia.World.Chunk.Generation
 			if (biomeRegistry.Entries.Count > 0)
 			{
 				Erelia.World.BiomeData data = biomeRegistry.Entries[0].Data;
-				if (data != null && data.EncounterTable != null)
+				if (data != null && data.EncounterTable != null &&
+					Erelia.EncounterTableRegistry.TryGetId(data.EncounterTable, out int biomeEncounterId))
 				{
-					encounterId = Erelia.EncounterTableRegistry.Register(data.EncounterTable);
-				}
-			}
-
-			if (encounterId != Erelia.World.Chunk.Model.NoEncounterId)
-			{
-				for (int x = 0; x <= maxX; x++)
-				{
-					for (int y = 0; y <= maxY; y++)
-					{
-						for (int z = 0; z <= maxZ; z++)
-						{
-							chunk.SetEncounterId(x, y, z, encounterId);
-						}
-					}
+					encounterId = biomeEncounterId;
 				}
 			}
 
@@ -86,13 +73,14 @@ namespace Erelia.World.Chunk.Generation
 			for (int x = 0; x <= maxX; x++)
 			{
 				chunk.SetCell(x, 1, maxZ, new VoxelKit.Cell(4));
+				chunk.SetEncounterId(x, 1, maxZ, encounterId);
 			}
 			
 			for (int x = 0; x <= maxX; x++)
 			{
 				chunk.SetCell(x, 1, 5, new VoxelKit.Cell(4));
+				chunk.SetEncounterId(x, 1, 5, encounterId);
 			}
 		}
 	}
 }
-

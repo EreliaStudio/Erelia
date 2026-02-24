@@ -66,7 +66,6 @@
     <Compile Include="Assets\Scripts\World\Chunk\Generation\IGenerator.cs" />
     <Compile Include="Assets\Scripts\Events\PlayerChunkMotion.cs" />
     <Compile Include="Assets\Scripts\World\Chunk\View.cs" />
-    <Compile Include="Assets\Scripts\World\WorldModelStore.cs" />
     <Compile Include="Assets\Scripts\Voxel\CardinalPoint.cs" />
     <Compile Include="Assets\Scripts\World\Chunk\Coordinates.cs" />
     <Compile Include="Assets\Scripts\Voxel\Enums.cs" />
