@@ -5,20 +5,28 @@ namespace Erelia.Player
 	public sealed class EncounterTriggerEmitter : MonoBehaviour
 	{
 		[SerializeField] private Erelia.World.Presenter worldPresenter;
+		private bool awaitingScreenHided;
 
 		private void OnEnable()
 		{
 			Erelia.Event.Bus.Subscribe<Erelia.Event.PlayerMotion>(OnPlayerMotion);
+			Erelia.Event.Bus.Subscribe<Erelia.Event.ScreenHided>(OnScreenHided);
 		}
 
 		private void OnDisable()
 		{
 			Erelia.Event.Bus.Unsubscribe<Erelia.Event.PlayerMotion>(OnPlayerMotion);
+			Erelia.Event.Bus.Unsubscribe<Erelia.Event.ScreenHided>(OnScreenHided);
 		}
 
 		private void OnPlayerMotion(Erelia.Event.PlayerMotion evt)
 		{
 			if (evt == null)
+			{
+				return;
+			}
+
+			if (awaitingScreenHided)
 			{
 				return;
 			}
@@ -57,13 +65,31 @@ namespace Erelia.Player
 			}
 
 			float encounterChance = Mathf.Clamp01(table.EncounterChance);
-			if (Random.value > encounterChance)
+			if (encounterChance <= 0f || (encounterChance < 1f && Random.value > encounterChance))
 			{
 				return;
 			}
 
+			Erelia.Battle.Board.Model battleBoard = Erelia.Battle.BattleBoardConstructor.ExportArea(table, worldModel, worldPosition);
+
 			Debug.Log($"Encounter trigger: id={encounterId} world={worldPosition} cell=({localX},{localY},{localZ})");
-			Erelia.Event.Bus.Emit(new Erelia.Event.EncounterTriggerEvent(table));
+			Erelia.Event.EncounterTriggerEvent encounterEvent = new Erelia.Event.EncounterTriggerEvent(table, battleBoard);
+			Erelia.Encounter.EncounterContext.SetEncounter(encounterEvent);
+			Erelia.Event.Bus.Emit(encounterEvent);
+
+			awaitingScreenHided = true;
+			Erelia.Event.Bus.Emit(new Erelia.Event.EnterTransitionOn());
+		}
+
+		private void OnScreenHided(Erelia.Event.ScreenHided evt)
+		{
+			if (!awaitingScreenHided)
+			{
+				return;
+			}
+
+			awaitingScreenHided = false;
+			Erelia.SceneBootstrapper.LoadScene(Erelia.SceneKind.Battle);
 		}
 
 		private static Vector3Int WorldToCell(Vector3 worldPosition)
@@ -73,5 +99,6 @@ namespace Erelia.Player
 				Mathf.FloorToInt(worldPosition.y),
 				Mathf.FloorToInt(worldPosition.z));
 		}
+
 	}
 }
