@@ -5,28 +5,20 @@ namespace Erelia.Player
 	public sealed class EncounterTriggerEmitter : MonoBehaviour
 	{
 		[SerializeField] private Erelia.World.Presenter worldPresenter;
-		private bool awaitingScreenHided;
-
+		
 		private void OnEnable()
 		{
 			Erelia.Event.Bus.Subscribe<Erelia.Event.PlayerMotion>(OnPlayerMotion);
-			Erelia.Event.Bus.Subscribe<Erelia.Event.ScreenHided>(OnScreenHided);
 		}
 
 		private void OnDisable()
 		{
 			Erelia.Event.Bus.Unsubscribe<Erelia.Event.PlayerMotion>(OnPlayerMotion);
-			Erelia.Event.Bus.Unsubscribe<Erelia.Event.ScreenHided>(OnScreenHided);
 		}
 
 		private void OnPlayerMotion(Erelia.Event.PlayerMotion evt)
 		{
 			if (evt == null)
-			{
-				return;
-			}
-
-			if (awaitingScreenHided)
 			{
 				return;
 			}
@@ -76,20 +68,6 @@ namespace Erelia.Player
 			Erelia.Event.EncounterTriggerEvent encounterEvent = new Erelia.Event.EncounterTriggerEvent(table, battleBoard);
 			Erelia.Encounter.EncounterContext.SetEncounter(encounterEvent);
 			Erelia.Event.Bus.Emit(encounterEvent);
-
-			awaitingScreenHided = true;
-			Erelia.Event.Bus.Emit(new Erelia.Event.EnterTransitionOn());
-		}
-
-		private void OnScreenHided(Erelia.Event.ScreenHided evt)
-		{
-			if (!awaitingScreenHided)
-			{
-				return;
-			}
-
-			awaitingScreenHided = false;
-			Erelia.SceneBootstrapper.LoadScene(Erelia.SceneKind.Battle);
 		}
 
 		private static Vector3Int WorldToCell(Vector3 worldPosition)

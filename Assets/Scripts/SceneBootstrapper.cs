@@ -18,31 +18,8 @@ namespace Erelia
 			instance = new SceneBootstrapper();
 		}
 
-		private SceneBootstrapper()
-		{
-			UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
-		}
-
-		~SceneBootstrapper()
-		{
-			UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
-		}
-
-		private void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
-		{
-			if (scene.path == BattleScenePath)
-			{
-				Erelia.Event.Bus.Emit(new Erelia.Event.EnterTransitionOff());
-			}
-		}
-
 		public static AsyncOperation LoadScene(SceneKind scene)
 		{
-			if (instance == null)
-			{
-				instance = new SceneBootstrapper();
-			}
-
 			string path = GetScenePath(scene);
 			return UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(path, UnityEngine.SceneManagement.LoadSceneMode.Single);
 		}
