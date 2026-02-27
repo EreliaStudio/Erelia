@@ -216,6 +216,52 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1 &300000000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 300000001}
+  - component: {fileID: 300000002}
+  m_Layer: 0
+  m_Name: Loader
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &300000001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 300000000}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 40.16262, y: 0, z: 0.09172}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1325544324}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &300000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 300000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20dbc60afaebc924fb56aa61501f27b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Exploration.Loader
+  worldPresenter: {fileID: 1448763376}
+  playerPresenter: {fileID: 769879284}
 --- !u!114 &435618962
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -277,7 +323,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 59164849a7ca3ef4cb4fa966f8de29a6, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Player.View
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Exploration.Player.View
   linkedCamera: {fileID: 1155390733}
 --- !u!114 &769879284
 MonoBehaviour:
@@ -290,7 +336,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0bd1b19b9cbea7a4990a1a6136778907, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Player.Presenter
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Exploration.Player.Presenter
   view: {fileID: 769879283}
   moveAction: {fileID: 1163598497}
   moveSpeed: 5
@@ -305,7 +351,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4c2c7b9b7bdb4c6dbd4b8a90b2e6a4f1, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Player.ChunkMotionEmitter
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Exploration.Player.ChunkMotionEmitter
 --- !u!114 &769879286
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -317,7 +363,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5b3f8d0e2d0a4b39b7a8f6f6f6c3a2b7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Player.PlayerMotionEmitter
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Exploration.Player.PlayerMotionEmitter
 --- !u!114 &769879287
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -551,6 +597,38 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 85ff8cbe84b18734c818b62f8c52aa6d, type: 3}
   m_ActionId: 52d5c2b1-4a1d-4b58-8e2a-7f6d3a2b1c90
+--- !u!1 &1325544323
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1325544324}
+  m_Layer: 0
+  m_Name: ----- SYSTEM -----
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1325544324
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1325544323}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -40.16262, y: -0, z: -0.09172}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 300000001}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1398100211
 GameObject:
   m_ObjectHideFlags: 0
@@ -675,7 +753,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f6a12d3ac23b50f4691df3acf7287e5c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.World.View
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Exploration.World.View
   chunkViewPrefab: {fileID: 3949408341328526713, guid: 148f13db02d49a4408a4db3af642b225, type: 3}
   chunkRoot: {fileID: 1448763374}
   viewTarget: {fileID: 769879282}
@@ -691,7 +769,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6f88b6c622e7594fa3ff80a02efaa64, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.World.Presenter
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Exploration.World.Presenter
   worldView: {fileID: 1448763375}
   chunksPerFrame: 2
   updateIntervalSeconds: 0.1
@@ -848,6 +926,7 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 75938292}
+  - {fileID: 1325544324}
   - {fileID: 2106864557}
   - {fileID: 1062964283}
   - {fileID: 916246252}

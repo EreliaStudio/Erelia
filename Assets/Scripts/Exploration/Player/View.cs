@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Erelia.Player
+namespace Erelia.Exploration.Player
 {
 	public sealed class View : MonoBehaviour
 	{

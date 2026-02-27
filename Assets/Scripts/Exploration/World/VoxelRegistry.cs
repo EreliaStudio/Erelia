@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Erelia
+namespace Erelia.Exploration.World
 {
 	public static class VoxelRegistry
 	{

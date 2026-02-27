@@ -11,9 +11,13 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f048e3fe9d26466a93227b0e38d54f91, type: 3}
   m_Name: BiomeRegistry
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.World.BiomeRegistry
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Exploration.World.BiomeRegistry
   entries:
   - Type: 0
     Data:
       EncounterTable:
-        EncounterChance: 0.1
+        EncounterChance: 1
+        BaseRadius: 10
+        NoiseAmplitude: 4
+        NoiseScale: 0.15
+        NoiseSeed: 1337

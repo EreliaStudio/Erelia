@@ -46,7 +46,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 384f5263de1184e45a001d4fbd3af2c6, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.World.Chunk.View
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Exploration.World.Chunk.View
   meshFilter: {fileID: 8177957520671689797}
   meshRenderer: {fileID: 1365241024233244033}
   meshCollider: {fileID: 6177682965619148671}

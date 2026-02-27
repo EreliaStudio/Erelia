@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Erelia.World
+namespace Erelia.Exploration.World
 {
 	[CreateAssetMenu(menuName = "World/BiomeRegistry", fileName = "BiomeRegistry")]
 	public sealed class BiomeRegistry : Erelia.SingletonRegistry<BiomeRegistry>

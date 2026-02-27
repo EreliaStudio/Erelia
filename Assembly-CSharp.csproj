@@ -66,18 +66,24 @@
     <Compile Include="Assets\Scripts\Encounter\EncounterTableRegistry.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleVoxel\MaskShape.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\View.cs" />
+    <Compile Include="Assets\Scripts\Events\ExplorationSceneEvents.cs" />
+    <Compile Include="Assets\Scripts\Context.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\Registry.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleVoxel\Mesher.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\ChunkMotionEmitter.cs" />
+    <Compile Include="Assets\Scripts\Loading\Loader.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleVoxel\Data.cs" />
     <Compile Include="Assets\Scripts\Events\PlayerChunkMotion.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\Utils.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleVoxel\Shape\Cube.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\Model.cs" />
+    <Compile Include="Assets\Scripts\Battle\Player\Model.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\BiomeData.cs" />
+    <Compile Include="Assets\Scripts\Battle\Camera\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleVoxel\Shape\Stair.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleVoxel\Shape\Slope.cs" />
+    <Compile Include="Assets\Scripts\Events\BattleSceneEvents.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\Shape\Cube.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\Shape\Stair.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleVoxel\Shape\Slab.cs" />
@@ -86,8 +92,8 @@
     <Compile Include="Assets\Scripts\SceneBootstrapper.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\Presenter.cs" />
     <Compile Include="Assets\Scripts\SingletonRegistry.cs" />
-    <Compile Include="Assets\Scripts\Encounter\EncounterContext.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\Shape\Slab.cs" />
+    <Compile Include="Assets\Scripts\Battle\Player\View.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\VoxelRegistry.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\Definition.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\Data.cs" />
@@ -101,6 +107,7 @@
     <Compile Include="Assets\Scripts\Exploration\Camera\Model.cs" />
     <Compile Include="Assets\Scripts\Events\Bus.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\Coordinates.cs" />
+    <Compile Include="Assets\Scripts\Battle\Player\Presenter.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Presenter.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleVoxel\Shape\CrossPlane.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\View.cs" />
@@ -111,10 +118,12 @@
     <Compile Include="Assets\Scripts\Exploration\World\BiomeType.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\BattleBoardConstructor.cs" />
     <Compile Include="Assets\Scripts\Events\EncounterTriggerEvent.cs" />
+    <Compile Include="Assets\Scripts\Battle\Camera\Presenter.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\Generation\IGenerator.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\Shape\Slope.cs" />
     <Compile Include="Assets\Scripts\Exploration\Loader.cs" />
     <Compile Include="Assets\Scripts\Battle\Loader.cs" />
+    <Compile Include="Assets\Scripts\Battle\Camera\View.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

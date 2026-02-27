@@ -9,7 +9,7 @@ namespace Erelia
 		public const string ExplorationScenePath = "Assets/Scene/ExplorationScene.unity";
 		public const string BattleScenePath = "Assets/Scene/BattleScene.unity";
 
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 		private static void Initialize()
 		{
 			if (instance != null)
@@ -22,12 +22,8 @@ namespace Erelia
 
 		private SceneBootstrapper()
 		{
-			Event.Bus.Subscribe<Erelia.Event.EncounterTriggerEvent>(handleEncounterTriggerEvent);
-		}
-
-		private void handleEncounterTriggerEvent(Erelia.Event.EncounterTriggerEvent encounterEvent)
-		{
-			LoadScene(SceneKind.Battle);
+			Event.Bus.Subscribe<Erelia.Event.ExplorationSceneDataRequest>(_ => LoadScene(SceneKind.Exploration));
+			Event.Bus.Subscribe<Erelia.Event.BattleSceneDataRequest>(_ => LoadScene(SceneKind.Battle));
 		}
 
 		public static AsyncOperation LoadScene(SceneKind scene)

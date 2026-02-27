@@ -11,5 +11,5 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 91236b82a1c5896488b3b9929f44f55b, type: 3}
   m_Name: SimpleDebugChunkGenerator
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.World.Chunk.Generation.SimpleDebugChunkGenerator
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Exploration.World.Chunk.Generation.SimpleDebugChunkGenerator
   biomeRegistry: {fileID: 11400000, guid: 40ab0630b4e8ccd4aa23c339bec315f3, type: 2}

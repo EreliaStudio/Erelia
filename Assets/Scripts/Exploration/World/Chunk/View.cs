@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Erelia.World.Chunk
+namespace Erelia.Exploration.World.Chunk
 {
 	public sealed class View : MonoBehaviour
 	{

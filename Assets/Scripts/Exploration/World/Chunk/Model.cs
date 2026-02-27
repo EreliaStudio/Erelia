@@ -1,6 +1,6 @@
 using System;
 
-namespace Erelia.World.Chunk
+namespace Erelia.Exploration.World.Chunk
 {
 	public sealed class Model
 	{

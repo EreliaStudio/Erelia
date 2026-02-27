@@ -1,10 +1,10 @@
 using UnityEngine;
 
-namespace Erelia.World
+namespace Erelia.Exploration.World
 {
 	public sealed class View : MonoBehaviour
 	{
-		[SerializeField] private Erelia.World.Chunk.View chunkViewPrefab;
+		[SerializeField] private Erelia.Exploration.World.Chunk.View chunkViewPrefab;
 		[SerializeField] private Transform chunkRoot;
 		[SerializeField] private Transform viewTarget;
 		[SerializeField] private int viewRadius = 6;
@@ -12,7 +12,7 @@ namespace Erelia.World
 		public Transform ViewTarget => viewTarget;
 		public int ViewRadius => viewRadius;
 
-		public Erelia.World.Chunk.View CreateChunkView(Erelia.World.Chunk.Coordinates coordinates)
+		public Erelia.Exploration.World.Chunk.View CreateChunkView(Erelia.Exploration.World.Chunk.Coordinates coordinates)
 		{
 			if (chunkViewPrefab == null)
 			{
@@ -20,7 +20,7 @@ namespace Erelia.World
 			}
 
 			Transform parent = chunkRoot != null ? chunkRoot : transform;
-			Erelia.World.Chunk.View view = Instantiate(chunkViewPrefab, parent);
+			Erelia.Exploration.World.Chunk.View view = Instantiate(chunkViewPrefab, parent);
 			if (coordinates != null)
 			{
 				view.transform.position = coordinates.WorldOrigin();

@@ -1,9 +1,9 @@
 using UnityEngine;
 
-namespace Erelia.World.Chunk.Generation
+namespace Erelia.Exploration.World.Chunk.Generation
 {
 	public abstract class IGenerator : ScriptableObject
 	{
-		public abstract void Generate(Erelia.World.Chunk.Model chunk, Erelia.World.Chunk.Coordinates coordinates, Erelia.World.Model worldModel);
+		public abstract void Generate(Erelia.Exploration.World.Chunk.Model chunk, Erelia.Exploration.World.Chunk.Coordinates coordinates, Erelia.Exploration.World.Model worldModel);
 	}
 }

@@ -1,11 +1,11 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Erelia.Camera
+namespace Erelia.Exploration.Camera
 {
 	public sealed class Presenter : MonoBehaviour
 	{
-		[SerializeField] private Erelia.Camera.View view;
+		[SerializeField] private Erelia.Exploration.Camera.View view;
 		[SerializeField] private InputActionReference lookAction;
 		[SerializeField] private InputActionReference orbitAction;
 		[SerializeField] private InputActionReference zoomAction;

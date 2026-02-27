@@ -1,15 +1,15 @@
 using UnityEngine;
 
-namespace Erelia.Player
+namespace Erelia.Exploration.Player
 {
 	public sealed class ChunkMotionEmitter : MonoBehaviour
 	{
-		private Erelia.World.Chunk.Coordinates currentChunk = Erelia.World.Chunk.Coordinates.Zero;
+		private Erelia.Exploration.World.Chunk.Coordinates currentChunk = Erelia.Exploration.World.Chunk.Coordinates.Zero;
 
 		private void Awake()
 		{
-			Erelia.World.Chunk.Coordinates current = Erelia.World.Chunk.Coordinates.FromWorld(transform.position);
-			currentChunk = current - new Erelia.World.Chunk.Coordinates(1, 1);
+			Erelia.Exploration.World.Chunk.Coordinates current = Erelia.Exploration.World.Chunk.Coordinates.FromWorld(transform.position);
+			currentChunk = current - new Erelia.Exploration.World.Chunk.Coordinates(1, 1);
 		}
 
 		private void OnEnable()
@@ -24,7 +24,7 @@ namespace Erelia.Player
 
 		private void Start()
 		{
-			Erelia.World.Chunk.Coordinates current = Erelia.World.Chunk.Coordinates.FromWorld(transform.position);
+			Erelia.Exploration.World.Chunk.Coordinates current = Erelia.Exploration.World.Chunk.Coordinates.FromWorld(transform.position);
 			if (!current.Equals(currentChunk))
 			{
 				currentChunk = current;
@@ -39,7 +39,7 @@ namespace Erelia.Player
 				return;
 			}
 
-			Erelia.World.Chunk.Coordinates current = Erelia.World.Chunk.Coordinates.FromWorld(evt.WorldPosition);
+			Erelia.Exploration.World.Chunk.Coordinates current = Erelia.Exploration.World.Chunk.Coordinates.FromWorld(evt.WorldPosition);
 			if (current.Equals(currentChunk))
 			{
 				return;

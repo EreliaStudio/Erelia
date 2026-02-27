@@ -1,11 +1,11 @@
 using UnityEngine;
 
-namespace Erelia.World.Chunk.Generation
+namespace Erelia.Exploration.World.Chunk.Generation
 {
 	[CreateAssetMenu(menuName = "World/Chunk Generator/Simple Debug", fileName = "SimpleDebugChunkGenerator")]
 	public sealed class SimpleDebugChunkGenerator : IGenerator
 	{
-		[SerializeField] private Erelia.World.BiomeRegistry biomeRegistry;
+		[SerializeField] private Erelia.Exploration.World.BiomeRegistry biomeRegistry;
 
 		private void OnEnable()
 		{
@@ -15,16 +15,16 @@ namespace Erelia.World.Chunk.Generation
 			}
 		}
 
-		public override void Generate(Erelia.World.Chunk.Model chunk, Erelia.World.Chunk.Coordinates coordinates, Erelia.World.Model worldModel)
+		public override void Generate(Erelia.Exploration.World.Chunk.Model chunk, Erelia.Exploration.World.Chunk.Coordinates coordinates, Erelia.Exploration.World.Model worldModel)
 		{
 			if (chunk == null)
 			{
 				return;
 			}
 
-			int maxX = Erelia.World.Chunk.Model.SizeX - 1;
-			int maxY = Erelia.World.Chunk.Model.SizeY - 1;
-			int maxZ = Erelia.World.Chunk.Model.SizeZ - 1;
+			int maxX = Erelia.Exploration.World.Chunk.Model.SizeX - 1;
+			int maxY = Erelia.Exploration.World.Chunk.Model.SizeY - 1;
+			int maxZ = Erelia.Exploration.World.Chunk.Model.SizeZ - 1;
 
 			if (maxX < 0 || maxY < 0 || maxZ < 0)
 			{
@@ -39,10 +39,10 @@ namespace Erelia.World.Chunk.Generation
 				}
 			}
 
-			int encounterId = Erelia.World.Chunk.Model.NoEncounterId;
+			int encounterId = Erelia.Exploration.World.Chunk.Model.NoEncounterId;
 			if (biomeRegistry.Entries.Count > 0)
 			{
-				Erelia.World.BiomeData data = biomeRegistry.Entries[0].Data;
+				Erelia.Exploration.World.BiomeData data = biomeRegistry.Entries[0].Data;
 				if (data != null && data.EncounterTable != null &&
 					Erelia.EncounterTableRegistry.TryGetId(data.EncounterTable, out int biomeEncounterId))
 				{

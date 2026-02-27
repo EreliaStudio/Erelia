@@ -1,4 +1,4 @@
-namespace Erelia.World
+namespace Erelia.Exploration.World
 {
 	[System.Serializable]
 	public sealed class BiomeData

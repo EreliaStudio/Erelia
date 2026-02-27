@@ -6,7 +6,7 @@ namespace Erelia.Battle.Board
 	{
 		public static Erelia.Battle.Board.Model ExportArea(
 			Erelia.Encounter.EncounterTable table,
-			Erelia.World.Model worldModel,
+			Erelia.Exploration.World.Model worldModel,
 			Vector3 worldPosition)
 		{
 			if (table == null || worldModel == null)
@@ -17,7 +17,7 @@ namespace Erelia.Battle.Board
 			int maxRadius = GetMaxRadius(table);
 			int sizeX = (maxRadius * 2) + 1;
 			int sizeZ = (maxRadius * 2) + 1;
-			int sizeY = Erelia.World.Chunk.Model.SizeY;
+			int sizeY = Erelia.Exploration.World.Chunk.Model.SizeY;
 
 			var cells = Erelia.BattleVoxel.Cell.CreatePack(sizeX, sizeY, sizeZ, new Erelia.BattleVoxel.Cell(-2));
 
@@ -40,7 +40,7 @@ namespace Erelia.Battle.Board
 						continue;
 					}
 
-					if (!TryGetChunk(worldModel, worldX, worldZ, out Erelia.World.Chunk.Model chunk, out int localX, out int localZ))
+					if (!TryGetChunk(worldModel, worldX, worldZ, out Erelia.Exploration.World.Chunk.Model chunk, out int localX, out int localZ))
 					{
 						continue;
 					}
@@ -90,19 +90,19 @@ namespace Erelia.Battle.Board
 		}
 
 		private static bool TryGetChunk(
-			Erelia.World.Model worldModel,
+			Erelia.Exploration.World.Model worldModel,
 			int worldX,
 			int worldZ,
-			out Erelia.World.Chunk.Model chunk,
+			out Erelia.Exploration.World.Chunk.Model chunk,
 			out int localX,
 			out int localZ)
 		{
-			int sizeX = Erelia.World.Chunk.Model.SizeX;
-			int sizeZ = Erelia.World.Chunk.Model.SizeZ;
+			int sizeX = Erelia.Exploration.World.Chunk.Model.SizeX;
+			int sizeZ = Erelia.Exploration.World.Chunk.Model.SizeZ;
 
 			int chunkX = Mathf.FloorToInt(worldX / (float)sizeX);
 			int chunkZ = Mathf.FloorToInt(worldZ / (float)sizeZ);
-			var coords = new Erelia.World.Chunk.Coordinates(chunkX, chunkZ);
+			var coords = new Erelia.Exploration.World.Chunk.Coordinates(chunkX, chunkZ);
 
 			localX = worldX - (chunkX * sizeX);
 			localZ = worldZ - (chunkZ * sizeZ);

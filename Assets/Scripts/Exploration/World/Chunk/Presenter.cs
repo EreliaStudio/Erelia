@@ -1,13 +1,13 @@
 using UnityEngine;
 
-namespace Erelia.World.Chunk
+namespace Erelia.Exploration.World.Chunk
 {
 	public sealed class Presenter
 	{
-		private readonly Erelia.World.Chunk.Model model;
-		private readonly Erelia.World.Chunk.View view;
+		private readonly Erelia.Exploration.World.Chunk.Model model;
+		private readonly Erelia.Exploration.World.Chunk.View view;
 
-		public Presenter(Erelia.World.Chunk.Model model, Erelia.World.Chunk.View view)
+		public Presenter(Erelia.Exploration.World.Chunk.Model model, Erelia.Exploration.World.Chunk.View view)
 		{
 			this.model = model;
 			this.view = view;
@@ -34,7 +34,7 @@ namespace Erelia.World.Chunk
 			RebuildMeshes();
 		}
 
-		private void OnValidated(Erelia.World.Chunk.Model validatedModel)
+		private void OnValidated(Erelia.Exploration.World.Chunk.Model validatedModel)
 		{
 			RebuildMeshes();
 		}
@@ -46,7 +46,7 @@ namespace Erelia.World.Chunk
 				return;
 			}
 
-			VoxelKit.Registry registry = Erelia.VoxelRegistry.Instance;
+			VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
 
 			view.SetRenderMesh(VoxelKit.Mesher.BuildRenderMesh(model.Cells, registry, VoxelKit.Mesher.AnyVoxelPredicate));
 			view.SetCollisionMesh(VoxelKit.Mesher.BuildCollisionMesh(model.Cells, registry, VoxelKit.Mesher.OnlyObstacleVoxelPredicate));

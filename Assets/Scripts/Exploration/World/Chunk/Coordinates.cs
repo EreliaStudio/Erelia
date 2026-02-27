@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Erelia.World.Chunk
+namespace Erelia.Exploration.World.Chunk
 {
 	[Serializable]
 	public class Coordinates : IEquatable<Coordinates>
@@ -36,8 +36,8 @@ namespace Erelia.World.Chunk
 
 		public static Coordinates FromWorld(Vector3 worldPosition)
 		{
-			int x = Mathf.FloorToInt(worldPosition.x / Erelia.World.Chunk.Model.SizeX);
-			int z = Mathf.FloorToInt(worldPosition.z / Erelia.World.Chunk.Model.SizeZ);
+			int x = Mathf.FloorToInt(worldPosition.x / Erelia.Exploration.World.Chunk.Model.SizeX);
+			int z = Mathf.FloorToInt(worldPosition.z / Erelia.Exploration.World.Chunk.Model.SizeZ);
 			return new Coordinates(x, z);
 		}
 
@@ -54,18 +54,18 @@ namespace Erelia.World.Chunk
 		public Vector3 WorldOrigin(float y = 0f)
 		{
 			return new Vector3(
-				X * Erelia.World.Chunk.Model.SizeX,
+				X * Erelia.Exploration.World.Chunk.Model.SizeX,
 				y,
-				Z * Erelia.World.Chunk.Model.SizeZ
+				Z * Erelia.Exploration.World.Chunk.Model.SizeZ
 			);
 		}
 
 		public Vector3 WorldCenter(float y = 0f)
 		{
 			return WorldOrigin(y) + new Vector3(
-				Erelia.World.Chunk.Model.SizeX * 0.5f,
+				Erelia.Exploration.World.Chunk.Model.SizeX * 0.5f,
 				0f,
-				Erelia.World.Chunk.Model.SizeZ * 0.5f
+				Erelia.Exploration.World.Chunk.Model.SizeZ * 0.5f
 			);
 		}
 
