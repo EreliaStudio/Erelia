@@ -1,8 +1,8 @@
 using UnityEngine;
 
-namespace Erelia.Battle
+namespace Erelia.Battle.Board
 {
-	public static class BattleBoardConstructor
+	public static class Constructor
 	{
 		public static Erelia.Battle.Board.Model ExportArea(
 			Erelia.Encounter.EncounterTable table,
@@ -19,7 +19,7 @@ namespace Erelia.Battle
 			int sizeZ = (maxRadius * 2) + 1;
 			int sizeY = Erelia.World.Chunk.Model.SizeY;
 
-			var cells = VoxelKit.Cell.CreatePack(sizeX, sizeY, sizeZ, new VoxelKit.Cell(-2));
+			var cells = Erelia.BattleVoxel.Cell.CreatePack(sizeX, sizeY, sizeZ, new Erelia.BattleVoxel.Cell(-2));
 
 			Vector3Int centerCell = WorldToCell(worldPosition);
 			int originX = centerCell.x - maxRadius;
@@ -50,11 +50,11 @@ namespace Erelia.Battle
 						VoxelKit.Cell source = chunk.Cells[localX, y, localZ];
 						if (source == null)
 						{
-							cells[x, y, z] = new VoxelKit.Cell(-1);
+							cells[x, y, z] = new Erelia.BattleVoxel.Cell(-1);
 						}
 						else
 						{
-							cells[x, y, z] = new VoxelKit.Cell(source.Id, source.Orientation, source.FlipOrientation);
+							cells[x, y, z] = new Erelia.BattleVoxel.Cell(source.Id, source.Orientation, source.FlipOrientation);
 						}
 					}
 				}

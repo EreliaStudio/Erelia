@@ -4,7 +4,7 @@ namespace Erelia.Battle.Board
 {
 	public sealed class Model
 	{
-		public VoxelKit.Cell[,,] Cells { get; }
+		public Erelia.BattleVoxel.Cell[,,] Cells { get; }
 		public Vector3Int Origin { get; }
 		public Vector3Int Center { get; }
 
@@ -12,7 +12,7 @@ namespace Erelia.Battle.Board
 		public int SizeY => Cells?.GetLength(1) ?? 0;
 		public int SizeZ => Cells?.GetLength(2) ?? 0;
 
-		public Model(VoxelKit.Cell[,,] cells, Vector3Int origin, Vector3Int center)
+		public Model(Erelia.BattleVoxel.Cell[,,] cells, Vector3Int origin, Vector3Int center)
 		{
 			Cells = cells;
 			Origin = origin;

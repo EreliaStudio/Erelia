@@ -11,9 +11,9 @@ namespace Erelia.World
 		[SerializeField] private Erelia.World.Chunk.Generation.IGenerator chunkGenerator;
 
 		private Erelia.World.Model worldModel;
-		private readonly Dictionary<Erelia.World.Chunk.Coordinates, Erelia.World.Chunk.Presenter> presenters = new Dictionary<Erelia.World.Chunk.Coordinates, Erelia.World.Chunk.Presenter>();
-		private readonly Queue<Erelia.World.Chunk.Coordinates> pendingChunks = new Queue<Erelia.World.Chunk.Coordinates>();
-		private readonly HashSet<Vector2Int> queuedChunkKeys = new HashSet<Vector2Int>();
+		private readonly Dictionary<Erelia.World.Chunk.Coordinates, Erelia.World.Chunk.Presenter> presenters = new();
+		private readonly Queue<Erelia.World.Chunk.Coordinates> pendingChunks = new();
+		private readonly HashSet<Vector2Int> queuedChunkKeys = new();
 		private float updateTimer;
 
 		public Erelia.World.Model WorldModel => worldModel;
@@ -24,8 +24,16 @@ namespace Erelia.World
 			{
 				throw new System.InvalidOperationException("Chunk generator must be assigned on World.Presenter.");
 			}
+		}
 
-			worldModel = new Erelia.World.Model();
+		public void SetModel(Erelia.World.Model model)
+		{
+			if (model == null)
+			{
+				throw new System.ArgumentNullException(nameof(model), "World model cannot be null.");
+			}
+
+			worldModel = model;
 		}
 
 		private void OnEnable()
@@ -40,6 +48,11 @@ namespace Erelia.World
 
 		public Erelia.World.Chunk.Model CreateChunk(Erelia.World.Chunk.Coordinates coordinates)
 		{
+			if (worldModel == null)
+			{
+				throw new System.InvalidOperationException("World model must be assigned before creating chunks.");
+			}
+
 			if (IsChunkLoaded(coordinates))
 			{
 				return worldModel.GetOrCreateChunk(coordinates);
@@ -78,23 +91,20 @@ namespace Erelia.World
 		{
 			if (worldModel == null)
 			{
-				if (chunkGenerator == null)
-				{
-					throw new System.InvalidOperationException("Chunk generator must be assigned on World.Presenter.");
-				}
-
-				worldModel = new Erelia.World.Model();
+				throw new System.InvalidOperationException("World model must be assigned before creating chunk presenters.");
 			}
 
 			Erelia.World.Chunk.Model model = worldModel.GetOrCreateChunk(coordinates);
-			chunkGenerator?.Generate(model, coordinates, worldModel);
+			chunkGenerator.Generate(model, coordinates, worldModel);
 
 			if (presenters.ContainsKey(coordinates))
 			{
 				return model;
 			}
 
-			Erelia.World.Chunk.View view = worldView != null ? worldView.CreateChunkView(coordinates) : null;
+			Erelia.World.Chunk.View view = worldView != null
+				? worldView.CreateChunkView(coordinates)
+				: null;
 
 			var presenter = new Erelia.World.Chunk.Presenter(model, view);
 			presenter.Bind();
@@ -107,9 +117,10 @@ namespace Erelia.World
 		private void ProcessPending(int maxCount)
 		{
 			int created = 0;
+
 			while (created < maxCount && pendingChunks.Count > 0)
 			{
-				Erelia.World.Chunk.Coordinates coords = pendingChunks.Dequeue();
+				var coords = pendingChunks.Dequeue();
 				queuedChunkKeys.Remove(coords.ToVector2Int());
 
 				if (IsChunkLoaded(coords))
@@ -124,19 +135,23 @@ namespace Erelia.World
 
 		private void OnPlayerChunkMotion(Erelia.Event.PlayerChunkMotion evt)
 		{
+			if (worldModel == null)
+			{
+				throw new System.InvalidOperationException("World model must be assigned before reacting to player motion.");
+			}
+
 			if (evt == null || evt.Coordinates == null)
 			{
 				return;
 			}
 
-			Erelia.World.Chunk.Coordinates coordinates = evt.Coordinates;
 			int radius = worldView != null ? worldView.ViewRadius : 0;
 			if (radius <= 0)
 			{
 				return;
 			}
 
-			RebuildPending(coordinates.ToVector2Int(), radius);
+			RebuildPending(evt.Coordinates.ToVector2Int(), radius);
 		}
 
 		private void RebuildPending(Vector2Int center, int radius)
@@ -145,7 +160,7 @@ namespace Erelia.World
 			queuedChunkKeys.Clear();
 
 			int radiusSquared = radius * radius;
-			List<Erelia.World.Chunk.Coordinates> candidates = new List<Erelia.World.Chunk.Coordinates>();
+			List<Erelia.World.Chunk.Coordinates> candidates = new();
 
 			for (int dx = -radius; dx <= radius; dx++)
 			{
@@ -156,9 +171,7 @@ namespace Erelia.World
 						continue;
 					}
 
-					int x = center.x + dx;
-					int z = center.y + dz;
-					Erelia.World.Chunk.Coordinates coords = new Erelia.World.Chunk.Coordinates(x, z);
+					var coords = new Erelia.World.Chunk.Coordinates(center.x + dx, center.y + dz);
 
 					if (IsChunkLoaded(coords))
 					{
@@ -176,9 +189,8 @@ namespace Erelia.World
 				return da.CompareTo(db);
 			});
 
-			for (int i = 0; i < candidates.Count; i++)
+			foreach (var coords in candidates)
 			{
-				Erelia.World.Chunk.Coordinates coords = candidates[i];
 				Vector2Int key = coords.ToVector2Int();
 				if (queuedChunkKeys.Add(key))
 				{
@@ -193,6 +205,7 @@ namespace Erelia.World
 			{
 				pair.Value.Unbind();
 			}
+
 			presenters.Clear();
 		}
 	}

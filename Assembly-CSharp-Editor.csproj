@@ -51,8 +51,8 @@
     <Analyzer Include="C:\Users\User\Documents\UnityProject\Erelia\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d\Runtime\MVVM\SourceGenerators\netstandard2.0\MVVMSourceGenerators.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\BattleVoxel\Editor\BattleVoxelDefinitionEditor.cs" />
-    <Compile Include="Assets\Scripts\Voxel\Editor\VoxelDefinitionEditor.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleVoxel\Editor\BattleVoxelDefinitionEditor.cs" />
+    <Compile Include="Assets\Scripts\VoxelKit\Editor\VoxelDefinitionEditor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

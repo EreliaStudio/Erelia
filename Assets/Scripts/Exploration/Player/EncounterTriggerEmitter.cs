@@ -62,7 +62,7 @@ namespace Erelia.Player
 				return;
 			}
 
-			Erelia.Battle.Board.Model battleBoard = Erelia.Battle.BattleBoardConstructor.ExportArea(table, worldModel, worldPosition);
+			Erelia.Battle.Board.Model battleBoard = Erelia.Battle.Board.Constructor.ExportArea(table, worldModel, worldPosition);
 
 			Debug.Log($"Encounter trigger: id={encounterId} world={worldPosition} cell=({localX},{localY},{localZ})");
 			Erelia.Event.EncounterTriggerEvent encounterEvent = new Erelia.Event.EncounterTriggerEvent(table, battleBoard);

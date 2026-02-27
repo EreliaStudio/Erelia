@@ -1,4 +1,6 @@
+using Erelia.Event;
 using UnityEngine;
+
 namespace Erelia
 {
 	public sealed class SceneBootstrapper
@@ -16,6 +18,16 @@ namespace Erelia
 			}
 
 			instance = new SceneBootstrapper();
+		}
+
+		private SceneBootstrapper()
+		{
+			Event.Bus.Subscribe<Erelia.Event.EncounterTriggerEvent>(handleEncounterTriggerEvent);
+		}
+
+		private void handleEncounterTriggerEvent(Erelia.Event.EncounterTriggerEvent encounterEvent)
+		{
+			LoadScene(SceneKind.Battle);
 		}
 
 		public static AsyncOperation LoadScene(SceneKind scene)
