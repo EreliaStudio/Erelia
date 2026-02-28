@@ -12,14 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00b74c8270a37814296776b802436303, type: 3}
   m_Name: MaskSpriteRegistry
   m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.MaskSpriteRegistry
-  entries:
-  - Type: 0
-    Sprite: {fileID: -6206216, guid: 2517ddb502fd08a48817428587c727a7, type: 3}
-  - Type: 1
-    Sprite: {fileID: -1411818339, guid: 2517ddb502fd08a48817428587c727a7, type: 3}
-  - Type: 2
-    Sprite: {fileID: 1467891520, guid: 2517ddb502fd08a48817428587c727a7, type: 3}
-  - Type: 3
-    Sprite: {fileID: 2125067873, guid: 2517ddb502fd08a48817428587c727a7, type: 3}
-  - Type: 4
-    Sprite: {fileID: -2112607718, guid: 2517ddb502fd08a48817428587c727a7, type: 3}
+  placementSprite: {fileID: -1439010952, guid: 2517ddb502fd08a48817428587c727a7, type: 3}
+  enemyPlacementSprite: {fileID: -181163885, guid: 2517ddb502fd08a48817428587c727a7, type: 3}
+  attackRangeSprite: {fileID: -1411818339, guid: 2517ddb502fd08a48817428587c727a7, type: 3}
+  movementRangeSprite: {fileID: 1467891520, guid: 2517ddb502fd08a48817428587c727a7, type: 3}
+  areaOfEffectSprite: {fileID: 2125067873, guid: 2517ddb502fd08a48817428587c727a7, type: 3}
+  selectedSprite: {fileID: -2112607718, guid: 2517ddb502fd08a48817428587c727a7, type: 3}

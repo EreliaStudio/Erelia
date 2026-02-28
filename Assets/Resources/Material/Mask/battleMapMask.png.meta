@@ -112,14 +112,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b84b2a7c9c23a2541b394bd59a14fee8
+      spriteID: 1de311a33743d4546992b00c1f327d7a
       internalID: -2112607718
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: PlacementMask
+      name: PlayerPlacementMask
       rect:
         serializedVersion: 2
         x: 16
@@ -134,14 +134,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3b5abbf73a61f0e43b592400358cf444
-      internalID: -6206216
+      spriteID: 156a7b9673516ed4096978e72f364599
+      internalID: -1439010952
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: MovementRangeMask
+      name: EnemyPlacementMask
       rect:
         serializedVersion: 2
         x: 32
@@ -156,14 +156,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0f68311654979b746a766f02b2b3b5ae
-      internalID: 1467891520
+      spriteID: 338863feabbc74748af5107ee7f15d85
+      internalID: -181163885
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: AttackRangeMask
+      name: MovementRangeMask
       rect:
         serializedVersion: 2
         x: 48
@@ -178,14 +178,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 81abb3b6f6cd298458dcc1a7b0ebbeeb
-      internalID: -1411818339
+      spriteID: 836ffc81b1fb8484587c5804320cf0aa
+      internalID: 1467891520
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: AreaOfEffectMask
+      name: AttackRangeMask
       rect:
         serializedVersion: 2
         x: 64
@@ -200,7 +200,29 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: fc1a3138db286cd40b953cf1f779cdf0
+      spriteID: 1878fe6e16a1ad947be0e3b53bb817fe
+      internalID: -1411818339
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: AreaOfEffectMask
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ab0a0f88c3509be42a9d4ee13f4c3107
       internalID: 2125067873
       vertices: []
       indices: 
@@ -224,8 +246,9 @@ TextureImporter:
     nameFileIdTable:
       AreaOfEffectMask: 2125067873
       AttackRangeMask: -1411818339
+      EnemyPlacementMask: -181163885
       MovementRangeMask: 1467891520
-      PlacementMask: -6206216
+      PlayerPlacementMask: -1439010952
       SelectedMask: -2112607718
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0

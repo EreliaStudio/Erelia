@@ -21,12 +21,12 @@ namespace Erelia.Exploration.World.Chunk
 
 		public void SetCollisionMesh(Mesh collisionMesh)
 		{
-			
 			if (meshCollider != null && meshCollider.sharedMesh != null)
 			{
 				DestroyMesh(meshCollider.sharedMesh);
 				meshCollider.sharedMesh = null;
 			}
+			
 			meshCollider.sharedMesh = collisionMesh;
 		}
 

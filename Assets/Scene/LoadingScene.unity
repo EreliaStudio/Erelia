@@ -118,6 +118,7 @@ NavMeshSettings:
     preserveTilesOutsideBounds: 0
     debug:
       m_Flags: 0
+  m_NavMeshData: {fileID: 0}
 --- !u!1 &100000
 GameObject:
   m_ObjectHideFlags: 0
@@ -162,3 +163,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf8927f70ebb4ee58f15bc43edad8b84, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Erelia.Loading.Loader
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
+  m_ObjectHideFlags: 0
+  m_Roots:
+  - {fileID: 100001}

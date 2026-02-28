@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle
@@ -9,38 +7,27 @@ namespace Erelia.Battle
 	{
 		protected override string ResourcePath => "Mask/MaskSpriteRegistry";
 
-		[Serializable]
-		public struct Entry
-		{
-			public Erelia.BattleVoxel.Type Type;
-			public Sprite Sprite;
-		}
-
-		[SerializeField] private List<Entry> entries = new List<Entry>();
-
-		private readonly Dictionary<Erelia.BattleVoxel.Type, Sprite> sprites =
-			new Dictionary<Erelia.BattleVoxel.Type, Sprite>();
-
-		public IReadOnlyList<Entry> Entries => entries;
-
-		protected override void Rebuild()
-		{
-			sprites.Clear();
-			for (int i = 0; i < entries.Count; i++)
-			{
-				Entry entry = entries[i];
-				if (entry.Sprite == null)
-				{
-					continue;
-				}
-
-				sprites[entry.Type] = entry.Sprite;
-			}
-		}
+		[SerializeField] private Sprite placementSprite;
+		[SerializeField] private Sprite enemyPlacementSprite;
+		[SerializeField] private Sprite attackRangeSprite;
+		[SerializeField] private Sprite movementRangeSprite;
+		[SerializeField] private Sprite areaOfEffectSprite;
+		[SerializeField] private Sprite selectedSprite;
 
 		public bool TryGetSprite(Erelia.BattleVoxel.Type type, out Sprite sprite)
 		{
-			return sprites.TryGetValue(type, out sprite);
+			sprite = type switch
+			{
+				Erelia.BattleVoxel.Type.Placement => placementSprite,
+				Erelia.BattleVoxel.Type.EnemyPlacement => enemyPlacementSprite,
+				Erelia.BattleVoxel.Type.AttackRange => attackRangeSprite,
+				Erelia.BattleVoxel.Type.MovementRange => movementRangeSprite,
+				Erelia.BattleVoxel.Type.AreaOfEffect => areaOfEffectSprite,
+				Erelia.BattleVoxel.Type.Selected => selectedSprite,
+				_ => null
+			};
+
+			return sprite != null;
 		}
 	}
 }

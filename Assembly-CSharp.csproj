@@ -62,6 +62,7 @@
     <Compile Include="Assets\Scripts\Battle\Phases\PlayerTurnPhase.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\Shape.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\Model.cs" />
+    <Compile Include="Assets\Scripts\Battle\Player\Camera\MouseBoardCellCursor.cs" />
     <Compile Include="Assets\Scripts\Battle\Phases\CleanupPhase.cs" />
     <Compile Include="Assets\Scripts\Battle\Phases\PlacementSide.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\View.cs" />
@@ -79,6 +80,7 @@
     <Compile Include="Assets\Scripts\Battle\Data\BattleData.cs" />
     <Compile Include="Assets\Scripts\Loading\Loader.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleVoxel\Data.cs" />
+    <Compile Include="Assets\Scripts\Battle\Player\MouseBoardCellSelection.cs" />
     <Compile Include="Assets\Scripts\Events\PlayerChunkMotion.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\Utils.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleVoxel\Shape\Cube.cs" />
@@ -102,6 +104,7 @@
     <Compile Include="Assets\Scripts\Exploration\Player\Camera\Model.cs" />
     <Compile Include="Assets\Scripts\SceneBootstrapper.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattlePhaseId.cs" />
+    <Compile Include="Assets\Scripts\Battle\Player\BattlePlayerController.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\Presenter.cs" />
     <Compile Include="Assets\Scripts\SingletonRegistry.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\Shape\Slab.cs" />

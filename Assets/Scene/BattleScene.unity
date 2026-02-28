@@ -146,6 +146,7 @@ GameObject:
   - component: {fileID: 438430410}
   - component: {fileID: 438430414}
   - component: {fileID: 438430413}
+  - component: {fileID: 438430415}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -255,11 +256,45 @@ MonoBehaviour:
   lookAction: {fileID: 629397016}
   orbitAction: {fileID: 647928464}
   zoomAction: {fileID: 367822976}
-  mouseOrbitSensitivity: 0.12
-  keyOrbitSpeed: 90
-  zoomSpeed: 2
-  minOrbitDistance: 2
-  maxOrbitDistance: 25
+  model:
+    mouseOrbitSensitivity: 0.12
+    keyOrbitSpeed: 90
+    zoomSpeed: 2
+    minOrbitDistance: 2
+    maxOrbitDistance: 25
+--- !u!114 &438430415
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 438430409}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 802429228dc46324c90bb54790fa5fbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Player.Camera.MouseBoardCellCursor
+  targetCamera: {fileID: 438430411}
+  mask:
+    serializedVersion: 2
+    m_Bits: 64
+  maxDistance: 500
+  triggerInteraction: 1
+  boardTag: Board
+--- !u!114 &471932010
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Cancel
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: bbd0c6c3cebd0a34a9d58cc4bade85af, type: 3}
+  m_ActionId: d1f12a0d-6776-4431-a426-7756026efd1e
 --- !u!1 &513061850
 GameObject:
   m_ObjectHideFlags: 0
@@ -271,6 +306,8 @@ GameObject:
   - component: {fileID: 513061851}
   - component: {fileID: 513061853}
   - component: {fileID: 513061852}
+  - component: {fileID: 513061855}
+  - component: {fileID: 513061854}
   m_Layer: 0
   m_Name: PlayerManager
   m_TagString: Untagged
@@ -322,6 +359,51 @@ MonoBehaviour:
   view: {fileID: 513061852}
   moveAction: {fileID: 1071135990}
   moveSpeed: 5
+--- !u!114 &513061854
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 513061850}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 748d53e0400cd254ba3289f51b03bb1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Player.BattlePlayerController
+  cursor: {fileID: 438430415}
+  boardPresenter: {fileID: 1079300952}
+  confirmAction: {fileID: 624909950}
+  cancelAction: {fileID: 471932010}
+--- !u!114 &513061855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 513061850}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50b175d74a2e3e9468267e5ceb96020c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Player.MouseBoardCellSelection
+  cursor: {fileID: 438430415}
+  boardPresenter: {fileID: 1079300952}
+  selectionMask: 5
+--- !u!114 &624909950
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Confirm
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: bbd0c6c3cebd0a34a9d58cc4bade85af, type: 3}
+  m_ActionId: 85496628-ef7d-4368-aa9f-e9581fd8ab77
 --- !u!114 &629397016
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -396,19 +478,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.BattleManager
   startPhase: 1
   phaseRegistry:
-    initialize: {}
     placement:
       boardPresenter: {fileID: 1079300952}
-      placementSide: 0
-      placementDepth: 2
-      placementMask: 0
-      clearOnExit: 1
-    playerTurn: {}
-    enemyTurn: {}
-    resolveAction: {}
-    victory: {}
-    defeat: {}
-    cleanup: {}
 --- !u!1 &661764515
 GameObject:
   m_ObjectHideFlags: 0
@@ -598,7 +669,7 @@ GameObject:
   - component: {fileID: 1079300952}
   m_Layer: 0
   m_Name: BoardManager
-  m_TagString: Untagged
+  m_TagString: Board
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -662,9 +733,9 @@ GameObject:
   - component: {fileID: 1079300972}
   - component: {fileID: 1079300973}
   - component: {fileID: 1079300974}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: BoardVoxel
-  m_TagString: Untagged
+  m_TagString: Board
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -774,9 +845,9 @@ GameObject:
   - component: {fileID: 1079300981}
   - component: {fileID: 1079300982}
   - component: {fileID: 1079300983}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: BoardMask
-  m_TagString: Untagged
+  m_TagString: Board
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

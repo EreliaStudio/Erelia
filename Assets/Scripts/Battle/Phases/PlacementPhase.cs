@@ -8,9 +8,9 @@ namespace Erelia.Battle
 	{
 		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
 
-		private readonly List<Vector3Int> maskedCells = new List<Vector3Int>();
 		private bool pendingApply;
 		private const Erelia.BattleVoxel.Type PlacementMask = Erelia.BattleVoxel.Type.Placement;
+		private const Erelia.BattleVoxel.Type EnemyPlacementMask = Erelia.BattleVoxel.Type.EnemyPlacement;
 
 		public override BattlePhaseId Id => BattlePhaseId.Placement;
 
@@ -78,81 +78,198 @@ namespace Erelia.Battle
 				return false;
 			}
 
-			maskedCells.Clear();
-			ApplyPlacementMask(board, playerCenter, enemyCenter);
+			VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
+			if (registry == null)
+			{
+				Debug.LogWarning("[Erelia.Battle.PlacementPhase] Voxel registry is not assigned.");
+				return false;
+			}
+
+			ApplyPlacementMask(board, registry, playerCenter, enemyCenter);
 			presenter.RebuildMasks();
 			return true;
 		}
 
 		private void ApplyPlacementMask(
 			Erelia.Battle.Board.Model board,
+			VoxelKit.Registry registry,
 			Vector2Int playerCenter,
 			Vector2Int enemyCenter)
 		{
-			if (board == null || board.Cells == null)
-			{
-				return;
-			}
-
-			Erelia.BattleVoxel.Cell[,,] cells = board.Cells;
-			int sizeX = cells.GetLength(0);
-			int sizeY = cells.GetLength(1);
-			int sizeZ = cells.GetLength(2);
-
-			if (sizeX <= 0 || sizeY <= 0 || sizeZ <= 0)
+			if (board == null || board.Cells == null || registry == null)
 			{
 				return;
 			}
 
 			int radius = ResolvePlacementRadius();
-			ApplyPlacementCircle(cells, sizeX, sizeZ, playerCenter, radius);
-			ApplyPlacementCircle(cells, sizeX, sizeZ, enemyCenter, radius);
-		}
-
-		private void ApplyPlacementCircle(
-			Erelia.BattleVoxel.Cell[,,] cells,
-			int sizeX,
-			int sizeZ,
-			Vector2Int center,
-			int radius)
-		{
-			if (cells == null || sizeX <= 0 || sizeZ <= 0)
+			int desiredCount = Mathf.Max(0, Mathf.CeilToInt(Mathf.PI * radius * radius));
+			if (desiredCount <= 0)
 			{
 				return;
 			}
 
-			int minX = Mathf.Max(0, center.x - radius);
-			int maxX = Mathf.Min(sizeX - 1, center.x + radius);
-			int minZ = Mathf.Max(0, center.y - radius);
-			int maxZ = Mathf.Min(sizeZ - 1, center.y + radius);
-			int radiusSq = radius * radius;
-
-			for (int x = minX; x <= maxX; x++)
+			var candidates = CollectPlacementCandidates(board.Cells, registry);
+			if (candidates.Count == 0)
 			{
-				int dx = x - center.x;
-				for (int z = minZ; z <= maxZ; z++)
+				return;
+			}
+
+			int maxPerTeam = Mathf.Min(desiredCount, candidates.Count / 2);
+			if (maxPerTeam <= 0)
+			{
+				return;
+			}
+
+			if (maxPerTeam < desiredCount)
+			{
+				Debug.LogWarning($"[Erelia.Battle.PlacementPhase] Not enough placement cells for desired count {desiredCount}. Using {maxPerTeam} per team.");
+			}
+
+			var assignments = AssignPlacementCells(candidates, playerCenter, enemyCenter, maxPerTeam);
+			ApplyAssignments(board.Cells, assignments.Player, PlacementMask);
+			ApplyAssignments(board.Cells, assignments.Enemy, EnemyPlacementMask);
+		}
+
+		private static void ApplyAssignments(
+			Erelia.BattleVoxel.Cell[,,] cells,
+			List<Vector3Int> positions,
+			Erelia.BattleVoxel.Type maskType)
+		{
+			if (cells == null || positions == null || positions.Count == 0)
+			{
+				return;
+			}
+
+			int sizeX = cells.GetLength(0);
+			int sizeY = cells.GetLength(1);
+			int sizeZ = cells.GetLength(2);
+
+			for (int i = 0; i < positions.Count; i++)
+			{
+				Vector3Int pos = positions[i];
+				if (pos.x < 0 || pos.x >= sizeX || pos.y < 0 || pos.y >= sizeY || pos.z < 0 || pos.z >= sizeZ)
 				{
-					int dz = z - center.y;
-					if ((dx * dx + dz * dz) > radiusSq)
-					{
-						continue;
-					}
+					continue;
+				}
 
-					if (!TryGetPlacementSurface(cells, x, z, out int y))
-					{
-						continue;
-					}
+				Erelia.BattleVoxel.Cell cell = cells[pos.x, pos.y, pos.z];
+				if (cell == null || cell.HasMask(maskType))
+				{
+					continue;
+				}
 
-					Erelia.BattleVoxel.Cell cell = cells[x, y, z];
-					if (cell == null || cell.HasMask(PlacementMask))
-					{
-						continue;
-					}
+				cell.AddMask(maskType);
+			}
+		}
 
-					cell.AddMask(PlacementMask);
-					maskedCells.Add(new Vector3Int(x, y, z));
+		private static List<Vector3Int> CollectPlacementCandidates(Erelia.BattleVoxel.Cell[,,] cells, VoxelKit.Registry registry)
+		{
+			var candidates = new List<Vector3Int>();
+			if (cells == null || registry == null)
+			{
+				return candidates;
+			}
+
+			int sizeX = cells.GetLength(0);
+			int sizeZ = cells.GetLength(2);
+			for (int x = 0; x < sizeX; x++)
+			{
+				for (int z = 0; z < sizeZ; z++)
+				{
+					if (TryGetPlacementSurface(cells, registry, x, z, out int y))
+					{
+						candidates.Add(new Vector3Int(x, y, z));
+					}
 				}
 			}
+
+			return candidates;
+		}
+
+		private static PlacementAssignments AssignPlacementCells(
+			List<Vector3Int> candidates,
+			Vector2Int playerCenter,
+			Vector2Int enemyCenter,
+			int countPerTeam)
+		{
+			var ranked = new List<Candidate>(candidates.Count);
+			for (int i = 0; i < candidates.Count; i++)
+			{
+				Vector3Int pos = candidates[i];
+				float playerDist = DistanceSq(playerCenter, pos);
+				float enemyDist = DistanceSq(enemyCenter, pos);
+				ranked.Add(new Candidate(pos, playerDist, enemyDist));
+			}
+
+			ranked.Sort((a, b) =>
+			{
+				float aBest = Mathf.Min(a.PlayerDistanceSq, a.EnemyDistanceSq);
+				float bBest = Mathf.Min(b.PlayerDistanceSq, b.EnemyDistanceSq);
+				int bestCompare = aBest.CompareTo(bBest);
+				if (bestCompare != 0)
+				{
+					return bestCompare;
+				}
+
+				float aDiff = Mathf.Abs(a.PlayerDistanceSq - a.EnemyDistanceSq);
+				float bDiff = Mathf.Abs(b.PlayerDistanceSq - b.EnemyDistanceSq);
+				return aDiff.CompareTo(bDiff);
+			});
+
+			var player = new List<Vector3Int>(countPerTeam);
+			var enemy = new List<Vector3Int>(countPerTeam);
+			var used = new HashSet<Vector3Int>();
+
+			for (int i = 0; i < ranked.Count; i++)
+			{
+				if (player.Count >= countPerTeam && enemy.Count >= countPerTeam)
+				{
+					break;
+				}
+
+				Candidate candidate = ranked[i];
+				if (used.Contains(candidate.Position))
+				{
+					continue;
+				}
+
+				bool preferPlayer = candidate.PlayerDistanceSq <= candidate.EnemyDistanceSq;
+				if (preferPlayer)
+				{
+					if (player.Count < countPerTeam)
+					{
+						player.Add(candidate.Position);
+						used.Add(candidate.Position);
+					}
+					else if (enemy.Count < countPerTeam)
+					{
+						enemy.Add(candidate.Position);
+						used.Add(candidate.Position);
+					}
+				}
+				else
+				{
+					if (enemy.Count < countPerTeam)
+					{
+						enemy.Add(candidate.Position);
+						used.Add(candidate.Position);
+					}
+					else if (player.Count < countPerTeam)
+					{
+						player.Add(candidate.Position);
+						used.Add(candidate.Position);
+					}
+				}
+			}
+
+			return new PlacementAssignments(player, enemy);
+		}
+
+		private static float DistanceSq(Vector2Int center, Vector3Int pos)
+		{
+			float dx = pos.x - center.x;
+			float dz = pos.z - center.y;
+			return (dx * dx) + (dz * dz);
 		}
 
 		private static int ResolvePlacementRadius()
@@ -185,9 +302,8 @@ namespace Erelia.Battle
 
 		private void ClearPlacementMask(Erelia.Battle.Board.Model board)
 		{
-			if (board == null || board.Cells == null || maskedCells.Count == 0)
+			if (board == null || board.Cells == null)
 			{
-				maskedCells.Clear();
 				return;
 			}
 
@@ -196,27 +312,30 @@ namespace Erelia.Battle
 			int sizeY = cells.GetLength(1);
 			int sizeZ = cells.GetLength(2);
 
-			for (int i = 0; i < maskedCells.Count; i++)
+			for (int x = 0; x < sizeX; x++)
 			{
-				Vector3Int pos = maskedCells[i];
-				if (pos.x < 0 || pos.x >= sizeX || pos.y < 0 || pos.y >= sizeY || pos.z < 0 || pos.z >= sizeZ)
+				for (int y = 0; y < sizeY; y++)
 				{
-					continue;
-				}
+					for (int z = 0; z < sizeZ; z++)
+					{
+						Erelia.BattleVoxel.Cell cell = cells[x, y, z];
+						if (cell == null || !cell.HasAnyMask())
+						{
+							continue;
+						}
 
-				Erelia.BattleVoxel.Cell cell = cells[pos.x, pos.y, pos.z];
-				if (cell == null)
-				{
-					continue;
+						cell.ClearMasks();
+					}
 				}
-
-				cell.RemoveMask(PlacementMask);
 			}
-
-			maskedCells.Clear();
 		}
 
-		private static bool TryGetPlacementSurface(Erelia.BattleVoxel.Cell[,,] cells, int x, int z, out int y)
+		private static bool TryGetPlacementSurface(
+			Erelia.BattleVoxel.Cell[,,] cells,
+			VoxelKit.Registry registry,
+			int x,
+			int z,
+			out int y)
 		{
 			y = -1;
 			if (cells == null)
@@ -228,7 +347,7 @@ namespace Erelia.Battle
 			for (int yi = sizeY - 1; yi >= 0; yi--)
 			{
 				Erelia.BattleVoxel.Cell cell = cells[x, yi, z];
-				if (cell == null || cell.Id < 0)
+				if (!IsObstacleCell(cell, registry))
 				{
 					continue;
 				}
@@ -236,7 +355,7 @@ namespace Erelia.Battle
 				if (yi + 1 < sizeY)
 				{
 					Erelia.BattleVoxel.Cell above = cells[x, yi + 1, z];
-					if (above != null && above.Id >= 0)
+					if (IsObstacleCell(above, registry))
 					{
 						continue;
 					}
@@ -248,5 +367,52 @@ namespace Erelia.Battle
 
 			return false;
 		}
+
+		private static bool IsObstacleCell(Erelia.BattleVoxel.Cell cell, VoxelKit.Registry registry)
+		{
+			if (cell == null || cell.Id < 0)
+			{
+				return false;
+			}
+
+			if (registry == null)
+			{
+				return true;
+			}
+
+			if (!registry.TryGet(cell.Id, out VoxelKit.Definition definition) || definition == null)
+			{
+				return true;
+			}
+
+			return definition.Data != null && definition.Data.Traversal == VoxelKit.Traversal.Obstacle;
+		}
+
+		private readonly struct Candidate
+		{
+			public Candidate(Vector3Int position, float playerDistanceSq, float enemyDistanceSq)
+			{
+				Position = position;
+				PlayerDistanceSq = playerDistanceSq;
+				EnemyDistanceSq = enemyDistanceSq;
+			}
+
+			public Vector3Int Position { get; }
+			public float PlayerDistanceSq { get; }
+			public float EnemyDistanceSq { get; }
+		}
+
+		private readonly struct PlacementAssignments
+		{
+			public PlacementAssignments(List<Vector3Int> player, List<Vector3Int> enemy)
+			{
+				Player = player;
+				Enemy = enemy;
+			}
+
+			public List<Vector3Int> Player { get; }
+			public List<Vector3Int> Enemy { get; }
+		}
+
 	}
 }
