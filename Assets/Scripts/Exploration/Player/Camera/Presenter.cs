@@ -1,11 +1,11 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-namespace Erelia.Battle.Camera
+namespace Erelia.Exploration.Player.Camera
 {
 	public sealed class Presenter : MonoBehaviour
 	{
-		[SerializeField] private Erelia.Battle.Camera.View view;
+		[SerializeField] private Erelia.Exploration.Player.Camera.View view;
 		[SerializeField] private InputActionReference lookAction;
 		[SerializeField] private InputActionReference orbitAction;
 		[SerializeField] private InputActionReference zoomAction;
@@ -23,7 +23,7 @@ namespace Erelia.Battle.Camera
 		{
 			if (view == null)
 			{
-				throw new System.Exception("[Erelia.Camera.Presenter] View is not assigned.");
+				throw new System.Exception("[Erelia.Exploration.Player.Camera.Presenter] View is not assigned.");
 			}
 
 			ResolveActions();
@@ -79,17 +79,17 @@ namespace Erelia.Battle.Camera
 		{
 			if (lookAction == null || lookAction.action == null)
 			{
-				throw new System.Exception("[Erelia.Camera.Presenter] Look action is not assigned.");
+				throw new System.Exception("[Erelia.Exploration.Player.Camera.Presenter] Look action is not assigned.");
 			}
 
 			if (orbitAction == null || orbitAction.action == null)
 			{
-				throw new System.Exception("[Erelia.Camera.Presenter] Orbit action is not assigned.");
+				throw new System.Exception("[Erelia.Exploration.Player.Camera.Presenter] Orbit action is not assigned.");
 			}
 
 			if (zoomAction == null || zoomAction.action == null)
 			{
-				throw new System.Exception("[Erelia.Camera.Presenter] Zoom action is not assigned.");
+				throw new System.Exception("[Erelia.Exploration.Player.Camera.Presenter] Zoom action is not assigned.");
 			}
 
 			resolvedLookAction = lookAction.action;

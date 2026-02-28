@@ -7,10 +7,12 @@ namespace Erelia.BattleVoxel
 	{
 		public static Mesh BuildMaskMesh(
 			Erelia.BattleVoxel.Cell[,,] cells,
-			VoxelKit.Registry registry)
+			VoxelKit.Registry registry,
+			Erelia.Battle.MaskSpriteRegistry maskSpriteRegistry)
 		{
 			var vertices = new List<Vector3>();
 			var uvs = new List<Vector2>();
+			var triangles = new List<int>();
 
 			if (cells == null || registry == null)
 			{
@@ -18,10 +20,23 @@ namespace Erelia.BattleVoxel
 			}
 
 			int typeCount = System.Enum.GetValues(typeof(Erelia.BattleVoxel.Type)).Length;
-			var trianglesByType = new List<int>[typeCount];
-			for (int i = 0; i < typeCount; i++)
+			var uvAnchors = new Vector2[typeCount];
+			var uvSizes = new Vector2[typeCount];
+			var hasUv = new bool[typeCount];
+
+			if (maskSpriteRegistry != null)
 			{
-				trianglesByType[i] = new List<int>();
+				for (int i = 0; i < typeCount; i++)
+				{
+					Erelia.BattleVoxel.Type type = (Erelia.BattleVoxel.Type)i;
+					if (maskSpriteRegistry.TryGetSprite(type, out Sprite sprite) && sprite != null)
+					{
+						VoxelKit.Utils.SpriteUv.GetSpriteUvRect(sprite, out Vector2 uvAnchor, out Vector2 uvSize);
+						uvAnchors[i] = uvAnchor;
+						uvSizes[i] = uvSize;
+						hasUv[i] = true;
+					}
+				}
 			}
 
 			int sizeX = cells.GetLength(0);
@@ -63,16 +78,23 @@ namespace Erelia.BattleVoxel
 
 						Vector3 offset = new Vector3(x, y, z);
 						int typeIndex = (int)topmost;
-						if (typeIndex < 0 || typeIndex >= trianglesByType.Length)
+						if (typeIndex < 0 || typeIndex >= typeCount)
 						{
 							continue;
 						}
 
-						List<int> triangles = trianglesByType[typeIndex];
 						for (int i = 0; i < faces.Count; i++)
 						{
 							VoxelKit.Face transformed = TransformFaceCached(faces[i], cell.Orientation);
-							AddFace(transformed, offset, vertices, triangles, uvs);
+							AddFace(
+								transformed,
+								offset,
+								vertices,
+								triangles,
+								uvs,
+								hasUv[typeIndex],
+								uvAnchors[typeIndex],
+								uvSizes[typeIndex]);
 						}
 					}
 				}
@@ -86,11 +108,7 @@ namespace Erelia.BattleVoxel
 
 			result.SetVertices(vertices);
 			result.SetUVs(0, uvs);
-			result.subMeshCount = trianglesByType.Length;
-			for (int i = 0; i < trianglesByType.Length; i++)
-			{
-				result.SetTriangles(trianglesByType[i], i);
-			}
+			result.SetTriangles(triangles, 0);
 			result.RecalculateNormals();
 			result.RecalculateBounds();
 			return result;
@@ -155,7 +173,10 @@ namespace Erelia.BattleVoxel
 			Vector3 positionOffset,
 			List<Vector3> vertices,
 			List<int> triangles,
-			List<Vector2> uvs)
+			List<Vector2> uvs,
+			bool hasUvTransform,
+			Vector2 uvAnchor,
+			Vector2 uvSize)
 		{
 			if (face == null || face.Polygons == null || face.Polygons.Count == 0)
 			{
@@ -176,7 +197,12 @@ namespace Erelia.BattleVoxel
 				{
 					VoxelKit.Face.Vertex vertex = faceVertices[i];
 					vertices.Add(positionOffset + vertex.Position);
-					uvs.Add(vertex.TileUV);
+					Vector2 uv = vertex.TileUV;
+					if (hasUvTransform)
+					{
+						uv = uvAnchor + Vector2.Scale(uv, uvSize);
+					}
+					uvs.Add(uv);
 				}
 
 				for (int i = 1; i < faceVertices.Count - 1; i++)

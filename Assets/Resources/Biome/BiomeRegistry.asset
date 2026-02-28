@@ -21,3 +21,4 @@ MonoBehaviour:
         NoiseAmplitude: 4
         NoiseScale: 0.15
         NoiseSeed: 1337
+        PlacementRadius: 3

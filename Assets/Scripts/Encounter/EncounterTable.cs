@@ -11,5 +11,7 @@ namespace Erelia.Encounter
 		public int NoiseAmplitude = 4;
 		public float NoiseScale = 0.15f;
 		public int NoiseSeed = 1337;
+		[Min(0)]
+		public int PlacementRadius = 3;
 	}
 }

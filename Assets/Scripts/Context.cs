@@ -6,15 +6,12 @@ namespace Erelia
 
 		public static Context Instance => instance ??= new Context();
 
-		public Erelia.Exploration.World.Model WorldModel { get; private set; }
-		public Erelia.Exploration.Player.Model PlayerModel { get; private set; }
-		public Erelia.Battle.Board.Model PendingBattleBoard { get; private set; }
-		public Erelia.Encounter.EncounterTable PendingEncounterTable { get; private set; }
+		public Erelia.Exploration.Data ExplorationData { get; private set; }
+		public Erelia.Battle.Data BattleData { get; private set; }
 
 		private Context()
 		{
-			WorldModel = new Erelia.Exploration.World.Model();
-			PlayerModel = new Erelia.Exploration.Player.Model();
+			ExplorationData = new Erelia.Exploration.Data();
 		}
 
 		public void SetExploration(Erelia.Exploration.World.Model worldModel, Erelia.Exploration.Player.Model playerModel)
@@ -29,20 +26,33 @@ namespace Erelia
 				throw new System.ArgumentNullException(nameof(playerModel), "Player model cannot be null.");
 			}
 
-			WorldModel = worldModel;
-			PlayerModel = playerModel;
+			ExplorationData = new Erelia.Exploration.Data
+			{
+				WorldModel = worldModel,
+				PlayerModel = playerModel
+			};
 		}
 
 		public void SetBattle(Erelia.Encounter.EncounterTable encounterTable, Erelia.Battle.Board.Model battleBoard)
 		{
-			PendingEncounterTable = encounterTable;
-			PendingBattleBoard = battleBoard;
+			Erelia.Battle.Data data = GetOrCreateBattleData();
+			data.EncounterTable = encounterTable;
+			data.Board = battleBoard;
 		}
 
 		public void ClearBattle()
 		{
-			PendingEncounterTable = null;
-			PendingBattleBoard = null;
+			BattleData = null;
+		}
+
+		public Erelia.Battle.Data GetOrCreateBattleData()
+		{
+			if (BattleData == null)
+			{
+				BattleData = new Erelia.Battle.Data();
+			}
+
+			return BattleData;
 		}
 	}
 }

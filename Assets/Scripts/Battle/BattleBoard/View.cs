@@ -9,7 +9,6 @@ namespace Erelia.Battle.Board
 		[SerializeField] private MeshCollider meshCollider;
 		[SerializeField] private MeshFilter maskMeshFilter;
 		[SerializeField] private MeshRenderer maskMeshRenderer;
-		[SerializeField] private Material[] maskMaterialsByType;
 
 		public void SetRenderMesh(Mesh renderMesh)
 		{
@@ -57,9 +56,9 @@ namespace Erelia.Battle.Board
 			if (maskMeshRenderer != null)
 			{
 				maskMeshRenderer.enabled = maskMesh != null && maskMesh.vertexCount > 0;
-				if (maskMaterialsByType != null && maskMaterialsByType.Length > 0)
+				if (maskMeshRenderer.enabled && maskMeshRenderer.sharedMaterial == null)
 				{
-					maskMeshRenderer.sharedMaterials = EnsureMaterialCount(maskMaterialsByType, maskMesh != null ? maskMesh.subMeshCount : 0);
+					Debug.LogWarning("[Erelia.Battle.Board.View] Assign a mask material on the mask mesh renderer.");
 				}
 			}
 		}
@@ -98,27 +97,6 @@ namespace Erelia.Battle.Board
 			{
 				DestroyImmediate(mesh);
 			}
-		}
-
-		private static Material[] EnsureMaterialCount(Material[] source, int targetCount)
-		{
-			if (source == null)
-			{
-				return null;
-			}
-
-			if (targetCount <= 0 || source.Length == targetCount)
-			{
-				return source;
-			}
-
-			var resized = new Material[targetCount];
-			int copyCount = Mathf.Min(source.Length, targetCount);
-			for (int i = 0; i < copyCount; i++)
-			{
-				resized[i] = source[i];
-			}
-			return resized;
 		}
 	}
 }

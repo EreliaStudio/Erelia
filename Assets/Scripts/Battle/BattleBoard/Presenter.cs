@@ -43,7 +43,8 @@ namespace Erelia.Battle.Board
 			VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
 			Mesh maskMesh = Erelia.BattleVoxel.Mesher.BuildMaskMesh(
 				model.Cells,
-				registry);
+				registry,
+				Erelia.Battle.MaskSpriteRegistry.Instance);
 
 			view.SetMaskMesh(maskMesh);
 		}

@@ -27,7 +27,7 @@ namespace Erelia.Exploration.World
 
 			if (worldModel == null)
 			{
-				worldModel = Erelia.Context.Instance.WorldModel;
+				worldModel = Erelia.Context.Instance.ExplorationData?.WorldModel;
 			}
 		}
 
@@ -57,7 +57,7 @@ namespace Erelia.Exploration.World
 		{
 			if (worldModel == null)
 			{
-				worldModel = Erelia.Context.Instance.WorldModel;
+				worldModel = Erelia.Context.Instance.ExplorationData?.WorldModel;
 				if (worldModel == null)
 				{
 					Debug.LogWarning("[Erelia.Exploration.World.Presenter] World model is missing.");
@@ -149,7 +149,7 @@ namespace Erelia.Exploration.World
 		{
 			if (worldModel == null)
 			{
-				worldModel = Erelia.Context.Instance.WorldModel;
+				worldModel = Erelia.Context.Instance.ExplorationData?.WorldModel;
 				if (worldModel == null)
 				{
 					Debug.LogWarning("[Erelia.Exploration.World.Presenter] World model is missing.");

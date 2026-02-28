@@ -20,14 +20,16 @@ namespace Erelia.Battle
 		{
 			var context = Erelia.Context.Instance;
 
-			if (context.PendingBattleBoard == null)
+			Erelia.Battle.Data data = context.BattleData;
+			Erelia.Battle.Board.Model board = data != null ? data.Board : null;
+			if (board == null)
 			{
 				Debug.LogWarning("[Erelia.Battle.Loader] Battle board model is null.");
 				return;
 			}
 
-			presenter.SetModel(context.PendingBattleBoard);
-			CenterPlayer(context.PendingBattleBoard);
+			presenter.SetModel(board);
+			CenterPlayer(board);
 		}
 
 		private void CenterPlayer(Erelia.Battle.Board.Model board)

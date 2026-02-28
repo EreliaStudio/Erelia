@@ -24,9 +24,16 @@ namespace Erelia.Exploration
 		private void BindFromContext()
 		{
 			var context = Erelia.Context.Instance;
-			
-			worldPresenter.SetModel(context.WorldModel);
-			playerPresenter.SetModel(context.PlayerModel);
+
+			Erelia.Exploration.Data data = context.ExplorationData;
+			if (data == null || data.WorldModel == null || data.PlayerModel == null)
+			{
+				Debug.LogWarning("[Erelia.Exploration.Loader] Exploration data is missing.");
+				return;
+			}
+
+			worldPresenter.SetModel(data.WorldModel);
+			playerPresenter.SetModel(data.PlayerModel);
 		}
 	}
 }

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Erelia.Battle.Camera
+namespace Erelia.Battle.Player.Camera
 {
 	public sealed class View : MonoBehaviour
 	{

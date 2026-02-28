@@ -350,6 +350,65 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: bbd0c6c3cebd0a34a9d58cc4bade85af, type: 3}
   m_ActionId: a9b8c7d6-e5f4-4321-9a0b-1c2d3e4f5a6b
+--- !u!1 &656937539
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 656937540}
+  - component: {fileID: 656937542}
+  m_Layer: 0
+  m_Name: BattleManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &656937540
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 656937539}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 698723366}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &656937542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 656937539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76edbd222a8e8f74995ce85f8e264d00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.BattleManager
+  startPhase: 1
+  phaseRegistry:
+    initialize: {}
+    placement:
+      boardPresenter: {fileID: 1079300952}
+      placementSide: 0
+      placementDepth: 2
+      placementMask: 0
+      clearOnExit: 1
+    playerTurn: {}
+    enemyTurn: {}
+    resolveAction: {}
+    victory: {}
+    defeat: {}
+    cleanup: {}
 --- !u!1 &661764515
 GameObject:
   m_ObjectHideFlags: 0
@@ -412,6 +471,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1352958011}
+  - {fileID: 656937540}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &900618646
@@ -577,7 +637,6 @@ MonoBehaviour:
   meshCollider: {fileID: 1079300974}
   maskMeshFilter: {fileID: 1079300982}
   maskMeshRenderer: {fileID: 1079300983}
-  maskMaterialsByType: []
 --- !u!114 &1079300952
 MonoBehaviour:
   m_ObjectHideFlags: 0
