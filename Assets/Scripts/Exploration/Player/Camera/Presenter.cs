@@ -9,11 +9,7 @@ namespace Erelia.Exploration.Player.Camera
 		[SerializeField] private InputActionReference lookAction;
 		[SerializeField] private InputActionReference orbitAction;
 		[SerializeField] private InputActionReference zoomAction;
-		[SerializeField] private float mouseOrbitSensitivity = 0.12f;
-		[SerializeField] private float keyOrbitSpeed = 90f;
-		[SerializeField] private float zoomSpeed = 2f;
-		[SerializeField] private float minOrbitDistance = 2f;
-		[SerializeField] private float maxOrbitDistance = 25f;
+		[SerializeField] private Erelia.Exploration.Player.Camera.Model model = new Erelia.Exploration.Player.Camera.Model();
 
 		private InputAction resolvedLookAction;
 		private InputAction resolvedOrbitAction;
@@ -24,6 +20,11 @@ namespace Erelia.Exploration.Player.Camera
 			if (view == null)
 			{
 				throw new System.Exception("[Erelia.Exploration.Player.Camera.Presenter] View is not assigned.");
+			}
+
+			if (model == null)
+			{
+				model = new Erelia.Exploration.Player.Camera.Model();
 			}
 
 			ResolveActions();
@@ -59,8 +60,8 @@ namespace Erelia.Exploration.Player.Camera
 			float orbitAxis = resolvedOrbitAction.ReadValue<float>();
 			float zoomAxis = resolvedZoomAction.ReadValue<float>();
 
-			float yawFromMouse = lookAxis * mouseOrbitSensitivity;
-			float yawFromKeys = orbitAxis * keyOrbitSpeed * Time.deltaTime;
+			float yawFromMouse = lookAxis * model.MouseOrbitSensitivity;
+			float yawFromKeys = orbitAxis * model.KeyOrbitSpeed * Time.deltaTime;
 
 			if (Mathf.Abs(yawFromMouse) > 0.0001f || Mathf.Abs(yawFromKeys) > 0.0001f)
 			{
@@ -70,7 +71,7 @@ namespace Erelia.Exploration.Player.Camera
 			if (Mathf.Abs(zoomAxis) > 0.01f)
 			{
 				float scrollSteps = zoomAxis / 120f;
-				float zoomDelta = -scrollSteps * zoomSpeed;
+				float zoomDelta = -scrollSteps * model.ZoomSpeed;
 				ApplyZoom(zoomDelta);
 			}
 		}
@@ -131,7 +132,7 @@ namespace Erelia.Exploration.Player.Camera
 				return;
 			}
 
-			float clamped = Mathf.Clamp(distance + zoomDelta, minOrbitDistance, maxOrbitDistance);
+			float clamped = Mathf.Clamp(distance + zoomDelta, model.MinOrbitDistance, model.MaxOrbitDistance);
 			cameraTransform.localPosition = offset.normalized * clamped;
 			LookAtPivot();
 		}
