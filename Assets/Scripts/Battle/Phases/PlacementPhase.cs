@@ -8,6 +8,11 @@ namespace Erelia.Battle
 	{
 		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
 
+		private readonly List<Erelia.Battle.Unit> placedUnits = new List<Erelia.Battle.Unit>();
+		private readonly Dictionary<Vector3Int, Erelia.Battle.Unit> unitsByCell =
+			new Dictionary<Vector3Int, Erelia.Battle.Unit>();
+		private readonly Dictionary<Creature.Instance, Erelia.Battle.Unit> unitsByCreature =
+			new Dictionary<Creature.Instance, Erelia.Battle.Unit>();
 		private bool pendingApply;
 		private const Erelia.BattleVoxel.Type PlacementMask = Erelia.BattleVoxel.Type.Placement;
 		private const Erelia.BattleVoxel.Type EnemyPlacementMask = Erelia.BattleVoxel.Type.EnemyPlacement;
@@ -328,6 +333,139 @@ namespace Erelia.Battle
 					}
 				}
 			}
+		}
+
+		public IReadOnlyList<Erelia.Battle.Unit> PlacedUnits => placedUnits;
+
+		public bool IsCreaturePlaced(Creature.Instance creature)
+		{
+			if (creature == null)
+			{
+				return false;
+			}
+
+			return unitsByCreature.ContainsKey(creature);
+		}
+
+		public bool TryPlaceCreature(
+			Creature.Instance creature,
+			Vector3Int cell,
+			Erelia.BattleVoxel.Type placementMask,
+			out Erelia.Battle.Unit unit)
+		{
+			unit = null;
+			if (creature == null)
+			{
+				return false;
+			}
+
+			if (IsCreaturePlaced(creature))
+			{
+				Debug.LogWarning("[Erelia.Battle.PlacementPhase] Creature is already placed.");
+				return false;
+			}
+
+			Erelia.Battle.Board.Presenter presenter = ResolvePresenter(null);
+			Erelia.Battle.Board.Model board = presenter != null ? presenter.Model : null;
+			Erelia.BattleVoxel.Cell[,,] cells = board != null ? board.Cells : null;
+			if (cells == null)
+			{
+				return false;
+			}
+
+			if (unitsByCell.ContainsKey(cell))
+			{
+				Debug.LogWarning("[Erelia.Battle.PlacementPhase] Cell is already occupied.");
+				return false;
+			}
+
+			int sizeX = cells.GetLength(0);
+			int sizeY = cells.GetLength(1);
+			int sizeZ = cells.GetLength(2);
+			if (cell.x < 0 || cell.x >= sizeX || cell.y < 0 || cell.y >= sizeY || cell.z < 0 || cell.z >= sizeZ)
+			{
+				return false;
+			}
+
+			Erelia.BattleVoxel.Cell cellData = cells[cell.x, cell.y, cell.z];
+			if (cellData == null || cellData.Id < 0)
+			{
+				return false;
+			}
+
+			if (!cellData.HasMask(placementMask))
+			{
+				Debug.LogWarning("[Erelia.Battle.PlacementPhase] Cell is not a valid placement tile.");
+				return false;
+			}
+
+			if (creature.Species == null || creature.Species.Prefab == null)
+			{
+				Debug.LogWarning("[Erelia.Battle.PlacementPhase] Creature species or prefab is missing.");
+				return false;
+			}
+
+			if (!TryGetPlacementPosition(cell, cellData, out Vector3 position))
+			{
+				return false;
+			}
+
+			GameObject view = Object.Instantiate(
+				creature.Species.Prefab,
+				position,
+				Quaternion.identity,
+				presenter != null ? presenter.transform : null);
+
+			unit = new Erelia.Battle.Unit(creature, cell, view);
+			placedUnits.Add(unit);
+			unitsByCell[cell] = unit;
+			unitsByCreature[creature] = unit;
+
+			cellData.RemoveMask(placementMask);
+			presenter?.RebuildMasks();
+			return true;
+		}
+
+		private bool TryGetPlacementPosition(Vector3Int cell, Erelia.BattleVoxel.Cell cellData, out Vector3 position)
+		{
+			position = default;
+			if (cellData == null)
+			{
+				return false;
+			}
+
+			VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
+			if (registry == null)
+			{
+				return false;
+			}
+
+			if (!registry.TryGet(cellData.Id, out VoxelKit.Definition definition) || definition == null)
+			{
+				return false;
+			}
+
+			if (!(definition is Erelia.BattleVoxel.Definition battleDefinition) || battleDefinition.MaskShape == null)
+			{
+				return false;
+			}
+
+			Vector3 localOffset = battleDefinition.MaskShape.GetCardinalPoint(
+				VoxelKit.CardinalPoint.Stationary,
+				cellData.Orientation,
+				cellData.FlipOrientation);
+			Vector3 localPosition = new Vector3(cell.x, cell.y, cell.z) + localOffset;
+
+			if (boardPresenter != null)
+			{
+				position = boardPresenter.transform.TransformPoint(localPosition);
+			}
+			else
+			{
+				position = localPosition;
+			}
+
+			return true;
 		}
 
 		private static bool TryGetPlacementSurface(

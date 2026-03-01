@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09eaef3cbba07ae459d81b8aace8ccbe, type: 3}
+  m_Name: WildEncounterA
+  m_EditorClassIdentifier: Assembly-CSharp::Creature.Team
+  slots:
+  - {fileID: 11400000, guid: c874e9463772df342bdf9de59098fa31, type: 2}
+  - {fileID: 11400000, guid: ecaa0e9a58a974440ad8c2c160345941, type: 2}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}

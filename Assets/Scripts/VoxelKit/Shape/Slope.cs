@@ -107,6 +107,7 @@ namespace VoxelKit.ShapeType
 
 			return faces;
 		}
+
 	}
 }
 

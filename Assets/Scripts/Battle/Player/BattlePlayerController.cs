@@ -7,6 +7,8 @@ namespace Erelia.Battle.Player
 	{
 		[SerializeField] private Erelia.Battle.Player.Camera.MouseBoardCellCursor cursor;
 		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
+		[SerializeField] private Erelia.Battle.BattleManager battleManager;
+		[SerializeField] private Creature.Team team;
 		[SerializeField] private InputActionReference confirmAction;
 		[SerializeField] private InputActionReference cancelAction;
 
@@ -14,7 +16,7 @@ namespace Erelia.Battle.Player
 		private InputAction resolvedCancelAction;
 		private bool hasHoveredCell;
 		private Vector3Int hoveredCell;
-		private const Erelia.BattleVoxel.Type PlacementMask = Erelia.BattleVoxel.Type.Placement;
+		private int nextTeamIndex;
 
 		private void Awake()
 		{
@@ -26,6 +28,11 @@ namespace Erelia.Battle.Player
 			if (boardPresenter == null)
 			{
 				Debug.LogWarning("[Erelia.Battle.Player.BattlePlayerController] Board presenter is not assigned.");
+			}
+
+			if (battleManager == null)
+			{
+				Debug.LogWarning("[Erelia.Battle.Player.BattlePlayerController] Battle manager is not assigned.");
 			}
 
 			ResolveActions();
@@ -103,18 +110,25 @@ namespace Erelia.Battle.Player
 				return;
 			}
 
-			if (!TryResolveBoardCell(hoveredCell, out Erelia.BattleVoxel.Cell cell))
+			Erelia.Battle.PlacementPhase placementPhase = ResolvePlacementPhase();
+			if (placementPhase == null)
+			{
+				Debug.LogWarning("[Erelia.Battle.Player.BattlePlayerController] Placement phase not active.");
+				return;
+			}
+
+			if (!TryGetNextCreature(placementPhase, out Creature.Instance creature))
+			{
+				Debug.LogWarning("[Erelia.Battle.Player.BattlePlayerController] No available creature to place.");
+				return;
+			}
+
+			if (!placementPhase.TryPlaceCreature(creature, hoveredCell, Erelia.BattleVoxel.Type.Placement, out Erelia.Battle.Unit _))
 			{
 				return;
 			}
 
-			if (!cell.HasMask(PlacementMask))
-			{
-				Debug.Log($"[Erelia.Battle.Player.BattlePlayerController] Confirm ignored. Cell {hoveredCell.x}/{hoveredCell.y}/{hoveredCell.z} is not a valid placement tile.");
-				return;
-			}
-
-			Debug.Log($"[Erelia.Battle.Player.BattlePlayerController] Player wants to place something at cell {hoveredCell.x}/{hoveredCell.y}/{hoveredCell.z}.");
+			Debug.Log($"[Erelia.Battle.Player.BattlePlayerController] Placed '{creature.name}' at cell {hoveredCell.x}/{hoveredCell.y}/{hoveredCell.z}.");
 		}
 
 		private void HandleCancel()
@@ -219,6 +233,47 @@ namespace Erelia.Battle.Player
 			}
 
 			boardPresenter.RebuildMasks();
+		}
+
+		private Erelia.Battle.PlacementPhase ResolvePlacementPhase()
+		{
+			if (battleManager == null)
+			{
+				return null;
+			}
+
+			return battleManager.CurrentPhase as Erelia.Battle.PlacementPhase;
+		}
+
+		private bool TryGetNextCreature(Erelia.Battle.PlacementPhase placementPhase, out Creature.Instance creature)
+		{
+			creature = null;
+			if (team == null || team.Slots == null || team.Slots.Length == 0)
+			{
+				return false;
+			}
+
+			int total = team.Slots.Length;
+			for (int i = 0; i < total; i++)
+			{
+				int index = (nextTeamIndex + i) % total;
+				Creature.Instance candidate = team.Slots[index];
+				if (candidate == null)
+				{
+					continue;
+				}
+
+				if (placementPhase != null && placementPhase.IsCreaturePlaced(candidate))
+				{
+					continue;
+				}
+
+				creature = candidate;
+				nextTeamIndex = (index + 1) % total;
+				return true;
+			}
+
+			return false;
 		}
 
 		private bool IsConfirmTriggered()

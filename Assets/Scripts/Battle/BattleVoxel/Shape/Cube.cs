@@ -25,21 +25,19 @@ namespace Erelia.BattleVoxel.ShapeType
 			};
 		}
 
-		protected override Dictionary<VoxelKit.FlipOrientation, Dictionary<VoxelKit.CardinalPoint, Vector3>> ConstructCardinalPoints()
+		protected override Dictionary<VoxelKit.FlipOrientation, CardinalPointSet> ConstructCardinalPoints()
 		{
-			var points = new Dictionary<VoxelKit.CardinalPoint, Vector3>
-			{
-				[VoxelKit.CardinalPoint.PositiveX] = new Vector3(1f, 1f, 0.5f),
-				[VoxelKit.CardinalPoint.NegativeX] = new Vector3(0f, 1f, 0.5f),
-				[VoxelKit.CardinalPoint.PositiveZ] = new Vector3(0.5f, 1f, 1f),
-				[VoxelKit.CardinalPoint.NegativeZ] = new Vector3(0.5f, 1f, 0f),
-				[VoxelKit.CardinalPoint.Stationary] = new Vector3(0.5f, 1f, 0.5f),
-			};
+			CardinalPointSet set = new CardinalPointSet(
+				positiveX: new Vector3(1f, 1f, 0.5f),
+				negativeX: new Vector3(0f, 1f, 0.5f),
+				positiveZ: new Vector3(0.5f, 1f, 1f),
+				negativeZ: new Vector3(0.5f, 1f, 0f),
+				stationary: new Vector3(0.5f, 1f, 0.5f));
 
-			return new Dictionary<VoxelKit.FlipOrientation, Dictionary<VoxelKit.CardinalPoint, Vector3>>
+			return new Dictionary<VoxelKit.FlipOrientation, CardinalPointSet>
 			{
-				[VoxelKit.FlipOrientation.PositiveY] = points,
-				[VoxelKit.FlipOrientation.NegativeY] = points
+				[VoxelKit.FlipOrientation.PositiveY] = set,
+				[VoxelKit.FlipOrientation.NegativeY] = set
 			};
 		}
 	}
