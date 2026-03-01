@@ -14,12 +14,12 @@ namespace Erelia.Exploration.Player
 
 		private void OnEnable()
 		{
-			Erelia.Event.Bus.Subscribe<Erelia.Event.PlayerMotion>(OnPlayerMotion);
+			Erelia.Core.Event.Bus.Subscribe<Erelia.Core.Event.PlayerMotion>(OnPlayerMotion);
 		}
 
 		private void OnDisable()
 		{
-			Erelia.Event.Bus.Unsubscribe<Erelia.Event.PlayerMotion>(OnPlayerMotion);
+			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Core.Event.PlayerMotion>(OnPlayerMotion);
 		}
 
 		private void Start()
@@ -28,11 +28,11 @@ namespace Erelia.Exploration.Player
 			if (!current.Equals(currentChunk))
 			{
 				currentChunk = current;
-				Erelia.Event.Bus.Emit(new Erelia.Event.PlayerChunkMotion(current));
+				Erelia.Core.Event.Bus.Emit(new Erelia.Core.Event.PlayerChunkMotion(current));
 			}
 		}
 
-		private void OnPlayerMotion(Erelia.Event.PlayerMotion evt)
+		private void OnPlayerMotion(Erelia.Core.Event.PlayerMotion evt)
 		{
 			if (evt == null)
 			{
@@ -46,7 +46,7 @@ namespace Erelia.Exploration.Player
 			}
 
 			currentChunk = current;
-			Erelia.Event.Bus.Emit(new Erelia.Event.PlayerChunkMotion(current));
+			Erelia.Core.Event.Bus.Emit(new Erelia.Core.Event.PlayerChunkMotion(current));
 		}
 	}
 }

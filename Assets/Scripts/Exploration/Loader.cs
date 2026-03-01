@@ -23,7 +23,7 @@ namespace Erelia.Exploration
 
 		private void BindFromContext()
 		{
-			var context = Erelia.Context.Instance;
+			var context = Erelia.Core.Context.Instance;
 
 			Erelia.Exploration.Data data = context.ExplorationData;
 			if (data == null || data.WorldModel == null || data.PlayerModel == null)

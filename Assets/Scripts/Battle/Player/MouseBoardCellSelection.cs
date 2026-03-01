@@ -6,7 +6,7 @@ namespace Erelia.Battle.Player
 	{
 		[SerializeField] private Erelia.Battle.Player.Camera.MouseBoardCellCursor cursor;
 		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
-		[SerializeField] private Erelia.BattleVoxel.Type selectionMask = Erelia.BattleVoxel.Type.Selected;
+		[SerializeField] private Erelia.Battle.Voxel.Type selectionMask = Erelia.Battle.Voxel.Type.Selected;
 
 		private bool hasSelection;
 		private Vector3Int selectedCell;
@@ -59,7 +59,7 @@ namespace Erelia.Battle.Player
 
 		private void OnCellChanged(Vector3Int cell)
 		{
-			if (!TryResolveBoardCell(cell, out Erelia.BattleVoxel.Cell targetCell))
+			if (!TryResolveBoardCell(cell, out Erelia.Battle.Voxel.Cell targetCell))
 			{
 				ClearSelection();
 				return;
@@ -101,7 +101,7 @@ namespace Erelia.Battle.Player
 				return;
 			}
 
-			if (!TryResolveBoardCell(selectedCell, out Erelia.BattleVoxel.Cell cell))
+			if (!TryResolveBoardCell(selectedCell, out Erelia.Battle.Voxel.Cell cell))
 			{
 				return;
 			}
@@ -109,12 +109,12 @@ namespace Erelia.Battle.Player
 			cell.RemoveMask(selectionMask);
 		}
 
-		private bool TryResolveBoardCell(Vector3Int cell, out Erelia.BattleVoxel.Cell resolvedCell)
+		private bool TryResolveBoardCell(Vector3Int cell, out Erelia.Battle.Voxel.Cell resolvedCell)
 		{
 			resolvedCell = null;
 
 			Erelia.Battle.Board.Model board = boardPresenter != null ? boardPresenter.Model : null;
-			Erelia.BattleVoxel.Cell[,,] cells = board != null ? board.Cells : null;
+			Erelia.Battle.Voxel.Cell[,,] cells = board != null ? board.Cells : null;
 			if (cells == null)
 			{
 				return false;

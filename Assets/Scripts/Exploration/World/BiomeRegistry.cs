@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Erelia.Exploration.World
 {
 	[CreateAssetMenu(menuName = "World/BiomeRegistry", fileName = "BiomeRegistry")]
-	public sealed class BiomeRegistry : Erelia.SingletonRegistry<BiomeRegistry>
+	public sealed class BiomeRegistry : Erelia.Core.SingletonRegistry<BiomeRegistry>
 	{
 		protected override string ResourcePath => "Biome/BiomeRegistry";
 
@@ -17,6 +17,8 @@ namespace Erelia.Exploration.World
 		}
 
 		[SerializeField] private List<Entry> entries = new List<Entry>();
+		[SerializeField] private TextAsset encounterRegistryJson;
+		[SerializeField] private string encounterRegistryResourcePath = "Encounter/EncounterRegistry";
 
 		[NonSerialized] private readonly Dictionary<BiomeType, BiomeData> biomes =
 			new Dictionary<BiomeType, BiomeData>();
@@ -27,7 +29,14 @@ namespace Erelia.Exploration.World
 		protected override void Rebuild()
 		{
 			biomes.Clear();
-			Erelia.EncounterTableRegistry.Clear();
+			if (encounterRegistryJson != null)
+			{
+				Erelia.Core.Encounter.EncounterTableRegistry.LoadFromJson(encounterRegistryJson.text);
+			}
+			else
+			{
+				Erelia.Core.Encounter.EncounterTableRegistry.LoadFromResources(encounterRegistryResourcePath);
+			}
 
 			for (int i = 0; i < entries.Count; i++)
 			{
@@ -38,10 +47,6 @@ namespace Erelia.Exploration.World
 				}
 
 				biomes[entry.Type] = entry.Data;
-				if (entry.Data.EncounterTable != null)
-				{
-					Erelia.EncounterTableRegistry.Register(entry.Data.EncounterTable);
-				}
 			}
 		}
 

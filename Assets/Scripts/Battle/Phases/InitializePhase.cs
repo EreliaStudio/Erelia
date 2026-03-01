@@ -35,7 +35,7 @@ namespace Erelia.Battle
 
 		private static bool TrySetupBattleInfo(BattleManager manager)
 		{
-			Erelia.Context context = Erelia.Context.Instance;
+			Erelia.Core.Context context = Erelia.Core.Context.Instance;
 			if (context == null)
 			{
 				return false;
@@ -73,8 +73,8 @@ namespace Erelia.Battle
 
 		private static int ResolvePlacementRadius()
 		{
-			Erelia.Battle.Data data = Erelia.Context.Instance?.BattleData;
-			Erelia.Encounter.EncounterTable table = data != null ? data.EncounterTable : null;
+			Erelia.Battle.Data data = Erelia.Core.Context.Instance?.BattleData;
+			Erelia.Core.Encounter.EncounterTable table = data != null ? data.EncounterTable : null;
 			if (table == null)
 			{
 				return 0;
@@ -84,7 +84,7 @@ namespace Erelia.Battle
 		}
 
 		private static void ResolvePlacementCenters(
-			Erelia.BattleVoxel.Cell[,,] cells,
+			Erelia.Battle.Voxel.Cell[,,] cells,
 			Erelia.Battle.Info info,
 			int radius)
 		{
@@ -115,7 +115,7 @@ namespace Erelia.Battle
 		}
 
 		private static bool TryPickPlacementCenter(
-			Erelia.BattleVoxel.Cell[,,] cells,
+			Erelia.Battle.Voxel.Cell[,,] cells,
 			int sizeX,
 			int sizeZ,
 			int radius,
@@ -183,7 +183,7 @@ namespace Erelia.Battle
 			return false;
 		}
 
-		private static bool TryGetPlacementSurface(Erelia.BattleVoxel.Cell[,,] cells, int x, int z, out int y)
+		private static bool TryGetPlacementSurface(Erelia.Battle.Voxel.Cell[,,] cells, int x, int z, out int y)
 		{
 			y = -1;
 			if (cells == null)
@@ -194,7 +194,7 @@ namespace Erelia.Battle
 			int sizeY = cells.GetLength(1);
 			for (int yi = sizeY - 1; yi >= 0; yi--)
 			{
-				Erelia.BattleVoxel.Cell cell = cells[x, yi, z];
+				Erelia.Battle.Voxel.Cell cell = cells[x, yi, z];
 				if (cell == null || cell.Id < 0)
 				{
 					continue;
@@ -202,7 +202,7 @@ namespace Erelia.Battle
 
 				if (yi + 1 < sizeY)
 				{
-					Erelia.BattleVoxel.Cell above = cells[x, yi + 1, z];
+					Erelia.Battle.Voxel.Cell above = cells[x, yi + 1, z];
 					if (above != null && above.Id >= 0)
 					{
 						continue;

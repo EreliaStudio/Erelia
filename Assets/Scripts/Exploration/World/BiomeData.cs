@@ -3,6 +3,6 @@ namespace Erelia.Exploration.World
 	[System.Serializable]
 	public sealed class BiomeData
 	{
-		public Erelia.Encounter.EncounterTable EncounterTable;
+		public int EncounterId = Erelia.Exploration.World.Chunk.Model.NoEncounterId;
 	}
 }

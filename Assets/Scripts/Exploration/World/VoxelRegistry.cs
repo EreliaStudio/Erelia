@@ -6,9 +6,9 @@ namespace Erelia.Exploration.World
 	{
 		public const string ResourcePath = "Voxel/VoxelRegistry";
 
-		private static VoxelKit.Registry instance;
+		private static Erelia.Core.VoxelKit.Registry instance;
 
-		public static VoxelKit.Registry Instance
+		public static Erelia.Core.VoxelKit.Registry Instance
 		{
 			get
 			{
@@ -17,7 +17,7 @@ namespace Erelia.Exploration.World
 					return instance;
 				}
 
-				instance = Resources.Load<VoxelKit.Registry>(ResourcePath);
+				instance = Resources.Load<Erelia.Core.VoxelKit.Registry>(ResourcePath);
 				if (instance == null)
 				{
 					Debug.LogWarning($"Voxel registry not found at Resources/{ResourcePath}.asset");

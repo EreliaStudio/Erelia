@@ -5,7 +5,7 @@ namespace Erelia.Battle.Board
 	public static class Constructor
 	{
 		public static Erelia.Battle.Board.Model ExportArea(
-			Erelia.Encounter.EncounterTable table,
+			Erelia.Core.Encounter.EncounterTable table,
 			Erelia.Exploration.World.Model worldModel,
 			Vector3 worldPosition)
 		{
@@ -19,7 +19,7 @@ namespace Erelia.Battle.Board
 			int sizeZ = (maxRadius * 2) + 1;
 			int sizeY = Erelia.Exploration.World.Chunk.Model.SizeY;
 
-			var cells = Erelia.BattleVoxel.Cell.CreatePack(sizeX, sizeY, sizeZ, new Erelia.BattleVoxel.Cell(-2));
+			var cells = Erelia.Battle.Voxel.Cell.CreatePack(sizeX, sizeY, sizeZ, new Erelia.Battle.Voxel.Cell(-2));
 
 			Vector3Int centerCell = WorldToCell(worldPosition);
 			int originX = centerCell.x - maxRadius;
@@ -47,14 +47,14 @@ namespace Erelia.Battle.Board
 
 					for (int y = 0; y < sizeY; y++)
 					{
-						VoxelKit.Cell source = chunk.Cells[localX, y, localZ];
+						Erelia.Core.VoxelKit.Cell source = chunk.Cells[localX, y, localZ];
 						if (source == null)
 						{
-							cells[x, y, z] = new Erelia.BattleVoxel.Cell(-1);
+							cells[x, y, z] = new Erelia.Battle.Voxel.Cell(-1);
 						}
 						else
 						{
-							cells[x, y, z] = new Erelia.BattleVoxel.Cell(source.Id, source.Orientation, source.FlipOrientation);
+							cells[x, y, z] = new Erelia.Battle.Voxel.Cell(source.Id, source.Orientation, source.FlipOrientation);
 						}
 					}
 				}
@@ -65,7 +65,7 @@ namespace Erelia.Battle.Board
 			return new Erelia.Battle.Board.Model(cells, origin, center);
 		}
 
-		public static int GetMaxRadius(Erelia.Encounter.EncounterTable table)
+		public static int GetMaxRadius(Erelia.Core.Encounter.EncounterTable table)
 		{
 			if (table == null)
 			{
@@ -75,7 +75,7 @@ namespace Erelia.Battle.Board
 			return Mathf.Max(0, table.BaseRadius + Mathf.Max(0, table.NoiseAmplitude));
 		}
 
-		private static float GetRadiusAt(int worldX, int worldZ, Erelia.Encounter.EncounterTable table)
+		private static float GetRadiusAt(int worldX, int worldZ, Erelia.Core.Encounter.EncounterTable table)
 		{
 			if (table == null || table.BaseRadius <= 0)
 			{

@@ -11,11 +11,11 @@ namespace Erelia.Battle
 		private readonly List<Erelia.Battle.Unit> placedUnits = new List<Erelia.Battle.Unit>();
 		private readonly Dictionary<Vector3Int, Erelia.Battle.Unit> unitsByCell =
 			new Dictionary<Vector3Int, Erelia.Battle.Unit>();
-		private readonly Dictionary<Creature.Instance, Erelia.Battle.Unit> unitsByCreature =
-			new Dictionary<Creature.Instance, Erelia.Battle.Unit>();
+		private readonly Dictionary<Erelia.Core.Creature.Instance.Model, Erelia.Battle.Unit> unitsByCreature =
+			new Dictionary<Erelia.Core.Creature.Instance.Model, Erelia.Battle.Unit>();
 		private bool pendingApply;
-		private const Erelia.BattleVoxel.Type PlacementMask = Erelia.BattleVoxel.Type.Placement;
-		private const Erelia.BattleVoxel.Type EnemyPlacementMask = Erelia.BattleVoxel.Type.EnemyPlacement;
+		private const Erelia.Battle.Voxel.Type PlacementMask = Erelia.Battle.Voxel.Type.Placement;
+		private const Erelia.Battle.Voxel.Type EnemyPlacementMask = Erelia.Battle.Voxel.Type.EnemyPlacement;
 
 		public override BattlePhaseId Id => BattlePhaseId.Placement;
 
@@ -83,7 +83,7 @@ namespace Erelia.Battle
 				return false;
 			}
 
-			VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
+			Erelia.Core.VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
 			if (registry == null)
 			{
 				Debug.LogWarning("[Erelia.Battle.PlacementPhase] Voxel registry is not assigned.");
@@ -97,7 +97,7 @@ namespace Erelia.Battle
 
 		private void ApplyPlacementMask(
 			Erelia.Battle.Board.Model board,
-			VoxelKit.Registry registry,
+			Erelia.Core.VoxelKit.Registry registry,
 			Vector2Int playerCenter,
 			Vector2Int enemyCenter)
 		{
@@ -136,9 +136,9 @@ namespace Erelia.Battle
 		}
 
 		private static void ApplyAssignments(
-			Erelia.BattleVoxel.Cell[,,] cells,
+			Erelia.Battle.Voxel.Cell[,,] cells,
 			List<Vector3Int> positions,
-			Erelia.BattleVoxel.Type maskType)
+			Erelia.Battle.Voxel.Type maskType)
 		{
 			if (cells == null || positions == null || positions.Count == 0)
 			{
@@ -157,7 +157,7 @@ namespace Erelia.Battle
 					continue;
 				}
 
-				Erelia.BattleVoxel.Cell cell = cells[pos.x, pos.y, pos.z];
+				Erelia.Battle.Voxel.Cell cell = cells[pos.x, pos.y, pos.z];
 				if (cell == null || cell.HasMask(maskType))
 				{
 					continue;
@@ -167,7 +167,7 @@ namespace Erelia.Battle
 			}
 		}
 
-		private static List<Vector3Int> CollectPlacementCandidates(Erelia.BattleVoxel.Cell[,,] cells, VoxelKit.Registry registry)
+		private static List<Vector3Int> CollectPlacementCandidates(Erelia.Battle.Voxel.Cell[,,] cells, Erelia.Core.VoxelKit.Registry registry)
 		{
 			var candidates = new List<Vector3Int>();
 			if (cells == null || registry == null)
@@ -279,8 +279,8 @@ namespace Erelia.Battle
 
 		private static int ResolvePlacementRadius()
 		{
-			Erelia.Battle.Data data = Erelia.Context.Instance?.BattleData;
-			Erelia.Encounter.EncounterTable table = data != null ? data.EncounterTable : null;
+			Erelia.Battle.Data data = Erelia.Core.Context.Instance?.BattleData;
+			Erelia.Core.Encounter.EncounterTable table = data != null ? data.EncounterTable : null;
 			if (table == null)
 			{
 				return 0;
@@ -294,7 +294,7 @@ namespace Erelia.Battle
 			playerCenter = default;
 			enemyCenter = default;
 
-			Erelia.Battle.Info info = Erelia.Context.Instance?.BattleData?.Info;
+			Erelia.Battle.Info info = Erelia.Core.Context.Instance?.BattleData?.Info;
 			if (info == null)
 			{
 				return false;
@@ -312,7 +312,7 @@ namespace Erelia.Battle
 				return;
 			}
 
-			Erelia.BattleVoxel.Cell[,,] cells = board.Cells;
+			Erelia.Battle.Voxel.Cell[,,] cells = board.Cells;
 			int sizeX = cells.GetLength(0);
 			int sizeY = cells.GetLength(1);
 			int sizeZ = cells.GetLength(2);
@@ -323,7 +323,7 @@ namespace Erelia.Battle
 				{
 					for (int z = 0; z < sizeZ; z++)
 					{
-						Erelia.BattleVoxel.Cell cell = cells[x, y, z];
+						Erelia.Battle.Voxel.Cell cell = cells[x, y, z];
 						if (cell == null || !cell.HasAnyMask())
 						{
 							continue;
@@ -337,7 +337,7 @@ namespace Erelia.Battle
 
 		public IReadOnlyList<Erelia.Battle.Unit> PlacedUnits => placedUnits;
 
-		public bool IsCreaturePlaced(Creature.Instance creature)
+		public bool IsCreaturePlaced(Erelia.Core.Creature.Instance.Model creature)
 		{
 			if (creature == null)
 			{
@@ -348,9 +348,9 @@ namespace Erelia.Battle
 		}
 
 		public bool TryPlaceCreature(
-			Creature.Instance creature,
+			Erelia.Core.Creature.Instance.Model creature,
 			Vector3Int cell,
-			Erelia.BattleVoxel.Type placementMask,
+			Erelia.Battle.Voxel.Type placementMask,
 			out Erelia.Battle.Unit unit)
 		{
 			unit = null;
@@ -367,7 +367,7 @@ namespace Erelia.Battle
 
 			Erelia.Battle.Board.Presenter presenter = ResolvePresenter(null);
 			Erelia.Battle.Board.Model board = presenter != null ? presenter.Model : null;
-			Erelia.BattleVoxel.Cell[,,] cells = board != null ? board.Cells : null;
+			Erelia.Battle.Voxel.Cell[,,] cells = board != null ? board.Cells : null;
 			if (cells == null)
 			{
 				return false;
@@ -387,7 +387,7 @@ namespace Erelia.Battle
 				return false;
 			}
 
-			Erelia.BattleVoxel.Cell cellData = cells[cell.x, cell.y, cell.z];
+			Erelia.Battle.Voxel.Cell cellData = cells[cell.x, cell.y, cell.z];
 			if (cellData == null || cellData.Id < 0)
 			{
 				return false;
@@ -399,7 +399,14 @@ namespace Erelia.Battle
 				return false;
 			}
 
-			if (creature.Species == null || creature.Species.Prefab == null)
+			Erelia.Core.Creature.SpeciesRegistry registry = Erelia.Core.Creature.SpeciesRegistry.Instance;
+			if (registry == null)
+			{
+				Debug.LogWarning("[Erelia.Battle.PlacementPhase] SpeciesRegistry is missing.");
+				return false;
+			}
+
+			if (!registry.TryGet(creature.SpeciesId, out Erelia.Core.Creature.Species species) || species == null || species.Prefab == null)
 			{
 				Debug.LogWarning("[Erelia.Battle.PlacementPhase] Creature species or prefab is missing.");
 				return false;
@@ -411,7 +418,7 @@ namespace Erelia.Battle
 			}
 
 			GameObject view = Object.Instantiate(
-				creature.Species.Prefab,
+				species.Prefab,
 				position,
 				Quaternion.identity,
 				presenter != null ? presenter.transform : null);
@@ -426,7 +433,7 @@ namespace Erelia.Battle
 			return true;
 		}
 
-		private bool TryGetPlacementPosition(Vector3Int cell, Erelia.BattleVoxel.Cell cellData, out Vector3 position)
+		private bool TryGetPlacementPosition(Vector3Int cell, Erelia.Battle.Voxel.Cell cellData, out Vector3 position)
 		{
 			position = default;
 			if (cellData == null)
@@ -434,24 +441,24 @@ namespace Erelia.Battle
 				return false;
 			}
 
-			VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
+			Erelia.Core.VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
 			if (registry == null)
 			{
 				return false;
 			}
 
-			if (!registry.TryGet(cellData.Id, out VoxelKit.Definition definition) || definition == null)
+			if (!registry.TryGet(cellData.Id, out Erelia.Core.VoxelKit.Definition definition) || definition == null)
 			{
 				return false;
 			}
 
-			if (!(definition is Erelia.BattleVoxel.Definition battleDefinition) || battleDefinition.MaskShape == null)
+			if (!(definition is Erelia.Battle.Voxel.Definition battleDefinition) || battleDefinition.MaskShape == null)
 			{
 				return false;
 			}
 
 			Vector3 localOffset = battleDefinition.MaskShape.GetCardinalPoint(
-				VoxelKit.CardinalPoint.Stationary,
+				Erelia.Core.VoxelKit.CardinalPoint.Stationary,
 				cellData.Orientation,
 				cellData.FlipOrientation);
 			Vector3 localPosition = new Vector3(cell.x, cell.y, cell.z) + localOffset;
@@ -469,8 +476,8 @@ namespace Erelia.Battle
 		}
 
 		private static bool TryGetPlacementSurface(
-			Erelia.BattleVoxel.Cell[,,] cells,
-			VoxelKit.Registry registry,
+			Erelia.Battle.Voxel.Cell[,,] cells,
+			Erelia.Core.VoxelKit.Registry registry,
 			int x,
 			int z,
 			out int y)
@@ -484,7 +491,7 @@ namespace Erelia.Battle
 			int sizeY = cells.GetLength(1);
 			for (int yi = sizeY - 1; yi >= 0; yi--)
 			{
-				Erelia.BattleVoxel.Cell cell = cells[x, yi, z];
+				Erelia.Battle.Voxel.Cell cell = cells[x, yi, z];
 				if (!IsObstacleCell(cell, registry))
 				{
 					continue;
@@ -492,7 +499,7 @@ namespace Erelia.Battle
 
 				if (yi + 1 < sizeY)
 				{
-					Erelia.BattleVoxel.Cell above = cells[x, yi + 1, z];
+					Erelia.Battle.Voxel.Cell above = cells[x, yi + 1, z];
 					if (IsObstacleCell(above, registry))
 					{
 						continue;
@@ -506,7 +513,7 @@ namespace Erelia.Battle
 			return false;
 		}
 
-		private static bool IsObstacleCell(Erelia.BattleVoxel.Cell cell, VoxelKit.Registry registry)
+		private static bool IsObstacleCell(Erelia.Battle.Voxel.Cell cell, Erelia.Core.VoxelKit.Registry registry)
 		{
 			if (cell == null || cell.Id < 0)
 			{
@@ -518,12 +525,12 @@ namespace Erelia.Battle
 				return true;
 			}
 
-			if (!registry.TryGet(cell.Id, out VoxelKit.Definition definition) || definition == null)
+			if (!registry.TryGet(cell.Id, out Erelia.Core.VoxelKit.Definition definition) || definition == null)
 			{
 				return true;
 			}
 
-			return definition.Data != null && definition.Data.Traversal == VoxelKit.Traversal.Obstacle;
+			return definition.Data != null && definition.Data.Traversal == Erelia.Core.VoxelKit.Traversal.Obstacle;
 		}
 
 		private readonly struct Candidate

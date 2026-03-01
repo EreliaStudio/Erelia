@@ -18,7 +18,7 @@ namespace Erelia.Battle
 
 		private void BindFromContext()
 		{
-			var context = Erelia.Context.Instance;
+			var context = Erelia.Core.Context.Instance;
 
 			Erelia.Battle.Data data = context.BattleData;
 			Erelia.Battle.Board.Model board = data != null ? data.Board : null;

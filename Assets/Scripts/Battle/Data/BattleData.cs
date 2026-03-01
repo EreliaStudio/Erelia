@@ -5,7 +5,7 @@ namespace Erelia.Battle
 	{
 		public Erelia.Battle.Board.Model Board;
 		public Erelia.Battle.Info Info;
-		public Erelia.Encounter.EncounterTable EncounterTable;
+		public Erelia.Core.Encounter.EncounterTable EncounterTable;
 
 		public Data()
 		{

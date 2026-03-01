@@ -27,9 +27,9 @@ namespace Erelia.Battle.Board
 				return;
 			}
 
-			VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
-			view.SetRenderMesh(VoxelKit.Mesher.BuildRenderMesh(model.Cells, registry, VoxelKit.Mesher.AnyVoxelPredicate));
-			view.SetCollisionMesh(VoxelKit.Mesher.BuildCollisionMesh(model.Cells, registry, VoxelKit.Mesher.OnlyObstacleVoxelPredicate));
+			Erelia.Core.VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
+			view.SetRenderMesh(Erelia.Core.VoxelKit.Mesher.BuildRenderMesh(model.Cells, registry, Erelia.Core.VoxelKit.Mesher.AnyVoxelPredicate));
+			view.SetCollisionMesh(Erelia.Core.VoxelKit.Mesher.BuildCollisionMesh(model.Cells, registry, Erelia.Core.VoxelKit.Mesher.OnlyObstacleVoxelPredicate));
 			RebuildMasks();
 		}
 
@@ -40,8 +40,8 @@ namespace Erelia.Battle.Board
 				return;
 			}
 
-			VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
-			Mesh maskMesh = Erelia.BattleVoxel.Mesher.BuildMaskMesh(
+			Erelia.Core.VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
+			Mesh maskMesh = Erelia.Battle.Voxel.Mesher.BuildMaskMesh(
 				model.Cells,
 				registry,
 				Erelia.Battle.MaskSpriteRegistry.Instance);

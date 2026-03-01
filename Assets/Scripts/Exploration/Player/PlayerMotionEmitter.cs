@@ -22,7 +22,7 @@ namespace Erelia.Exploration.Player
 			}
 
 			lastCell = cell;
-			Erelia.Event.Bus.Emit(new Erelia.Event.PlayerMotion(worldPosition, cell));
+			Erelia.Core.Event.Bus.Emit(new Erelia.Core.Event.PlayerMotion(worldPosition, cell));
 		}
 
 		private static Vector3Int WorldToCell(Vector3 worldPosition)

@@ -1,3 +1,4 @@
+using System.IO;
 using UnityEngine;
 
 namespace Erelia.Exploration.World.Chunk.Generation
@@ -11,7 +12,11 @@ namespace Erelia.Exploration.World.Chunk.Generation
 		{
 			if (biomeRegistry == null)
 			{
-				throw new System.InvalidOperationException("BiomeRegistry must be assigned on SimpleDebugChunkGenerator.");
+				biomeRegistry = Erelia.Exploration.World.BiomeRegistry.Instance;
+				if (biomeRegistry == null)
+				{
+					Debug.LogWarning("[SimpleDebugChunkGenerator] BiomeRegistry is missing.");
+				}
 			}
 		}
 
@@ -35,7 +40,7 @@ namespace Erelia.Exploration.World.Chunk.Generation
 			{
 				for (int z = 0; z <= maxZ; z++)
 				{
-					chunk.SetCell(x, 0, z, new VoxelKit.Cell(0));
+					chunk.SetCell(x, 0, z, new Erelia.Core.VoxelKit.Cell(0));
 				}
 			}
 
@@ -43,10 +48,9 @@ namespace Erelia.Exploration.World.Chunk.Generation
 			if (biomeRegistry.Entries.Count > 0)
 			{
 				Erelia.Exploration.World.BiomeData data = biomeRegistry.Entries[0].Data;
-				if (data != null && data.EncounterTable != null &&
-					Erelia.EncounterTableRegistry.TryGetId(data.EncounterTable, out int biomeEncounterId))
+				if (data != null)
 				{
-					encounterId = biomeEncounterId;
+					encounterId = data.EncounterId;
 				}
 			}
 
@@ -57,30 +61,59 @@ namespace Erelia.Exploration.World.Chunk.Generation
 
 			for (int z = 0; z <= maxZ; z++)
 			{
-				chunk.SetCell(0, 1, z, new VoxelKit.Cell(1));
+				chunk.SetCell(0, 1, z, new Erelia.Core.VoxelKit.Cell(1));
 			}
 
 			for (int z = 0; z <= maxZ; z++)
 			{
-				chunk.SetCell(maxX, 1, z, new VoxelKit.Cell(2));
+				chunk.SetCell(maxX, 1, z, new Erelia.Core.VoxelKit.Cell(2));
 			}
 
 			for (int x = 0; x <= maxX; x++)
 			{
-				chunk.SetCell(x, 1, 0, new VoxelKit.Cell(3));
+				chunk.SetCell(x, 1, 0, new Erelia.Core.VoxelKit.Cell(3));
 			}
 			
 			for (int x = 0; x <= maxX; x++)
 			{
-				chunk.SetCell(x, 1, maxZ, new VoxelKit.Cell(4));
+				chunk.SetCell(x, 1, maxZ, new Erelia.Core.VoxelKit.Cell(4));
 				chunk.SetEncounterId(x, 1, maxZ, encounterId);
 			}
 			
 			for (int x = 0; x <= maxX; x++)
 			{
-				chunk.SetCell(x, 1, 5, new VoxelKit.Cell(4));
+				chunk.SetCell(x, 1, 5, new Erelia.Core.VoxelKit.Cell(4));
 				chunk.SetEncounterId(x, 1, 5, encounterId);
 			}
 		}
+
+		public override void Save(string path)
+		{
+			if (string.IsNullOrEmpty(path))
+			{
+				return;
+			}
+
+			string directory = Path.GetDirectoryName(path);
+			if (!string.IsNullOrEmpty(directory))
+			{
+				Directory.CreateDirectory(directory);
+			}
+
+			File.WriteAllText(path, "{}");
+		}
+
+		public override void Load(string path)
+		{
+			if (biomeRegistry == null)
+			{
+				biomeRegistry = Erelia.Exploration.World.BiomeRegistry.Instance;
+				if (biomeRegistry == null)
+				{
+					Debug.LogWarning("[SimpleDebugChunkGenerator] BiomeRegistry is missing.");
+				}
+			}
+		}
+
 	}
 }

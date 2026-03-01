@@ -55,6 +55,7 @@
     <Compile Include="Assets\Scripts\Exploration\Player\PlayerMotionEmitter.cs" />
     <Compile Include="Assets\Scripts\Events\PlayerMotion.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\Model.cs" />
+    <Compile Include="Assets\Scripts\Utils\PathUtils.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\Presenter.cs" />
     <Compile Include="Assets\Scripts\Creature\Team.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\View.cs" />
@@ -64,9 +65,10 @@
     <Compile Include="Assets\Scripts\VoxelKit\Shape.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\Camera\MouseBoardCellCursor.cs" />
-    <Compile Include="Assets\Scripts\Creature\Instance.cs" />
+    <Compile Include="Assets\Scripts\Creature\Instance\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\Phases\CleanupPhase.cs" />
     <Compile Include="Assets\Scripts\Battle\Phases\PlacementSide.cs" />
+    <Compile Include="Assets\Scripts\Creature\SpeciesRegistry.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\View.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\Mesher.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleVoxel\Type.cs" />
@@ -78,6 +80,7 @@
     <Compile Include="Assets\Scripts\Context.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\Registry.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Model.cs" />
+    <Compile Include="Assets\Scripts\Creature\Instance\Presenter.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleVoxel\Mesher.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\ChunkMotionEmitter.cs" />
     <Compile Include="Assets\Scripts\Battle\Data\BattleData.cs" />
@@ -140,12 +143,14 @@
     <Compile Include="Assets\Scripts\Battle\Phases\InitializePhase.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\MesherUtils.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\Camera\Presenter.cs" />
+    <Compile Include="Assets\Scripts\Creature\Instance\View.cs" />
     <Compile Include="Assets\Scripts\Battle\Unit.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\BiomeType.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\BattleBoardConstructor.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\Camera\Presenter.cs" />
     <Compile Include="Assets\Scripts\Events\EncounterTriggerEvent.cs" />
     <Compile Include="Assets\Scripts\Battle\Data\BattleInfo.cs" />
+    <Compile Include="Assets\Scripts\SystemData.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\Generation\IGenerator.cs" />
     <Compile Include="Assets\Scripts\Battle\Phases\ResolveActionPhase.cs" />
     <Compile Include="Assets\Scripts\VoxelKit\Shape\Slope.cs" />

@@ -8,15 +8,15 @@ namespace Erelia.Exploration.Player
 		
 		private void OnEnable()
 		{
-			Erelia.Event.Bus.Subscribe<Erelia.Event.PlayerMotion>(OnPlayerMotion);
+			Erelia.Core.Event.Bus.Subscribe<Erelia.Core.Event.PlayerMotion>(OnPlayerMotion);
 		}
 
 		private void OnDisable()
 		{
-			Erelia.Event.Bus.Unsubscribe<Erelia.Event.PlayerMotion>(OnPlayerMotion);
+			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Core.Event.PlayerMotion>(OnPlayerMotion);
 		}
 
-		private void OnPlayerMotion(Erelia.Event.PlayerMotion evt)
+		private void OnPlayerMotion(Erelia.Core.Event.PlayerMotion evt)
 		{
 			if (evt == null)
 			{
@@ -56,7 +56,7 @@ namespace Erelia.Exploration.Player
 				return;
 			}
 
-			if (!Erelia.EncounterTableRegistry.TryGetTable(encounterId, out Erelia.Encounter.EncounterTable table))
+			if (!Erelia.Core.Encounter.EncounterTableRegistry.TryGetTable(encounterId, out Erelia.Core.Encounter.EncounterTable table))
 			{
 				return;
 			}
@@ -70,9 +70,9 @@ namespace Erelia.Exploration.Player
 			Erelia.Battle.Board.Model battleBoard = Erelia.Battle.Board.Constructor.ExportArea(table, worldModel, worldPosition);
 
 			Debug.Log($"Encounter trigger: id={encounterId} world={worldPosition} cell=({localX},{localY},{localZ})");
-			Erelia.Context.Instance.SetBattle(table, battleBoard);
-			var battleRequest = new Erelia.Event.BattleSceneDataRequest();
-			Erelia.Event.Bus.Emit(battleRequest);
+			Erelia.Core.Context.Instance.SetBattle(table, battleBoard);
+			var battleRequest = new Erelia.Core.Event.BattleSceneDataRequest();
+			Erelia.Core.Event.Bus.Emit(battleRequest);
 		}
 
 		private static Vector3Int WorldToCell(Vector3 worldPosition)

@@ -27,7 +27,11 @@ namespace Erelia.Exploration.World
 
 			if (worldModel == null)
 			{
-				worldModel = Erelia.Context.Instance.ExplorationData?.WorldModel;
+				worldModel = Erelia.Core.Context.Instance.ExplorationData?.WorldModel;
+				if (worldModel != null && !worldModel.HasChunkGenerator)
+				{
+					worldModel.SetChunkGenerator(chunkGenerator);
+				}
 			}
 		}
 
@@ -39,25 +43,29 @@ namespace Erelia.Exploration.World
 			}
 
 			worldModel = model;
+			if (!worldModel.HasChunkGenerator)
+			{
+				worldModel.SetChunkGenerator(chunkGenerator);
+			}
 			pendingChunks.Clear();
 			queuedChunkKeys.Clear();
 		}
 
 		private void OnEnable()
 		{
-			Erelia.Event.Bus.Subscribe<Erelia.Event.PlayerChunkMotion>(OnPlayerChunkMotion);
+			Erelia.Core.Event.Bus.Subscribe<Erelia.Core.Event.PlayerChunkMotion>(OnPlayerChunkMotion);
 		}
 
 		private void OnDisable()
 		{
-			Erelia.Event.Bus.Unsubscribe<Erelia.Event.PlayerChunkMotion>(OnPlayerChunkMotion);
+			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Core.Event.PlayerChunkMotion>(OnPlayerChunkMotion);
 		}
 
 		public Erelia.Exploration.World.Chunk.Model CreateChunk(Erelia.Exploration.World.Chunk.Coordinates coordinates)
 		{
 			if (worldModel == null)
 			{
-				worldModel = Erelia.Context.Instance.ExplorationData?.WorldModel;
+				worldModel = Erelia.Core.Context.Instance.ExplorationData?.WorldModel;
 				if (worldModel == null)
 				{
 					Debug.LogWarning("[Erelia.Exploration.World.Presenter] World model is missing.");
@@ -107,7 +115,6 @@ namespace Erelia.Exploration.World
 			}
 
 			Erelia.Exploration.World.Chunk.Model model = worldModel.GetOrCreateChunk(coordinates);
-			chunkGenerator.Generate(model, coordinates, worldModel);
 
 			if (presenters.ContainsKey(coordinates))
 			{
@@ -145,11 +152,11 @@ namespace Erelia.Exploration.World
 			}
 		}
 
-		private void OnPlayerChunkMotion(Erelia.Event.PlayerChunkMotion evt)
+		private void OnPlayerChunkMotion(Erelia.Core.Event.PlayerChunkMotion evt)
 		{
 			if (worldModel == null)
 			{
-				worldModel = Erelia.Context.Instance.ExplorationData?.WorldModel;
+				worldModel = Erelia.Core.Context.Instance.ExplorationData?.WorldModel;
 				if (worldModel == null)
 				{
 					Debug.LogWarning("[Erelia.Exploration.World.Presenter] World model is missing.");
