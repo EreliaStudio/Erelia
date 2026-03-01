@@ -40,10 +40,10 @@ namespace Erelia.Core.VoxelKit.ShapeType
 			Vector2 uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
 
 			Erelia.Core.VoxelKit.Face stepTop = Erelia.Core.VoxelKit.Utils.Geometry.CreateRectangle(
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, StepHeight, 0f), UV = uvA },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, StepHeight, 0f), UV = uvB },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, StepHeight, StepDepth), UV = uvC },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, StepHeight, StepDepth), UV = uvD });
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, StepHeight, 0f), TileUV = uvA },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, StepHeight, 0f), TileUV = uvB },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, StepHeight, StepDepth), TileUV = uvC },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, StepHeight, StepDepth), TileUV = uvD });
 			faces.Add(stepTop);
 
 			Erelia.Core.VoxelKit.Utils.SpriteUv.GetSpriteUvRect(spriteStepRiser, out uvAnchor, out uvSize);
@@ -56,10 +56,10 @@ namespace Erelia.Core.VoxelKit.ShapeType
 			uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
 
 			Erelia.Core.VoxelKit.Face stepRiser = Erelia.Core.VoxelKit.Utils.Geometry.CreateRectangle(
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, StepHeight, StepDepth), UV = uvA },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, StepHeight, StepDepth), UV = uvB },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, StepDepth), UV = uvC },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, StepDepth), UV = uvD });
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, StepHeight, StepDepth), TileUV = uvA },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, StepHeight, StepDepth), TileUV = uvB },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, 1f, StepDepth), TileUV = uvC },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, 1f, StepDepth), TileUV = uvD });
 			faces.Add(stepRiser);
 
 			return faces;
@@ -137,10 +137,10 @@ namespace Erelia.Core.VoxelKit.ShapeType
 			uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
 
 			Erelia.Core.VoxelKit.Face negZ = Erelia.Core.VoxelKit.Utils.Geometry.CreateRectangle(
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvA },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvB },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, StepHeight, 0f), UV = uvC },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, StepHeight, 0f), UV = uvD });
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, 0f, 0f), TileUV = uvA },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, 0f, 0f), TileUV = uvB },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, StepHeight, 0f), TileUV = uvC },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, StepHeight, 0f), TileUV = uvD });
 			faces[AxisPlane.NegZ] = negZ;
 
 			Erelia.Core.VoxelKit.Utils.SpriteUv.GetSpriteUvRect(spriteBack, out uvAnchor, out uvSize);
@@ -150,10 +150,10 @@ namespace Erelia.Core.VoxelKit.ShapeType
 			uvD = uvAnchor + new Vector2(0f, uvSize.y);
 
 			Erelia.Core.VoxelKit.Face posZ = Erelia.Core.VoxelKit.Utils.Geometry.CreateRectangle(
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvA },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = uvB },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvC },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvD });
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, 0f, 1f), TileUV = uvA },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, 1f, 1f), TileUV = uvB },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, 1f, 1f), TileUV = uvC },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, 0f, 1f), TileUV = uvD });
 			faces[AxisPlane.PosZ] = posZ;
 
 			Erelia.Core.VoxelKit.Utils.SpriteUv.GetSpriteUvRect(spriteStepTop, out uvAnchor, out uvSize);
@@ -165,10 +165,10 @@ namespace Erelia.Core.VoxelKit.ShapeType
 			uvD = halfUvAnchor + new Vector2(0f, halfUvSize.y);
 
 			Erelia.Core.VoxelKit.Face posY = Erelia.Core.VoxelKit.Utils.Geometry.CreateRectangle(
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, StepDepth), UV = uvA },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, StepDepth), UV = uvB },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 1f, 1f), UV = uvC },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 1f, 1f), UV = uvD });
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, 1f, StepDepth), TileUV = uvA },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, 1f, StepDepth), TileUV = uvB },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, 1f, 1f), TileUV = uvC },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, 1f, 1f), TileUV = uvD });
 			faces[AxisPlane.PosY] = posY;
 
 			Erelia.Core.VoxelKit.Utils.SpriteUv.GetSpriteUvRect(spriteBottom, out uvAnchor, out uvSize);
@@ -178,10 +178,10 @@ namespace Erelia.Core.VoxelKit.ShapeType
 			uvD = uvAnchor + new Vector2(0f, uvSize.y);
 
 			Erelia.Core.VoxelKit.Face negY = Erelia.Core.VoxelKit.Utils.Geometry.CreateRectangle(
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 0f), UV = uvA },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 0f, 1f), UV = uvB },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 1f), UV = uvC },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 0f, 0f), UV = uvD });
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, 0f, 0f), TileUV = uvA },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, 0f, 1f), TileUV = uvB },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, 0f, 1f), TileUV = uvC },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, 0f, 0f), TileUV = uvD });
 			faces[AxisPlane.NegY] = negY;
 
 			return faces;

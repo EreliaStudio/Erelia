@@ -11,10 +11,10 @@ namespace Erelia.Core.VoxelKit
 
 	public enum Orientation
 	{
-		PositiveX,
-		PositiveZ,
-		NegativeX,
-		NegativeZ
+		PositiveX = 0,
+		PositiveZ = 1,
+		NegativeX = 2,
+		NegativeZ = 3
 	}
 
 	public enum FlipOrientation

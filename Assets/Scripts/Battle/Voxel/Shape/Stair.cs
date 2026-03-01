@@ -24,33 +24,33 @@ namespace Erelia.Battle.Voxel.ShapeType
 			float right = 1f + maskXOverhang;
 
 			Erelia.Core.VoxelKit.Face upperTop = Erelia.Core.VoxelKit.Utils.Geometry.CreateRectangle(
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, upperY, StepDepth), UV = new Vector2(0f, uvStep * 2f) },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(right, upperY, StepDepth), UV = new Vector2(1f, uvStep * 2f) },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(right, upperY, 1f), UV = new Vector2(1f, 1f) },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, upperY, 1f), UV = new Vector2(0f, 1f) });
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, upperY, StepDepth), TileUV = new Vector2(0f, uvStep * 2f) },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(right, upperY, StepDepth), TileUV = new Vector2(1f, uvStep * 2f) },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(right, upperY, 1f), TileUV = new Vector2(1f, 1f) },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, upperY, 1f), TileUV = new Vector2(0f, 1f) });
 			faces.Add(upperTop);
 
 			float riserZ = StepDepth - riserZOffset;
 			Erelia.Core.VoxelKit.Face upperRiser = Erelia.Core.VoxelKit.Utils.Geometry.CreateRectangle(
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, lowerY, riserZ), UV = new Vector2(0f, uvStep) },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(right, lowerY, riserZ), UV = new Vector2(1f, uvStep) },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(right, upperY, riserZ), UV = new Vector2(1f, uvStep * 2f) },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, upperY, riserZ), UV = new Vector2(0f, uvStep * 2f) });
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, lowerY, riserZ), TileUV = new Vector2(0f, uvStep) },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(right, lowerY, riserZ), TileUV = new Vector2(1f, uvStep) },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(right, upperY, riserZ), TileUV = new Vector2(1f, uvStep * 2f) },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, upperY, riserZ), TileUV = new Vector2(0f, uvStep * 2f) });
 			faces.Add(upperRiser);
 
 			Erelia.Core.VoxelKit.Face lowerTop = Erelia.Core.VoxelKit.Utils.Geometry.CreateRectangle(
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, lowerY, 0f), UV = new Vector2(0f, 0f) },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, lowerY, 0f), UV = new Vector2(1f, 0f) },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, lowerY, StepDepth), UV = new Vector2(1f, uvStep) },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, lowerY, StepDepth), UV = new Vector2(0f, uvStep) });
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, lowerY, 0f), TileUV = new Vector2(0f, 0f) },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, lowerY, 0f), TileUV = new Vector2(1f, 0f) },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, lowerY, StepDepth), TileUV = new Vector2(1f, uvStep) },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, lowerY, StepDepth), TileUV = new Vector2(0f, uvStep) });
 			faces.Add(lowerTop);
 
 			var flippedFaces = new List<Erelia.Core.VoxelKit.Face>();
 			Erelia.Core.VoxelKit.Face top = Erelia.Core.VoxelKit.Utils.Geometry.CreateRectangle(
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 1f + maskOffset, 0f), UV = new Vector2(0f, 0f) },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 1f + maskOffset, 0f), UV = new Vector2(1f, 0f) },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(1f, 1f + maskOffset, 1f), UV = new Vector2(1f, 1f) },
-				new Erelia.Core.VoxelKit.Utils.Geometry.Vertex { Position = new Vector3(0f, 1f + maskOffset, 1f), UV = new Vector2(0f, 1f) });
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, 1f + maskOffset, 0f), TileUV = new Vector2(0f, 0f) },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, 1f + maskOffset, 0f), TileUV = new Vector2(1f, 0f) },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, 1f + maskOffset, 1f), TileUV = new Vector2(1f, 1f) },
+				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, 1f + maskOffset, 1f), TileUV = new Vector2(0f, 1f) });
 			flippedFaces.Add(top);
 
 			return new Dictionary<Erelia.Core.VoxelKit.FlipOrientation, List<Erelia.Core.VoxelKit.Face>>

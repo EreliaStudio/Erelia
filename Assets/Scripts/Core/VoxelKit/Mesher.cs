@@ -1113,7 +1113,7 @@ namespace Erelia.Core.VoxelKit
 				return false;
 			}
 
-			Erelia.Core.VoxelKit.Face fullFace = Erelia.Core.VoxelKit.Utils.Geometry.GetFullOuterFace(oppositePlane);
+			Erelia.Core.VoxelKit.Face fullFace = Erelia.Core.VoxelKit.Utils.Geometry.FullOuterFaces[(int)oppositePlane];
 			if (fullFace == null)
 			{
 				return false;

@@ -458,7 +458,7 @@ namespace Erelia.Battle
 			}
 
 			Vector3 localOffset = battleDefinition.MaskShape.GetCardinalPoint(
-				Erelia.Core.VoxelKit.CardinalPoint.Stationary,
+				Erelia.Battle.Voxel.CardinalPoint.Stationary,
 				cellData.Orientation,
 				cellData.FlipOrientation);
 			Vector3 localPosition = new Vector3(cell.x, cell.y, cell.z) + localOffset;

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Erelia.Core.VoxelKit
+namespace Erelia.Battle.Voxel
 {
 	public enum CardinalPoint
 	{

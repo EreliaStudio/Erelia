@@ -32,7 +32,7 @@ namespace Erelia.Battle.Voxel
 		}
 
 		public Vector3 GetCardinalPoint(
-			Erelia.Core.VoxelKit.CardinalPoint entryPoint,
+			Erelia.Battle.Voxel.CardinalPoint entryPoint,
 			Erelia.Core.VoxelKit.Orientation orientation,
 			Erelia.Core.VoxelKit.FlipOrientation flipOrientation)
 		{

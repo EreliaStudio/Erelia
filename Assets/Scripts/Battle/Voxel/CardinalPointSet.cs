@@ -36,19 +36,19 @@ namespace Erelia.Battle.Voxel
 			this.stationary = stationary;
 		}
 
-		public Vector3 Get(Erelia.Core.VoxelKit.CardinalPoint entryPoint)
+		public Vector3 Get(Erelia.Battle.Voxel.CardinalPoint entryPoint)
 		{
 			switch (entryPoint)
 			{
-				case Erelia.Core.VoxelKit.CardinalPoint.PositiveX:
+				case Erelia.Battle.Voxel.CardinalPoint.PositiveX:
 					return positiveX;
-				case Erelia.Core.VoxelKit.CardinalPoint.NegativeX:
+				case Erelia.Battle.Voxel.CardinalPoint.NegativeX:
 					return negativeX;
-				case Erelia.Core.VoxelKit.CardinalPoint.PositiveZ:
+				case Erelia.Battle.Voxel.CardinalPoint.PositiveZ:
 					return positiveZ;
-				case Erelia.Core.VoxelKit.CardinalPoint.NegativeZ:
+				case Erelia.Battle.Voxel.CardinalPoint.NegativeZ:
 					return negativeZ;
-				case Erelia.Core.VoxelKit.CardinalPoint.Stationary:
+				case Erelia.Battle.Voxel.CardinalPoint.Stationary:
 					return stationary;
 				default:
 					return stationary;
