@@ -62,10 +62,10 @@
     <Compile Include="Assets\Scripts\Battle\Core\BattlePhase.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Mesher.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\CardinalPointSet.cs" />
+    <Compile Include="Assets\Scripts\Core\SystemData.cs" />
     <Compile Include="Assets\Scripts\Battle\Phases\PlayerTurnPhase.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\Camera\MouseBoardCellCursor.cs" />
-    <Compile Include="Assets\Scripts\Core\SystemData.cs" />
     <Compile Include="Assets\Scripts\Battle\Phases\CleanupPhase.cs" />
     <Compile Include="Assets\Scripts\Battle\Phases\PlacementSide.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\View.cs" />
@@ -87,11 +87,11 @@
     <Compile Include="Assets\Scripts\Battle\Core\BattlePhaseRegistry.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Enums.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Mesher.cs" />
-    <Compile Include="Assets\Scripts\Battle\Mask\MaskSpriteRegistry.cs" />
-    <Compile Include="Assets\Scripts\Core\VoxelKit\Data.cs" />
     <Compile Include="Assets\Scripts\Core\Utils\PathUtils.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\Type.cs" />
+    <Compile Include="Assets\Scripts\Core\VoxelKit\Data.cs" />
+    <Compile Include="Assets\Scripts\Battle\Mask\MaskSpriteRegistry.cs" />
     <Compile Include="Assets\Scripts\Core\Encounter\EncounterTable.cs" />
+    <Compile Include="Assets\Scripts\Battle\Voxel\Type.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Cell.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Stair.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\MesherUtils.cs" />

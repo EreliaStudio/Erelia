@@ -16,22 +16,21 @@ MonoBehaviour:
     traversal: 0
   shapeType: 0
   shape:
-    rid: 3708920431402025254
+    rid: 1003577070623129906
   maskShape:
-    rid: 3708920431402025255
+    rid: 1003577070623129907
   references:
     version: 2
     RefIds:
-    - rid: 3708920431402025254
-      type: {class: Cube, ns: VoxelKit.ShapeType, asm: Assembly-CSharp}
+    - rid: 1003577070623129906
+      type: {class: Cube, ns: Erelia.Core.VoxelKit.ShapeType, asm: Assembly-CSharp}
       data:
-        spritePosX: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteNegX: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spritePosY: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteNegY: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spritePosZ: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteNegZ: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
-    - rid: 3708920431402025255
-      type: {class: Cube, ns: Erelia.BattleVoxel.ShapeType, asm: Assembly-CSharp}
+        spritePosX: {fileID: 0}
+        spriteNegX: {fileID: 0}
+        spritePosY: {fileID: 0}
+        spriteNegY: {fileID: 0}
+        spritePosZ: {fileID: 0}
+        spriteNegZ: {fileID: 0}
+    - rid: 1003577070623129907
+      type: {class: Cube, ns: Erelia.Battle.Voxel.ShapeType, asm: Assembly-CSharp}
       data: 
-

@@ -16,24 +16,23 @@ MonoBehaviour:
     traversal: 0
   shapeType: 3
   shape:
-    rid: 3708920431402025270
+    rid: 1003577070623129910
   maskShape:
-    rid: 3708920431402025271
+    rid: 1003577070623129911
   references:
     version: 2
     RefIds:
-    - rid: 3708920431402025270
-      type: {class: Stair, ns: VoxelKit.ShapeType, asm: Assembly-CSharp}
+    - rid: 1003577070623129910
+      type: {class: Stair, ns: Erelia.Core.VoxelKit.ShapeType, asm: Assembly-CSharp}
       data:
-        spriteFront: {fileID: -1168464288, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteBack: {fileID: 482027737, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteBottom: {fileID: 482027737, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteTop: {fileID: -1214638521, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteSideLeft: {fileID: 1388158363, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteSideRight: {fileID: 1388158363, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteStepTop: {fileID: -1214638521, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteStepRiser: {fileID: -1168464288, guid: 0904e940b770c4c488037236797d3790, type: 3}
-    - rid: 3708920431402025271
-      type: {class: Stair, ns: Erelia.BattleVoxel.ShapeType, asm: Assembly-CSharp}
+        spriteFront: {fileID: 0}
+        spriteBack: {fileID: 0}
+        spriteBottom: {fileID: 0}
+        spriteTop: {fileID: 0}
+        spriteSideLeft: {fileID: 0}
+        spriteSideRight: {fileID: 0}
+        spriteStepTop: {fileID: 0}
+        spriteStepRiser: {fileID: 0}
+    - rid: 1003577070623129911
+      type: {class: Stair, ns: Erelia.Battle.Voxel.ShapeType, asm: Assembly-CSharp}
       data: 
-

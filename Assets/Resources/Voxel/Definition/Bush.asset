@@ -16,16 +16,16 @@ MonoBehaviour:
     traversal: 1
   shapeType: 4
   shape:
-    rid: 3708920431402025264
+    rid: 1003577070623129904
   maskShape:
-    rid: 3708920431402025265
+    rid: 1003577070623129905
   references:
     version: 2
     RefIds:
-    - rid: 3708920431402025264
-      type: {class: CrossPlane, ns: VoxelKit.ShapeType, asm: Assembly-CSharp}
+    - rid: 1003577070623129904
+      type: {class: CrossPlane, ns: Erelia.Core.VoxelKit.ShapeType, asm: Assembly-CSharp}
       data:
-        sprite: {fileID: -1058494076, guid: 0904e940b770c4c488037236797d3790, type: 3}
-    - rid: 3708920431402025265
-      type: {class: CrossPlane, ns: Erelia.BattleVoxel.ShapeType, asm: Assembly-CSharp}
+        sprite: {fileID: 0}
+    - rid: 1003577070623129905
+      type: {class: CrossPlane, ns: Erelia.Battle.Voxel.ShapeType, asm: Assembly-CSharp}
       data: 

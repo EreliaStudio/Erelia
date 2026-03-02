@@ -487,12 +487,12 @@ namespace Erelia.Core.VoxelKit.Utils
 		/// <param name="normal">Normal vector (does not need to be normalized).</param>
 		/// <param name="plane">Output axis plane if the normal is axis-aligned within tolerance.</param>
 		/// <returns><c>true</c> if the normal matches an axis plane; otherwise <c>false</c>.</returns>
-		public static bool TryFromNormal(Vector3 normal, out Erelia.Core.VoxelKit.Shape.AxisPlane plane)
+		public static bool TryFromNormal(Vector3 normal, out Erelia.Core.VoxelKit.AxisPlane plane)
 		{
 			// Reject degenerate normals.
 			if (normal.sqrMagnitude < NormalEpsilon)
 			{
-				plane = Erelia.Core.VoxelKit.Shape.AxisPlane.PosX;
+				plane = Erelia.Core.VoxelKit.AxisPlane.PosX;
 				return false;
 			}
 
@@ -506,26 +506,26 @@ namespace Erelia.Core.VoxelKit.Utils
 			// Match X axis.
 			if (ax >= 1f - NormalEpsilon && ay <= NormalEpsilon && az <= NormalEpsilon)
 			{
-				plane = n.x >= 0f ? Erelia.Core.VoxelKit.Shape.AxisPlane.PosX : Erelia.Core.VoxelKit.Shape.AxisPlane.NegX;
+				plane = n.x >= 0f ? Erelia.Core.VoxelKit.AxisPlane.PosX : Erelia.Core.VoxelKit.AxisPlane.NegX;
 				return true;
 			}
 
 			// Match Y axis.
 			if (ay >= 1f - NormalEpsilon && ax <= NormalEpsilon && az <= NormalEpsilon)
 			{
-				plane = n.y >= 0f ? Erelia.Core.VoxelKit.Shape.AxisPlane.PosY : Erelia.Core.VoxelKit.Shape.AxisPlane.NegY;
+				plane = n.y >= 0f ? Erelia.Core.VoxelKit.AxisPlane.PosY : Erelia.Core.VoxelKit.AxisPlane.NegY;
 				return true;
 			}
 
 			// Match Z axis.
 			if (az >= 1f - NormalEpsilon && ax <= NormalEpsilon && ay <= NormalEpsilon)
 			{
-				plane = n.z >= 0f ? Erelia.Core.VoxelKit.Shape.AxisPlane.PosZ : Erelia.Core.VoxelKit.Shape.AxisPlane.NegZ;
+				plane = n.z >= 0f ? Erelia.Core.VoxelKit.AxisPlane.PosZ : Erelia.Core.VoxelKit.AxisPlane.NegZ;
 				return true;
 			}
 
 			// Not axis-aligned within tolerance.
-			plane = Erelia.Core.VoxelKit.Shape.AxisPlane.PosX;
+			plane = Erelia.Core.VoxelKit.AxisPlane.PosX;
 			return false;
 		}
 
@@ -534,21 +534,21 @@ namespace Erelia.Core.VoxelKit.Utils
 		/// </summary>
 		/// <param name="plane">Plane to convert.</param>
 		/// <returns>Unit normal for that plane.</returns>
-		public static Vector3 PlaneToNormal(Erelia.Core.VoxelKit.Shape.AxisPlane plane)
+		public static Vector3 PlaneToNormal(Erelia.Core.VoxelKit.AxisPlane plane)
 		{
 			switch (plane)
 			{
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.PosX:
+				case Erelia.Core.VoxelKit.AxisPlane.PosX:
 					return Vector3.right;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.NegX:
+				case Erelia.Core.VoxelKit.AxisPlane.NegX:
 					return Vector3.left;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.PosY:
+				case Erelia.Core.VoxelKit.AxisPlane.PosY:
 					return Vector3.up;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.NegY:
+				case Erelia.Core.VoxelKit.AxisPlane.NegY:
 					return Vector3.down;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.PosZ:
+				case Erelia.Core.VoxelKit.AxisPlane.PosZ:
 					return Vector3.forward;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.NegZ:
+				case Erelia.Core.VoxelKit.AxisPlane.NegZ:
 					return Vector3.back;
 				default:
 					return Vector3.zero;
@@ -561,21 +561,21 @@ namespace Erelia.Core.VoxelKit.Utils
 		/// </summary>
 		/// <param name="plane">Plane to convert.</param>
 		/// <returns>Grid offset corresponding to the plane direction.</returns>
-		public static Vector3Int PlaneToOffset(Erelia.Core.VoxelKit.Shape.AxisPlane plane)
+		public static Vector3Int PlaneToOffset(Erelia.Core.VoxelKit.AxisPlane plane)
 		{
 			switch (plane)
 			{
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.PosX:
+				case Erelia.Core.VoxelKit.AxisPlane.PosX:
 					return new Vector3Int(1, 0, 0);
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.NegX:
+				case Erelia.Core.VoxelKit.AxisPlane.NegX:
 					return new Vector3Int(-1, 0, 0);
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.PosY:
+				case Erelia.Core.VoxelKit.AxisPlane.PosY:
 					return new Vector3Int(0, 1, 0);
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.NegY:
+				case Erelia.Core.VoxelKit.AxisPlane.NegY:
 					return new Vector3Int(0, -1, 0);
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.PosZ:
+				case Erelia.Core.VoxelKit.AxisPlane.PosZ:
 					return new Vector3Int(0, 0, 1);
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.NegZ:
+				case Erelia.Core.VoxelKit.AxisPlane.NegZ:
 					return new Vector3Int(0, 0, -1);
 				default:
 					return Vector3Int.zero;
@@ -587,22 +587,22 @@ namespace Erelia.Core.VoxelKit.Utils
 		/// </summary>
 		/// <param name="plane">Input plane.</param>
 		/// <returns>The opposite plane (e.g., PosX -> NegX).</returns>
-		public static Erelia.Core.VoxelKit.Shape.AxisPlane GetOppositePlane(Erelia.Core.VoxelKit.Shape.AxisPlane plane)
+		public static Erelia.Core.VoxelKit.AxisPlane GetOppositePlane(Erelia.Core.VoxelKit.AxisPlane plane)
 		{
 			switch (plane)
 			{
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.PosX:
-					return Erelia.Core.VoxelKit.Shape.AxisPlane.NegX;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.NegX:
-					return Erelia.Core.VoxelKit.Shape.AxisPlane.PosX;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.PosY:
-					return Erelia.Core.VoxelKit.Shape.AxisPlane.NegY;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.NegY:
-					return Erelia.Core.VoxelKit.Shape.AxisPlane.PosY;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.PosZ:
-					return Erelia.Core.VoxelKit.Shape.AxisPlane.NegZ;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.NegZ:
-					return Erelia.Core.VoxelKit.Shape.AxisPlane.PosZ;
+				case Erelia.Core.VoxelKit.AxisPlane.PosX:
+					return Erelia.Core.VoxelKit.AxisPlane.NegX;
+				case Erelia.Core.VoxelKit.AxisPlane.NegX:
+					return Erelia.Core.VoxelKit.AxisPlane.PosX;
+				case Erelia.Core.VoxelKit.AxisPlane.PosY:
+					return Erelia.Core.VoxelKit.AxisPlane.NegY;
+				case Erelia.Core.VoxelKit.AxisPlane.NegY:
+					return Erelia.Core.VoxelKit.AxisPlane.PosY;
+				case Erelia.Core.VoxelKit.AxisPlane.PosZ:
+					return Erelia.Core.VoxelKit.AxisPlane.NegZ;
+				case Erelia.Core.VoxelKit.AxisPlane.NegZ:
+					return Erelia.Core.VoxelKit.AxisPlane.PosZ;
 				default:
 					return plane;
 			}
@@ -614,8 +614,8 @@ namespace Erelia.Core.VoxelKit.Utils
 		/// <param name="plane">World plane to map.</param>
 		/// <param name="orientation">Local orientation.</param>
 		/// <returns>The corresponding local plane.</returns>
-		public static Erelia.Core.VoxelKit.Shape.AxisPlane MapWorldPlaneToLocal(
-			Erelia.Core.VoxelKit.Shape.AxisPlane plane,
+		public static Erelia.Core.VoxelKit.AxisPlane MapWorldPlaneToLocal(
+			Erelia.Core.VoxelKit.AxisPlane plane,
 			Erelia.Core.VoxelKit.Orientation orientation)
 		{
 			// Inverse mapping: rotate by negative steps.
@@ -630,13 +630,13 @@ namespace Erelia.Core.VoxelKit.Utils
 		/// <param name="orientation">Local orientation.</param>
 		/// <param name="flipOrientation">Optional flip (typically mirroring along Y).</param>
 		/// <returns>The corresponding local plane.</returns>
-		public static Erelia.Core.VoxelKit.Shape.AxisPlane MapWorldPlaneToLocal(
-			Erelia.Core.VoxelKit.Shape.AxisPlane plane,
+		public static Erelia.Core.VoxelKit.AxisPlane MapWorldPlaneToLocal(
+			Erelia.Core.VoxelKit.AxisPlane plane,
 			Erelia.Core.VoxelKit.Orientation orientation,
 			Erelia.Core.VoxelKit.FlipOrientation flipOrientation)
 		{
 			// Apply inverse rotation first.
-			Erelia.Core.VoxelKit.Shape.AxisPlane rotated = RotatePlane(plane, -(int)orientation);
+			Erelia.Core.VoxelKit.AxisPlane rotated = RotatePlane(plane, -(int)orientation);
 
 			// If the local space is flipped along Y, swap PosY/NegY.
 			if (flipOrientation == Erelia.Core.VoxelKit.FlipOrientation.NegativeY)
@@ -655,7 +655,7 @@ namespace Erelia.Core.VoxelKit.Utils
 		/// Number of 90° steps. Values are normalized modulo 4 (negative allowed).
 		/// </param>
 		/// <returns>The rotated plane if it remains axis-aligned; otherwise the original plane.</returns>
-		public static Erelia.Core.VoxelKit.Shape.AxisPlane RotatePlane(Erelia.Core.VoxelKit.Shape.AxisPlane plane, int steps)
+		public static Erelia.Core.VoxelKit.AxisPlane RotatePlane(Erelia.Core.VoxelKit.AxisPlane plane, int steps)
 		{
 			// Normalize steps to 0..3.
 			int normalized = ((steps % 4) + 4) % 4;
@@ -669,7 +669,7 @@ namespace Erelia.Core.VoxelKit.Utils
 			Quaternion rotation = Quaternion.AngleAxis(-normalized * 90f, Vector3.up);
 			Vector3 rotatedNormal = rotation * normal;
 
-			if (TryFromNormal(rotatedNormal, out Erelia.Core.VoxelKit.Shape.AxisPlane rotatedPlane))
+			if (TryFromNormal(rotatedNormal, out Erelia.Core.VoxelKit.AxisPlane rotatedPlane))
 			{
 				return rotatedPlane;
 			}
@@ -683,14 +683,14 @@ namespace Erelia.Core.VoxelKit.Utils
 		/// </summary>
 		/// <param name="plane">Plane to flip.</param>
 		/// <returns>Flipped plane.</returns>
-		public static Erelia.Core.VoxelKit.Shape.AxisPlane FlipPlaneY(Erelia.Core.VoxelKit.Shape.AxisPlane plane)
+		public static Erelia.Core.VoxelKit.AxisPlane FlipPlaneY(Erelia.Core.VoxelKit.AxisPlane plane)
 		{
 			switch (plane)
 			{
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.PosY:
-					return Erelia.Core.VoxelKit.Shape.AxisPlane.NegY;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.NegY:
-					return Erelia.Core.VoxelKit.Shape.AxisPlane.PosY;
+				case Erelia.Core.VoxelKit.AxisPlane.PosY:
+					return Erelia.Core.VoxelKit.AxisPlane.NegY;
+				case Erelia.Core.VoxelKit.AxisPlane.NegY:
+					return Erelia.Core.VoxelKit.AxisPlane.PosY;
 				default:
 					return plane;
 			}
@@ -817,7 +817,7 @@ namespace Erelia.Core.VoxelKit.Utils
 		/// <param name="face">Face to test.</param>
 		/// <param name="plane">Axis plane to test against.</param>
 		/// <returns><c>true</c> if all vertices are coplanar with the plane; otherwise <c>false</c>.</returns>
-		public static bool IsFaceCoplanarWithPlane(Erelia.Core.VoxelKit.Face face, Erelia.Core.VoxelKit.Shape.AxisPlane plane)
+		public static bool IsFaceCoplanarWithPlane(Erelia.Core.VoxelKit.Face face, Erelia.Core.VoxelKit.AxisPlane plane)
 		{
 			// Reject empty geometry.
 			if (face == null || face.Polygons == null || face.Polygons.Count == 0)
@@ -830,17 +830,17 @@ namespace Erelia.Core.VoxelKit.Utils
 			int axis = 0;
 			switch (plane)
 			{
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.PosX:
+				case Erelia.Core.VoxelKit.AxisPlane.PosX:
 					axis = 0; target = 1f; break;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.NegX:
+				case Erelia.Core.VoxelKit.AxisPlane.NegX:
 					axis = 0; target = 0f; break;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.PosY:
+				case Erelia.Core.VoxelKit.AxisPlane.PosY:
 					axis = 1; target = 1f; break;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.NegY:
+				case Erelia.Core.VoxelKit.AxisPlane.NegY:
 					axis = 1; target = 0f; break;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.PosZ:
+				case Erelia.Core.VoxelKit.AxisPlane.PosZ:
 					axis = 2; target = 1f; break;
-				case Erelia.Core.VoxelKit.Shape.AxisPlane.NegZ:
+				case Erelia.Core.VoxelKit.AxisPlane.NegZ:
 					axis = 2; target = 0f; break;
 			}
 
@@ -884,7 +884,7 @@ namespace Erelia.Core.VoxelKit.Utils
 		/// <item><description>Mutual occlusion between the face and the precomputed full face (equivalence test).</description></item>
 		/// </list>
 		/// </remarks>
-		public static bool IsFullFace(Erelia.Core.VoxelKit.Face face, Erelia.Core.VoxelKit.Shape.AxisPlane plane)
+		public static bool IsFullFace(Erelia.Core.VoxelKit.Face face, Erelia.Core.VoxelKit.AxisPlane plane)
 		{
 			// Reject empty / non-renderable faces.
 			if (face == null || !face.HasRenderablePolygons)

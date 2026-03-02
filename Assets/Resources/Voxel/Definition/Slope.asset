@@ -16,21 +16,20 @@ MonoBehaviour:
     traversal: 0
   shapeType: 2
   shape:
-    rid: 3708920431402025268
+    rid: 1003577070623129912
   maskShape:
-    rid: 3708920431402025269
+    rid: 1003577070623129913
   references:
     version: 2
     RefIds:
-    - rid: 3708920431402025268
-      type: {class: Slope, ns: VoxelKit.ShapeType, asm: Assembly-CSharp}
+    - rid: 1003577070623129912
+      type: {class: Slope, ns: Erelia.Core.VoxelKit.ShapeType, asm: Assembly-CSharp}
       data:
-        spriteBack: {fileID: -185238634, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteBottom: {fileID: -185238634, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteSlope: {fileID: 380570255, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteSideLeft: {fileID: 718823219, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteSideRight: {fileID: 718823219, guid: 0904e940b770c4c488037236797d3790, type: 3}
-    - rid: 3708920431402025269
-      type: {class: Slope, ns: Erelia.BattleVoxel.ShapeType, asm: Assembly-CSharp}
+        spriteBack: {fileID: 0}
+        spriteBottom: {fileID: 0}
+        spriteSlope: {fileID: 0}
+        spriteSideLeft: {fileID: 0}
+        spriteSideRight: {fileID: 0}
+    - rid: 1003577070623129913
+      type: {class: Slope, ns: Erelia.Battle.Voxel.ShapeType, asm: Assembly-CSharp}
       data: 
-
