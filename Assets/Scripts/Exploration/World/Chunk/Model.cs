@@ -73,7 +73,7 @@ namespace Erelia.Exploration.World.Chunk
 			return ids;
 		}
 
-		public void Save(string path)
+		public void ToFile(string path)
 		{
 			if (string.IsNullOrEmpty(path))
 			{
@@ -116,7 +116,7 @@ namespace Erelia.Exploration.World.Chunk
 			}
 		}
 
-		public bool Load(string path)
+		public bool FromFile(string path)
 		{
 			if (string.IsNullOrEmpty(path))
 			{

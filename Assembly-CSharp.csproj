@@ -76,6 +76,7 @@
     <Compile Include="Assets\Scripts\Exploration\World\Model.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\ChunkMotionEmitter.cs" />
     <Compile Include="Assets\Scripts\Battle\Data\BattleData.cs" />
+    <Compile Include="Assets\Scripts\Loading\Loader.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape\Slab.cs" />
     <Compile Include="Assets\Scripts\Core\Creature\Team.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\MouseBoardCellSelection.cs" />
@@ -98,7 +99,6 @@
     <Compile Include="Assets\Scripts\Core\Creature\Species.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Data.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape\Slope.cs" />
-    <Compile Include="Assets\Scripts\Core\Loading\Loader.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape\CrossPlane.cs" />
     <Compile Include="Assets\Scripts\Core\Events\Bus.cs" />
     <Compile Include="Assets\Scripts\Exploration\ExplorationData.cs" />

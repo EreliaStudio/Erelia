@@ -25,7 +25,7 @@ MonoBehaviour:
     - rid: 1003577070623129904
       type: {class: CrossPlane, ns: Erelia.Core.VoxelKit.ShapeType, asm: Assembly-CSharp}
       data:
-        sprite: {fileID: 0}
+        sprite: {fileID: -1058494076, guid: 0904e940b770c4c488037236797d3790, type: 3}
     - rid: 1003577070623129905
       type: {class: CrossPlane, ns: Erelia.Battle.Voxel.ShapeType, asm: Assembly-CSharp}
       data: 

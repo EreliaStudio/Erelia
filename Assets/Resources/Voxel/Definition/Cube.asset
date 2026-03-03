@@ -25,12 +25,12 @@ MonoBehaviour:
     - rid: 1003577070623129906
       type: {class: Cube, ns: Erelia.Core.VoxelKit.ShapeType, asm: Assembly-CSharp}
       data:
-        spritePosX: {fileID: 0}
-        spriteNegX: {fileID: 0}
-        spritePosY: {fileID: 0}
-        spriteNegY: {fileID: 0}
-        spritePosZ: {fileID: 0}
-        spriteNegZ: {fileID: 0}
+        spritePosX: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
+        spriteNegX: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
+        spritePosY: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
+        spriteNegY: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
+        spritePosZ: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
+        spriteNegZ: {fileID: 1472335643, guid: 0904e940b770c4c488037236797d3790, type: 3}
     - rid: 1003577070623129907
       type: {class: Cube, ns: Erelia.Battle.Voxel.ShapeType, asm: Assembly-CSharp}
       data: 

@@ -69,10 +69,9 @@ namespace Erelia.Core.Encounter
 					continue;
 				}
 
-				Erelia.Core.Encounter.EncounterTable table = Erelia.Core.Encounter.EncounterTable.LoadFromPath(entry.Path);
-				if (table == null)
+				if (!Erelia.Core.Utils.JsonIO.TryLoad(entry.Path, out Erelia.Core.Encounter.EncounterTable table))
 				{
-					Debug.LogWarning($"[EncounterTableRegistry] Encounter JSON not found at '{entry.Path}'.");
+					Debug.LogWarning($"[EncounterTableRegistry] Encounter JSON not found or invalid at '{entry.Path}'.");
 					continue;
 				}
 

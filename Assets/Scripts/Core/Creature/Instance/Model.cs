@@ -1,52 +1,83 @@
-using System.IO;
 using UnityEngine;
 
 namespace Erelia.Core.Creature.Instance
 {
+	/// <summary>
+	/// Serializable data model representing a single creature instance.
+	/// </summary>
+	/// <remarks>
+	/// <para>
+	/// A creature instance references its species through <see cref="SpeciesId"/> (resolved via
+	/// <see cref="Erelia.Core.Creature.SpeciesRegistry"/>) and optionally stores a nickname.
+	/// </para>
+	/// <para>
+	/// JSON format (Unity <see cref="JsonUtility"/>):
+	/// </para>
+	/// <code>
+	/// {
+	///   "speciesId": 12,
+	///   "nickname": "Kitsu"
+	/// }
+	/// </code>
+	/// <para>
+	/// Notes:
+	/// <list type="bullet">
+	/// <item><description>Property names match the serialized field names (<c>speciesId</c>, <c>nickname</c>).</description></item>
+	/// <item><description>Private fields are serialized because they are marked with <c>[SerializeField]</c>.</description></item>
+	/// <item><description>Serialization is handled externally via <see cref="JsonUtility"/>.</description></item>
+	/// </list>
+	/// </para>
+	/// </remarks>
 	[System.Serializable]
 	public sealed class Model
 	{
+		/// <summary>
+		/// Species registry id associated with this creature instance.
+		/// </summary>
 		[SerializeField] private int speciesId = Erelia.Core.Creature.SpeciesRegistry.EmptySpeciesId;
+
+		/// <summary>
+		/// Optional nickname assigned to this creature instance.
+		/// </summary>
 		[SerializeField] private string nickname;
-		[SerializeField] private int level = 1;
 
+		/// <summary>
+		/// Gets the species registry id.
+		/// </summary>
 		public int SpeciesId => speciesId;
-		public string Nickname => nickname;
-		public int Level => level;
 
+		/// <summary>
+		/// Gets the nickname.
+		/// </summary>
+		public string Nickname => nickname;
+
+		/// <summary>
+		/// Creates an empty creature instance model.
+		/// </summary>
 		public Model()
 		{
+			// Default constructor required for serialization.
 		}
 
-		public Model(int speciesId, string nickname, int level)
+		/// <summary>
+		/// Creates a creature instance model with explicit values.
+		/// </summary>
+		/// <param name="speciesId">Species registry id.</param>
+		/// <param name="nickname">Optional nickname.</param>
+		public Model(int speciesId, string nickname)
 		{
 			this.speciesId = speciesId;
 			this.nickname = nickname;
-			this.level = level;
 		}
 
+		/// <summary>
+		/// Sets the species registry id.
+		/// </summary>
+		/// <param name="id">New species id.</param>
 		public void SetSpeciesId(int id)
 		{
 			speciesId = id;
 		}
 
-		public void Save(string path)
-		{
-			string json = JsonUtility.ToJson(this, true);
-			File.WriteAllText(path, json);
-		}
-
-		public bool Load(string path)
-		{
-			string json = Erelia.Core.Utils.PathUtils.ReadTextFromPath(path);
-			if (string.IsNullOrEmpty(json))
-			{
-				Debug.LogWarning($"[Erelia.Core.Creature.Instance.Model] Save file not found at '{path}'.");
-				return false;
-			}
-
-			JsonUtility.FromJsonOverwrite(json, this);
-			return true;
-		}
 	}
 }

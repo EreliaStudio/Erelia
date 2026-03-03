@@ -48,7 +48,7 @@ namespace Erelia.Exploration.World
 			bool loaded = false;
 			if (!string.IsNullOrEmpty(path) && File.Exists(path))
 			{
-				loaded = chunk.Load(path);
+				loaded = chunk.FromFile(path);
 			}
 
 			if (!loaded && chunkGenerator != null)
@@ -83,7 +83,7 @@ namespace Erelia.Exploration.World
 				throw new System.InvalidOperationException("[Erelia.Exploration.World.Model] Chunk directory is not set.");
 			}
 
-			chunk.Save(path);
+			chunk.ToFile(path);
 		}
 
 		public void Save(string path)
@@ -128,8 +128,7 @@ namespace Erelia.Exploration.World
 				GeneratorDataPath = generatorDataPath
 			};
 
-			string json = JsonUtility.ToJson(data, true);
-			File.WriteAllText(path, json);
+			Erelia.Core.Utils.JsonIO.Save(path, data, true);
 		}
 
 		public bool Load(string path)
@@ -139,17 +138,10 @@ namespace Erelia.Exploration.World
 				throw new ArgumentException("Path cannot be null or empty.", nameof(path));
 			}
 
-			string json = Erelia.Core.Utils.PathUtils.ReadTextFromPath(path);
-			if (string.IsNullOrEmpty(json))
-			{
-				Debug.LogWarning($"[Erelia.Exploration.World.Model] Save file not found at '{path}'.");
-				return false;
-			}
-
-			WorldSaveData data = JsonUtility.FromJson<WorldSaveData>(json);
+			WorldSaveData data = Erelia.Core.Utils.JsonIO.Load<WorldSaveData>(path);
 			if (data == null)
 			{
-				Debug.LogWarning("[Erelia.Exploration.World.Model] Failed to parse world save data.");
+				Debug.LogWarning($"[Erelia.Exploration.World.Model] Save file not found or invalid at '{path}'.");
 				return false;
 			}
 
@@ -206,7 +198,7 @@ namespace Erelia.Exploration.World
 					continue;
 				}
 
-				entry.Value.Save(path);
+				entry.Value.ToFile(path);
 			}
 		}
 
