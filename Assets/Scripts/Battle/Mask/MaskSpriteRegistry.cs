@@ -42,17 +42,17 @@ namespace Erelia.Battle
 		/// <summary>
 		/// Tries to resolve a sprite for the given mask type.
 		/// </summary>
-		public bool TryGetSprite(Erelia.Battle.Voxel.Type type, out Sprite sprite)
+		public bool TryGetSprite(Erelia.Battle.Voxel.Mask.Type type, out Sprite sprite)
 		{
 			// Map the mask type to its configured sprite.
 			sprite = type switch
 			{
-				Erelia.Battle.Voxel.Type.Placement => placementSprite,
-				Erelia.Battle.Voxel.Type.EnemyPlacement => enemyPlacementSprite,
-				Erelia.Battle.Voxel.Type.AttackRange => attackRangeSprite,
-				Erelia.Battle.Voxel.Type.MovementRange => movementRangeSprite,
-				Erelia.Battle.Voxel.Type.AreaOfEffect => areaOfEffectSprite,
-				Erelia.Battle.Voxel.Type.Selected => selectedSprite,
+				Erelia.Battle.Voxel.Mask.Type.Placement => placementSprite,
+				Erelia.Battle.Voxel.Mask.Type.EnemyPlacement => enemyPlacementSprite,
+				Erelia.Battle.Voxel.Mask.Type.AttackRange => attackRangeSprite,
+				Erelia.Battle.Voxel.Mask.Type.MovementRange => movementRangeSprite,
+				Erelia.Battle.Voxel.Mask.Type.AreaOfEffect => areaOfEffectSprite,
+				Erelia.Battle.Voxel.Mask.Type.Selected => selectedSprite,
 				_ => null
 			};
 

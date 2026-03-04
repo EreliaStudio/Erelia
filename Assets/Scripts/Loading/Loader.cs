@@ -15,6 +15,16 @@ namespace Erelia.Loading
 	public sealed class Loader : MonoBehaviour
 	{
 		/// <summary>
+		/// Optional JSON asset defining the player team.
+		/// </summary>
+		[SerializeField] private TextAsset playerTeamJson;
+
+		/// <summary>
+		/// Resources path used to load the player team JSON when no asset is provided.
+		/// </summary>
+		[SerializeField] private string playerTeamResourcePath = "Creature/Team/PlayerTeam";
+
+		/// <summary>
 		/// Unity callback invoked when the component is loaded.
 		/// </summary>
 		/// <remarks>
@@ -41,6 +51,36 @@ namespace Erelia.Loading
 			// Get the singleton context and reset battle state.
 			var context = Erelia.Core.Context.Instance;
 			context.ClearBattle();
+			EnsurePlayerTeam(context.SystemData);
+		}
+
+		/// <summary>
+		/// Loads the player team from JSON and stores it in system data when needed.
+		/// </summary>
+		private void EnsurePlayerTeam(Erelia.Core.SystemData systemData)
+		{
+			if (systemData == null || systemData.PlayerTeam != null)
+			{
+				return;
+			}
+
+			Erelia.Core.Creature.Team team = null;
+			if (playerTeamJson != null && !string.IsNullOrEmpty(playerTeamJson.text))
+			{
+				team = JsonUtility.FromJson<Erelia.Core.Creature.Team>(playerTeamJson.text);
+			}
+			else if (!string.IsNullOrEmpty(playerTeamResourcePath))
+			{
+				team = Erelia.Core.Utils.JsonIO.Load<Erelia.Core.Creature.Team>(playerTeamResourcePath);
+			}
+
+			if (team == null)
+			{
+				Debug.LogWarning("[Erelia.Loading.Loader] Player team JSON is missing or invalid.");
+				return;
+			}
+
+			systemData.SetPlayerTeam(team);
 		}
 	}
 }

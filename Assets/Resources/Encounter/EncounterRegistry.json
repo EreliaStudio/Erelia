@@ -1,0 +1,5 @@
+{
+  "Encounters": [
+    { "Id": 1, "Path": "Encounter/Tables/DebugEncounter" }
+  ]
+}

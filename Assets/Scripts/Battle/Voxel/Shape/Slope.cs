@@ -9,7 +9,7 @@ namespace Erelia.Battle.Voxel.ShapeType
 	/// Defines a sloped top face and cardinal points for placement offsets.
 	/// </summary>
 	[Serializable]
-	public class Slope : Erelia.Battle.Voxel.MaskShape
+	public class Slope : Erelia.Battle.Voxel.Mask.Shape
 	{
 		/// <summary>
 		/// Constructs the mask faces for a slope voxel.

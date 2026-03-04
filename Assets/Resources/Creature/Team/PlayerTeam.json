@@ -1,0 +1,10 @@
+{
+  "slots": [
+    { "speciesId": 1, "nickname": "UnitACustomName" },
+    { "speciesId": 2, "nickname": "UnitBCustomName" },
+    null,
+    null,
+    null,
+    null
+  ]
+}

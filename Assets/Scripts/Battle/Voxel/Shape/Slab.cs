@@ -9,7 +9,7 @@ namespace Erelia.Battle.Voxel.ShapeType
 	/// Defines top faces and cardinal points for half-height placement offsets.
 	/// </summary>
 	[Serializable]
-	public class Slab : Erelia.Battle.Voxel.MaskShape
+	public class Slab : Erelia.Battle.Voxel.Mask.Shape
 	{
 		/// <summary>
 		/// Height of the slab mask (half-height).

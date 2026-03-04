@@ -67,7 +67,6 @@
     <Compile Include="Assets\Scripts\Battle\BattleBoard\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\Camera\MouseBoardCellCursor.cs" />
     <Compile Include="Assets\Scripts\Battle\Phases\CleanupPhase.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phases\PlacementSide.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\View.cs" />
     <Compile Include="Assets\Scripts\Core\Events\PlayerMotion.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Registry.cs" />
@@ -92,7 +91,6 @@
     <Compile Include="Assets\Scripts\Core\VoxelKit\Data.cs" />
     <Compile Include="Assets\Scripts\Battle\Mask\MaskSpriteRegistry.cs" />
     <Compile Include="Assets\Scripts\Core\Encounter\EncounterTable.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\Type.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Cell.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Stair.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\MesherUtils.cs" />
@@ -107,6 +105,7 @@
     <Compile Include="Assets\Scripts\Battle\Phases\PlacementPhase.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\Camera\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattlePhaseId.cs" />
+    <Compile Include="Assets\Scripts\Battle\Voxel\Mask\Shape.cs" />
     <Compile Include="Assets\Scripts\Core\Creature\Instance\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\BattlePlayerController.cs" />
     <Compile Include="Assets\Scripts\Core\Creature\SpeciesRegistry.cs" />
@@ -130,7 +129,6 @@
     <Compile Include="Assets\Scripts\Core\VoxelKit\Utils.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Presenter.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\MaskShape.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\View.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape\Cube.cs" />
     <Compile Include="Assets\Scripts\Core\Events\BattleSceneEvents.cs" />
@@ -151,6 +149,7 @@
     <Compile Include="Assets\Scripts\Exploration\Player\Camera\Presenter.cs" />
     <Compile Include="Assets\Scripts\Core\Creature\Instance\Presenter.cs" />
     <Compile Include="Assets\Scripts\Battle\Data\BattleInfo.cs" />
+    <Compile Include="Assets\Scripts\Battle\Voxel\Mask\Type.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Cube.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Face.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\Generation\IGenerator.cs" />

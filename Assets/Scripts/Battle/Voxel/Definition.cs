@@ -16,7 +16,7 @@ namespace Erelia.Battle.Voxel
 		/// <summary>
 		/// Mask shape instance used for overlay rendering.
 		/// </summary>
-		[HideInInspector] [SerializeReference] private Erelia.Battle.Voxel.MaskShape maskShape = null;
+		[HideInInspector] [SerializeReference] private Erelia.Battle.Voxel.Mask.Shape maskShape = null;
 
 		/// <summary>
 		/// Gets the battle-specific data.
@@ -25,7 +25,7 @@ namespace Erelia.Battle.Voxel
 		/// <summary>
 		/// Gets the mask shape instance.
 		/// </summary>
-		public Erelia.Battle.Voxel.MaskShape MaskShape => maskShape;
+		public Erelia.Battle.Voxel.Mask.Shape MaskShape => maskShape;
 
 		/// <summary>
 		/// Initializes the base definition and the battle mask shape.

@@ -9,7 +9,7 @@ namespace Erelia.Battle.Voxel.ShapeType
 	/// Defines the top face and cardinal entry points for placement offsets.
 	/// </summary>
 	[Serializable]
-	public class CrossPlane : Erelia.Battle.Voxel.MaskShape
+	public class CrossPlane : Erelia.Battle.Voxel.Mask.Shape
 	{
 		/// <summary>
 		/// Constructs the mask faces for a cross-plane voxel.

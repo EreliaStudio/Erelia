@@ -15,15 +15,6 @@ MonoBehaviour:
   entries:
   - Type: 0
     Data:
-      EncounterTable:
-        EncounterChance: 1
-        BaseRadius: 10
-        NoiseAmplitude: 4
-        NoiseScale: 0.15
-        NoiseSeed: 1337
-        PlacementRadius: 3
-        Teams:
-        - Team: {fileID: 11400000, guid: ef880097823d02a4ba592e8769afce59, type: 2}
-          Weight: 10
-        - Team: {fileID: 11400000, guid: 31114f40b8fe4bf4eb98438589787a3b, type: 2}
-          Weight: 10
+      EncounterId: 1
+  encounterRegistryJson: {fileID: 0}
+  encounterRegistryResourcePath: Encounter/EncounterRegistry

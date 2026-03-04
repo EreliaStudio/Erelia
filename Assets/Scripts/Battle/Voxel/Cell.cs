@@ -13,12 +13,12 @@ namespace Erelia.Battle.Voxel
 		/// <summary>
 		/// List of masks applied to this cell.
 		/// </summary>
-		private List<Erelia.Battle.Voxel.Type> masks = new List<Erelia.Battle.Voxel.Type>();
+		private List<Erelia.Battle.Voxel.Mask.Type> masks = new List<Erelia.Battle.Voxel.Mask.Type>();
 
 		/// <summary>
 		/// Gets the read-only list of masks applied to the cell.
 		/// </summary>
-		public IReadOnlyList<Erelia.Battle.Voxel.Type> Masks => masks;
+		public IReadOnlyList<Erelia.Battle.Voxel.Mask.Type> Masks => masks;
 
 		/// <summary>
 		/// Creates a battle voxel cell with the given id.
@@ -50,7 +50,7 @@ namespace Erelia.Battle.Voxel
 		/// <summary>
 		/// Checks whether the cell contains the given mask.
 		/// </summary>
-		public bool HasMask(Erelia.Battle.Voxel.Type mask)
+		public bool HasMask(Erelia.Battle.Voxel.Mask.Type mask)
 		{
 			// Look for the mask in the list.
 			return masks.Contains(mask);
@@ -68,7 +68,7 @@ namespace Erelia.Battle.Voxel
 		/// <summary>
 		/// Adds a mask to the cell if not already present.
 		/// </summary>
-		public void AddMask(Erelia.Battle.Voxel.Type mask)
+		public void AddMask(Erelia.Battle.Voxel.Mask.Type mask)
 		{
 			// Prevent duplicate masks.
 			if (masks.Contains(mask))
@@ -82,7 +82,7 @@ namespace Erelia.Battle.Voxel
 		/// <summary>
 		/// Removes a mask from the cell.
 		/// </summary>
-		public void RemoveMask(Erelia.Battle.Voxel.Type mask)
+		public void RemoveMask(Erelia.Battle.Voxel.Mask.Type mask)
 		{
 			// Remove the mask if present.
 			masks.Remove(mask);

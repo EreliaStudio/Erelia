@@ -19,7 +19,7 @@ namespace Erelia.Battle.Player
 		/// <summary>
 		/// Mask type applied to the selected cell.
 		/// </summary>
-		[SerializeField] private Erelia.Battle.Voxel.Type selectionMask = Erelia.Battle.Voxel.Type.Selected;
+		[SerializeField] private Erelia.Battle.Voxel.Mask.Type selectionMask = Erelia.Battle.Voxel.Mask.Type.Selected;
 
 		/// <summary>
 		/// Whether a cell is currently selected.

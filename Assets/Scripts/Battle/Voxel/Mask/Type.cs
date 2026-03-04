@@ -1,4 +1,4 @@
-namespace Erelia.Battle.Voxel
+namespace Erelia.Battle.Voxel.Mask
 {
 	/// <summary>
 	/// Mask types used to mark battle cells (placement, ranges, selection).

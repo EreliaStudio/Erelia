@@ -90,7 +90,7 @@ namespace Erelia.Battle.Voxel.Editor
 		/// <summary>
 		/// Creates a mask shape instance for the given voxel shape type.
 		/// </summary>
-		private static Erelia.Battle.Voxel.MaskShape CreateMaskShapeInstance(Erelia.Core.VoxelKit.Definition.ShapeType shapeType)
+		private static Erelia.Battle.Voxel.Mask.Shape CreateMaskShapeInstance(Erelia.Core.VoxelKit.Definition.ShapeType shapeType)
 		{
 			// Instantiate the appropriate mask shape.
 			switch (shapeType)

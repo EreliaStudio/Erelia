@@ -194,7 +194,7 @@ namespace Erelia.Battle.Player
 				return;
 			}
 
-			if (!placementPhase.TryPlaceCreature(creature, hoveredCell, Erelia.Battle.Voxel.Type.Placement, out Erelia.Battle.Unit _))
+			if (!placementPhase.TryPlaceCreature(creature, hoveredCell, Erelia.Battle.Voxel.Mask.Type.Placement, out Erelia.Battle.Unit _))
 			{
 				return;
 			}
@@ -237,7 +237,7 @@ namespace Erelia.Battle.Player
 			}
 
 			RemoveSelectionMask();
-			targetCell.AddMask(Erelia.Battle.Voxel.Type.Selected);
+			targetCell.AddMask(Erelia.Battle.Voxel.Mask.Type.Selected);
 			hoveredCell = cell;
 			hasHoveredCell = true;
 			RebuildMasks();
@@ -284,7 +284,7 @@ namespace Erelia.Battle.Player
 				return;
 			}
 
-			cell.RemoveMask(Erelia.Battle.Voxel.Type.Selected);
+			cell.RemoveMask(Erelia.Battle.Voxel.Mask.Type.Selected);
 		}
 
 		/// <summary>

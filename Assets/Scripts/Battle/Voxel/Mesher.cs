@@ -27,7 +27,7 @@ namespace Erelia.Battle.Voxel
 				return new Mesh();
 			}
 
-			int typeCount = System.Enum.GetValues(typeof(Erelia.Battle.Voxel.Type)).Length;
+			int typeCount = System.Enum.GetValues(typeof(Erelia.Battle.Voxel.Mask.Type)).Length;
 			var uvAnchors = new Vector2[typeCount];
 			var uvSizes = new Vector2[typeCount];
 			var hasUv = new bool[typeCount];
@@ -36,7 +36,7 @@ namespace Erelia.Battle.Voxel
 			{
 				for (int i = 0; i < typeCount; i++)
 				{
-					Erelia.Battle.Voxel.Type type = (Erelia.Battle.Voxel.Type)i;
+					Erelia.Battle.Voxel.Mask.Type type = (Erelia.Battle.Voxel.Mask.Type)i;
 					if (maskSpriteRegistry.TryGetSprite(type, out Sprite sprite) && sprite != null)
 					{
 						Erelia.Core.VoxelKit.Utils.SpriteUv.GetSpriteUvRect(sprite, out Vector2 uvAnchor, out Vector2 uvSize);
@@ -68,12 +68,12 @@ namespace Erelia.Battle.Voxel
 							continue;
 						}
 
-						if (!TryGetTopmostMask(maskCell, out Erelia.Battle.Voxel.Type topmost))
+						if (!TryGetTopmostMask(maskCell, out Erelia.Battle.Voxel.Mask.Type topmost))
 						{
 							continue;
 						}
 
-						Erelia.Battle.Voxel.MaskShape maskShape = battleDefinition.MaskShape;
+						Erelia.Battle.Voxel.Mask.Shape maskShape = battleDefinition.MaskShape;
 						if (maskShape == null || maskShape.MaskFaces == null)
 						{
 							continue;
@@ -127,7 +127,7 @@ namespace Erelia.Battle.Voxel
 		/// </summary>
 		private static bool TryGetTopmostMask(
 			Erelia.Battle.Voxel.Cell maskCell,
-			out Erelia.Battle.Voxel.Type topmost)
+			out Erelia.Battle.Voxel.Mask.Type topmost)
 		{
 			// Use the last mask as the topmost.
 			topmost = default;

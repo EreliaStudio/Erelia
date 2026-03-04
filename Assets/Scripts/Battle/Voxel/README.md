@@ -9,7 +9,7 @@ It augments the core voxel system with masks for placement, ranges, and selectio
 - `Type`: mask type enum for overlays.
 - `Definition`: battle voxel definition with mask shape data.
 - `Data`: placeholder for battle-only voxel metadata.
-- `MaskShape`: base class for overlay mask shapes.
+- `Mask.Shape`: base class for overlay mask shapes.
 - `Mesher`: builds overlay meshes from masks.
 - `MesherUtils`: caches transformed cardinal point sets.
 - `CardinalPoint` and `CardinalPointSet`: placement entry point helpers.

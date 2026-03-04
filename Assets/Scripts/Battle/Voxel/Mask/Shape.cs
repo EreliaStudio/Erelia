@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Erelia.Battle.Voxel
+namespace Erelia.Battle.Voxel.Mask
 {
 	/// <summary>
 	/// Base class for voxel mask shapes used to render battle overlays.
 	/// Builds face lists and cardinal point sets for different orientations.
 	/// </summary>
 	[System.Serializable]
-	public abstract class MaskShape
+	public abstract class Shape
 	{
 		private Dictionary<Erelia.Core.VoxelKit.FlipOrientation, List<Erelia.Core.VoxelKit.Face>> maskFaces
 			= new Dictionary<Erelia.Core.VoxelKit.FlipOrientation, List<Erelia.Core.VoxelKit.Face>>();

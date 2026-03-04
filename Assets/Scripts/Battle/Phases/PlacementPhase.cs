@@ -36,11 +36,11 @@ namespace Erelia.Battle
 		/// <summary>
 		/// Mask type used for player placement tiles.
 		/// </summary>
-		private const Erelia.Battle.Voxel.Type PlacementMask = Erelia.Battle.Voxel.Type.Placement;
+		private const Erelia.Battle.Voxel.Mask.Type PlacementMask = Erelia.Battle.Voxel.Mask.Type.Placement;
 		/// <summary>
 		/// Mask type used for enemy placement tiles.
 		/// </summary>
-		private const Erelia.Battle.Voxel.Type EnemyPlacementMask = Erelia.Battle.Voxel.Type.EnemyPlacement;
+		private const Erelia.Battle.Voxel.Mask.Type EnemyPlacementMask = Erelia.Battle.Voxel.Mask.Type.EnemyPlacement;
 
 		public override BattlePhaseId Id => BattlePhaseId.Placement;
 
@@ -190,7 +190,7 @@ namespace Erelia.Battle
 		private static void ApplyAssignments(
 			Erelia.Battle.Voxel.Cell[,,] cells,
 			List<Vector3Int> positions,
-			Erelia.Battle.Voxel.Type maskType)
+			Erelia.Battle.Voxel.Mask.Type maskType)
 		{
 			// Add the mask to each valid cell position.
 			if (cells == null || positions == null || positions.Count == 0)
@@ -437,7 +437,7 @@ namespace Erelia.Battle
 		public bool TryPlaceCreature(
 			Erelia.Core.Creature.Instance.Model creature,
 			Vector3Int cell,
-			Erelia.Battle.Voxel.Type placementMask,
+			Erelia.Battle.Voxel.Mask.Type placementMask,
 			out Erelia.Battle.Unit unit)
 		{
 			// Validate placement request and spawn the creature view.

@@ -9,7 +9,7 @@ namespace Erelia.Battle.Voxel.ShapeType
 	/// Defines step faces and cardinal points for placement offsets.
 	/// </summary>
 	[Serializable]
-	public class Stair : Erelia.Battle.Voxel.MaskShape
+	public class Stair : Erelia.Battle.Voxel.Mask.Shape
 	{
 		/// <summary>
 		/// Height of each stair step.
