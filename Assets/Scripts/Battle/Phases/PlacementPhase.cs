@@ -3,29 +3,62 @@ using UnityEngine;
 
 namespace Erelia.Battle
 {
+	/// <summary>
+	/// Placement phase that computes placement masks and handles unit placement.
+	/// Applies placement tiles around centers, updates mask meshes, and clears them on exit.
+	/// </summary>
 	[System.Serializable]
 	public sealed class PlacementPhase : BattlePhase
 	{
+		/// <summary>
+		/// Presenter used to access the battle board.
+		/// </summary>
 		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
 
+		/// <summary>
+		/// List of units placed during this phase.
+		/// </summary>
 		private readonly List<Erelia.Battle.Unit> placedUnits = new List<Erelia.Battle.Unit>();
+		/// <summary>
+		/// Lookup of placed units by cell position.
+		/// </summary>
 		private readonly Dictionary<Vector3Int, Erelia.Battle.Unit> unitsByCell =
 			new Dictionary<Vector3Int, Erelia.Battle.Unit>();
+		/// <summary>
+		/// Lookup of placed units by creature instance.
+		/// </summary>
 		private readonly Dictionary<Erelia.Core.Creature.Instance.Model, Erelia.Battle.Unit> unitsByCreature =
 			new Dictionary<Erelia.Core.Creature.Instance.Model, Erelia.Battle.Unit>();
+		/// <summary>
+		/// Whether mask application is still pending.
+		/// </summary>
 		private bool pendingApply;
+		/// <summary>
+		/// Mask type used for player placement tiles.
+		/// </summary>
 		private const Erelia.Battle.Voxel.Type PlacementMask = Erelia.Battle.Voxel.Type.Placement;
+		/// <summary>
+		/// Mask type used for enemy placement tiles.
+		/// </summary>
 		private const Erelia.Battle.Voxel.Type EnemyPlacementMask = Erelia.Battle.Voxel.Type.EnemyPlacement;
 
 		public override BattlePhaseId Id => BattlePhaseId.Placement;
 
+		/// <summary>
+		/// Enters the placement phase and applies placement masks.
+		/// </summary>
 		public override void Enter(BattleManager manager)
 		{
+			// Apply placement masks or mark pending if data is missing.
 			pendingApply = !TryApplyPlacementMask(manager);
 		}
 
+		/// <summary>
+		/// Exits the placement phase and clears placement masks.
+		/// </summary>
 		public override void Exit(BattleManager manager)
 		{
+			// Clear placement masks when leaving the phase.
 			pendingApply = false;
 
 			Erelia.Battle.Board.Presenter presenter = ResolvePresenter(manager);
@@ -39,8 +72,12 @@ namespace Erelia.Battle
 			presenter.RebuildMasks();
 		}
 
+		/// <summary>
+		/// Ticks the placement phase until masks are applied.
+		/// </summary>
 		public override void Tick(BattleManager manager, float deltaTime)
 		{
+			// Retry mask application while pending.
 			if (!pendingApply)
 			{
 				return;
@@ -49,8 +86,12 @@ namespace Erelia.Battle
 			pendingApply = !TryApplyPlacementMask(manager);
 		}
 
+		/// <summary>
+		/// Resolves the battle board presenter from field or manager.
+		/// </summary>
 		private Erelia.Battle.Board.Presenter ResolvePresenter(BattleManager manager)
 		{
+			// Prefer the serialized presenter, fallback to manager lookup.
 			if (boardPresenter != null)
 			{
 				return boardPresenter;
@@ -69,8 +110,12 @@ namespace Erelia.Battle
 			return boardPresenter;
 		}
 
+		/// <summary>
+		/// Builds and applies placement masks to the board.
+		/// </summary>
 		private bool TryApplyPlacementMask(BattleManager manager)
 		{
+			// Resolve board and placement centers, then apply masks.
 			Erelia.Battle.Board.Presenter presenter = ResolvePresenter(manager);
 			Erelia.Battle.Board.Model board = presenter != null ? presenter.Model : null;
 			if (board == null || board.Cells == null)
@@ -95,12 +140,16 @@ namespace Erelia.Battle
 			return true;
 		}
 
+		/// <summary>
+		/// Computes placement candidates and assigns mask tiles per team.
+		/// </summary>
 		private void ApplyPlacementMask(
 			Erelia.Battle.Board.Model board,
 			Erelia.Core.VoxelKit.Registry registry,
 			Vector2Int playerCenter,
 			Vector2Int enemyCenter)
 		{
+			// Compute candidate cells and assign them to player/enemy.
 			if (board == null || board.Cells == null || registry == null)
 			{
 				return;
@@ -135,11 +184,15 @@ namespace Erelia.Battle
 			ApplyAssignments(board.Cells, assignments.Enemy, EnemyPlacementMask);
 		}
 
+		/// <summary>
+		/// Applies a placement mask to a list of cell positions.
+		/// </summary>
 		private static void ApplyAssignments(
 			Erelia.Battle.Voxel.Cell[,,] cells,
 			List<Vector3Int> positions,
 			Erelia.Battle.Voxel.Type maskType)
 		{
+			// Add the mask to each valid cell position.
 			if (cells == null || positions == null || positions.Count == 0)
 			{
 				return;
@@ -167,8 +220,12 @@ namespace Erelia.Battle
 			}
 		}
 
+		/// <summary>
+		/// Collects candidate placement positions from the board.
+		/// </summary>
 		private static List<Vector3Int> CollectPlacementCandidates(Erelia.Battle.Voxel.Cell[,,] cells, Erelia.Core.VoxelKit.Registry registry)
 		{
+			// Scan the grid for valid placement surfaces.
 			var candidates = new List<Vector3Int>();
 			if (cells == null || registry == null)
 			{
@@ -191,12 +248,16 @@ namespace Erelia.Battle
 			return candidates;
 		}
 
+		/// <summary>
+		/// Assigns candidate cells to player and enemy teams.
+		/// </summary>
 		private static PlacementAssignments AssignPlacementCells(
 			List<Vector3Int> candidates,
 			Vector2Int playerCenter,
 			Vector2Int enemyCenter,
 			int countPerTeam)
 		{
+			// Rank candidates by distance and split between teams.
 			var ranked = new List<Candidate>(candidates.Count);
 			for (int i = 0; i < candidates.Count; i++)
 			{
@@ -270,15 +331,23 @@ namespace Erelia.Battle
 			return new PlacementAssignments(player, enemy);
 		}
 
+		/// <summary>
+		/// Computes squared distance between a center and a cell.
+		/// </summary>
 		private static float DistanceSq(Vector2Int center, Vector3Int pos)
 		{
+			// Use X/Z for grid distance.
 			float dx = pos.x - center.x;
 			float dz = pos.z - center.y;
 			return (dx * dx) + (dz * dz);
 		}
 
+		/// <summary>
+		/// Resolves placement radius from the encounter table.
+		/// </summary>
 		private static int ResolvePlacementRadius()
 		{
+			// Read placement radius from context data.
 			Erelia.Battle.Data data = Erelia.Core.Context.Instance?.BattleData;
 			Erelia.Core.Encounter.EncounterTable table = data != null ? data.EncounterTable : null;
 			if (table == null)
@@ -289,8 +358,12 @@ namespace Erelia.Battle
 			return Mathf.Max(0, table.PlacementRadius);
 		}
 
+		/// <summary>
+		/// Tries to resolve placement centers from battle info.
+		/// </summary>
 		private static bool TryGetPlacementCenters(out Vector2Int playerCenter, out Vector2Int enemyCenter)
 		{
+			// Read centers from context battle info.
 			playerCenter = default;
 			enemyCenter = default;
 
@@ -305,8 +378,12 @@ namespace Erelia.Battle
 			return true;
 		}
 
+		/// <summary>
+		/// Clears all placement masks from the board.
+		/// </summary>
 		private void ClearPlacementMask(Erelia.Battle.Board.Model board)
 		{
+			// Remove masks from every cell.
 			if (board == null || board.Cells == null)
 			{
 				return;
@@ -335,10 +412,17 @@ namespace Erelia.Battle
 			}
 		}
 
+		/// <summary>
+		/// Gets the list of units placed during this phase.
+		/// </summary>
 		public IReadOnlyList<Erelia.Battle.Unit> PlacedUnits => placedUnits;
 
+		/// <summary>
+		/// Checks whether a creature is already placed.
+		/// </summary>
 		public bool IsCreaturePlaced(Erelia.Core.Creature.Instance.Model creature)
 		{
+			// Look up creature placement.
 			if (creature == null)
 			{
 				return false;
@@ -347,12 +431,16 @@ namespace Erelia.Battle
 			return unitsByCreature.ContainsKey(creature);
 		}
 
+		/// <summary>
+		/// Attempts to place a creature on the board at the given cell.
+		/// </summary>
 		public bool TryPlaceCreature(
 			Erelia.Core.Creature.Instance.Model creature,
 			Vector3Int cell,
 			Erelia.Battle.Voxel.Type placementMask,
 			out Erelia.Battle.Unit unit)
 		{
+			// Validate placement request and spawn the creature view.
 			unit = null;
 			if (creature == null)
 			{
@@ -433,8 +521,12 @@ namespace Erelia.Battle
 			return true;
 		}
 
+		/// <summary>
+		/// Computes a world position for a creature placed on a cell.
+		/// </summary>
 		private bool TryGetPlacementPosition(Vector3Int cell, Erelia.Battle.Voxel.Cell cellData, out Vector3 position)
 		{
+			// Resolve the mask shape and compute an offset position.
 			position = default;
 			if (cellData == null)
 			{
@@ -475,6 +567,9 @@ namespace Erelia.Battle
 			return true;
 		}
 
+		/// <summary>
+		/// Finds a valid placement surface cell at X/Z.
+		/// </summary>
 		private static bool TryGetPlacementSurface(
 			Erelia.Battle.Voxel.Cell[,,] cells,
 			Erelia.Core.VoxelKit.Registry registry,
@@ -482,6 +577,7 @@ namespace Erelia.Battle
 			int z,
 			out int y)
 		{
+			// Scan downward for the first obstacle cell with empty space above.
 			y = -1;
 			if (cells == null)
 			{
@@ -513,8 +609,12 @@ namespace Erelia.Battle
 			return false;
 		}
 
+		/// <summary>
+		/// Determines whether a cell is an obstacle for placement.
+		/// </summary>
 		private static bool IsObstacleCell(Erelia.Battle.Voxel.Cell cell, Erelia.Core.VoxelKit.Registry registry)
 		{
+			// Treat missing registry/definition as obstacle by default.
 			if (cell == null || cell.Id < 0)
 			{
 				return false;
@@ -533,29 +633,60 @@ namespace Erelia.Battle
 			return definition.Data != null && definition.Data.Traversal == Erelia.Core.VoxelKit.Traversal.Obstacle;
 		}
 
+		/// <summary>
+		/// Ranked candidate used to score placement cells.
+		/// Stores distances to player and enemy centers for assignment.
+		/// </summary>
 		private readonly struct Candidate
 		{
+			/// <summary>
+			/// Creates a ranked placement candidate.
+			/// </summary>
 			public Candidate(Vector3Int position, float playerDistanceSq, float enemyDistanceSq)
 			{
+				// Store candidate data and distances.
 				Position = position;
 				PlayerDistanceSq = playerDistanceSq;
 				EnemyDistanceSq = enemyDistanceSq;
 			}
 
+			/// <summary>
+			/// Candidate cell position.
+			/// </summary>
 			public Vector3Int Position { get; }
+			/// <summary>
+			/// Squared distance to the player center.
+			/// </summary>
 			public float PlayerDistanceSq { get; }
+			/// <summary>
+			/// Squared distance to the enemy center.
+			/// </summary>
 			public float EnemyDistanceSq { get; }
 		}
 
+		/// <summary>
+		/// Placement assignments split by team.
+		/// Holds the chosen cell lists for player and enemy placements.
+		/// </summary>
 		private readonly struct PlacementAssignments
 		{
+			/// <summary>
+			/// Creates placement assignments for both teams.
+			/// </summary>
 			public PlacementAssignments(List<Vector3Int> player, List<Vector3Int> enemy)
 			{
+				// Store assigned cell lists.
 				Player = player;
 				Enemy = enemy;
 			}
 
+			/// <summary>
+			/// Assigned placement cells for the player team.
+			/// </summary>
 			public List<Vector3Int> Player { get; }
+			/// <summary>
+			/// Assigned placement cells for the enemy team.
+			/// </summary>
 			public List<Vector3Int> Enemy { get; }
 		}
 

@@ -1,5 +1,9 @@
 namespace Erelia.Battle
 {
+	/// <summary>
+	/// Identifiers for the battle phase state machine.
+	/// Used by the manager to select and transition between phases.
+	/// </summary>
 	public enum BattlePhaseId
 	{
 		None = 0,

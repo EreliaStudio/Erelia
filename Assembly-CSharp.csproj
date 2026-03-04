@@ -98,6 +98,7 @@
     <Compile Include="Assets\Scripts\Core\VoxelKit\MesherUtils.cs" />
     <Compile Include="Assets\Scripts\Core\Creature\Species.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Data.cs" />
+    <Compile Include="Assets\Scripts\Core\Utils\JsonIO.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape\Slope.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape\CrossPlane.cs" />
     <Compile Include="Assets\Scripts\Core\Events\Bus.cs" />

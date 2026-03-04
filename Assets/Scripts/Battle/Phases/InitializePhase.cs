@@ -2,16 +2,30 @@ using UnityEngine;
 
 namespace Erelia.Battle
 {
+	/// <summary>
+	/// Initialization phase that prepares battle data and placement centers.
+	/// Tries to resolve the board and info, then transitions to the Placement phase.
+	/// </summary>
 	[System.Serializable]
 	public sealed class InitializePhase : BattlePhase
 	{
+		/// <summary>
+		/// Maximum number of attempts when picking placement centers.
+		/// </summary>
 		private const int MaxPlacementAttempts = 128;
+		/// <summary>
+		/// Whether initialization is still pending.
+		/// </summary>
 		private bool pendingSetup;
 
 		public override BattlePhaseId Id => BattlePhaseId.Initialize;
 
+		/// <summary>
+		/// Enters the initialize phase and prepares battle info.
+		/// </summary>
 		public override void Enter(BattleManager manager)
 		{
+			// Try to initialize battle data and request the next phase.
 			pendingSetup = !TrySetupBattleInfo(manager);
 			if (!pendingSetup && manager != null)
 			{
@@ -19,8 +33,12 @@ namespace Erelia.Battle
 			}
 		}
 
+		/// <summary>
+		/// Ticks the initialize phase until setup succeeds.
+		/// </summary>
 		public override void Tick(BattleManager manager, float deltaTime)
 		{
+			// Retry setup while it is still pending.
 			if (!pendingSetup)
 			{
 				return;
@@ -33,8 +51,12 @@ namespace Erelia.Battle
 			}
 		}
 
+		/// <summary>
+		/// Attempts to resolve battle data and compute placement centers.
+		/// </summary>
 		private static bool TrySetupBattleInfo(BattleManager manager)
 		{
+			// Resolve battle board and info from context or presenter.
 			Erelia.Core.Context context = Erelia.Core.Context.Instance;
 			if (context == null)
 			{
@@ -71,8 +93,12 @@ namespace Erelia.Battle
 			return true;
 		}
 
+		/// <summary>
+		/// Resolves the placement radius from the encounter table.
+		/// </summary>
 		private static int ResolvePlacementRadius()
 		{
+			// Read placement radius from the encounter table.
 			Erelia.Battle.Data data = Erelia.Core.Context.Instance?.BattleData;
 			Erelia.Core.Encounter.EncounterTable table = data != null ? data.EncounterTable : null;
 			if (table == null)
@@ -83,11 +109,15 @@ namespace Erelia.Battle
 			return Mathf.Max(0, table.PlacementRadius);
 		}
 
+		/// <summary>
+		/// Computes player and enemy placement centers from the board.
+		/// </summary>
 		private static void ResolvePlacementCenters(
 			Erelia.Battle.Voxel.Cell[,,] cells,
 			Erelia.Battle.Info info,
 			int radius)
 		{
+			// Choose placement centers within safe bounds.
 			if (cells == null || info == null)
 			{
 				return;
@@ -114,6 +144,9 @@ namespace Erelia.Battle
 			info.EnemyPlacementCenter = enemyCenter;
 		}
 
+		/// <summary>
+		/// Picks a valid placement center on the board.
+		/// </summary>
 		private static bool TryPickPlacementCenter(
 			Erelia.Battle.Voxel.Cell[,,] cells,
 			int sizeX,
@@ -122,6 +155,7 @@ namespace Erelia.Battle
 			Vector2Int? avoid,
 			out Vector2Int center)
 		{
+			// Try random samples first, then fall back to a full scan.
 			center = default;
 
 			int minX = 0;
@@ -183,8 +217,12 @@ namespace Erelia.Battle
 			return false;
 		}
 
+		/// <summary>
+		/// Finds the topmost valid placement surface at X/Z.
+		/// </summary>
 		private static bool TryGetPlacementSurface(Erelia.Battle.Voxel.Cell[,,] cells, int x, int z, out int y)
 		{
+			// Scan from top to bottom to find a surface cell.
 			y = -1;
 			if (cells == null)
 			{

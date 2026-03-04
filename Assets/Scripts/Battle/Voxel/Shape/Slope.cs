@@ -4,11 +4,19 @@ using System;
 
 namespace Erelia.Battle.Voxel.ShapeType
 {
+	/// <summary>
+	/// Mask shape for slope voxels.
+	/// Defines a sloped top face and cardinal points for placement offsets.
+	/// </summary>
 	[Serializable]
 	public class Slope : Erelia.Battle.Voxel.MaskShape
 	{
+		/// <summary>
+		/// Constructs the mask faces for a slope voxel.
+		/// </summary>
 		protected override Dictionary<Erelia.Core.VoxelKit.FlipOrientation, List<Erelia.Core.VoxelKit.Face>> ConstructMaskFaces()
 		{
+			// Build a sloped top face or flat top for flipped orientation.
 			const float maskOffset = 0.01f;
 
 			var faces = new List<Erelia.Core.VoxelKit.Face>();
@@ -34,8 +42,12 @@ namespace Erelia.Battle.Voxel.ShapeType
 			};
 		}
 
+		/// <summary>
+		/// Constructs cardinal points for slope placement offsets.
+		/// </summary>
 		protected override Dictionary<Erelia.Core.VoxelKit.FlipOrientation, CardinalPointSet> ConstructCardinalPoints()
 		{
+			// Provide points along the slope and fallback to full height when flipped.
 			CardinalPointSet nonFlipped = new CardinalPointSet(
 				positiveX: new Vector3(1f, 0.5f, 0.5f),
 				negativeX: new Vector3(0f, 0.5f, 0.5f),

@@ -4,11 +4,19 @@ using System;
 
 namespace Erelia.Battle.Voxel.ShapeType
 {
+	/// <summary>
+	/// Mask shape for cross-plane voxels.
+	/// Defines the top face and cardinal entry points for placement offsets.
+	/// </summary>
 	[Serializable]
 	public class CrossPlane : Erelia.Battle.Voxel.MaskShape
 	{
+		/// <summary>
+		/// Constructs the mask faces for a cross-plane voxel.
+		/// </summary>
 		protected override Dictionary<Erelia.Core.VoxelKit.FlipOrientation, List<Erelia.Core.VoxelKit.Face>> ConstructMaskFaces()
 		{
+			// Build a single top face for the mask.
 			const float maskOffset = 0.01f;
 			var faces = new List<Erelia.Core.VoxelKit.Face>();
 			Erelia.Core.VoxelKit.Face top = Erelia.Core.VoxelKit.Utils.Geometry.CreateRectangle(
@@ -25,8 +33,12 @@ namespace Erelia.Battle.Voxel.ShapeType
 			};
 		}
 
+		/// <summary>
+		/// Constructs cardinal points for cross-plane placement offsets.
+		/// </summary>
 		protected override Dictionary<Erelia.Core.VoxelKit.FlipOrientation, CardinalPointSet> ConstructCardinalPoints()
 		{
+			// Use base-level points centered on each edge.
 			CardinalPointSet set = new CardinalPointSet(
 				positiveX: new Vector3(1f, 0f, 0.5f),
 				negativeX: new Vector3(0f, 0f, 0.5f),

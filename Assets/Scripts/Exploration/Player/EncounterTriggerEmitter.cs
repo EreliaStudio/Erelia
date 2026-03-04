@@ -2,27 +2,49 @@ using UnityEngine;
 
 namespace Erelia.Exploration.Player
 {
+	/// <summary>
+	/// Emits a battle request when the player steps on an encounter-enabled cell.
+	/// Receives player motion events, resolves the cell encounter id, checks the encounter chance,
+	/// then builds the battle board and emits a battle scene request.
+	/// </summary>
 	public sealed class EncounterTriggerEmitter : MonoBehaviour
 	{
+		/// <summary>
+		/// World presenter used to resolve the world model.
+		/// </summary>
 		[SerializeField] private Erelia.Exploration.World.Presenter worldPresenter;
 		
+		/// <summary>
+		/// Unity callback invoked when the component is enabled.
+		/// </summary>
 		private void OnEnable()
 		{
+			// Listen for player motion events.
 			Erelia.Core.Event.Bus.Subscribe<Erelia.Core.Event.PlayerMotion>(OnPlayerMotion);
 		}
 
+		/// <summary>
+		/// Unity callback invoked when the component is disabled.
+		/// </summary>
 		private void OnDisable()
 		{
+			// Stop listening for player motion events.
 			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Core.Event.PlayerMotion>(OnPlayerMotion);
 		}
 
+		/// <summary>
+		/// Handles player motion to detect encounter triggers.
+		/// </summary>
+		/// <param name="evt">Player motion event.</param>
 		private void OnPlayerMotion(Erelia.Core.Event.PlayerMotion evt)
 		{
+			// Ignore invalid events.
 			if (evt == null)
 			{
 				return;
 			}
 
+			// Ensure world model is available.
 			if (worldPresenter == null || worldPresenter.WorldModel == null)
 			{
 				return;
@@ -30,6 +52,7 @@ namespace Erelia.Exploration.Player
 
 			Erelia.Exploration.World.Model worldModel = worldPresenter.WorldModel;
 
+			// Resolve chunk and local cell position.
 			Vector3 worldPosition = evt.WorldPosition;
 			Erelia.Exploration.World.Chunk.Coordinates chunkCoords = Erelia.Exploration.World.Chunk.Coordinates.FromWorld(worldPosition);
 
@@ -50,23 +73,27 @@ namespace Erelia.Exploration.Player
 				return;
 			}
 
+			// Fetch encounter id from the chunk cell.
 			int encounterId = chunk.GetEncounterId(localX, localY, localZ);
 			if (encounterId == Erelia.Exploration.World.Chunk.Model.NoEncounterId)
 			{
 				return;
 			}
 
+			// Resolve encounter table for this id.
 			if (!Erelia.Core.Encounter.EncounterTableRegistry.TryGetTable(encounterId, out Erelia.Core.Encounter.EncounterTable table))
 			{
 				return;
 			}
 
+			// Roll encounter chance.
 			float encounterChance = Mathf.Clamp01(table.EncounterChance);
 			if (encounterChance <= 0f || (encounterChance < 1f && Random.value > encounterChance))
 			{
 				return;
 			}
 
+			// Build battle board and emit a battle scene request.
 			Erelia.Battle.Board.Model battleBoard = Erelia.Battle.Board.Constructor.ExportArea(table, worldModel, worldPosition);
 
 			Debug.Log($"Encounter trigger: id={encounterId} world={worldPosition} cell=({localX},{localY},{localZ})");
@@ -75,6 +102,11 @@ namespace Erelia.Exploration.Player
 			Erelia.Core.Event.Bus.Emit(battleRequest);
 		}
 
+		/// <summary>
+		/// Converts a world position to integer cell coordinates.
+		/// </summary>
+		/// <param name="worldPosition">World-space position.</param>
+		/// <returns>Cell-space coordinates.</returns>
 		private static Vector3Int WorldToCell(Vector3 worldPosition)
 		{
 			return new Vector3Int(
