@@ -34,6 +34,14 @@ namespace Erelia.Battle
 		/// </summary>
 		private bool pendingApply;
 		/// <summary>
+		/// Cached player team used for placement.
+		/// </summary>
+		private Erelia.Core.Creature.Team playerTeam;
+		/// <summary>
+		/// Next team slot index to consider for placement.
+		/// </summary>
+		private int nextTeamIndex;
+		/// <summary>
 		/// Mask type used for player placement tiles.
 		/// </summary>
 		private const Erelia.Battle.Voxel.Mask.Type PlacementMask = Erelia.Battle.Voxel.Mask.Type.Placement;
@@ -51,6 +59,8 @@ namespace Erelia.Battle
 		{
 			// Apply placement masks or mark pending if data is missing.
 			pendingApply = !TryApplyPlacementMask(manager);
+			playerTeam = null;
+			nextTeamIndex = 0;
 		}
 
 		/// <summary>
@@ -84,6 +94,55 @@ namespace Erelia.Battle
 			}
 
 			pendingApply = !TryApplyPlacementMask(manager);
+		}
+
+		/// <summary>
+		/// Handles confirm input during placement.
+		/// </summary>
+		public override void OnConfirm(Erelia.Battle.Player.BattlePlayerController controller)
+		{
+			// Attempt to place the next creature on the hovered cell.
+			if (controller == null || !controller.HasHoveredCell())
+			{
+				return;
+			}
+
+			if (!TryGetNextCreature(out Erelia.Core.Creature.Instance.Model creature))
+			{
+				Debug.LogWarning("[Erelia.Battle.PlacementPhase] No available creature to place.");
+				return;
+			}
+
+			Vector3Int cell = controller.HoveredCell();
+			if (!TryPlaceCreature(creature, cell, Erelia.Battle.Voxel.Mask.Type.Placement, out Erelia.Battle.Unit _))
+			{
+				return;
+			}
+
+			string creatureLabel = !string.IsNullOrEmpty(creature.Nickname)
+				? creature.Nickname
+				: ResolveSpeciesName(creature);
+			Debug.Log($"[Erelia.Battle.PlacementPhase] Placed '{creatureLabel}' at cell {cell.x}/{cell.y}/{cell.z}.");
+		}
+
+		/// <summary>
+		/// Handles cancel input during placement.
+		/// </summary>
+		public override void OnCancel(Erelia.Battle.Player.BattlePlayerController controller)
+		{
+			// Clear selection when the player cancels.
+			if (controller == null)
+			{
+				return;
+			}
+
+			if (controller.HasHoveredCell())
+			{
+				Vector3Int cell = controller.HoveredCell();
+				Debug.Log($"[Erelia.Battle.PlacementPhase] Player cancelled action at cell {cell.x}/{cell.y}/{cell.z}.");
+			}
+
+			controller.ClearSelection();
 		}
 
 		/// <summary>
@@ -257,78 +316,56 @@ namespace Erelia.Battle
 			Vector2Int enemyCenter,
 			int countPerTeam)
 		{
-			// Rank candidates by distance and split between teams.
+			// Pick the closest cells to each center independently.
+			var used = new HashSet<Vector3Int>();
+			List<Vector3Int> player = PickClosestCandidates(candidates, playerCenter, countPerTeam, used);
+			List<Vector3Int> enemy = PickClosestCandidates(candidates, enemyCenter, countPerTeam, used);
+
+			if (player.Count < countPerTeam || enemy.Count < countPerTeam)
+			{
+				Debug.LogWarning($"[Erelia.Battle.PlacementPhase] Placement assignments incomplete. Player={player.Count}, Enemy={enemy.Count}, Target={countPerTeam}.");
+			}
+
+			return new PlacementAssignments(player, enemy);
+		}
+
+		/// <summary>
+		/// Picks the closest available candidates to a given center.
+		/// </summary>
+		private static List<Vector3Int> PickClosestCandidates(
+			List<Vector3Int> candidates,
+			Vector2Int center,
+			int count,
+			HashSet<Vector3Int> used)
+		{
+			var selected = new List<Vector3Int>(count);
+			if (candidates == null || candidates.Count == 0 || count <= 0)
+			{
+				return selected;
+			}
+
 			var ranked = new List<Candidate>(candidates.Count);
 			for (int i = 0; i < candidates.Count; i++)
 			{
 				Vector3Int pos = candidates[i];
-				float playerDist = DistanceSq(playerCenter, pos);
-				float enemyDist = DistanceSq(enemyCenter, pos);
-				ranked.Add(new Candidate(pos, playerDist, enemyDist));
+				ranked.Add(new Candidate(pos, DistanceSq(center, pos)));
 			}
 
-			ranked.Sort((a, b) =>
+			ranked.Sort((a, b) => a.DistanceSq.CompareTo(b.DistanceSq));
+
+			for (int i = 0; i < ranked.Count && selected.Count < count; i++)
 			{
-				float aBest = Mathf.Min(a.PlayerDistanceSq, a.EnemyDistanceSq);
-				float bBest = Mathf.Min(b.PlayerDistanceSq, b.EnemyDistanceSq);
-				int bestCompare = aBest.CompareTo(bBest);
-				if (bestCompare != 0)
-				{
-					return bestCompare;
-				}
-
-				float aDiff = Mathf.Abs(a.PlayerDistanceSq - a.EnemyDistanceSq);
-				float bDiff = Mathf.Abs(b.PlayerDistanceSq - b.EnemyDistanceSq);
-				return aDiff.CompareTo(bDiff);
-			});
-
-			var player = new List<Vector3Int>(countPerTeam);
-			var enemy = new List<Vector3Int>(countPerTeam);
-			var used = new HashSet<Vector3Int>();
-
-			for (int i = 0; i < ranked.Count; i++)
-			{
-				if (player.Count >= countPerTeam && enemy.Count >= countPerTeam)
-				{
-					break;
-				}
-
-				Candidate candidate = ranked[i];
-				if (used.Contains(candidate.Position))
+				Vector3Int pos = ranked[i].Position;
+				if (used.Contains(pos))
 				{
 					continue;
 				}
 
-				bool preferPlayer = candidate.PlayerDistanceSq <= candidate.EnemyDistanceSq;
-				if (preferPlayer)
-				{
-					if (player.Count < countPerTeam)
-					{
-						player.Add(candidate.Position);
-						used.Add(candidate.Position);
-					}
-					else if (enemy.Count < countPerTeam)
-					{
-						enemy.Add(candidate.Position);
-						used.Add(candidate.Position);
-					}
-				}
-				else
-				{
-					if (enemy.Count < countPerTeam)
-					{
-						enemy.Add(candidate.Position);
-						used.Add(candidate.Position);
-					}
-					else if (player.Count < countPerTeam)
-					{
-						player.Add(candidate.Position);
-						used.Add(candidate.Position);
-					}
-				}
+				selected.Add(pos);
+				used.Add(pos);
 			}
 
-			return new PlacementAssignments(player, enemy);
+			return selected;
 		}
 
 		/// <summary>
@@ -522,6 +559,88 @@ namespace Erelia.Battle
 		}
 
 		/// <summary>
+		/// Picks the next creature to place for the player team.
+		/// </summary>
+		private bool TryGetNextCreature(out Erelia.Core.Creature.Instance.Model creature)
+		{
+			// Iterate team slots and find an unplaced creature.
+			creature = null;
+			Erelia.Core.Creature.Team team = ResolvePlayerTeam();
+			if (team == null || team.Slots == null || team.Slots.Length == 0)
+			{
+				return false;
+			}
+
+			int total = team.Slots.Length;
+			for (int i = 0; i < total; i++)
+			{
+				int index = (nextTeamIndex + i) % total;
+				Erelia.Core.Creature.Instance.Model candidate = team.Slots[index];
+				if (candidate == null)
+				{
+					continue;
+				}
+
+				if (IsCreaturePlaced(candidate))
+				{
+					continue;
+				}
+
+				creature = candidate;
+				nextTeamIndex = (index + 1) % total;
+				return true;
+			}
+
+			return false;
+		}
+
+		/// <summary>
+		/// Assigns the player team used for placement.
+		/// </summary>
+		public void SetPlayerTeam(Erelia.Core.Creature.Team team)
+		{
+			// Store team and reset index.
+			playerTeam = team;
+			nextTeamIndex = 0;
+		}
+
+		/// <summary>
+		/// Resolves the player team from context if not explicitly set.
+		/// </summary>
+		private Erelia.Core.Creature.Team ResolvePlayerTeam()
+		{
+			// Use the provided team or fall back to system data.
+			if (playerTeam != null)
+			{
+				return playerTeam;
+			}
+
+			Erelia.Core.SystemData systemData = Erelia.Core.Context.Instance?.SystemData;
+			playerTeam = systemData != null ? systemData.PlayerTeam : null;
+			return playerTeam;
+		}
+
+		/// <summary>
+		/// Resolves a display name for a creature.
+		/// </summary>
+		private static string ResolveSpeciesName(Erelia.Core.Creature.Instance.Model creature)
+		{
+			// Use nickname, then species display name, then fallback.
+			if (creature == null)
+			{
+				return "Creature";
+			}
+
+			Erelia.Core.Creature.SpeciesRegistry registry = Erelia.Core.Creature.SpeciesRegistry.Instance;
+			if (registry != null && registry.TryGet(creature.SpeciesId, out Erelia.Core.Creature.Species species) && species != null)
+			{
+				return string.IsNullOrEmpty(species.DisplayName) ? "Creature" : species.DisplayName;
+			}
+
+			return "Creature";
+		}
+
+		/// <summary>
 		/// Computes a world position for a creature placed on a cell.
 		/// </summary>
 		private bool TryGetPlacementPosition(Vector3Int cell, Erelia.Battle.Voxel.Cell cellData, out Vector3 position)
@@ -642,12 +761,11 @@ namespace Erelia.Battle
 			/// <summary>
 			/// Creates a ranked placement candidate.
 			/// </summary>
-			public Candidate(Vector3Int position, float playerDistanceSq, float enemyDistanceSq)
+			public Candidate(Vector3Int position, float distanceSq)
 			{
 				// Store candidate data and distances.
 				Position = position;
-				PlayerDistanceSq = playerDistanceSq;
-				EnemyDistanceSq = enemyDistanceSq;
+				DistanceSq = distanceSq;
 			}
 
 			/// <summary>
@@ -655,13 +773,9 @@ namespace Erelia.Battle
 			/// </summary>
 			public Vector3Int Position { get; }
 			/// <summary>
-			/// Squared distance to the player center.
+			/// Squared distance to the requested center.
 			/// </summary>
-			public float PlayerDistanceSq { get; }
-			/// <summary>
-			/// Squared distance to the enemy center.
-			/// </summary>
-			public float EnemyDistanceSq { get; }
+			public float DistanceSq { get; }
 		}
 
 		/// <summary>

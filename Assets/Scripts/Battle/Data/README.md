@@ -7,6 +7,7 @@ These objects hold the board, encounter table, and derived info used during setu
 ## Contents
 - `Data`: holds `Board`, `Info`, and `EncounterTable` for the current battle.
 - `Info`: derived placement centers for player and enemy teams.
+- `Unit`: wrapper for a creature instance, its occupied cell, and its spawned view.
 
 ## Adding Or Extending
 1. Add new fields to `Data` or `Info` when battle systems need shared state.

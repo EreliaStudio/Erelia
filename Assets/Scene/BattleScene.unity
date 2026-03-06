@@ -373,7 +373,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Player.BattlePlayerController
   cursor: {fileID: 438430415}
   boardPresenter: {fileID: 1079300952}
-  battleManager: {fileID: 656937542}
   confirmAction: {fileID: 624909950}
   cancelAction: {fileID: 471932010}
 --- !u!114 &513061855
@@ -481,6 +480,7 @@ MonoBehaviour:
   phaseRegistry:
     placement:
       boardPresenter: {fileID: 1079300952}
+  playerController: {fileID: 513061854}
 --- !u!1 &661764515
 GameObject:
   m_ObjectHideFlags: 0

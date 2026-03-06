@@ -5,9 +5,8 @@ Battle contains the runtime systems for the tactical combat loop: board construc
 and battle-specific voxel overlays.
 
 ## Contents
-- `Unit`: lightweight wrapper for a creature, its occupied cell, and its spawned view.
 - `BattleBoard`: board model, presenter, view, and board construction helpers.
-- `Core`: battle phase state machine, registry, and phase identifiers.
+- `Core`: battle phase state machine, registry, and phase input routing.
 - `Data`: serializable battle data containers stored in context.
 - `Mask`: sprite registry for overlay masks.
 - `Phases`: concrete battle flow phases.

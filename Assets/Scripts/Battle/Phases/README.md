@@ -2,7 +2,7 @@
 
 ## Purpose
 Phases contains the concrete battle flow phases. Each phase inherits from `BattlePhase`
-and is invoked by `BattleManager` through the registry.
+and can handle confirm/cancel input through `PhaseController` overrides.
 
 ## Contents
 - `InitializePhase`: prepares battle data and placement centers.
@@ -15,6 +15,6 @@ and is invoked by `BattleManager` through the registry.
 - `CleanupPhase`: resets state and exits the battle scene.
 
 ## Adding Or Extending
-1. Implement a new phase that derives from `BattlePhase`.
+1. Implement a new phase that derives from `BattlePhase` and override `OnConfirm`/`OnCancel` if needed.
 2. Add its id to `BattlePhaseId` and register it in `BattlePhaseRegistry`.
 3. Request transitions from existing phases when appropriate.

@@ -36,6 +36,10 @@ namespace Erelia.Battle
 		/// <see cref="BattlePhaseRegistry.TryGetPhase(BattlePhaseId, out BattlePhase)"/>.
 		/// </remarks>
 		[SerializeField] private BattlePhaseRegistry phaseRegistry = new BattlePhaseRegistry();
+		/// <summary>
+		/// Player controller used to forward phase input handlers.
+		/// </summary>
+		[SerializeField] private Erelia.Battle.Player.BattlePlayerController playerController;
 
 		/// <summary>
 		/// Currently active phase instance.
@@ -77,6 +81,11 @@ namespace Erelia.Battle
 		/// </remarks>
 		private void Awake()
 		{
+			if (playerController == null)
+			{
+				Debug.LogWarning("[Erelia.Battle.BattleManager] Battle player controller is not assigned.", this);
+			}
+
 			// If a start phase is configured, enter it right away.
 			if (startPhase != BattlePhaseId.None)
 			{
@@ -199,6 +208,8 @@ namespace Erelia.Battle
 
 			// Activate the new phase.
 			currentPhase = target;
+
+			playerController.SetPhaseController(currentPhase);
 
 			// Notify the new phase it is being entered.
 			currentPhase.Enter(this);

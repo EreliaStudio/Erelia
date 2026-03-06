@@ -4,8 +4,8 @@ using UnityEngine.InputSystem;
 namespace Erelia.Battle.Player
 {
 	/// <summary>
-	/// Handles player input for hover/confirm/cancel during battle placement.
-	/// Tracks the hovered cell, applies selection masks, and requests creature placement.
+	/// Handles player input for hover/confirm/cancel and forwards confirm/cancel to the active phase.
+	/// Tracks the hovered cell and applies selection masks for board interaction.
 	/// </summary>
 	public sealed class BattlePlayerController : MonoBehaviour
 	{
@@ -18,13 +18,9 @@ namespace Erelia.Battle.Player
 		/// </summary>
 		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
 		/// <summary>
-		/// Battle manager used to query the current phase.
+		/// Active phase controller handling confirm/cancel input.
 		/// </summary>
-		[SerializeField] private Erelia.Battle.BattleManager battleManager;
-		/// <summary>
-		/// Team used for placement actions.
-		/// </summary>
-		private Erelia.Core.Creature.Team team;
+		private Erelia.Battle.PhaseController phaseController;
 		/// <summary>
 		/// Input action used to confirm placement.
 		/// </summary>
@@ -51,11 +47,6 @@ namespace Erelia.Battle.Player
 		/// </summary>
 		private Vector3Int hoveredCell;
 		/// <summary>
-		/// Next team slot index to consider for placement.
-		/// </summary>
-		private int nextTeamIndex;
-
-		/// <summary>
 		/// Unity callback invoked on object initialization.
 		/// </summary>
 		private void Awake()
@@ -71,13 +62,7 @@ namespace Erelia.Battle.Player
 				Debug.LogWarning("[Erelia.Battle.Player.BattlePlayerController] Board presenter is not assigned.");
 			}
 
-			if (battleManager == null)
-			{
-				Debug.LogWarning("[Erelia.Battle.Player.BattlePlayerController] Battle manager is not assigned.");
-			}
-
 			ResolveActions();
-			ResolveTeam();
 		}
 
 		/// <summary>
@@ -94,7 +79,6 @@ namespace Erelia.Battle.Player
 
 			resolvedConfirmAction?.Enable();
 			resolvedCancelAction?.Enable();
-			ResolveTeam();
 		}
 
 		/// <summary>
@@ -122,12 +106,12 @@ namespace Erelia.Battle.Player
 			// Poll confirm/cancel input and act accordingly.
 			if (IsConfirmTriggered())
 			{
-				HandleConfirm();
+				phaseController?.OnConfirm(this);
 			}
 
 			if (IsCancelTriggered())
 			{
-				HandleCancel();
+				phaseController?.OnCancel(this);
 			}
 		}
 
@@ -171,55 +155,6 @@ namespace Erelia.Battle.Player
 		}
 
 		/// <summary>
-		/// Handles the confirm action by placing a creature.
-		/// </summary>
-		private void HandleConfirm()
-		{
-			// Try to place the next creature on the hovered cell.
-			if (!hasHoveredCell)
-			{
-				return;
-			}
-
-			Erelia.Battle.PlacementPhase placementPhase = ResolvePlacementPhase();
-			if (placementPhase == null)
-			{
-				Debug.LogWarning("[Erelia.Battle.Player.BattlePlayerController] Placement phase not active.");
-				return;
-			}
-
-			if (!TryGetNextCreature(placementPhase, out Erelia.Core.Creature.Instance.Model creature))
-			{
-				Debug.LogWarning("[Erelia.Battle.Player.BattlePlayerController] No available creature to place.");
-				return;
-			}
-
-			if (!placementPhase.TryPlaceCreature(creature, hoveredCell, Erelia.Battle.Voxel.Mask.Type.Placement, out Erelia.Battle.Unit _))
-			{
-				return;
-			}
-
-			string creatureLabel = !string.IsNullOrEmpty(creature.Nickname)
-				? creature.Nickname
-				: ResolveSpeciesName(creature);
-			Debug.Log($"[Erelia.Battle.Player.BattlePlayerController] Placed '{creatureLabel}' at cell {hoveredCell.x}/{hoveredCell.y}/{hoveredCell.z}.");
-		}
-
-		/// <summary>
-		/// Handles the cancel action by clearing selection.
-		/// </summary>
-		private void HandleCancel()
-		{
-			// Clear selection when the player cancels.
-			if (hasHoveredCell)
-			{
-				Debug.Log($"[Erelia.Battle.Player.BattlePlayerController] Player cancelled action at cell {hoveredCell.x}/{hoveredCell.y}/{hoveredCell.z}.");
-			}
-
-			ClearSelection();
-		}
-
-		/// <summary>
 		/// Handles hover changes from the cursor.
 		/// </summary>
 		private void OnCellChanged(Vector3Int cell)
@@ -255,7 +190,7 @@ namespace Erelia.Battle.Player
 		/// <summary>
 		/// Clears the current selection mask.
 		/// </summary>
-		private void ClearSelection()
+		public void ClearSelection()
 		{
 			// Remove the selection mask and update state.
 			if (!hasHoveredCell)
@@ -338,99 +273,12 @@ namespace Erelia.Battle.Player
 		}
 
 		/// <summary>
-		/// Resolves the active placement phase from the battle manager.
+		/// Assigns the active phase controller.
 		/// </summary>
-		private Erelia.Battle.PlacementPhase ResolvePlacementPhase()
+		public void SetPhaseController(Erelia.Battle.PhaseController controller)
 		{
-			// Return the current phase if it is placement.
-			if (battleManager == null)
-			{
-				return null;
-			}
-
-			return battleManager.CurrentPhase as Erelia.Battle.PlacementPhase;
-		}
-
-		/// <summary>
-		/// Picks the next creature to place for the current team.
-		/// </summary>
-		private bool TryGetNextCreature(Erelia.Battle.PlacementPhase placementPhase, out Erelia.Core.Creature.Instance.Model creature)
-		{
-			// Iterate team slots and find an unplaced creature.
-			creature = null;
-			Erelia.Core.Creature.Team resolvedTeam = ResolveTeam();
-			if (resolvedTeam == null || resolvedTeam.Slots == null || resolvedTeam.Slots.Length == 0)
-			{
-				return false;
-			}
-
-			int total = resolvedTeam.Slots.Length;
-			for (int i = 0; i < total; i++)
-			{
-				int index = (nextTeamIndex + i) % total;
-				Erelia.Core.Creature.Instance.Model candidate = resolvedTeam.Slots[index];
-				if (candidate == null)
-				{
-					continue;
-				}
-
-				if (placementPhase != null && placementPhase.IsCreaturePlaced(candidate))
-				{
-					continue;
-				}
-
-				creature = candidate;
-				nextTeamIndex = (index + 1) % total;
-				return true;
-			}
-
-			return false;
-		}
-
-		/// <summary>
-		/// Assigns the active team for placement.
-		/// </summary>
-		public void SetTeam(Erelia.Core.Creature.Team newTeam)
-		{
-			// Store team and reset index.
-			team = newTeam;
-			nextTeamIndex = 0;
-		}
-
-		/// <summary>
-		/// Resolves the team from context if not explicitly set.
-		/// </summary>
-		private Erelia.Core.Creature.Team ResolveTeam()
-		{
-			// Use the provided team or fall back to system data.
-			if (team != null)
-			{
-				return team;
-			}
-
-			Erelia.Core.SystemData systemData = Erelia.Core.Context.Instance?.SystemData;
-			team = systemData != null ? systemData.PlayerTeam : null;
-			return team;
-		}
-
-		/// <summary>
-		/// Resolves a display name for a creature.
-		/// </summary>
-		private static string ResolveSpeciesName(Erelia.Core.Creature.Instance.Model creature)
-		{
-			// Use nickname, then species display name, then fallback.
-			if (creature == null)
-			{
-				return "Creature";
-			}
-
-			Erelia.Core.Creature.SpeciesRegistry registry = Erelia.Core.Creature.SpeciesRegistry.Instance;
-			if (registry != null && registry.TryGet(creature.SpeciesId, out Erelia.Core.Creature.Species species) && species != null)
-			{
-				return string.IsNullOrEmpty(species.DisplayName) ? "Creature" : species.DisplayName;
-			}
-
-			return "Creature";
+			// Store the current phase controller.
+			phaseController = controller;
 		}
 
 		/// <summary>

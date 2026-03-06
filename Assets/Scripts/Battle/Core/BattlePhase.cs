@@ -1,11 +1,11 @@
 namespace Erelia.Battle
 {
 	/// <summary>
-	/// Base class for battle phases with enter/exit/tick hooks.
-	/// Implementations provide an Id and optional behavior during the battle flow.
+	/// Base class for battle phases with enter/exit/tick hooks and optional input handling.
+	/// Implementations provide an Id and behavior during the battle flow.
 	/// </summary>
 	[System.Serializable]
-	public abstract class BattlePhase
+	public abstract class BattlePhase : PhaseController
 	{
 		/// <summary>
 		/// Gets the phase identifier.

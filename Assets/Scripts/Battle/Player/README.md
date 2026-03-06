@@ -1,14 +1,14 @@
 # Battle.Player README
 
 ## Purpose
-Player contains battle player controls, hover/selection logic, and placement input.
-It binds input actions to board interaction and movement.
+Player contains battle player controls, hover/selection logic, and input routing.
+It binds input actions to board interaction and forwards confirm/cancel to the active phase controller.
 
 ## Contents
 - `Presenter`: moves the player transform relative to the battle camera.
 - `Model`: placeholder for battle player state.
 - `View`: exposes the linked camera transform.
-- `BattlePlayerController`: placement input, hover masks, and creature placement.
+- `BattlePlayerController`: hover masks and confirm/cancel input routing for the active phase.
 - `MouseBoardCellSelection`: hover-to-selection mask helper.
 - `Camera`: battle camera orbit/zoom and board cursor utilities.
 

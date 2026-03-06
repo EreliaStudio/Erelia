@@ -1,11 +1,12 @@
 # Battle.Core README
 
 ## Purpose
-Core contains the battle phase state machine and the registry that resolves phase instances.
+Core contains the battle phase state machine, phase input routing, and the registry that resolves phase instances.
 `BattleManager` owns the active phase and applies transitions safely.
 
 ## Contents
 - `BattleManager`: drives the current phase, handles transitions, and ticks the flow.
+- `PhaseController`: base class for phase-specific confirm/cancel input handlers.
 - `BattlePhase`: base class for phases with `Enter`, `Exit`, and `Tick`.
 - `BattlePhaseId`: enum listing all phase identifiers.
 - `BattlePhaseRegistry`: serializable mapping from ids to phase instances.
