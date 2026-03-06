@@ -2,7 +2,7 @@ namespace Erelia.Battle
 {
 	/// <summary>
 	/// Serializable container for battle runtime data.
-	/// Stores the board, encounter table, and computed battle info.
+	/// Stores the board and encounter table for the current battle.
 	/// </summary>
 	[System.Serializable]
 	public sealed class Data
@@ -11,10 +11,6 @@ namespace Erelia.Battle
 		/// Battle board model for the current encounter.
 		/// </summary>
 		public Erelia.Battle.Board.Model Board;
-		/// <summary>
-		/// Derived battle info (placement centers, etc.).
-		/// </summary>
-		public Erelia.Battle.Info Info;
 		/// <summary>
 		/// Encounter table used to configure the battle.
 		/// </summary>
@@ -28,7 +24,6 @@ namespace Erelia.Battle
 			// Initialize defaults for battle state.
 			Board = null;
 			EncounterTable = null;
-			Info = new Erelia.Battle.Info();
 		}
 	}
 }

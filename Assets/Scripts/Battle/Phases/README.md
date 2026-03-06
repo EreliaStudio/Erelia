@@ -6,7 +6,7 @@ and can handle confirm/cancel input through `PhaseController` overrides.
 
 ## Contents
 - `InitializePhase`: prepares battle data and placement centers.
-- `PlacementPhase`: handles unit placement and placement masks.
+- `PlacementPhase`: handles unit placement and placement masks (player = lower Z half, enemy = upper Z half).
 - `PlayerTurnPhase`: runs player turn logic.
 - `EnemyTurnPhase`: runs enemy turn logic.
 - `ResolveActionPhase`: resolves queued actions or effects.

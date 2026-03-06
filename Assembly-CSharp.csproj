@@ -149,7 +149,6 @@
     <Compile Include="Assets\Scripts\Battle\BattleBoard\BattleBoardConstructor.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\Camera\Presenter.cs" />
     <Compile Include="Assets\Scripts\Core\Creature\Instance\Presenter.cs" />
-    <Compile Include="Assets\Scripts\Battle\Data\BattleInfo.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Mask\Type.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Cube.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Face.cs" />

@@ -5,7 +5,7 @@ namespace Erelia.Battle
 {
 	/// <summary>
 	/// Placement phase that computes placement masks and handles unit placement.
-	/// Applies placement tiles around centers, updates mask meshes, and clears them on exit.
+	/// Splits the board along Z for player/enemy placement, updates mask meshes, and clears them on exit.
 	/// </summary>
 	[System.Serializable]
 	public sealed class PlacementPhase : BattlePhase
@@ -49,7 +49,6 @@ namespace Erelia.Battle
 		/// Mask type used for enemy placement tiles.
 		/// </summary>
 		private const Erelia.Battle.Voxel.Mask.Type EnemyPlacementMask = Erelia.Battle.Voxel.Mask.Type.EnemyPlacement;
-
 		public override BattlePhaseId Id => BattlePhaseId.Placement;
 
 		/// <summary>
@@ -182,11 +181,6 @@ namespace Erelia.Battle
 				return false;
 			}
 
-			if (!TryGetPlacementCenters(out Vector2Int playerCenter, out Vector2Int enemyCenter))
-			{
-				return false;
-			}
-
 			Erelia.Core.VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
 			if (registry == null)
 			{
@@ -194,7 +188,7 @@ namespace Erelia.Battle
 				return false;
 			}
 
-			ApplyPlacementMask(board, registry, playerCenter, enemyCenter);
+			ApplyPlacementMask(board, registry);
 			presenter.RebuildMasks();
 			return true;
 		}
@@ -204,19 +198,10 @@ namespace Erelia.Battle
 		/// </summary>
 		private void ApplyPlacementMask(
 			Erelia.Battle.Board.Model board,
-			Erelia.Core.VoxelKit.Registry registry,
-			Vector2Int playerCenter,
-			Vector2Int enemyCenter)
+			Erelia.Core.VoxelKit.Registry registry)
 		{
-			// Compute candidate cells and assign them to player/enemy.
+			// Compute candidate cells and assign them to the player half of the board.
 			if (board == null || board.Cells == null || registry == null)
-			{
-				return;
-			}
-
-			int radius = ResolvePlacementRadius();
-			int desiredCount = Mathf.Max(0, Mathf.CeilToInt(Mathf.PI * radius * radius));
-			if (desiredCount <= 0)
 			{
 				return;
 			}
@@ -227,20 +212,26 @@ namespace Erelia.Battle
 				return;
 			}
 
-			int maxPerTeam = Mathf.Min(desiredCount, candidates.Count / 2);
-			if (maxPerTeam <= 0)
+			int sizeZ = board.Cells.GetLength(2);
+			int splitZ = sizeZ / 2;
+
+			var playerPositions = new List<Vector3Int>();
+			var enemyPositions = new List<Vector3Int>();
+			for (int i = 0; i < candidates.Count; i++)
 			{
-				return;
+				Vector3Int pos = candidates[i];
+				if (pos.z < splitZ)
+				{
+					playerPositions.Add(pos);
+				}
+				else
+				{
+					enemyPositions.Add(pos);
+				}
 			}
 
-			if (maxPerTeam < desiredCount)
-			{
-				Debug.LogWarning($"[Erelia.Battle.PlacementPhase] Not enough placement cells for desired count {desiredCount}. Using {maxPerTeam} per team.");
-			}
-
-			var assignments = AssignPlacementCells(candidates, playerCenter, enemyCenter, maxPerTeam);
-			ApplyAssignments(board.Cells, assignments.Player, PlacementMask);
-			ApplyAssignments(board.Cells, assignments.Enemy, EnemyPlacementMask);
+			ApplyAssignments(board.Cells, playerPositions, PlacementMask);
+			ApplyAssignments(board.Cells, enemyPositions, EnemyPlacementMask);
 		}
 
 		/// <summary>
@@ -305,114 +296,6 @@ namespace Erelia.Battle
 			}
 
 			return candidates;
-		}
-
-		/// <summary>
-		/// Assigns candidate cells to player and enemy teams.
-		/// </summary>
-		private static PlacementAssignments AssignPlacementCells(
-			List<Vector3Int> candidates,
-			Vector2Int playerCenter,
-			Vector2Int enemyCenter,
-			int countPerTeam)
-		{
-			// Pick the closest cells to each center independently.
-			var used = new HashSet<Vector3Int>();
-			List<Vector3Int> player = PickClosestCandidates(candidates, playerCenter, countPerTeam, used);
-			List<Vector3Int> enemy = PickClosestCandidates(candidates, enemyCenter, countPerTeam, used);
-
-			if (player.Count < countPerTeam || enemy.Count < countPerTeam)
-			{
-				Debug.LogWarning($"[Erelia.Battle.PlacementPhase] Placement assignments incomplete. Player={player.Count}, Enemy={enemy.Count}, Target={countPerTeam}.");
-			}
-
-			return new PlacementAssignments(player, enemy);
-		}
-
-		/// <summary>
-		/// Picks the closest available candidates to a given center.
-		/// </summary>
-		private static List<Vector3Int> PickClosestCandidates(
-			List<Vector3Int> candidates,
-			Vector2Int center,
-			int count,
-			HashSet<Vector3Int> used)
-		{
-			var selected = new List<Vector3Int>(count);
-			if (candidates == null || candidates.Count == 0 || count <= 0)
-			{
-				return selected;
-			}
-
-			var ranked = new List<Candidate>(candidates.Count);
-			for (int i = 0; i < candidates.Count; i++)
-			{
-				Vector3Int pos = candidates[i];
-				ranked.Add(new Candidate(pos, DistanceSq(center, pos)));
-			}
-
-			ranked.Sort((a, b) => a.DistanceSq.CompareTo(b.DistanceSq));
-
-			for (int i = 0; i < ranked.Count && selected.Count < count; i++)
-			{
-				Vector3Int pos = ranked[i].Position;
-				if (used.Contains(pos))
-				{
-					continue;
-				}
-
-				selected.Add(pos);
-				used.Add(pos);
-			}
-
-			return selected;
-		}
-
-		/// <summary>
-		/// Computes squared distance between a center and a cell.
-		/// </summary>
-		private static float DistanceSq(Vector2Int center, Vector3Int pos)
-		{
-			// Use X/Z for grid distance.
-			float dx = pos.x - center.x;
-			float dz = pos.z - center.y;
-			return (dx * dx) + (dz * dz);
-		}
-
-		/// <summary>
-		/// Resolves placement radius from the encounter table.
-		/// </summary>
-		private static int ResolvePlacementRadius()
-		{
-			// Read placement radius from context data.
-			Erelia.Battle.Data data = Erelia.Core.Context.Instance?.BattleData;
-			Erelia.Core.Encounter.EncounterTable table = data != null ? data.EncounterTable : null;
-			if (table == null)
-			{
-				return 0;
-			}
-
-			return Mathf.Max(0, table.PlacementRadius);
-		}
-
-		/// <summary>
-		/// Tries to resolve placement centers from battle info.
-		/// </summary>
-		private static bool TryGetPlacementCenters(out Vector2Int playerCenter, out Vector2Int enemyCenter)
-		{
-			// Read centers from context battle info.
-			playerCenter = default;
-			enemyCenter = default;
-
-			Erelia.Battle.Info info = Erelia.Core.Context.Instance?.BattleData?.Info;
-			if (info == null)
-			{
-				return false;
-			}
-
-			playerCenter = info.PlayerPlacementCenter;
-			enemyCenter = info.EnemyPlacementCenter;
-			return true;
 		}
 
 		/// <summary>
@@ -750,58 +633,6 @@ namespace Erelia.Battle
 			}
 
 			return definition.Data != null && definition.Data.Traversal == Erelia.Core.VoxelKit.Traversal.Obstacle;
-		}
-
-		/// <summary>
-		/// Ranked candidate used to score placement cells.
-		/// Stores distances to player and enemy centers for assignment.
-		/// </summary>
-		private readonly struct Candidate
-		{
-			/// <summary>
-			/// Creates a ranked placement candidate.
-			/// </summary>
-			public Candidate(Vector3Int position, float distanceSq)
-			{
-				// Store candidate data and distances.
-				Position = position;
-				DistanceSq = distanceSq;
-			}
-
-			/// <summary>
-			/// Candidate cell position.
-			/// </summary>
-			public Vector3Int Position { get; }
-			/// <summary>
-			/// Squared distance to the requested center.
-			/// </summary>
-			public float DistanceSq { get; }
-		}
-
-		/// <summary>
-		/// Placement assignments split by team.
-		/// Holds the chosen cell lists for player and enemy placements.
-		/// </summary>
-		private readonly struct PlacementAssignments
-		{
-			/// <summary>
-			/// Creates placement assignments for both teams.
-			/// </summary>
-			public PlacementAssignments(List<Vector3Int> player, List<Vector3Int> enemy)
-			{
-				// Store assigned cell lists.
-				Player = player;
-				Enemy = enemy;
-			}
-
-			/// <summary>
-			/// Assigned placement cells for the player team.
-			/// </summary>
-			public List<Vector3Int> Player { get; }
-			/// <summary>
-			/// Assigned placement cells for the enemy team.
-			/// </summary>
-			public List<Vector3Int> Enemy { get; }
 		}
 
 	}
