@@ -468,7 +468,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Player.MouseBoardCellSelection
   cursor: {fileID: 438430415}
   boardPresenter: {fileID: 1079300952}
-  selectionMask: 5
+  selectionMask: 4
 --- !u!114 &624909950
 MonoBehaviour:
   m_ObjectHideFlags: 0

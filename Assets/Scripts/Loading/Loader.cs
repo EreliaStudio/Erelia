@@ -50,7 +50,6 @@ namespace Erelia.Loading
 		{
 			// Get the singleton context and reset battle state.
 			var context = Erelia.Core.Context.Instance;
-			context.ClearBattle();
 			EnsurePlayerTeam(context.SystemData);
 		}
 
