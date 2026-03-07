@@ -1,11 +1,11 @@
+using System.Collections.Generic;
 using Erelia.Core;
-using Erelia.Exploration.World;
 using UnityEngine;
 
 namespace Erelia.Battle
 {
 	/// <summary>
-	/// Placement phase that computes placement masks and handles unit placement.
+	/// Placement phase that applies precomputed placement masks and handles unit placement.
 	/// </summary>
 	[System.Serializable]
 	public sealed class PlacementPhase : BattlePhase
@@ -42,6 +42,8 @@ namespace Erelia.Battle
 		/// </summary>
 		public override void Exit(BattleManager manager)
 		{
+			ClearPlacementMaskCells();
+
 			if (hudRoot != null)
 			{
 				hudRoot.SetActive(false);
@@ -74,68 +76,94 @@ namespace Erelia.Battle
 
 		private void InitializePlacementMaskCells()
 		{
-			Erelia.Battle.Board.Model board = Erelia.Core.Context.Instance.BattleData.Board;
-			if (board == null)
-			{
-				return;
-			}
+			GetAcceptableCoordinates(out Erelia.Battle.Board.Model board, out IReadOnlyList<Vector3Int> acceptableCoordinates);
 
-			for (int x = 0; x < board.SizeX; x++)
+			for (int i = 0; i < acceptableCoordinates.Count; i++)
 			{
-				for (int y = 0; y < board.SizeY; y++)
+				Vector3Int coordinate = acceptableCoordinates[i];
+				if (!IsInsideBoard(board, coordinate))
 				{
-					for (int z = 0; z < board.SizeZ; z++)
-					{
-						Erelia.Battle.Voxel.Cell cell = Context.Instance.BattleData.Board.Cells[x, y, z];
-
-						if (VoxelRegistry.Instance.TryGet(cell.Id, out Core.VoxelKit.Definition definition))
-						{
-							if (IsAcceptableAsFloor(definition) &&
-								IsInPlacementPolicy(definition, x, y, z) && 
-								HasAvailableSpace(definition, x, y, z))
-							{
-								cell.AddMask(Voxel.Mask.Type.Placement);
-							}
-						}
-					}
+					continue;
 				}
+
+				Erelia.Battle.Voxel.Cell cell = board.Cells[coordinate.x, coordinate.y, coordinate.z];
+				if (!Erelia.Exploration.World.VoxelRegistry.Instance.TryGet(cell.Id, out Erelia.Core.VoxelKit.Definition definition))
+				{
+					continue;
+				}
+
+				if (!IsInPlacementPolicy(definition, coordinate.x, coordinate.y, coordinate.z) ||
+					!HasAvailableSpace(board, coordinate.x, coordinate.y, coordinate.z))
+				{
+					continue;
+				}
+
+				cell.AddMask(Erelia.Battle.Voxel.Mask.Type.Placement);
 			}
 
-			boardPresenter.RebuildMasks();
+			boardPresenter?.RebuildMasks();
 		}
 
-		private bool IsAcceptableAsFloor(Erelia.Core.VoxelKit.Definition definition)
+		private void ClearPlacementMaskCells()
 		{
-			return definition.Data.Traversal == Core.VoxelKit.Traversal.Obstacle;
+			GetAcceptableCoordinates(out Erelia.Battle.Board.Model board, out IReadOnlyList<Vector3Int> acceptableCoordinates);
+
+			for (int i = 0; i < acceptableCoordinates.Count; i++)
+			{
+				Vector3Int coordinate = acceptableCoordinates[i];
+				if (!IsInsideBoard(board, coordinate))
+				{
+					continue;
+				}
+
+				Erelia.Battle.Voxel.Cell cell = board.Cells[coordinate.x, coordinate.y, coordinate.z];
+				cell.RemoveMask(Erelia.Battle.Voxel.Mask.Type.Placement);
+			}
+
+			boardPresenter?.RebuildMasks();
+		}
+
+		private void GetAcceptableCoordinates(
+			out Erelia.Battle.Board.Model board,
+			out IReadOnlyList<Vector3Int> acceptableCoordinates)
+		{
+			Erelia.Battle.Data battleData = Context.Instance.BattleData;
+			board = battleData.Board;
+			acceptableCoordinates = battleData.PhaseInfo.AcceptableCoordinates;
 		}
 
 		private bool IsInPlacementPolicy(Erelia.Core.VoxelKit.Definition definition, int x, int y, int z)
 		{
-			if (z < Erelia.Core.Context.Instance.BattleData.Board.SizeZ / 2)
+			return z < Context.Instance.BattleData.Board.SizeZ / 2;
+		}
+
+		private bool HasAvailableSpace(Erelia.Battle.Board.Model board, int x, int y, int z)
+		{
+			const int PlayerHeight = 2;
+			for (int deltaY = 1; deltaY < PlayerHeight; deltaY++)
 			{
-				return false;
+				int targetY = y + deltaY;
+				if (targetY >= board.SizeY)
+				{
+					return false;
+				}
+
+				Erelia.Battle.Voxel.Cell cell = board.Cells[x, targetY, z];
+				if (Erelia.Exploration.World.VoxelRegistry.Instance.TryGet(cell.Id, out Erelia.Core.VoxelKit.Definition definition) &&
+					definition.Data.Traversal == Erelia.Core.VoxelKit.Traversal.Obstacle)
+				{
+					return false;
+				}
 			}
 
 			return true;
 		}
 
-		private bool HasAvailableSpace(Erelia.Core.VoxelKit.Definition definition, int x, int y, int z)
+		private bool IsInsideBoard(Erelia.Battle.Board.Model board, Vector3Int coordinate)
 		{
-			bool availableSpace = true;
-			const int PlayerHeight = 2;
-			for (int deltaY = 1; deltaY < PlayerHeight; deltaY++)
-			{
-				Erelia.Battle.Voxel.Cell cell = Context.Instance.BattleData.Board.Cells[x, y, z];
-
-				if (VoxelRegistry.Instance.TryGet(cell.Id, out Core.VoxelKit.Definition tmpDefinition))
-				{
-					if (tmpDefinition.Data.Traversal == Core.VoxelKit.Traversal.Obstacle)
-					{
-						availableSpace = false;
-					}
-				}
-			}
-			return availableSpace;
+			return coordinate.x >= 0 && coordinate.x < board.SizeX &&
+				coordinate.y >= 0 && coordinate.y < board.SizeY &&
+				coordinate.z >= 0 && coordinate.z < board.SizeZ;
 		}
 	}
 }

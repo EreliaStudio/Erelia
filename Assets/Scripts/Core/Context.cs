@@ -13,48 +13,26 @@ namespace Erelia.Core
 		private Context()
 		{
 			ExplorationData = new Erelia.Exploration.Data();
+			BattleData = new Erelia.Battle.Data();
 			SystemData = new Erelia.Core.SystemData();
 		}
 
 		public void SetExploration(Erelia.Exploration.World.Model worldModel, Erelia.Exploration.Player.Model playerModel)
 		{
-			if (worldModel == null)
-			{
-				throw new System.ArgumentNullException(nameof(worldModel), "World model cannot be null.");
-			}
-
-			if (playerModel == null)
-			{
-				throw new System.ArgumentNullException(nameof(playerModel), "Player model cannot be null.");
-			}
-
-			ExplorationData = new Erelia.Exploration.Data
-			{
-				WorldModel = worldModel,
-				PlayerModel = playerModel
-			};
+			ExplorationData.WorldModel = worldModel;
+			ExplorationData.PlayerModel = playerModel;
 		}
 
 		public void SetBattle(Erelia.Core.Encounter.EncounterTable encounterTable, Erelia.Battle.Board.Model battleBoard)
 		{
-			Erelia.Battle.Data data = GetOrCreateBattleData();
-			data.EncounterTable = encounterTable;
-			data.Board = battleBoard;
+			BattleData.EncounterTable = encounterTable;
+			BattleData.Board = battleBoard;
+			BattleData.PhaseInfo = new Battle.Phase.Info();
 		}
 
 		public void ClearBattle()
 		{
 			BattleData = null;
-		}
-
-		public Erelia.Battle.Data GetOrCreateBattleData()
-		{
-			if (BattleData == null)
-			{
-				BattleData = new Erelia.Battle.Data();
-			}
-
-			return BattleData;
 		}
 	}
 }

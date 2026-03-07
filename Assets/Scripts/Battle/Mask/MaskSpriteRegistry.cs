@@ -19,10 +19,6 @@ namespace Erelia.Battle
 		/// </summary>
 		[SerializeField] private Sprite placementSprite;
 		/// <summary>
-		/// Sprite used for enemy placement tiles.
-		/// </summary>
-		[SerializeField] private Sprite enemyPlacementSprite;
-		/// <summary>
 		/// Sprite used for attack range tiles.
 		/// </summary>
 		[SerializeField] private Sprite attackRangeSprite;
@@ -48,7 +44,6 @@ namespace Erelia.Battle
 			sprite = type switch
 			{
 				Erelia.Battle.Voxel.Mask.Type.Placement => placementSprite,
-				Erelia.Battle.Voxel.Mask.Type.EnemyPlacement => enemyPlacementSprite,
 				Erelia.Battle.Voxel.Mask.Type.AttackRange => attackRangeSprite,
 				Erelia.Battle.Voxel.Mask.Type.MovementRange => movementRangeSprite,
 				Erelia.Battle.Voxel.Mask.Type.AreaOfEffect => areaOfEffectSprite,

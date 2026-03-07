@@ -1,20 +1,14 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle
 {
 	/// <summary>
 	/// Initialization phase that prepares battle data.
-	/// Tries to resolve the board, parses its playable cells, then transitions to the Placement phase.
+	/// Resolves the board, computes shared acceptable floor coordinates, then transitions to the Placement phase.
 	/// </summary>
 	[System.Serializable]
 	public sealed class InitializePhase : BattlePhase
 	{
-		/// <summary>
-		/// Presenter used to resolve the battle board during initialization.
-		/// </summary>
-		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
-
 		/// <summary>
 		/// Whether initialization is still pending.
 		/// </summary>
@@ -58,7 +52,58 @@ namespace Erelia.Battle
 		/// </summary>
 		private bool TrySetupBattleData()
 		{
+			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
+
+			for (int x = 0; x < battleData.Board.SizeX; x++)
+			{
+				for (int y = 0; y < battleData.Board.SizeY; y++)
+				{
+					for (int z = 0; z < battleData.Board.SizeZ; z++)
+					{
+						if (!IsAcceptableCoordinate(battleData.Board, x, y, z))
+						{
+							continue;
+						}
+
+						battleData.PhaseInfo.AddAcceptableCoordinate(new Vector3Int(x, y, z));
+					}
+				}
+			}
+
 			return true;
+		}
+
+		private bool IsAcceptableCoordinate(Erelia.Battle.Board.Model board, int x, int y, int z)
+		{
+			Erelia.Battle.Voxel.Cell cell = board.Cells[x, y, z];
+			if (!Erelia.Exploration.World.VoxelRegistry.Instance.TryGet(cell.Id, out Erelia.Core.VoxelKit.Definition definition))
+			{
+				return false;
+			}
+
+			return IsAcceptableAsFloor(definition) && HasAirOrWalkableBlockOnTop(board, x, y, z);
+		}
+
+		private bool IsAcceptableAsFloor(Erelia.Core.VoxelKit.Definition definition)
+		{
+			return definition.Data.Traversal == Erelia.Core.VoxelKit.Traversal.Obstacle;
+		}
+
+		private bool HasAirOrWalkableBlockOnTop(Erelia.Battle.Board.Model board, int x, int y, int z)
+		{
+			int targetY = y + 1;
+			if (targetY >= board.SizeY)
+			{
+				return false;
+			}
+
+			Erelia.Battle.Voxel.Cell cell = board.Cells[x, targetY, z];
+			if (!Erelia.Exploration.World.VoxelRegistry.Instance.TryGet(cell.Id, out Erelia.Core.VoxelKit.Definition definition))
+			{
+				return true;
+			}
+
+			return definition.Data.Traversal == Erelia.Core.VoxelKit.Traversal.Walkable;
 		}
 	}
 }

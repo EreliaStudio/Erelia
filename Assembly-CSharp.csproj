@@ -80,6 +80,7 @@
     <Compile Include="Assets\Scripts\Core\Creature\Team.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\MouseBoardCellSelection.cs" />
     <Compile Include="Assets\Scripts\Battle\Setup\Loader.cs" />
+    <Compile Include="Assets\Scripts\Battle\Phases\Info.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\Model.cs" />
     <Compile Include="Assets\Scripts\Core\Events\EncounterTriggerEvent.cs" />
