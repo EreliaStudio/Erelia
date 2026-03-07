@@ -1,12 +1,20 @@
+using System.Collections.Generic;
+using UnityEngine;
+
 namespace Erelia.Battle
 {
 	/// <summary>
 	/// Initialization phase that prepares battle data.
-	/// Tries to resolve the board, then transitions to the Placement phase.
+	/// Tries to resolve the board, parses its playable cells, then transitions to the Placement phase.
 	/// </summary>
 	[System.Serializable]
 	public sealed class InitializePhase : BattlePhase
 	{
+		/// <summary>
+		/// Presenter used to resolve the battle board during initialization.
+		/// </summary>
+		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
+
 		/// <summary>
 		/// Whether initialization is still pending.
 		/// </summary>
@@ -20,7 +28,7 @@ namespace Erelia.Battle
 		public override void Enter(BattleManager manager)
 		{
 			// Try to initialize battle data and request the next phase.
-			pendingSetup = !TrySetupBattleData(manager);
+			pendingSetup = !TrySetupBattleData();
 			if (!pendingSetup && manager != null)
 			{
 				manager.RequestTransition(BattlePhaseId.Placement);
@@ -38,7 +46,7 @@ namespace Erelia.Battle
 				return;
 			}
 
-			pendingSetup = !TrySetupBattleData(manager);
+			pendingSetup = !TrySetupBattleData();
 			if (!pendingSetup && manager != null)
 			{
 				manager.RequestTransition(BattlePhaseId.Placement);
@@ -48,35 +56,8 @@ namespace Erelia.Battle
 		/// <summary>
 		/// Attempts to resolve battle data for the current encounter.
 		/// </summary>
-		private static bool TrySetupBattleData(BattleManager manager)
+		private bool TrySetupBattleData()
 		{
-			// Resolve battle board from context or presenter.
-			Erelia.Core.Context context = Erelia.Core.Context.Instance;
-			if (context == null)
-			{
-				return false;
-			}
-
-			Erelia.Battle.Data data = context.BattleData;
-			Erelia.Battle.Board.Model board = data != null ? data.Board : null;
-			if (board == null || board.Cells == null)
-			{
-				Erelia.Battle.Board.Presenter presenter =
-					manager != null ? manager.GetComponentInChildren<Erelia.Battle.Board.Presenter>(true) : null;
-				board = presenter != null ? presenter.Model : null;
-			}
-
-			if (board == null || board.Cells == null)
-			{
-				return false;
-			}
-
-			Erelia.Battle.Data battleData = context.GetOrCreateBattleData();
-			if (battleData.Board == null)
-			{
-				battleData.Board = board;
-			}
-
 			return true;
 		}
 	}

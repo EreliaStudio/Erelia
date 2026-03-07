@@ -1,10 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle.Board
 {
 	/// <summary>
 	/// Data model for the battle board voxel grid.
-	/// Holds the cells plus origin/center metadata for placement and rendering.
+	/// Holds the cells plus origin/center metadata and parsed playable cells for placement and rendering.
 	/// </summary>
 	public sealed class Model
 	{
@@ -20,7 +21,6 @@ namespace Erelia.Battle.Board
 		/// World-space center cell of the board grid.
 		/// </summary>
 		public Vector3Int Center { get; }
-
 		/// <summary>
 		/// Board size on the X axis.
 		/// </summary>
@@ -37,7 +37,10 @@ namespace Erelia.Battle.Board
 		/// <summary>
 		/// Creates a board model with cells and origin/center metadata.
 		/// </summary>
-		public Model(Erelia.Battle.Voxel.Cell[,,] cells, Vector3Int origin, Vector3Int center)
+		public Model(
+			Erelia.Battle.Voxel.Cell[,,] cells,
+			Vector3Int origin,
+			Vector3Int center)
 		{
 			// Store the board data.
 			Cells = cells;

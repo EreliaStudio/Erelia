@@ -7,7 +7,6 @@ namespace Erelia.Battle.Voxel.Mask
 	public enum Type
 	{
 		Placement,
-		EnemyPlacement,
 		AttackRange,
 		MovementRange,
 		AreaOfEffect,
