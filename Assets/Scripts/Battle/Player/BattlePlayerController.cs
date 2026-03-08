@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using PhaseController = Erelia.Battle.Phase.Controller;
 
 namespace Erelia.Battle.Player
 {
@@ -20,7 +21,7 @@ namespace Erelia.Battle.Player
 		/// <summary>
 		/// Active phase controller handling confirm/cancel input.
 		/// </summary>
-		private Erelia.Battle.PhaseController phaseController;
+		private PhaseController phaseController;
 		/// <summary>
 		/// Input action used to confirm placement.
 		/// </summary>
@@ -275,7 +276,7 @@ namespace Erelia.Battle.Player
 		/// <summary>
 		/// Assigns the active phase controller.
 		/// </summary>
-		public void SetPhaseController(Erelia.Battle.PhaseController controller)
+		public void SetPhaseController(PhaseController controller)
 		{
 			// Store the current phase controller.
 			phaseController = controller;

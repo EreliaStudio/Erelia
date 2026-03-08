@@ -1152,6 +1152,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1352958011}
   - component: {fileID: 1352958012}
+  - component: {fileID: 1352958013}
   m_Layer: 0
   m_Name: Loader
   m_TagString: Untagged
@@ -1188,6 +1189,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Loader
   presenter: {fileID: 1079300952}
   playerTransform: {fileID: 0}
+--- !u!114 &1352958013
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1352958010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dcb26b51320448c98ae08c4a2ea3b2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.DebugLoader
+  debugMode: 1
+  debugBoardSize: {x: 21, y: 8, z: 21}
+  debugGroundHeight: 1
+  debugGroundVoxelId: 0
+  debugAirVoxelId: -1
 --- !u!1 &1463741418
 GameObject:
   m_ObjectHideFlags: 0

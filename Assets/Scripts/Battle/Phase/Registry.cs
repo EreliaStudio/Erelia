@@ -1,7 +1,8 @@
 using System;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
-namespace Erelia.Battle
+namespace Erelia.Battle.Phase
 {
 	/// <summary>
 	/// Serializable registry holding the configured battle phase instances.
@@ -13,58 +14,59 @@ namespace Erelia.Battle
 	/// </para>
 	/// <para>
 	/// The <see cref="BattleManager"/> (or other systems) can resolve phases by id using
-	/// <see cref="TryGetPhase(BattlePhaseId, out BattlePhase)"/>.
+	/// <see cref="TryGetPhase(Id, out Root)"/>.
 	/// </para>
 	/// <para>
-	/// This implementation uses an explicit <c>switch</c> to map <see cref="BattlePhaseId"/> values to fields.
+	/// This implementation uses an explicit <c>switch</c> to map <see cref="Id"/> values to fields.
 	/// This keeps phase ownership centralized and avoids maintaining a separate runtime dictionary.
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	public sealed class BattlePhaseRegistry
+	[MovedFrom(true, sourceNamespace: "Erelia.Battle", sourceAssembly: "Assembly-CSharp", sourceClassName: "BattlePhaseRegistry")]
+	public sealed class Registry
 	{
 		/// <summary>
-		/// Instance of the <see cref="InitializePhase"/> phase.
+		/// Instance of the initialize phase.
 		/// </summary>
 		/// <remarks>
 		/// Serialized so it can be configured in the Unity Inspector and persisted with the owning object.
 		/// </remarks>
-		[SerializeField] private InitializePhase initialize = new InitializePhase();
+		[SerializeField] private Erelia.Battle.Phase.Initialize.MainRoot initialize = new Erelia.Battle.Phase.Initialize.MainRoot();
 
 		/// <summary>
-		/// Instance of the <see cref="PlacementPhase"/> phase.
+		/// Instance of the placement phase.
 		/// </summary>
-		[SerializeField] private PlacementPhase placement = new PlacementPhase();
+		[SerializeField] private Erelia.Battle.Phase.Placement.MainRoot placement = new Erelia.Battle.Phase.Placement.MainRoot();
 
 		/// <summary>
-		/// Instance of the <see cref="PlayerTurnPhase"/> phase.
+		/// Instance of the player turn phase.
 		/// </summary>
-		[SerializeField] private PlayerTurnPhase playerTurn = new PlayerTurnPhase();
+		[SerializeField] private Erelia.Battle.Phase.PlayerTurn.MainRoot playerTurn = new Erelia.Battle.Phase.PlayerTurn.MainRoot();
 
 		/// <summary>
-		/// Instance of the <see cref="EnemyTurnPhase"/> phase.
+		/// Instance of the enemy turn phase.
 		/// </summary>
-		[SerializeField] private EnemyTurnPhase enemyTurn = new EnemyTurnPhase();
+		[SerializeField] private Erelia.Battle.Phase.EnemyTurn.MainRoot enemyTurn = new Erelia.Battle.Phase.EnemyTurn.MainRoot();
 
 		/// <summary>
-		/// Instance of the <see cref="ResolveActionPhase"/> phase.
+		/// Instance of the resolve action phase.
 		/// </summary>
-		[SerializeField] private ResolveActionPhase resolveAction = new ResolveActionPhase();
+		[SerializeField] private Erelia.Battle.Phase.ResolveAction.MainRoot resolveAction = new Erelia.Battle.Phase.ResolveAction.MainRoot();
 
 		/// <summary>
-		/// Instance of the <see cref="VictoryPhase"/> phase.
+		/// Instance of the victory phase.
 		/// </summary>
-		[SerializeField] private VictoryPhase victory = new VictoryPhase();
+		[SerializeField] private Erelia.Battle.Phase.Victory.MainRoot victory = new Erelia.Battle.Phase.Victory.MainRoot();
 
 		/// <summary>
-		/// Instance of the <see cref="DefeatPhase"/> phase.
+		/// Instance of the defeat phase.
 		/// </summary>
-		[SerializeField] private DefeatPhase defeat = new DefeatPhase();
+		[SerializeField] private Erelia.Battle.Phase.Defeat.MainRoot defeat = new Erelia.Battle.Phase.Defeat.MainRoot();
 
 		/// <summary>
-		/// Instance of the <see cref="CleanupPhase"/> phase.
+		/// Instance of the cleanup phase.
 		/// </summary>
-		[SerializeField] private CleanupPhase cleanup = new CleanupPhase();
+		[SerializeField] private Erelia.Battle.Phase.Cleanup.MainRoot cleanup = new Erelia.Battle.Phase.Cleanup.MainRoot();
 
 		/// <summary>
 		/// Tries to resolve a phase instance by its identifier.
@@ -83,45 +85,45 @@ namespace Erelia.Battle
 		/// <para>
 		/// Returning <c>false</c> indicates either:
 		/// <list type="bullet">
-		/// <item><description><paramref name="id"/> is <see cref="BattlePhaseId.None"/> or unknown.</description></item>
+		/// <item><description><paramref name="id"/> is <see cref="Id.None"/> or unknown.</description></item>
 		/// <item><description>The mapped field is currently <c>null</c>.</description></item>
 		/// </list>
 		/// </para>
 		/// </remarks>
-		public bool TryGetPhase(BattlePhaseId id, out BattlePhase phase)
+		public bool TryGetPhase(Id id, out Root phase)
 		{
 			// Map the id to the corresponding serialized field.
 			switch (id)
 			{
-				case BattlePhaseId.Initialize:
+				case Id.Initialize:
 					phase = initialize;
 					return phase != null;
 
-				case BattlePhaseId.Placement:
+				case Id.Placement:
 					phase = placement;
 					return phase != null;
 
-				case BattlePhaseId.PlayerTurn:
+				case Id.PlayerTurn:
 					phase = playerTurn;
 					return phase != null;
 
-				case BattlePhaseId.EnemyTurn:
+				case Id.EnemyTurn:
 					phase = enemyTurn;
 					return phase != null;
 
-				case BattlePhaseId.ResolveAction:
+				case Id.ResolveAction:
 					phase = resolveAction;
 					return phase != null;
 
-				case BattlePhaseId.Victory:
+				case Id.Victory:
 					phase = victory;
 					return phase != null;
 
-				case BattlePhaseId.Defeat:
+				case Id.Defeat:
 					phase = defeat;
 					return phase != null;
 
-				case BattlePhaseId.Cleanup:
+				case Id.Cleanup:
 					phase = cleanup;
 					return phase != null;
 

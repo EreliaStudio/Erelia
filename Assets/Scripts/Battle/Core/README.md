@@ -1,18 +1,14 @@
 # Battle.Core README
 
 ## Purpose
-Core contains the battle phase state machine, phase input routing, and the registry that resolves phase instances.
+Core contains the battle state machine entry point.
 `BattleManager` owns the active phase and applies transitions safely.
 
 ## Contents
 - `BattleManager`: drives the current phase, handles transitions, and ticks the flow.
-- `PhaseController`: base class for phase-specific confirm/cancel input handlers.
-- `BattlePhase`: base class for phases with `Enter`, `Exit`, and `Tick`.
-- `BattlePhaseId`: enum listing all phase identifiers.
-- `BattlePhaseRegistry`: serializable mapping from ids to phase instances.
 
 ## Adding Or Extending
-1. Add a new id to `BattlePhaseId`.
-2. Create a new phase in `Assets/Scripts/Battle/Phases`.
-3. Register the new phase in `BattlePhaseRegistry`.
+1. Add a new id to `Assets/Scripts/Battle/Phase/Id.cs`.
+2. Create a new phase in `Assets/Scripts/Battle/Phase/<Name>`.
+3. Register the new phase in `Assets/Scripts/Battle/Phase/Registry.cs`.
 4. Request the new phase from existing phases or `BattleManager` as needed.

@@ -1,18 +1,22 @@
 using System.Collections.Generic;
 using Erelia.Core;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
+using PhaseId = Erelia.Battle.Phase.Id;
+using PhaseRoot = Erelia.Battle.Phase.Root;
 
-namespace Erelia.Battle
+namespace Erelia.Battle.Phase.Placement
 {
 	/// <summary>
 	/// Placement phase that applies precomputed placement masks and handles unit placement.
 	/// </summary>
 	[System.Serializable]
-	public sealed class PlacementPhase : BattlePhase
+	[MovedFrom(true, sourceNamespace: "Erelia.Battle", sourceAssembly: "Assembly-CSharp", sourceClassName: "PlacementPhase")]
+	public sealed class MainRoot : PhaseRoot
 	{
 		[SerializeField] private GameObject hudRoot = null;
 
-		public override BattlePhaseId Id => BattlePhaseId.Placement;
+		public override PhaseId Id => PhaseId.Placement;
 
 		/// <summary>
 		/// Presenter used to access the battle board.
@@ -26,7 +30,7 @@ namespace Erelia.Battle
 		{
 			if (hudRoot == null)
 			{
-				Debug.LogWarning("[Erelia.Battle.PlacementPhase] HUD root can't be empty");
+				Debug.LogWarning("[Erelia.Battle.Phase.Placement.MainRoot] HUD root can't be empty");
 			}
 
 			if (hudRoot != null)
@@ -55,7 +59,6 @@ namespace Erelia.Battle
 		/// </summary>
 		public override void Tick(BattleManager manager, float deltaTime)
 		{
-			
 		}
 
 		/// <summary>
@@ -63,7 +66,6 @@ namespace Erelia.Battle
 		/// </summary>
 		public override void OnConfirm(Erelia.Battle.Player.BattlePlayerController controller)
 		{
-			
 		}
 
 		/// <summary>
@@ -71,7 +73,6 @@ namespace Erelia.Battle
 		/// </summary>
 		public override void OnCancel(Erelia.Battle.Player.BattlePlayerController controller)
 		{
-			
 		}
 
 		private void InitializePlacementMaskCells()

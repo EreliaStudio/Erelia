@@ -1,16 +1,19 @@
-namespace Erelia.Battle
+using UnityEngine.Scripting.APIUpdating;
+
+namespace Erelia.Battle.Phase
 {
 	/// <summary>
 	/// Base class for battle phases with enter/exit/tick hooks and optional input handling.
 	/// Implementations provide an Id and behavior during the battle flow.
 	/// </summary>
 	[System.Serializable]
-	public abstract class BattlePhase : PhaseController
+	[MovedFrom(true, sourceNamespace: "Erelia.Battle", sourceAssembly: "Assembly-CSharp", sourceClassName: "BattlePhase")]
+	public abstract class Root : Controller
 	{
 		/// <summary>
 		/// Gets the phase identifier.
 		/// </summary>
-		public abstract BattlePhaseId Id { get; }
+		public abstract Id Id { get; }
 
 		/// <summary>
 		/// Called when the phase becomes active.

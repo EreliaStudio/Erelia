@@ -11,7 +11,8 @@ namespace Erelia.Battle
 		/// <summary>
 		/// Presenter that displays the battle board.
 		/// </summary>
-		[SerializeField] Board.Presenter presenter;
+		[SerializeField] private Board.Presenter presenter;
+
 		/// <summary>
 		/// Player transform to center on the board.
 		/// </summary>
@@ -27,6 +28,7 @@ namespace Erelia.Battle
 			{
 				Debug.LogWarning("[Erelia.Battle.Loader] Battle board presenter is not assigned.");
 			}
+
 			BindFromContext();
 		}
 
@@ -36,9 +38,7 @@ namespace Erelia.Battle
 		private void BindFromContext()
 		{
 			// Resolve battle data and apply the board model.
-			var context = Erelia.Core.Context.Instance;
-
-			Erelia.Battle.Data data = context.BattleData;
+			Erelia.Battle.Data data = Erelia.Core.Context.Instance.BattleData;
 			Erelia.Battle.Board.Model board = data != null ? data.Board : null;
 			if (board == null)
 			{
@@ -46,7 +46,11 @@ namespace Erelia.Battle
 				return;
 			}
 
-			presenter.SetModel(board);
+			if (presenter != null)
+			{
+				presenter.SetModel(board);
+			}
+
 			CenterPlayer(board);
 		}
 

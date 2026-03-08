@@ -1,20 +1,24 @@
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
+using PhaseId = Erelia.Battle.Phase.Id;
+using PhaseRoot = Erelia.Battle.Phase.Root;
 
-namespace Erelia.Battle
+namespace Erelia.Battle.Phase.Initialize
 {
 	/// <summary>
 	/// Initialization phase that prepares battle data.
 	/// Resolves the board, computes shared acceptable floor coordinates, then transitions to the Placement phase.
 	/// </summary>
 	[System.Serializable]
-	public sealed class InitializePhase : BattlePhase
+	[MovedFrom(true, sourceNamespace: "Erelia.Battle", sourceAssembly: "Assembly-CSharp", sourceClassName: "InitializePhase")]
+	public sealed class MainRoot : PhaseRoot
 	{
 		/// <summary>
 		/// Whether initialization is still pending.
 		/// </summary>
 		private bool pendingSetup;
 
-		public override BattlePhaseId Id => BattlePhaseId.Initialize;
+		public override PhaseId Id => PhaseId.Initialize;
 
 		/// <summary>
 		/// Enters the initialize phase and prepares battle data.
@@ -25,7 +29,7 @@ namespace Erelia.Battle
 			pendingSetup = !TrySetupBattleData();
 			if (!pendingSetup && manager != null)
 			{
-				manager.RequestTransition(BattlePhaseId.Placement);
+				manager.RequestTransition(PhaseId.Placement);
 			}
 		}
 
@@ -43,7 +47,7 @@ namespace Erelia.Battle
 			pendingSetup = !TrySetupBattleData();
 			if (!pendingSetup && manager != null)
 			{
-				manager.RequestTransition(BattlePhaseId.Placement);
+				manager.RequestTransition(PhaseId.Placement);
 			}
 		}
 

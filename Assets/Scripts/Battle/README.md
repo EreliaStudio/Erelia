@@ -6,15 +6,15 @@ and battle-specific voxel overlays.
 
 ## Contents
 - `BattleBoard`: board model, presenter, view, and board construction helpers.
-- `Core`: battle phase state machine, registry, and phase input routing.
+- `Core`: battle phase state machine entry point.
 - `Data`: serializable battle data containers stored in context.
 - `Mask`: sprite registry for overlay masks.
-- `Phases`: concrete battle flow phases.
+- `Phase`: shared phase infrastructure and concrete battle flow phases.
 - `Player`: player input, selection, and camera control for battles.
 - `Setup`: scene loader that binds battle data to presenters.
 - `Voxel`: battle voxel extensions and mask meshing.
 
 ## Adding Or Extending
-1. Add new phases in `Phases` and register them in `Core/BattlePhaseRegistry`.
+1. Add new phases in `Phase` and register them in `Phase/Registry.cs`.
 2. Add new board visuals or data in `BattleBoard` and update `Data` as needed.
 3. Add new player interactions in `Player` and ensure the battle scene has the component wired.
