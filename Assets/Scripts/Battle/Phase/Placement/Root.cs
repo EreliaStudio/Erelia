@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Erelia.Core;
 using UnityEngine;
@@ -35,6 +36,7 @@ namespace Erelia.Battle.Phase.Placement
 			if (hudRoot != null)
 			{
 				hudRoot.SetActive(true);
+				PopulateCreatureCards();
 			}
 
 			InitializePlacementMaskCells();
@@ -134,6 +136,53 @@ namespace Erelia.Battle.Phase.Placement
 			Erelia.Battle.Data battleData = Context.Instance.BattleData;
 			board = battleData.Board;
 			acceptableCoordinates = battleData.PhaseInfo.AcceptableCoordinates;
+		}
+
+		private void PopulateCreatureCards()
+		{
+			if (hudRoot == null)
+			{
+				return;
+			}
+
+			Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardElement[] cardElements =
+				hudRoot.GetComponentsInChildren<Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardElement>(true);
+			if (cardElements == null || cardElements.Length == 0)
+			{
+				return;
+			}
+
+			Array.Sort(cardElements, CompareCardsBySiblingIndex);
+
+			Erelia.Core.Creature.Instance.Model[] slots = Context.Instance.SystemData?.PlayerTeam?.Slots;
+			for (int i = 0; i < cardElements.Length; i++)
+			{
+				Erelia.Core.Creature.Instance.Model creature =
+					slots != null && i < slots.Length ? slots[i] : null;
+				cardElements[i].LinkCreature(creature);
+			}
+		}
+
+		private static int CompareCardsBySiblingIndex(
+			Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardElement left,
+			Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardElement right)
+		{
+			if (ReferenceEquals(left, right))
+			{
+				return 0;
+			}
+
+			if (left == null)
+			{
+				return 1;
+			}
+
+			if (right == null)
+			{
+				return -1;
+			}
+
+			return left.transform.GetSiblingIndex().CompareTo(right.transform.GetSiblingIndex());
 		}
 
 		private bool IsInPlacementPolicy(Erelia.Core.VoxelKit.Definition definition, int x, int y, int z)

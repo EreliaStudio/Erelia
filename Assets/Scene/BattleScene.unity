@@ -399,10 +399,10 @@ RectTransform:
   - {fileID: 1545330312}
   m_Father: {fileID: 1283798308}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 99}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &338294983
 MonoBehaviour:
@@ -423,8 +423,8 @@ MonoBehaviour:
     m_Bottom: 0
   m_ChildAlignment: 0
   m_Spacing: 0
-  m_ChildForceExpandWidth: 1
-  m_ChildForceExpandHeight: 1
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0
   m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
@@ -1638,8 +1638,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -16.5, y: 0}
-  m_SizeDelta: {x: -837, y: -424}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1318377049
 GameObject:
@@ -1986,7 +1986,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 160, y: 50}
+  m_SizeDelta: {x: 160, y: 87.16667}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1545330313
 MonoBehaviour:
@@ -1997,9 +1997,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1545330311}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 22c6405eafdaa404da5b4c9716388633, type: 3}
+  m_Script: {fileID: 11500000, guid: 6abf9962bf2b9374786d2a821f2cbda4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Core.UI.CreatureCardElement
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardElement
   image: {fileID: 142808459}
   noCreatureSprite: {fileID: 0}
   creatureShownName: {fileID: 2029388005}
@@ -2008,6 +2008,9 @@ MonoBehaviour:
   layoutElement: {fileID: 1545330314}
   collapsedPreferredHeight: 50
   expandedPreferredHeight: 150
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
+  selectedColor: {r: 0, g: 1, b: 0, a: 1}
+  placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!114 &1545330314
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2242,7 +2245,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 160, y: 50}
+  m_SizeDelta: {x: 160, y: 87.16667}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1655832305
 MonoBehaviour:
@@ -2253,9 +2256,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1655832303}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 22c6405eafdaa404da5b4c9716388633, type: 3}
+  m_Script: {fileID: 11500000, guid: 6abf9962bf2b9374786d2a821f2cbda4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Core.UI.CreatureCardElement
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardElement
   image: {fileID: 1393559161}
   noCreatureSprite: {fileID: 0}
   creatureShownName: {fileID: 437892096}
@@ -2264,6 +2267,9 @@ MonoBehaviour:
   layoutElement: {fileID: 1655832306}
   collapsedPreferredHeight: 50
   expandedPreferredHeight: 150
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
+  selectedColor: {r: 0, g: 1, b: 0, a: 1}
+  placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!114 &1655832306
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2601,7 +2607,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 160, y: 50}
+  m_SizeDelta: {x: 160, y: 87.16667}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &2038572958
 MonoBehaviour:
@@ -2612,9 +2618,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2038572956}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 22c6405eafdaa404da5b4c9716388633, type: 3}
+  m_Script: {fileID: 11500000, guid: 6abf9962bf2b9374786d2a821f2cbda4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Core.UI.CreatureCardElement
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardElement
   image: {fileID: 712163101}
   noCreatureSprite: {fileID: 0}
   creatureShownName: {fileID: 2107864340}
@@ -2623,6 +2629,9 @@ MonoBehaviour:
   layoutElement: {fileID: 2038572959}
   collapsedPreferredHeight: 50
   expandedPreferredHeight: 150
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
+  selectedColor: {r: 0, g: 1, b: 0, a: 1}
+  placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!114 &2038572959
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2857,7 +2866,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 160, y: 50}
+  m_SizeDelta: {x: 160, y: 87.16667}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &2065465891
 MonoBehaviour:
@@ -2868,9 +2877,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2065465889}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 22c6405eafdaa404da5b4c9716388633, type: 3}
+  m_Script: {fileID: 11500000, guid: 6abf9962bf2b9374786d2a821f2cbda4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Core.UI.CreatureCardElement
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardElement
   image: {fileID: 344236698}
   noCreatureSprite: {fileID: 0}
   creatureShownName: {fileID: 1643447982}
@@ -2879,6 +2888,9 @@ MonoBehaviour:
   layoutElement: {fileID: 2065465892}
   collapsedPreferredHeight: 50
   expandedPreferredHeight: 150
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
+  selectedColor: {r: 0, g: 1, b: 0, a: 1}
+  placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!114 &2065465892
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2976,7 +2988,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 160, y: 50}
+  m_SizeDelta: {x: 160, y: 87.16667}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &2072808120
 MonoBehaviour:
@@ -2987,9 +2999,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2072808118}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 22c6405eafdaa404da5b4c9716388633, type: 3}
+  m_Script: {fileID: 11500000, guid: 6abf9962bf2b9374786d2a821f2cbda4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Core.UI.CreatureCardElement
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardElement
   image: {fileID: 1798567174}
   noCreatureSprite: {fileID: 0}
   creatureShownName: {fileID: 596252816}
@@ -2998,6 +3010,9 @@ MonoBehaviour:
   layoutElement: {fileID: 2072808121}
   collapsedPreferredHeight: 50
   expandedPreferredHeight: 150
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
+  selectedColor: {r: 0, g: 1, b: 0, a: 1}
+  placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!114 &2072808121
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3246,7 +3261,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 160, y: 50}
+  m_SizeDelta: {x: 160, y: 87.16667}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &2125724408
 MonoBehaviour:
@@ -3257,9 +3272,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 2125724406}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 22c6405eafdaa404da5b4c9716388633, type: 3}
+  m_Script: {fileID: 11500000, guid: 6abf9962bf2b9374786d2a821f2cbda4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Core.UI.CreatureCardElement
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardElement
   image: {fileID: 182236542}
   noCreatureSprite: {fileID: 0}
   creatureShownName: {fileID: 2044828840}
@@ -3268,6 +3283,9 @@ MonoBehaviour:
   layoutElement: {fileID: 2125724409}
   collapsedPreferredHeight: 50
   expandedPreferredHeight: 150
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
+  selectedColor: {r: 0, g: 1, b: 0, a: 1}
+  placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
 --- !u!114 &2125724409
 MonoBehaviour:
   m_ObjectHideFlags: 0

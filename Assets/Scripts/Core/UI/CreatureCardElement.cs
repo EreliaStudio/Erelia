@@ -23,12 +23,14 @@ namespace Erelia.Core.UI
 		[SerializeField] private float expandedPreferredHeight = 160f;
 
 		private Erelia.Core.Creature.Instance.Model linkedCreature;
+		private RectTransform rectTransform;
 		private bool isExpanded;
 
 		public Erelia.Core.Creature.Instance.Model LinkedCreature => linkedCreature;
 
 		protected virtual void Awake()
 		{
+			rectTransform = transform as RectTransform;
 			ApplyExpandedState(false);
 		}
 
@@ -82,12 +84,20 @@ namespace Erelia.Core.UI
 
 		private void ApplyExpandedState(bool value)
 		{
+			float targetHeight = value ? expandedPreferredHeight : collapsedPreferredHeight;
+
 			if (layoutElement != null)
 			{
-				layoutElement.preferredHeight = value ? expandedPreferredHeight : collapsedPreferredHeight;
+				layoutElement.preferredHeight = targetHeight;
 			}
 
-			LayoutRebuilder.MarkLayoutForRebuild(transform as RectTransform);
+			if (rectTransform != null)
+			{
+				// Fallback for parents that don't drive child height from the layout system.
+				rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, targetHeight);
+				LayoutRebuilder.MarkLayoutForRebuild(rectTransform);
+			}
+
 			if (transform.parent is RectTransform parentRectTransform)
 			{
 				LayoutRebuilder.MarkLayoutForRebuild(parentRectTransform);
