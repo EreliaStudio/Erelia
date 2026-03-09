@@ -2,11 +2,8 @@ using UnityEngine;
 
 namespace Erelia.Battle.Phase.Placement.UI
 {
-	public sealed class SelectableCreatureCardGroupElement : MonoBehaviour
+	public sealed class SelectableCreatureCardGroupElement : Erelia.Core.UI.CreatureCardGroupElement
 	{
-		[SerializeField] private SelectableCreatureCardElement[] cardElements =
-			new SelectableCreatureCardElement[Erelia.Core.Creature.Team.DefaultSize];
-
 		private Erelia.Core.Creature.Instance.Model selectedCreature;
 
 		public Erelia.Core.Creature.Instance.Model SelectedCreature => selectedCreature;
@@ -24,22 +21,10 @@ namespace Erelia.Battle.Phase.Placement.UI
 			selectedCreature = null;
 		}
 
-		public void PopulateCreatureCards(Erelia.Core.Creature.Team team)
+		public override void PopulateCreatureCards(Erelia.Core.Creature.Team team)
 		{
 			selectedCreature = null;
-
-			Erelia.Core.Creature.Instance.Model[] slots = team?.Slots;
-			for (int i = 0; i < cardElements.Length; i++)
-			{
-				if (cardElements[i] == null)
-				{
-					continue;
-				}
-
-				Erelia.Core.Creature.Instance.Model creature =
-					slots != null && i < slots.Length ? slots[i] : null;
-				cardElements[i].LinkCreature(creature);
-			}
+			base.PopulateCreatureCards(team);
 		}
 
 		public Erelia.Core.Creature.Instance.Model GetSelectedCreature()
@@ -64,24 +49,6 @@ namespace Erelia.Battle.Phase.Placement.UI
 			{
 				selectedCreature = null;
 			}
-		}
-
-		private bool ContainsCreature(Erelia.Core.Creature.Instance.Model creature)
-		{
-			if (creature == null)
-			{
-				return false;
-			}
-
-			for (int i = 0; i < cardElements.Length; i++)
-			{
-				if (cardElements[i] != null && ReferenceEquals(cardElements[i].LinkedCreature, creature))
-				{
-					return true;
-				}
-			}
-
-			return false;
 		}
 	}
 }

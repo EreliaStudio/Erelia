@@ -135,6 +135,12 @@ namespace Erelia.Battle.Phase.Placement
 		{
 			EnsureRuntimeState();
 
+			if (TryGetHoveredPlacedCreature(controller, out Erelia.Core.Creature.Instance.Model hoveredCreature))
+			{
+				UnplaceCreature(hoveredCreature);
+				return;
+			}
+
 			Erelia.Core.Creature.Instance.Model selectedCreature = creatureCardGroup != null
 				? creatureCardGroup.GetSelectedCreature()
 				: null;
@@ -143,18 +149,7 @@ namespace Erelia.Battle.Phase.Placement
 				return;
 			}
 
-			if (unitsByCreature.TryGetValue(selectedCreature, out Erelia.Battle.Unit unit) &&
-				unit != null &&
-				unit.IsPlaced)
-			{
-				placedUnitsByCell.Remove(unit.Cell);
-				unit.Unplace();
-				Erelia.Core.Event.Bus.Emit(
-					new Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced(selectedCreature));
-			}
-
-			Erelia.Core.Event.Bus.Emit(
-				new Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected(null));
+			UnplaceCreature(selectedCreature);
 		}
 
 		private void InitializePlacementMaskCells()
@@ -291,6 +286,29 @@ namespace Erelia.Battle.Phase.Placement
 			return true;
 		}
 
+		private bool TryGetHoveredPlacedCreature(
+			Erelia.Battle.Player.BattlePlayerController controller,
+			out Erelia.Core.Creature.Instance.Model creature)
+		{
+			creature = null;
+
+			if (controller == null || !controller.HasHoveredCell() || placedUnitsByCell == null)
+			{
+				return false;
+			}
+
+			Vector3Int hoveredCell = controller.HoveredCell();
+			if (!placedUnitsByCell.TryGetValue(hoveredCell, out Erelia.Battle.Unit unit) ||
+				unit == null ||
+				!unit.IsPlaced)
+			{
+				return false;
+			}
+
+			creature = unit.Creature;
+			return creature != null;
+		}
+
 		private Vector3 ResolveStationaryOffset(Erelia.Battle.Voxel.Cell cell)
 		{
 			if (cell == null)
@@ -357,6 +375,32 @@ namespace Erelia.Battle.Phase.Placement
 			unit = new Erelia.Battle.Unit(creature, targetCell, view);
 			unit.Place(targetCell, worldPosition);
 			return true;
+		}
+
+		private void UnplaceCreature(Erelia.Core.Creature.Instance.Model creature)
+		{
+			if (creature == null ||
+				unitsByCreature == null ||
+				!unitsByCreature.TryGetValue(creature, out Erelia.Battle.Unit unit) ||
+				unit == null ||
+				!unit.IsPlaced)
+			{
+				return;
+			}
+
+			placedUnitsByCell?.Remove(unit.Cell);
+			unit.Unplace();
+			Erelia.Core.Event.Bus.Emit(
+				new Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced(creature));
+
+			Erelia.Core.Creature.Instance.Model selectedCreature = creatureCardGroup != null
+				? creatureCardGroup.GetSelectedCreature()
+				: null;
+			if (ReferenceEquals(selectedCreature, creature))
+			{
+				Erelia.Core.Event.Bus.Emit(
+					new Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected(null));
+			}
 		}
 
 		private void SyncPlacedCardState()

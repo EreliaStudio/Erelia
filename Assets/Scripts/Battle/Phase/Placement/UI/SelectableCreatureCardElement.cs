@@ -10,6 +10,7 @@ namespace Erelia.Battle.Phase.Placement.UI
 		[SerializeField] private Color idleColor = Color.white;
 		[SerializeField] private Color selectedColor = Color.green;
 		[SerializeField] private Color placedColor = Color.gray;
+		[SerializeField] private Color emptyColor = new Color(0.2f, 0.2f, 0.2f, 0.85f);
 
 		private bool isSelected;
 		private bool isPlaced;
@@ -37,6 +38,10 @@ namespace Erelia.Battle.Phase.Placement.UI
 			isSelected = false;
 			isPlaced = false;
 			RefreshBackgroundColor();
+			if (model == null)
+			{
+				base.SetExpanded(false);
+			}
 		}
 
 		public void OnPointerClick(PointerEventData eventData)
@@ -94,7 +99,24 @@ namespace Erelia.Battle.Phase.Placement.UI
 				return;
 			}
 
+			if (LinkedCreature == null)
+			{
+				SetBackgroundColor(emptyColor);
+				return;
+			}
+
 			SetBackgroundColor(idleColor);
+		}
+
+		protected override void SetExpanded(bool value)
+		{
+			if (LinkedCreature == null)
+			{
+				base.SetExpanded(false);
+				return;
+			}
+
+			base.SetExpanded(value);
 		}
 	}
 }

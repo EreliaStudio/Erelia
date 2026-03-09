@@ -54,6 +54,7 @@
     <Compile Include="Assets\Scripts\Exploration\Player\PlayerMotionEmitter.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\Presenter.cs" />
+    <Compile Include="Assets\Scripts\Core\UI\CreatureCardGroupElement.cs" />
     <Compile Include="Assets\Scripts\Core\Encounter\EncounterTableRegistry.cs" />
     <Compile Include="Assets\Scripts\Core\Events\ExplorationSceneEvents.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Cell.cs" />
