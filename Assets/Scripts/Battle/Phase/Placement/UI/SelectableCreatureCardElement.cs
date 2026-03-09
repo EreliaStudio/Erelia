@@ -41,22 +41,12 @@ namespace Erelia.Battle.Phase.Placement.UI
 
 		public void OnPointerClick(PointerEventData eventData)
 		{
-			Erelia.Core.Creature.Instance.Model creatureToSelect =
-				isPlaced == true ? null : LinkedCreature;
-
 			Erelia.Core.Event.Bus.Emit(
-				new Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected(creatureToSelect));
+				new Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected(LinkedCreature));
 		}
 
 		private void OnCreatureSelected(Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected evt)
 		{
-			if (isPlaced == true)
-			{
-				isSelected = false;
-				RefreshBackgroundColor();
-				return;
-			}
-
 			isSelected = evt.Creature != null && ReferenceEquals(evt.Creature, LinkedCreature);
 			RefreshBackgroundColor();
 		}
@@ -92,15 +82,15 @@ namespace Erelia.Battle.Phase.Placement.UI
 
 		private void RefreshBackgroundColor()
 		{
-			if (isPlaced == true)
-			{
-				SetBackgroundColor(placedColor);
-				return;
-			}
-
 			if (isSelected == true)
 			{
 				SetBackgroundColor(selectedColor);
+				return;
+			}
+
+			if (isPlaced == true)
+			{
+				SetBackgroundColor(placedColor);
 				return;
 			}
 
