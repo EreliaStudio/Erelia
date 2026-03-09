@@ -30,7 +30,7 @@ namespace Erelia.Core.UI
 			}
 		}
 
-		protected bool ContainsCreature(Erelia.Core.Creature.Instance.Model creature)
+		public bool ContainsLinkedCreature(Erelia.Core.Creature.Instance.Model creature)
 		{
 			if (creature == null || cardElements == null)
 			{

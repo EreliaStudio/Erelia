@@ -1,13 +1,12 @@
+using System.Collections.Generic;
 using UnityEngine;
-
-
-
 
 namespace Erelia.Battle.Phase.Initialize
 {
 	/// <summary>
-	/// Initialization phase that prepares battle data.
-	/// Resolves the board, computes shared acceptable floor coordinates, then transitions to the Placement phase.
+		/// Initialization phase that prepares battle data.
+	/// Resolves the enemy team, computes acceptable floor coordinates, partitions player/enemy placement areas,
+	/// then transitions to the Placement phase.
 	/// </summary>
 	[System.Serializable]
 	public sealed class Root : Erelia.Battle.Phase.Root
@@ -56,57 +55,132 @@ namespace Erelia.Battle.Phase.Initialize
 		private bool TrySetupBattleData()
 		{
 			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
-
-			for (int x = 0; x < battleData.Board.SizeX; x++)
+			if (battleData == null || battleData.Board == null)
 			{
-				for (int y = 0; y < battleData.Board.SizeY; y++)
-				{
-					for (int z = 0; z < battleData.Board.SizeZ; z++)
-					{
-						if (!IsAcceptableCoordinate(battleData.Board, x, y, z))
-						{
-							continue;
-						}
+				return false;
+			}
 
-						battleData.PhaseInfo.AddAcceptableCoordinate(new Vector3Int(x, y, z));
-					}
-				}
+			if (battleData.PhaseInfo == null)
+			{
+				battleData.PhaseInfo = new Erelia.Battle.Phase.Info();
+			}
+
+			battleData.PhaseInfo.Clear();
+
+			Erelia.Core.Creature.Team enemyTeam = ResolveEnemyTeam(battleData.EncounterTable);
+			battleData.PhaseInfo.SetEnemyTeam(enemyTeam);
+
+			if (!TrySetupPlacementAreas(battleData))
+			{
+				return false;
 			}
 
 			return true;
 		}
 
-		private bool IsAcceptableCoordinate(Erelia.Battle.Board.Model board, int x, int y, int z)
+		private bool TrySetupPlacementAreas(Erelia.Battle.Data battleData)
 		{
-			Erelia.Battle.Voxel.Cell cell = board.Cells[x, y, z];
-			if (!Erelia.Exploration.World.VoxelRegistry.Instance.TryGet(cell.Id, out Erelia.Core.VoxelKit.Definition definition))
+			Erelia.Battle.Phase.Info phaseInfo = battleData.PhaseInfo;
+			if (phaseInfo == null ||
+				!Erelia.Battle.Phase.Initialize.PlacementListGenerator.TryGenerate(
+					battleData.Board,
+					Erelia.Battle.Phase.Initialize.PlacementMode.HalfBoard,
+					out List<Vector3Int> playerCoordinates,
+					out List<Vector3Int> enemyCoordinates))
 			{
 				return false;
 			}
 
-			return IsAcceptableAsFloor(definition) && HasAirOrWalkableBlockOnTop(board, x, y, z);
+			phaseInfo.AddAcceptableCoordinates(playerCoordinates);
+			phaseInfo.AddAcceptableCoordinates(enemyCoordinates);
+			phaseInfo.AddPlayerPlacementCoordinates(playerCoordinates);
+			phaseInfo.AddEnemyPlacementCoordinates(enemyCoordinates);
+			return true;
 		}
 
-		private bool IsAcceptableAsFloor(Erelia.Core.VoxelKit.Definition definition)
+		private static Erelia.Core.Creature.Team ResolveEnemyTeam(Erelia.Core.Encounter.EncounterTable encounterTable)
 		{
-			return definition.Data.Traversal == Erelia.Core.VoxelKit.Traversal.Obstacle;
+			Erelia.Core.Encounter.EncounterTable.TeamEntry[] entries = encounterTable?.Teams;
+			if (entries == null || entries.Length == 0)
+			{
+				return null;
+			}
+
+			int selectedIndex = SelectEncounterTeamIndex(entries);
+			if (TryLoadEncounterTeam(entries, selectedIndex, out Erelia.Core.Creature.Team selectedTeam))
+			{
+				return selectedTeam;
+			}
+
+			for (int i = 0; i < entries.Length; i++)
+			{
+				if (i == selectedIndex)
+				{
+					continue;
+				}
+
+				if (TryLoadEncounterTeam(entries, i, out Erelia.Core.Creature.Team fallbackTeam))
+				{
+					return fallbackTeam;
+				}
+			}
+
+			return null;
 		}
 
-		private bool HasAirOrWalkableBlockOnTop(Erelia.Battle.Board.Model board, int x, int y, int z)
+		private static int SelectEncounterTeamIndex(Erelia.Core.Encounter.EncounterTable.TeamEntry[] entries)
 		{
-			int targetY = y + 1;
-			if (targetY >= board.SizeY)
+			int totalWeight = 0;
+			for (int i = 0; i < entries.Length; i++)
+			{
+				totalWeight += Mathf.Max(0, entries[i].Weight);
+			}
+
+			if (totalWeight <= 0)
+			{
+				return 0;
+			}
+
+			int roll = Random.Range(0, totalWeight);
+			int cumulativeWeight = 0;
+			for (int i = 0; i < entries.Length; i++)
+			{
+				cumulativeWeight += Mathf.Max(0, entries[i].Weight);
+				if (roll < cumulativeWeight)
+				{
+					return i;
+				}
+			}
+
+			return entries.Length - 1;
+		}
+
+		private static bool TryLoadEncounterTeam(
+			Erelia.Core.Encounter.EncounterTable.TeamEntry[] entries,
+			int index,
+			out Erelia.Core.Creature.Team team)
+		{
+			team = null;
+
+			if (entries == null || index < 0 || index >= entries.Length)
 			{
 				return false;
 			}
 
-			Erelia.Battle.Voxel.Cell cell = board.Cells[x, targetY, z];
-			if (!Erelia.Exploration.World.VoxelRegistry.Instance.TryGet(cell.Id, out Erelia.Core.VoxelKit.Definition definition))
+			string teamPath = entries[index].TeamPath;
+			if (string.IsNullOrEmpty(teamPath))
+			{
+				return false;
+			}
+
+			if (Erelia.Core.Utils.JsonIO.TryLoad(teamPath, out team))
 			{
 				return true;
 			}
 
-			return definition.Data.Traversal == Erelia.Core.VoxelKit.Traversal.Walkable;
+			Debug.LogWarning($"[Erelia.Battle.Phase.Initialize.Root] Failed to load encounter team at '{teamPath}'.");
+			return false;
 		}
+
 	}
 }

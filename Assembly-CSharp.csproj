@@ -99,6 +99,8 @@
     <Compile Include="Assets\Scripts\Battle\Mask\MaskSpriteRegistry.cs" />
     <Compile Include="Assets\Scripts\Core\Encounter\EncounterTable.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Placement\Root.cs" />
+    <Compile Include="Assets\Scripts\Battle\Phase\Initialize\PlacementListGenerator.cs" />
+    <Compile Include="Assets\Scripts\Battle\Phase\Initialize\PlacementMode.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Cell.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Stair.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Placement\Event\PlacementCreaturePlaced.cs" />

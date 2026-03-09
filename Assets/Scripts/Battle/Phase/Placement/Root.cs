@@ -14,6 +14,7 @@ namespace Erelia.Battle.Phase.Placement
 
 		[SerializeField] private GameObject hudRoot = null;
 		[SerializeField] private Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardGroupElement creatureCardGroup = null;
+		[SerializeField] private Erelia.Core.UI.CreatureCardGroupElement enemyCreatureCardGroup = null;
 
 		public override Erelia.Battle.Phase.Id Id => Erelia.Battle.Phase.Id.Placement;
 
@@ -49,8 +50,11 @@ namespace Erelia.Battle.Phase.Placement
 			else
 			{
 				creatureCardGroup.PopulateCreatureCards(Context.Instance.SystemData?.PlayerTeam);
-				SyncPlacedCardState();
 			}
+
+			enemyCreatureCardGroup?.PopulateCreatureCards(Context.Instance.BattleData?.PhaseInfo?.EnemyTeam);
+			InitializeEnemyUnits();
+			SyncPlacedCardState();
 
 			InitializePlacementMaskCells();
 		}
@@ -154,27 +158,23 @@ namespace Erelia.Battle.Phase.Placement
 
 		private void InitializePlacementMaskCells()
 		{
-			for (int i = 0; i < Context.Instance.BattleData.PhaseInfo.AcceptableCoordinates.Count; i++)
+			System.Collections.Generic.IReadOnlyList<Vector3Int> playerPlacementCoordinates =
+				Context.Instance.BattleData?.PhaseInfo?.PlayerPlacementCoordinates;
+			if (playerPlacementCoordinates == null)
 			{
-				Vector3Int coordinate = Context.Instance.BattleData.PhaseInfo.AcceptableCoordinates[i];
+				return;
+			}
+
+			for (int i = 0; i < playerPlacementCoordinates.Count; i++)
+			{
+				Vector3Int coordinate = playerPlacementCoordinates[i];
 				if (!IsInsideBoard(coordinate))
 				{
 					continue;
 				}
 
 				Erelia.Battle.Voxel.Cell cell = Context.Instance.BattleData.Board.Cells[coordinate.x, coordinate.y, coordinate.z];
-				if (!Erelia.Exploration.World.VoxelRegistry.Instance.TryGet(cell.Id, out Erelia.Core.VoxelKit.Definition definition))
-				{
-					continue;
-				}
-
-				if (!IsInPlacementPolicy(definition, coordinate.x, coordinate.y, coordinate.z) ||
-					!HasAvailableSpace(coordinate.x, coordinate.y, coordinate.z))
-				{
-					continue;
-				}
-
-				cell.AddMask(Erelia.Battle.Voxel.Mask.Type.Placement);
+				cell?.AddMask(Erelia.Battle.Voxel.Mask.Type.Placement);
 			}
 
 			boardPresenter?.RebuildMasks();
@@ -182,9 +182,16 @@ namespace Erelia.Battle.Phase.Placement
 
 		private void ClearPlacementMaskCells()
 		{
-			for (int i = 0; i < Context.Instance.BattleData.PhaseInfo.AcceptableCoordinates.Count; i++)
+			System.Collections.Generic.IReadOnlyList<Vector3Int> playerPlacementCoordinates =
+				Context.Instance.BattleData?.PhaseInfo?.PlayerPlacementCoordinates;
+			if (playerPlacementCoordinates == null)
 			{
-				Vector3Int coordinate = Context.Instance.BattleData.PhaseInfo.AcceptableCoordinates[i];
+				return;
+			}
+
+			for (int i = 0; i < playerPlacementCoordinates.Count; i++)
+			{
+				Vector3Int coordinate = playerPlacementCoordinates[i];
 				if (!IsInsideBoard(coordinate))
 				{
 					continue;
@@ -306,7 +313,9 @@ namespace Erelia.Battle.Phase.Placement
 			}
 
 			creature = unit.Creature;
-			return creature != null;
+			return creature != null &&
+				creatureCardGroup != null &&
+				creatureCardGroup.ContainsLinkedCreature(creature);
 		}
 
 		private Vector3 ResolveStationaryOffset(Erelia.Battle.Voxel.Cell cell)
@@ -377,6 +386,113 @@ namespace Erelia.Battle.Phase.Placement
 			return true;
 		}
 
+		private void InitializeEnemyUnits()
+		{
+			Erelia.Battle.Phase.Info phaseInfo = Context.Instance.BattleData?.PhaseInfo;
+			Erelia.Core.Creature.Instance.Model[] enemySlots = phaseInfo?.EnemyTeam?.Slots;
+			System.Collections.Generic.IReadOnlyList<Vector3Int> enemyPlacementCoordinates =
+				phaseInfo?.EnemyPlacementCoordinates;
+			if (enemySlots == null || enemyPlacementCoordinates == null || enemyPlacementCoordinates.Count == 0)
+			{
+				return;
+			}
+
+			var availableCoordinates = new List<Vector3Int>(enemyPlacementCoordinates.Count);
+			for (int i = 0; i < enemyPlacementCoordinates.Count; i++)
+			{
+				availableCoordinates.Add(enemyPlacementCoordinates[i]);
+			}
+
+			ShuffleCoordinates(availableCoordinates);
+
+			for (int i = 0; i < enemySlots.Length; i++)
+			{
+				Erelia.Core.Creature.Instance.Model creature = enemySlots[i];
+				if (creature == null)
+				{
+					continue;
+				}
+
+				if (unitsByCreature.TryGetValue(creature, out Erelia.Battle.Unit placedUnit) &&
+					placedUnit != null &&
+					placedUnit.IsPlaced)
+				{
+					placedUnitsByCell[placedUnit.Cell] = placedUnit;
+					RemoveCoordinate(availableCoordinates, placedUnit.Cell);
+					continue;
+				}
+
+				if (availableCoordinates.Count == 0)
+				{
+					break;
+				}
+
+				Vector3Int targetCell = availableCoordinates[availableCoordinates.Count - 1];
+				availableCoordinates.RemoveAt(availableCoordinates.Count - 1);
+
+				if (!TryResolvePlacementWorldPosition(targetCell, out Vector3 worldPosition))
+				{
+					continue;
+				}
+
+				if (!unitsByCreature.TryGetValue(creature, out Erelia.Battle.Unit unit) || unit == null)
+				{
+					if (!TryCreateUnit(creature, targetCell, worldPosition, out unit))
+					{
+						continue;
+					}
+
+					unitsByCreature[creature] = unit;
+				}
+				else
+				{
+					if (unit.IsPlaced)
+					{
+						placedUnitsByCell.Remove(unit.Cell);
+					}
+
+					unit.Place(targetCell, worldPosition);
+				}
+
+				placedUnitsByCell[targetCell] = unit;
+			}
+		}
+
+		private static void ShuffleCoordinates(List<Vector3Int> coordinates)
+		{
+			if (coordinates == null)
+			{
+				return;
+			}
+
+			for (int i = coordinates.Count - 1; i > 0; i--)
+			{
+				int swapIndex = Random.Range(0, i + 1);
+				Vector3Int temp = coordinates[i];
+				coordinates[i] = coordinates[swapIndex];
+				coordinates[swapIndex] = temp;
+			}
+		}
+
+		private static void RemoveCoordinate(List<Vector3Int> coordinates, Vector3Int coordinate)
+		{
+			if (coordinates == null)
+			{
+				return;
+			}
+
+			for (int i = 0; i < coordinates.Count; i++)
+			{
+				if (coordinates[i] != coordinate)
+				{
+					continue;
+				}
+
+				coordinates.RemoveAt(i);
+				return;
+			}
+		}
+
 		private void UnplaceCreature(Erelia.Core.Creature.Instance.Model creature)
 		{
 			if (creature == null ||
@@ -426,33 +542,6 @@ namespace Erelia.Battle.Phase.Placement
 		private Transform GetUnitParent()
 		{
 			return boardPresenter != null ? boardPresenter.transform : null;
-		}
-
-		private bool IsInPlacementPolicy(Erelia.Core.VoxelKit.Definition definition, int x, int y, int z)
-		{
-			return z < Context.Instance.BattleData.Board.SizeZ / 2;
-		}
-
-		private bool HasAvailableSpace(int x, int y, int z)
-		{
-			const int PlayerHeight = 2;
-			for (int deltaY = 1; deltaY < PlayerHeight; deltaY++)
-			{
-				int targetY = y + deltaY;
-				if (targetY >= Context.Instance.BattleData.Board.SizeY)
-				{
-					return false;
-				}
-
-				Erelia.Battle.Voxel.Cell cell = Context.Instance.BattleData.Board.Cells[x, targetY, z];
-				if (Erelia.Exploration.World.VoxelRegistry.Instance.TryGet(cell.Id, out Erelia.Core.VoxelKit.Definition definition) &&
-					definition.Data.Traversal == Erelia.Core.VoxelKit.Traversal.Obstacle)
-				{
-					return false;
-				}
-			}
-
-			return true;
 		}
 
 		private bool IsInsideBoard(Vector3Int coordinate)

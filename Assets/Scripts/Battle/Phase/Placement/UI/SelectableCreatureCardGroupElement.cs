@@ -40,7 +40,7 @@ namespace Erelia.Battle.Phase.Placement.UI
 
 		private void OnCreatureSelected(Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected evt)
 		{
-			selectedCreature = ContainsCreature(evt.Creature) ? evt.Creature : null;
+			selectedCreature = ContainsLinkedCreature(evt.Creature) ? evt.Creature : null;
 		}
 
 		private void OnCreaturePlaced(Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced evt)

@@ -2050,6 +2050,7 @@ MonoBehaviour:
     placement:
       hudRoot: {fileID: 1283798307}
       creatureCardGroup: {fileID: 338294984}
+      enemyCreatureCardGroup: {fileID: 440124188}
       boardPresenter: {fileID: 1079300952}
   playerController: {fileID: 513061854}
 --- !u!1 &660530320
