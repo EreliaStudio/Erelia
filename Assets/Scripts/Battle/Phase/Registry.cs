@@ -30,42 +30,42 @@ namespace Erelia.Battle.Phase
 		/// <remarks>
 		/// Serialized so it can be configured in the Unity Inspector and persisted with the owning object.
 		/// </remarks>
-		[SerializeField] private Erelia.Battle.Phase.Initialize.MainRoot initialize = new Erelia.Battle.Phase.Initialize.MainRoot();
+		[SerializeField] private Erelia.Battle.Phase.Initialize.Root initialize = new Erelia.Battle.Phase.Initialize.Root();
 
 		/// <summary>
 		/// Instance of the placement phase.
 		/// </summary>
-		[SerializeField] private Erelia.Battle.Phase.Placement.MainRoot placement = new Erelia.Battle.Phase.Placement.MainRoot();
+		[SerializeField] private Erelia.Battle.Phase.Placement.Root placement = new Erelia.Battle.Phase.Placement.Root();
 
 		/// <summary>
 		/// Instance of the player turn phase.
 		/// </summary>
-		[SerializeField] private Erelia.Battle.Phase.PlayerTurn.MainRoot playerTurn = new Erelia.Battle.Phase.PlayerTurn.MainRoot();
+		[SerializeField] private Erelia.Battle.Phase.PlayerTurn.Root playerTurn = new Erelia.Battle.Phase.PlayerTurn.Root();
 
 		/// <summary>
 		/// Instance of the enemy turn phase.
 		/// </summary>
-		[SerializeField] private Erelia.Battle.Phase.EnemyTurn.MainRoot enemyTurn = new Erelia.Battle.Phase.EnemyTurn.MainRoot();
+		[SerializeField] private Erelia.Battle.Phase.EnemyTurn.Root enemyTurn = new Erelia.Battle.Phase.EnemyTurn.Root();
 
 		/// <summary>
 		/// Instance of the resolve action phase.
 		/// </summary>
-		[SerializeField] private Erelia.Battle.Phase.ResolveAction.MainRoot resolveAction = new Erelia.Battle.Phase.ResolveAction.MainRoot();
+		[SerializeField] private Erelia.Battle.Phase.ResolveAction.Root resolveAction = new Erelia.Battle.Phase.ResolveAction.Root();
 
 		/// <summary>
 		/// Instance of the victory phase.
 		/// </summary>
-		[SerializeField] private Erelia.Battle.Phase.Victory.MainRoot victory = new Erelia.Battle.Phase.Victory.MainRoot();
+		[SerializeField] private Erelia.Battle.Phase.Victory.Root victory = new Erelia.Battle.Phase.Victory.Root();
 
 		/// <summary>
 		/// Instance of the defeat phase.
 		/// </summary>
-		[SerializeField] private Erelia.Battle.Phase.Defeat.MainRoot defeat = new Erelia.Battle.Phase.Defeat.MainRoot();
+		[SerializeField] private Erelia.Battle.Phase.Defeat.Root defeat = new Erelia.Battle.Phase.Defeat.Root();
 
 		/// <summary>
 		/// Instance of the cleanup phase.
 		/// </summary>
-		[SerializeField] private Erelia.Battle.Phase.Cleanup.MainRoot cleanup = new Erelia.Battle.Phase.Cleanup.MainRoot();
+		[SerializeField] private Erelia.Battle.Phase.Cleanup.Root cleanup = new Erelia.Battle.Phase.Cleanup.Root();
 
 		/// <summary>
 		/// Tries to resolve a phase instance by its identifier.

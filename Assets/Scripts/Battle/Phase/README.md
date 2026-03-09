@@ -12,21 +12,21 @@ Orchestrator.cs: drives the current phase, applies transitions, and ticks the ba
 Controller.cs, Root.cs, Registry.cs, Id.cs, Info.cs: shared phase infrastructure in Erelia.Battle.Phase.
 
 ### Concrete phases:
-Initialize/MainRoot.cs: prepares battle data and placement centers.
-Placement/MainRoot.cs: handles unit placement and placement masks (player = lower Z half, enemy = upper Z half).
-PlayerTurn/MainRoot.cs: runs player turn logic.
-EnemyTurn/MainRoot.cs: runs enemy turn logic.
-ResolveAction/MainRoot.cs: resolves queued actions or effects.
-Victory/MainRoot.cs: handles end-of-battle victory flow.
-Defeat/MainRoot.cs: handles end-of-battle defeat flow.
-Cleanup/MainRoot.cs: resets state and exits the battle scene.
+Initialize/Root.cs: prepares battle data and placement centers.
+Placement/Root.cs: handles unit placement and placement masks (player = lower Z half, enemy = upper Z half).
+PlayerTurn/Root.cs: runs player turn logic.
+EnemyTurn/Root.cs: runs enemy turn logic.
+ResolveAction/Root.cs: resolves queued actions or effects.
+Victory/Root.cs: handles end-of-battle victory flow.
+Defeat/Root.cs: handles end-of-battle defeat flow.
+Cleanup/Root.cs: resets state and exits the battle scene.
 
 ## Naming
 
 Shared types live under Erelia.Battle.Phase.
 
 Each concrete phase root uses the pattern:
-Erelia.Battle.Phase.<Name>.MainRoot.
+Erelia.Battle.Phase.<Name>.Root.
 Add any extra classes for a phase inside that same folder and namespace branch.
 
 ## Adding Or Extending

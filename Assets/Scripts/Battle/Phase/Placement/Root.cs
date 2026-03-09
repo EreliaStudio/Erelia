@@ -11,7 +11,7 @@ namespace Erelia.Battle.Phase.Placement
 	/// Placement phase that applies precomputed placement masks and handles unit placement.
 	/// </summary>
 	[System.Serializable]
-	public sealed class MainRoot : Erelia.Battle.Phase.Root
+	public sealed class Root : Erelia.Battle.Phase.Root
 	{
 		[SerializeField] private GameObject hudRoot = null;
 
@@ -29,7 +29,7 @@ namespace Erelia.Battle.Phase.Placement
 		{
 			if (hudRoot == null)
 			{
-				Debug.LogWarning("[Erelia.Battle.Phase.Placement.MainRoot] HUD root can't be empty");
+				Debug.LogWarning("[Erelia.Battle.Phase.Placement.Root] HUD root can't be empty");
 			}
 
 			if (hudRoot != null)

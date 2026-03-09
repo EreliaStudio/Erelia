@@ -10,7 +10,7 @@ namespace Erelia.Battle.Phase.Initialize
 	/// Resolves the board, computes shared acceptable floor coordinates, then transitions to the Placement phase.
 	/// </summary>
 	[System.Serializable]
-	public sealed class MainRoot : Erelia.Battle.Phase.Root
+	public sealed class Root : Erelia.Battle.Phase.Root
 	{
 		/// <summary>
 		/// Whether initialization is still pending.
