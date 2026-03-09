@@ -51,6 +51,27 @@ namespace Erelia.Core.Creature.Instance
 		/// </summary>
 		public string Nickname => nickname;
 
+		public string DisplayName
+		{
+			get
+			{
+				if (!string.IsNullOrEmpty(nickname))
+				{
+					return nickname;
+				}
+
+				Erelia.Core.Creature.SpeciesRegistry registry = Erelia.Core.Creature.SpeciesRegistry.Instance;
+				if (registry != null &&
+					registry.TryGet(speciesId, out Erelia.Core.Creature.Species species) &&
+					species != null)
+				{
+					return species.DisplayName;
+				}
+
+				return string.Empty;
+			}
+		}
+
 		/// <summary>
 		/// Creates an empty creature instance model.
 		/// </summary>

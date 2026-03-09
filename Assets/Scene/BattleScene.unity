@@ -372,6 +372,7 @@ GameObject:
   m_Component:
   - component: {fileID: 338294982}
   - component: {fileID: 338294983}
+  - component: {fileID: 338294984}
   m_Layer: 0
   m_Name: PlayerCreatureCardLayout
   m_TagString: Untagged
@@ -430,6 +431,25 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &338294984
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 338294981}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d1947ac61b2cbd4c83625252764baad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardGroupElement
+  cardElements:
+  - {fileID: 2038572958}
+  - {fileID: 1655832305}
+  - {fileID: 2065465891}
+  - {fileID: 2125724408}
+  - {fileID: 2072808120}
+  - {fileID: 1545330313}
 --- !u!1 &344236696
 GameObject:
   m_ObjectHideFlags: 0
@@ -1098,6 +1118,7 @@ MonoBehaviour:
   phaseRegistry:
     placement:
       hudRoot: {fileID: 1283798307}
+      creatureCardGroup: {fileID: 338294984}
       boardPresenter: {fileID: 1079300952}
   playerController: {fileID: 513061854}
 --- !u!1 &661764515

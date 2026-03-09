@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using PhaseController = Erelia.Battle.Phase.Controller;
 
@@ -290,11 +291,11 @@ namespace Erelia.Battle.Player
 			// Prefer input action; fallback to mouse click.
 			if (resolvedConfirmAction != null)
 			{
-				return resolvedConfirmAction.WasPerformedThisFrame();
+				return resolvedConfirmAction.WasPerformedThisFrame() && !IsPointerOverUi();
 			}
 
 			Mouse mouse = Mouse.current;
-			return mouse != null && mouse.leftButton.wasPressedThisFrame;
+			return mouse != null && mouse.leftButton.wasPressedThisFrame && !IsPointerOverUi();
 		}
 
 		/// <summary>
@@ -310,6 +311,11 @@ namespace Erelia.Battle.Player
 
 			Mouse mouse = Mouse.current;
 			return mouse != null && mouse.rightButton.wasPressedThisFrame;
+		}
+
+		private static bool IsPointerOverUi()
+		{
+			return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
 		}
 	}
 }

@@ -103,6 +103,7 @@
     <Compile Include="Assets\Scripts\Battle\Phase\Placement\Event\PlacementCreaturePlaced.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\EnemyTurn\Root.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\MesherUtils.cs" />
+    <Compile Include="Assets\Scripts\Battle\Phase\Placement\UI\SelectableCreatureCardGroupElement.cs" />
     <Compile Include="Assets\Scripts\Battle\Data\Unit.cs" />
     <Compile Include="Assets\Scripts\Core\Creature\Species.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Data.cs" />

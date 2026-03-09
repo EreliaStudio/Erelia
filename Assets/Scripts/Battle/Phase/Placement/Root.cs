@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Erelia.Core;
 using UnityEngine;
@@ -15,6 +14,7 @@ namespace Erelia.Battle.Phase.Placement
 	public sealed class Root : Erelia.Battle.Phase.Root
 	{
 		[SerializeField] private GameObject hudRoot = null;
+		[SerializeField] private Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardGroupElement creatureCardGroup = null;
 
 		public override Erelia.Battle.Phase.Id Id => Erelia.Battle.Phase.Id.Placement;
 
@@ -36,7 +36,15 @@ namespace Erelia.Battle.Phase.Placement
 			if (hudRoot != null)
 			{
 				hudRoot.SetActive(true);
-				PopulateCreatureCards();
+			}
+
+			if (creatureCardGroup == null)
+			{
+				Debug.LogWarning("[Erelia.Battle.Phase.Placement.Root] Creature card group can't be empty");
+			}
+			else
+			{
+				creatureCardGroup.PopulateCreatureCards(Context.Instance.SystemData?.PlayerTeam);
 			}
 
 			InitializePlacementMaskCells();
@@ -67,10 +75,15 @@ namespace Erelia.Battle.Phase.Placement
 		/// </summary>
 		public override void OnConfirm(Erelia.Battle.Player.BattlePlayerController controller)
 		{
-			//1) check si c'est bien une case avec un mask de palcement
-			//2) Check si il y a une creature ici -> rejet
-			//3) Check si la creature est deja placée -> Bouge
-			//4) Creation de la creature "dans el monde" et tu la bouges la ou il faut
+			Erelia.Core.Creature.Instance.Model selectedCreature = creatureCardGroup != null
+				? creatureCardGroup.GetSelectedCreature()
+				: null;
+			if (selectedCreature == null)
+			{
+				return;
+			}
+			Debug.Log($"Trying to place creature named {selectedCreature.DisplayName}");
+
 		}
 
 		/// <summary>
@@ -136,53 +149,6 @@ namespace Erelia.Battle.Phase.Placement
 			Erelia.Battle.Data battleData = Context.Instance.BattleData;
 			board = battleData.Board;
 			acceptableCoordinates = battleData.PhaseInfo.AcceptableCoordinates;
-		}
-
-		private void PopulateCreatureCards()
-		{
-			if (hudRoot == null)
-			{
-				return;
-			}
-
-			Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardElement[] cardElements =
-				hudRoot.GetComponentsInChildren<Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardElement>(true);
-			if (cardElements == null || cardElements.Length == 0)
-			{
-				return;
-			}
-
-			Array.Sort(cardElements, CompareCardsBySiblingIndex);
-
-			Erelia.Core.Creature.Instance.Model[] slots = Context.Instance.SystemData?.PlayerTeam?.Slots;
-			for (int i = 0; i < cardElements.Length; i++)
-			{
-				Erelia.Core.Creature.Instance.Model creature =
-					slots != null && i < slots.Length ? slots[i] : null;
-				cardElements[i].LinkCreature(creature);
-			}
-		}
-
-		private static int CompareCardsBySiblingIndex(
-			Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardElement left,
-			Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardElement right)
-		{
-			if (ReferenceEquals(left, right))
-			{
-				return 0;
-			}
-
-			if (left == null)
-			{
-				return 1;
-			}
-
-			if (right == null)
-			{
-				return -1;
-			}
-
-			return left.transform.GetSiblingIndex().CompareTo(right.transform.GetSiblingIndex());
 		}
 
 		private bool IsInPlacementPolicy(Erelia.Core.VoxelKit.Definition definition, int x, int y, int z)

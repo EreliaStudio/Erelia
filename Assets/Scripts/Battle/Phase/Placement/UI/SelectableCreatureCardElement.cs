@@ -41,18 +41,11 @@ namespace Erelia.Battle.Phase.Placement.UI
 
 		public void OnPointerClick(PointerEventData eventData)
 		{
-			if (LinkedCreature == null)
-			{
-				return;
-			}
-
-			if (isPlaced == true)
-			{
-				return;
-			}
+			Erelia.Core.Creature.Instance.Model creatureToSelect =
+				isPlaced == true ? null : LinkedCreature;
 
 			Erelia.Core.Event.Bus.Emit(
-				new Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected(LinkedCreature));
+				new Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected(creatureToSelect));
 		}
 
 		private void OnCreatureSelected(Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected evt)
@@ -64,7 +57,7 @@ namespace Erelia.Battle.Phase.Placement.UI
 				return;
 			}
 
-			isSelected = ReferenceEquals(evt.Creature, LinkedCreature);
+			isSelected = evt.Creature != null && ReferenceEquals(evt.Creature, LinkedCreature);
 			RefreshBackgroundColor();
 		}
 
