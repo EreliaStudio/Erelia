@@ -1,7 +1,4 @@
 using UnityEngine;
-using PhaseId = Erelia.Battle.Phase.Id;
-using PhaseRegistry = Erelia.Battle.Phase.Registry;
-using PhaseRoot = Erelia.Battle.Phase.Root;
 
 namespace Erelia.Battle
 {
@@ -11,34 +8,34 @@ namespace Erelia.Battle
 	/// <remarks>
 	/// <para>
 	/// This component owns the active <see cref="Erelia.Battle.Phase.Root"/> and drives it each frame via
-	/// <see cref="Erelia.Battle.Phase.Root.Tick(BattleManager, float)"/>.
+	/// <see cref="Erelia.Battle.Phase.Root.Tick(Erelia.Battle.Orchestrator, float)"/>.
 	/// </para>
 	/// <para>
-	/// Phase transitions are requested through <see cref="RequestTransition(PhaseId)"/> and are applied
+	/// Phase transitions are requested through <see cref="RequestTransition(Erelia.Battle.Phase.Id)"/> and are applied
 	/// on the next <see cref="Update"/> tick to avoid changing phases in the middle of another system's frame logic.
 	/// </para>
 	/// <para>
 	/// Phase instances are resolved from a <see cref="Erelia.Battle.Phase.Registry"/> (single source of truth).
 	/// </para>
 	/// </remarks>
-	public sealed class BattleManager : MonoBehaviour
+	public sealed class Orchestrator : MonoBehaviour
 	{
 		/// <summary>
 		/// Phase to start when the battle begins.
 		/// </summary>
 		/// <remarks>
-		/// If set to <see cref="PhaseId.None"/>, no phase is entered automatically.
+		/// If set to <see cref="Erelia.Battle.Phase.Id.None"/>, no phase is entered automatically.
 		/// </remarks>
-		[SerializeField] private PhaseId startPhase = PhaseId.Initialize;
+		[SerializeField] private Erelia.Battle.Phase.Id startPhase = Erelia.Battle.Phase.Id.Initialize;
 
 		/// <summary>
 		/// Registry containing all configured battle phases.
 		/// </summary>
 		/// <remarks>
-		/// The manager resolves phase instances from this registry by calling
-		/// <see cref="PhaseRegistry.TryGetPhase(PhaseId, out PhaseRoot)"/>.
+		/// The Orchestrator resolves phase instances from this registry by calling
+		/// <see cref="Erelia.Battle.Phase.Registry.TryGetPhase(Erelia.Battle.Phase.Id, out Erelia.Battle.Phase.Root)"/>.
 		/// </remarks>
-		[SerializeField] private PhaseRegistry phaseRegistry = new PhaseRegistry();
+		[SerializeField] private Erelia.Battle.Phase.Registry phaseRegistry = new Erelia.Battle.Phase.Registry();
 		/// <summary>
 		/// Player controller used to forward phase input handlers.
 		/// </summary>
@@ -50,7 +47,7 @@ namespace Erelia.Battle
 		/// <remarks>
 		/// This is <c>null</c> until the first successful transition occurs.
 		/// </remarks>
-		private PhaseRoot currentPhase;
+		private Erelia.Battle.Phase.Root currentPhase;
 
 		/// <summary>
 		/// Pending phase transition requested for the next update.
@@ -58,39 +55,39 @@ namespace Erelia.Battle
 		/// <remarks>
 		/// The transition is deferred to the next <see cref="Update"/> to ensure phase changes happen at a stable time.
 		/// </remarks>
-		private PhaseId? pendingPhase;
+		private Erelia.Battle.Phase.Id? pendingPhase;
 
 		/// <summary>
 		/// Gets the identifier of the currently active phase.
 		/// </summary>
 		/// <remarks>
-		/// Returns <see cref="PhaseId.None"/> if no phase is currently active.
+		/// Returns <see cref="Erelia.Battle.Phase.Id.None"/> if no phase is currently active.
 		/// </remarks>
-		public PhaseId CurrentPhaseId => currentPhase != null ? currentPhase.Id : PhaseId.None;
+		public Erelia.Battle.Phase.Id CurrentPhaseId => currentPhase != null ? currentPhase.Id : Erelia.Battle.Phase.Id.None;
 
 		/// <summary>
 		/// Gets the currently active phase instance.
 		/// </summary>
 		/// <remarks>
-		/// This can be <c>null</c> if the manager has not entered any phase yet.
+		/// This can be <c>null</c> if the Orchestrator has not entered any phase yet.
 		/// </remarks>
-		public PhaseRoot CurrentPhase => currentPhase;
+		public Erelia.Battle.Phase.Root CurrentPhase => currentPhase;
 
 		/// <summary>
 		/// Unity callback invoked on object initialization.
 		/// </summary>
 		/// <remarks>
-		/// Enters <see cref="startPhase"/> immediately if it is not <see cref="PhaseId.None"/>.
+		/// Enters <see cref="startPhase"/> immediately if it is not <see cref="Erelia.Battle.Phase.Id.None"/>.
 		/// </remarks>
 		private void Awake()
 		{
 			if (playerController == null)
 			{
-				Debug.LogWarning("[Erelia.Battle.BattleManager] Battle player controller is not assigned.", this);
+				Debug.LogWarning("[Erelia.Battle.Orchestrator] Battle player controller is not assigned.", this);
 			}
 
 			// If a start phase is configured, enter it right away.
-			if (startPhase != PhaseId.None)
+			if (startPhase != Erelia.Battle.Phase.Id.None)
 			{
 				TransitionTo(startPhase);
 			}
@@ -108,7 +105,7 @@ namespace Erelia.Battle
 			if (pendingPhase.HasValue)
 			{
 				// Capture and clear first to prevent re-entrancy issues if TransitionTo triggers another request.
-				PhaseId next = pendingPhase.Value;
+				Erelia.Battle.Phase.Id next = pendingPhase.Value;
 				pendingPhase = null;
 
 				// Enter the requested phase immediately.
@@ -129,12 +126,12 @@ namespace Erelia.Battle
 		/// <remarks>
 		/// This method only schedules the transition; the transition is executed in <see cref="Update"/>.
 		/// </remarks>
-		public bool RequestTransition(PhaseId next)
+		public bool RequestTransition(Erelia.Battle.Phase.Id next)
 		{
 			// Reject invalid target.
-			if (next == PhaseId.None)
+			if (next == Erelia.Battle.Phase.Id.None)
 			{
-				Debug.LogWarning("[Erelia.Battle.BattleManager] Cannot transition to None.", this);
+				Debug.LogWarning("[Erelia.Battle.Orchestrator] Cannot transition to None.", this);
 				return false;
 			}
 
@@ -147,7 +144,7 @@ namespace Erelia.Battle
 			// Reject if the registry is missing or does not contain the target phase.
 			if (phaseRegistry == null || !phaseRegistry.TryGetPhase(next, out _))
 			{
-				Debug.LogWarning($"[Erelia.Battle.BattleManager] Phase {next} not registered.", this);
+				Debug.LogWarning($"[Erelia.Battle.Orchestrator] Phase {next} not registered.", this);
 				return false;
 			}
 
@@ -164,7 +161,7 @@ namespace Erelia.Battle
 		/// <returns>
 		/// <c>true</c> if the phase exists in the registry; otherwise <c>false</c>.
 		/// </returns>
-		public bool TryGetPhase(PhaseId id, out PhaseRoot phase)
+		public bool TryGetPhase(Erelia.Battle.Phase.Id id, out Erelia.Battle.Phase.Root phase)
 		{
 			// If the registry is missing, nothing can be resolved.
 			if (phaseRegistry == null)
@@ -182,21 +179,21 @@ namespace Erelia.Battle
 		/// </summary>
 		/// <param name="next">Target phase identifier.</param>
 		/// <remarks>
-		/// Calls <see cref="Erelia.Battle.Phase.Root.Exit(BattleManager)"/> on the current phase (if any),
-		/// switches <see cref="currentPhase"/>, then calls <see cref="Erelia.Battle.Phase.Root.Enter(BattleManager)"/> on the target.
+		/// Calls <see cref="Erelia.Battle.Phase.Root.Exit(Erelia.Battle.Orchestrator)"/> on the current phase (if any),
+		/// switches <see cref="currentPhase"/>, then calls <see cref="Erelia.Battle.Phase.Root.Enter(Erelia.Battle.Orchestrator)"/> on the target.
 		/// </remarks>
-		private void TransitionTo(PhaseId next)
+		private void TransitionTo(Erelia.Battle.Phase.Id next)
 		{
 			// Ignore invalid target.
-			if (next == PhaseId.None)
+			if (next == Erelia.Battle.Phase.Id.None)
 			{
 				return;
 			}
 
 			// Resolve the target phase from the registry.
-			if (phaseRegistry == null || !phaseRegistry.TryGetPhase(next, out PhaseRoot target))
+			if (phaseRegistry == null || !phaseRegistry.TryGetPhase(next, out Erelia.Battle.Phase.Root target))
 			{
-				Debug.LogWarning($"[Erelia.Battle.BattleManager] Phase {next} not registered.", this);
+				Debug.LogWarning($"[Erelia.Battle.Orchestrator] Phase {next} not registered.", this);
 				return;
 			}
 

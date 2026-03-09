@@ -1,4 +1,4 @@
-using UnityEngine.Scripting.APIUpdating;
+
 
 namespace Erelia.Battle.Phase
 {
@@ -6,7 +6,6 @@ namespace Erelia.Battle.Phase
 	/// Base class for handling confirm/cancel input per battle phase.
 	/// </summary>
 	[System.Serializable]
-	[MovedFrom(true, sourceNamespace: "Erelia.Battle", sourceAssembly: "Assembly-CSharp", sourceClassName: "PhaseController")]
 	public abstract class Controller
 	{
 		/// <summary>

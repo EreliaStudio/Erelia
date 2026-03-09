@@ -1,4 +1,4 @@
-using UnityEngine.Scripting.APIUpdating;
+
 
 namespace Erelia.Battle.Phase
 {
@@ -7,7 +7,6 @@ namespace Erelia.Battle.Phase
 	/// Implementations provide an Id and behavior during the battle flow.
 	/// </summary>
 	[System.Serializable]
-	[MovedFrom(true, sourceNamespace: "Erelia.Battle", sourceAssembly: "Assembly-CSharp", sourceClassName: "BattlePhase")]
 	public abstract class Root : Controller
 	{
 		/// <summary>
@@ -18,7 +17,7 @@ namespace Erelia.Battle.Phase
 		/// <summary>
 		/// Called when the phase becomes active.
 		/// </summary>
-		public virtual void Enter(BattleManager manager)
+		public virtual void Enter(Erelia.Battle.Orchestrator Orchestrator)
 		{
 			// Default implementation is a no-op.
 		}
@@ -26,7 +25,7 @@ namespace Erelia.Battle.Phase
 		/// <summary>
 		/// Called when the phase is exited.
 		/// </summary>
-		public virtual void Exit(BattleManager manager)
+		public virtual void Exit(Erelia.Battle.Orchestrator Orchestrator)
 		{
 			// Default implementation is a no-op.
 		}
@@ -34,7 +33,7 @@ namespace Erelia.Battle.Phase
 		/// <summary>
 		/// Called every frame while the phase is active.
 		/// </summary>
-		public virtual void Tick(BattleManager manager, float deltaTime)
+		public virtual void Tick(Erelia.Battle.Orchestrator Orchestrator, float deltaTime)
 		{
 			// Default implementation is a no-op.
 		}

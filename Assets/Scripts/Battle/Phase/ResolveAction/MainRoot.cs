@@ -1,13 +1,12 @@
-using UnityEngine.Scripting.APIUpdating;
-using PhaseId = Erelia.Battle.Phase.Id;
-using PhaseRoot = Erelia.Battle.Phase.Root;
+
+
+
 
 namespace Erelia.Battle.Phase.ResolveAction
 {
 	[System.Serializable]
-	[MovedFrom(true, sourceNamespace: "Erelia.Battle", sourceAssembly: "Assembly-CSharp", sourceClassName: "ResolveActionPhase")]
-	public sealed class MainRoot : PhaseRoot
+	public sealed class MainRoot : Erelia.Battle.Phase.Root
 	{
-		public override PhaseId Id => PhaseId.ResolveAction;
+		public override Erelia.Battle.Phase.Id Id => Erelia.Battle.Phase.Id.ResolveAction;
 	}
 }

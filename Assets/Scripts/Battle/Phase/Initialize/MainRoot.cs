@@ -1,7 +1,7 @@
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
-using PhaseId = Erelia.Battle.Phase.Id;
-using PhaseRoot = Erelia.Battle.Phase.Root;
+
+
+
 
 namespace Erelia.Battle.Phase.Initialize
 {
@@ -10,33 +10,32 @@ namespace Erelia.Battle.Phase.Initialize
 	/// Resolves the board, computes shared acceptable floor coordinates, then transitions to the Placement phase.
 	/// </summary>
 	[System.Serializable]
-	[MovedFrom(true, sourceNamespace: "Erelia.Battle", sourceAssembly: "Assembly-CSharp", sourceClassName: "InitializePhase")]
-	public sealed class MainRoot : PhaseRoot
+	public sealed class MainRoot : Erelia.Battle.Phase.Root
 	{
 		/// <summary>
 		/// Whether initialization is still pending.
 		/// </summary>
 		private bool pendingSetup;
 
-		public override PhaseId Id => PhaseId.Initialize;
+		public override Erelia.Battle.Phase.Id Id => Erelia.Battle.Phase.Id.Initialize;
 
 		/// <summary>
 		/// Enters the initialize phase and prepares battle data.
 		/// </summary>
-		public override void Enter(BattleManager manager)
+		public override void Enter(Erelia.Battle.Orchestrator Orchestrator)
 		{
 			// Try to initialize battle data and request the next phase.
 			pendingSetup = !TrySetupBattleData();
-			if (!pendingSetup && manager != null)
+			if (!pendingSetup && Orchestrator != null)
 			{
-				manager.RequestTransition(PhaseId.Placement);
+				Orchestrator.RequestTransition(Erelia.Battle.Phase.Id.Placement);
 			}
 		}
 
 		/// <summary>
 		/// Ticks the initialize phase until setup succeeds.
 		/// </summary>
-		public override void Tick(BattleManager manager, float deltaTime)
+		public override void Tick(Erelia.Battle.Orchestrator Orchestrator, float deltaTime)
 		{
 			// Retry setup while it is still pending.
 			if (!pendingSetup)
@@ -45,9 +44,9 @@ namespace Erelia.Battle.Phase.Initialize
 			}
 
 			pendingSetup = !TrySetupBattleData();
-			if (!pendingSetup && manager != null)
+			if (!pendingSetup && Orchestrator != null)
 			{
-				manager.RequestTransition(PhaseId.Placement);
+				Orchestrator.RequestTransition(Erelia.Battle.Phase.Id.Placement);
 			}
 		}
 

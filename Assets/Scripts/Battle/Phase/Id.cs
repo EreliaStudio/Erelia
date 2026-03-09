@@ -1,12 +1,11 @@
-using UnityEngine.Scripting.APIUpdating;
+
 
 namespace Erelia.Battle.Phase
 {
 	/// <summary>
 	/// Identifiers for the battle phase state machine.
-	/// Used by the manager to select and transition between phases.
+	/// Used by the Orchestrator to select and transition between phases.
 	/// </summary>
-	[MovedFrom(true, sourceNamespace: "Erelia.Battle", sourceAssembly: "Assembly-CSharp", sourceClassName: "BattlePhaseId")]
 	public enum Id
 	{
 		None = 0,

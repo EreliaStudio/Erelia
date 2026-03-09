@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Erelia.Core;
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
-using PhaseId = Erelia.Battle.Phase.Id;
-using PhaseRoot = Erelia.Battle.Phase.Root;
+
+
+
 
 namespace Erelia.Battle.Phase.Placement
 {
@@ -11,12 +11,11 @@ namespace Erelia.Battle.Phase.Placement
 	/// Placement phase that applies precomputed placement masks and handles unit placement.
 	/// </summary>
 	[System.Serializable]
-	[MovedFrom(true, sourceNamespace: "Erelia.Battle", sourceAssembly: "Assembly-CSharp", sourceClassName: "PlacementPhase")]
-	public sealed class MainRoot : PhaseRoot
+	public sealed class MainRoot : Erelia.Battle.Phase.Root
 	{
 		[SerializeField] private GameObject hudRoot = null;
 
-		public override PhaseId Id => PhaseId.Placement;
+		public override Erelia.Battle.Phase.Id Id => Erelia.Battle.Phase.Id.Placement;
 
 		/// <summary>
 		/// Presenter used to access the battle board.
@@ -26,7 +25,7 @@ namespace Erelia.Battle.Phase.Placement
 		/// <summary>
 		/// Enters the placement phase and applies placement masks.
 		/// </summary>
-		public override void Enter(BattleManager manager)
+		public override void Enter(Erelia.Battle.Orchestrator Orchestrator)
 		{
 			if (hudRoot == null)
 			{
@@ -44,7 +43,7 @@ namespace Erelia.Battle.Phase.Placement
 		/// <summary>
 		/// Exits the placement phase and clears placement masks.
 		/// </summary>
-		public override void Exit(BattleManager manager)
+		public override void Exit(Erelia.Battle.Orchestrator Orchestrator)
 		{
 			ClearPlacementMaskCells();
 
@@ -57,7 +56,7 @@ namespace Erelia.Battle.Phase.Placement
 		/// <summary>
 		/// Ticks the placement phase until masks are applied.
 		/// </summary>
-		public override void Tick(BattleManager manager, float deltaTime)
+		public override void Tick(Erelia.Battle.Orchestrator Orchestrator, float deltaTime)
 		{
 		}
 
@@ -66,6 +65,10 @@ namespace Erelia.Battle.Phase.Placement
 		/// </summary>
 		public override void OnConfirm(Erelia.Battle.Player.BattlePlayerController controller)
 		{
+			//1) check si c'est bien une case avec un mask de palcement
+			//2) Check si il y a une creature ici -> rejet
+			//3) Check si la creature est deja placée -> Bouge
+			//4) Creation de la creature "dans el monde" et tu la bouges la ou il faut
 		}
 
 		/// <summary>

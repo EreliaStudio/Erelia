@@ -1,6 +1,6 @@
 using System;
 using UnityEngine;
-using UnityEngine.Scripting.APIUpdating;
+
 
 namespace Erelia.Battle.Phase
 {
@@ -13,7 +13,7 @@ namespace Erelia.Battle.Phase
 	/// <see cref="SerializeField"/>) that owns one instance per battle phase.
 	/// </para>
 	/// <para>
-	/// The <see cref="BattleManager"/> (or other systems) can resolve phases by id using
+	/// The <see cref="Orchestrator"/> (or other systems) can resolve phases by id using
 	/// <see cref="TryGetPhase(Id, out Root)"/>.
 	/// </para>
 	/// <para>
@@ -22,7 +22,6 @@ namespace Erelia.Battle.Phase
 	/// </para>
 	/// </remarks>
 	[Serializable]
-	[MovedFrom(true, sourceNamespace: "Erelia.Battle", sourceAssembly: "Assembly-CSharp", sourceClassName: "BattlePhaseRegistry")]
 	public sealed class Registry
 	{
 		/// <summary>

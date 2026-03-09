@@ -15,6 +15,11 @@ namespace Erelia.Core.Creature
 	public sealed class Species : ScriptableObject
 	{
 		/// <summary>
+		/// Sprite displayed by UI elements representing this species.
+		/// </summary>
+		[SerializeField] private Sprite icon;
+
+		/// <summary>
 		/// Prefab used to instantiate the creature representation in the scene.
 		/// </summary>
 		/// <remarks>
@@ -26,6 +31,11 @@ namespace Erelia.Core.Creature
 		/// Human-readable name displayed to the player.
 		/// </summary>
 		[SerializeField] private string displayName;
+
+		/// <summary>
+		/// Gets the sprite displayed by UI elements representing this species.
+		/// </summary>
+		public Sprite Icon => icon;
 
 		/// <summary>
 		/// Gets the prefab used to instantiate this species.
