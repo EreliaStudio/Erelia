@@ -7,13 +7,9 @@ namespace Erelia.Battle.Phase.Placement.UI
 		Erelia.Core.UI.CreatureCardElement,
 		IPointerClickHandler
 	{
-		[SerializeField] private Color idleColor = Color.white;
 		[SerializeField] private Color selectedColor = Color.green;
-		[SerializeField] private Color placedColor = Color.gray;
-		[SerializeField] private Color emptyColor = new Color(0.2f, 0.2f, 0.2f, 0.85f);
 
 		private bool isSelected;
-		private bool isPlaced;
 
 		private void OnEnable()
 		{
@@ -33,15 +29,8 @@ namespace Erelia.Battle.Phase.Placement.UI
 
 		public override void LinkCreature(Erelia.Core.Creature.Instance.Model model)
 		{
-			base.LinkCreature(model);
-
 			isSelected = false;
-			isPlaced = false;
-			RefreshBackgroundColor();
-			if (model == null)
-			{
-				base.SetExpanded(false);
-			}
+			base.LinkCreature(model);
 		}
 
 		public void OnPointerClick(PointerEventData eventData)
@@ -62,15 +51,14 @@ namespace Erelia.Battle.Phase.Placement.UI
 
 			if (isThisCreature == true)
 			{
-				isPlaced = true;
 				isSelected = false;
+				SetPlaced(true);
 			}
 			else
 			{
 				isSelected = false;
+				RefreshBackgroundColor();
 			}
-
-			RefreshBackgroundColor();
 		}
 
 		private void OnCreatureUnplaced(Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced evt)
@@ -80,43 +68,20 @@ namespace Erelia.Battle.Phase.Placement.UI
 				return;
 			}
 
-			isPlaced = false;
 			isSelected = false;
-			RefreshBackgroundColor();
+			SetPlaced(false);
 		}
 
-		private void RefreshBackgroundColor()
+		protected override bool TryGetOverrideBackgroundColor(out Color color)
 		{
 			if (isSelected == true)
 			{
-				SetBackgroundColor(selectedColor);
-				return;
+				color = selectedColor;
+				return true;
 			}
 
-			if (isPlaced == true)
-			{
-				SetBackgroundColor(placedColor);
-				return;
-			}
-
-			if (LinkedCreature == null)
-			{
-				SetBackgroundColor(emptyColor);
-				return;
-			}
-
-			SetBackgroundColor(idleColor);
-		}
-
-		protected override void SetExpanded(bool value)
-		{
-			if (LinkedCreature == null)
-			{
-				base.SetExpanded(false);
-				return;
-			}
-
-			base.SetExpanded(value);
+			color = default;
+			return false;
 		}
 	}
 }

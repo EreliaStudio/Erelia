@@ -18,6 +18,9 @@ namespace Erelia.Core.UI
 
 		[SerializeField] private Image backgroundImage;
 		[SerializeField] private LayoutElement layoutElement;
+		[SerializeField] private Color idleColor = Color.white;
+		[SerializeField] private Color placedColor = Color.gray;
+		[SerializeField] private Color emptyColor = new Color(0.2f, 0.2f, 0.2f, 0.85f);
 
 		[SerializeField] private float collapsedPreferredHeight = 80f;
 		[SerializeField] private float expandedPreferredHeight = 160f;
@@ -25,18 +28,23 @@ namespace Erelia.Core.UI
 		private Erelia.Core.Creature.Instance.Model linkedCreature;
 		private RectTransform rectTransform;
 		private bool isExpanded;
+		private bool isPlaced;
 
 		public Erelia.Core.Creature.Instance.Model LinkedCreature => linkedCreature;
+		protected bool IsPlaced => isPlaced;
 
 		protected virtual void Awake()
 		{
 			rectTransform = transform as RectTransform;
 			ApplyExpandedState(false);
+			RefreshBackgroundColor();
 		}
 
 		public virtual void LinkCreature(Erelia.Core.Creature.Instance.Model model)
 		{
 			linkedCreature = model;
+			model = linkedCreature;
+			isPlaced = false;
 
 			if (model == null ||
 				Erelia.Core.Creature.SpeciesRegistry.Instance == null ||
@@ -44,11 +52,14 @@ namespace Erelia.Core.UI
 			{
 				image.sprite = noCreatureSprite;
 				creatureShownName.text = noCreatureName;
+				SetExpanded(false);
+				RefreshBackgroundColor();
 				return;
 			}
 
 			image.sprite = species.Icon;
 			creatureShownName.text = string.IsNullOrEmpty(model.Nickname) ? species.DisplayName : model.Nickname;
+			RefreshBackgroundColor();
 		}
 
 		protected void SetBackgroundColor(Color color)
@@ -59,6 +70,46 @@ namespace Erelia.Core.UI
 			}
 
 			backgroundImage.color = color;
+		}
+
+		protected void SetPlaced(bool value)
+		{
+			if (isPlaced == value)
+			{
+				return;
+			}
+
+			isPlaced = value;
+			RefreshBackgroundColor();
+		}
+
+		protected void RefreshBackgroundColor()
+		{
+			if (TryGetOverrideBackgroundColor(out Color overrideColor))
+			{
+				SetBackgroundColor(overrideColor);
+				return;
+			}
+
+			if (isPlaced)
+			{
+				SetBackgroundColor(placedColor);
+				return;
+			}
+
+			if (linkedCreature == null)
+			{
+				SetBackgroundColor(emptyColor);
+				return;
+			}
+
+			SetBackgroundColor(idleColor);
+		}
+
+		protected virtual bool TryGetOverrideBackgroundColor(out Color color)
+		{
+			color = default;
+			return false;
 		}
 
 		public void OnPointerEnter(PointerEventData eventData)
@@ -73,6 +124,11 @@ namespace Erelia.Core.UI
 
 		protected virtual void SetExpanded(bool value)
 		{
+			if (linkedCreature == null)
+			{
+				value = false;
+			}
+
 			if (isExpanded == value)
 			{
 				return;

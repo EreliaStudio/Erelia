@@ -683,6 +683,9 @@ MonoBehaviour:
   layoutElement: {fileID: 219266162}
   collapsedPreferredHeight: 80
   expandedPreferredHeight: 160
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
+  placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  emptyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.85}
 --- !u!114 &219266162
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1592,6 +1595,9 @@ MonoBehaviour:
   layoutElement: {fileID: 477526413}
   collapsedPreferredHeight: 80
   expandedPreferredHeight: 160
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
+  placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  emptyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.85}
 --- !u!114 &477526413
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1711,6 +1717,9 @@ MonoBehaviour:
   layoutElement: {fileID: 480342919}
   collapsedPreferredHeight: 80
   expandedPreferredHeight: 160
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
+  placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  emptyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.85}
 --- !u!114 &480342919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2283,6 +2292,9 @@ MonoBehaviour:
   layoutElement: {fileID: 662371831}
   collapsedPreferredHeight: 80
   expandedPreferredHeight: 160
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
+  placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  emptyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.85}
 --- !u!114 &662371831
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2510,6 +2522,9 @@ MonoBehaviour:
   layoutElement: {fileID: 780080079}
   collapsedPreferredHeight: 80
   expandedPreferredHeight: 160
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
+  placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  emptyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.85}
 --- !u!114 &780080079
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5116,6 +5131,9 @@ MonoBehaviour:
   layoutElement: {fileID: 2109637340}
   collapsedPreferredHeight: 80
   expandedPreferredHeight: 160
+  idleColor: {r: 1, g: 1, b: 1, a: 1}
+  placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  emptyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.85}
 --- !u!114 &2109637340
 MonoBehaviour:
   m_ObjectHideFlags: 0

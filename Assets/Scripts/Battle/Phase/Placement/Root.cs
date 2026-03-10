@@ -360,7 +360,8 @@ namespace Erelia.Battle.Phase.Placement
 				!registry.TryGet(creature.SpeciesId, out Erelia.Core.Creature.Species species) ||
 				species == null)
 			{
-				Debug.LogWarning("[Erelia.Battle.Phase.Placement.Root] Failed to resolve creature species.");
+				Debug.LogWarning(
+					$"[Erelia.Battle.Phase.Placement.Root] Failed to resolve creature species id {creature.SpeciesId}.");
 				return false;
 			}
 
