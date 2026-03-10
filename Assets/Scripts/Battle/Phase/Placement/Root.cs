@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Erelia.Core;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Erelia.Battle.Phase.Placement
 {
@@ -15,6 +16,7 @@ namespace Erelia.Battle.Phase.Placement
 		[SerializeField] private GameObject hudRoot = null;
 		[SerializeField] private Erelia.Battle.Phase.Placement.UI.SelectableCreatureCardGroupElement creatureCardGroup = null;
 		[SerializeField] private Erelia.Core.UI.CreatureCardGroupElement enemyCreatureCardGroup = null;
+		[SerializeField] private Button confirmPlacementButton = null;
 
 		public override Erelia.Battle.Phase.Id Id => Erelia.Battle.Phase.Id.Placement;
 
@@ -25,13 +27,16 @@ namespace Erelia.Battle.Phase.Placement
 		[System.NonSerialized] private Dictionary<Erelia.Core.Creature.Instance.Model, Erelia.Battle.Unit> unitsByCreature;
 		[System.NonSerialized] private Dictionary<Vector3Int, Erelia.Battle.Unit> placedUnitsByCell;
 		[System.NonSerialized] private Erelia.Battle.Board.Model runtimeBoard;
+		[System.NonSerialized] private Erelia.Battle.Orchestrator activeOrchestrator;
 
 		/// <summary>
 		/// Enters the placement phase and applies placement masks.
 		/// </summary>
 		public override void Enter(Erelia.Battle.Orchestrator Orchestrator)
 		{
+			activeOrchestrator = Orchestrator;
 			EnsureRuntimeState();
+			BindConfirmPlacementButton();
 
 			if (hudRoot == null)
 			{
@@ -55,6 +60,7 @@ namespace Erelia.Battle.Phase.Placement
 			enemyCreatureCardGroup?.PopulateCreatureCards(Context.Instance.BattleData?.PhaseInfo?.EnemyTeam);
 			InitializeEnemyUnits();
 			SyncPlacedCardState();
+			RefreshConfirmPlacementButton();
 
 			InitializePlacementMaskCells();
 		}
@@ -65,6 +71,8 @@ namespace Erelia.Battle.Phase.Placement
 		public override void Exit(Erelia.Battle.Orchestrator Orchestrator)
 		{
 			ClearPlacementMaskCells();
+			UnbindConfirmPlacementButton();
+			activeOrchestrator = null;
 
 			if (hudRoot != null)
 			{
@@ -130,6 +138,7 @@ namespace Erelia.Battle.Phase.Placement
 			placedUnitsByCell[targetCell] = unit;
 			Erelia.Core.Event.Bus.Emit(
 				new Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced(selectedCreature));
+			RefreshConfirmPlacementButton();
 		}
 
 		/// <summary>
@@ -509,6 +518,7 @@ namespace Erelia.Battle.Phase.Placement
 			unit.Unplace();
 			Erelia.Core.Event.Bus.Emit(
 				new Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced(creature));
+			RefreshConfirmPlacementButton();
 
 			Erelia.Core.Creature.Instance.Model selectedCreature = creatureCardGroup != null
 				? creatureCardGroup.GetSelectedCreature()
@@ -538,6 +548,81 @@ namespace Erelia.Battle.Phase.Placement
 				Erelia.Core.Event.Bus.Emit(
 					new Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced(pair.Key));
 			}
+
+			RefreshConfirmPlacementButton();
+		}
+
+		private void BindConfirmPlacementButton()
+		{
+			if (confirmPlacementButton == null)
+			{
+				return;
+			}
+
+			confirmPlacementButton.onClick.RemoveListener(OnConfirmPlacementButtonClicked);
+			confirmPlacementButton.onClick.AddListener(OnConfirmPlacementButtonClicked);
+		}
+
+		private void UnbindConfirmPlacementButton()
+		{
+			if (confirmPlacementButton == null)
+			{
+				return;
+			}
+
+			confirmPlacementButton.onClick.RemoveListener(OnConfirmPlacementButtonClicked);
+			confirmPlacementButton.interactable = false;
+		}
+
+		private void OnConfirmPlacementButtonClicked()
+		{
+			if (!AreAllPlayerCreaturesPlaced())
+			{
+				return;
+			}
+
+			activeOrchestrator?.RequestTransition(Erelia.Battle.Phase.Id.PlayerTurn);
+		}
+
+		private void RefreshConfirmPlacementButton()
+		{
+			if (confirmPlacementButton == null)
+			{
+				return;
+			}
+
+			confirmPlacementButton.interactable = AreAllPlayerCreaturesPlaced();
+		}
+
+		private bool AreAllPlayerCreaturesPlaced()
+		{
+			Erelia.Core.Creature.Instance.Model[] playerSlots = Context.Instance.SystemData?.PlayerTeam?.Slots;
+			if (playerSlots == null || playerSlots.Length == 0)
+			{
+				return true;
+			}
+
+			int requiredCount = 0;
+			int placedCount = 0;
+			for (int i = 0; i < playerSlots.Length; i++)
+			{
+				Erelia.Core.Creature.Instance.Model creature = playerSlots[i];
+				if (creature == null || creature.IsEmpty)
+				{
+					continue;
+				}
+
+				requiredCount++;
+				if (unitsByCreature != null &&
+					unitsByCreature.TryGetValue(creature, out Erelia.Battle.Unit unit) &&
+					unit != null &&
+					unit.IsPlaced)
+				{
+					placedCount++;
+				}
+			}
+
+			return placedCount >= requiredCount;
 		}
 
 		private Transform GetUnitParent()
