@@ -350,7 +350,7 @@ namespace Erelia.Battle.Phase.Placement
 		{
 			unit = null;
 
-			if (creature == null)
+			if (creature == null || creature.IsEmpty)
 			{
 				return false;
 			}
@@ -409,7 +409,7 @@ namespace Erelia.Battle.Phase.Placement
 			for (int i = 0; i < enemySlots.Length; i++)
 			{
 				Erelia.Core.Creature.Instance.Model creature = enemySlots[i];
-				if (creature == null)
+				if (creature == null || creature.IsEmpty)
 				{
 					continue;
 				}

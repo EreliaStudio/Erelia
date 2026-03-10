@@ -50,6 +50,7 @@ namespace Erelia.Core.Creature.Instance
 		/// Gets the nickname.
 		/// </summary>
 		public string Nickname => nickname;
+		public bool IsEmpty => speciesId < 0;
 
 		public string DisplayName
 		{

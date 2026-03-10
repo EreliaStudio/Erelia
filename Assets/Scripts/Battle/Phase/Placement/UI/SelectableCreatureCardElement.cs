@@ -35,6 +35,11 @@ namespace Erelia.Battle.Phase.Placement.UI
 
 		public void OnPointerClick(PointerEventData eventData)
 		{
+			if (LinkedCreature == null)
+			{
+				return;
+			}
+
 			Erelia.Core.Event.Bus.Emit(
 				new Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected(LinkedCreature));
 		}

@@ -175,6 +175,7 @@ namespace Erelia.Battle.Phase.Initialize
 
 			if (Erelia.Core.Utils.JsonIO.TryLoad(teamPath, out team))
 			{
+				team.NormalizeSlots();
 				return true;
 			}
 

@@ -35,7 +35,7 @@ namespace Erelia.Core.Creature
 	/// </para>
 	/// </remarks>
 	[System.Serializable]
-	public sealed class Team
+	public sealed class Team : ISerializationCallbackReceiver
 	{
 		/// <summary>
 		/// Default number of slots in a team.
@@ -64,5 +64,30 @@ namespace Erelia.Core.Creature
 		/// Gets the number of slots in this team.
 		/// </summary>
 		public int SlotCount => slots != null ? slots.Length : 0;
+
+		public void OnBeforeSerialize()
+		{
+		}
+
+		public void OnAfterDeserialize()
+		{
+			NormalizeSlots();
+		}
+
+		public void NormalizeSlots()
+		{
+			if (slots == null)
+			{
+				return;
+			}
+
+			for (int i = 0; i < slots.Length; i++)
+			{
+				if (slots[i] != null && slots[i].IsEmpty)
+				{
+					slots[i] = null;
+				}
+			}
+		}
 	}
 }

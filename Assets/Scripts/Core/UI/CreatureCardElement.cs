@@ -42,12 +42,20 @@ namespace Erelia.Core.UI
 
 		public virtual void LinkCreature(Erelia.Core.Creature.Instance.Model model)
 		{
-			linkedCreature = model;
+			linkedCreature = model != null && model.IsEmpty ? null : model;
 			model = linkedCreature;
 			isPlaced = false;
 
-			if (model == null ||
-				Erelia.Core.Creature.SpeciesRegistry.Instance == null ||
+			if (model == null)
+			{
+				image.sprite = noCreatureSprite;
+				creatureShownName.text = noCreatureName;
+				SetExpanded(false);
+				SetBackgroundColor(emptyColor);
+				return;
+			}
+
+			if (Erelia.Core.Creature.SpeciesRegistry.Instance == null ||
 				Erelia.Core.Creature.SpeciesRegistry.Instance.TryGet(model.SpeciesId, out Erelia.Core.Creature.Species species) == false)
 			{
 				image.sprite = noCreatureSprite;
@@ -85,6 +93,12 @@ namespace Erelia.Core.UI
 
 		protected void RefreshBackgroundColor()
 		{
+			if (linkedCreature == null)
+			{
+				SetBackgroundColor(emptyColor);
+				return;
+			}
+
 			if (TryGetOverrideBackgroundColor(out Color overrideColor))
 			{
 				SetBackgroundColor(overrideColor);
@@ -94,12 +108,6 @@ namespace Erelia.Core.UI
 			if (isPlaced)
 			{
 				SetBackgroundColor(placedColor);
-				return;
-			}
-
-			if (linkedCreature == null)
-			{
-				SetBackgroundColor(emptyColor);
 				return;
 			}
 

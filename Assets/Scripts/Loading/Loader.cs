@@ -79,6 +79,7 @@ namespace Erelia.Loading
 				return;
 			}
 
+			team.NormalizeSlots();
 			systemData.SetPlayerTeam(team);
 		}
 	}
