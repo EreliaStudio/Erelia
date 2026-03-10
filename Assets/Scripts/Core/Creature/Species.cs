@@ -33,6 +33,11 @@ namespace Erelia.Core.Creature
 		[SerializeField] private string displayName;
 
 		/// <summary>
+		/// Base stats shared by every instance of this species.
+		/// </summary>
+		[SerializeField] private Erelia.Core.Stats.Values baseStats;
+
+		/// <summary>
 		/// Gets the sprite displayed by UI elements representing this species.
 		/// </summary>
 		public Sprite Icon => icon;
@@ -46,5 +51,10 @@ namespace Erelia.Core.Creature
 		/// Gets the display name of the species.
 		/// </summary>
 		public string DisplayName => displayName;
+
+		/// <summary>
+		/// Gets the base stats shared by this species.
+		/// </summary>
+		public Erelia.Core.Stats.Values BaseStats => baseStats;
 	}
 }

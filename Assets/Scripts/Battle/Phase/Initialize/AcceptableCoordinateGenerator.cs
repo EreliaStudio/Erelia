@@ -3,40 +3,20 @@ using UnityEngine;
 
 namespace Erelia.Battle.Phase.Initialize
 {
-	public static class PlacementListGenerator
+	/// <summary>
+	/// Computes floor coordinates that can host units on the battle board.
+	/// </summary>
+	public static class AcceptableCoordinateGenerator
 	{
 		public static bool TryGenerate(
 			Erelia.Battle.Board.Model board,
-			Erelia.Battle.Phase.Initialize.PlacementMode mode,
-			out List<Vector3Int> playerCoordinates,
-			out List<Vector3Int> enemyCoordinates)
+			out List<Vector3Int> acceptableCoordinates)
 		{
-			playerCoordinates = new List<Vector3Int>();
-			enemyCoordinates = new List<Vector3Int>();
-
+			acceptableCoordinates = new List<Vector3Int>();
 			if (board == null)
 			{
 				return false;
 			}
-
-			switch (mode)
-			{
-				case Erelia.Battle.Phase.Initialize.PlacementMode.HalfBoard:
-					GenerateHalfBoardLists(board, playerCoordinates, enemyCoordinates);
-					break;
-				default:
-					return false;
-			}
-
-			return playerCoordinates.Count > 0 && enemyCoordinates.Count > 0;
-		}
-
-		private static void GenerateHalfBoardLists(
-			Erelia.Battle.Board.Model board,
-			List<Vector3Int> playerCoordinates,
-			List<Vector3Int> enemyCoordinates)
-		{
-			int splitZ = board.SizeZ / 2;
 
 			for (int x = 0; x < board.SizeX; x++)
 			{
@@ -49,18 +29,12 @@ namespace Erelia.Battle.Phase.Initialize
 							continue;
 						}
 
-						Vector3Int coordinate = new Vector3Int(x, y, z);
-						if (z < splitZ)
-						{
-							playerCoordinates.Add(coordinate);
-						}
-						else
-						{
-							enemyCoordinates.Add(coordinate);
-						}
+						acceptableCoordinates.Add(new Vector3Int(x, y, z));
 					}
 				}
 			}
+
+			return acceptableCoordinates.Count > 0;
 		}
 
 		private static bool IsAcceptableCoordinate(Erelia.Battle.Board.Model board, int x, int y, int z)

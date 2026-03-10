@@ -1,4 +1,4 @@
-namespace Erelia.Battle.Phase.Initialize
+namespace Erelia.Battle.Phase.Placement
 {
 	public enum PlacementMode
 	{

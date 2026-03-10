@@ -6,13 +6,14 @@ namespace Erelia.Battle.Phase.Placement.Event
 	public sealed class PlacementCreatureUnplaced : Erelia.Core.Event.GenericEvent
 	{
 		/// <summary>
-		/// Gets removed creature.
+		/// Gets removed unit.
 		/// </summary>
-		public Erelia.Core.Creature.Instance.Model Creature { get; }
+		public Erelia.Battle.Unit.Presenter Unit { get; }
+		public Erelia.Core.Creature.Instance.Model Creature => Unit?.Model?.Creature;
 
-		public PlacementCreatureUnplaced(Erelia.Core.Creature.Instance.Model creature)
+		public PlacementCreatureUnplaced(Erelia.Battle.Unit.Presenter unit)
 		{
-			Creature = creature;
+			Unit = unit;
 		}
 	}
 }

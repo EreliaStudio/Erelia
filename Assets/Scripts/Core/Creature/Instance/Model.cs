@@ -42,6 +42,11 @@ namespace Erelia.Core.Creature.Instance
 		[SerializeField] private string nickname;
 
 		/// <summary>
+		/// Per-instance stat bonuses unlocked by this specific creature.
+		/// </summary>
+		[SerializeField] private Erelia.Core.Stats.Values bonusStats;
+
+		/// <summary>
 		/// Gets the species registry id.
 		/// </summary>
 		public int SpeciesId => speciesId;
@@ -50,6 +55,7 @@ namespace Erelia.Core.Creature.Instance
 		/// Gets the nickname.
 		/// </summary>
 		public string Nickname => nickname;
+		public Erelia.Core.Stats.Values BonusStats => bonusStats;
 		public bool IsEmpty => speciesId < 0;
 
 		public string DisplayName
@@ -99,6 +105,14 @@ namespace Erelia.Core.Creature.Instance
 		public void SetSpeciesId(int id)
 		{
 			speciesId = id;
+		}
+
+		/// <summary>
+		/// Sets the per-instance bonus stats.
+		/// </summary>
+		public void SetBonusStats(Erelia.Core.Stats.Values stats)
+		{
+			bonusStats = stats;
 		}
 
 	}

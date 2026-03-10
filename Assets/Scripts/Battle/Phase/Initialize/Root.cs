@@ -4,26 +4,24 @@ using UnityEngine;
 namespace Erelia.Battle.Phase.Initialize
 {
 	/// <summary>
-	/// Initialization phase that prepares battle data.
-	/// Uses the preselected enemy team, computes acceptable floor coordinates, partitions player/enemy placement areas,
-	/// then transitions to the Placement phase.
+	/// Initialization phase that prepares acceptable coordinates, units, and the battle timeline.
 	/// </summary>
 	[System.Serializable]
 	public sealed class Root : Erelia.Battle.Phase.Root
 	{
-		/// <summary>
-		/// Whether initialization is still pending.
-		/// </summary>
+		private const float ReserveSideOffset = 2.5f;
+		private const float ReserveHeight = 1f;
+
+		[SerializeField] private Transform playerTeamRoot;
+		[SerializeField] private Transform enemyTeamRoot;
+
 		private bool pendingSetup;
+		[System.NonSerialized] private Erelia.Battle.Board.Presenter boardPresenter;
 
 		public override Erelia.Battle.Phase.Id Id => Erelia.Battle.Phase.Id.Initialize;
 
-		/// <summary>
-		/// Enters the initialize phase and prepares battle data.
-		/// </summary>
 		public override void Enter(Erelia.Battle.Orchestrator Orchestrator)
 		{
-			// Try to initialize battle data and request the next phase.
 			pendingSetup = !TrySetupBattleData();
 			if (!pendingSetup && Orchestrator != null)
 			{
@@ -31,12 +29,8 @@ namespace Erelia.Battle.Phase.Initialize
 			}
 		}
 
-		/// <summary>
-		/// Ticks the initialize phase until setup succeeds.
-		/// </summary>
 		public override void Tick(Erelia.Battle.Orchestrator Orchestrator, float deltaTime)
 		{
-			// Retry setup while it is still pending.
 			if (!pendingSetup)
 			{
 				return;
@@ -49,13 +43,11 @@ namespace Erelia.Battle.Phase.Initialize
 			}
 		}
 
-		/// <summary>
-		/// Attempts to resolve battle data for the current encounter.
-		/// </summary>
 		private bool TrySetupBattleData()
 		{
 			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
-			if (battleData == null || battleData.Board == null || battleData.EnemyTeam == null)
+			Erelia.Core.Creature.Team playerTeam = Erelia.Core.Context.Instance.SystemData?.PlayerTeam;
+			if (battleData == null || battleData.Board == null || battleData.EnemyTeam == null || playerTeam == null)
 			{
 				return false;
 			}
@@ -66,9 +58,14 @@ namespace Erelia.Battle.Phase.Initialize
 			}
 
 			battleData.PhaseInfo.Clear();
-			battleData.PhaseInfo.SetEnemyTeam(battleData.EnemyTeam);
+			battleData.ActiveUnit = null;
 
-			if (!TrySetupPlacementAreas(battleData))
+			if (!TrySetupAcceptableCoordinates(battleData))
+			{
+				return false;
+			}
+
+			if (!TrySetupUnits(battleData, playerTeam, battleData.EnemyTeam))
 			{
 				return false;
 			}
@@ -76,24 +73,239 @@ namespace Erelia.Battle.Phase.Initialize
 			return true;
 		}
 
-		private bool TrySetupPlacementAreas(Erelia.Battle.Data battleData)
+		private bool TrySetupAcceptableCoordinates(Erelia.Battle.Data battleData)
 		{
-			Erelia.Battle.Phase.Info phaseInfo = battleData.PhaseInfo;
-			if (phaseInfo == null ||
-				!Erelia.Battle.Phase.Initialize.PlacementListGenerator.TryGenerate(
+			if (!Erelia.Battle.Phase.Initialize.AcceptableCoordinateGenerator.TryGenerate(
 					battleData.Board,
-					Erelia.Battle.Phase.Initialize.PlacementMode.HalfBoard,
-					out List<Vector3Int> playerCoordinates,
-					out List<Vector3Int> enemyCoordinates))
+					out List<Vector3Int> acceptableCoordinates))
 			{
 				return false;
 			}
 
-			phaseInfo.AddAcceptableCoordinates(playerCoordinates);
-			phaseInfo.AddAcceptableCoordinates(enemyCoordinates);
-			phaseInfo.AddPlayerPlacementCoordinates(playerCoordinates);
-			phaseInfo.AddEnemyPlacementCoordinates(enemyCoordinates);
+			battleData.PhaseInfo.SetAcceptableCoordinates(acceptableCoordinates);
+			battleData.PhaseInfo.ClearPlacementCoordinates();
 			return true;
+		}
+
+		private bool TrySetupUnits(
+			Erelia.Battle.Data battleData,
+			Erelia.Core.Creature.Team playerTeam,
+			Erelia.Core.Creature.Team enemyTeam)
+		{
+			DisposeExistingUnitViews(battleData);
+
+			var presenters = new List<Erelia.Battle.Unit.Presenter>();
+
+			if (!TryCreateTeamUnits(playerTeam, Erelia.Battle.Unit.Team.Player, presenters))
+			{
+				return false;
+			}
+
+			if (!TryCreateTeamUnits(enemyTeam, Erelia.Battle.Unit.Team.Enemy, presenters))
+			{
+				return false;
+			}
+
+			battleData.Timeline = new Erelia.Battle.Timeline.Model();
+			battleData.Timeline.SetUnits(presenters);
+			return presenters.Count > 0;
+		}
+
+		private bool TryCreateTeamUnits(
+			Erelia.Core.Creature.Team team,
+			Erelia.Battle.Unit.Team battleTeam,
+			List<Erelia.Battle.Unit.Presenter> presenters)
+		{
+			Erelia.Core.Creature.Instance.Model[] slots = team?.Slots;
+			if (slots == null)
+			{
+				return false;
+			}
+
+			int livingCount = CountCreatures(slots);
+			int createdCount = 0;
+			for (int i = 0; i < slots.Length; i++)
+			{
+				Erelia.Core.Creature.Instance.Model creature = slots[i];
+				if (creature == null || creature.IsEmpty)
+				{
+					continue;
+				}
+
+				if (!TryCreatePresenter(creature, battleTeam, createdCount, livingCount, out Erelia.Battle.Unit.Presenter presenter))
+				{
+					return false;
+				}
+
+				presenters.Add(presenter);
+				createdCount++;
+			}
+
+			return true;
+		}
+
+		private bool TryCreatePresenter(
+			Erelia.Core.Creature.Instance.Model creature,
+			Erelia.Battle.Unit.Team battleTeam,
+			int teamIndex,
+			int teamCount,
+			out Erelia.Battle.Unit.Presenter presenter)
+		{
+			presenter = null;
+
+			if (!TryResolveSpecies(creature, out Erelia.Core.Creature.Species species))
+			{
+				return false;
+			}
+
+			if (species.Prefab == null)
+			{
+				Debug.LogWarning($"[Erelia.Battle.Phase.Initialize.Root] Species '{species.DisplayName}' has no prefab.");
+				return false;
+			}
+
+			GameObject worldObject = Object.Instantiate(species.Prefab, GetUnitParent(battleTeam));
+			worldObject.name = species.DisplayName;
+
+			Erelia.Core.Creature.Instance.Presenter creaturePresenter =
+				worldObject.GetComponent<Erelia.Core.Creature.Instance.Presenter>() ??
+				worldObject.GetComponentInChildren<Erelia.Core.Creature.Instance.Presenter>(true);
+			creaturePresenter?.SetModel(creature);
+
+			Erelia.Battle.Unit.ObjectView objectView =
+				worldObject.GetComponent<Erelia.Battle.Unit.ObjectView>() ??
+				worldObject.GetComponentInChildren<Erelia.Battle.Unit.ObjectView>(true);
+			if (objectView == null)
+			{
+				objectView = worldObject.AddComponent<Erelia.Battle.Unit.ObjectView>();
+			}
+
+			Erelia.Core.Stats.Values liveStats = species.BaseStats + creature.BonusStats;
+			var model = new Erelia.Battle.Unit.Model(creature, battleTeam, teamIndex, liveStats);
+			presenter = new Erelia.Battle.Unit.Presenter(model, objectView);
+			presenter.Stage(ResolveReserveWorldPosition(battleTeam, teamIndex, teamCount));
+			return true;
+		}
+
+		private bool TryResolveSpecies(
+			Erelia.Core.Creature.Instance.Model creature,
+			out Erelia.Core.Creature.Species species)
+		{
+			species = null;
+
+			Erelia.Core.Creature.SpeciesRegistry registry = Erelia.Core.Creature.SpeciesRegistry.Instance;
+			if (registry == null || creature == null)
+			{
+				return false;
+			}
+
+			if (registry.TryGet(creature.SpeciesId, out species) && species != null)
+			{
+				return true;
+			}
+
+			Debug.LogWarning(
+				$"[Erelia.Battle.Phase.Initialize.Root] Failed to resolve creature species id {creature.SpeciesId}.");
+			return false;
+		}
+
+		private void DisposeExistingUnitViews(Erelia.Battle.Data battleData)
+		{
+			IReadOnlyList<Erelia.Battle.Unit.Presenter> units = battleData?.Units;
+			if (units == null)
+			{
+				return;
+			}
+
+			for (int i = 0; i < units.Count; i++)
+			{
+				Erelia.Battle.Unit.Presenter presenter = units[i];
+				GameObject worldObject = presenter?.ObjectView != null
+					? presenter.ObjectView.gameObject
+					: null;
+				presenter?.Dispose();
+				if (worldObject == null)
+				{
+					continue;
+				}
+
+				if (Application.isPlaying)
+				{
+					Object.Destroy(worldObject);
+				}
+				else
+				{
+					Object.DestroyImmediate(worldObject);
+				}
+			}
+		}
+
+		private Vector3 ResolveReserveWorldPosition(
+			Erelia.Battle.Unit.Team battleTeam,
+			int teamIndex,
+			int teamCount)
+		{
+			Erelia.Battle.Board.Model board = Erelia.Core.Context.Instance.BattleData?.Board;
+			return Erelia.Battle.Unit.StagingPositionUtility.ResolveWorldPosition(
+				ResolveBoardPresenter(),
+				board,
+				battleTeam,
+				teamIndex,
+				teamCount,
+				ReserveSideOffset,
+				ReserveHeight);
+		}
+
+		private Transform GetUnitParent(Erelia.Battle.Unit.Team battleTeam)
+		{
+			switch (battleTeam)
+			{
+				case Erelia.Battle.Unit.Team.Player:
+					if (playerTeamRoot != null)
+					{
+						return playerTeamRoot;
+					}
+					break;
+
+				case Erelia.Battle.Unit.Team.Enemy:
+					if (enemyTeamRoot != null)
+					{
+						return enemyTeamRoot;
+					}
+					break;
+			}
+
+			Erelia.Battle.Board.Presenter activeBoardPresenter = ResolveBoardPresenter();
+			return activeBoardPresenter != null ? activeBoardPresenter.transform : null;
+		}
+
+		private Erelia.Battle.Board.Presenter ResolveBoardPresenter()
+		{
+			if (boardPresenter == null)
+			{
+				boardPresenter = Object.FindFirstObjectByType<Erelia.Battle.Board.Presenter>();
+			}
+
+			return boardPresenter;
+		}
+
+		private static int CountCreatures(Erelia.Core.Creature.Instance.Model[] slots)
+		{
+			if (slots == null)
+			{
+				return 0;
+			}
+
+			int count = 0;
+			for (int i = 0; i < slots.Length; i++)
+			{
+				if (slots[i] != null && !slots[i].IsEmpty)
+				{
+					count++;
+				}
+			}
+
+			return count;
 		}
 	}
 }

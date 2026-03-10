@@ -21,6 +21,8 @@ namespace Erelia.Core
 			BattleData.EnemyTeam = enemyTeam;
 			BattleData.Board = battleBoard;
 			BattleData.PhaseInfo = new Battle.Phase.Info();
+			BattleData.Timeline = null;
+			BattleData.ActiveUnit = null;
 		}
 	}
 }

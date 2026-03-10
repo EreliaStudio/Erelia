@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 namespace Erelia.Battle.Phase.Placement.UI
 {
 	public class SelectableCreatureCardElement :
-		Erelia.Core.UI.CreatureCardElement,
+		Erelia.Battle.Phase.Core.UI.CreatureCardElement,
 		IPointerClickHandler
 	{
 		[SerializeField] private Color selectedColor = Color.green;
@@ -24,33 +24,33 @@ namespace Erelia.Battle.Phase.Placement.UI
 			base.OnDisable();
 		}
 
-		public override void LinkCreature(Erelia.Core.Creature.Instance.Model model)
+		public override void LinkUnit(Erelia.Battle.Unit.Presenter unitPresenter)
 		{
 			isSelected = false;
-			base.LinkCreature(model);
+			base.LinkUnit(unitPresenter);
 		}
 
 		public void OnPointerClick(PointerEventData eventData)
 		{
-			if (LinkedCreature == null)
+			if (LinkedUnit == null)
 			{
 				return;
 			}
 
 			Erelia.Core.Event.Bus.Emit(
-				new Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected(LinkedCreature));
+				new Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected(LinkedUnit));
 		}
 
 		private void OnCreatureSelected(Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected evt)
 		{
-			isSelected = evt.Creature != null && ReferenceEquals(evt.Creature, LinkedCreature);
+			isSelected = evt?.Unit != null && ReferenceEquals(evt.Unit, LinkedUnit);
 			RefreshBackgroundColor();
 		}
 
 		protected override void HandlePlacementCreaturePlaced(
 			Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced evt)
 		{
-			bool isThisCreature = ReferenceEquals(evt?.Creature, LinkedCreature);
+			bool isThisCreature = ReferenceEquals(evt?.Unit, LinkedUnit);
 
 			if (isThisCreature)
 			{
@@ -67,7 +67,7 @@ namespace Erelia.Battle.Phase.Placement.UI
 		protected override void HandlePlacementCreatureUnplaced(
 			Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced evt)
 		{
-			if (!ReferenceEquals(evt?.Creature, LinkedCreature))
+			if (!ReferenceEquals(evt?.Unit, LinkedUnit))
 			{
 				return;
 			}

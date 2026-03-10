@@ -11,11 +11,12 @@ namespace Erelia.Battle.Phase
 		None = 0,
 		Initialize = 1,
 		Placement = 2,
-		PlayerTurn = 3,
-		EnemyTurn = 4,
-		ResolveAction = 5,
-		Victory = 6,
-		Defeat = 7,
-		Cleanup = 8
+		Timeline = 3,
+		PlayerTurn = 4,
+		EnemyTurn = 5,
+		ResolveAction = 6,
+		Victory = 7,
+		Defeat = 8,
+		Cleanup = 9
 	}
 }

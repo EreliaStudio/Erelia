@@ -2,11 +2,12 @@ namespace Erelia.Battle.Phase.Placement.Event
 {
 	public sealed class PlacementCreaturePlaced : Erelia.Core.Event.GenericEvent
 	{
-		public Erelia.Core.Creature.Instance.Model Creature { get; }
+		public Erelia.Battle.Unit.Presenter Unit { get; }
+		public Erelia.Core.Creature.Instance.Model Creature => Unit?.Model?.Creature;
 
-		public PlacementCreaturePlaced(Erelia.Core.Creature.Instance.Model creature)
+		public PlacementCreaturePlaced(Erelia.Battle.Unit.Presenter unit)
 		{
-			Creature = creature;
+			Unit = unit;
 		}
 	}
 }

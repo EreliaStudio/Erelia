@@ -2,11 +2,11 @@ using UnityEngine;
 
 namespace Erelia.Battle.Phase.Placement.UI
 {
-	public sealed class SelectableCreatureCardGroupElement : Erelia.Core.UI.CreatureCardGroupElement
+	public sealed class SelectableCreatureCardGroupElement : Erelia.Battle.Phase.Core.UI.CreatureCardGroupElement
 	{
-		private Erelia.Core.Creature.Instance.Model selectedCreature;
+		private Erelia.Battle.Unit.Presenter selectedUnit;
 
-		public Erelia.Core.Creature.Instance.Model SelectedCreature => selectedCreature;
+		public Erelia.Battle.Unit.Presenter SelectedUnit => selectedUnit;
 
 		private void OnEnable()
 		{
@@ -18,36 +18,47 @@ namespace Erelia.Battle.Phase.Placement.UI
 		{
 			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected>(OnCreatureSelected);
 			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced>(OnCreaturePlaced);
-			selectedCreature = null;
+			selectedUnit = null;
 		}
 
-		public override void PopulateCreatureCards(Erelia.Core.Creature.Team team)
+		public override void PopulateUnits(System.Collections.Generic.IReadOnlyList<Erelia.Battle.Unit.Presenter> units)
 		{
-			selectedCreature = null;
-			base.PopulateCreatureCards(team);
+			selectedUnit = null;
+			base.PopulateUnits(units);
+		}
+
+		public override void ClearUnits()
+		{
+			selectedUnit = null;
+			base.ClearUnits();
+		}
+
+		public Erelia.Battle.Unit.Presenter GetSelectedUnit()
+		{
+			return selectedUnit;
+		}
+
+		public bool TryGetSelectedUnit(out Erelia.Battle.Unit.Presenter unit)
+		{
+			unit = selectedUnit;
+			return unit != null;
 		}
 
 		public Erelia.Core.Creature.Instance.Model GetSelectedCreature()
 		{
-			return selectedCreature;
-		}
-
-		public bool TryGetSelectedCreature(out Erelia.Core.Creature.Instance.Model creature)
-		{
-			creature = selectedCreature;
-			return creature != null;
+			return selectedUnit?.Model?.Creature;
 		}
 
 		private void OnCreatureSelected(Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected evt)
 		{
-			selectedCreature = ContainsLinkedCreature(evt.Creature) ? evt.Creature : null;
+			selectedUnit = ContainsLinkedUnit(evt?.Unit) ? evt.Unit : null;
 		}
 
 		private void OnCreaturePlaced(Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced evt)
 		{
-			if (ReferenceEquals(evt.Creature, selectedCreature))
+			if (ReferenceEquals(evt?.Unit, selectedUnit))
 			{
-				selectedCreature = null;
+				selectedUnit = null;
 			}
 		}
 	}

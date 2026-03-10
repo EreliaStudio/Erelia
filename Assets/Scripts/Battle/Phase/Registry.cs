@@ -38,6 +38,11 @@ namespace Erelia.Battle.Phase
 		[SerializeField] private Erelia.Battle.Phase.Placement.Root placement = new Erelia.Battle.Phase.Placement.Root();
 
 		/// <summary>
+		/// Instance of the timeline phase.
+		/// </summary>
+		[SerializeField] private Erelia.Battle.Phase.Timeline.Root timeline = new Erelia.Battle.Phase.Timeline.Root();
+
+		/// <summary>
 		/// Instance of the player turn phase.
 		/// </summary>
 		[SerializeField] private Erelia.Battle.Phase.PlayerTurn.Root playerTurn = new Erelia.Battle.Phase.PlayerTurn.Root();
@@ -100,6 +105,10 @@ namespace Erelia.Battle.Phase
 
 				case Id.Placement:
 					phase = placement;
+					return phase != null;
+
+				case Id.Timeline:
+					phase = timeline;
 					return phase != null;
 
 				case Id.PlayerTurn:
