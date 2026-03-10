@@ -684,8 +684,8 @@ MonoBehaviour:
   idleColor: {r: 1, g: 1, b: 1, a: 1}
   placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   emptyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.85}
-  collapsedPreferredHeight: 80
-  expandedPreferredHeight: 160
+  collapsedPreferredHeight: 50
+  expandedPreferredHeight: 150
 --- !u!114 &219266162
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1596,8 +1596,8 @@ MonoBehaviour:
   idleColor: {r: 1, g: 1, b: 1, a: 1}
   placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   emptyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.85}
-  collapsedPreferredHeight: 80
-  expandedPreferredHeight: 160
+  collapsedPreferredHeight: 50
+  expandedPreferredHeight: 150
 --- !u!114 &477526413
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1718,8 +1718,8 @@ MonoBehaviour:
   idleColor: {r: 1, g: 1, b: 1, a: 1}
   placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   emptyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.85}
-  collapsedPreferredHeight: 80
-  expandedPreferredHeight: 160
+  collapsedPreferredHeight: 50
+  expandedPreferredHeight: 150
 --- !u!114 &480342919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2056,6 +2056,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Orchestrator
   startPhase: 1
   phaseRegistry:
+    initialize:
+      boardPresenter: {fileID: 1079300952}
+      playerUnitsRoot: {fileID: 1750010001}
+      enemyUnitsRoot: {fileID: 1750010011}
+      stagedUnitSpacing: {x: 0, y: 0, z: 2}
     placement:
       hudRoot: {fileID: 1283798307}
       creatureCardGroup: {fileID: 338294984}
@@ -2230,7 +2235,71 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1079300950}
+  - {fileID: 1750010001}
+  - {fileID: 1750010011}
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1750010000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1750010001}
+  m_Layer: 0
+  m_Name: PlayerUnits
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1750010001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1750010000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.5, y: 1, z: 0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 661764516}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1750010010
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1750010011}
+  m_Layer: 0
+  m_Name: EnemyUnits
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1750010011
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1750010010}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 22.5, y: 1, z: 0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 661764516}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &662371828
 GameObject:
@@ -2294,8 +2363,8 @@ MonoBehaviour:
   idleColor: {r: 1, g: 1, b: 1, a: 1}
   placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   emptyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.85}
-  collapsedPreferredHeight: 80
-  expandedPreferredHeight: 160
+  collapsedPreferredHeight: 50
+  expandedPreferredHeight: 150
 --- !u!114 &662371831
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2524,8 +2593,8 @@ MonoBehaviour:
   idleColor: {r: 1, g: 1, b: 1, a: 1}
   placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   emptyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.85}
-  collapsedPreferredHeight: 80
-  expandedPreferredHeight: 160
+  collapsedPreferredHeight: 50
+  expandedPreferredHeight: 150
 --- !u!114 &780080079
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5392,8 +5461,8 @@ MonoBehaviour:
   idleColor: {r: 1, g: 1, b: 1, a: 1}
   placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   emptyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.85}
-  collapsedPreferredHeight: 80
-  expandedPreferredHeight: 160
+  collapsedPreferredHeight: 50
+  expandedPreferredHeight: 150
 --- !u!114 &2109637340
 MonoBehaviour:
   m_ObjectHideFlags: 0

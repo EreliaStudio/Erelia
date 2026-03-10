@@ -8,7 +8,8 @@ namespace Erelia.Core.UI
 	public class CreatureCardElement :
 		MonoBehaviour,
 		IPointerEnterHandler,
-		IPointerExitHandler
+		IPointerExitHandler,
+		Erelia.Battle.Unit.UIView
 	{
 		[SerializeField] private Image image;
 		[SerializeField] private Sprite noCreatureSprite;
@@ -25,13 +26,13 @@ namespace Erelia.Core.UI
 		[SerializeField] private float collapsedPreferredHeight = 80f;
 		[SerializeField] private float expandedPreferredHeight = 160f;
 
-		private Erelia.Core.Creature.Instance.Model linkedCreature;
+		private Erelia.Battle.Unit.Presenter linkedUnit;
 		private RectTransform rectTransform;
 		private bool isExpanded;
 		private bool isPlaced;
-		private bool placementEventsSubscribed;
+		private bool unitSubscribed;
 
-		public Erelia.Core.Creature.Instance.Model LinkedCreature => linkedCreature;
+		public Erelia.Battle.Unit.Presenter LinkedUnit => linkedUnit;
 		protected bool IsPlaced => isPlaced;
 
 		protected virtual void Awake()
@@ -43,42 +44,35 @@ namespace Erelia.Core.UI
 
 		protected virtual void OnEnable()
 		{
-			SubscribePlacementEvents();
-			RefreshBackgroundColor();
+			SubscribeToUnit();
+			RefreshBoundUnit();
 		}
 
 		protected virtual void OnDisable()
 		{
-			UnsubscribePlacementEvents();
+			UnsubscribeFromUnit();
 		}
 
-		public virtual void LinkCreature(Erelia.Core.Creature.Instance.Model model)
+		public virtual void LinkUnit(Erelia.Battle.Unit.Presenter presenter)
 		{
-			linkedCreature = model != null && model.IsEmpty ? null : model;
-			model = linkedCreature;
-			isPlaced = false;
-
-			if (model == null)
+			if (ReferenceEquals(linkedUnit, presenter))
 			{
-				image.sprite = noCreatureSprite;
-				creatureShownName.text = noCreatureName;
-				SetExpanded(false);
-				SetBackgroundColor(emptyColor);
+				RefreshBoundUnit();
 				return;
 			}
 
-			if (Erelia.Core.Creature.SpeciesRegistry.Instance == null ||
-				Erelia.Core.Creature.SpeciesRegistry.Instance.TryGet(model.SpeciesId, out Erelia.Core.Creature.Species species) == false)
-			{
-				image.sprite = noCreatureSprite;
-				creatureShownName.text = noCreatureName;
-				SetExpanded(false);
-				RefreshBackgroundColor();
-				return;
-			}
+			UnsubscribeFromUnit();
+			linkedUnit = presenter;
+			isPlaced = linkedUnit != null && linkedUnit.IsPlaced;
+			SubscribeToUnit();
+			RefreshBoundUnit();
+		}
 
-			image.sprite = species.Icon;
-			creatureShownName.text = string.IsNullOrEmpty(model.Nickname) ? species.DisplayName : model.Nickname;
+		public virtual void ApplySnapshot(Erelia.Battle.Unit.Snapshot snapshot)
+		{
+			isPlaced = snapshot.IsPlaced;
+			image.sprite = snapshot.Icon != null ? snapshot.Icon : noCreatureSprite;
+			creatureShownName.text = string.IsNullOrEmpty(snapshot.DisplayName) ? noCreatureName : snapshot.DisplayName;
 			RefreshBackgroundColor();
 		}
 
@@ -92,20 +86,9 @@ namespace Erelia.Core.UI
 			backgroundImage.color = color;
 		}
 
-		protected void SetPlaced(bool value)
-		{
-			if (isPlaced == value)
-			{
-				return;
-			}
-
-			isPlaced = value;
-			RefreshBackgroundColor();
-		}
-
 		protected void RefreshBackgroundColor()
 		{
-			if (linkedCreature == null)
+			if (linkedUnit == null)
 			{
 				SetBackgroundColor(emptyColor);
 				return;
@@ -132,62 +115,6 @@ namespace Erelia.Core.UI
 			return false;
 		}
 
-		protected void SubscribePlacementEvents()
-		{
-			if (placementEventsSubscribed)
-			{
-				return;
-			}
-
-			Erelia.Core.Event.Bus.Subscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced>(OnPlacementCreaturePlaced);
-			Erelia.Core.Event.Bus.Subscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced>(OnPlacementCreatureUnplaced);
-			placementEventsSubscribed = true;
-		}
-
-		protected void UnsubscribePlacementEvents()
-		{
-			if (!placementEventsSubscribed)
-			{
-				return;
-			}
-
-			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced>(OnPlacementCreaturePlaced);
-			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced>(OnPlacementCreatureUnplaced);
-			placementEventsSubscribed = false;
-		}
-
-		private void OnPlacementCreaturePlaced(Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced evt)
-		{
-			HandlePlacementCreaturePlaced(evt);
-		}
-
-		private void OnPlacementCreatureUnplaced(Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced evt)
-		{
-			HandlePlacementCreatureUnplaced(evt);
-		}
-
-		protected virtual void HandlePlacementCreaturePlaced(
-			Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced evt)
-		{
-			if (!ReferenceEquals(evt?.Creature, LinkedCreature))
-			{
-				return;
-			}
-
-			SetPlaced(true);
-		}
-
-		protected virtual void HandlePlacementCreatureUnplaced(
-			Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced evt)
-		{
-			if (!ReferenceEquals(evt?.Creature, LinkedCreature))
-			{
-				return;
-			}
-
-			SetPlaced(false);
-		}
-
 		public void OnPointerEnter(PointerEventData eventData)
 		{
 			SetExpanded(true);
@@ -200,7 +127,7 @@ namespace Erelia.Core.UI
 
 		protected virtual void SetExpanded(bool value)
 		{
-			if (linkedCreature == null)
+			if (linkedUnit == null)
 			{
 				value = false;
 			}
@@ -214,6 +141,48 @@ namespace Erelia.Core.UI
 			ApplyExpandedState(isExpanded);
 		}
 
+		private void SubscribeToUnit()
+		{
+			if (unitSubscribed || linkedUnit == null || !isActiveAndEnabled)
+			{
+				return;
+			}
+
+			linkedUnit.Subscribe(this);
+			unitSubscribed = true;
+		}
+
+		private void UnsubscribeFromUnit()
+		{
+			if (!unitSubscribed || linkedUnit == null)
+			{
+				return;
+			}
+
+			linkedUnit.Unsubscribe(this);
+			unitSubscribed = false;
+		}
+
+		private void RefreshBoundUnit()
+		{
+			if (linkedUnit == null)
+			{
+				ClearDisplay();
+				return;
+			}
+
+			ApplySnapshot(linkedUnit.Snapshot);
+		}
+
+		private void ClearDisplay()
+		{
+			isPlaced = false;
+			image.sprite = noCreatureSprite;
+			creatureShownName.text = noCreatureName;
+			SetExpanded(false);
+			RefreshBackgroundColor();
+		}
+
 		private void ApplyExpandedState(bool value)
 		{
 			float targetHeight = value ? expandedPreferredHeight : collapsedPreferredHeight;
@@ -225,7 +194,6 @@ namespace Erelia.Core.UI
 
 			if (rectTransform != null)
 			{
-				// Fallback for parents that don't drive child height from the layout system.
 				rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, targetHeight);
 				LayoutRebuilder.MarkLayoutForRebuild(rectTransform);
 			}

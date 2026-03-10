@@ -5,25 +5,23 @@ namespace Erelia.Battle.Phase.Initialize
 {
 	/// <summary>
 	/// Initialization phase that prepares battle data.
-	/// Uses the preselected enemy team, computes acceptable floor coordinates, partitions player/enemy placement areas,
-	/// then transitions to the Placement phase.
+	/// Uses the preselected enemy team, computes acceptable floor coordinates, instantiates battle units,
+	/// and transitions to the Placement phase.
 	/// </summary>
 	[System.Serializable]
 	public sealed class Root : Erelia.Battle.Phase.Root
 	{
-		/// <summary>
-		/// Whether initialization is still pending.
-		/// </summary>
+		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
+		[SerializeField] private Transform playerUnitsRoot;
+		[SerializeField] private Transform enemyUnitsRoot;
+		[SerializeField] private Vector3 stagedUnitSpacing = new Vector3(0f, 0f, 2f);
+
 		private bool pendingSetup;
 
 		public override Erelia.Battle.Phase.Id Id => Erelia.Battle.Phase.Id.Initialize;
 
-		/// <summary>
-		/// Enters the initialize phase and prepares battle data.
-		/// </summary>
 		public override void Enter(Erelia.Battle.Orchestrator Orchestrator)
 		{
-			// Try to initialize battle data and request the next phase.
 			pendingSetup = !TrySetupBattleData();
 			if (!pendingSetup && Orchestrator != null)
 			{
@@ -31,12 +29,8 @@ namespace Erelia.Battle.Phase.Initialize
 			}
 		}
 
-		/// <summary>
-		/// Ticks the initialize phase until setup succeeds.
-		/// </summary>
 		public override void Tick(Erelia.Battle.Orchestrator Orchestrator, float deltaTime)
 		{
-			// Retry setup while it is still pending.
 			if (!pendingSetup)
 			{
 				return;
@@ -49,9 +43,6 @@ namespace Erelia.Battle.Phase.Initialize
 			}
 		}
 
-		/// <summary>
-		/// Attempts to resolve battle data for the current encounter.
-		/// </summary>
 		private bool TrySetupBattleData()
 		{
 			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
@@ -60,40 +51,82 @@ namespace Erelia.Battle.Phase.Initialize
 				return false;
 			}
 
-			if (battleData.PhaseInfo == null)
-			{
-				battleData.PhaseInfo = new Erelia.Battle.Phase.Info();
-			}
-
-			battleData.PhaseInfo.Clear();
-			battleData.PhaseInfo.SetEnemyTeam(battleData.EnemyTeam);
-
+			battleData.ClearRuntime();
 			if (!TrySetupPlacementAreas(battleData))
 			{
 				return false;
 			}
 
+			CreateUnits(battleData, Erelia.Core.Context.Instance.SystemData?.PlayerTeam, Erelia.Battle.Side.Player);
+			CreateUnits(battleData, battleData.EnemyTeam, Erelia.Battle.Side.Enemy);
 			return true;
 		}
 
 		private bool TrySetupPlacementAreas(Erelia.Battle.Data battleData)
 		{
-			Erelia.Battle.Phase.Info phaseInfo = battleData.PhaseInfo;
-			if (phaseInfo == null ||
-				!Erelia.Battle.Phase.Initialize.PlacementListGenerator.TryGenerate(
+			if (!Erelia.Battle.Phase.Initialize.AcceptableCoordinateListGenerator.TryGenerate(
 					battleData.Board,
-					Erelia.Battle.Phase.Initialize.PlacementMode.HalfBoard,
-					out List<Vector3Int> playerCoordinates,
-					out List<Vector3Int> enemyCoordinates))
+					out List<Vector3Int> acceptableCoordinates))
 			{
 				return false;
 			}
 
-			phaseInfo.AddAcceptableCoordinates(playerCoordinates);
-			phaseInfo.AddAcceptableCoordinates(enemyCoordinates);
-			phaseInfo.AddPlayerPlacementCoordinates(playerCoordinates);
-			phaseInfo.AddEnemyPlacementCoordinates(enemyCoordinates);
+			battleData.AddAcceptableCoordinates(acceptableCoordinates);
 			return true;
+		}
+
+		private void CreateUnits(
+			Erelia.Battle.Data battleData,
+			Erelia.Core.Creature.Team team,
+			Erelia.Battle.Side side)
+		{
+			Erelia.Core.Creature.Instance.Model[] slots = team?.Slots;
+			if (battleData == null || slots == null)
+			{
+				return;
+			}
+
+			Transform parent = ResolveUnitsRoot(side);
+			Vector3 baseWorldPosition = parent != null ? parent.position : Vector3.zero;
+			for (int i = 0; i < slots.Length; i++)
+			{
+				Erelia.Core.Creature.Instance.Model creature = slots[i];
+				if (creature == null || creature.IsEmpty)
+				{
+					continue;
+				}
+
+				var unitModel = new Erelia.Battle.Unit.Model(creature, side);
+				var unitPresenter = new Erelia.Battle.Unit.Presenter(unitModel, parent);
+				unitPresenter.Stage(baseWorldPosition + ResolveStageOffset(i));
+				battleData.AddUnit(unitPresenter);
+			}
+		}
+
+		private Transform ResolveUnitsRoot(Erelia.Battle.Side side)
+		{
+			if (side == Erelia.Battle.Side.Player)
+			{
+				if (playerUnitsRoot == null)
+				{
+					Debug.LogWarning("[Erelia.Battle.Phase.Initialize.Root] Player units root is not assigned.");
+				}
+
+				return playerUnitsRoot;
+			}
+
+			if (enemyUnitsRoot == null)
+			{
+				Debug.LogWarning("[Erelia.Battle.Phase.Initialize.Root] Enemy units root is not assigned.");
+			}
+
+			return enemyUnitsRoot;
+		}
+
+		private Vector3 ResolveStageOffset(int index)
+		{
+			int safeIndex = Mathf.Max(0, index);
+			return stagedUnitSpacing * safeIndex;
 		}
 	}
 }

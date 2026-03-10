@@ -100,8 +100,7 @@ namespace Erelia.Battle
 		{
 			return data != null &&
 				data.Board != null &&
-				data.EnemyTeam != null &&
-				data.PhaseInfo != null;
+				data.EnemyTeam != null;
 		}
 
 		/// <summary>

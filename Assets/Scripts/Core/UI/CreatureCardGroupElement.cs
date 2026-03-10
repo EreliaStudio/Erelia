@@ -9,9 +9,8 @@ namespace Erelia.Core.UI
 
 		protected CreatureCardElement[] CardElements => cardElements;
 
-		public virtual void PopulateCreatureCards(Erelia.Core.Creature.Team team)
+		public virtual void PopulateUnits(System.Collections.Generic.IReadOnlyList<Erelia.Battle.Unit.Presenter> units)
 		{
-			Erelia.Core.Creature.Instance.Model[] slots = team?.Slots;
 			if (cardElements == null)
 			{
 				return;
@@ -24,22 +23,22 @@ namespace Erelia.Core.UI
 					continue;
 				}
 
-				Erelia.Core.Creature.Instance.Model creature =
-					slots != null && i < slots.Length ? slots[i] : null;
-				cardElements[i].LinkCreature(creature);
+				Erelia.Battle.Unit.Presenter unit =
+					units != null && i < units.Count ? units[i] : null;
+				cardElements[i].LinkUnit(unit);
 			}
 		}
 
-		public bool ContainsLinkedCreature(Erelia.Core.Creature.Instance.Model creature)
+		public bool ContainsLinkedUnit(Erelia.Battle.Unit.Presenter unit)
 		{
-			if (creature == null || cardElements == null)
+			if (unit == null || cardElements == null)
 			{
 				return false;
 			}
 
 			for (int i = 0; i < cardElements.Length; i++)
 			{
-				if (cardElements[i] != null && ReferenceEquals(cardElements[i].LinkedCreature, creature))
+				if (cardElements[i] != null && ReferenceEquals(cardElements[i].LinkedUnit, unit))
 				{
 					return true;
 				}

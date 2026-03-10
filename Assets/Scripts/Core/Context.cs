@@ -18,9 +18,7 @@ namespace Erelia.Core
 
 		public void SetBattle(Erelia.Core.Creature.Team enemyTeam, Erelia.Battle.Board.Model battleBoard)
 		{
-			BattleData.EnemyTeam = enemyTeam;
-			BattleData.Board = battleBoard;
-			BattleData.PhaseInfo = new Battle.Phase.Info();
+			BattleData.Reset(enemyTeam, battleBoard);
 		}
 	}
 }

@@ -14,66 +14,60 @@ namespace Erelia.Battle.Phase.Placement.UI
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			Erelia.Core.Event.Bus.Subscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected>(OnCreatureSelected);
+			Erelia.Core.Event.Bus.Subscribe<Erelia.Battle.Phase.Placement.Event.PlacementUnitSelected>(OnUnitSelected);
+			Erelia.Core.Event.Bus.Subscribe<Erelia.Battle.Phase.Placement.Event.PlacementUnitPlaced>(OnUnitPlaced);
 			RefreshBackgroundColor();
 		}
 
 		protected override void OnDisable()
 		{
-			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected>(OnCreatureSelected);
+			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Battle.Phase.Placement.Event.PlacementUnitSelected>(OnUnitSelected);
+			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Battle.Phase.Placement.Event.PlacementUnitPlaced>(OnUnitPlaced);
 			base.OnDisable();
 		}
 
-		public override void LinkCreature(Erelia.Core.Creature.Instance.Model model)
+		public override void LinkUnit(Erelia.Battle.Unit.Presenter presenter)
 		{
 			isSelected = false;
-			base.LinkCreature(model);
+			base.LinkUnit(presenter);
 		}
 
 		public void OnPointerClick(PointerEventData eventData)
 		{
-			if (LinkedCreature == null)
+			if (LinkedUnit == null)
 			{
 				return;
 			}
 
 			Erelia.Core.Event.Bus.Emit(
-				new Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected(LinkedCreature));
+				new Erelia.Battle.Phase.Placement.Event.PlacementUnitSelected(LinkedUnit));
 		}
 
-		private void OnCreatureSelected(Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected evt)
+		public override void ApplySnapshot(Erelia.Battle.Unit.Snapshot snapshot)
 		{
-			isSelected = evt.Creature != null && ReferenceEquals(evt.Creature, LinkedCreature);
+			if (snapshot.IsPlaced)
+			{
+				isSelected = false;
+			}
+
+			base.ApplySnapshot(snapshot);
+		}
+
+		private void OnUnitSelected(Erelia.Battle.Phase.Placement.Event.PlacementUnitSelected evt)
+		{
+			isSelected = evt.Unit != null && ReferenceEquals(evt.Unit, LinkedUnit);
 			RefreshBackgroundColor();
 		}
 
-		protected override void HandlePlacementCreaturePlaced(
-			Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced evt)
+		private void OnUnitPlaced(Erelia.Battle.Phase.Placement.Event.PlacementUnitPlaced evt)
 		{
-			bool isThisCreature = ReferenceEquals(evt?.Creature, LinkedCreature);
-
-			if (isThisCreature)
-			{
-				isSelected = false;
-				SetPlaced(true);
-			}
-			else
-			{
-				isSelected = false;
-				RefreshBackgroundColor();
-			}
-		}
-
-		protected override void HandlePlacementCreatureUnplaced(
-			Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced evt)
-		{
-			if (!ReferenceEquals(evt?.Creature, LinkedCreature))
+			if (!ReferenceEquals(evt?.Unit, LinkedUnit))
 			{
 				return;
 			}
 
 			isSelected = false;
-			SetPlaced(false);
+			RefreshBackgroundColor();
 		}
 
 		protected override bool TryGetOverrideBackgroundColor(out Color color)
