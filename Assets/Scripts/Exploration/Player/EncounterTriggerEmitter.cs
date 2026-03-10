@@ -93,13 +93,21 @@ namespace Erelia.Exploration.Player
 				return;
 			}
 
-			// Build battle board and emit a battle scene request.
+			if (!table.TryLoadRandomTeam(out Erelia.Core.Creature.Team enemyTeam))
+			{
+				return;
+			}
+
+			// Build battle board and emit battle events.
 			Erelia.Battle.Board.Model battleBoard = Erelia.Battle.Board.Constructor.ExportArea(table, worldModel, worldPosition);
+			if (battleBoard == null)
+			{
+				return;
+			}
 
 			Debug.Log($"Encounter trigger: id={encounterId} world={worldPosition} cell=({localX},{localY},{localZ})");
-			Erelia.Core.Context.Instance.SetBattle(table, battleBoard);
-			var battleRequest = new Erelia.Core.Event.BattleSceneDataRequest();
-			Erelia.Core.Event.Bus.Emit(battleRequest);
+			Erelia.Core.Event.Bus.Emit(new Erelia.Core.Event.EncounterTriggerEvent(enemyTeam, battleBoard));
+			Erelia.Core.Event.Bus.Emit(new Erelia.Core.Event.BattleSceneDataRequest(enemyTeam, battleBoard));
 		}
 
 		/// <summary>

@@ -17,9 +17,9 @@ Core flow:
 
 ## Event Types
 Current events:
-- `BattleSceneDataRequest`: request to provide battle scene data.
+- `BattleSceneDataRequest`: request to load the battle scene with a board and enemy team.
 - `ExplorationSceneDataRequest`: request to provide exploration scene data.
-- `EncounterTriggerEvent`: emitted when an encounter starts, includes encounter table and battle board.
+- `EncounterTriggerEvent`: emitted when an encounter starts, includes enemy team and battle board.
 - `PlayerChunkMotion`: emitted when the player enters a new chunk.
 - `PlayerMotion`: emitted on player movement, includes world + cell positions.
 

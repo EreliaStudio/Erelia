@@ -71,7 +71,12 @@ namespace Erelia.Core
 			Event.Bus.Subscribe<Erelia.Core.Event.ExplorationSceneDataRequest>(_ => LoadScene(SceneKind.Exploration));
 
 			// Subscribe to battle scene requests.
-			Event.Bus.Subscribe<Erelia.Core.Event.BattleSceneDataRequest>(_ => LoadScene(SceneKind.Battle));
+			Event.Bus.Subscribe<Erelia.Core.Event.BattleSceneDataRequest>(evt =>
+			{
+				Context.Instance.SetBattle(evt.EnemyTeam, evt.BattleBoard);
+
+				LoadScene(SceneKind.Battle);
+			});
 		}
 
 		/// <summary>

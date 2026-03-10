@@ -29,6 +29,7 @@ namespace Erelia.Core.UI
 		private RectTransform rectTransform;
 		private bool isExpanded;
 		private bool isPlaced;
+		private bool placementEventsSubscribed;
 
 		public Erelia.Core.Creature.Instance.Model LinkedCreature => linkedCreature;
 		protected bool IsPlaced => isPlaced;
@@ -38,6 +39,17 @@ namespace Erelia.Core.UI
 			rectTransform = transform as RectTransform;
 			ApplyExpandedState(false);
 			RefreshBackgroundColor();
+		}
+
+		protected virtual void OnEnable()
+		{
+			SubscribePlacementEvents();
+			RefreshBackgroundColor();
+		}
+
+		protected virtual void OnDisable()
+		{
+			UnsubscribePlacementEvents();
 		}
 
 		public virtual void LinkCreature(Erelia.Core.Creature.Instance.Model model)
@@ -118,6 +130,62 @@ namespace Erelia.Core.UI
 		{
 			color = default;
 			return false;
+		}
+
+		protected void SubscribePlacementEvents()
+		{
+			if (placementEventsSubscribed)
+			{
+				return;
+			}
+
+			Erelia.Core.Event.Bus.Subscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced>(OnPlacementCreaturePlaced);
+			Erelia.Core.Event.Bus.Subscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced>(OnPlacementCreatureUnplaced);
+			placementEventsSubscribed = true;
+		}
+
+		protected void UnsubscribePlacementEvents()
+		{
+			if (!placementEventsSubscribed)
+			{
+				return;
+			}
+
+			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced>(OnPlacementCreaturePlaced);
+			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced>(OnPlacementCreatureUnplaced);
+			placementEventsSubscribed = false;
+		}
+
+		private void OnPlacementCreaturePlaced(Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced evt)
+		{
+			HandlePlacementCreaturePlaced(evt);
+		}
+
+		private void OnPlacementCreatureUnplaced(Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced evt)
+		{
+			HandlePlacementCreatureUnplaced(evt);
+		}
+
+		protected virtual void HandlePlacementCreaturePlaced(
+			Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced evt)
+		{
+			if (!ReferenceEquals(evt?.Creature, LinkedCreature))
+			{
+				return;
+			}
+
+			SetPlaced(true);
+		}
+
+		protected virtual void HandlePlacementCreatureUnplaced(
+			Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced evt)
+		{
+			if (!ReferenceEquals(evt?.Creature, LinkedCreature))
+			{
+				return;
+			}
+
+			SetPlaced(false);
 		}
 
 		public void OnPointerEnter(PointerEventData eventData)

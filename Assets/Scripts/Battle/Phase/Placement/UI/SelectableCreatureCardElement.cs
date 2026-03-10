@@ -11,20 +11,17 @@ namespace Erelia.Battle.Phase.Placement.UI
 
 		private bool isSelected;
 
-		private void OnEnable()
+		protected override void OnEnable()
 		{
+			base.OnEnable();
 			Erelia.Core.Event.Bus.Subscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected>(OnCreatureSelected);
-			Erelia.Core.Event.Bus.Subscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced>(OnCreaturePlaced);
-			Erelia.Core.Event.Bus.Subscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced>(OnCreatureUnplaced);
-
 			RefreshBackgroundColor();
 		}
 
-		private void OnDisable()
+		protected override void OnDisable()
 		{
 			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreatureSelected>(OnCreatureSelected);
-			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced>(OnCreaturePlaced);
-			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced>(OnCreatureUnplaced);
+			base.OnDisable();
 		}
 
 		public override void LinkCreature(Erelia.Core.Creature.Instance.Model model)
@@ -50,11 +47,12 @@ namespace Erelia.Battle.Phase.Placement.UI
 			RefreshBackgroundColor();
 		}
 
-		private void OnCreaturePlaced(Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced evt)
+		protected override void HandlePlacementCreaturePlaced(
+			Erelia.Battle.Phase.Placement.Event.PlacementCreaturePlaced evt)
 		{
-			bool isThisCreature = ReferenceEquals(evt.Creature, LinkedCreature);
+			bool isThisCreature = ReferenceEquals(evt?.Creature, LinkedCreature);
 
-			if (isThisCreature == true)
+			if (isThisCreature)
 			{
 				isSelected = false;
 				SetPlaced(true);
@@ -66,9 +64,10 @@ namespace Erelia.Battle.Phase.Placement.UI
 			}
 		}
 
-		private void OnCreatureUnplaced(Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced evt)
+		protected override void HandlePlacementCreatureUnplaced(
+			Erelia.Battle.Phase.Placement.Event.PlacementCreatureUnplaced evt)
 		{
-			if (ReferenceEquals(evt.Creature, LinkedCreature) == false)
+			if (!ReferenceEquals(evt?.Creature, LinkedCreature))
 			{
 				return;
 			}

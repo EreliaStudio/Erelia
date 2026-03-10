@@ -9,12 +9,6 @@ namespace Erelia.Battle
 	[DefaultExecutionOrder(-100)]
 	public sealed class DebugLoader : MonoBehaviour
 	{
-		private const float DebugEncounterChance = 1f;
-		private const int DebugEncounterBaseRadius = 10;
-		private const int DebugEncounterNoiseAmplitude = 4;
-		private const float DebugEncounterNoiseScale = 0.15f;
-		private const int DebugEncounterNoiseSeed = 1337;
-		private const int DebugEncounterPlacementRadius = 3;
 		private const int DebugEnemyTeamWeight = 50;
 		private const string DebugEnemyTeamPathA = "Encounter/Teams/WildEncounterA";
 		private const string DebugEnemyTeamPathB = "Encounter/Teams/WildEncounterB";
@@ -74,9 +68,15 @@ namespace Erelia.Battle
 				return;
 			}
 
-			Erelia.Core.Encounter.EncounterTable encounterTable = CreateDebugEncounterTable();
+			Erelia.Core.Creature.Team enemyTeam = CreateDebugEnemyTeam();
+			if (enemyTeam == null)
+			{
+				Debug.LogWarning("[Erelia.Battle.DebugLoader] Failed to create debug enemy team.");
+				return;
+			}
+
 			Erelia.Battle.Board.Model board = CreateDebugBoard();
-			context.SetBattle(encounterTable, board);
+			context.SetBattle(enemyTeam, board);
 			Debug.Log("[Erelia.Battle.DebugLoader] Debug battle context initialized.");
 		}
 
@@ -100,23 +100,17 @@ namespace Erelia.Battle
 		{
 			return data != null &&
 				data.Board != null &&
-				data.EncounterTable != null &&
+				data.EnemyTeam != null &&
 				data.PhaseInfo != null;
 		}
 
 		/// <summary>
-		/// Creates the encounter table used by debug mode.
+		/// Creates the enemy team used by debug mode.
 		/// </summary>
-		private static Erelia.Core.Encounter.EncounterTable CreateDebugEncounterTable()
+		private static Erelia.Core.Creature.Team CreateDebugEnemyTeam()
 		{
-			return new Erelia.Core.Encounter.EncounterTable
+			var encounterTable = new Erelia.Core.Encounter.EncounterTable
 			{
-				EncounterChance = DebugEncounterChance,
-				BaseRadius = DebugEncounterBaseRadius,
-				NoiseAmplitude = DebugEncounterNoiseAmplitude,
-				NoiseScale = DebugEncounterNoiseScale,
-				NoiseSeed = DebugEncounterNoiseSeed,
-				PlacementRadius = DebugEncounterPlacementRadius,
 				Teams = new[]
 				{
 					new Erelia.Core.Encounter.EncounterTable.TeamEntry
@@ -131,6 +125,9 @@ namespace Erelia.Battle
 					}
 				}
 			};
+
+			encounterTable.TryLoadRandomTeam(out Erelia.Core.Creature.Team team);
+			return team;
 		}
 
 		/// <summary>

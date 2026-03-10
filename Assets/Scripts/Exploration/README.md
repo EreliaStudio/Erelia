@@ -41,9 +41,9 @@ Exploration contains the runtime systems for the overworld:
 - `Exploration.Player.EncounterTriggerEmitter` checks the chunk encounter grid.
 - If the player is sitting on a cell that contain an encounter ID, check if the encounter should trigger.
 - If an encounter triggers:
+  - Picks the enemy team from the encounter table.
   - Builds a battle board from the world.
-  - Writes data into `Context`.
-  - Emits `BattleSceneDataRequest`.
+  - Emits `BattleSceneDataRequest` with the board and enemy team.
 
 ## Serialization
 - World metadata is saved as JSON (`World.Model.Save`).

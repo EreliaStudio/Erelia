@@ -2,7 +2,7 @@ namespace Erelia.Battle
 {
 	/// <summary>
 	/// Serializable container for battle runtime data.
-	/// Stores the board and encounter table for the current battle.
+	/// Stores the board and enemy team for the current battle.
 	/// </summary>
 	[System.Serializable]
 	public sealed class Data
@@ -12,9 +12,9 @@ namespace Erelia.Battle
 		/// </summary>
 		public Erelia.Battle.Board.Model Board;
 		/// <summary>
-		/// Encounter table used to configure the battle.
+		/// Enemy team to fight in the current battle.
 		/// </summary>
-		public Erelia.Core.Encounter.EncounterTable EncounterTable;
+		public Erelia.Core.Creature.Team EnemyTeam;
 		/// <summary>
 		/// Shared phase-specific runtime info built as the battle progresses.
 		/// </summary>
@@ -27,7 +27,7 @@ namespace Erelia.Battle
 		{
 			// Initialize defaults for battle state.
 			Board = null;
-			EncounterTable = null;
+			EnemyTeam = null;
 			PhaseInfo = null;
 		}
 	}

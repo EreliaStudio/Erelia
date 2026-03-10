@@ -16,9 +16,9 @@ namespace Erelia.Core
 			ExplorationData.PlayerModel = playerModel;
 		}
 
-		public void SetBattle(Erelia.Core.Encounter.EncounterTable encounterTable, Erelia.Battle.Board.Model battleBoard)
+		public void SetBattle(Erelia.Core.Creature.Team enemyTeam, Erelia.Battle.Board.Model battleBoard)
 		{
-			BattleData.EncounterTable = encounterTable;
+			BattleData.EnemyTeam = enemyTeam;
 			BattleData.Board = battleBoard;
 			BattleData.PhaseInfo = new Battle.Phase.Info();
 		}
