@@ -83,8 +83,8 @@ namespace Erelia.Battle.Voxel.ShapeType
 			CardinalPointSet nonFlipped = new CardinalPointSet(
 				positiveX: new Vector3(1f, 0.5f, 0.5f),
 				negativeX: new Vector3(0f, 0.5f, 0.5f),
-				positiveZ: new Vector3(0.5f, 1f, 0.75f),
-				negativeZ: new Vector3(0.5f, 0.5f, 0.5f),
+				positiveZ: new Vector3(0.5f, 1f, 1f),
+				negativeZ: new Vector3(0.5f, 0f, 0f),
 				stationary: new Vector3(0.5f, 0.5f, 0.5f));
 
 			CardinalPointSet flipped = new CardinalPointSet(

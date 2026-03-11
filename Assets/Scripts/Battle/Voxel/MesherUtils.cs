@@ -5,12 +5,13 @@ using UnityEngine;
 namespace Erelia.Battle.Voxel.MesherUtils
 {
 	/// <summary>
-	/// Caches transformed cardinal point sets by (source set reference, orientation, flip).
+	/// Caches transformed cardinal point sets by (source set reference, orientation).
 	/// </summary>
 	/// <remarks>
 	/// This mirrors the role of <see cref="Erelia.Core.VoxelKit.MesherUtils.FaceByOrientationCache"/>,
 	/// but for battle voxel cardinal point sets instead of faces.
-	/// The key uses reference equality for the source set.
+	/// The source set is already selected per flip orientation before entering the cache,
+	/// so only the cardinal Y rotation remains to be applied here.
 	/// </remarks>
 	public static class CardinalPointSetByOrientationCache
 	{
@@ -28,21 +29,14 @@ namespace Erelia.Battle.Voxel.MesherUtils
 			/// </summary>
 			private readonly Erelia.Core.VoxelKit.Orientation orientation;
 			/// <summary>
-			/// Flip orientation applied to the point set.
-			/// </summary>
-			private readonly Erelia.Core.VoxelKit.FlipOrientation flipOrientation;
-
-			/// <summary>
 			/// Creates a cache key from a point set and orientations.
 			/// </summary>
 			public Key(
 				CardinalPointSet source,
-				Erelia.Core.VoxelKit.Orientation orientation,
-				Erelia.Core.VoxelKit.FlipOrientation flipOrientation)
+				Erelia.Core.VoxelKit.Orientation orientation)
 			{
 				this.source = source;
 				this.orientation = orientation;
-				this.flipOrientation = flipOrientation;
 			}
 
 			/// <summary>
@@ -51,8 +45,7 @@ namespace Erelia.Battle.Voxel.MesherUtils
 			public bool Equals(Key other)
 			{
 				return ReferenceEquals(source, other.source)
-					&& orientation == other.orientation
-					&& flipOrientation == other.flipOrientation;
+					&& orientation == other.orientation;
 			}
 
 			/// <summary>
@@ -72,7 +65,6 @@ namespace Erelia.Battle.Voxel.MesherUtils
 				unchecked
 				{
 					hash = (hash * 397) ^ (int)orientation;
-					hash = (hash * 397) ^ (int)flipOrientation;
 				}
 				return hash;
 			}
@@ -87,7 +79,6 @@ namespace Erelia.Battle.Voxel.MesherUtils
 		public static bool TryGetValue(
 			CardinalPointSet source,
 			Erelia.Core.VoxelKit.Orientation orientation,
-			Erelia.Core.VoxelKit.FlipOrientation flipOrientation,
 			out CardinalPointSet output)
 		{
 			output = null;
@@ -96,14 +87,14 @@ namespace Erelia.Battle.Voxel.MesherUtils
 				return false;
 			}
 
-			var key = new Key(source, orientation, flipOrientation);
+			var key = new Key(source, orientation);
 			if (Collection.TryGetValue(key, out CardinalPointSet cached))
 			{
 				output = cached;
 				return true;
 			}
 
-			output = TransformCardinalPoints(source, orientation, flipOrientation);
+			output = TransformCardinalPoints(source, orientation);
 			Collection[key] = output;
 			return true;
 		}
@@ -113,15 +104,69 @@ namespace Erelia.Battle.Voxel.MesherUtils
 		/// </summary>
 		private static CardinalPointSet TransformCardinalPoints(
 			CardinalPointSet source,
-			Erelia.Core.VoxelKit.Orientation orientation,
-			Erelia.Core.VoxelKit.FlipOrientation flipOrientation)
+			Erelia.Core.VoxelKit.Orientation orientation)
 		{
-			Vector3 posX = Erelia.Core.VoxelKit.Utils.Geometry.TransformPoint(source.PositiveX, orientation, flipOrientation);
-			Vector3 negX = Erelia.Core.VoxelKit.Utils.Geometry.TransformPoint(source.NegativeX, orientation, flipOrientation);
-			Vector3 posZ = Erelia.Core.VoxelKit.Utils.Geometry.TransformPoint(source.PositiveZ, orientation, flipOrientation);
-			Vector3 negZ = Erelia.Core.VoxelKit.Utils.Geometry.TransformPoint(source.NegativeZ, orientation, flipOrientation);
-			Vector3 stationary = Erelia.Core.VoxelKit.Utils.Geometry.TransformPoint(source.Stationary, orientation, flipOrientation);
+			Vector3 posX = TransformPointForWorldDirection(source, Erelia.Battle.Voxel.CardinalPoint.PositiveX, orientation);
+			Vector3 negX = TransformPointForWorldDirection(source, Erelia.Battle.Voxel.CardinalPoint.NegativeX, orientation);
+			Vector3 posZ = TransformPointForWorldDirection(source, Erelia.Battle.Voxel.CardinalPoint.PositiveZ, orientation);
+			Vector3 negZ = TransformPointForWorldDirection(source, Erelia.Battle.Voxel.CardinalPoint.NegativeZ, orientation);
+			Vector3 stationary = Erelia.Core.VoxelKit.Utils.Geometry.TransformPoint(
+				source.Stationary,
+				orientation,
+				Erelia.Core.VoxelKit.FlipOrientation.PositiveY);
 			return new CardinalPointSet(posX, negX, posZ, negZ, stationary);
+		}
+
+		private static Vector3 TransformPointForWorldDirection(
+			CardinalPointSet source,
+			Erelia.Battle.Voxel.CardinalPoint worldDirection,
+			Erelia.Core.VoxelKit.Orientation orientation)
+		{
+			Erelia.Battle.Voxel.CardinalPoint localDirection = ResolveLocalDirection(worldDirection, orientation);
+			return Erelia.Core.VoxelKit.Utils.Geometry.TransformPoint(
+				source.Get(localDirection),
+				orientation,
+				Erelia.Core.VoxelKit.FlipOrientation.PositiveY);
+		}
+
+		private static Erelia.Battle.Voxel.CardinalPoint ResolveLocalDirection(
+			Erelia.Battle.Voxel.CardinalPoint worldDirection,
+			Erelia.Core.VoxelKit.Orientation orientation)
+		{
+			switch (orientation)
+			{
+				case Erelia.Core.VoxelKit.Orientation.PositiveX:
+					return worldDirection;
+				case Erelia.Core.VoxelKit.Orientation.PositiveZ:
+					return worldDirection switch
+					{
+						Erelia.Battle.Voxel.CardinalPoint.PositiveX => Erelia.Battle.Voxel.CardinalPoint.PositiveZ,
+						Erelia.Battle.Voxel.CardinalPoint.NegativeX => Erelia.Battle.Voxel.CardinalPoint.NegativeZ,
+						Erelia.Battle.Voxel.CardinalPoint.PositiveZ => Erelia.Battle.Voxel.CardinalPoint.NegativeX,
+						Erelia.Battle.Voxel.CardinalPoint.NegativeZ => Erelia.Battle.Voxel.CardinalPoint.PositiveX,
+						_ => Erelia.Battle.Voxel.CardinalPoint.Stationary
+					};
+				case Erelia.Core.VoxelKit.Orientation.NegativeX:
+					return worldDirection switch
+					{
+						Erelia.Battle.Voxel.CardinalPoint.PositiveX => Erelia.Battle.Voxel.CardinalPoint.NegativeX,
+						Erelia.Battle.Voxel.CardinalPoint.NegativeX => Erelia.Battle.Voxel.CardinalPoint.PositiveX,
+						Erelia.Battle.Voxel.CardinalPoint.PositiveZ => Erelia.Battle.Voxel.CardinalPoint.NegativeZ,
+						Erelia.Battle.Voxel.CardinalPoint.NegativeZ => Erelia.Battle.Voxel.CardinalPoint.PositiveZ,
+						_ => Erelia.Battle.Voxel.CardinalPoint.Stationary
+					};
+				case Erelia.Core.VoxelKit.Orientation.NegativeZ:
+					return worldDirection switch
+					{
+						Erelia.Battle.Voxel.CardinalPoint.PositiveX => Erelia.Battle.Voxel.CardinalPoint.NegativeZ,
+						Erelia.Battle.Voxel.CardinalPoint.NegativeX => Erelia.Battle.Voxel.CardinalPoint.PositiveZ,
+						Erelia.Battle.Voxel.CardinalPoint.PositiveZ => Erelia.Battle.Voxel.CardinalPoint.PositiveX,
+						Erelia.Battle.Voxel.CardinalPoint.NegativeZ => Erelia.Battle.Voxel.CardinalPoint.NegativeX,
+						_ => Erelia.Battle.Voxel.CardinalPoint.Stationary
+					};
+				default:
+					return worldDirection;
+			}
 		}
 	}
 }

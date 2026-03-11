@@ -4,6 +4,8 @@ namespace Erelia.Battle.Board
 {
 	public static class UnitPlacementUtility
 	{
+		private const float HorizontalAlignmentEpsilon = 0.001f;
+
 		private static readonly Vector3 DefaultStationaryOffset = new Vector3(0.5f, 1f, 0.5f);
 		private static readonly Vector3 DefaultPositiveXOffset = new Vector3(1f, 1f, 0.5f);
 		private static readonly Vector3 DefaultNegativeXOffset = new Vector3(0f, 1f, 0.5f);
@@ -83,10 +85,10 @@ namespace Erelia.Battle.Board
 			Erelia.Battle.Board.Model board,
 			Vector3Int currentCell,
 			Vector3Int nextCell,
-			float maximumGap,
-			out float gap)
+			float maximumVerticalGap,
+			out Vector3 pointDelta)
 		{
-			gap = float.PositiveInfinity;
+			pointDelta = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
 			if (!TryResolveMovementTransitionLocalPositions(
 					board,
 					currentCell,
@@ -97,8 +99,10 @@ namespace Erelia.Battle.Board
 				return false;
 			}
 
-			gap = Vector3.Distance(currentExitLocalPosition, nextEntryLocalPosition);
-			return gap <= maximumGap;
+			pointDelta = nextEntryLocalPosition - currentExitLocalPosition;
+			return Mathf.Abs(pointDelta.x) <= HorizontalAlignmentEpsilon &&
+				Mathf.Abs(pointDelta.z) <= HorizontalAlignmentEpsilon &&
+				Mathf.Abs(pointDelta.y) <= maximumVerticalGap;
 		}
 
 		private static bool TryResolveEntryPointForStep(
@@ -122,21 +126,26 @@ namespace Erelia.Battle.Board
 			out Erelia.Battle.Voxel.CardinalPoint entryPoint)
 		{
 			Vector3Int delta = nextCell - currentCell;
-			switch ((delta.x, delta.y, delta.z))
+			bool isPositiveXMove = delta.x == 1 && delta.z == 0;
+			bool isNegativeXMove = delta.x == -1 && delta.z == 0;
+			bool isPositiveZMove = delta.z == 1 && delta.x == 0;
+			bool isNegativeZMove = delta.z == -1 && delta.x == 0;
+
+			switch (true)
 			{
-				case (1, 0, 0):
+				case true when isPositiveXMove:
 					exitPoint = Erelia.Battle.Voxel.CardinalPoint.PositiveX;
 					entryPoint = Erelia.Battle.Voxel.CardinalPoint.NegativeX;
 					return true;
-				case (-1, 0, 0):
+				case true when isNegativeXMove:
 					exitPoint = Erelia.Battle.Voxel.CardinalPoint.NegativeX;
 					entryPoint = Erelia.Battle.Voxel.CardinalPoint.PositiveX;
 					return true;
-				case (0, 0, 1):
+				case true when isPositiveZMove:
 					exitPoint = Erelia.Battle.Voxel.CardinalPoint.PositiveZ;
 					entryPoint = Erelia.Battle.Voxel.CardinalPoint.NegativeZ;
 					return true;
-				case (0, 0, -1):
+				case true when isNegativeZMove:
 					exitPoint = Erelia.Battle.Voxel.CardinalPoint.NegativeZ;
 					entryPoint = Erelia.Battle.Voxel.CardinalPoint.PositiveZ;
 					return true;
