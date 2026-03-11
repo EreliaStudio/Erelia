@@ -14,7 +14,6 @@ Core flow:
 `EncounterTable` stores encounter parameters:
 - `EncounterChance` (0..1)
 - `BaseRadius`, `NoiseAmplitude`, `NoiseScale`, `NoiseSeed`
-- `PlacementRadius`
 - `Teams` (weighted list of team paths)
 
 Example JSON:
@@ -25,7 +24,6 @@ Example JSON:
   "NoiseAmplitude": 4,
   "NoiseScale": 0.15,
   "NoiseSeed": 1337,
-  "PlacementRadius": 3,
   "Teams": [
     { "TeamPath": "Encounters/Teams/Forest_Team_A.json", "Weight": 70 },
     { "TeamPath": "Encounters/Teams/Forest_Team_B.json", "Weight": 30 }

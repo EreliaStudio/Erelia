@@ -184,6 +184,7 @@ namespace Erelia.Battle.Phase.Placement
 
 			if (!Erelia.Battle.Phase.Placement.PlacementListBuilder.TryBuildFromAcceptableCoordinates(
 					battleData.AcceptableCoordinates,
+					battleData.Board != null ? battleData.Board.SizeZ : 0,
 					out playerPlacementCoordinates,
 					out enemyPlacementCoordinates))
 			{

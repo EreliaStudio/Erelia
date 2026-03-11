@@ -30,6 +30,7 @@ namespace Erelia.Battle.Unit
 		public Erelia.Core.Creature.Stats TotalStats => totalStats;
 		public int MaxHealth => totalStats.Health;
 		public int CurrentHealth { get; private set; }
+		public bool IsAlive => CurrentHealth > 0;
 		public float BaseStamina => Mathf.Max(MinimumStamina, totalStats.Stamina);
 		public float CurrentStamina { get; private set; }
 		public bool IsTakingTurn { get; private set; }
@@ -40,6 +41,11 @@ namespace Erelia.Battle.Unit
 
 		public bool TickStamina(float deltaTime)
 		{
+			if (!IsAlive)
+			{
+				return false;
+			}
+
 			if (deltaTime <= 0f || IsTakingTurn)
 			{
 				return IsReadyForTurn;
@@ -51,6 +57,11 @@ namespace Erelia.Battle.Unit
 
 		public void BeginTurn()
 		{
+			if (!IsAlive)
+			{
+				return;
+			}
+
 			IsTakingTurn = true;
 			CurrentStamina = 0f;
 		}
@@ -58,12 +69,65 @@ namespace Erelia.Battle.Unit
 		public void EndTurn()
 		{
 			IsTakingTurn = false;
+			if (!IsAlive)
+			{
+				return;
+			}
+
 			ResetStamina();
 		}
 
 		public void ResetStamina()
 		{
 			CurrentStamina = BaseStamina;
+		}
+
+		public bool SetCurrentHealth(int value)
+		{
+			int clampedValue = Mathf.Clamp(value, 0, MaxHealth);
+			if (clampedValue == CurrentHealth)
+			{
+				return false;
+			}
+
+			CurrentHealth = clampedValue;
+			if (!IsAlive)
+			{
+				IsTakingTurn = false;
+				CurrentStamina = BaseStamina;
+			}
+
+			return true;
+		}
+
+		public bool ChangeHealth(int delta)
+		{
+			if (delta == 0)
+			{
+				return false;
+			}
+
+			return SetCurrentHealth(CurrentHealth + delta);
+		}
+
+		public bool ApplyDamage(int amount)
+		{
+			if (amount <= 0)
+			{
+				return false;
+			}
+
+			return SetCurrentHealth(CurrentHealth - amount);
+		}
+
+		public bool RestoreHealth(int amount)
+		{
+			if (amount <= 0)
+			{
+				return false;
+			}
+
+			return SetCurrentHealth(CurrentHealth + amount);
 		}
 	}
 }

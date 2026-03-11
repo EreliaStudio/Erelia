@@ -1,42 +1,39 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-
 namespace Erelia.Battle.UI
 {
 	public sealed class BattleCreatureCardElement : Erelia.Core.UI.CreatureCardElement
 	{
-		[SerializeField] private Image staminaTrackImage;
-		[SerializeField] private Image staminaFillImage;
-		[SerializeField] private TMP_Text staminaValueText;
-		[SerializeField] private Color playerStaminaColor = new Color(0.2f, 0.72f, 1f, 1f);
-		[SerializeField] private Color enemyStaminaColor = new Color(1f, 0.48f, 0.2f, 1f);
+		[SerializeField] private Erelia.Core.UI.ProgressBarView staminaBar;
+		[SerializeField] private TMP_Text healthValueText;
+		[SerializeField] private Color staminaBarColor = new Color(0.2f, 0.72f, 1f, 1f);
 		[SerializeField] private Color activeTurnColor = new Color(1f, 0.82f, 0.2f, 0.9f);
+		[SerializeField] private Color knockedOutColor = new Color(0.35f, 0.18f, 0.18f, 0.95f);
 
+		private bool isAlive;
 		private bool isTurnActive;
-		private Erelia.Battle.Side side;
-		private RectTransform staminaFillRect;
-		private Vector2 baseFillOffsetMin;
-		private Vector2 baseFillOffsetMax;
-		private float displayedProgress01;
-		private bool showStaminaBar;
-		private bool hasCachedFillLayout;
+		private int currentHealth;
+		private int maxHealth;
+		private float currentStaminaSeconds;
 
 		protected override void Awake()
 		{
 			base.Awake();
-			CacheFillLayout();
+			RefreshStaminaBar(0f, false);
+			RefreshHealthValueText(false);
 		}
 
 		protected override void OnEnable()
 		{
 			base.OnEnable();
-			CacheFillLayout();
 
 			if (LinkedUnit == null)
 			{
 				ResetBattleState();
+				return;
 			}
+
+			RefreshHealthValueText(true);
 		}
 
 		public override void LinkUnit(Erelia.Battle.Unit.Presenter presenter)
@@ -51,15 +48,24 @@ namespace Erelia.Battle.UI
 
 		public override void ApplySnapshot(Erelia.Battle.Unit.Snapshot snapshot)
 		{
-			isTurnActive = snapshot.IsTurnActive;
-			side = snapshot.Side;
+			isAlive = snapshot.IsAlive;
+			isTurnActive = snapshot.IsTurnActive && snapshot.IsAlive;
+			currentHealth = snapshot.CurrentHealth;
+			maxHealth = snapshot.MaxHealth;
+			currentStaminaSeconds = snapshot.CurrentStaminaSeconds;
 			base.ApplySnapshot(snapshot);
 			RefreshStaminaBar(snapshot.StaminaProgress01, true);
-			RefreshStaminaLabel(snapshot.CurrentStaminaSeconds, true);
+			RefreshHealthValueText(true);
 		}
 
 		protected override bool TryGetOverrideBackgroundColor(out Color color)
 		{
+			if (!isAlive)
+			{
+				color = knockedOutColor;
+				return true;
+			}
+
 			if (isTurnActive)
 			{
 				color = activeTurnColor;
@@ -71,98 +77,61 @@ namespace Erelia.Battle.UI
 
 		private void ResetBattleState()
 		{
+			isAlive = false;
 			isTurnActive = false;
-			side = default;
+			currentHealth = 0;
+			maxHealth = 0;
+			currentStaminaSeconds = 0f;
 			RefreshStaminaBar(0f, false);
-			RefreshStaminaLabel(0f, false);
+			RefreshHealthValueText(false);
 			RefreshBackgroundColor();
 		}
 
 		private void RefreshStaminaBar(float progress01, bool hasUnit)
 		{
-			displayedProgress01 = Mathf.Clamp01(progress01);
-			showStaminaBar = hasUnit;
-
-			if (staminaTrackImage != null)
+			bool showStaminaBar = hasUnit && isAlive;
+			if (staminaBar != null && staminaBar.gameObject.activeSelf != showStaminaBar)
 			{
-				staminaTrackImage.type = Image.Type.Sliced;
-				staminaTrackImage.enabled = hasUnit;
+				staminaBar.gameObject.SetActive(showStaminaBar);
 			}
 
-			if (staminaFillImage == null)
+			if (staminaBar == null)
 			{
 				return;
 			}
 
-			CacheFillLayout();
-			staminaFillImage.enabled = hasUnit;
-			staminaFillImage.type = Image.Type.Sliced;
-			staminaFillImage.color = side == Erelia.Battle.Side.Enemy
-				? enemyStaminaColor
-				: playerStaminaColor;
-			ApplyFillWidth();
+			staminaBar.SetFillColor(staminaBarColor);
+			staminaBar.SetProgress(showStaminaBar ? progress01 : 0f);
+			staminaBar.SetLabel(showStaminaBar
+				? BuildStaminaValueLabel(currentStaminaSeconds)
+				: string.Empty);
 		}
 
-		private void RefreshStaminaLabel(float currentStaminaSeconds, bool hasUnit)
+		private void RefreshHealthValueText(bool hasUnit)
 		{
-			if (staminaValueText == null)
+			if (healthValueText == null)
 			{
 				return;
 			}
 
-			staminaValueText.enabled = hasUnit;
-			staminaValueText.text = hasUnit
-				? $"{Mathf.Max(0f, currentStaminaSeconds):0.0}s"
+			healthValueText.text = hasUnit
+				? BuildHealthValueLabel(currentHealth, maxHealth, isAlive)
 				: string.Empty;
 		}
 
-		private void OnRectTransformDimensionsChange()
+		private static string BuildHealthValueLabel(int currentHealth, int maxHealth, bool isAlive)
 		{
-			ApplyFillWidth();
+			if (!isAlive)
+			{
+				return "Health : KO";
+			}
+
+			return $"Health : {Mathf.Max(0, currentHealth)} / {Mathf.Max(0, maxHealth)}";
 		}
 
-		private void CacheFillLayout()
+		private static string BuildStaminaValueLabel(float currentStaminaSeconds)
 		{
-			if (hasCachedFillLayout || staminaFillImage == null)
-			{
-				return;
-			}
-
-			staminaFillRect = staminaFillImage.rectTransform;
-			if (staminaFillRect == null)
-			{
-				return;
-			}
-
-			baseFillOffsetMin = staminaFillRect.offsetMin;
-			baseFillOffsetMax = staminaFillRect.offsetMax;
-			hasCachedFillLayout = true;
-		}
-
-		private void ApplyFillWidth()
-		{
-			if (!hasCachedFillLayout || staminaFillRect == null)
-			{
-				return;
-			}
-
-			RectTransform parentRect = staminaFillRect.parent as RectTransform;
-			if (parentRect == null)
-			{
-				return;
-			}
-
-			staminaFillRect.offsetMin = baseFillOffsetMin;
-
-			float availableWidth = Mathf.Max(
-				0f,
-				parentRect.rect.width + baseFillOffsetMax.x - baseFillOffsetMin.x);
-			float hiddenWidth = (1f - displayedProgress01) * availableWidth;
-
-			staminaFillRect.offsetMax = new Vector2(
-				baseFillOffsetMax.x - hiddenWidth,
-				baseFillOffsetMax.y);
-			staminaFillImage.enabled = showStaminaBar;
+			return $"{Mathf.Max(0f, currentStaminaSeconds):0.0} seconds";
 		}
 	}
 }

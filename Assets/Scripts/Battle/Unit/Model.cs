@@ -26,7 +26,9 @@ namespace Erelia.Battle.Unit
 		public string DisplayName => Creature != null ? Creature.DisplayName : string.Empty;
 		public Erelia.Battle.Unit.LiveStats LiveStats { get; }
 		public Erelia.Core.Creature.Stats Stats => LiveStats.TotalStats;
-		public float BaseStaminaSeconds => LiveStats.BaseStamina;
+		public int MaxHealth => LiveStats.MaxHealth;
+		public int CurrentHealth => LiveStats.CurrentHealth;
+		public bool IsAlive => LiveStats.IsAlive;
 		public float CurrentStaminaSeconds => LiveStats.CurrentStamina;
 		public bool IsTakingTurn => LiveStats.IsTakingTurn;
 		public bool IsReadyForTurn => LiveStats.IsReadyForTurn;
@@ -77,6 +79,26 @@ namespace Erelia.Battle.Unit
 		public void ResetStamina()
 		{
 			LiveStats.ResetStamina();
+		}
+
+		public bool SetCurrentHealth(int value)
+		{
+			return LiveStats.SetCurrentHealth(value);
+		}
+
+		public bool ChangeHealth(int delta)
+		{
+			return LiveStats.ChangeHealth(delta);
+		}
+
+		public bool ApplyDamage(int amount)
+		{
+			return LiveStats.ApplyDamage(amount);
+		}
+
+		public bool RestoreHealth(int amount)
+		{
+			return LiveStats.RestoreHealth(amount);
 		}
 
 		private static Erelia.Core.Creature.Stats ResolveSpeciesStats(Erelia.Core.Creature.Instance.Model creature)

@@ -95,7 +95,7 @@ namespace Erelia.Battle
 			for (int i = 0; i < units.Count; i++)
 			{
 				Erelia.Battle.Unit.Presenter candidate = units[i];
-				if (candidate == null || !candidate.IsPlaced || candidate.Cell != coordinate)
+				if (candidate == null || !candidate.IsAlive || !candidate.IsPlaced || candidate.Cell != coordinate)
 				{
 					continue;
 				}

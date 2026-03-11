@@ -27,8 +27,9 @@ namespace Erelia.Battle.Phase.EnemyTurn
 
 			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
 			Erelia.Battle.Unit.Presenter activeUnit = battleData?.ActiveUnit;
-			if (activeUnit == null)
+			if (activeUnit == null || !activeUnit.IsAlive)
 			{
+				battleData?.ClearActiveUnit();
 				Orchestrator?.RequestTransition(Erelia.Battle.Phase.Id.Idle);
 				return;
 			}
@@ -56,6 +57,13 @@ namespace Erelia.Battle.Phase.EnemyTurn
 			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
 			if (battleData?.ActiveUnit == null)
 			{
+				return;
+			}
+
+			if (!battleData.ActiveUnit.IsAlive)
+			{
+				battleData.ClearActiveUnit();
+				activeOrchestrator?.RequestTransition(Erelia.Battle.Phase.Id.Idle);
 				return;
 			}
 

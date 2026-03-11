@@ -24,8 +24,9 @@ namespace Erelia.Battle.Phase.PlayerTurn
 
 			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
 			Erelia.Battle.Unit.Presenter activeUnit = battleData?.ActiveUnit;
-			if (activeUnit == null)
+			if (activeUnit == null || !activeUnit.IsAlive)
 			{
+				battleData?.ClearActiveUnit();
 				Orchestrator?.RequestTransition(Erelia.Battle.Phase.Id.Idle);
 				return;
 			}
@@ -46,6 +47,18 @@ namespace Erelia.Battle.Phase.PlayerTurn
 		{
 			UnbindEndTurnButton();
 			activeOrchestrator = null;
+		}
+
+		public override void Tick(Erelia.Battle.Orchestrator Orchestrator, float deltaTime)
+		{
+			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
+			if (battleData?.ActiveUnit == null || battleData.ActiveUnit.IsAlive)
+			{
+				return;
+			}
+
+			battleData.ClearActiveUnit();
+			activeOrchestrator?.RequestTransition(Erelia.Battle.Phase.Id.Idle);
 		}
 
 		private void EndTurn()

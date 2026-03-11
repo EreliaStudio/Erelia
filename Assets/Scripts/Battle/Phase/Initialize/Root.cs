@@ -14,9 +14,12 @@ namespace Erelia.Battle.Phase.Initialize
 		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
 		[SerializeField] private Transform playerUnitsRoot;
 		[SerializeField] private Transform enemyUnitsRoot;
+		[SerializeField] private GameObject battleUnitHealthBarPrefab;
+		[SerializeField] private string battleUnitHealthBarResourcePath = "Prefab/BattleUnitHealthBar";
 		[SerializeField] private Vector3 stagedUnitSpacing = new Vector3(0f, 0f, 2f);
 
 		private bool pendingSetup;
+		private bool hasWarnedMissingHealthBarPrefab;
 
 		public override Erelia.Battle.Phase.Id Id => Erelia.Battle.Phase.Id.Initialize;
 
@@ -87,6 +90,7 @@ namespace Erelia.Battle.Phase.Initialize
 			}
 
 			Transform parent = ResolveUnitsRoot(side);
+			GameObject healthBarPrefab = ResolveHealthBarPrefab();
 			Vector3 baseWorldPosition = parent != null ? parent.position : Vector3.zero;
 			for (int i = 0; i < slots.Length; i++)
 			{
@@ -97,10 +101,33 @@ namespace Erelia.Battle.Phase.Initialize
 				}
 
 				var unitModel = new Erelia.Battle.Unit.Model(creature, side);
-				var unitPresenter = new Erelia.Battle.Unit.Presenter(unitModel, parent);
+				var unitPresenter = new Erelia.Battle.Unit.Presenter(unitModel, parent, healthBarPrefab);
 				unitPresenter.Stage(baseWorldPosition + ResolveStageOffset(i));
 				battleData.AddUnit(unitPresenter);
 			}
+		}
+
+		private GameObject ResolveHealthBarPrefab()
+		{
+			if (battleUnitHealthBarPrefab != null)
+			{
+				return battleUnitHealthBarPrefab;
+			}
+
+			if (string.IsNullOrEmpty(battleUnitHealthBarResourcePath))
+			{
+				return null;
+			}
+
+			battleUnitHealthBarPrefab = Resources.Load<GameObject>(battleUnitHealthBarResourcePath);
+			if (battleUnitHealthBarPrefab == null && !hasWarnedMissingHealthBarPrefab)
+			{
+				Debug.LogWarning(
+					$"[Erelia.Battle.Phase.Initialize.Root] Failed to load battle unit health bar prefab from Resources path '{battleUnitHealthBarResourcePath}'.");
+				hasWarnedMissingHealthBarPrefab = true;
+			}
+
+			return battleUnitHealthBarPrefab;
 		}
 
 		private Transform ResolveUnitsRoot(Erelia.Battle.Side side)

@@ -8,9 +8,9 @@ namespace Erelia.Battle.Unit
 			Sprite icon,
 			string displayName,
 			bool isPlaced,
-			Erelia.Battle.Side side,
-			Vector3Int cell,
-			float baseStaminaSeconds,
+			bool isAlive,
+			int currentHealth,
+			int maxHealth,
 			float currentStaminaSeconds,
 			float staminaProgress01,
 			bool isTurnActive)
@@ -18,9 +18,9 @@ namespace Erelia.Battle.Unit
 			Icon = icon;
 			DisplayName = displayName;
 			IsPlaced = isPlaced;
-			Side = side;
-			Cell = cell;
-			BaseStaminaSeconds = baseStaminaSeconds;
+			IsAlive = isAlive;
+			CurrentHealth = currentHealth;
+			MaxHealth = maxHealth;
 			CurrentStaminaSeconds = currentStaminaSeconds;
 			StaminaProgress01 = staminaProgress01;
 			IsTurnActive = isTurnActive;
@@ -29,9 +29,9 @@ namespace Erelia.Battle.Unit
 		public Sprite Icon { get; }
 		public string DisplayName { get; }
 		public bool IsPlaced { get; }
-		public Erelia.Battle.Side Side { get; }
-		public Vector3Int Cell { get; }
-		public float BaseStaminaSeconds { get; }
+		public bool IsAlive { get; }
+		public int CurrentHealth { get; }
+		public int MaxHealth { get; }
 		public float CurrentStaminaSeconds { get; }
 		public float StaminaProgress01 { get; }
 		public bool IsTurnActive { get; }

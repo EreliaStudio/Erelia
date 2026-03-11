@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -19,6 +20,7 @@ namespace Erelia.Core.UI
 
 		[SerializeField] private Image backgroundImage;
 		[SerializeField] private LayoutElement layoutElement;
+		[SerializeField] private GameObject expandedValuesRoot;
 		[SerializeField] private Color idleColor = Color.white;
 		[SerializeField] private Color placedColor = Color.gray;
 		[SerializeField] private Color emptyColor = new Color(0.2f, 0.2f, 0.2f, 0.85f);
@@ -33,12 +35,16 @@ namespace Erelia.Core.UI
 		private bool unitSubscribed;
 
 		public Erelia.Battle.Unit.Presenter LinkedUnit => linkedUnit;
+		protected bool IsExpanded => isExpanded;
 		protected bool IsPlaced => isPlaced;
+		protected event Action Expanded;
+		protected event Action Reduced;
 
 		protected virtual void Awake()
 		{
 			rectTransform = transform as RectTransform;
 			ApplyExpandedState(false);
+			SetExpandedValuesVisible(false);
 			RefreshBackgroundColor();
 		}
 
@@ -125,7 +131,7 @@ namespace Erelia.Core.UI
 			SetExpanded(false);
 		}
 
-		protected virtual void SetExpanded(bool value)
+		protected void SetExpanded(bool value)
 		{
 			if (linkedUnit == null)
 			{
@@ -139,6 +145,15 @@ namespace Erelia.Core.UI
 
 			isExpanded = value;
 			ApplyExpandedState(isExpanded);
+			SetExpandedValuesVisible(isExpanded);
+
+			if (isExpanded)
+			{
+				Expanded?.Invoke();
+				return;
+			}
+
+			Reduced?.Invoke();
 		}
 
 		private void SubscribeToUnit()
@@ -202,6 +217,16 @@ namespace Erelia.Core.UI
 			{
 				LayoutRebuilder.MarkLayoutForRebuild(parentRectTransform);
 			}
+		}
+
+		private void SetExpandedValuesVisible(bool value)
+		{
+			if (expandedValuesRoot == null || expandedValuesRoot.activeSelf == value)
+			{
+				return;
+			}
+
+			expandedValuesRoot.SetActive(value);
 		}
 	}
 }

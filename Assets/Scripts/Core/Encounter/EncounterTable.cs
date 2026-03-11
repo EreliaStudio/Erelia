@@ -11,7 +11,6 @@ namespace Erelia.Core.Encounter
 	/// <list type="bullet">
 	/// <item><description><see cref="EncounterChance"/>: probability to attempt an encounter (0..1).</description></item>
 	/// <item><description>Spawn distribution parameters (<see cref="BaseRadius"/>, <see cref="NoiseAmplitude"/>, <see cref="NoiseScale"/>, <see cref="NoiseSeed"/>).</description></item>
-	/// <item><description><see cref="PlacementRadius"/>: minimum spacing where each team will be able to place itself.</description></item>
 	/// <item><description><see cref="Teams"/>: weighted selection of teams to spawn, referenced by a team JSON path.</description></item>
 	/// </list>
 	/// </para>
@@ -25,7 +24,6 @@ namespace Erelia.Core.Encounter
 	///   "NoiseAmplitude": 4,
 	///   "NoiseScale": 0.15,
 	///   "NoiseSeed": 1337,
-	///   "PlacementRadius": 3,
 	///   "Teams": [
 	///     { "TeamPath": "Encounters/Teams/Forest_Team_A.json", "Weight": 70 },
 	///     { "TeamPath": "Encounters/Teams/Forest_Team_B.json", "Weight": 30 }
@@ -93,12 +91,6 @@ namespace Erelia.Core.Encounter
 		/// Seed used to make the noise field deterministic.
 		/// </summary>
 		public int NoiseSeed = 1337;
-
-		/// <summary>
-		/// Minimum spacing radius used when placing encounter points.
-		/// </summary>
-		[Min(1)]
-		public int PlacementRadius = 3;
 
 		/// <summary>
 		/// Weighted list of possible teams that can be selected for an encounter.

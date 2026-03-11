@@ -60,7 +60,7 @@ namespace Erelia.Battle.Phase.Idle
 			for (int i = 0; i < units.Count; i++)
 			{
 				Erelia.Battle.Unit.Presenter unit = units[i];
-				if (unit == null || !unit.IsPlaced || unit.IsTakingTurn)
+				if (unit == null || !unit.IsAlive || !unit.IsPlaced || unit.IsTakingTurn)
 				{
 					continue;
 				}

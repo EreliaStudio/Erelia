@@ -11,7 +11,7 @@ namespace Erelia.Battle.Unit
 		private bool hasStagedWorldPosition;
 		private event Action<Erelia.Battle.Unit.Snapshot> snapshotChanged;
 
-		public Presenter(Erelia.Battle.Unit.Model model, Transform parent)
+		public Presenter(Erelia.Battle.Unit.Model model, Transform parent, GameObject healthBarPrefab = null)
 		{
 			this.model = model ?? throw new ArgumentNullException(nameof(model));
 
@@ -23,7 +23,9 @@ namespace Erelia.Battle.Unit
 
 			view = viewObject.AddComponent<Erelia.Battle.Unit.View>();
 			RefreshVisual();
+			view.SetHealthBarPrefab(healthBarPrefab);
 			view.SetVisible(true);
+			EmitSnapshot();
 		}
 
 		public Erelia.Battle.Unit.Model Model => model;
@@ -34,7 +36,9 @@ namespace Erelia.Battle.Unit
 		public Erelia.Battle.Side Side => model.Side;
 		public Vector3Int Cell => model.Cell;
 		public bool IsPlaced => model.IsPlaced;
-		public float BaseStaminaSeconds => model.BaseStaminaSeconds;
+		public int MaxHealth => model.MaxHealth;
+		public int CurrentHealth => model.CurrentHealth;
+		public bool IsAlive => model.IsAlive;
 		public float CurrentStaminaSeconds => model.CurrentStaminaSeconds;
 		public float StaminaProgress01 => model.StaminaProgress01;
 		public bool IsTakingTurn => model.IsTakingTurn;
@@ -157,6 +161,50 @@ namespace Erelia.Battle.Unit
 			}
 		}
 
+		public bool SetCurrentHealth(int value)
+		{
+			if (!model.SetCurrentHealth(value))
+			{
+				return false;
+			}
+
+			EmitSnapshot();
+			return true;
+		}
+
+		public bool ChangeHealth(int delta)
+		{
+			if (!model.ChangeHealth(delta))
+			{
+				return false;
+			}
+
+			EmitSnapshot();
+			return true;
+		}
+
+		public bool ApplyDamage(int amount)
+		{
+			if (!model.ApplyDamage(amount))
+			{
+				return false;
+			}
+
+			EmitSnapshot();
+			return true;
+		}
+
+		public bool RestoreHealth(int amount)
+		{
+			if (!model.RestoreHealth(amount))
+			{
+				return false;
+			}
+
+			EmitSnapshot();
+			return true;
+		}
+
 		public void Dispose()
 		{
 			snapshotChanged = null;
@@ -216,9 +264,9 @@ namespace Erelia.Battle.Unit
 				icon,
 				model.DisplayName,
 				model.IsPlaced,
-				model.Side,
-				model.Cell,
-				model.BaseStaminaSeconds,
+				model.IsAlive,
+				model.CurrentHealth,
+				model.MaxHealth,
 				model.CurrentStaminaSeconds,
 				model.StaminaProgress01,
 				model.IsTakingTurn);
@@ -226,7 +274,9 @@ namespace Erelia.Battle.Unit
 
 		private void EmitSnapshot()
 		{
-			snapshotChanged?.Invoke(CreateSnapshot());
+			Erelia.Battle.Unit.Snapshot snapshot = CreateSnapshot();
+			view?.ApplySnapshot(snapshot);
+			snapshotChanged?.Invoke(snapshot);
 		}
 	}
 }

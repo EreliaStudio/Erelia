@@ -176,6 +176,7 @@
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\Generation\IGenerator.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Placement\PlacementListBuilder.cs" />
     <Compile Include="Assets\Scripts\Exploration\Loader.cs" />
+    <Compile Include="Assets\Scripts\Core\UI\ProgressBarView.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMPro.cginc" />
