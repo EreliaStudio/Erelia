@@ -18,12 +18,11 @@ namespace Erelia.Battle.Unit
 		[SerializeField] private Transform pivot;
 		[SerializeField] private Transform healthBarAnchor;
 		[SerializeField] private Transform visualRoot;
-		[SerializeField] private Erelia.Core.Creature.Instance.Presenter creaturePresenter;
-		[SerializeField] private Erelia.Core.Creature.Instance.View creatureView;
 		[SerializeField] private Erelia.Core.UI.ProgressBarView healthBarView;
 		private GameObject healthBarPrefab;
 		private GameObject healthBarInstance;
 		private Erelia.Core.UI.ProgressBarView runtimeHealthBarView;
+		private Erelia.Battle.Unit.Model unit;
 		private Renderer[] visualRenderers;
 		private Transform visualRenderersRoot;
 		private Vector3 healthBarBaseScale = Vector3.one;
@@ -32,6 +31,7 @@ namespace Erelia.Battle.Unit
 		[SerializeField] private float hoveredHealthBarScaleMultiplier = 3f;
 		[SerializeField] private float hoveredHealthBarScaleLerpSpeed = 12f;
 
+		public Erelia.Battle.Unit.Model Unit => unit;
 		public Transform Pivot => ResolvePivot();
 
 		private void Awake()
@@ -93,11 +93,9 @@ namespace Erelia.Battle.Unit
 			RefreshHealthBar(snapshot.CurrentHealth, snapshot.MaxHealth);
 		}
 
-		public bool TryGetCreaturePresenter(out Erelia.Core.Creature.Instance.Presenter presenter)
+		public void SetUnit(Erelia.Battle.Unit.Model battleUnitModel)
 		{
-			CacheHierarchyReferences();
-			presenter = creaturePresenter;
-			return presenter != null;
+			unit = battleUnitModel;
 		}
 
 		private void LateUpdate()
@@ -358,21 +356,7 @@ namespace Erelia.Battle.Unit
 
 		private void CacheHierarchyReferences()
 		{
-			if (creatureView == null)
-			{
-				creatureView =
-					GetComponent<Erelia.Core.Creature.Instance.View>() ??
-					GetComponentInChildren<Erelia.Core.Creature.Instance.View>(true);
-			}
-
-			if (creaturePresenter == null)
-			{
-				creaturePresenter =
-					GetComponent<Erelia.Core.Creature.Instance.Presenter>() ??
-					GetComponentInChildren<Erelia.Core.Creature.Instance.Presenter>(true);
-			}
-
-			visualRoot ??= creatureView != null ? creatureView.transform : transform;
+			visualRoot ??= transform;
 			Transform currentVisualRoot = visualRoot != null ? visualRoot : transform;
 			if (visualRenderers == null || visualRenderers.Length == 0 || visualRenderersRoot != currentVisualRoot)
 			{
@@ -388,8 +372,7 @@ namespace Erelia.Battle.Unit
 				return pivot;
 			}
 
-			CacheHierarchyReferences();
-			return creatureView != null ? creatureView.Pivot : transform;
+			return transform;
 		}
 
 		private Transform ResolveHealthBarParent()

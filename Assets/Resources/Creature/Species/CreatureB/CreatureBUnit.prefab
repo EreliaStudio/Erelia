@@ -11,8 +11,6 @@ GameObject:
   - component: {fileID: 4359308330572691021}
   - component: {fileID: 6622222222222222210}
   - component: {fileID: 6622222222222222211}
-  - component: {fileID: 6622222222222222212}
-  - component: {fileID: 6622222222222222213}
   m_Layer: 0
   m_Name: CreatureBUnit
   m_TagString: Untagged
@@ -436,35 +434,7 @@ MonoBehaviour:
   pivot: {fileID: 0}
   healthBarAnchor: {fileID: 6622222222222222221}
   visualRoot: {fileID: 0}
-  creaturePresenter: {fileID: 6622222222222222212}
-  creatureView: {fileID: 6622222222222222213}
   healthBarView: {fileID: 6622222222222222233}
   defaultHealthBarScaleMultiplier: 2
   hoveredHealthBarScaleMultiplier: 3
   hoveredHealthBarScaleLerpSpeed: 12
---- !u!114 &6622222222222222212
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4439611910248792050}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4be9b8b3dc7f07945935f59baccd4d5c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Core.Creature.Instance.Presenter
-  view: {fileID: 6622222222222222213}
---- !u!114 &6622222222222222213
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4439611910248792050}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4da1106ca42e306459fd60df0c178bfc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Core.Creature.Instance.View
-  pivot: {fileID: 0}

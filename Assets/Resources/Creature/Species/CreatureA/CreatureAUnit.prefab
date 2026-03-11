@@ -200,8 +200,6 @@ MonoBehaviour:
   pivot: {fileID: 0}
   healthBarAnchor: {fileID: 6611111111111111121}
   visualRoot: {fileID: 0}
-  creaturePresenter: {fileID: 0}
-  creatureView: {fileID: 0}
   healthBarView: {fileID: 6611111111111111133}
   defaultHealthBarScaleMultiplier: 2
   hoveredHealthBarScaleMultiplier: 3

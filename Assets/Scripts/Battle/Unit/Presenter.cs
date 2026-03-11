@@ -53,15 +53,7 @@ namespace Erelia.Battle.Unit
 
 			view.gameObject.name = string.IsNullOrEmpty(model.DisplayName) ? "BattleUnit" : model.DisplayName;
 			view.SetVisible(true);
-
-			if (!view.TryGetCreaturePresenter(out Erelia.Core.Creature.Instance.Presenter creaturePresenter))
-			{
-				Debug.LogWarning($"[Erelia.Battle.Unit.Presenter] Unit '{view.gameObject.name}' is missing a creature presenter.");
-			}
-			else
-			{
-				creaturePresenter.SetModel(model.Creature);
-			}
+			view.SetUnit(model);
 
 			EmitSnapshot();
 		}

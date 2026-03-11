@@ -21,6 +21,7 @@ namespace Erelia.Core.UI
 		[SerializeField] private Image backgroundImage;
 		[SerializeField] private LayoutElement layoutElement;
 		[SerializeField] private GameObject expandedValuesRoot;
+		[SerializeField] private TMP_Text expandedHealthValueText;
 		[SerializeField] private Color idleColor = Color.white;
 		[SerializeField] private Color placedColor = Color.gray;
 		[SerializeField] private Color emptyColor = new Color(0.2f, 0.2f, 0.2f, 0.85f);
@@ -79,6 +80,7 @@ namespace Erelia.Core.UI
 			isPlaced = snapshot.IsPlaced;
 			image.sprite = snapshot.Icon != null ? snapshot.Icon : noCreatureSprite;
 			creatureShownName.text = string.IsNullOrEmpty(snapshot.DisplayName) ? noCreatureName : snapshot.DisplayName;
+			RefreshExpandedHealthValueText(snapshot.MaxHealth, true);
 			RefreshBackgroundColor();
 		}
 
@@ -194,6 +196,7 @@ namespace Erelia.Core.UI
 			isPlaced = false;
 			image.sprite = noCreatureSprite;
 			creatureShownName.text = noCreatureName;
+			RefreshExpandedHealthValueText(0, false);
 			SetExpanded(false);
 			RefreshBackgroundColor();
 		}
@@ -228,5 +231,23 @@ namespace Erelia.Core.UI
 
 			expandedValuesRoot.SetActive(value);
 		}
+
+		private void RefreshExpandedHealthValueText(int maxHealth, bool hasUnit)
+		{
+			if (expandedHealthValueText == null)
+			{
+				return;
+			}
+
+			expandedHealthValueText.text = hasUnit
+				? BuildExpandedHealthValueLabel(maxHealth)
+				: string.Empty;
+		}
+
+		private static string BuildExpandedHealthValueLabel(int maxHealth)
+		{
+			return $"Health : {Mathf.Max(0, maxHealth)}";
+		}
+
 	}
 }

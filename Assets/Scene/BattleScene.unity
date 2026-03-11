@@ -882,6 +882,7 @@ MonoBehaviour:
       boardPresenter: {fileID: 1079300952}
       playerUnitsRoot: {fileID: 1750010001}
       enemyUnitsRoot: {fileID: 1750010011}
+      battleUnitHealthBarPrefab: {fileID: 100000, guid: 6d3f4b8f9157477dbab5be5cb42ef238, type: 3}
       stagedUnitSpacing: {x: 0, y: 0, z: 2}
     placement:
       hudRoot: {fileID: 1283798307}

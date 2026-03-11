@@ -292,6 +292,7 @@ MonoBehaviour:
   backgroundImage: {fileID: 7061528909224990920}
   layoutElement: {fileID: 637567251687594448}
   expandedValuesRoot: {fileID: 863282659071153370}
+  expandedHealthValueText: {fileID: 7584560095251142835}
   idleColor: {r: 1, g: 1, b: 1, a: 1}
   placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   emptyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.85}

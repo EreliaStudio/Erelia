@@ -2,6 +2,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Erelia.Core.UI
 {
@@ -19,25 +22,33 @@ namespace Erelia.Core.UI
 		private TMP_Text labelText;
 		private float progress01 = 1f;
 		private string label = string.Empty;
+		private bool isApplyingProgress;
+#if UNITY_EDITOR
+		private bool editorApplyStateQueued;
+#endif
 
 		public Canvas Canvas => GetComponent<Canvas>() ?? GetComponentInParent<Canvas>();
 
 		private void Reset()
 		{
-			EnsureVisualHierarchy();
+			EnsureVisualHierarchy(true);
 			ApplyState();
 		}
 
 		private void Awake()
 		{
-			EnsureVisualHierarchy();
+			EnsureVisualHierarchy(true);
 			ApplyState();
 		}
 
 		private void OnValidate()
 		{
-			EnsureVisualHierarchy();
+#if UNITY_EDITOR
+			QueueEditorApplyState();
+#else
+			EnsureVisualHierarchy(true);
 			ApplyState();
+#endif
 		}
 
 		private void OnRectTransformDimensionsChange()
@@ -70,14 +81,14 @@ namespace Erelia.Core.UI
 			ApplyLabel();
 		}
 
-		private void EnsureVisualHierarchy()
+		private void EnsureVisualHierarchy(bool allowCreate)
 		{
-			backgroundImage = ResolveBackgroundImage();
-			fillImage = ResolveFillImage();
-			labelText = ResolveLabelText();
+			backgroundImage = ResolveBackgroundImage(allowCreate);
+			fillImage = ResolveFillImage(allowCreate);
+			labelText = ResolveLabelText(allowCreate);
 		}
 
-		private Image ResolveBackgroundImage()
+		private Image ResolveBackgroundImage(bool allowCreate)
 		{
 			if (backgroundImage != null)
 			{
@@ -105,12 +116,17 @@ namespace Erelia.Core.UI
 				return null;
 			}
 
+			if (!allowCreate)
+			{
+				return null;
+			}
+
 			Image createdImage = gameObject.AddComponent<Image>();
 			ApplyDefaultBackgroundStyle(createdImage);
 			return createdImage;
 		}
 
-		private Image ResolveFillImage()
+		private Image ResolveFillImage(bool allowCreate)
 		{
 			if (fillImage != null)
 			{
@@ -128,6 +144,11 @@ namespace Erelia.Core.UI
 			if (fillParent == null)
 			{
 				Debug.LogWarning("[Erelia.Core.UI.ProgressBarView] Failed to resolve a parent for the fill image.", this);
+				return null;
+			}
+
+			if (!allowCreate)
+			{
 				return null;
 			}
 
@@ -179,7 +200,7 @@ namespace Erelia.Core.UI
 			return null;
 		}
 
-		private TMP_Text ResolveLabelText()
+		private TMP_Text ResolveLabelText(bool allowCreate)
 		{
 			if (labelText != null)
 			{
@@ -204,6 +225,11 @@ namespace Erelia.Core.UI
 			if (rootRect == null)
 			{
 				Debug.LogWarning("[Erelia.Core.UI.ProgressBarView] Progress bars require a RectTransform to create a label.", this);
+				return null;
+			}
+
+			if (!allowCreate)
+			{
 				return null;
 			}
 
@@ -304,26 +330,39 @@ namespace Erelia.Core.UI
 
 		private void ApplyProgress()
 		{
-			if (fillImage == null)
+			if (fillImage == null || isApplyingProgress)
 			{
 				return;
 			}
 
-			RectTransform fillParent = ResolveFillParent();
-			RectTransform fillRect = fillImage.rectTransform;
-			if (fillParent == null || fillRect == null)
+			isApplyingProgress = true;
+			try
 			{
-				return;
-			}
+				RectTransform fillParent = ResolveFillParent();
+				RectTransform fillRect = fillImage.rectTransform;
+				if (fillParent == null || fillRect == null)
+				{
+					return;
+				}
 
-			float availableWidth = Mathf.Max(0f, fillParent.rect.width - (fillPadding.x * 2f));
-			float targetWidth = availableWidth * progress01;
-			fillRect.anchorMin = new Vector2(0f, 0f);
-			fillRect.anchorMax = new Vector2(0f, 1f);
-			fillRect.pivot = new Vector2(0f, 0.5f);
-			fillRect.anchoredPosition = new Vector2(fillPadding.x, 0f);
-			fillRect.sizeDelta = new Vector2(targetWidth, -(fillPadding.y * 2f));
-			fillImage.enabled = targetWidth > 0.001f;
+				float availableWidth = Mathf.Max(0f, fillParent.rect.width - (fillPadding.x * 2f));
+				float targetWidth = availableWidth * progress01;
+				SetRectTransformVector(fillRect, fillRect.anchorMin, new Vector2(0f, 0f), value => fillRect.anchorMin = value);
+				SetRectTransformVector(fillRect, fillRect.anchorMax, new Vector2(0f, 1f), value => fillRect.anchorMax = value);
+				SetRectTransformVector(fillRect, fillRect.pivot, new Vector2(0f, 0.5f), value => fillRect.pivot = value);
+				SetRectTransformVector(fillRect, fillRect.anchoredPosition, new Vector2(fillPadding.x, 0f), value => fillRect.anchoredPosition = value);
+				SetRectTransformVector(fillRect, fillRect.sizeDelta, new Vector2(targetWidth, -(fillPadding.y * 2f)), value => fillRect.sizeDelta = value);
+
+				bool shouldShowFill = targetWidth > 0.001f;
+				if (fillImage.enabled != shouldShowFill)
+				{
+					fillImage.enabled = shouldShowFill;
+				}
+			}
+			finally
+			{
+				isApplyingProgress = false;
+			}
 		}
 
 		private void ApplyLabel()
@@ -433,5 +472,50 @@ namespace Erelia.Core.UI
 		{
 			return sprite != null && sprite.border.sqrMagnitude > 0f;
 		}
+
+		private static void SetRectTransformVector(
+			RectTransform rectTransform,
+			Vector2 currentValue,
+			Vector2 targetValue,
+			System.Action<Vector2> setter)
+		{
+			if (rectTransform == null || setter == null || Approximately(currentValue, targetValue))
+			{
+				return;
+			}
+
+			setter(targetValue);
+		}
+
+		private static bool Approximately(Vector2 left, Vector2 right)
+		{
+			return Mathf.Approximately(left.x, right.x) &&
+				Mathf.Approximately(left.y, right.y);
+		}
+
+#if UNITY_EDITOR
+		private void QueueEditorApplyState()
+		{
+			if (editorApplyStateQueued)
+			{
+				return;
+			}
+
+			editorApplyStateQueued = true;
+			EditorApplication.delayCall += ApplyStateFromEditor;
+		}
+
+		private void ApplyStateFromEditor()
+		{
+			editorApplyStateQueued = false;
+			if (this == null)
+			{
+				return;
+			}
+
+			EnsureVisualHierarchy(false);
+			ApplyState();
+		}
+#endif
 	}
 }
