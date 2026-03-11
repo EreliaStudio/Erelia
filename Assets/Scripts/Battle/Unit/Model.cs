@@ -5,7 +5,8 @@ namespace Erelia.Battle.Unit
 	public sealed class Model
 	{
 		private static readonly Vector3Int UnplacedCell = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
-		private const float DefaultBaseStaminaSeconds = 5f;
+		private static readonly Erelia.Core.Creature.Stats DefaultSpeciesStats =
+			new Erelia.Core.Creature.Stats(0, 5f);
 
 		public Model(Erelia.Core.Creature.Instance.Model creature, Erelia.Battle.Side side)
 		{
@@ -13,8 +14,9 @@ namespace Erelia.Battle.Unit
 			Side = side;
 			Cell = UnplacedCell;
 			IsPlaced = false;
-			BaseStaminaSeconds = ResolveBaseStaminaSeconds(creature);
-			CurrentStaminaSeconds = BaseStaminaSeconds;
+			LiveStats = new Erelia.Battle.Unit.LiveStats(
+				ResolveSpeciesStats(creature),
+				creature?.Stats);
 		}
 
 		public Erelia.Core.Creature.Instance.Model Creature { get; }
@@ -22,13 +24,13 @@ namespace Erelia.Battle.Unit
 		public Vector3Int Cell { get; private set; }
 		public bool IsPlaced { get; private set; }
 		public string DisplayName => Creature != null ? Creature.DisplayName : string.Empty;
-		public float BaseStaminaSeconds { get; }
-		public float CurrentStaminaSeconds { get; private set; }
-		public bool IsTakingTurn { get; private set; }
-		public bool IsReadyForTurn => CurrentStaminaSeconds <= 0f;
-		public float StaminaProgress01 => BaseStaminaSeconds <= 0f
-			? 1f
-			: Mathf.Clamp01(1f - (CurrentStaminaSeconds / BaseStaminaSeconds));
+		public Erelia.Battle.Unit.LiveStats LiveStats { get; }
+		public Erelia.Core.Creature.Stats Stats => LiveStats.TotalStats;
+		public float BaseStaminaSeconds => LiveStats.BaseStamina;
+		public float CurrentStaminaSeconds => LiveStats.CurrentStamina;
+		public bool IsTakingTurn => LiveStats.IsTakingTurn;
+		public bool IsReadyForTurn => LiveStats.IsReadyForTurn;
+		public float StaminaProgress01 => LiveStats.StaminaProgress01;
 
 		public bool TryGetSpecies(out Erelia.Core.Creature.Species species)
 		{
@@ -59,37 +61,29 @@ namespace Erelia.Battle.Unit
 
 		public bool TickStamina(float deltaTime)
 		{
-			if (deltaTime <= 0f || IsTakingTurn)
-			{
-				return IsReadyForTurn;
-			}
-
-			CurrentStaminaSeconds = Mathf.Max(0f, CurrentStaminaSeconds - deltaTime);
-			return IsReadyForTurn;
+			return LiveStats.TickStamina(deltaTime);
 		}
 
 		public void BeginTurn()
 		{
-			IsTakingTurn = true;
-			CurrentStaminaSeconds = 0f;
+			LiveStats.BeginTurn();
 		}
 
 		public void EndTurn()
 		{
-			IsTakingTurn = false;
-			ResetStamina();
+			LiveStats.EndTurn();
 		}
 
 		public void ResetStamina()
 		{
-			CurrentStaminaSeconds = BaseStaminaSeconds;
+			LiveStats.ResetStamina();
 		}
 
-		private static float ResolveBaseStaminaSeconds(Erelia.Core.Creature.Instance.Model creature)
+		private static Erelia.Core.Creature.Stats ResolveSpeciesStats(Erelia.Core.Creature.Instance.Model creature)
 		{
 			if (creature == null || creature.IsEmpty)
 			{
-				return DefaultBaseStaminaSeconds;
+				return DefaultSpeciesStats;
 			}
 
 			Erelia.Core.Creature.SpeciesRegistry registry = Erelia.Core.Creature.SpeciesRegistry.Instance;
@@ -97,10 +91,10 @@ namespace Erelia.Battle.Unit
 				!registry.TryGet(creature.SpeciesId, out Erelia.Core.Creature.Species species) ||
 				species == null)
 			{
-				return DefaultBaseStaminaSeconds;
+				return DefaultSpeciesStats;
 			}
 
-			return species.BaseStaminaSeconds;
+			return species.Stats;
 		}
 	}
 }

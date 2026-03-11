@@ -94,6 +94,7 @@
     <Compile Include="Assets\Scripts\Battle\Unit\UIView.cs" />
     <Compile Include="Assets\Scripts\Core\Events\EncounterTriggerEvent.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\BiomeData.cs" />
+    <Compile Include="Assets\Scripts\Battle\Unit\LiveStats.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Enums.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Mesher.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Defeat\Root.cs" />
@@ -164,6 +165,7 @@
     <Compile Include="Assets\Scripts\Battle\Phase\Placement\Event\PlacementUnitUnplaced.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Slope.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Definition.cs" />
+    <Compile Include="Assets\Scripts\Core\Creature\Stats.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\BattleBoardConstructor.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\Camera\Presenter.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Registry.cs" />

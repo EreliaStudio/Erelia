@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,6 +8,7 @@ namespace Erelia.Battle.UI
 	{
 		[SerializeField] private Image staminaTrackImage;
 		[SerializeField] private Image staminaFillImage;
+		[SerializeField] private TMP_Text staminaValueText;
 		[SerializeField] private Color playerStaminaColor = new Color(0.2f, 0.72f, 1f, 1f);
 		[SerializeField] private Color enemyStaminaColor = new Color(1f, 0.48f, 0.2f, 1f);
 		[SerializeField] private Color activeTurnColor = new Color(1f, 0.82f, 0.2f, 0.9f);
@@ -53,6 +55,7 @@ namespace Erelia.Battle.UI
 			side = snapshot.Side;
 			base.ApplySnapshot(snapshot);
 			RefreshStaminaBar(snapshot.StaminaProgress01, true);
+			RefreshStaminaLabel(snapshot.CurrentStaminaSeconds, true);
 		}
 
 		protected override bool TryGetOverrideBackgroundColor(out Color color)
@@ -71,6 +74,7 @@ namespace Erelia.Battle.UI
 			isTurnActive = false;
 			side = default;
 			RefreshStaminaBar(0f, false);
+			RefreshStaminaLabel(0f, false);
 			RefreshBackgroundColor();
 		}
 
@@ -97,6 +101,19 @@ namespace Erelia.Battle.UI
 				? enemyStaminaColor
 				: playerStaminaColor;
 			ApplyFillWidth();
+		}
+
+		private void RefreshStaminaLabel(float currentStaminaSeconds, bool hasUnit)
+		{
+			if (staminaValueText == null)
+			{
+				return;
+			}
+
+			staminaValueText.enabled = hasUnit;
+			staminaValueText.text = hasUnit
+				? $"{Mathf.Max(0f, currentStaminaSeconds):0.0}s"
+				: string.Empty;
 		}
 
 		private void OnRectTransformDimensionsChange()

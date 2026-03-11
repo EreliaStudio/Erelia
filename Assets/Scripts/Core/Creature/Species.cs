@@ -33,9 +33,9 @@ namespace Erelia.Core.Creature
 		[SerializeField] private string displayName;
 
 		/// <summary>
-		/// Base number of seconds this species waits between turns.
+		/// Base stats shared by all creatures of this species.
 		/// </summary>
-		[SerializeField] private float baseStaminaSeconds = 5f;
+		[SerializeField] private Stats stats = new Stats(10, 5f);
 
 		/// <summary>
 		/// Gets the sprite displayed by UI elements representing this species.
@@ -53,8 +53,8 @@ namespace Erelia.Core.Creature
 		public string DisplayName => displayName;
 
 		/// <summary>
-		/// Gets the base stamina countdown in seconds.
+		/// Gets the base stats shared by all creatures of this species.
 		/// </summary>
-		public float BaseStaminaSeconds => Mathf.Max(0.1f, baseStaminaSeconds);
+		public Stats Stats => stats ??= new Stats(10, 5f);
 	}
 }

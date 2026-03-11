@@ -29,6 +29,8 @@ namespace Erelia.Battle.Unit
 		public Erelia.Battle.Unit.Model Model => model;
 		public Erelia.Battle.Unit.View View => view;
 		public Erelia.Core.Creature.Instance.Model Creature => model.Creature;
+		public Erelia.Battle.Unit.LiveStats LiveStats => model.LiveStats;
+		public Erelia.Core.Creature.Stats Stats => model.Stats;
 		public Erelia.Battle.Side Side => model.Side;
 		public Vector3Int Cell => model.Cell;
 		public bool IsPlaced => model.IsPlaced;

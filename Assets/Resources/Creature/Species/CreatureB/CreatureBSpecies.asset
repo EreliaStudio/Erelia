@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Creature.Species
   prefab: {fileID: 4439611910248792050, guid: b755f784e67603d438b8f2c101bf2cb9, type: 3}
   displayName: CreatureB
-  baseStaminaSeconds: 6
-  baseHp: 10
+  stats:
+    health: 10
+    stamina: 6

@@ -1,7 +1,7 @@
 {
   "slots": [
-    { "speciesId": 1, "nickname": "UnitACustomName" },
-    { "speciesId": 1, "nickname": "UnitA2CustomName" },
+    { "speciesId": 1, "nickname": "UnitACustomName", "stats": { "health": 0, "stamina": 0.0 } },
+    { "speciesId": 1, "nickname": "UnitA2CustomName", "stats": { "health": 0, "stamina": 0.0 } },
     null,
     null,
     null,

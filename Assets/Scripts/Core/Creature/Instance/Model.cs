@@ -29,7 +29,7 @@ namespace Erelia.Core.Creature.Instance
 	/// </para>
 	/// </remarks>
 	[System.Serializable]
-	public sealed class Model
+	public sealed class Model : ISerializationCallbackReceiver
 	{
 		/// <summary>
 		/// Species registry id associated with this creature instance.
@@ -42,6 +42,11 @@ namespace Erelia.Core.Creature.Instance
 		[SerializeField] private string nickname;
 
 		/// <summary>
+		/// Additive stats gained by this specific creature instance.
+		/// </summary>
+		[SerializeField] private Erelia.Core.Creature.Stats stats = new Erelia.Core.Creature.Stats();
+
+		/// <summary>
 		/// Gets the species registry id.
 		/// </summary>
 		public int SpeciesId => speciesId;
@@ -50,6 +55,7 @@ namespace Erelia.Core.Creature.Instance
 		/// Gets the nickname.
 		/// </summary>
 		public string Nickname => nickname;
+		public Erelia.Core.Creature.Stats Stats => stats ??= new Erelia.Core.Creature.Stats();
 		public bool IsEmpty => speciesId < 0;
 
 		public string DisplayName
@@ -87,9 +93,15 @@ namespace Erelia.Core.Creature.Instance
 		/// <param name="speciesId">Species registry id.</param>
 		/// <param name="nickname">Optional nickname.</param>
 		public Model(int speciesId, string nickname)
+			: this(speciesId, nickname, new Erelia.Core.Creature.Stats())
+		{
+		}
+
+		public Model(int speciesId, string nickname, Erelia.Core.Creature.Stats stats)
 		{
 			this.speciesId = speciesId;
 			this.nickname = nickname;
+			this.stats = stats ?? new Erelia.Core.Creature.Stats();
 		}
 
 		/// <summary>
@@ -101,5 +113,13 @@ namespace Erelia.Core.Creature.Instance
 			speciesId = id;
 		}
 
+		public void OnBeforeSerialize()
+		{
+		}
+
+		public void OnAfterDeserialize()
+		{
+			stats ??= new Erelia.Core.Creature.Stats();
+		}
 	}
 }
