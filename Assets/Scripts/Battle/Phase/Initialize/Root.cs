@@ -15,11 +15,9 @@ namespace Erelia.Battle.Phase.Initialize
 		[SerializeField] private Transform playerUnitsRoot;
 		[SerializeField] private Transform enemyUnitsRoot;
 		[SerializeField] private GameObject battleUnitHealthBarPrefab;
-		[SerializeField] private string battleUnitHealthBarResourcePath = "Prefab/BattleUnitHealthBar";
 		[SerializeField] private Vector3 stagedUnitSpacing = new Vector3(0f, 0f, 2f);
 
 		private bool pendingSetup;
-		private bool hasWarnedMissingHealthBarPrefab;
 
 		public override Erelia.Battle.Phase.Id Id => Erelia.Battle.Phase.Id.Initialize;
 
@@ -101,32 +99,98 @@ namespace Erelia.Battle.Phase.Initialize
 				}
 
 				var unitModel = new Erelia.Battle.Unit.Model(creature, side);
-				var unitPresenter = new Erelia.Battle.Unit.Presenter(unitModel, parent, healthBarPrefab);
+				Erelia.Battle.Unit.Presenter unitPresenter = CreateUnitPresenter(unitModel, parent, healthBarPrefab);
+				if (unitPresenter == null)
+				{
+					continue;
+				}
+
 				unitPresenter.Stage(baseWorldPosition + ResolveStageOffset(i));
 				battleData.AddUnit(unitPresenter);
 			}
 		}
 
-		private GameObject ResolveHealthBarPrefab()
+		private Erelia.Battle.Unit.Presenter CreateUnitPresenter(
+			Erelia.Battle.Unit.Model unitModel,
+			Transform parent,
+			GameObject healthBarPrefab)
 		{
-			if (battleUnitHealthBarPrefab != null)
-			{
-				return battleUnitHealthBarPrefab;
-			}
-
-			if (string.IsNullOrEmpty(battleUnitHealthBarResourcePath))
+			if (unitModel == null)
 			{
 				return null;
 			}
 
-			battleUnitHealthBarPrefab = Resources.Load<GameObject>(battleUnitHealthBarResourcePath);
-			if (battleUnitHealthBarPrefab == null && !hasWarnedMissingHealthBarPrefab)
+			GameObject unitObject = InstantiateUnitObject(unitModel, parent);
+			Erelia.Battle.Unit.Presenter presenter = ResolveUnitPresenter(unitObject);
+			if (presenter == null)
 			{
-				Debug.LogWarning(
-					$"[Erelia.Battle.Phase.Initialize.Root] Failed to load battle unit health bar prefab from Resources path '{battleUnitHealthBarResourcePath}'.");
-				hasWarnedMissingHealthBarPrefab = true;
+				return null;
 			}
 
+			presenter.SetHealthBarPrefab(healthBarPrefab);
+			presenter.SetUnit(unitModel);
+			return presenter;
+		}
+
+		private GameObject InstantiateUnitObject(Erelia.Battle.Unit.Model unitModel, Transform parent)
+		{
+			if (!TryResolveUnitPrefab(unitModel, out GameObject unitPrefab) || unitPrefab == null)
+			{
+				GameObject fallbackObject = new GameObject("BattleUnit");
+				if (parent != null)
+				{
+					fallbackObject.transform.SetParent(parent, false);
+				}
+
+				return fallbackObject;
+			}
+
+			GameObject unitObject = parent != null
+				? Object.Instantiate(unitPrefab, parent, false)
+				: Object.Instantiate(unitPrefab);
+			unitObject.transform.localPosition = Vector3.zero;
+			unitObject.transform.localRotation = Quaternion.identity;
+			return unitObject;
+		}
+
+		private static Erelia.Battle.Unit.Presenter ResolveUnitPresenter(GameObject unitObject)
+		{
+			if (unitObject == null)
+			{
+				return null;
+			}
+
+			Erelia.Battle.Unit.Presenter presenter = unitObject.GetComponent<Erelia.Battle.Unit.Presenter>();
+			if (presenter != null)
+			{
+				return presenter;
+			}
+
+			Debug.LogWarning("[Erelia.Battle.Phase.Initialize.Root] Unit prefab is missing Battle.Unit.Presenter. Adding a fallback presenter component.");
+			return unitObject.AddComponent<Erelia.Battle.Unit.Presenter>();
+		}
+
+		private static bool TryResolveUnitPrefab(Erelia.Battle.Unit.Model unitModel, out GameObject unitPrefab)
+		{
+			unitPrefab = null;
+			if (unitModel == null || !unitModel.TryGetSpecies(out Erelia.Core.Creature.Species species))
+			{
+				Debug.LogWarning("[Erelia.Battle.Phase.Initialize.Root] Failed to resolve unit species.");
+				return false;
+			}
+
+			unitPrefab = species.UnitPrefab;
+			if (unitPrefab == null)
+			{
+				Debug.LogWarning($"[Erelia.Battle.Phase.Initialize.Root] Species '{species.DisplayName}' has no unit prefab.");
+				return false;
+			}
+
+			return true;
+		}
+
+		private GameObject ResolveHealthBarPrefab()
+		{
 			return battleUnitHealthBarPrefab;
 		}
 

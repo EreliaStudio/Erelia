@@ -5,14 +5,14 @@ Creature is the data layer that defines species and individual creature instance
 It is used by battle, encounter, and save systems.
 
 Core flow:
-1. A `Species` ScriptableObject defines the base data (prefab, display name).
+1. A `Species` ScriptableObject defines the base data (unit prefab, display name).
 2. `SpeciesRegistry` maps a stable integer id to a `Species`.
 3. An instance `Model` stores the species id + per-instance data.
 4. A `Team` is a fixed-size array of instance models.
 
 ## Species
 - `Species` is a ScriptableObject asset.
-- It holds the visual prefab and a display name.
+- It holds the unit prefab and a display name.
 - New species are authored as assets.
 
 ## SpeciesRegistry
@@ -45,7 +45,7 @@ Core flow:
 
 ## Authoring Workflow
 1. Create a `Species` asset.
-2. Assign its prefab and display name.
+2. Assign its unit prefab and display name.
 3. Add it to `SpeciesRegistry` with a unique id.
 4. Use that id in creature instance models.
 
@@ -54,7 +54,7 @@ Core flow:
 // Resolve a species from an instance model:
 if (SpeciesRegistry.Instance.TryGet(model.SpeciesId, out Species species))
 {
-    // Use species.Prefab, species.DisplayName, etc.
+    // Use species.UnitPrefab, species.DisplayName, etc.
 }
 
 // Serialize a team:
@@ -67,7 +67,7 @@ Team loaded = JsonIO.Load<Team>(path);
 ## Troubleshooting
 - A creature does not appear:
   - Check the species id exists in `SpeciesRegistry`.
-  - Check the species prefab is assigned.
+  - Check the species unit prefab is assigned.
 - A team slot is empty:
   - Slot is `null`, or the model has `speciesId < 0`.
 - Duplicate species ids:

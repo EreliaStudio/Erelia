@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Erelia.Core.UI
@@ -10,7 +11,8 @@ namespace Erelia.Core.UI
 
 		[SerializeField] private Color backgroundColor = new Color(0f, 0f, 0f, 0.45f);
 		[SerializeField] private Color fillColor = Color.white;
-		[SerializeField] private Vector2 autoFillInset = new Vector2(1f, 1f);
+		[FormerlySerializedAs("autoFillInset")]
+		[SerializeField] private Vector2 fillPadding = new Vector2(1f, 1f);
 
 		private Image backgroundImage;
 		private Image fillImage;
@@ -137,8 +139,8 @@ namespace Erelia.Core.UI
 			{
 				fillTransform.anchorMin = Vector2.zero;
 				fillTransform.anchorMax = Vector2.one;
-				fillTransform.offsetMin = autoFillInset;
-				fillTransform.offsetMax = -autoFillInset;
+				fillTransform.offsetMin = fillPadding;
+				fillTransform.offsetMax = -fillPadding;
 			}
 
 			Image createdFill = fillObject.GetComponent<Image>();
@@ -314,13 +316,13 @@ namespace Erelia.Core.UI
 				return;
 			}
 
-			float availableWidth = Mathf.Max(0f, fillParent.rect.width - (autoFillInset.x * 2f));
+			float availableWidth = Mathf.Max(0f, fillParent.rect.width - (fillPadding.x * 2f));
 			float targetWidth = availableWidth * progress01;
 			fillRect.anchorMin = new Vector2(0f, 0f);
 			fillRect.anchorMax = new Vector2(0f, 1f);
 			fillRect.pivot = new Vector2(0f, 0.5f);
-			fillRect.anchoredPosition = new Vector2(autoFillInset.x, 0f);
-			fillRect.sizeDelta = new Vector2(targetWidth, -(autoFillInset.y * 2f));
+			fillRect.anchoredPosition = new Vector2(fillPadding.x, 0f);
+			fillRect.sizeDelta = new Vector2(targetWidth, -(fillPadding.y * 2f));
 			fillImage.enabled = targetWidth > 0.001f;
 		}
 

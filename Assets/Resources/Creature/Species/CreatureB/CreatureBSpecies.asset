@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d423020aaaaa5854391c121ca8cf90aa, type: 3}
   m_Name: CreatureBSpecies
   m_EditorClassIdentifier: Assembly-CSharp::Creature.Species
-  prefab: {fileID: 4439611910248792050, guid: b755f784e67603d438b8f2c101bf2cb9, type: 3}
+  unitPrefab: {fileID: 4439611910248792050, guid: b755f784e67603d438b8f2c101bf2cb9, type: 3}
   displayName: CreatureB
   stats:
     health: 10

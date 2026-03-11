@@ -15,21 +15,35 @@ namespace Erelia.Battle.Unit
 		private static Erelia.Battle.Unit.View hoveredView;
 		private static int lastHoverRefreshFrame = -1;
 
-		private GameObject visualInstance;
+		[SerializeField] private Transform pivot;
+		[SerializeField] private Transform healthBarAnchor;
+		[SerializeField] private Transform visualRoot;
+		[SerializeField] private Erelia.Core.Creature.Instance.Presenter creaturePresenter;
+		[SerializeField] private Erelia.Core.Creature.Instance.View creatureView;
+		[SerializeField] private Erelia.Core.UI.ProgressBarView healthBarView;
 		private GameObject healthBarPrefab;
 		private GameObject healthBarInstance;
-		private Transform pivot;
-		private Erelia.Core.UI.ProgressBarView healthBarView;
+		private Erelia.Core.UI.ProgressBarView runtimeHealthBarView;
 		private Renderer[] visualRenderers;
+		private Transform visualRenderersRoot;
 		private Vector3 healthBarBaseScale = Vector3.one;
 
+		[SerializeField] private float defaultHealthBarScaleMultiplier = 2f;
 		[SerializeField] private float hoveredHealthBarScaleMultiplier = 3f;
 		[SerializeField] private float hoveredHealthBarScaleLerpSpeed = 12f;
 
-		public Transform Pivot => pivot != null ? pivot : transform;
+		public Transform Pivot => ResolvePivot();
+
+		private void Awake()
+		{
+			CacheHierarchyReferences();
+			ResolveConfiguredHealthBarView();
+			UpdateHealthBarAnchor();
+		}
 
 		private void OnEnable()
 		{
+			CacheHierarchyReferences();
 			if (!ActiveViews.Contains(this))
 			{
 				ActiveViews.Add(this);
@@ -47,29 +61,13 @@ namespace Erelia.Battle.Unit
 
 		public void SetHealthBarPrefab(GameObject prefab)
 		{
-			healthBarPrefab = prefab;
-			RebuildHealthBar();
-		}
-
-		public void SetVisualPrefab(GameObject prefab)
-		{
-			DestroyVisualInstance();
-
-			if (prefab == null)
+			if (ReferenceEquals(healthBarPrefab, prefab) && healthBarInstance != null)
 			{
-				pivot = transform;
-				RebuildHealthBar();
-				UpdateHealthBarAnchor();
 				return;
 			}
 
-			visualInstance = Object.Instantiate(prefab, transform);
-			visualInstance.name = prefab.name;
-			visualRenderers = visualInstance.GetComponentsInChildren<Renderer>(true);
-			Erelia.Core.Creature.Instance.View creatureView = ResolveCreatureView(visualInstance);
-			pivot = creatureView != null ? creatureView.Pivot : visualInstance.transform;
+			healthBarPrefab = prefab;
 			RebuildHealthBar();
-			UpdateHealthBarAnchor();
 		}
 
 		public void SetVisible(bool value)
@@ -97,15 +95,8 @@ namespace Erelia.Battle.Unit
 
 		public bool TryGetCreaturePresenter(out Erelia.Core.Creature.Instance.Presenter presenter)
 		{
-			if (visualInstance == null)
-			{
-				presenter = null;
-				return false;
-			}
-
-			presenter =
-				visualInstance.GetComponent<Erelia.Core.Creature.Instance.Presenter>() ??
-				visualInstance.GetComponentInChildren<Erelia.Core.Creature.Instance.Presenter>(true);
+			CacheHierarchyReferences();
+			presenter = creaturePresenter;
 			return presenter != null;
 		}
 
@@ -115,31 +106,10 @@ namespace Erelia.Battle.Unit
 			UpdateHealthBarScale();
 		}
 
-		private void DestroyVisualInstance()
-		{
-			if (visualInstance == null)
-			{
-				return;
-			}
-
-			if (Application.isPlaying)
-			{
-				Object.Destroy(visualInstance);
-			}
-			else
-			{
-				Object.DestroyImmediate(visualInstance);
-			}
-
-			visualInstance = null;
-			visualRenderers = null;
-			pivot = transform;
-			DestroyHealthBarInstance();
-		}
-
 		private void RefreshHealthBar(int currentHealth, int maxHealth)
 		{
-			Transform healthBarRoot = healthBarView != null ? healthBarView.transform : null;
+			Erelia.Core.UI.ProgressBarView activeHealthBarView = ResolveActiveHealthBarView();
+			Transform healthBarRoot = activeHealthBarView != null ? activeHealthBarView.transform : null;
 			if (healthBarRoot == null)
 			{
 				return;
@@ -153,41 +123,49 @@ namespace Erelia.Battle.Unit
 
 			if (!showHealthBar)
 			{
-				healthBarView.SetLabel(string.Empty);
+				activeHealthBarView.SetLabel(string.Empty);
 				return;
 			}
 
-			healthBarView.SetProgress((float)currentHealth / maxHealth);
-			healthBarView.SetLabel(BuildHealthBarLabel(currentHealth, maxHealth));
+			activeHealthBarView.SetProgress((float)currentHealth / maxHealth);
+			activeHealthBarView.SetLabel(BuildHealthBarLabel(currentHealth, maxHealth));
 		}
 
 		private void RebuildHealthBar()
 		{
-			DestroyHealthBarInstance();
+			DestroyRuntimeHealthBarInstance();
+			ResolveConfiguredHealthBarView();
+			if (healthBarView != null)
+			{
+				healthBarBaseScale = healthBarView.transform.localScale;
+				UpdateHealthBarAnchor();
+				return;
+			}
+
 			if (healthBarPrefab == null)
 			{
 				return;
 			}
 
-			healthBarInstance = Object.Instantiate(healthBarPrefab, transform);
+			Transform healthBarParent = ResolveHealthBarParent();
+			healthBarInstance = Object.Instantiate(healthBarPrefab, healthBarParent, false);
 			healthBarInstance.name = healthBarPrefab.name;
-			healthBarView =
+			runtimeHealthBarView =
 				healthBarInstance.GetComponent<Erelia.Core.UI.ProgressBarView>() ??
 				healthBarInstance.GetComponentInChildren<Erelia.Core.UI.ProgressBarView>(true);
-			if (healthBarView == null)
+			if (runtimeHealthBarView == null)
 			{
 				Debug.LogWarning("[Erelia.Battle.Unit.View] Health bar prefab is missing a ProgressBarView component.");
-				DestroyHealthBarInstance();
+				DestroyRuntimeHealthBarInstance();
 				return;
 			}
 
-			healthBarBaseScale = healthBarView.transform.localScale;
+			healthBarBaseScale = runtimeHealthBarView.transform.localScale;
 			UpdateHealthBarAnchor();
 		}
 
-		private void DestroyHealthBarInstance()
+		private void DestroyRuntimeHealthBarInstance()
 		{
-			healthBarView = null;
 			if (healthBarInstance == null)
 			{
 				return;
@@ -203,13 +181,21 @@ namespace Erelia.Battle.Unit
 			}
 
 			healthBarInstance = null;
+			runtimeHealthBarView = null;
 		}
 
 		private void UpdateHealthBarAnchor()
 		{
-			Transform healthBarRoot = healthBarView != null ? healthBarView.transform : null;
+			Erelia.Core.UI.ProgressBarView activeHealthBarView = ResolveActiveHealthBarView();
+			Transform healthBarRoot = activeHealthBarView != null ? activeHealthBarView.transform : null;
 			if (healthBarRoot == null)
 			{
+				return;
+			}
+
+			if (healthBarAnchor != null)
+			{
+				healthBarRoot.localPosition = Vector3.zero;
 				return;
 			}
 
@@ -218,23 +204,15 @@ namespace Erelia.Battle.Unit
 
 		private Vector3 ResolveHealthBarLocalPosition()
 		{
-			if (visualInstance == null)
+			CacheHierarchyReferences();
+			if (healthBarAnchor != null)
+			{
+				return Vector3.zero;
+			}
+
+			if (!TryGetVisualBounds(out Bounds combinedBounds))
 			{
 				return new Vector3(0f, DefaultHealthBarLocalHeight, 0f);
-			}
-
-			Renderer[] renderers = visualInstance.GetComponentsInChildren<Renderer>(true);
-			if (renderers == null || renderers.Length == 0)
-			{
-				return pivot != null
-					? pivot.localPosition + (Vector3.up * DefaultHealthBarLocalHeight)
-					: new Vector3(0f, DefaultHealthBarLocalHeight, 0f);
-			}
-
-			Bounds combinedBounds = renderers[0].bounds;
-			for (int i = 1; i < renderers.Length; i++)
-			{
-				combinedBounds.Encapsulate(renderers[i].bounds);
 			}
 
 			Vector3 topCenterWorld = new Vector3(
@@ -246,7 +224,8 @@ namespace Erelia.Battle.Unit
 
 		private void FaceHealthBarCamera()
 		{
-			Transform healthBarRoot = healthBarView != null ? healthBarView.transform : null;
+			Erelia.Core.UI.ProgressBarView activeHealthBarView = ResolveActiveHealthBarView();
+			Transform healthBarRoot = activeHealthBarView != null ? activeHealthBarView.transform : null;
 			if (healthBarRoot == null || !healthBarRoot.gameObject.activeInHierarchy)
 			{
 				return;
@@ -258,7 +237,7 @@ namespace Erelia.Battle.Unit
 				return;
 			}
 
-			Canvas healthBarCanvas = healthBarView.Canvas;
+			Canvas healthBarCanvas = activeHealthBarView.Canvas;
 			if (healthBarCanvas != null && healthBarCanvas.renderMode == RenderMode.WorldSpace)
 			{
 				healthBarCanvas.worldCamera = targetCamera;
@@ -269,7 +248,8 @@ namespace Erelia.Battle.Unit
 
 		private void UpdateHealthBarScale()
 		{
-			Transform healthBarRoot = healthBarView != null ? healthBarView.transform : null;
+			Erelia.Core.UI.ProgressBarView activeHealthBarView = ResolveActiveHealthBarView();
+			Transform healthBarRoot = activeHealthBarView != null ? activeHealthBarView.transform : null;
 			if (healthBarRoot == null)
 			{
 				return;
@@ -278,8 +258,8 @@ namespace Erelia.Battle.Unit
 			UpdateHoveredView();
 
 			float scaleMultiplier = ReferenceEquals(hoveredView, this)
-				? Mathf.Max(1f, hoveredHealthBarScaleMultiplier)
-				: 1f;
+				? Mathf.Max(defaultHealthBarScaleMultiplier, hoveredHealthBarScaleMultiplier)
+				: Mathf.Max(1f, defaultHealthBarScaleMultiplier);
 			Vector3 targetScale = healthBarBaseScale * scaleMultiplier;
 			if (hoveredHealthBarScaleLerpSpeed <= 0f)
 			{
@@ -343,6 +323,7 @@ namespace Erelia.Battle.Unit
 		private bool TryGetVisualBounds(out Bounds bounds)
 		{
 			bounds = default;
+			CacheHierarchyReferences();
 			if (visualRenderers == null || visualRenderers.Length == 0)
 			{
 				return false;
@@ -375,17 +356,74 @@ namespace Erelia.Battle.Unit
 			return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
 		}
 
-		private static Erelia.Core.Creature.Instance.View ResolveCreatureView(GameObject viewObject)
+		private void CacheHierarchyReferences()
 		{
-			if (viewObject == null)
+			if (creatureView == null)
 			{
-				return null;
+				creatureView =
+					GetComponent<Erelia.Core.Creature.Instance.View>() ??
+					GetComponentInChildren<Erelia.Core.Creature.Instance.View>(true);
 			}
 
-			Erelia.Core.Creature.Instance.View creatureView =
-				viewObject.GetComponent<Erelia.Core.Creature.Instance.View>() ??
-				viewObject.GetComponentInChildren<Erelia.Core.Creature.Instance.View>(true);
-			return creatureView;
+			if (creaturePresenter == null)
+			{
+				creaturePresenter =
+					GetComponent<Erelia.Core.Creature.Instance.Presenter>() ??
+					GetComponentInChildren<Erelia.Core.Creature.Instance.Presenter>(true);
+			}
+
+			visualRoot ??= creatureView != null ? creatureView.transform : transform;
+			Transform currentVisualRoot = visualRoot != null ? visualRoot : transform;
+			if (visualRenderers == null || visualRenderers.Length == 0 || visualRenderersRoot != currentVisualRoot)
+			{
+				visualRenderersRoot = currentVisualRoot;
+				visualRenderers = ResolveVisualRenderers();
+			}
+		}
+
+		private Transform ResolvePivot()
+		{
+			if (pivot != null)
+			{
+				return pivot;
+			}
+
+			CacheHierarchyReferences();
+			return creatureView != null ? creatureView.Pivot : transform;
+		}
+
+		private Transform ResolveHealthBarParent()
+		{
+			return healthBarAnchor != null ? healthBarAnchor : transform;
+		}
+
+		private void ResolveConfiguredHealthBarView()
+		{
+			if (healthBarView != null)
+			{
+				return;
+			}
+
+			healthBarView =
+				GetComponent<Erelia.Core.UI.ProgressBarView>() ??
+				GetComponentInChildren<Erelia.Core.UI.ProgressBarView>(true);
+			if (healthBarView != null)
+			{
+				healthBarBaseScale = healthBarView.transform.localScale;
+			}
+		}
+
+		private Erelia.Core.UI.ProgressBarView ResolveActiveHealthBarView()
+		{
+			return runtimeHealthBarView != null ? runtimeHealthBarView : healthBarView;
+		}
+
+		private Renderer[] ResolveVisualRenderers()
+		{
+			Transform root = visualRoot != null ? visualRoot : transform;
+			return root != null
+				? root.GetComponentsInChildren<Renderer>(true)
+				: null;
 		}
 
 		private static string BuildHealthBarLabel(int currentHealth, int maxHealth)

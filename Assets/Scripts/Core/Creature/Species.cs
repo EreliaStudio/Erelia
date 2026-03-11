@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Erelia.Core.Creature
 {
@@ -23,9 +24,11 @@ namespace Erelia.Core.Creature
 		/// Prefab used to instantiate the creature representation in the scene.
 		/// </summary>
 		/// <remarks>
-		/// Usually contains the visuals (renderers/animator) and any required components for runtime behavior.
+		/// Usually contains the full runtime unit representation: battle view/presenter hooks, visuals,
+		/// and any required scene components.
 		/// </remarks>
-		[SerializeField] private GameObject prefab;
+		[FormerlySerializedAs("prefab")]
+		[SerializeField] private GameObject unitPrefab;
 
 		/// <summary>
 		/// Human-readable name displayed to the player.
@@ -45,7 +48,12 @@ namespace Erelia.Core.Creature
 		/// <summary>
 		/// Gets the prefab used to instantiate this species.
 		/// </summary>
-		public GameObject Prefab => prefab;
+		public GameObject UnitPrefab => unitPrefab;
+
+		/// <summary>
+		/// Legacy alias for <see cref="UnitPrefab"/>.
+		/// </summary>
+		public GameObject Prefab => UnitPrefab;
 
 		/// <summary>
 		/// Gets the display name of the species.
