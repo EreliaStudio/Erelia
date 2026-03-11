@@ -57,6 +57,11 @@ namespace Erelia.Core.UI
 				return;
 			}
 
+			if (!Application.isPlaying)
+			{
+				return;
+			}
+
 			if (HasExpectedCardElements())
 			{
 				return;
@@ -143,20 +148,7 @@ namespace Erelia.Core.UI
 
 		private CreatureCardElement InstantiateCardElement(int index)
 		{
-			GameObject instance;
-
-#if UNITY_EDITOR
-			if (!Application.isPlaying)
-			{
-				instance = UnityEditor.PrefabUtility.InstantiatePrefab(
-					cardElementPrefab.gameObject,
-					transform) as GameObject;
-			}
-			else
-#endif
-			{
-				instance = Instantiate(cardElementPrefab.gameObject, transform, false);
-			}
+			GameObject instance = Instantiate(cardElementPrefab.gameObject, transform, false);
 
 			if (instance == null || !instance.TryGetComponent(out CreatureCardElement element))
 			{
@@ -167,20 +159,5 @@ namespace Erelia.Core.UI
 			instance.name = $"{cardElementPrefab.gameObject.name} ({index + 1})";
 			return element;
 		}
-
-#if UNITY_EDITOR
-		private void OnValidate()
-		{
-			if (Application.isPlaying || cardElementPrefab == null)
-			{
-				return;
-			}
-
-			if (!HasExpectedCardElements())
-			{
-				RebuildCardElements();
-			}
-		}
-#endif
 	}
 }
