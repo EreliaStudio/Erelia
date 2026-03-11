@@ -87,16 +87,6 @@ namespace Erelia.Core.Creature.Instance
 			// Default constructor required for serialization.
 		}
 
-		/// <summary>
-		/// Creates a creature instance model with explicit values.
-		/// </summary>
-		/// <param name="speciesId">Species registry id.</param>
-		/// <param name="nickname">Optional nickname.</param>
-		public Model(int speciesId, string nickname)
-			: this(speciesId, nickname, new Erelia.Core.Creature.Stats())
-		{
-		}
-
 		public Model(int speciesId, string nickname, Erelia.Core.Creature.Stats stats)
 		{
 			this.speciesId = speciesId;

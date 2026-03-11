@@ -137,15 +137,8 @@ namespace Erelia.Battle
 			var team = new Erelia.Core.Creature.Team();
 			Erelia.Core.Creature.Instance.Model[] slots = team.Slots;
 
-			if (slots != null && slots.Length > 0)
-			{
-				slots[0] = new Erelia.Core.Creature.Instance.Model(DebugPlayerSpeciesIdA, DebugPlayerNicknameA);
-			}
-
-			if (slots != null && slots.Length > 1)
-			{
-				slots[1] = new Erelia.Core.Creature.Instance.Model(DebugPlayerSpeciesIdB, DebugPlayerNicknameB);
-			}
+			slots[0] = new Erelia.Core.Creature.Instance.Model(DebugPlayerSpeciesIdA, DebugPlayerNicknameA, new Core.Creature.Stats(0, 0));
+			slots[1] = new Erelia.Core.Creature.Instance.Model(DebugPlayerSpeciesIdB, DebugPlayerNicknameB, new Core.Creature.Stats(0, 0));
 
 			return team;
 		}
