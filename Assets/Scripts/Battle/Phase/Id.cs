@@ -16,6 +16,7 @@ namespace Erelia.Battle.Phase
 		ResolveAction = 5,
 		Victory = 6,
 		Defeat = 7,
-		Cleanup = 8
+		Cleanup = 8,
+		Idle = 9
 	}
 }

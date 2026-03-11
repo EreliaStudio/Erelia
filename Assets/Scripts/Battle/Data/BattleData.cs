@@ -17,6 +17,7 @@ namespace Erelia.Battle
 			new List<Erelia.Battle.Unit.Presenter>();
 		[System.NonSerialized] private readonly List<Erelia.Battle.Unit.Presenter> enemyUnits =
 			new List<Erelia.Battle.Unit.Presenter>();
+		[System.NonSerialized] private Erelia.Battle.Unit.Presenter activeUnit;
 
 		/// <summary>
 		/// Battle board model for the current encounter.
@@ -32,6 +33,7 @@ namespace Erelia.Battle
 		public IReadOnlyList<Erelia.Battle.Unit.Presenter> Units => units;
 		public IReadOnlyList<Erelia.Battle.Unit.Presenter> PlayerUnits => playerUnits;
 		public IReadOnlyList<Erelia.Battle.Unit.Presenter> EnemyUnits => enemyUnits;
+		public Erelia.Battle.Unit.Presenter ActiveUnit => activeUnit;
 
 		public void Reset(Erelia.Core.Creature.Team enemyTeam, Erelia.Battle.Board.Model board)
 		{
@@ -44,6 +46,7 @@ namespace Erelia.Battle
 		{
 			ClearPlacementData();
 			ClearUnits();
+			activeUnit = null;
 		}
 
 		public void ClearPlacementData()
@@ -75,6 +78,8 @@ namespace Erelia.Battle
 
 		public void ClearUnits()
 		{
+			activeUnit = null;
+
 			for (int i = 0; i < units.Count; i++)
 			{
 				units[i]?.Dispose();
@@ -101,6 +106,16 @@ namespace Erelia.Battle
 
 			unit = null;
 			return false;
+		}
+
+		public void SetActiveUnit(Erelia.Battle.Unit.Presenter unit)
+		{
+			activeUnit = unit;
+		}
+
+		public void ClearActiveUnit()
+		{
+			activeUnit = null;
 		}
 
 		private static void AddCoordinates(List<Vector3Int> target, IEnumerable<Vector3Int> coordinates)

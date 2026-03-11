@@ -66,6 +66,7 @@
     <Compile Include="Assets\Scripts\Battle\BattleBoard\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\Camera\MouseBoardCellCursor.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Cleanup\Root.cs" />
+    <Compile Include="Assets\Scripts\Battle\UI\BattleCreatureCardElement.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Placement\Event\PlacementUnitSelected.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\View.cs" />
     <Compile Include="Assets\Scripts\Core\Events\PlayerMotion.cs" />
@@ -111,6 +112,8 @@
     <Compile Include="Assets\Scripts\Core\Utils\JsonIO.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape\Slope.cs" />
     <Compile Include="Assets\Scripts\Battle\Unit\Presenter.cs" />
+    <Compile Include="Assets\Scripts\Battle\UI\BattleCreatureCardGroupElement.cs" />
+    <Compile Include="Assets\Scripts\Battle\Phase\Idle\Root.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape\CrossPlane.cs" />
     <Compile Include="Assets\Scripts\Core\Events\Bus.cs" />
     <Compile Include="Assets\Scripts\Exploration\ExplorationData.cs" />

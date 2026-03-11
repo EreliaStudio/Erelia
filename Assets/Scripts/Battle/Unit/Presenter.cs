@@ -32,6 +32,11 @@ namespace Erelia.Battle.Unit
 		public Erelia.Battle.Side Side => model.Side;
 		public Vector3Int Cell => model.Cell;
 		public bool IsPlaced => model.IsPlaced;
+		public float BaseStaminaSeconds => model.BaseStaminaSeconds;
+		public float CurrentStaminaSeconds => model.CurrentStaminaSeconds;
+		public float StaminaProgress01 => model.StaminaProgress01;
+		public bool IsTakingTurn => model.IsTakingTurn;
+		public bool IsReadyForTurn => model.IsReadyForTurn;
 		public Erelia.Battle.Unit.Snapshot Snapshot => CreateSnapshot();
 
 		public void Subscribe(Erelia.Battle.Unit.UIView uiView)
@@ -100,6 +105,56 @@ namespace Erelia.Battle.Unit
 			EmitSnapshot();
 		}
 
+		public bool TickStamina(float deltaTime)
+		{
+			float previousCountdown = model.CurrentStaminaSeconds;
+			bool previousTurnState = model.IsTakingTurn;
+			bool isReady = model.TickStamina(deltaTime);
+
+			if (!Mathf.Approximately(previousCountdown, model.CurrentStaminaSeconds) ||
+				previousTurnState != model.IsTakingTurn)
+			{
+				EmitSnapshot();
+			}
+
+			return isReady;
+		}
+
+		public void BeginTurn()
+		{
+			if (model.IsTakingTurn)
+			{
+				return;
+			}
+
+			model.BeginTurn();
+			EmitSnapshot();
+		}
+
+		public void EndTurn()
+		{
+			bool previousTurnState = model.IsTakingTurn;
+			float previousCountdown = model.CurrentStaminaSeconds;
+			model.EndTurn();
+
+			if (!Mathf.Approximately(previousCountdown, model.CurrentStaminaSeconds) ||
+				previousTurnState != model.IsTakingTurn)
+			{
+				EmitSnapshot();
+			}
+		}
+
+		public void ResetStamina()
+		{
+			float previousCountdown = model.CurrentStaminaSeconds;
+			model.ResetStamina();
+
+			if (!Mathf.Approximately(previousCountdown, model.CurrentStaminaSeconds))
+			{
+				EmitSnapshot();
+			}
+		}
+
 		public void Dispose()
 		{
 			snapshotChanged = null;
@@ -160,7 +215,11 @@ namespace Erelia.Battle.Unit
 				model.DisplayName,
 				model.IsPlaced,
 				model.Side,
-				model.Cell);
+				model.Cell,
+				model.BaseStaminaSeconds,
+				model.CurrentStaminaSeconds,
+				model.StaminaProgress01,
+				model.IsTakingTurn);
 		}
 
 		private void EmitSnapshot()

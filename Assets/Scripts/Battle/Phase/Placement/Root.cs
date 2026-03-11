@@ -16,6 +16,9 @@ namespace Erelia.Battle.Phase.Placement
 		[SerializeField] private Erelia.Core.UI.CreatureCardGroupElement enemyCreatureCardGroup = null;
 		[SerializeField] private Button confirmPlacementButton = null;
 		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
+		[SerializeField] private GameObject battleHudRoot = null;
+		[SerializeField] private Erelia.Core.UI.CreatureCardGroupElement battlePlayerCreatureCardGroup = null;
+		[SerializeField] private Erelia.Core.UI.CreatureCardGroupElement battleEnemyCreatureCardGroup = null;
 
 		[System.NonSerialized] private Erelia.Battle.Orchestrator activeOrchestrator;
 		[System.NonSerialized] private List<Vector3Int> playerPlacementCoordinates;
@@ -51,6 +54,8 @@ namespace Erelia.Battle.Phase.Placement
 			InitializeEnemyUnits();
 			RefreshConfirmPlacementButton();
 			InitializePlacementMaskCells();
+			PopulateBattleHud(Context.Instance.BattleData);
+			SetBattleHudVisible(false);
 		}
 
 		public override void Exit(Erelia.Battle.Orchestrator Orchestrator)
@@ -362,7 +367,7 @@ namespace Erelia.Battle.Phase.Placement
 				return;
 			}
 
-			activeOrchestrator?.RequestTransition(Erelia.Battle.Phase.Id.PlayerTurn);
+			activeOrchestrator?.RequestTransition(Erelia.Battle.Phase.Id.Idle);
 		}
 
 		private void RefreshConfirmPlacementButton()
@@ -394,6 +399,22 @@ namespace Erelia.Battle.Phase.Placement
 			}
 
 			return true;
+		}
+
+		private void PopulateBattleHud(Erelia.Battle.Data battleData)
+		{
+			battlePlayerCreatureCardGroup?.PopulateUnits(battleData?.PlayerUnits);
+			battleEnemyCreatureCardGroup?.PopulateUnits(battleData?.EnemyUnits);
+		}
+
+		private void SetBattleHudVisible(bool isVisible)
+		{
+			if (battleHudRoot == null || battleHudRoot.activeSelf == isVisible)
+			{
+				return;
+			}
+
+			battleHudRoot.SetActive(isVisible);
 		}
 	}
 }
