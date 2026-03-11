@@ -133,6 +133,7 @@
     <Compile Include="Assets\Scripts\Exploration\Player\Camera\View.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Shape\CrossPlane.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\VoxelRegistry.cs" />
+    <Compile Include="Assets\Scripts\Battle\Board\MovementPathfinder.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\EncounterTriggerEmitter.cs" />
     <Compile Include="Assets\Scripts\Core\SceneBootstrapper.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\BiomeRegistry.cs" />

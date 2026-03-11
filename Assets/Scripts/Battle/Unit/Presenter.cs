@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle.Unit
@@ -6,10 +8,12 @@ namespace Erelia.Battle.Unit
 	public sealed class Presenter : MonoBehaviour
 	{
 		[SerializeField] private Erelia.Battle.Unit.View view;
+		[SerializeField] private float movementSecondsPerCell = 0.15f;
 
 		private Erelia.Battle.Unit.Model model;
 		private Vector3 stagedWorldPosition;
 		private bool hasStagedWorldPosition;
+		private Coroutine movementRoutine;
 		private event Action<Erelia.Battle.Unit.Snapshot> snapshotChanged;
 
 		public Erelia.Battle.Unit.Model Model => model;
@@ -24,10 +28,13 @@ namespace Erelia.Battle.Unit
 		public int MaxHealth => model != null ? model.MaxHealth : 0;
 		public int CurrentHealth => model != null ? model.CurrentHealth : 0;
 		public bool IsAlive => model != null && model.IsAlive;
+		public int MovementPoints => model != null ? model.MovementPoints : 0;
+		public int RemainingMovementPoints => model != null ? model.RemainingMovementPoints : 0;
 		public float CurrentStaminaSeconds => model != null ? model.CurrentStaminaSeconds : 0f;
 		public float StaminaProgress01 => model != null ? model.StaminaProgress01 : 0f;
 		public bool IsTakingTurn => model != null && model.IsTakingTurn;
 		public bool IsReadyForTurn => model != null && model.IsReadyForTurn;
+		public bool IsMoving => movementRoutine != null;
 		public Erelia.Battle.Unit.Snapshot Snapshot => CreateSnapshot();
 
 		private void Awake()
@@ -87,6 +94,7 @@ namespace Erelia.Battle.Unit
 				return;
 			}
 
+			StopMovement();
 			model.Place(cell);
 			view?.SetVisible(true);
 			view?.SetWorldPosition(worldPosition);
@@ -112,6 +120,7 @@ namespace Erelia.Battle.Unit
 				return;
 			}
 
+			StopMovement();
 			model.Unplace();
 			if (view != null)
 			{
@@ -123,6 +132,36 @@ namespace Erelia.Battle.Unit
 			}
 
 			EmitSnapshot();
+		}
+
+		public void MoveAlongPath(
+			IReadOnlyList<Vector3Int> path,
+			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.Presenter boardPresenter,
+			Action onCompleted = null)
+		{
+			if (model == null)
+			{
+				onCompleted?.Invoke();
+				return;
+			}
+
+			if (path == null || path.Count == 0)
+			{
+				onCompleted?.Invoke();
+				return;
+			}
+
+			StopMovement();
+
+			if (!Application.isPlaying)
+			{
+				MoveImmediatelyAlongPath(path, board, boardPresenter);
+				onCompleted?.Invoke();
+				return;
+			}
+
+			movementRoutine = StartCoroutine(MoveAlongPathRoutine(path, board, boardPresenter, onCompleted));
 		}
 
 		public bool TickStamina(float deltaTime)
@@ -190,6 +229,32 @@ namespace Erelia.Battle.Unit
 			}
 		}
 
+		public void ResetMovementPoints()
+		{
+			if (model == null)
+			{
+				return;
+			}
+
+			int previousRemainingMovementPoints = model.RemainingMovementPoints;
+			model.ResetMovementPoints();
+			if (previousRemainingMovementPoints != model.RemainingMovementPoints)
+			{
+				EmitSnapshot();
+			}
+		}
+
+		public bool TryConsumeMovementPoints(int amount)
+		{
+			if (model == null || !model.TryConsumeMovementPoints(amount))
+			{
+				return false;
+			}
+
+			EmitSnapshot();
+			return true;
+		}
+
 		public bool SetCurrentHealth(int value)
 		{
 			if (model == null || !model.SetCurrentHealth(value))
@@ -236,6 +301,7 @@ namespace Erelia.Battle.Unit
 
 		public void Dispose()
 		{
+			StopMovement();
 			snapshotChanged = null;
 
 			if (Application.isPlaying)
@@ -309,6 +375,113 @@ namespace Erelia.Battle.Unit
 			Erelia.Battle.Unit.Snapshot snapshot = CreateSnapshot();
 			view?.ApplySnapshot(snapshot);
 			snapshotChanged?.Invoke(snapshot);
+		}
+
+		private void StopMovement()
+		{
+			if (movementRoutine == null)
+			{
+				return;
+			}
+
+			StopCoroutine(movementRoutine);
+			movementRoutine = null;
+		}
+
+		private void MoveImmediatelyAlongPath(
+			IReadOnlyList<Vector3Int> path,
+			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.Presenter boardPresenter)
+		{
+			Vector3Int currentCell = model.Cell;
+			for (int i = 0; i < path.Count; i++)
+			{
+				Vector3Int nextCell = path[i];
+				if (!Erelia.Battle.Board.UnitPlacementUtility.TryResolveMovementStepWorldPositions(
+						board,
+						boardPresenter,
+						currentCell,
+						nextCell,
+						out Vector3 nextEntryWorldPosition,
+						out Vector3 nextStationaryWorldPosition))
+				{
+					continue;
+				}
+
+				view?.SetVisible(true);
+				view?.SetWorldPosition(nextEntryWorldPosition);
+				model.Place(nextCell);
+				view?.SetVisible(true);
+				view?.SetWorldPosition(nextStationaryWorldPosition);
+				currentCell = nextCell;
+			}
+
+			EmitSnapshot();
+		}
+
+		private IEnumerator MoveAlongPathRoutine(
+			IReadOnlyList<Vector3Int> path,
+			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.Presenter boardPresenter,
+			Action onCompleted)
+		{
+			float secondsPerSegment = Mathf.Max(0.01f, movementSecondsPerCell * 0.5f);
+			Vector3Int currentCell = model.Cell;
+			try
+			{
+				for (int i = 0; i < path.Count; i++)
+				{
+					Vector3Int nextCell = path[i];
+					if (!Erelia.Battle.Board.UnitPlacementUtility.TryResolveMovementStepWorldPositions(
+							board,
+							boardPresenter,
+							currentCell,
+							nextCell,
+							out Vector3 nextEntryWorldPosition,
+							out Vector3 nextStationaryWorldPosition))
+					{
+						continue;
+					}
+
+					Vector3 startWorldPosition = view != null ? view.Pivot.position : transform.position;
+					yield return MoveBetweenWorldPositions(startWorldPosition, nextEntryWorldPosition, secondsPerSegment);
+					yield return MoveBetweenWorldPositions(nextEntryWorldPosition, nextStationaryWorldPosition, secondsPerSegment);
+
+					model.Place(nextCell);
+					view?.SetVisible(true);
+					view?.SetWorldPosition(nextStationaryWorldPosition);
+					currentCell = nextCell;
+				}
+			}
+			finally
+			{
+				movementRoutine = null;
+				EmitSnapshot();
+				onCompleted?.Invoke();
+			}
+		}
+
+		private IEnumerator MoveBetweenWorldPositions(
+			Vector3 startWorldPosition,
+			Vector3 targetWorldPosition,
+			float durationSeconds)
+		{
+			if (durationSeconds <= 0f || Vector3.SqrMagnitude(targetWorldPosition - startWorldPosition) <= Mathf.Epsilon)
+			{
+				view?.SetVisible(true);
+				view?.SetWorldPosition(targetWorldPosition);
+				yield break;
+			}
+
+			float elapsed = 0f;
+			while (elapsed < durationSeconds)
+			{
+				elapsed += Time.deltaTime;
+				float progress = Mathf.Clamp01(elapsed / durationSeconds);
+				view?.SetVisible(true);
+				view?.SetWorldPosition(Vector3.Lerp(startWorldPosition, targetWorldPosition, progress));
+				yield return null;
+			}
 		}
 	}
 }

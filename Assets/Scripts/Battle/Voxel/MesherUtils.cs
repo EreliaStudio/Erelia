@@ -5,21 +5,24 @@ using UnityEngine;
 namespace Erelia.Battle.Voxel.MesherUtils
 {
 	/// <summary>
-	/// Cache for transformed cardinal point sets by orientation and flip.
-	/// Avoids recomputing rotated offsets during mask placement.
+	/// Caches transformed cardinal point sets by (source set reference, orientation, flip).
 	/// </summary>
-	public static class CardinalPointSetCache
+	/// <remarks>
+	/// This mirrors the role of <see cref="Erelia.Core.VoxelKit.MesherUtils.FaceByOrientationCache"/>,
+	/// but for battle voxel cardinal point sets instead of faces.
+	/// The key uses reference equality for the source set.
+	/// </remarks>
+	public static class CardinalPointSetByOrientationCache
 	{
 		/// <summary>
 		/// Cache key for transformed cardinal point sets.
-		/// Combines the source set with orientation and flip.
 		/// </summary>
 		private readonly struct Key : IEquatable<Key>
 		{
 			/// <summary>
 			/// Source cardinal point set.
 			/// </summary>
-			private readonly CardinalPointSet entryPoints;
+			private readonly CardinalPointSet source;
 			/// <summary>
 			/// Orientation applied to the point set.
 			/// </summary>
@@ -32,10 +35,12 @@ namespace Erelia.Battle.Voxel.MesherUtils
 			/// <summary>
 			/// Creates a cache key from a point set and orientations.
 			/// </summary>
-			public Key(CardinalPointSet entryPoints, Erelia.Core.VoxelKit.Orientation orientation, Erelia.Core.VoxelKit.FlipOrientation flipOrientation)
+			public Key(
+				CardinalPointSet source,
+				Erelia.Core.VoxelKit.Orientation orientation,
+				Erelia.Core.VoxelKit.FlipOrientation flipOrientation)
 			{
-				// Store key components.
-				this.entryPoints = entryPoints;
+				this.source = source;
 				this.orientation = orientation;
 				this.flipOrientation = flipOrientation;
 			}
@@ -45,8 +50,7 @@ namespace Erelia.Battle.Voxel.MesherUtils
 			/// </summary>
 			public bool Equals(Key other)
 			{
-				// Compare key components by reference/value.
-				return ReferenceEquals(entryPoints, other.entryPoints)
+				return ReferenceEquals(source, other.source)
 					&& orientation == other.orientation
 					&& flipOrientation == other.flipOrientation;
 			}
@@ -56,7 +60,6 @@ namespace Erelia.Battle.Voxel.MesherUtils
 			/// </summary>
 			public override bool Equals(object obj)
 			{
-				// Delegate to typed equality.
 				return obj is Key other && Equals(other);
 			}
 
@@ -65,8 +68,7 @@ namespace Erelia.Battle.Voxel.MesherUtils
 			/// </summary>
 			public override int GetHashCode()
 			{
-				// Combine entry point and orientation hashes.
-				int hash = entryPoints != null ? entryPoints.GetHashCode() : 0;
+				int hash = source != null ? source.GetHashCode() : 0;
 				unchecked
 				{
 					hash = (hash * 397) ^ (int)orientation;
@@ -76,32 +78,32 @@ namespace Erelia.Battle.Voxel.MesherUtils
 			}
 		}
 
-		private static readonly Dictionary<Key, CardinalPointSet> Collection = new Dictionary<Key, CardinalPointSet>();
+		private static readonly Dictionary<Key, CardinalPointSet> Collection
+			= new Dictionary<Key, CardinalPointSet>();
 
 		/// <summary>
 		/// Gets or computes a transformed cardinal point set.
 		/// </summary>
 		public static bool TryGetValue(
-			CardinalPointSet entryPoints,
+			CardinalPointSet source,
 			Erelia.Core.VoxelKit.Orientation orientation,
 			Erelia.Core.VoxelKit.FlipOrientation flipOrientation,
 			out CardinalPointSet output)
 		{
-			// Return cached transform or compute and cache a new one.
 			output = null;
-			if (entryPoints == null)
+			if (source == null)
 			{
 				return false;
 			}
 
-			var key = new Key(entryPoints, orientation, flipOrientation);
+			var key = new Key(source, orientation, flipOrientation);
 			if (Collection.TryGetValue(key, out CardinalPointSet cached))
 			{
 				output = cached;
 				return true;
 			}
 
-			output = TransformCardinalPoints(entryPoints, orientation, flipOrientation);
+			output = TransformCardinalPoints(source, orientation, flipOrientation);
 			Collection[key] = output;
 			return true;
 		}
@@ -114,7 +116,6 @@ namespace Erelia.Battle.Voxel.MesherUtils
 			Erelia.Core.VoxelKit.Orientation orientation,
 			Erelia.Core.VoxelKit.FlipOrientation flipOrientation)
 		{
-			// Transform each cardinal point using voxel geometry utilities.
 			Vector3 posX = Erelia.Core.VoxelKit.Utils.Geometry.TransformPoint(source.PositiveX, orientation, flipOrientation);
 			Vector3 negX = Erelia.Core.VoxelKit.Utils.Geometry.TransformPoint(source.NegativeX, orientation, flipOrientation);
 			Vector3 posZ = Erelia.Core.VoxelKit.Utils.Geometry.TransformPoint(source.PositiveZ, orientation, flipOrientation);

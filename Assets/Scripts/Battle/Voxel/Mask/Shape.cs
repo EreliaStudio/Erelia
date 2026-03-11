@@ -68,10 +68,10 @@ namespace Erelia.Battle.Voxel.Mask
 				}
 			}
 
-			if (Erelia.Battle.Voxel.MesherUtils.CardinalPointSetCache.TryGetValue(
+			if (Erelia.Battle.Voxel.MesherUtils.CardinalPointSetByOrientationCache.TryGetValue(
 					set,
 					orientation,
-					Erelia.Core.VoxelKit.FlipOrientation.PositiveY,
+					flipOrientation,
 					out CardinalPointSet transformed))
 			{
 				return transformed.Get(entryPoint);

@@ -23,6 +23,7 @@ namespace Erelia.Battle.Unit
 
 			CurrentHealth = MaxHealth;
 			CurrentStamina = BaseStamina;
+			RemainingMovementPoints = MovementPoints;
 		}
 
 		public Erelia.Core.Creature.Stats BaseStats => baseStats;
@@ -32,6 +33,8 @@ namespace Erelia.Battle.Unit
 		public int CurrentHealth { get; private set; }
 		public bool IsAlive => CurrentHealth > 0;
 		public float BaseStamina => Mathf.Max(MinimumStamina, totalStats.Stamina);
+		public int MovementPoints => totalStats.MovementPoints;
+		public int RemainingMovementPoints { get; private set; }
 		public float CurrentStamina { get; private set; }
 		public bool IsTakingTurn { get; private set; }
 		public bool IsReadyForTurn => CurrentStamina <= 0f;
@@ -64,6 +67,7 @@ namespace Erelia.Battle.Unit
 
 			IsTakingTurn = true;
 			CurrentStamina = 0f;
+			ResetMovementPoints();
 		}
 
 		public void EndTurn()
@@ -82,6 +86,22 @@ namespace Erelia.Battle.Unit
 			CurrentStamina = BaseStamina;
 		}
 
+		public void ResetMovementPoints()
+		{
+			RemainingMovementPoints = IsAlive ? MovementPoints : 0;
+		}
+
+		public bool TryConsumeMovementPoints(int amount)
+		{
+			if (!IsAlive || amount <= 0 || amount > RemainingMovementPoints)
+			{
+				return false;
+			}
+
+			RemainingMovementPoints -= amount;
+			return true;
+		}
+
 		public bool SetCurrentHealth(int value)
 		{
 			int clampedValue = Mathf.Clamp(value, 0, MaxHealth);
@@ -95,6 +115,7 @@ namespace Erelia.Battle.Unit
 			{
 				IsTakingTurn = false;
 				CurrentStamina = BaseStamina;
+				RemainingMovementPoints = 0;
 			}
 
 			return true;

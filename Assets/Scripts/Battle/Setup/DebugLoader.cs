@@ -16,6 +16,9 @@ namespace Erelia.Battle
 		private const string DebugPlayerNicknameA = "UnitACustomName";
 		private const int DebugPlayerSpeciesIdB = 2;
 		private const string DebugPlayerNicknameB = "UnitBCustomName";
+		private const int DebugSlabVoxelId = 1;
+		private const int DebugSlopeVoxelId = 2;
+		private const int DebugStairVoxelId = 3;
 
 		/// <summary>
 		/// Enables debug battle bootstrapping when the battle scene is opened directly.
@@ -41,6 +44,12 @@ namespace Erelia.Battle
 		/// Voxel id used for debug air cells. Negative values are treated as empty.
 		/// </summary>
 		[SerializeField] private int debugAirVoxelId = -1;
+
+		/// <summary>
+		/// Desired total movement points for debug player units.
+		/// Instance bonus stats are computed so the runtime total reaches this value.
+		/// </summary>
+		[SerializeField] private int debugTargetPlayerMovementPoints = 10;
 
 		/// <summary>
 		/// Unity callback invoked on object initialization.
@@ -132,13 +141,19 @@ namespace Erelia.Battle
 		/// <summary>
 		/// Creates the player team used by debug mode.
 		/// </summary>
-		private static Erelia.Core.Creature.Team CreateDebugPlayerTeam()
+		private Erelia.Core.Creature.Team CreateDebugPlayerTeam()
 		{
 			var team = new Erelia.Core.Creature.Team();
 			Erelia.Core.Creature.Instance.Model[] slots = team.Slots;
 
-			slots[0] = new Erelia.Core.Creature.Instance.Model(DebugPlayerSpeciesIdA, DebugPlayerNicknameA, new Core.Creature.Stats(0, 0));
-			slots[1] = new Erelia.Core.Creature.Instance.Model(DebugPlayerSpeciesIdB, DebugPlayerNicknameB, new Core.Creature.Stats(0, 0));
+			slots[0] = new Erelia.Core.Creature.Instance.Model(
+				DebugPlayerSpeciesIdA,
+				DebugPlayerNicknameA,
+				CreateDebugPlayerBonusStats(DebugPlayerSpeciesIdA));
+			slots[1] = new Erelia.Core.Creature.Instance.Model(
+				DebugPlayerSpeciesIdB,
+				DebugPlayerNicknameB,
+				CreateDebugPlayerBonusStats(DebugPlayerSpeciesIdB));
 
 			return team;
 		}
@@ -170,9 +185,114 @@ namespace Erelia.Battle
 				}
 			}
 
+			BuildDebugMovementTestArena(cells, sizeX, sizeY, sizeZ, groundHeight);
+
 			Vector3Int origin = Vector3Int.zero;
 			Vector3Int center = new Vector3Int(sizeX / 2, groundHeight - 1, sizeZ / 2);
 			return new Erelia.Battle.Board.Model(cells, origin, center);
+		}
+
+		private Erelia.Core.Creature.Stats CreateDebugPlayerBonusStats(int speciesId)
+		{
+			int baseMovementPoints = 0;
+			Erelia.Core.Creature.SpeciesRegistry registry = Erelia.Core.Creature.SpeciesRegistry.Instance;
+			if (registry != null &&
+				registry.TryGet(speciesId, out Erelia.Core.Creature.Species species) &&
+				species != null)
+			{
+				baseMovementPoints = species.Stats.MovementPoints;
+			}
+
+			int movementBonus = Mathf.Max(0, debugTargetPlayerMovementPoints - baseMovementPoints);
+			return new Erelia.Core.Creature.Stats(0, 0f, movementBonus);
+		}
+
+		private void BuildDebugMovementTestArena(
+			Erelia.Battle.Voxel.Cell[,,] cells,
+			int sizeX,
+			int sizeY,
+			int sizeZ,
+			int groundHeight)
+		{
+			int platformY = groundHeight;
+			int upperPlatformY = groundHeight + 1;
+			int wallTopY = groundHeight + 2;
+			int centerX = sizeX / 2;
+			int centerZ = sizeZ / 2;
+
+			// Central platform with stairs in all four directions.
+			FillRect(cells, centerX - 2, platformY, centerZ - 2, centerX + 2, centerZ + 2, debugGroundVoxelId);
+			TrySetCell(cells, centerX, platformY, centerZ - 3, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveX);
+			TrySetCell(cells, centerX, platformY, centerZ + 3, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.NegativeX);
+			TrySetCell(cells, centerX - 3, platformY, centerZ, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveZ);
+			TrySetCell(cells, centerX + 3, platformY, centerZ, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.NegativeZ);
+
+			// Second platform one level higher, also reachable by stairs from every direction.
+			FillRect(cells, centerX - 1, upperPlatformY, centerZ - 1, centerX + 1, centerZ + 1, debugGroundVoxelId);
+			TrySetCell(cells, centerX, upperPlatformY, centerZ - 2, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveX);
+			TrySetCell(cells, centerX, upperPlatformY, centerZ + 2, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.NegativeX);
+			TrySetCell(cells, centerX - 2, upperPlatformY, centerZ, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveZ);
+			TrySetCell(cells, centerX + 2, upperPlatformY, centerZ, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.NegativeZ);
+
+			// Slab test lane in the player half, ending on raised cube cells.
+			FillRect(cells, centerX - 8, platformY, centerZ - 7, centerX - 6, centerZ - 7, DebugSlabVoxelId);
+			FillRect(cells, centerX - 5, platformY, centerZ - 7, centerX - 3, centerZ - 7, debugGroundVoxelId);
+
+			// Slope test lane with two orientations.
+			TrySetCell(cells, centerX + 5, platformY, centerZ - 7, DebugSlopeVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveX);
+			TrySetCell(cells, centerX + 6, platformY, centerZ - 6, DebugSlopeVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveZ);
+			FillRect(cells, centerX + 7, platformY, centerZ - 6, centerX + 8, centerZ - 5, debugGroundVoxelId);
+
+			// Blocking wall to verify impossible transitions remain blocked.
+			for (int y = platformY; y <= wallTopY; y++)
+			{
+				FillRect(cells, centerX + 6, y, centerZ - 2, centerX + 6, centerZ + 2, debugGroundVoxelId);
+			}
+		}
+
+		private static void FillRect(
+			Erelia.Battle.Voxel.Cell[,,] cells,
+			int minX,
+			int y,
+			int minZ,
+			int maxX,
+			int maxZ,
+			int voxelId,
+			Erelia.Core.VoxelKit.Orientation orientation = Erelia.Core.VoxelKit.Orientation.PositiveX,
+			Erelia.Core.VoxelKit.FlipOrientation flipOrientation = Erelia.Core.VoxelKit.FlipOrientation.PositiveY)
+		{
+			if (cells == null)
+			{
+				return;
+			}
+
+			for (int x = Mathf.Min(minX, maxX); x <= Mathf.Max(minX, maxX); x++)
+			{
+				for (int z = Mathf.Min(minZ, maxZ); z <= Mathf.Max(minZ, maxZ); z++)
+				{
+					TrySetCell(cells, x, y, z, voxelId, orientation, flipOrientation);
+				}
+			}
+		}
+
+		private static void TrySetCell(
+			Erelia.Battle.Voxel.Cell[,,] cells,
+			int x,
+			int y,
+			int z,
+			int voxelId,
+			Erelia.Core.VoxelKit.Orientation orientation = Erelia.Core.VoxelKit.Orientation.PositiveX,
+			Erelia.Core.VoxelKit.FlipOrientation flipOrientation = Erelia.Core.VoxelKit.FlipOrientation.PositiveY)
+		{
+			if (cells == null ||
+				x < 0 || x >= cells.GetLength(0) ||
+				y < 0 || y >= cells.GetLength(1) ||
+				z < 0 || z >= cells.GetLength(2))
+			{
+				return;
+			}
+
+			cells[x, y, z] = new Erelia.Battle.Voxel.Cell(voxelId, orientation, flipOrientation);
 		}
 	}
 }
