@@ -28,6 +28,8 @@ namespace Erelia.Battle.Unit
 		public int MaxHealth => model != null ? model.MaxHealth : 0;
 		public int CurrentHealth => model != null ? model.CurrentHealth : 0;
 		public bool IsAlive => model != null && model.IsAlive;
+		public int ActionPoints => model != null ? model.ActionPoints : 0;
+		public int RemainingActionPoints => model != null ? model.RemainingActionPoints : 0;
 		public int MovementPoints => model != null ? model.MovementPoints : 0;
 		public int RemainingMovementPoints => model != null ? model.RemainingMovementPoints : 0;
 		public System.Collections.Generic.IReadOnlyList<Erelia.Battle.Attack.Definition> Attacks =>
@@ -246,9 +248,61 @@ namespace Erelia.Battle.Unit
 			}
 		}
 
+		public void ResetActionPoints()
+		{
+			if (model == null)
+			{
+				return;
+			}
+
+			int previousRemainingActionPoints = model.RemainingActionPoints;
+			model.ResetActionPoints();
+			if (previousRemainingActionPoints != model.RemainingActionPoints)
+			{
+				EmitSnapshot();
+			}
+		}
+
 		public bool TryConsumeMovementPoints(int amount)
 		{
 			if (model == null || !model.TryConsumeMovementPoints(amount))
+			{
+				return false;
+			}
+
+			EmitSnapshot();
+			return true;
+		}
+
+		public bool TryConsumeActionPoints(int amount)
+		{
+			if (model == null || !model.TryConsumeActionPoints(amount))
+			{
+				return false;
+			}
+
+			if (amount > 0)
+			{
+				EmitSnapshot();
+			}
+
+			return true;
+		}
+
+		public bool ChangeRemainingActionPoints(int delta)
+		{
+			if (model == null || !model.ChangeRemainingActionPoints(delta))
+			{
+				return false;
+			}
+
+			EmitSnapshot();
+			return true;
+		}
+
+		public bool ChangeRemainingMovementPoints(int delta)
+		{
+			if (model == null || !model.ChangeRemainingMovementPoints(delta))
 			{
 				return false;
 			}

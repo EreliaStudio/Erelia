@@ -38,7 +38,7 @@ namespace Erelia.Core.Creature
 		/// <summary>
 		/// Base stats shared by all creatures of this species.
 		/// </summary>
-		[SerializeField] private Stats stats = new Stats(10, 5f, 4);
+		[SerializeField] private Stats stats = new Stats(10, 5f, 6, 3);
 
 		/// <summary>
 		/// Gets the sprite displayed by UI elements representing this species.
@@ -63,6 +63,6 @@ namespace Erelia.Core.Creature
 		/// <summary>
 		/// Gets the base stats shared by all creatures of this species.
 		/// </summary>
-		public Stats Stats => stats ??= new Stats(10, 5f, 4);
+		public Stats Stats => stats ??= new Stats(10, 5f, 6, 3);
 	}
 }

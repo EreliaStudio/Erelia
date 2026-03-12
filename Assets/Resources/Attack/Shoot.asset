@@ -16,10 +16,10 @@ MonoBehaviour:
   icon: {fileID: -1882012529, guid: 1b03263dee40a734aa6275f7305a0bb1, type: 3}
   actionPointCost: 1
   requiresLineOfSight: 1
-  range: 1
-  rangePattern: 0
+  range: 5
+  rangePattern: 2
   targetType: 2
-  areaOfEffectRange: 0
+  areaOfEffectRange: 1
   effects:
   - rid: 1003577320587919838
   references:

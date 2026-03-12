@@ -5,6 +5,95 @@ namespace Erelia.Battle.Attack
 {
 	public static class TargetingUtility
 	{
+		public static int ApplyAttack(
+			Erelia.Battle.Data battleData,
+			Erelia.Battle.Unit.Presenter caster,
+			Erelia.Battle.Attack.Definition attack,
+			Vector3Int castCell)
+		{
+			if (battleData == null ||
+				caster == null ||
+				attack == null ||
+				!caster.IsAlive ||
+				!caster.IsPlaced)
+			{
+				return 0;
+			}
+
+			List<Vector3Int> affectedCells = BuildAreaOfEffectCoordinates(
+				battleData,
+				castCell,
+				attack.AreaOfEffectRange);
+			IReadOnlyList<Erelia.Battle.Attack.Effect.Definition> effects = attack.Effects;
+			if (affectedCells.Count == 0 || effects == null || effects.Count == 0)
+			{
+				return 0;
+			}
+
+			var processedUnits = new HashSet<Erelia.Battle.Unit.Presenter>();
+			int affectedUnitCount = 0;
+
+			for (int i = 0; i < affectedCells.Count; i++)
+			{
+				Vector3Int affectedCell = affectedCells[i];
+				if (!battleData.TryGetPlacedUnitAtCell(affectedCell, out Erelia.Battle.Unit.Presenter targetUnit) ||
+					targetUnit == null ||
+					!processedUnits.Add(targetUnit))
+				{
+					continue;
+				}
+
+				affectedUnitCount++;
+
+				for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
+				{
+					Erelia.Battle.Attack.Effect.Definition effect = effects[effectIndex];
+					effect?.ApplyTo(caster, targetUnit, castCell);
+				}
+			}
+
+			return affectedUnitCount;
+		}
+
+		public static List<Vector3Int> BuildRangeCoordinates(
+			Erelia.Battle.Data battleData,
+			Vector3Int originCell,
+			int range,
+			Erelia.Battle.Attack.RangePattern rangePattern)
+		{
+			var coordinates = new List<Vector3Int>();
+			IReadOnlyList<Vector3Int> acceptableCoordinates = battleData?.AcceptableCoordinates;
+			if (acceptableCoordinates == null)
+			{
+				return coordinates;
+			}
+
+			for (int i = 0; i < acceptableCoordinates.Count; i++)
+			{
+				Vector3Int coordinate = acceptableCoordinates[i];
+				if (!IsWithinRange(coordinate - originCell, range, rangePattern))
+				{
+					continue;
+				}
+
+				coordinates.Add(coordinate);
+			}
+
+			return coordinates;
+		}
+
+		public static List<Vector3Int> BuildAreaOfEffectCoordinates(
+			Erelia.Battle.Data battleData,
+			Vector3Int originCell,
+			int areaOfEffectRange)
+		{
+			return BuildRangeCoordinates(
+				battleData,
+				originCell,
+				areaOfEffectRange,
+				Erelia.Battle.Attack.RangePattern.Circle);
+		}
+
 		public static Dictionary<Vector3Int, Erelia.Battle.Unit.Presenter> BuildTargetableUnits(
 			Erelia.Battle.Data battleData,
 			Erelia.Battle.Unit.Presenter actingUnit,
@@ -71,7 +160,7 @@ namespace Erelia.Battle.Attack
 			}
 		}
 
-		private static bool IsWithinRange(
+		public static bool IsWithinRange(
 			Vector3Int delta,
 			int range,
 			Erelia.Battle.Attack.RangePattern rangePattern)

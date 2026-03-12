@@ -23,6 +23,7 @@ namespace Erelia.Battle.Unit
 
 			CurrentHealth = MaxHealth;
 			CurrentStamina = BaseStamina;
+			RemainingActionPoints = ActionPoints;
 			RemainingMovementPoints = MovementPoints;
 		}
 
@@ -33,6 +34,8 @@ namespace Erelia.Battle.Unit
 		public int CurrentHealth { get; private set; }
 		public bool IsAlive => CurrentHealth > 0;
 		public float BaseStamina => Mathf.Max(MinimumStamina, totalStats.Stamina);
+		public int ActionPoints => totalStats.ActionPoints;
+		public int RemainingActionPoints { get; private set; }
 		public int MovementPoints => totalStats.MovementPoints;
 		public int RemainingMovementPoints { get; private set; }
 		public float CurrentStamina { get; private set; }
@@ -67,7 +70,6 @@ namespace Erelia.Battle.Unit
 
 			IsTakingTurn = true;
 			CurrentStamina = 0f;
-			ResetMovementPoints();
 		}
 
 		public void EndTurn()
@@ -78,6 +80,8 @@ namespace Erelia.Battle.Unit
 				return;
 			}
 
+			ResetActionPoints();
+			ResetMovementPoints();
 			ResetStamina();
 		}
 
@@ -91,6 +95,53 @@ namespace Erelia.Battle.Unit
 			RemainingMovementPoints = IsAlive ? MovementPoints : 0;
 		}
 
+		public void ResetActionPoints()
+		{
+			RemainingActionPoints = IsAlive ? ActionPoints : 0;
+		}
+
+		public bool SetRemainingActionPoints(int value)
+		{
+			int clampedValue = Mathf.Clamp(value, 0, ActionPoints);
+			if (clampedValue == RemainingActionPoints)
+			{
+				return false;
+			}
+
+			RemainingActionPoints = clampedValue;
+			return true;
+		}
+
+		public bool ChangeRemainingActionPoints(int delta)
+		{
+			if (delta == 0)
+			{
+				return false;
+			}
+
+			return SetRemainingActionPoints(RemainingActionPoints + delta);
+		}
+
+		public bool TryConsumeActionPoints(int amount)
+		{
+			if (!IsAlive)
+			{
+				return false;
+			}
+
+			if (amount <= 0)
+			{
+				return true;
+			}
+
+			if (amount > RemainingActionPoints)
+			{
+				return false;
+			}
+
+			return ChangeRemainingActionPoints(-amount);
+		}
+
 		public bool TryConsumeMovementPoints(int amount)
 		{
 			if (!IsAlive || amount <= 0 || amount > RemainingMovementPoints)
@@ -98,8 +149,29 @@ namespace Erelia.Battle.Unit
 				return false;
 			}
 
-			RemainingMovementPoints -= amount;
+			return ChangeRemainingMovementPoints(-amount);
+		}
+
+		public bool SetRemainingMovementPoints(int value)
+		{
+			int clampedValue = Mathf.Clamp(value, 0, MovementPoints);
+			if (clampedValue == RemainingMovementPoints)
+			{
+				return false;
+			}
+
+			RemainingMovementPoints = clampedValue;
 			return true;
+		}
+
+		public bool ChangeRemainingMovementPoints(int delta)
+		{
+			if (delta == 0)
+			{
+				return false;
+			}
+
+			return SetRemainingMovementPoints(RemainingMovementPoints + delta);
 		}
 
 		public bool SetCurrentHealth(int value)
@@ -115,6 +187,7 @@ namespace Erelia.Battle.Unit
 			{
 				IsTakingTurn = false;
 				CurrentStamina = BaseStamina;
+				RemainingActionPoints = 0;
 				RemainingMovementPoints = 0;
 			}
 

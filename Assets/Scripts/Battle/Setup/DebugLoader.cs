@@ -51,7 +51,7 @@ namespace Erelia.Battle
 		/// Desired total movement points for debug player units.
 		/// Instance bonus stats are computed so the runtime total reaches this value.
 		/// </summary>
-		[SerializeField] private int debugTargetPlayerMovementPoints = 10;
+		[SerializeField] private int debugTargetPlayerMovementPoints = 3;
 
 		/// <summary>
 		/// Unity callback invoked on object initialization.

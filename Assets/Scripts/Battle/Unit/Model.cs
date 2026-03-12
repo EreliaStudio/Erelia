@@ -6,7 +6,7 @@ namespace Erelia.Battle.Unit
 	{
 		private static readonly Vector3Int UnplacedCell = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
 		private static readonly Erelia.Core.Creature.Stats DefaultSpeciesStats =
-			new Erelia.Core.Creature.Stats(0, 5f, 4);
+			new Erelia.Core.Creature.Stats(0, 5f, 6, 3);
 		private static readonly Erelia.Battle.Attack.Definition[] EmptyAttacks =
 			System.Array.Empty<Erelia.Battle.Attack.Definition>();
 
@@ -31,6 +31,8 @@ namespace Erelia.Battle.Unit
 		public int MaxHealth => LiveStats.MaxHealth;
 		public int CurrentHealth => LiveStats.CurrentHealth;
 		public bool IsAlive => LiveStats.IsAlive;
+		public int ActionPoints => LiveStats.ActionPoints;
+		public int RemainingActionPoints => LiveStats.RemainingActionPoints;
 		public int MovementPoints => LiveStats.MovementPoints;
 		public int RemainingMovementPoints => LiveStats.RemainingMovementPoints;
 		public float CurrentStaminaSeconds => LiveStats.CurrentStamina;
@@ -92,9 +94,24 @@ namespace Erelia.Battle.Unit
 			LiveStats.ResetMovementPoints();
 		}
 
+		public void ResetActionPoints()
+		{
+			LiveStats.ResetActionPoints();
+		}
+
 		public bool TryConsumeMovementPoints(int amount)
 		{
 			return LiveStats.TryConsumeMovementPoints(amount);
+		}
+
+		public bool TryConsumeActionPoints(int amount)
+		{
+			return LiveStats.TryConsumeActionPoints(amount);
+		}
+
+		public bool ChangeRemainingActionPoints(int delta)
+		{
+			return LiveStats.ChangeRemainingActionPoints(delta);
 		}
 
 		public bool SetCurrentHealth(int value)
@@ -115,6 +132,11 @@ namespace Erelia.Battle.Unit
 		public bool RestoreHealth(int amount)
 		{
 			return LiveStats.RestoreHealth(amount);
+		}
+
+		public bool ChangeRemainingMovementPoints(int delta)
+		{
+			return LiveStats.ChangeRemainingMovementPoints(delta);
 		}
 
 		private static Erelia.Core.Creature.Stats ResolveSpeciesStats(Erelia.Core.Creature.Instance.Model creature)

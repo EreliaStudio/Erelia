@@ -35,6 +35,7 @@ namespace Erelia.Battle.UI
 		private IReadOnlyList<Erelia.Battle.Attack.Definition> attacks;
 		private string[] shortcutLabels = CreateDefaultShortcutLabels();
 		private int selectedIndex = -1;
+		private int availableActionPoints = int.MaxValue;
 		private bool isInteractable = true;
 
 		public event Action<int> SlotClicked;
@@ -103,10 +104,17 @@ namespace Erelia.Battle.UI
 			Refresh();
 		}
 
+		public void SetAvailableActionPoints(int value)
+		{
+			availableActionPoints = Mathf.Max(0, value);
+			Refresh();
+		}
+
 		public void Clear()
 		{
 			attacks = null;
 			selectedIndex = -1;
+			availableActionPoints = 0;
 			isInteractable = false;
 			Refresh();
 		}
@@ -170,14 +178,16 @@ namespace Erelia.Battle.UI
 			Erelia.Battle.Attack.Definition attack =
 				attacks != null && index < attacks.Count ? attacks[index] : null;
 			bool hasAttack = attack != null;
-			bool isSelected = hasAttack && index == selectedIndex;
-			button.interactable = isInteractable && hasAttack;
+			bool hasEnoughActionPoints = hasAttack && attack.ActionPointCost <= availableActionPoints;
+			bool isAvailable = hasAttack && hasEnoughActionPoints;
+			bool isSelected = isAvailable && index == selectedIndex;
+			button.interactable = isInteractable && isAvailable;
 
 			string labelValue = ResolveShortcutLabel(index);
 			if (slot.Label != null)
 			{
 				slot.Label.text = labelValue;
-				slot.Label.color = !hasAttack
+				slot.Label.color = !isAvailable
 					? disabledLabelColor
 					: isSelected
 						? selectedLabelColor
@@ -190,7 +200,7 @@ namespace Erelia.Battle.UI
 				slot.Icon.enabled = hasAttack && attack.Icon != null;
 			}
 
-			Color buttonColor = !hasAttack
+			Color buttonColor = !isAvailable
 				? disabledButtonColor
 				: isSelected
 					? selectedButtonColor

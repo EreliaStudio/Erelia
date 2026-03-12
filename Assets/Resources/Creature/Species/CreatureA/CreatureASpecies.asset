@@ -17,4 +17,5 @@ MonoBehaviour:
   stats:
     health: 10
     stamina: 4
-    movementPoints: 4
+    actionPoints: 6
+    movementPoints: 3

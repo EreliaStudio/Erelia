@@ -2839,7 +2839,7 @@ MonoBehaviour:
   debugGroundHeight: 1
   debugGroundVoxelId: 0
   debugAirVoxelId: -1
-  debugTargetPlayerMovementPoints: 10
+  debugTargetPlayerMovementPoints: 3
 --- !u!1 &1354674745
 GameObject:
   m_ObjectHideFlags: 0
