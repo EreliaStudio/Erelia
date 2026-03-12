@@ -9,12 +9,19 @@ namespace Erelia.Battle.Phase.PlayerTurn
 	[System.Serializable]
 	public sealed class Root : Erelia.Battle.Phase.Root
 	{
+		private const string PlayerHudObjectName = "PlayerHUD";
+		private const string HealthPanelObjectName = "HealthPanel";
+		private const string PmPanelObjectName = "PMPanel";
+
 		[SerializeField] private GameObject hudRoot;
+		[SerializeField] private GameObject playerHudRoot;
 		[SerializeField] private Erelia.Core.UI.CreatureCardGroupElement playerCreatureCardGroup;
 		[SerializeField] private Erelia.Core.UI.CreatureCardGroupElement enemyCreatureCardGroup;
 		[SerializeField] private Button endTurnButton;
 		[SerializeField] private TMP_Text statusText;
 		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
+		[SerializeField] private Erelia.Core.UI.ProgressBarView healthPanel;
+		[SerializeField] private Erelia.Core.UI.ProgressBarView pmPanel;
 
 		[System.NonSerialized] private Erelia.Battle.Orchestrator activeOrchestrator;
 		[System.NonSerialized] private readonly List<Vector3Int> movementMaskCoordinates = new List<Vector3Int>();
@@ -45,6 +52,8 @@ namespace Erelia.Battle.Phase.PlayerTurn
 
 			PopulateHud(battleData);
 			SetHudVisible(true);
+			SetPlayerHudVisible(true);
+			RefreshPlayerHud(activeUnit);
 			SetStatus(BuildTurnStatus(activeUnit, "Player turn"));
 			BindEndTurnButton();
 			isMovementInProgress = false;
@@ -57,19 +66,27 @@ namespace Erelia.Battle.Phase.PlayerTurn
 			ClearMovementRange();
 			isMovementInProgress = false;
 			UnbindEndTurnButton();
+			SetPlayerHudVisible(false);
 			activeOrchestrator = null;
 		}
 
 		public override void Tick(Erelia.Battle.Orchestrator Orchestrator, float deltaTime)
 		{
 			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
-			if (battleData?.ActiveUnit == null || battleData.ActiveUnit.IsAlive)
+			Erelia.Battle.Unit.Presenter activeUnit = battleData?.ActiveUnit;
+			if (activeUnit == null)
 			{
 				return;
 			}
 
-			battleData.ClearActiveUnit();
-			activeOrchestrator?.RequestTransition(Erelia.Battle.Phase.Id.Idle);
+			if (!activeUnit.IsAlive)
+			{
+				battleData.ClearActiveUnit();
+				activeOrchestrator?.RequestTransition(Erelia.Battle.Phase.Id.Idle);
+				return;
+			}
+
+			RefreshPlayerHud(activeUnit);
 		}
 
 		private void EndTurn()
@@ -169,6 +186,23 @@ namespace Erelia.Battle.Phase.PlayerTurn
 			}
 
 			hudRoot.SetActive(isVisible);
+		}
+
+		private void SetPlayerHudVisible(bool isVisible)
+		{
+			GameObject resolvedPlayerHudRoot = ResolvePlayerHudRoot();
+			if (resolvedPlayerHudRoot == null || resolvedPlayerHudRoot.activeSelf == isVisible)
+			{
+				return;
+			}
+
+			resolvedPlayerHudRoot.SetActive(isVisible);
+		}
+
+		private void RefreshPlayerHud(Erelia.Battle.Unit.Presenter activeUnit)
+		{
+			UpdateProgressBar(ResolveHealthPanel(), activeUnit?.CurrentHealth ?? 0, activeUnit?.MaxHealth ?? 0);
+			UpdateProgressBar(ResolvePmPanel(), activeUnit?.RemainingMovementPoints ?? 0, activeUnit?.MovementPoints ?? 0);
 		}
 
 		private void SetStatus(string value)
@@ -302,6 +336,7 @@ namespace Erelia.Battle.Phase.PlayerTurn
 					$"[Erelia.Battle.Phase.PlayerTurn.Root] Failed to consume {pathCost} movement points for '{movedUnit.Creature?.DisplayName ?? movedUnit.name}'.");
 			}
 
+			RefreshPlayerHud(movedUnit);
 			RefreshEndTurnButtonInteractivity();
 
 			if (movedUnit.RemainingMovementPoints > 0)
@@ -369,6 +404,74 @@ namespace Erelia.Battle.Phase.PlayerTurn
 			}
 
 			endTurnButton.interactable = !isMovementInProgress;
+		}
+
+		private GameObject ResolvePlayerHudRoot()
+		{
+			if (playerHudRoot == null && hudRoot != null)
+			{
+				Transform playerHudTransform = hudRoot.transform.Find(PlayerHudObjectName);
+				if (playerHudTransform != null)
+				{
+					playerHudRoot = playerHudTransform.gameObject;
+				}
+			}
+
+			return playerHudRoot;
+		}
+
+		private Erelia.Core.UI.ProgressBarView ResolveHealthPanel()
+		{
+			if (healthPanel == null)
+			{
+				healthPanel = ResolveProgressBar(HealthPanelObjectName);
+			}
+
+			return healthPanel;
+		}
+
+		private Erelia.Core.UI.ProgressBarView ResolvePmPanel()
+		{
+			if (pmPanel == null)
+			{
+				pmPanel = ResolveProgressBar(PmPanelObjectName);
+			}
+
+			return pmPanel;
+		}
+
+		private Erelia.Core.UI.ProgressBarView ResolveProgressBar(string panelObjectName)
+		{
+			GameObject resolvedPlayerHudRoot = ResolvePlayerHudRoot();
+			if (resolvedPlayerHudRoot == null)
+			{
+				return null;
+			}
+
+			Transform panelTransform = resolvedPlayerHudRoot.transform.Find(panelObjectName);
+			return panelTransform != null
+				? panelTransform.GetComponent<Erelia.Core.UI.ProgressBarView>()
+				: null;
+		}
+
+		private static void UpdateProgressBar(
+			Erelia.Core.UI.ProgressBarView progressBar,
+			int currentValue,
+			int maxValue)
+		{
+			if (progressBar == null)
+			{
+				return;
+			}
+
+			int clampedMaxValue = Mathf.Max(0, maxValue);
+			int clampedCurrentValue = Mathf.Clamp(currentValue, 0, clampedMaxValue);
+			float ratio01 = clampedMaxValue > 0
+				? (float)clampedCurrentValue / clampedMaxValue
+				: 0f;
+
+			progressBar.SetProgress(ratio01);
+			progressBar.SetLabel($"{clampedCurrentValue}/{clampedMaxValue}");
 		}
 	}
 }

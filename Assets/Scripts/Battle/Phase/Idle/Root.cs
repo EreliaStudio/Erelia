@@ -9,6 +9,7 @@ namespace Erelia.Battle.Phase.Idle
 	public sealed class Root : Erelia.Battle.Phase.Root
 	{
 		[SerializeField] private GameObject hudRoot;
+		[SerializeField] private GameObject playerHudRoot;
 		[SerializeField] private Erelia.Core.UI.CreatureCardGroupElement playerCreatureCardGroup;
 		[SerializeField] private Erelia.Core.UI.CreatureCardGroupElement enemyCreatureCardGroup;
 		[SerializeField] private Button endTurnButton;
@@ -21,6 +22,7 @@ namespace Erelia.Battle.Phase.Idle
 			Erelia.Battle.Data battleData = Context.Instance.BattleData;
 			PopulateHud(battleData);
 			SetHudVisible(true);
+			SetPlayerHudVisible(false);
 			SetStatus("Waiting for the next turn");
 			SetEndTurnButtonVisible(false);
 		}
@@ -90,6 +92,17 @@ namespace Erelia.Battle.Phase.Idle
 			hudRoot.SetActive(isVisible);
 		}
 
+		private void SetPlayerHudVisible(bool isVisible)
+		{
+			GameObject resolvedPlayerHudRoot = ResolvePlayerHudRoot();
+			if (resolvedPlayerHudRoot == null || resolvedPlayerHudRoot.activeSelf == isVisible)
+			{
+				return;
+			}
+
+			resolvedPlayerHudRoot.SetActive(isVisible);
+		}
+
 		private void SetStatus(string value)
 		{
 			if (statusText == null)
@@ -111,6 +124,20 @@ namespace Erelia.Battle.Phase.Idle
 
 			endTurnButton.gameObject.SetActive(isVisible);
 			endTurnButton.interactable = false;
+		}
+
+		private GameObject ResolvePlayerHudRoot()
+		{
+			if (playerHudRoot == null && hudRoot != null)
+			{
+				Transform playerHudTransform = hudRoot.transform.Find("PlayerHUD");
+				if (playerHudTransform != null)
+				{
+					playerHudRoot = playerHudTransform.gameObject;
+				}
+			}
+
+			return playerHudRoot;
 		}
 	}
 }

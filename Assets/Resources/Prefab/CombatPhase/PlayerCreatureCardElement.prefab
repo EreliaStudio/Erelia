@@ -257,6 +257,7 @@ MonoBehaviour:
   backgroundImage: {fileID: 5496359351341312997}
   layoutElement: {fileID: 6353540223447227420}
   expandedValuesRoot: {fileID: 6834161739294133150}
+  expandedHealthValueText: {fileID: 0}
   idleColor: {r: 1, g: 1, b: 1, a: 1}
   placedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   emptyColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.85}
@@ -266,6 +267,7 @@ MonoBehaviour:
   healthValueText: {fileID: 2937911655269859349}
   staminaBarColor: {r: 0.2, g: 0.72, b: 1, a: 1}
   activeTurnColor: {r: 1, g: 0.82, b: 0.2, a: 0.9}
+  knockedOutColor: {r: 0.35, g: 0.18, b: 0.18, a: 0.95}
 --- !u!1 &2845318135530097204
 GameObject:
   m_ObjectHideFlags: 0
@@ -331,7 +333,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Second Left
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -547,10 +549,10 @@ RectTransform:
   m_Father: {fileID: 5688817153583399063}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -2, y: -2}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 1, y: 0}
+  m_SizeDelta: {x: 146, y: -2}
+  m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &8575806884625370649
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -818,4 +820,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Erelia.Core.UI.ProgressBarView
   backgroundColor: {r: 0, g: 0, b: 0, a: 0.45}
   fillColor: {r: 0.2, g: 0.72, b: 1, a: 1}
-  autoFillInset: {x: 1, y: 1}
+  fillPadding: {x: 1, y: 1}
