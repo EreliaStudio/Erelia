@@ -20,17 +20,11 @@ namespace Erelia.Battle.Board
 
 		public static Dictionary<Vector3Int, List<Vector3Int>> BuildReachablePaths(
 			Erelia.Battle.Data battleData,
-			Erelia.Battle.Unit.Presenter unit,
-			bool enableDebugLogs = false)
+			Erelia.Battle.Unit.Presenter unit)
 		{
 			var reachablePaths = new Dictionary<Vector3Int, List<Vector3Int>>();
 			if (battleData == null || unit == null || !unit.IsAlive || !unit.IsPlaced)
 			{
-				if (enableDebugLogs)
-				{
-					Debug.LogWarning("[Erelia.Battle.Board.MovementPathfinder] Cannot build movement paths because the battle data or unit is invalid.");
-				}
-
 				return reachablePaths;
 			}
 
@@ -41,42 +35,16 @@ namespace Erelia.Battle.Board
 				BuildColumnLookup(battleData.AcceptableCoordinates);
 			if (board == null || maxMovementPoints <= 0)
 			{
-				if (enableDebugLogs)
-				{
-					Debug.LogWarning(
-						$"[Erelia.Battle.Board.MovementPathfinder] Cannot build movement paths for '{unit.Creature?.DisplayName ?? unit.name}'. " +
-						$"Board: {(board != null ? "ok" : "missing")}, remainingMovementPoints: {maxMovementPoints}.");
-				}
-
 				return reachablePaths;
 			}
 
 			if (acceptableCoordinates.Count == 0)
 			{
-				if (enableDebugLogs)
-				{
-					Debug.LogWarning("[Erelia.Battle.Board.MovementPathfinder] No acceptable coordinates are available in battle data.");
-				}
-
 				return reachablePaths;
-			}
-
-			if (enableDebugLogs)
-			{
-				Debug.Log(
-					$"[Erelia.Battle.Board.MovementPathfinder] Start '{unit.Creature?.DisplayName ?? unit.name}' at {unit.Cell} " +
-					$"with {maxMovementPoints} remaining movement points out of {unit.MovementPoints}. " +
-					$"Acceptable coordinates: {acceptableCoordinates.Count}.");
 			}
 
 			if (!acceptableCoordinates.Contains(unit.Cell))
 			{
-				if (enableDebugLogs)
-				{
-					Debug.LogWarning(
-						$"[Erelia.Battle.Board.MovementPathfinder] Start cell {unit.Cell} is not in the acceptable coordinate list.");
-				}
-
 				return reachablePaths;
 			}
 
@@ -110,7 +78,7 @@ namespace Erelia.Battle.Board
 					{
 						Vector3Int next = candidateCoordinates[candidateIndex];
 						int nextCost = currentCost + 1;
-						if (!CanTraverse(battleData, board, acceptableCoordinates, unit, current, next, enableDebugLogs))
+						if (!CanTraverse(battleData, board, acceptableCoordinates, unit, current, next))
 						{
 							continue;
 						}
@@ -123,12 +91,6 @@ namespace Erelia.Battle.Board
 						costs[next] = nextCost;
 						previous[next] = current;
 						frontier.Enqueue(next);
-
-						if (enableDebugLogs)
-						{
-							Debug.Log(
-								$"[Erelia.Battle.Board.MovementPathfinder] Added reachable cell {next} at cost {nextCost} from {current}.");
-						}
 					}
 				}
 			}
@@ -141,13 +103,6 @@ namespace Erelia.Battle.Board
 				}
 
 				reachablePaths[entry.Key] = ReconstructPath(unit.Cell, entry.Key, previous);
-			}
-
-			if (enableDebugLogs)
-			{
-				Debug.Log(
-					$"[Erelia.Battle.Board.MovementPathfinder] Computed {reachablePaths.Count} reachable cells for " +
-					$"'{unit.Creature?.DisplayName ?? unit.name}'.");
 			}
 
 			return reachablePaths;
@@ -182,26 +137,15 @@ namespace Erelia.Battle.Board
 			HashSet<Vector3Int> acceptableCoordinates,
 			Erelia.Battle.Unit.Presenter unit,
 			Vector3Int currentCoordinate,
-			Vector3Int coordinate,
-			bool enableDebugLogs)
+			Vector3Int coordinate)
 		{
 			if (!Erelia.Battle.Board.UnitPlacementUtility.IsInsideBoard(board, coordinate))
 			{
-				if (enableDebugLogs)
-				{
-					Debug.Log($"[Erelia.Battle.Board.MovementPathfinder] Skipping {coordinate}: outside board bounds.");
-				}
-
 				return false;
 			}
 
 			if (!acceptableCoordinates.Contains(coordinate))
 			{
-				if (enableDebugLogs)
-				{
-					Debug.Log($"[Erelia.Battle.Board.MovementPathfinder] Skipping {coordinate}: not marked as an acceptable standable cell.");
-				}
-
 				return false;
 			}
 
@@ -212,33 +156,12 @@ namespace Erelia.Battle.Board
 					MaximumVerticalTraversalGap,
 					out Vector3 pointDelta))
 			{
-				if (enableDebugLogs)
-				{
-					Debug.Log(
-						$"[Erelia.Battle.Board.MovementPathfinder] Skipping {coordinate}: transition delta from {currentCoordinate} " +
-						$"is {pointDelta} and does not satisfy aligned X/Z with |Y| <= {MaximumVerticalTraversalGap:0.###}.");
-				}
-
 				return false;
-			}
-
-			if (enableDebugLogs)
-			{
-				Debug.Log(
-					$"[Erelia.Battle.Board.MovementPathfinder] Traversal from {currentCoordinate} to {coordinate} accepted " +
-					$"with transition delta {pointDelta}.");
 			}
 
 			if (battleData.TryGetPlacedUnitAtCell(coordinate, out Erelia.Battle.Unit.Presenter occupyingUnit) &&
 				!ReferenceEquals(occupyingUnit, unit))
 			{
-				if (enableDebugLogs)
-				{
-					Debug.Log(
-						$"[Erelia.Battle.Board.MovementPathfinder] Skipping {coordinate}: occupied by " +
-						$"'{occupyingUnit.Creature?.DisplayName ?? occupyingUnit.name}'.");
-				}
-
 				return false;
 			}
 

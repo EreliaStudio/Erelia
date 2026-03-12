@@ -15,7 +15,6 @@ namespace Erelia.Battle.Phase.PlayerTurn
 		[SerializeField] private Button endTurnButton;
 		[SerializeField] private TMP_Text statusText;
 		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
-		[SerializeField] private bool enableMovementDebugLogs = true;
 
 		[System.NonSerialized] private Erelia.Battle.Orchestrator activeOrchestrator;
 		[System.NonSerialized] private readonly List<Vector3Int> movementMaskCoordinates = new List<Vector3Int>();
@@ -50,9 +49,6 @@ namespace Erelia.Battle.Phase.PlayerTurn
 			BindEndTurnButton();
 			isMovementInProgress = false;
 			ResolveBoardPresenter();
-			LogDebug(
-				$"Entering player turn for '{activeUnit.Creature?.DisplayName ?? activeUnit.name}' at {activeUnit.Cell} " +
-				$"with {activeUnit.RemainingMovementPoints}/{activeUnit.MovementPoints} movement points.");
 			RefreshMovementRange(activeUnit);
 		}
 
@@ -112,15 +108,9 @@ namespace Erelia.Battle.Phase.PlayerTurn
 				path == null ||
 				path.Count == 0)
 			{
-				if (controller != null && controller.HasHoveredCell())
-				{
-					LogDebug($"Confirm ignored for hovered cell {controller.HoveredCell()}: no reachable path was found.");
-				}
-
 				return;
 			}
 
-			LogDebug($"Starting movement to {targetCell}. Path: {FormatCoordinates(path)}");
 			ClearMovementRange();
 			isMovementInProgress = true;
 			SetStatus(BuildMovementStatus(activeUnit));
@@ -231,7 +221,6 @@ namespace Erelia.Battle.Phase.PlayerTurn
 				!activeUnit.IsPlaced ||
 				activeUnit.RemainingMovementPoints <= 0)
 			{
-				LogDebug("Movement range refresh aborted because battle data, board, active unit, or remaining movement is invalid.");
 				return;
 			}
 
@@ -244,28 +233,24 @@ namespace Erelia.Battle.Phase.PlayerTurn
 
 			reachablePathsByCell = Erelia.Battle.Board.MovementPathfinder.BuildReachablePaths(
 				battleData,
-				activeUnit,
-				enableMovementDebugLogs);
-			LogDebug($"Pathfinder returned {reachablePathsByCell.Count} reachable cells.");
+				activeUnit);
+
 			foreach (KeyValuePair<Vector3Int, List<Vector3Int>> entry in reachablePathsByCell)
 			{
 				Vector3Int coordinate = entry.Key;
 				if (!Erelia.Battle.Board.UnitPlacementUtility.IsInsideBoard(board, coordinate))
 				{
-					LogDebug($"Skipping movement mask at {coordinate}: outside board bounds.");
 					continue;
 				}
 
 				Erelia.Battle.Voxel.Cell cell = board.Cells[coordinate.x, coordinate.y, coordinate.z];
 				if (cell == null)
 				{
-					LogDebug($"Skipping movement mask at {coordinate}: board cell is null.");
 					continue;
 				}
 
 				cell.AddMask(Erelia.Battle.Voxel.Mask.Type.MovementRange);
 				movementMaskCoordinates.Add(coordinate);
-				LogDebug($"Applied MovementRange mask to {coordinate}.");
 			}
 
 			Erelia.Battle.Board.Presenter resolvedBoardPresenter = ResolveBoardPresenter();
@@ -275,7 +260,6 @@ namespace Erelia.Battle.Phase.PlayerTurn
 				return;
 			}
 
-			LogDebug($"Rebuilding board masks for {movementMaskCoordinates.Count} movement cells.");
 			resolvedBoardPresenter.RebuildMasks();
 		}
 
@@ -319,9 +303,6 @@ namespace Erelia.Battle.Phase.PlayerTurn
 			}
 
 			RefreshEndTurnButtonInteractivity();
-			LogDebug(
-				$"Movement finished at {movedUnit.Cell}. Consumed {pathCost} points. " +
-				$"Remaining movement: {movedUnit.RemainingMovementPoints}/{movedUnit.MovementPoints}.");
 
 			if (movedUnit.RemainingMovementPoints > 0)
 			{
@@ -362,16 +343,6 @@ namespace Erelia.Battle.Phase.PlayerTurn
 			}
 
 			return boardPresenter;
-		}
-
-		private void LogDebug(string message)
-		{
-			if (!enableMovementDebugLogs)
-			{
-				return;
-			}
-
-			Debug.Log("[Erelia.Battle.Phase.PlayerTurn.Root] " + message);
 		}
 
 		private static string FormatCoordinates(IReadOnlyList<Vector3Int> coordinates)
