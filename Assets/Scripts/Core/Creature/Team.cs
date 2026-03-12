@@ -16,12 +16,12 @@ namespace Erelia.Core.Creature
 	/// <code>
 	/// {
 	///   "slots": [
-	///     { "speciesId": 12, "nickname": "Kitsu" },
+	///     { "speciesId": 12, "nickname": "Kitsu", "attackIds": [0, 4, -1, -1, -1, -1, -1, -1] },
 	///     null,
-	///     { "speciesId": 3, "nickname": "Torty" },
+	///     { "speciesId": 3, "nickname": "Torty", "attackIds": [2, -1, -1, -1, -1, -1, -1, -1] },
 	///     null,
 	///     null,
-	///     { "speciesId": -1, "nickname": null }
+	///     { "speciesId": -1, "nickname": null, "attackIds": [-1, -1, -1, -1, -1, -1, -1, -1] }
 	///   ]
 	/// }
 	/// </code>

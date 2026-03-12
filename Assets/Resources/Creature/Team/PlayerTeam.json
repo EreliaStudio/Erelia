@@ -1,7 +1,7 @@
 {
   "slots": [
-    { "speciesId": 1, "nickname": "UnitACustomName", "stats": { "health": 0, "stamina": 0.0 } },
-    { "speciesId": 2, "nickname": "UnitBCustomName", "stats": { "health": 0, "stamina": 0.0 } },
+    { "speciesId": 1, "nickname": "UnitACustomName", "stats": { "health": 0, "stamina": 0.0 }, "attackIds": [0, 1, -1, -1, -1, -1, -1, -1] },
+    { "speciesId": 2, "nickname": "UnitBCustomName", "stats": { "health": 0, "stamina": 0.0 }, "attackIds": [0, 1, -1, -1, -1, -1, -1, -1] },
     null,
     null,
     null,

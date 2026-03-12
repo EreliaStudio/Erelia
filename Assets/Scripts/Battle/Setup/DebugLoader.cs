@@ -16,6 +16,8 @@ namespace Erelia.Battle
 		private const string DebugPlayerNicknameA = "UnitACustomName";
 		private const int DebugPlayerSpeciesIdB = 2;
 		private const string DebugPlayerNicknameB = "UnitBCustomName";
+		private const int DebugPlayerAttackIdA = 0;
+		private const int DebugPlayerAttackIdB = 1;
 		private const int DebugSlabVoxelId = 1;
 		private const int DebugSlopeVoxelId = 2;
 		private const int DebugStairVoxelId = 3;
@@ -145,15 +147,18 @@ namespace Erelia.Battle
 		{
 			var team = new Erelia.Core.Creature.Team();
 			Erelia.Core.Creature.Instance.Model[] slots = team.Slots;
+			Erelia.Battle.Attack.Definition[] defaultAttacks = CreateDebugPlayerAttacks();
 
 			slots[0] = new Erelia.Core.Creature.Instance.Model(
 				DebugPlayerSpeciesIdA,
 				DebugPlayerNicknameA,
-				CreateDebugPlayerBonusStats(DebugPlayerSpeciesIdA));
+				CreateDebugPlayerBonusStats(DebugPlayerSpeciesIdA),
+				defaultAttacks);
 			slots[1] = new Erelia.Core.Creature.Instance.Model(
 				DebugPlayerSpeciesIdB,
 				DebugPlayerNicknameB,
-				CreateDebugPlayerBonusStats(DebugPlayerSpeciesIdB));
+				CreateDebugPlayerBonusStats(DebugPlayerSpeciesIdB),
+				defaultAttacks);
 
 			return team;
 		}
@@ -205,6 +210,40 @@ namespace Erelia.Battle
 
 			int movementBonus = Mathf.Max(0, debugTargetPlayerMovementPoints - baseMovementPoints);
 			return new Erelia.Core.Creature.Stats(0, 0f, movementBonus);
+		}
+
+		private static Erelia.Battle.Attack.Definition[] CreateDebugPlayerAttacks()
+		{
+			var attacks = new Erelia.Battle.Attack.Definition[Erelia.Core.Creature.Instance.Model.MaxAttackCount];
+			Erelia.Battle.Attack.AttackRegistry registry = Erelia.Battle.Attack.AttackRegistry.Instance;
+			if (registry == null)
+			{
+				return attacks;
+			}
+
+			TryAssignAttack(registry, DebugPlayerAttackIdA, attacks, 0);
+			TryAssignAttack(registry, DebugPlayerAttackIdB, attacks, 1);
+			return attacks;
+		}
+
+		private static void TryAssignAttack(
+			Erelia.Battle.Attack.AttackRegistry registry,
+			int attackId,
+			Erelia.Battle.Attack.Definition[] attacks,
+			int slotIndex)
+		{
+			if (registry == null ||
+				attacks == null ||
+				slotIndex < 0 ||
+				slotIndex >= attacks.Length)
+			{
+				return;
+			}
+
+			if (registry.TryGet(attackId, out Erelia.Battle.Attack.Definition attack))
+			{
+				attacks[slotIndex] = attack;
+			}
 		}
 
 		private void BuildDebugMovementTestArena(

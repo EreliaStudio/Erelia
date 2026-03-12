@@ -11,6 +11,7 @@ namespace Erelia.Battle.Attack
 	public sealed class AttackRegistry : Erelia.Core.SingletonRegistry<Erelia.Battle.Attack.AttackRegistry>
 	{
 		public const int EmptyAttackId = -1;
+		public const int NoAttackId = EmptyAttackId;
 
 		[Serializable]
 		public struct Entry
@@ -26,7 +27,7 @@ namespace Erelia.Battle.Attack
 		[NonSerialized] private readonly Dictionary<Erelia.Battle.Attack.Definition, int> byAttack =
 			new Dictionary<Erelia.Battle.Attack.Definition, int>();
 
-		protected override string ResourcePath => "Battle/AttackRegistry";
+		protected override string ResourcePath => "Attack/AttackRegistry";
 
 		public IReadOnlyList<Entry> Entries => entries;
 

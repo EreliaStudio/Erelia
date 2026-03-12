@@ -28,6 +28,8 @@ Core flow:
 - `Erelia.Core.Creature.Instance.Model` stores:
   - `speciesId` (from `SpeciesRegistry`)
   - optional `nickname`
+  - up to 8 runtime attack definitions
+  - serialized `attackIds` for save/load through `AttackRegistry`
 - `speciesId < 0` should be treated as "empty / invalid".
 
 ## Team
@@ -40,7 +42,8 @@ Core flow:
 - Creature data uses Unity `JsonUtility`.
 - Teams and instances are serialized as JSON objects:
   - Team JSON contains `"slots"` array.
-  - Instance JSON contains `"speciesId"` and `"nickname"`.
+  - Instance JSON contains `"speciesId"`, `"nickname"`, `"stats"`, and `"attackIds"`.
+  - `attackIds` entries are resolved through `Erelia.Battle.Attack.AttackRegistry`.
 - File I/O is handled externally (see `Erelia.Core.Utils.JsonIO`).
 
 ## Authoring Workflow
