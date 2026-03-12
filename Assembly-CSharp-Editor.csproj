@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Battle\Voxel\Editor\BattleVoxelDefinitionEditor.cs" />
+    <Compile Include="Assets\Scripts\Battle\Attack\Editor\DefinitionEditor.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Editor\VoxelDefinitionEditor.cs" />
   </ItemGroup>
   <ItemGroup>

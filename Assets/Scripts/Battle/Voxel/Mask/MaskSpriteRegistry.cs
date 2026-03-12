@@ -6,7 +6,7 @@ namespace Erelia.Battle
 	/// Registry mapping mask voxel types to sprites used for mask rendering.
 	/// Loads from Resources and provides sprite lookup for mask meshing.
 	/// </summary>
-	[CreateAssetMenu(menuName = "Battle/Mask Sprite Registry", fileName = "MaskSpriteRegistry")]
+	[CreateAssetMenu(menuName = "BattleVoxel/Mask Sprite Registry", fileName = "MaskSpriteRegistry")]
 	public sealed class MaskSpriteRegistry : Erelia.Core.SingletonRegistry<MaskSpriteRegistry>
 	{
 		/// <summary>

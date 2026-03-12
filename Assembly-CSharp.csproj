@@ -54,6 +54,7 @@
     <Compile Include="Assets\Scripts\Exploration\Player\PlayerMotionEmitter.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\Presenter.cs" />
+    <Compile Include="Assets\Scripts\Battle\Attack\TargetType.cs" />
     <Compile Include="Assets\Scripts\Core\UI\CreatureCardGroupElement.cs" />
     <Compile Include="Assets\Scripts\Core\Encounter\EncounterTableRegistry.cs" />
     <Compile Include="Assets\Scripts\Core\Events\ExplorationSceneEvents.cs" />
@@ -70,6 +71,8 @@
     <Compile Include="Assets\Scripts\Battle\Phase\Placement\Event\PlacementUnitSelected.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\View.cs" />
     <Compile Include="Assets\Scripts\Core\Events\PlayerMotion.cs" />
+    <Compile Include="Assets\Scripts\Battle\Attack\RangePattern.cs" />
+    <Compile Include="Assets\Scripts\Battle\Attack\Effect\HealthModification.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Registry.cs" />
     <Compile Include="Assets\Scripts\Battle\Unit\Snapshot.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\View.cs" />
@@ -77,6 +80,7 @@
     <Compile Include="Assets\Scripts\Battle\Voxel\MesherUtils.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\PlayerTurn\Root.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Model.cs" />
+    <Compile Include="Assets\Scripts\Battle\Voxel\Mask\MaskSpriteRegistry.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Controller.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\ChunkMotionEmitter.cs" />
     <Compile Include="Assets\Scripts\Battle\Data\BattleData.cs" />
@@ -85,6 +89,7 @@
     <Compile Include="Assets\Scripts\Core\Creature\Team.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\MouseBoardCellSelection.cs" />
     <Compile Include="Assets\Scripts\Core\UI\CreatureCardElement.cs" />
+    <Compile Include="Assets\Scripts\Battle\Attack\Definition.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Placement\Event\PlacementUnitPlaced.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\ResolveAction\Root.cs" />
     <Compile Include="Assets\Scripts\Battle\Setup\Loader.cs" />
@@ -100,7 +105,6 @@
     <Compile Include="Assets\Scripts\Battle\Phase\Defeat\Root.cs" />
     <Compile Include="Assets\Scripts\Core\Utils\PathUtils.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Data.cs" />
-    <Compile Include="Assets\Scripts\Battle\Mask\MaskSpriteRegistry.cs" />
     <Compile Include="Assets\Scripts\Core\Encounter\EncounterTable.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Placement\Root.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Cell.cs" />
@@ -115,10 +119,12 @@
     <Compile Include="Assets\Scripts\Battle\Unit\Presenter.cs" />
     <Compile Include="Assets\Scripts\Battle\UI\BattleCreatureCardGroupElement.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Idle\Root.cs" />
+    <Compile Include="Assets\Scripts\Battle\Attack\AttackRegistry.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape\CrossPlane.cs" />
     <Compile Include="Assets\Scripts\Core\Events\Bus.cs" />
     <Compile Include="Assets\Scripts\Exploration\ExplorationData.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\Camera\Model.cs" />
+    <Compile Include="Assets\Scripts\Battle\Attack\Effect\Definition.cs" />
     <Compile Include="Assets\Scripts\Battle\Board\UnitPlacementUtility.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Mask\Shape.cs" />
     <Compile Include="Assets\Scripts\Core\Creature\Instance\Model.cs" />
@@ -142,6 +148,7 @@
     <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Slab.cs" />
     <Compile Include="Assets\Scripts\Battle\Side.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\Camera\Model.cs" />
+    <Compile Include="Assets\Scripts\Battle\Attack\Effect\Kind.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\Coordinates.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\Presenter.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Utils.cs" />

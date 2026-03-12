@@ -25,12 +25,12 @@ MonoBehaviour:
     - rid: 1003577070623129908
       type: {class: Slab, ns: Erelia.Core.VoxelKit.ShapeType, asm: Assembly-CSharp}
       data:
-        spritePosX: {fileID: 458550512, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteNegX: {fileID: 458550512, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spritePosY: {fileID: 1392016584, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteNegY: {fileID: 1392016584, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spritePosZ: {fileID: 458550512, guid: 0904e940b770c4c488037236797d3790, type: 3}
-        spriteNegZ: {fileID: 458550512, guid: 0904e940b770c4c488037236797d3790, type: 3}
+        spritePosX: {fileID: 458550512, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteNegX: {fileID: 458550512, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spritePosY: {fileID: 1392016584, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteNegY: {fileID: 1392016584, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spritePosZ: {fileID: 458550512, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteNegZ: {fileID: 458550512, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
     - rid: 1003577070623129909
       type: {class: Slab, ns: Erelia.Battle.Voxel.ShapeType, asm: Assembly-CSharp}
       data: 

@@ -1135,24 +1135,24 @@ MonoBehaviour:
       boardPresenter: {fileID: 1079300952}
     idle:
       hudRoot: {fileID: 1673042856}
-      playerHudRoot: {fileID: 0}
+      playerHudRoot: {fileID: 1829744359}
       playerCreatureCardGroup: {fileID: 1980830138}
       enemyCreatureCardGroup: {fileID: 436536607}
       endTurnButton: {fileID: 197260606}
       statusText: {fileID: 1592228586}
     playerTurn:
       hudRoot: {fileID: 1673042856}
-      playerHudRoot: {fileID: 0}
+      playerHudRoot: {fileID: 1829744359}
       playerCreatureCardGroup: {fileID: 1980830138}
       enemyCreatureCardGroup: {fileID: 436536607}
       endTurnButton: {fileID: 197260606}
       statusText: {fileID: 1592228586}
       boardPresenter: {fileID: 1079300952}
-      healthPanel: {fileID: 0}
-      pmPanel: {fileID: 0}
+      healthPanel: {fileID: 1217767160}
+      pmPanel: {fileID: 2099790018}
     enemyTurn:
       hudRoot: {fileID: 1673042856}
-      playerHudRoot: {fileID: 0}
+      playerHudRoot: {fileID: 1829744359}
       playerCreatureCardGroup: {fileID: 1980830138}
       enemyCreatureCardGroup: {fileID: 436536607}
       endTurnButton: {fileID: 197260606}
@@ -1667,7 +1667,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 19ea3ad80016f1e428a582a6c787f9fb, type: 2}
+  - {fileID: 2100000, guid: c9a059d193722c94785651c9e539b926, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1779,7 +1779,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: c3582200ad6a12c43951eaa2d0eb9901, type: 2}
+  - {fileID: 2100000, guid: 46c38ca56be3c2a4c809da2d194add22, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2851,7 +2851,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1673042857
 RectTransform:
   m_ObjectHideFlags: 0
