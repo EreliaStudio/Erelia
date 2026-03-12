@@ -30,6 +30,8 @@ namespace Erelia.Battle.Unit
 		public bool IsAlive => model != null && model.IsAlive;
 		public int MovementPoints => model != null ? model.MovementPoints : 0;
 		public int RemainingMovementPoints => model != null ? model.RemainingMovementPoints : 0;
+		public System.Collections.Generic.IReadOnlyList<Erelia.Battle.Attack.Definition> Attacks =>
+			model != null ? model.Attacks : System.Array.Empty<Erelia.Battle.Attack.Definition>();
 		public float CurrentStaminaSeconds => model != null ? model.CurrentStaminaSeconds : 0f;
 		public float StaminaProgress01 => model != null ? model.StaminaProgress01 : 0f;
 		public bool IsTakingTurn => model != null && model.IsTakingTurn;

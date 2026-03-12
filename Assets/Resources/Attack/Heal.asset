@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Heal
   m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Attack.Definition
   displayName: Heal
-  icon: {fileID: 0}
+  icon: {fileID: 1439816608, guid: 1b03263dee40a734aa6275f7305a0bb1, type: 3}
   actionPointCost: 1
   requiresLineOfSight: 1
   range: 4

@@ -7,6 +7,8 @@ namespace Erelia.Battle.Unit
 		private static readonly Vector3Int UnplacedCell = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
 		private static readonly Erelia.Core.Creature.Stats DefaultSpeciesStats =
 			new Erelia.Core.Creature.Stats(0, 5f, 4);
+		private static readonly Erelia.Battle.Attack.Definition[] EmptyAttacks =
+			System.Array.Empty<Erelia.Battle.Attack.Definition>();
 
 		public Model(Erelia.Core.Creature.Instance.Model creature, Erelia.Battle.Side side)
 		{
@@ -35,6 +37,8 @@ namespace Erelia.Battle.Unit
 		public bool IsTakingTurn => LiveStats.IsTakingTurn;
 		public bool IsReadyForTurn => LiveStats.IsReadyForTurn;
 		public float StaminaProgress01 => LiveStats.StaminaProgress01;
+		public System.Collections.Generic.IReadOnlyList<Erelia.Battle.Attack.Definition> Attacks =>
+			Creature != null ? Creature.Attacks : EmptyAttacks;
 
 		public bool TryGetSpecies(out Erelia.Core.Creature.Species species)
 		{
