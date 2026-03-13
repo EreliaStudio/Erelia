@@ -126,14 +126,7 @@ namespace Erelia.Battle.Unit
 
 			StopMovement();
 			model.Unplace();
-			if (view != null)
-			{
-				view.SetVisible(true);
-				if (hasStagedWorldPosition)
-				{
-					view.SetWorldPosition(stagedWorldPosition);
-				}
-			}
+			MoveViewToStage();
 
 			EmitSnapshot();
 		}
@@ -318,6 +311,7 @@ namespace Erelia.Battle.Unit
 				return false;
 			}
 
+			HandleKnockoutState();
 			EmitSnapshot();
 			return true;
 		}
@@ -329,6 +323,7 @@ namespace Erelia.Battle.Unit
 				return false;
 			}
 
+			HandleKnockoutState();
 			EmitSnapshot();
 			return true;
 		}
@@ -340,6 +335,7 @@ namespace Erelia.Battle.Unit
 				return false;
 			}
 
+			HandleKnockoutState();
 			EmitSnapshot();
 			return true;
 		}
@@ -351,6 +347,7 @@ namespace Erelia.Battle.Unit
 				return false;
 			}
 
+			HandleKnockoutState();
 			EmitSnapshot();
 			return true;
 		}
@@ -442,6 +439,36 @@ namespace Erelia.Battle.Unit
 
 			StopCoroutine(movementRoutine);
 			movementRoutine = null;
+		}
+
+		private void HandleKnockoutState()
+		{
+			if (model == null || model.IsAlive)
+			{
+				return;
+			}
+
+			StopMovement();
+			if (model.IsPlaced)
+			{
+				model.Unplace();
+			}
+
+			MoveViewToStage();
+		}
+
+		private void MoveViewToStage()
+		{
+			if (view == null)
+			{
+				return;
+			}
+
+			view.SetVisible(true);
+			if (hasStagedWorldPosition)
+			{
+				view.SetWorldPosition(stagedWorldPosition);
+			}
 		}
 
 		private void MoveImmediatelyAlongPath(

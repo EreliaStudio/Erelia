@@ -11,6 +11,10 @@ namespace Erelia.Battle.Phase.Initialize
 	[System.Serializable]
 	public sealed class Root : Erelia.Battle.Phase.Root
 	{
+		private const float DefaultStageSideOffset = 2.5f;
+		private const float DefaultStageLaneInset = 0.5f;
+		private const float DefaultStageHeight = 1f;
+
 		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
 		[SerializeField] private Transform playerUnitsRoot;
 		[SerializeField] private Transform enemyUnitsRoot;
@@ -89,7 +93,7 @@ namespace Erelia.Battle.Phase.Initialize
 
 			Transform parent = ResolveUnitsRoot(side);
 			GameObject healthBarPrefab = ResolveHealthBarPrefab();
-			Vector3 baseWorldPosition = parent != null ? parent.position : Vector3.zero;
+			Vector3 baseWorldPosition = ResolveStageBaseWorldPosition(battleData.Board, side, parent);
 			for (int i = 0; i < slots.Length; i++)
 			{
 				Erelia.Core.Creature.Instance.Model creature = slots[i];
@@ -105,7 +109,7 @@ namespace Erelia.Battle.Phase.Initialize
 					continue;
 				}
 
-				unitPresenter.Stage(baseWorldPosition + ResolveStageOffset(i));
+				unitPresenter.Stage(baseWorldPosition + ResolveStageOffset(side, i));
 				battleData.AddUnit(unitPresenter);
 			}
 		}
@@ -214,10 +218,53 @@ namespace Erelia.Battle.Phase.Initialize
 			return enemyUnitsRoot;
 		}
 
-		private Vector3 ResolveStageOffset(int index)
+		private Vector3 ResolveStageBaseWorldPosition(
+			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Side side,
+			Transform fallbackParent)
+		{
+			if (TryResolveStageBaseLocalPosition(board, side, out Vector3 localPosition))
+			{
+				return boardPresenter != null
+					? boardPresenter.transform.TransformPoint(localPosition)
+					: localPosition;
+			}
+
+			return fallbackParent != null ? fallbackParent.position : Vector3.zero;
+		}
+
+		private static bool TryResolveStageBaseLocalPosition(
+			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Side side,
+			out Vector3 localPosition)
+		{
+			localPosition = default;
+			if (board == null)
+			{
+				return false;
+			}
+
+			float lanePosition = side == Erelia.Battle.Side.Player
+				? DefaultStageLaneInset
+				: Mathf.Max(DefaultStageLaneInset, board.SizeZ - DefaultStageLaneInset);
+			float xPosition = side == Erelia.Battle.Side.Player
+				? -DefaultStageSideOffset
+				: board.SizeX + DefaultStageSideOffset;
+
+			localPosition = new Vector3(xPosition, DefaultStageHeight, lanePosition);
+			return true;
+		}
+
+		private Vector3 ResolveStageOffset(Erelia.Battle.Side side, int index)
 		{
 			int safeIndex = Mathf.Max(0, index);
-			return stagedUnitSpacing * safeIndex;
+			Vector3 sideSpacing = stagedUnitSpacing;
+			if (side == Erelia.Battle.Side.Enemy)
+			{
+				sideSpacing.z = -sideSpacing.z;
+			}
+
+			return sideSpacing * safeIndex;
 		}
 	}
 }
