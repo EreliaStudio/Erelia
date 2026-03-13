@@ -68,6 +68,8 @@
     <Compile Include="Assets\Scripts\Battle\Player\Camera\MouseBoardCellCursor.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Cleanup\Root.cs" />
     <Compile Include="Assets\Scripts\Battle\UI\BattleCreatureCardElement.cs" />
+    <Compile Include="Assets\Scripts\Core\Events\PlayerVictoryEvent.cs" />
+    <Compile Include="Assets\Scripts\Battle\UI\BattleResultHud.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Placement\Event\PlacementUnitSelected.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\View.cs" />
     <Compile Include="Assets\Scripts\Core\Events\PlayerMotion.cs" />
@@ -103,7 +105,8 @@
     <Compile Include="Assets\Scripts\Battle\Unit\LiveStats.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Enums.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Mesher.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Defeat\Root.cs" />
+    <Compile Include="Assets\Scripts\Battle\UI\BattleResultEntryView.cs" />
+    <Compile Include="Assets\Scripts\Core\Events\PlayerDefeatEvent.cs" />
     <Compile Include="Assets\Scripts\Core\Utils\PathUtils.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Data.cs" />
     <Compile Include="Assets\Scripts\Core\Encounter\EncounterTable.cs" />
@@ -118,6 +121,7 @@
     <Compile Include="Assets\Scripts\Core\Utils\JsonIO.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape\Slope.cs" />
     <Compile Include="Assets\Scripts\Battle\Unit\Presenter.cs" />
+    <Compile Include="Assets\Scripts\Battle\Phase\Result\Root.cs" />
     <Compile Include="Assets\Scripts\Battle\UI\BattleCreatureCardGroupElement.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Idle\Root.cs" />
     <Compile Include="Assets\Scripts\Battle\Attack\AttackRegistry.cs" />
@@ -146,7 +150,6 @@
     <Compile Include="Assets\Scripts\Core\SceneBootstrapper.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\BiomeRegistry.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\Presenter.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Victory\Root.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Slab.cs" />
     <Compile Include="Assets\Scripts\Battle\Side.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\Camera\Model.cs" />

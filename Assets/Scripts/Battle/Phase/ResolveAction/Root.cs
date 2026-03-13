@@ -148,9 +148,11 @@ namespace Erelia.Battle.Phase.ResolveAction
 				return;
 			}
 
-			if (TryGetOutcomePhase(Erelia.Core.Context.Instance.BattleData, out Erelia.Battle.Phase.Id outcomePhase))
+			if (TryGetBattleOutcome(
+				Erelia.Core.Context.Instance.BattleData,
+				out Erelia.Battle.Orchestrator.BattleOutcome outcome))
 			{
-				activeOrchestrator.RequestTransition(outcomePhase);
+				activeOrchestrator.SubmitBattleOutcome(outcome);
 				return;
 			}
 
@@ -167,13 +169,13 @@ namespace Erelia.Battle.Phase.ResolveAction
 			return boardPresenter;
 		}
 
-		private static bool TryGetOutcomePhase(
+		private static bool TryGetBattleOutcome(
 			Erelia.Battle.Data battleData,
-			out Erelia.Battle.Phase.Id phaseId)
+			out Erelia.Battle.Orchestrator.BattleOutcome outcome)
 		{
 			if (battleData == null)
 			{
-				phaseId = Erelia.Battle.Phase.Id.None;
+				outcome = Erelia.Battle.Orchestrator.BattleOutcome.None;
 				return false;
 			}
 
@@ -182,17 +184,17 @@ namespace Erelia.Battle.Phase.ResolveAction
 
 			if (!hasLivingPlayerUnit)
 			{
-				phaseId = Erelia.Battle.Phase.Id.Defeat;
+				outcome = Erelia.Battle.Orchestrator.BattleOutcome.Defeat;
 				return true;
 			}
 
 			if (!hasLivingEnemyUnit)
 			{
-				phaseId = Erelia.Battle.Phase.Id.Victory;
+				outcome = Erelia.Battle.Orchestrator.BattleOutcome.Victory;
 				return true;
 			}
 
-			phaseId = Erelia.Battle.Phase.Id.None;
+			outcome = Erelia.Battle.Orchestrator.BattleOutcome.None;
 			return false;
 		}
 

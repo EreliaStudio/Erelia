@@ -17,8 +17,7 @@ Placement/Root.cs: handles unit placement and placement masks (player = lower Z 
 PlayerTurn/Root.cs: runs player turn logic.
 EnemyTurn/Root.cs: runs enemy turn logic.
 ResolveAction/Root.cs: resolves queued actions or effects.
-Victory/Root.cs: handles end-of-battle victory flow.
-Defeat/Root.cs: handles end-of-battle defeat flow.
+Result/Root.cs: handles the shared end-of-battle result flow.
 Cleanup/Root.cs: resets state and exits the battle scene.
 
 ## Naming

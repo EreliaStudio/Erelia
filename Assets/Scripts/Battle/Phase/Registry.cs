@@ -58,14 +58,9 @@ namespace Erelia.Battle.Phase
 		[SerializeField] private Erelia.Battle.Phase.ResolveAction.Root resolveAction = new Erelia.Battle.Phase.ResolveAction.Root();
 
 		/// <summary>
-		/// Instance of the victory phase.
+		/// Instance of the shared result phase.
 		/// </summary>
-		[SerializeField] private Erelia.Battle.Phase.Victory.Root victory = new Erelia.Battle.Phase.Victory.Root();
-
-		/// <summary>
-		/// Instance of the defeat phase.
-		/// </summary>
-		[SerializeField] private Erelia.Battle.Phase.Defeat.Root defeat = new Erelia.Battle.Phase.Defeat.Root();
+		[SerializeField] private Erelia.Battle.Phase.Result.Root result = new Erelia.Battle.Phase.Result.Root();
 
 		/// <summary>
 		/// Instance of the cleanup phase.
@@ -123,12 +118,8 @@ namespace Erelia.Battle.Phase
 					phase = resolveAction;
 					return phase != null;
 
-				case Id.Victory:
-					phase = victory;
-					return phase != null;
-
-				case Id.Defeat:
-					phase = defeat;
+				case Id.Result:
+					phase = result;
 					return phase != null;
 
 				case Id.Cleanup:

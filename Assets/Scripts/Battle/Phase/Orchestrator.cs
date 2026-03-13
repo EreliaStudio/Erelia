@@ -20,6 +20,13 @@ namespace Erelia.Battle
 	/// </remarks>
 	public sealed class Orchestrator : MonoBehaviour
 	{
+		public enum BattleOutcome
+		{
+			None = 0,
+			Victory = 1,
+			Defeat = 2
+		}
+
 		/// <summary>
 		/// Phase to start when the battle begins.
 		/// </summary>
@@ -60,6 +67,10 @@ namespace Erelia.Battle
 		/// Action selected by a decision phase and waiting to be resolved.
 		/// </summary>
 		private Erelia.Battle.DecidedAction pendingDecidedAction;
+		/// <summary>
+		/// Battle outcome waiting to be consumed by the result phase.
+		/// </summary>
+		private BattleOutcome pendingBattleOutcome;
 
 		/// <summary>
 		/// Gets the identifier of the currently active phase.
@@ -91,12 +102,25 @@ namespace Erelia.Battle
 			}
 
 			pendingDecidedAction = null;
+			pendingBattleOutcome = BattleOutcome.None;
 
 			// If a start phase is configured, enter it right away.
 			if (startPhase != Erelia.Battle.Phase.Id.None)
 			{
 				TransitionTo(startPhase);
 			}
+		}
+
+		private void OnEnable()
+		{
+			Erelia.Core.Event.Bus.Subscribe<Erelia.Core.Event.PlayerVictoryEvent>(HandlePlayerVictory);
+			Erelia.Core.Event.Bus.Subscribe<Erelia.Core.Event.PlayerDefeatEvent>(HandlePlayerDefeat);
+		}
+
+		private void OnDisable()
+		{
+			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Core.Event.PlayerVictoryEvent>(HandlePlayerVictory);
+			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Core.Event.PlayerDefeatEvent>(HandlePlayerDefeat);
 		}
 
 		/// <summary>
@@ -191,6 +215,37 @@ namespace Erelia.Battle
 		}
 
 		/// <summary>
+		/// Queues the battle outcome and transitions to the shared result phase.
+		/// </summary>
+		/// <param name="outcome">Resolved battle outcome.</param>
+		/// <returns>
+		/// <c>true</c> if the outcome was accepted and the result phase was requested; otherwise <c>false</c>.
+		/// </returns>
+		public bool SubmitBattleOutcome(BattleOutcome outcome)
+		{
+			if (outcome == BattleOutcome.None)
+			{
+				Debug.LogWarning("[Erelia.Battle.Orchestrator] Cannot submit an empty battle outcome.", this);
+				return false;
+			}
+
+			if (pendingBattleOutcome != BattleOutcome.None)
+			{
+				Debug.LogWarning("[Erelia.Battle.Orchestrator] A battle outcome is already pending.", this);
+				return false;
+			}
+
+			pendingBattleOutcome = outcome;
+			if (RequestTransition(Erelia.Battle.Phase.Id.Result))
+			{
+				return true;
+			}
+
+			pendingBattleOutcome = BattleOutcome.None;
+			return false;
+		}
+
+		/// <summary>
 		/// Retrieves and clears the decided action queued for the resolution phase.
 		/// </summary>
 		/// <param name="decidedAction">The queued decided action if one exists.</param>
@@ -202,6 +257,20 @@ namespace Erelia.Battle
 			decidedAction = pendingDecidedAction;
 			pendingDecidedAction = null;
 			return decidedAction != null;
+		}
+
+		/// <summary>
+		/// Retrieves and clears the outcome queued for the result phase.
+		/// </summary>
+		/// <param name="outcome">Queued battle outcome if one exists.</param>
+		/// <returns>
+		/// <c>true</c> if an outcome was available; otherwise <c>false</c>.
+		/// </returns>
+		public bool TryConsumeBattleOutcome(out BattleOutcome outcome)
+		{
+			outcome = pendingBattleOutcome;
+			pendingBattleOutcome = BattleOutcome.None;
+			return outcome != BattleOutcome.None;
 		}
 
 		/// <summary>
@@ -290,6 +359,16 @@ namespace Erelia.Battle
 
 			// Notify the new phase it is being entered.
 			currentPhase.Enter(this);
+		}
+
+		private void HandlePlayerVictory(Erelia.Core.Event.PlayerVictoryEvent evt)
+		{
+			Debug.Log("Victory !");
+		}
+
+		private void HandlePlayerDefeat(Erelia.Core.Event.PlayerDefeatEvent evt)
+		{
+			Debug.Log("Defeat ...");
 		}
 	}
 }
