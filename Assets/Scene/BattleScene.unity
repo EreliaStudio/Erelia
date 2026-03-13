@@ -1444,6 +1444,8 @@ MonoBehaviour:
       endTurnButton: {fileID: 197260606}
       statusText: {fileID: 1592228586}
       endTurnDelaySeconds: 0.75
+    resolveAction:
+      boardPresenter: {fileID: 0}
   playerController: {fileID: 513061854}
 --- !u!1 &661764515
 GameObject:
@@ -3816,6 +3818,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5913964423462856669, guid: fdf79e750edb5d84aa5002e904362de0, type: 3}
+      propertyPath: m_text
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 6526419677275464518, guid: fdf79e750edb5d84aa5002e904362de0, type: 3}
       propertyPath: m_Name
       value: ShortcutD
@@ -4397,7 +4403,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5913964423462856669, guid: fdf79e750edb5d84aa5002e904362de0, type: 3}
       propertyPath: m_text
-      value: 4
+      value: '3
+
+'
       objectReference: {fileID: 0}
     - target: {fileID: 6526419677275464518, guid: fdf79e750edb5d84aa5002e904362de0, type: 3}
       propertyPath: m_Name

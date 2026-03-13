@@ -56,6 +56,10 @@ namespace Erelia.Battle
 		/// The transition is deferred to the next <see cref="Update"/> to ensure phase changes happen at a stable time.
 		/// </remarks>
 		private Erelia.Battle.Phase.Id? pendingPhase;
+		/// <summary>
+		/// Action selected by a decision phase and waiting to be resolved.
+		/// </summary>
+		private Erelia.Battle.DecidedAction pendingDecidedAction;
 
 		/// <summary>
 		/// Gets the identifier of the currently active phase.
@@ -85,6 +89,8 @@ namespace Erelia.Battle
 			{
 				Debug.LogWarning("[Erelia.Battle.Orchestrator] Battle player controller is not assigned.", this);
 			}
+
+			pendingDecidedAction = null;
 
 			// If a start phase is configured, enter it right away.
 			if (startPhase != Erelia.Battle.Phase.Id.None)
@@ -151,6 +157,77 @@ namespace Erelia.Battle
 			// Queue the transition for the next frame.
 			pendingPhase = next;
 			return true;
+		}
+
+		/// <summary>
+		/// Queues a decided action and transitions to the resolution phase.
+		/// </summary>
+		/// <param name="decidedAction">Action selected by the current decision phase.</param>
+		/// <returns>
+		/// <c>true</c> if the action was accepted and the resolution phase was requested; otherwise <c>false</c>.
+		/// </returns>
+		public bool SubmitDecidedAction(Erelia.Battle.DecidedAction decidedAction)
+		{
+			if (decidedAction == null)
+			{
+				Debug.LogWarning("[Erelia.Battle.Orchestrator] Cannot submit a null decided action.", this);
+				return false;
+			}
+
+			if (pendingDecidedAction != null)
+			{
+				Debug.LogWarning("[Erelia.Battle.Orchestrator] A decided action is already pending resolution.", this);
+				return false;
+			}
+
+			pendingDecidedAction = decidedAction;
+			if (RequestTransition(Erelia.Battle.Phase.Id.ResolveAction))
+			{
+				return true;
+			}
+
+			pendingDecidedAction = null;
+			return false;
+		}
+
+		/// <summary>
+		/// Retrieves and clears the decided action queued for the resolution phase.
+		/// </summary>
+		/// <param name="decidedAction">The queued decided action if one exists.</param>
+		/// <returns>
+		/// <c>true</c> if a decided action was available; otherwise <c>false</c>.
+		/// </returns>
+		public bool TryConsumeDecidedAction(out Erelia.Battle.DecidedAction decidedAction)
+		{
+			decidedAction = pendingDecidedAction;
+			pendingDecidedAction = null;
+			return decidedAction != null;
+		}
+
+		/// <summary>
+		/// Requests the appropriate decision phase for the currently active unit, or returns to idle if none can act.
+		/// </summary>
+		/// <returns>
+		/// <c>true</c> if a follow-up phase transition was requested; otherwise <c>false</c>.
+		/// </returns>
+		public bool RequestDecisionPhase()
+		{
+			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance?.BattleData;
+			Erelia.Battle.Unit.Presenter activeUnit = battleData?.ActiveUnit;
+			if (activeUnit == null || !activeUnit.IsAlive || !activeUnit.IsTakingTurn)
+			{
+				if (battleData != null && activeUnit != null)
+				{
+					battleData.ClearActiveUnit();
+				}
+
+				return RequestTransition(Erelia.Battle.Phase.Id.Idle);
+			}
+
+			return RequestTransition(
+				activeUnit.Side == Erelia.Battle.Side.Enemy
+					? Erelia.Battle.Phase.Id.EnemyTurn
+					: Erelia.Battle.Phase.Id.PlayerTurn);
 		}
 
 		/// <summary>

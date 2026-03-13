@@ -160,6 +160,7 @@
     <Compile Include="Assets\Scripts\Battle\BattleBoard\View.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape\Cube.cs" />
     <Compile Include="Assets\Scripts\Core\Events\BattleSceneEvents.cs" />
+    <Compile Include="Assets\Scripts\Battle\DecidedAction.cs" />
     <Compile Include="Assets\Scripts\Core\Events\PlayerChunkMotion.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Id.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Chunk\Generation\SimpleDebugChunkGenerator.cs" />

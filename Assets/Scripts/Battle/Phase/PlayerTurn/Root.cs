@@ -111,11 +111,6 @@ namespace Erelia.Battle.Phase.PlayerTurn
 
 		public override void OnConfirm(Erelia.Battle.Player.BattlePlayerController controller)
 		{
-			if (isMovementInProgress)
-			{
-				return;
-			}
-
 			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
 			Erelia.Battle.Unit.Presenter activeUnit = battleData?.ActiveUnit;
 			if (battleData == null ||
@@ -128,20 +123,15 @@ namespace Erelia.Battle.Phase.PlayerTurn
 
 			if (TryGetSelectedAttack(activeUnit, out Erelia.Battle.Attack.Definition attack))
 			{
-				HandleAttackConfirm(controller, battleData, activeUnit, attack);
+				HandleAttackConfirm(controller, activeUnit, attack);
 				return;
 			}
 
-			HandleMovementConfirm(controller, battleData, activeUnit);
+			HandleMovementConfirm(controller, activeUnit);
 		}
 
 		public override void OnCancel(Erelia.Battle.Player.BattlePlayerController controller)
 		{
-			if (isMovementInProgress)
-			{
-				return;
-			}
-
 			Erelia.Battle.Unit.Presenter activeUnit = Erelia.Core.Context.Instance.BattleData?.ActiveUnit;
 			if (activeUnit == null)
 			{
@@ -162,19 +152,17 @@ namespace Erelia.Battle.Phase.PlayerTurn
 		{
 			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
 			Erelia.Battle.Unit.Presenter activeUnit = battleData?.ActiveUnit;
-			if (activeUnit != null)
+			if (activeUnit != null &&
+				activeUnit.IsAlive &&
+				activeOrchestrator != null &&
+				activeOrchestrator.SubmitDecidedAction(Erelia.Battle.DecidedAction.CreateEndTurn(activeUnit)))
 			{
-				activeUnit.EndTurn();
-				battleData.ClearActiveUnit();
+				selectedAttackIndex = -1;
 			}
-
-			selectedAttackIndex = -1;
-			activeOrchestrator?.RequestTransition(Erelia.Battle.Phase.Id.Idle);
 		}
 
 		private void HandleMovementConfirm(
 			Erelia.Battle.Player.BattlePlayerController controller,
-			Erelia.Battle.Data battleData,
 			Erelia.Battle.Unit.Presenter activeUnit)
 		{
 			if (activeUnit.RemainingMovementPoints <= 0)
@@ -190,46 +178,27 @@ namespace Erelia.Battle.Phase.PlayerTurn
 				return;
 			}
 
-			ClearMovementRange();
-			isMovementInProgress = true;
-			SetStatus(BuildMovementStatus(activeUnit));
-			RefreshEndTurnButtonInteractivity();
-			RefreshAttackShortcutBar(activeUnit);
-			activeUnit.MoveAlongPath(
-				path,
-				battleData.Board,
-				ResolveBoardPresenter(),
-				() => OnMovementCompleted(activeUnit, path.Count));
+			activeOrchestrator?.SubmitDecidedAction(Erelia.Battle.DecidedAction.CreateMove(activeUnit, path));
 		}
 
 		private void HandleAttackConfirm(
 			Erelia.Battle.Player.BattlePlayerController controller,
-			Erelia.Battle.Data battleData,
 			Erelia.Battle.Unit.Presenter activeUnit,
 			Erelia.Battle.Attack.Definition attack)
 		{
-			if (battleData == null ||
-				!TryGetHoveredAttackRangeCell(controller, out Vector3Int castCell))
+			if (!TryGetHoveredAttackRangeCell(controller, out Vector3Int castCell))
 			{
 				return;
 			}
 
-			if (!activeUnit.TryConsumeActionPoints(attack.ActionPointCost))
+			if (!CanAffordAttack(activeUnit, attack))
 			{
 				RefreshSelectedAction(activeUnit);
 				SetStatus(BuildInsufficientActionPointsStatus(activeUnit, attack));
 				return;
 			}
 
-			int affectedUnitCount = Erelia.Battle.Attack.TargetingUtility.ApplyAttack(
-				battleData,
-				activeUnit,
-				attack,
-				castCell);
-
-			RefreshPlayerHud(activeUnit);
-			RefreshSelectedAction(activeUnit);
-			SetStatus(BuildAttackCastStatus(activeUnit, attack, castCell, affectedUnitCount));
+			activeOrchestrator?.SubmitDecidedAction(Erelia.Battle.DecidedAction.CreateAttack(activeUnit, attack, castCell));
 		}
 
 		private void OnAttackShortcutClicked(int index)
@@ -382,26 +351,6 @@ namespace Erelia.Battle.Phase.PlayerTurn
 			}
 
 			return $"{activeUnit.Creature.DisplayName}: not enough AP for {attackName}";
-		}
-
-		private static string BuildAttackCastStatus(
-			Erelia.Battle.Unit.Presenter activeUnit,
-			Erelia.Battle.Attack.Definition attack,
-			Vector3Int castCell,
-			int affectedUnitCount)
-		{
-			string attackName = attack != null ? attack.DisplayName : "Attack";
-			string affectedLabel = affectedUnitCount == 1
-				? "1 unit in area"
-				: $"{affectedUnitCount} units in area";
-			string locationLabel = $"({castCell.x}, {castCell.y}, {castCell.z})";
-
-			if (activeUnit == null || string.IsNullOrEmpty(activeUnit.Creature?.DisplayName))
-			{
-				return $"{attackName} cast at {locationLabel} - {affectedLabel}";
-			}
-
-			return $"{activeUnit.Creature.DisplayName}: {attackName} cast at {locationLabel} - {affectedLabel}";
 		}
 
 		private void PopulateHud(Erelia.Battle.Data battleData)
@@ -836,27 +785,6 @@ namespace Erelia.Battle.Phase.PlayerTurn
 			areaOfEffectOriginCell = default;
 			areaOfEffectRadius = -1;
 			hasAreaOfEffectOriginCell = false;
-		}
-
-		private void OnMovementCompleted(Erelia.Battle.Unit.Presenter movedUnit, int pathCost)
-		{
-			isMovementInProgress = false;
-			if (movedUnit == null)
-			{
-				RefreshEndTurnButtonInteractivity();
-				RefreshAttackShortcutBar(null);
-				return;
-			}
-
-			if (!movedUnit.TryConsumeMovementPoints(pathCost))
-			{
-				Debug.LogWarning(
-					$"[Erelia.Battle.Phase.PlayerTurn.Root] Failed to consume {pathCost} movement points for '{movedUnit.Creature?.DisplayName ?? movedUnit.name}'.");
-			}
-
-			RefreshPlayerHud(movedUnit);
-			RefreshEndTurnButtonInteractivity();
-			RefreshSelectedAction(movedUnit);
 		}
 
 		private bool TryGetHoveredReachableCell(

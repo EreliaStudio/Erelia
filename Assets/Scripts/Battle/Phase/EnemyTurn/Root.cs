@@ -76,9 +76,16 @@ namespace Erelia.Battle.Phase.EnemyTurn
 			}
 
 			Erelia.Battle.Unit.Presenter activeUnit = battleData.ActiveUnit;
-			activeUnit.EndTurn();
-			battleData.ClearActiveUnit();
-			activeOrchestrator?.RequestTransition(Erelia.Battle.Phase.Id.Idle);
+			if (activeUnit == null)
+			{
+				return;
+			}
+
+			if (activeOrchestrator != null &&
+				activeOrchestrator.SubmitDecidedAction(Erelia.Battle.DecidedAction.CreateEndTurn(activeUnit)))
+			{
+				remainingDelay = float.PositiveInfinity;
+			}
 		}
 
 		private static string BuildTurnStatus(Erelia.Battle.Unit.Presenter activeUnit, string fallback)
