@@ -97,6 +97,7 @@
     <Compile Include="Assets\Scripts\Battle\Phase\ResolveAction\Root.cs" />
     <Compile Include="Assets\Scripts\Battle\Setup\Loader.cs" />
     <Compile Include="Assets\Scripts\Battle\Setup\DebugLoader.cs" />
+    <Compile Include="Assets\Scripts\Core\Events\SetSafePosition.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\Unit\UIView.cs" />

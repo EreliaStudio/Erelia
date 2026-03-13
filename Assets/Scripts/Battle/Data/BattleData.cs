@@ -82,7 +82,13 @@ namespace Erelia.Battle
 
 			for (int i = 0; i < units.Count; i++)
 			{
-				units[i]?.Dispose();
+				Erelia.Battle.Unit.Presenter unit = units[i];
+				if (unit == null)
+				{
+					continue;
+				}
+
+				unit.Dispose();
 			}
 
 			units.Clear();

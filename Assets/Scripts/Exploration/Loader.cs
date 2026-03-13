@@ -56,6 +56,11 @@ namespace Erelia.Exploration
 			// Apply models to presenters.
 			worldPresenter.SetModel(data.WorldModel);
 			playerPresenter.SetModel(data.PlayerModel);
+
+			if (!data.HasSafePosition && data.PlayerModel.HasWorldPosition)
+			{
+				Erelia.Core.Event.Bus.Emit(new Erelia.Core.Event.SetSafePosition(data.PlayerModel.WorldPosition));
+			}
 		}
 	}
 }

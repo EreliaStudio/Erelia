@@ -51,17 +51,28 @@ namespace Erelia.Exploration.Player
 			}
 
 			Erelia.Exploration.World.Model worldModel = worldPresenter.WorldModel;
+			Erelia.Exploration.Player.Model playerModel = Erelia.Core.Context.Instance.ExplorationData?.PlayerModel;
 
 			// Resolve chunk and local cell position.
 			Vector3 worldPosition = evt.WorldPosition;
+			Vector3Int cell = evt.CellPosition;
 			Erelia.Exploration.World.Chunk.Coordinates chunkCoords = Erelia.Exploration.World.Chunk.Coordinates.FromWorld(worldPosition);
+
+			if (playerModel != null)
+			{
+				if (playerModel.IsEncounterLockedAt(cell))
+				{
+					return;
+				}
+
+				playerModel.ClearEncounterLockCell(cell);
+			}
 
 			if (!worldModel.Chunks.TryGetValue(chunkCoords, out Erelia.Exploration.World.Chunk.Model chunk))
 			{
 				return;
 			}
 
-			Vector3Int cell = WorldToCell(worldPosition);
 			int localX = cell.x - (chunkCoords.X * Erelia.Exploration.World.Chunk.Model.SizeX);
 			int localZ = cell.z - (chunkCoords.Z * Erelia.Exploration.World.Chunk.Model.SizeZ);
 			int localY = cell.y;
@@ -105,23 +116,12 @@ namespace Erelia.Exploration.Player
 				return;
 			}
 
+			playerModel?.SetWorldPosition(worldPosition);
+			playerModel?.SetEncounterLockCell(cell);
+
 			Debug.Log($"Encounter trigger: id={encounterId} world={worldPosition} cell=({localX},{localY},{localZ})");
 			Erelia.Core.Event.Bus.Emit(new Erelia.Core.Event.EncounterTriggerEvent(enemyTeam, battleBoard));
 			Erelia.Core.Event.Bus.Emit(new Erelia.Core.Event.BattleSceneDataRequest(enemyTeam, battleBoard));
 		}
-
-		/// <summary>
-		/// Converts a world position to integer cell coordinates.
-		/// </summary>
-		/// <param name="worldPosition">World-space position.</param>
-		/// <returns>Cell-space coordinates.</returns>
-		private static Vector3Int WorldToCell(Vector3 worldPosition)
-		{
-			return new Vector3Int(
-				Mathf.FloorToInt(worldPosition.x),
-				Mathf.FloorToInt(worldPosition.y),
-				Mathf.FloorToInt(worldPosition.z));
-		}
-
 	}
 }

@@ -70,6 +70,11 @@ namespace Erelia.Core
 			// Subscribe to exploration scene requests.
 			Event.Bus.Subscribe<Erelia.Core.Event.ExplorationSceneDataRequest>(_ => LoadScene(SceneKind.Exploration));
 
+			Event.Bus.Subscribe<Erelia.Core.Event.SetSafePosition>(evt =>
+			{
+				Context.Instance.ExplorationData?.SetSafePosition(evt.WorldPosition);
+			});
+
 			// Subscribe to battle scene requests.
 			Event.Bus.Subscribe<Erelia.Core.Event.BattleSceneDataRequest>(evt =>
 			{

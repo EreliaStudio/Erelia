@@ -9,9 +9,10 @@ Exploration contains the runtime systems for the overworld:
 ## Core Flow
 1. `Erelia.Core.Context` holds an `Exploration.Data` instance.
 2. `Exploration.Loader` binds the world and player models to presenters.
-3. Player movement emits `PlayerMotion` and `PlayerChunkMotion` events.
-4. World presenter streams chunks around the player.
-5. Encounter trigger checks the chunk encounter grid and requests battle scenes.
+3. `Exploration.Data` stores the player position and the last safe return position.
+4. Player movement emits `PlayerMotion` and `PlayerChunkMotion` events.
+5. World presenter streams chunks around the player.
+6. Encounter trigger checks the chunk encounter grid and requests battle scenes.
 
 ## Player
 ### Player

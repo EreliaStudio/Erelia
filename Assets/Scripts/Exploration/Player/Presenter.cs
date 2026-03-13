@@ -54,6 +54,14 @@ namespace Erelia.Exploration.Player
 
 			// Store the model reference.
 			model = newModel;
+
+			if (model.HasWorldPosition)
+			{
+				view.transform.position = model.WorldPosition;
+				return;
+			}
+
+			model.SetWorldPosition(view.transform.position);
 		}
 
 		/// <summary>
@@ -143,6 +151,7 @@ namespace Erelia.Exploration.Player
 
 			// Move the player transform.
 			view.gameObject.transform.position += input * moveSpeed * Time.deltaTime;
+			model?.SetWorldPosition(view.gameObject.transform.position);
 		}
 
 		/// <summary>

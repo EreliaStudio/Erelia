@@ -22,6 +22,7 @@ Current events:
 - `EncounterTriggerEvent`: emitted when an encounter starts, includes enemy team and battle board.
 - `PlayerChunkMotion`: emitted when the player enters a new chunk.
 - `PlayerMotion`: emitted on player movement, includes world + cell positions.
+- `SetSafePosition`: emitted to update the stored safe exploration return point.
 
 ## Usage (example)
 ```csharp

@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace Erelia.Exploration
 {
 	/// <summary>
@@ -21,6 +23,16 @@ namespace Erelia.Exploration
 		public Erelia.Exploration.Player.Model PlayerModel;
 
 		/// <summary>
+		/// Last safe exploration position that defeat should return to.
+		/// </summary>
+		public Vector3 SafePosition { get; private set; }
+
+		/// <summary>
+		/// Indicates whether a safe exploration position has been defined.
+		/// </summary>
+		public bool HasSafePosition { get; private set; }
+
+		/// <summary>
 		/// Creates a new exploration data container with default models.
 		/// </summary>
 		public Data()
@@ -28,6 +40,18 @@ namespace Erelia.Exploration
 			// Initialize default models so exploration systems are ready.
 			WorldModel = new Erelia.Exploration.World.Model();
 			PlayerModel = new Erelia.Exploration.Player.Model();
+		}
+
+		public void SetSafePosition(Vector3 position)
+		{
+			SafePosition = position;
+			HasSafePosition = true;
+		}
+
+		public bool TryGetSafePosition(out Vector3 position)
+		{
+			position = SafePosition;
+			return HasSafePosition;
 		}
 	}
 }

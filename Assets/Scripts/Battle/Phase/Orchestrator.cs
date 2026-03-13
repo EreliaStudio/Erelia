@@ -364,11 +364,24 @@ namespace Erelia.Battle
 		private void HandlePlayerVictory(Erelia.Core.Event.PlayerVictoryEvent evt)
 		{
 			Debug.Log("Victory !");
+			Erelia.Core.Event.Bus.Emit(new Erelia.Core.Event.ExplorationSceneDataRequest());
 		}
 
 		private void HandlePlayerDefeat(Erelia.Core.Event.PlayerDefeatEvent evt)
 		{
 			Debug.Log("Defeat ...");
+
+			Erelia.Exploration.Data explorationData = Erelia.Core.Context.Instance?.ExplorationData;
+			if (explorationData?.PlayerModel != null && explorationData.TryGetSafePosition(out Vector3 safePosition))
+			{
+				explorationData.PlayerModel.SetWorldPosition(safePosition);
+			}
+			else
+			{
+				Debug.LogWarning("[Erelia.Battle.Orchestrator] Safe exploration position is not available on defeat.", this);
+			}
+
+			Erelia.Core.Event.Bus.Emit(new Erelia.Core.Event.ExplorationSceneDataRequest());
 		}
 	}
 }
