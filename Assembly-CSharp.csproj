@@ -58,6 +58,7 @@
     <Compile Include="Assets\Scripts\Core\UI\CreatureCardGroupElement.cs" />
     <Compile Include="Assets\Scripts\Core\Encounter\EncounterTableRegistry.cs" />
     <Compile Include="Assets\Scripts\Core\Events\ExplorationSceneEvents.cs" />
+    <Compile Include="Assets\Scripts\Core\Creature\FeatProgress.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Cell.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\View.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Initialize\AcceptableCoordinateListGenerator.cs" />
@@ -114,6 +115,7 @@
     <Compile Include="Assets\Scripts\Battle\Phase\Placement\Root.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Cell.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Stair.cs" />
+    <Compile Include="Assets\Scripts\Battle\UI\FeatCardGroupView.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\EnemyTurn\Root.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\MesherUtils.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Placement\UI\SelectableCreatureCardGroupElement.cs" />
@@ -132,6 +134,7 @@
     <Compile Include="Assets\Scripts\Exploration\Player\Camera\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\Attack\Effect\Definition.cs" />
     <Compile Include="Assets\Scripts\Battle\Board\UnitPlacementUtility.cs" />
+    <Compile Include="Assets\Scripts\Core\Creature\FeatBoard.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Mask\Shape.cs" />
     <Compile Include="Assets\Scripts\Core\Creature\Instance\Model.cs" />
     <Compile Include="Assets\Scripts\Battle\Player\BattlePlayerController.cs" />
@@ -150,6 +153,7 @@
     <Compile Include="Assets\Scripts\Battle\UI\AttackShortcutBar.cs" />
     <Compile Include="Assets\Scripts\Core\SceneBootstrapper.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\BiomeRegistry.cs" />
+    <Compile Include="Assets\Scripts\Battle\FeatProgressTracker.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\Presenter.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Slab.cs" />
     <Compile Include="Assets\Scripts\Battle\Side.cs" />
@@ -160,6 +164,8 @@
     <Compile Include="Assets\Scripts\Core\VoxelKit\Utils.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Presenter.cs" />
+    <Compile Include="Assets\Scripts\Battle\UI\FeatCardElement.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleResultCreatureData.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Placement\UI\SelectableCreatureCardElement.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\View.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape\Cube.cs" />
@@ -180,6 +186,7 @@
     <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Slope.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Definition.cs" />
     <Compile Include="Assets\Scripts\Core\Creature\Stats.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleResultEntryData.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\BattleBoardConstructor.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\Camera\Presenter.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Registry.cs" />

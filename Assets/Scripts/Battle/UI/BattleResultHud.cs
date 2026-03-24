@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,18 +11,19 @@ namespace Erelia.Battle.UI
 	{
 		[SerializeField] private GameObject root;
 		[SerializeField] private TMP_Text titleLabel;
+		[SerializeField] private TMP_Text bodyLabel;
 		[SerializeField] private Button closeFightButton;
-		[SerializeField] private RectTransform entryContainer;
-		[SerializeField] private Erelia.Battle.UI.BattleResultEntryView entryTemplate;
-
-		private readonly List<Erelia.Battle.UI.BattleResultEntryView> spawnedEntries =
-			new List<Erelia.Battle.UI.BattleResultEntryView>();
 		private bool isCloseButtonBound;
 
 		public event Action CloseRequested;
 
-		public void Show(string title, IReadOnlyList<Erelia.Battle.Unit.Presenter> playerUnits)
+		public void Show(string title, IReadOnlyList<Erelia.Battle.BattleResultCreatureData> creatureResults)
 		{
+			if (root != null && !root.activeSelf)
+			{
+				root.SetActive(true);
+			}
+
 			EnsureCloseButtonBinding();
 
 			if (titleLabel != null)
@@ -29,22 +31,31 @@ namespace Erelia.Battle.UI
 				titleLabel.text = title ?? string.Empty;
 			}
 
-			RebuildEntries(playerUnits);
+			if (bodyLabel != null)
+			{
+				bodyLabel.text = BuildBodyText(creatureResults);
+			}
+
+			RefreshLayout();
+
 			if (closeFightButton != null)
 			{
 				closeFightButton.interactable = true;
 				closeFightButton.Select();
 			}
-
-			if (root != null && !root.activeSelf)
-			{
-				root.SetActive(true);
-			}
 		}
 
 		public void Hide()
 		{
-			ClearEntries();
+			if (titleLabel != null)
+			{
+				titleLabel.text = string.Empty;
+			}
+
+			if (bodyLabel != null)
+			{
+				bodyLabel.text = string.Empty;
+			}
 
 			if (root != null && root.activeSelf)
 			{
@@ -83,82 +94,89 @@ namespace Erelia.Battle.UI
 			CloseRequested?.Invoke();
 		}
 
-		private void RebuildEntries(IReadOnlyList<Erelia.Battle.Unit.Presenter> playerUnits)
+		private void RefreshLayout()
 		{
-			ClearEntries();
-			if (entryTemplate == null || entryContainer == null)
+			Canvas.ForceUpdateCanvases();
+			if (root != null &&
+				root.transform is RectTransform rootTransform &&
+				rootTransform.gameObject.activeInHierarchy)
 			{
-				return;
+				LayoutRebuilder.ForceRebuildLayoutImmediate(rootTransform);
+			}
+			Canvas.ForceUpdateCanvases();
+		}
+
+		private static string BuildBodyText(IReadOnlyList<Erelia.Battle.BattleResultCreatureData> creatureResults)
+		{
+			if (creatureResults == null || creatureResults.Count == 0)
+			{
+				return "Creature and feat results will appear here once this panel is wired to the final interaction flow.";
 			}
 
-			entryTemplate.gameObject.SetActive(false);
-
-			if (playerUnits == null)
+			var builder = new StringBuilder(256);
+			int shownCreatureCount = 0;
+			for (int i = 0; i < creatureResults.Count; i++)
 			{
-				return;
-			}
-
-			for (int i = 0; i < playerUnits.Count; i++)
-			{
-				Erelia.Battle.Unit.Presenter unit = playerUnits[i];
-				if (unit == null)
+				Erelia.Battle.BattleResultCreatureData creatureData = creatureResults[i];
+				if (!creatureData.HasCreature)
 				{
 					continue;
 				}
 
-				Erelia.Battle.UI.BattleResultEntryView entry =
-					Instantiate(entryTemplate, entryContainer, false);
-				entry.gameObject.name = $"BattleResultEntry ({i + 1})";
-				entry.gameObject.SetActive(true);
-				entry.Apply(
-					ResolveCreatureName(unit),
-					BuildPlaceholderLine("Garbish stat A", i + 1),
-					BuildPlaceholderLine("Garbish stat B", (i + 1) * 2));
-				spawnedEntries.Add(entry);
-			}
-		}
-
-		private void ClearEntries()
-		{
-			for (int i = 0; i < spawnedEntries.Count; i++)
-			{
-				Erelia.Battle.UI.BattleResultEntryView entry = spawnedEntries[i];
-				if (entry == null)
+				if (shownCreatureCount > 0)
 				{
+					builder.AppendLine();
+					builder.AppendLine();
+				}
+
+				shownCreatureCount++;
+				builder.Append(ResolveCreatureName(creatureData));
+
+				IReadOnlyList<Erelia.Battle.BattleResultEntryData> entries = creatureData.Entries;
+				if (entries == null || entries.Count == 0)
+				{
+					builder.AppendLine();
+					builder.Append("No feat progress recorded.");
 					continue;
 				}
 
-				if (Application.isPlaying)
+				for (int entryIndex = 0; entryIndex < entries.Count; entryIndex++)
 				{
-					Destroy(entry.gameObject);
-				}
-				else
-				{
-					DestroyImmediate(entry.gameObject);
+					Erelia.Battle.BattleResultEntryData entry = entries[entryIndex];
+					builder.AppendLine();
+					builder.Append("- ");
+					builder.Append(string.IsNullOrWhiteSpace(entry.Title) ? "Feat" : entry.Title);
+
+					if (!string.IsNullOrWhiteSpace(entry.ProgressLabel))
+					{
+						builder.Append(" (");
+						builder.Append(entry.ProgressLabel);
+						builder.Append(')');
+					}
+
+					if (string.IsNullOrWhiteSpace(entry.Description))
+					{
+						continue;
+					}
+
+					builder.AppendLine();
+					builder.Append(entry.Description);
 				}
 			}
 
-			spawnedEntries.Clear();
+			return shownCreatureCount > 0
+				? builder.ToString()
+				: "Creature and feat results will appear here once this panel is wired to the final interaction flow.";
 		}
 
-		private static string ResolveCreatureName(Erelia.Battle.Unit.Presenter unit)
+		private static string ResolveCreatureName(Erelia.Battle.BattleResultCreatureData creatureData)
 		{
-			if (unit == null)
+			if (!string.IsNullOrWhiteSpace(creatureData.CreatureName))
 			{
-				return "Unknown creature";
+				return creatureData.CreatureName;
 			}
 
-			if (!string.IsNullOrEmpty(unit.Creature?.DisplayName))
-			{
-				return unit.Creature.DisplayName;
-			}
-
-			return string.IsNullOrEmpty(unit.name) ? "Unknown creature" : unit.name;
-		}
-
-		private static string BuildPlaceholderLine(string label, int value)
-		{
-			return $"{label}: {value}";
+			return $"Creature {creatureData.SlotIndex + 1}";
 		}
 	}
 }

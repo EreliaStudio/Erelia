@@ -48,7 +48,13 @@ namespace Erelia.Battle.Attack
 				for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
 				{
 					Erelia.Battle.Attack.Effect.Definition effect = effects[effectIndex];
+					int previousHealth = targetUnit.CurrentHealth;
 					effect?.ApplyTo(caster, targetUnit, castCell);
+					battleData.FeatProgressTracker.RegisterHealthChange(
+						caster,
+						targetUnit,
+						previousHealth,
+						targetUnit.CurrentHealth);
 				}
 			}
 

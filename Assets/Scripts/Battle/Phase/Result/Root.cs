@@ -35,9 +35,13 @@ namespace Erelia.Battle.Phase.Result
 				return;
 			}
 
+			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
+			battleData?.FeatProgressTracker.FinalizeBattle(
+				Erelia.Core.Context.Instance.SystemData?.PlayerTeam,
+				battleData.PlayerUnits);
 			battleResultHud.CloseRequested -= HandleCloseRequested;
 			battleResultHud.CloseRequested += HandleCloseRequested;
-			battleResultHud.Show(ResolveTitle(currentOutcome), Erelia.Core.Context.Instance.BattleData?.PlayerUnits);
+			battleResultHud.Show(ResolveTitle(currentOutcome), battleData?.FeatProgressTracker.CreatureResults);
 		}
 
 		public override void Exit(Erelia.Battle.Orchestrator orchestrator)

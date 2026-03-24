@@ -18,6 +18,8 @@ namespace Erelia.Battle
 		[System.NonSerialized] private readonly List<Erelia.Battle.Unit.Presenter> enemyUnits =
 			new List<Erelia.Battle.Unit.Presenter>();
 		[System.NonSerialized] private Erelia.Battle.Unit.Presenter activeUnit;
+		[System.NonSerialized] private readonly Erelia.Battle.FeatProgressTracker featProgressTracker =
+			new Erelia.Battle.FeatProgressTracker();
 
 		/// <summary>
 		/// Battle board model for the current encounter.
@@ -34,6 +36,7 @@ namespace Erelia.Battle
 		public IReadOnlyList<Erelia.Battle.Unit.Presenter> PlayerUnits => playerUnits;
 		public IReadOnlyList<Erelia.Battle.Unit.Presenter> EnemyUnits => enemyUnits;
 		public Erelia.Battle.Unit.Presenter ActiveUnit => activeUnit;
+		public Erelia.Battle.FeatProgressTracker FeatProgressTracker => featProgressTracker;
 
 		public void Reset(Erelia.Core.Creature.Team enemyTeam, Erelia.Battle.Board.Model board)
 		{
@@ -47,6 +50,7 @@ namespace Erelia.Battle
 			ClearPlacementData();
 			ClearUnits();
 			activeUnit = null;
+			featProgressTracker.Reset();
 		}
 
 		public void ClearPlacementData()

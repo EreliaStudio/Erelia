@@ -19,3 +19,4 @@ MonoBehaviour:
     stamina: 6
     actionPoints: 6
     movementPoints: 3
+  featBoard: {fileID: 11400000, guid: 7da0455c6eca487f9df3377fb0b8a123, type: 2}

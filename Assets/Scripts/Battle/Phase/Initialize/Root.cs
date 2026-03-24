@@ -64,6 +64,7 @@ namespace Erelia.Battle.Phase.Initialize
 
 			CreateUnits(battleData, Erelia.Core.Context.Instance.SystemData?.PlayerTeam, Erelia.Battle.Side.Player);
 			CreateUnits(battleData, battleData.EnemyTeam, Erelia.Battle.Side.Enemy);
+			battleData.FeatProgressTracker.BeginBattle(battleData.PlayerUnits);
 			return true;
 		}
 

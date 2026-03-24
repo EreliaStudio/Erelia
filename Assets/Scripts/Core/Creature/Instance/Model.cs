@@ -52,6 +52,12 @@ namespace Erelia.Core.Creature.Instance
 		[SerializeField] private Erelia.Core.Creature.Stats stats = new Erelia.Core.Creature.Stats();
 
 		/// <summary>
+		/// Persistent feat progression state for this creature instance.
+		/// </summary>
+		[SerializeField] private Erelia.Core.Creature.FeatProgress featProgress =
+			new Erelia.Core.Creature.FeatProgress();
+
+		/// <summary>
 		/// Serialized attack ids used for save/load.
 		/// </summary>
 		[SerializeField] private int[] attackIds = CreateAttackIdSlots();
@@ -71,6 +77,7 @@ namespace Erelia.Core.Creature.Instance
 		/// </summary>
 		public string Nickname => nickname;
 		public Erelia.Core.Creature.Stats Stats => stats ??= new Erelia.Core.Creature.Stats();
+		public Erelia.Core.Creature.FeatProgress FeatProgress => featProgress ??= new Erelia.Core.Creature.FeatProgress();
 		public Erelia.Battle.Attack.Definition[] Attacks => attacks ??= CreateAttackSlots();
 		public bool IsEmpty => speciesId < 0;
 
@@ -112,6 +119,7 @@ namespace Erelia.Core.Creature.Instance
 			this.speciesId = speciesId;
 			this.nickname = nickname;
 			this.stats = stats ?? new Erelia.Core.Creature.Stats();
+			featProgress = new Erelia.Core.Creature.FeatProgress();
 			SetAttacks(attacks);
 		}
 
@@ -145,9 +153,52 @@ namespace Erelia.Core.Creature.Instance
 			attacks = normalized;
 		}
 
+		public void ApplyStatBonus(Erelia.Core.Creature.Stats bonus)
+		{
+			if (bonus == null)
+			{
+				return;
+			}
+
+			stats = Erelia.Core.Creature.Stats.Combine(Stats, bonus);
+		}
+
+		public bool TryUnlockAttack(Erelia.Battle.Attack.Definition attack)
+		{
+			if (attack == null)
+			{
+				return false;
+			}
+
+			Erelia.Battle.Attack.Definition[] availableAttacks = Attacks;
+			for (int i = 0; i < availableAttacks.Length; i++)
+			{
+				if (availableAttacks[i] == attack)
+				{
+					return true;
+				}
+			}
+
+			for (int i = 0; i < availableAttacks.Length; i++)
+			{
+				if (availableAttacks[i] != null)
+				{
+					continue;
+				}
+
+				availableAttacks[i] = attack;
+				return true;
+			}
+
+			return false;
+		}
+
 		public void OnBeforeSerialize()
 		{
 			stats ??= new Erelia.Core.Creature.Stats();
+			featProgress ??= new Erelia.Core.Creature.FeatProgress();
+			featProgress.Normalize();
+			Erelia.Core.Creature.FeatProgression.EnsureInitialized(this);
 			NormalizeAttacks();
 			NormalizeAttackIds();
 			SyncAttackIdsFromDefinitions();
@@ -156,6 +207,9 @@ namespace Erelia.Core.Creature.Instance
 		public void OnAfterDeserialize()
 		{
 			stats ??= new Erelia.Core.Creature.Stats();
+			featProgress ??= new Erelia.Core.Creature.FeatProgress();
+			featProgress.Normalize();
+			Erelia.Core.Creature.FeatProgression.EnsureInitialized(this);
 			NormalizeAttackIds();
 			SyncDefinitionsFromAttackIds();
 		}

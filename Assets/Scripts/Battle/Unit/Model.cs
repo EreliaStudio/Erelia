@@ -12,6 +12,7 @@ namespace Erelia.Battle.Unit
 
 		public Model(Erelia.Core.Creature.Instance.Model creature, Erelia.Battle.Side side)
 		{
+			Erelia.Core.Creature.FeatProgression.EnsureInitialized(creature);
 			Creature = creature;
 			Side = side;
 			Cell = UnplacedCell;

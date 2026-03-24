@@ -117,6 +117,7 @@ namespace Erelia.Battle.Phase.ResolveAction
 			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
 			Erelia.Battle.Unit.Presenter actor = decidedAction.Actor;
 			actor?.EndTurn();
+			battleData?.FeatProgressTracker.RegisterTurnEnded(actor, battleData.Units);
 			battleData?.ClearActiveUnit();
 			CompleteResolution();
 		}

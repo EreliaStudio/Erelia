@@ -41,6 +41,11 @@ namespace Erelia.Core.Creature
 		[SerializeField] private Stats stats = new Stats(10, 5f, 6, 3);
 
 		/// <summary>
+		/// Species-authored feat board that defines this creature's progression map.
+		/// </summary>
+		[SerializeField] private Erelia.Core.Creature.FeatBoard featBoard;
+
+		/// <summary>
 		/// Gets the sprite displayed by UI elements representing this species.
 		/// </summary>
 		public Sprite Icon => icon;
@@ -64,5 +69,10 @@ namespace Erelia.Core.Creature
 		/// Gets the base stats shared by all creatures of this species.
 		/// </summary>
 		public Stats Stats => stats ??= new Stats(10, 5f, 6, 3);
+
+		/// <summary>
+		/// Gets the feat board used to drive action-based progression for this species.
+		/// </summary>
+		public Erelia.Core.Creature.FeatBoard FeatBoard => featBoard;
 	}
 }

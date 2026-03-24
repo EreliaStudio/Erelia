@@ -1,0 +1,113 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d2c6c919e9340d49d81f8b6e4511a41, type: 3}
+  m_Name: CreatureAFeatBoard
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Core.Creature.FeatBoard
+  nodes:
+  - id: origin
+    displayName: Origin
+    description: Central node unlocked from the start.
+    position: {x: 0, y: 0}
+    startsUnlocked: 1
+    adjacentNodeIds:
+    - bruiser
+    - medic
+    - kiter
+    objectiveKind: 0
+    requiredValue: 1
+    minimumDistanceToEnemy: 3
+    reward:
+      kind: 0
+      statBonus:
+        health: 0
+        stamina: 0
+        actionPoints: 0
+        movementPoints: 0
+      attack: {fileID: 0}
+      summary: 
+  - id: bruiser
+    displayName: Bruiser
+    description: Deal damage to unlock more durability.
+    position: {x: 220, y: 0}
+    startsUnlocked: 0
+    adjacentNodeIds:
+    - origin
+    - relentless
+    objectiveKind: 1
+    requiredValue: 5
+    minimumDistanceToEnemy: 3
+    reward:
+      kind: 1
+      statBonus:
+        health: 2
+        stamina: 0
+        actionPoints: 0
+        movementPoints: 0
+      attack: {fileID: 0}
+      summary: +2 HP
+  - id: relentless
+    displayName: Relentless
+    description: Keep pressuring enemies after unlocking Bruiser.
+    position: {x: 430, y: 80}
+    startsUnlocked: 0
+    adjacentNodeIds:
+    - bruiser
+    objectiveKind: 1
+    requiredValue: 12
+    minimumDistanceToEnemy: 3
+    reward:
+      kind: 1
+      statBonus:
+        health: 0
+        stamina: 0
+        actionPoints: 1
+        movementPoints: 0
+      attack: {fileID: 0}
+      summary: +1 AP
+  - id: medic
+    displayName: Medic
+    description: Restore health to allies or yourself.
+    position: {x: -220, y: 0}
+    startsUnlocked: 0
+    adjacentNodeIds:
+    - origin
+    objectiveKind: 2
+    requiredValue: 3
+    minimumDistanceToEnemy: 3
+    reward:
+      kind: 1
+      statBonus:
+        health: 0
+        stamina: 0
+        actionPoints: 1
+        movementPoints: 0
+      attack: {fileID: 0}
+      summary: +1 AP
+  - id: kiter
+    displayName: Kiter
+    description: End turns far from enemies to gain mobility.
+    position: {x: 0, y: 220}
+    startsUnlocked: 0
+    adjacentNodeIds:
+    - origin
+    objectiveKind: 3
+    requiredValue: 2
+    minimumDistanceToEnemy: 4
+    reward:
+      kind: 1
+      statBonus:
+        health: 0
+        stamina: 0
+        actionPoints: 0
+        movementPoints: 1
+      attack: {fileID: 0}
+      summary: +1 MP
