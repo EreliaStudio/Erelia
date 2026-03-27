@@ -1,11 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Erelia.Battle
 {
-	/// <summary>
-	/// Optional scene bootstrapper used to start the battle scene directly in debug.
-	/// It prepares the runtime context before the normal battle loader binds the board.
-	/// </summary>
 	[DefaultExecutionOrder(-100)]
 	public sealed class DebugLoader : MonoBehaviour
 	{
@@ -22,48 +18,23 @@ namespace Erelia.Battle
 		private const int DebugSlopeVoxelId = 2;
 		private const int DebugStairVoxelId = 3;
 
-		/// <summary>
-		/// Enables debug battle bootstrapping when the battle scene is opened directly.
-		/// </summary>
 		[SerializeField] private bool debugMode;
 
-		/// <summary>
-		/// Size of the generated debug board.
-		/// </summary>
 		[SerializeField] private Vector3Int debugBoardSize = new Vector3Int(21, 8, 21);
 
-		/// <summary>
-		/// Number of solid ground layers generated from the bottom of the board.
-		/// </summary>
 		[SerializeField] private int debugGroundHeight = 1;
 
-		/// <summary>
-		/// Voxel id used for debug ground cells.
-		/// </summary>
 		[SerializeField] private int debugGroundVoxelId = 0;
 
-		/// <summary>
-		/// Voxel id used for debug air cells. Negative values are treated as empty.
-		/// </summary>
 		[SerializeField] private int debugAirVoxelId = -1;
 
-		/// <summary>
-		/// Desired total movement points for debug player units.
-		/// Instance bonus stats are computed so the runtime total reaches this value.
-		/// </summary>
 		[SerializeField] private int debugTargetPlayerMovementPoints = 3;
 
-		/// <summary>
-		/// Unity callback invoked on object initialization.
-		/// </summary>
 		private void Awake()
 		{
 			InitializeDebugContext();
 		}
 
-		/// <summary>
-		/// Bootstraps a debug battle context when the scene is launched directly.
-		/// </summary>
 		private void InitializeDebugContext()
 		{
 			if (!debugMode)
@@ -91,9 +62,6 @@ namespace Erelia.Battle
 			Debug.Log("[Erelia.Battle.DebugLoader] Debug battle context initialized.");
 		}
 
-		/// <summary>
-		/// Ensures the global player team exists for debug scene launches.
-		/// </summary>
 		private void EnsurePlayerTeam(Erelia.Core.SystemData systemData)
 		{
 			if (systemData == null || systemData.PlayerTeam != null)
@@ -104,9 +72,6 @@ namespace Erelia.Battle
 			systemData.SetPlayerTeam(CreateDebugPlayerTeam());
 		}
 
-		/// <summary>
-		/// Returns whether the battle context is already ready for the battle scene.
-		/// </summary>
 		private static bool HasValidBattleData(Erelia.Battle.Data data)
 		{
 			return data != null &&
@@ -114,9 +79,6 @@ namespace Erelia.Battle
 				data.EnemyTeam != null;
 		}
 
-		/// <summary>
-		/// Creates the enemy team used by debug mode.
-		/// </summary>
 		private static Erelia.Core.Creature.Team CreateDebugEnemyTeam()
 		{
 			var encounterTable = new Erelia.Core.Encounter.EncounterTable
@@ -140,9 +102,6 @@ namespace Erelia.Battle
 			return team;
 		}
 
-		/// <summary>
-		/// Creates the player team used by debug mode.
-		/// </summary>
 		private Erelia.Core.Creature.Team CreateDebugPlayerTeam()
 		{
 			var team = new Erelia.Core.Creature.Team();
@@ -163,9 +122,6 @@ namespace Erelia.Battle
 			return team;
 		}
 
-		/// <summary>
-		/// Builds a simple deterministic board for debug scene launches.
-		/// </summary>
 		private Erelia.Battle.Board.Model CreateDebugBoard()
 		{
 			int sizeX = Mathf.Max(1, debugBoardSize.x);
@@ -259,30 +215,25 @@ namespace Erelia.Battle
 			int centerX = sizeX / 2;
 			int centerZ = sizeZ / 2;
 
-			// Central platform with stairs in all four directions.
 			FillRect(cells, centerX - 2, platformY, centerZ - 2, centerX + 2, centerZ + 2, debugGroundVoxelId);
 			TrySetCell(cells, centerX, platformY, centerZ - 3, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveX);
 			TrySetCell(cells, centerX, platformY, centerZ + 3, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.NegativeX);
 			TrySetCell(cells, centerX - 3, platformY, centerZ, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveZ);
 			TrySetCell(cells, centerX + 3, platformY, centerZ, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.NegativeZ);
 
-			// Second platform one level higher, also reachable by stairs from every direction.
 			FillRect(cells, centerX - 1, upperPlatformY, centerZ - 1, centerX + 1, centerZ + 1, debugGroundVoxelId);
 			TrySetCell(cells, centerX, upperPlatformY, centerZ - 2, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveX);
 			TrySetCell(cells, centerX, upperPlatformY, centerZ + 2, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.NegativeX);
 			TrySetCell(cells, centerX - 2, upperPlatformY, centerZ, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveZ);
 			TrySetCell(cells, centerX + 2, upperPlatformY, centerZ, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.NegativeZ);
 
-			// Slab test lane in the player half, ending on raised cube cells.
 			FillRect(cells, centerX - 8, platformY, centerZ - 7, centerX - 6, centerZ - 7, DebugSlabVoxelId);
 			FillRect(cells, centerX - 5, platformY, centerZ - 7, centerX - 3, centerZ - 7, debugGroundVoxelId);
 
-			// Slope test lane with two orientations.
 			TrySetCell(cells, centerX + 5, platformY, centerZ - 7, DebugSlopeVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveX);
 			TrySetCell(cells, centerX + 6, platformY, centerZ - 6, DebugSlopeVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveZ);
 			FillRect(cells, centerX + 7, platformY, centerZ - 6, centerX + 8, centerZ - 5, debugGroundVoxelId);
 
-			// Blocking wall to verify impossible transitions remain blocked.
 			for (int y = platformY; y <= wallTopY; y++)
 			{
 				FillRect(cells, centerX + 6, y, centerZ - 2, centerX + 6, centerZ + 2, debugGroundVoxelId);

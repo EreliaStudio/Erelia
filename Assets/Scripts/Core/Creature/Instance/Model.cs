@@ -1,80 +1,28 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace Erelia.Core.Creature.Instance
 {
-	/// <summary>
-	/// Serializable data model representing a single creature instance.
-	/// </summary>
-	/// <remarks>
-	/// <para>
-	/// A creature instance references its species through <see cref="SpeciesId"/> (resolved via
-	/// <see cref="Erelia.Core.Creature.SpeciesRegistry"/>) and optionally stores a nickname.
-	/// </para>
-	/// <para>
-	/// JSON format (Unity <see cref="JsonUtility"/>):
-	/// </para>
-	/// <code>
-	/// {
-	///   "speciesId": 12,
-	///   "nickname": "Kitsu",
-	///   "attackIds": [0, 4, -1, -1, -1, -1, -1, -1]
-	/// }
-	/// </code>
-	/// <para>
-	/// Notes:
-	/// <list type="bullet">
-	/// <item><description>Property names match the serialized field names (<c>speciesId</c>, <c>nickname</c>, <c>attackIds</c>).</description></item>
-	/// <item><description>Private fields are serialized because they are marked with <c>[SerializeField]</c>.</description></item>
-	/// <item><description>Attack ids are resolved through <see cref="Erelia.Battle.Attack.AttackRegistry"/> after deserialization.</description></item>
-	/// <item><description>Serialization is handled externally via <see cref="JsonUtility"/>.</description></item>
-	/// </list>
-	/// </para>
-	/// </remarks>
 	[System.Serializable]
 	public sealed class Model : ISerializationCallbackReceiver
 	{
 		public const int MaxAttackCount = 8;
 
-		/// <summary>
-		/// Species registry id associated with this creature instance.
-		/// </summary>
 		[SerializeField] private int speciesId = Erelia.Core.Creature.SpeciesRegistry.EmptySpeciesId;
 
-		/// <summary>
-		/// Optional nickname assigned to this creature instance.
-		/// </summary>
 		[SerializeField] private string nickname;
 
-		/// <summary>
-		/// Additive stats gained by this specific creature instance.
-		/// </summary>
 		[SerializeField] private Erelia.Core.Creature.Stats stats = new Erelia.Core.Creature.Stats();
 
-		/// <summary>
-		/// Persistent feat progression state for this creature instance.
-		/// </summary>
 		[SerializeField] private Erelia.Core.Creature.FeatProgress featProgress =
 			new Erelia.Core.Creature.FeatProgress();
 
-		/// <summary>
-		/// Serialized attack ids used for save/load.
-		/// </summary>
 		[SerializeField] private int[] attackIds = CreateAttackIdSlots();
 
-		/// <summary>
-		/// Runtime-resolved attack definitions.
-		/// </summary>
 		[NonSerialized] private Erelia.Battle.Attack.Definition[] attacks = CreateAttackSlots();
 
-		/// <summary>
-		/// Gets the species registry id.
-		/// </summary>
 		public int SpeciesId => speciesId;
 
-		/// <summary>
-		/// Gets the nickname.
-		/// </summary>
 		public string Nickname => nickname;
 		public Erelia.Core.Creature.Stats Stats => stats ??= new Erelia.Core.Creature.Stats();
 		public Erelia.Core.Creature.FeatProgress FeatProgress => featProgress ??= new Erelia.Core.Creature.FeatProgress();
@@ -102,12 +50,8 @@ namespace Erelia.Core.Creature.Instance
 			}
 		}
 
-		/// <summary>
-		/// Creates an empty creature instance model.
-		/// </summary>
 		public Model()
 		{
-			// Default constructor required for serialization.
 		}
 
 		public Model(
@@ -123,10 +67,6 @@ namespace Erelia.Core.Creature.Instance
 			SetAttacks(attacks);
 		}
 
-		/// <summary>
-		/// Sets the species registry id.
-		/// </summary>
-		/// <param name="id">New species id.</param>
 		public void SetSpeciesId(int id)
 		{
 			speciesId = id;

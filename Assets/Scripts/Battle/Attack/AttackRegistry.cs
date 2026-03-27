@@ -1,12 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle.Attack
 {
-	/// <summary>
-	/// Singleton registry mapping integer ids to attack assets.
-	/// </summary>
 	[CreateAssetMenu(menuName = "Attack/Registry", fileName = "AttackRegistry")]
 	public sealed class AttackRegistry : Erelia.Core.SingletonRegistry<Erelia.Battle.Attack.AttackRegistry>
 	{

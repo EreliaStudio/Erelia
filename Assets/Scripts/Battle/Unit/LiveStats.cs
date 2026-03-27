@@ -1,10 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Erelia.Battle.Unit
 {
-	/// <summary>
-	/// Runtime stat container built from species base stats and instance bonus stats.
-	/// </summary>
 	public sealed class LiveStats
 	{
 		private const float MinimumStamina = 0.1f;

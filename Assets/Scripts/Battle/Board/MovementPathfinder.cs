@@ -1,11 +1,8 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle.Board
 {
-	/// <summary>
-	/// Computes uniform-cost movement reachability on the battle board using cardinal adjacency.
-	/// </summary>
 	public static class MovementPathfinder
 	{
 		private const float MaximumVerticalTraversalGap = 0.5f;

@@ -16,7 +16,7 @@ MonoBehaviour:
   icon: {fileID: -1882012529, guid: 1b03263dee40a734aa6275f7305a0bb1, type: 3}
   actionPointCost: 1
   requiresLineOfSight: 1
-  range: 5
+  range: 15
   rangePattern: 2
   targetType: 2
   areaOfEffectRange: 1
@@ -29,4 +29,4 @@ MonoBehaviour:
       type: {class: HealthModification, ns: Erelia.Battle.Attack.Effect, asm: Assembly-CSharp}
       data:
         targetType: 2
-        value: -1
+        value: -10

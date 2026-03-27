@@ -1,13 +1,10 @@
-using Erelia.Core;
+﻿using Erelia.Core;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Erelia.Battle.Phase.Placement
 {
-	/// <summary>
-	/// Placement phase that applies precomputed placement masks and handles unit placement.
-	/// </summary>
 	[System.Serializable]
 	public sealed class Root : Erelia.Battle.Phase.Root
 	{

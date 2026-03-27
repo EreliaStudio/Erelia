@@ -1,14 +1,10 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace Erelia.Battle.Player
 {
-	/// <summary>
-	/// Handles player input for hover/confirm/cancel and exposes action shortcut selection events.
-	/// Tracks the hovered cell and applies selection masks for board interaction.
-	/// </summary>
 	public sealed class BattlePlayerController : MonoBehaviour
 	{
 		private const int MaxActionShortcutCount = Erelia.Core.Creature.Instance.Model.MaxAttackCount;

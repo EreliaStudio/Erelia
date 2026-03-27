@@ -1,27 +1,16 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle.Voxel.ShapeType
 {
-	/// <summary>
-	/// Mask shape for slab voxels.
-	/// Defines top faces and cardinal points for half-height placement offsets.
-	/// </summary>
 	[Serializable]
 	public class Slab : Erelia.Battle.Voxel.Mask.Shape
 	{
-		/// <summary>
-		/// Height of the slab mask (half-height).
-		/// </summary>
 		private const float Height = 0.5f;
 
-		/// <summary>
-		/// Constructs the mask faces for a slab voxel.
-		/// </summary>
 		protected override Dictionary<Erelia.Core.VoxelKit.FlipOrientation, List<Erelia.Core.VoxelKit.Face>> ConstructMaskFaces()
 		{
-			// Build faces for the slab top depending on flip orientation.
 			const float maskOffset = 0.01f;
 
 			var faces = new List<Erelia.Core.VoxelKit.Face>
@@ -48,12 +37,8 @@ namespace Erelia.Battle.Voxel.ShapeType
 			};
 		}
 
-		/// <summary>
-		/// Constructs cardinal points for slab placement offsets.
-		/// </summary>
 		protected override Dictionary<Erelia.Core.VoxelKit.FlipOrientation, CardinalPointSet> ConstructCardinalPoints()
 		{
-			// Provide points at slab height for non-flipped, full height for flipped.
 			CardinalPointSet nonFlipped = new CardinalPointSet(
 				positiveX: new Vector3(1f, Height, 0.5f),
 				negativeX: new Vector3(0f, Height, 0.5f),
@@ -76,5 +61,4 @@ namespace Erelia.Battle.Voxel.ShapeType
 		}
 	}
 }
-
 

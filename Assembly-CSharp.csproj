@@ -152,8 +152,8 @@
     <Compile Include="Assets\Scripts\Exploration\Player\EncounterTriggerEmitter.cs" />
     <Compile Include="Assets\Scripts\Battle\UI\AttackShortcutBar.cs" />
     <Compile Include="Assets\Scripts\Core\SceneBootstrapper.cs" />
-    <Compile Include="Assets\Scripts\Exploration\World\BiomeRegistry.cs" />
     <Compile Include="Assets\Scripts\Battle\FeatProgressTracker.cs" />
+    <Compile Include="Assets\Scripts\Exploration\World\BiomeRegistry.cs" />
     <Compile Include="Assets\Scripts\Exploration\Player\Presenter.cs" />
     <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Slab.cs" />
     <Compile Include="Assets\Scripts\Battle\Side.cs" />
@@ -164,8 +164,8 @@
     <Compile Include="Assets\Scripts\Core\VoxelKit\Utils.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape.cs" />
     <Compile Include="Assets\Scripts\Exploration\World\Presenter.cs" />
-    <Compile Include="Assets\Scripts\Battle\UI\FeatCardElement.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleResultCreatureData.cs" />
+    <Compile Include="Assets\Scripts\Battle\UI\FeatCardElement.cs" />
     <Compile Include="Assets\Scripts\Battle\Phase\Placement\UI\SelectableCreatureCardElement.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleBoard\View.cs" />
     <Compile Include="Assets\Scripts\Core\VoxelKit\Shape\Cube.cs" />

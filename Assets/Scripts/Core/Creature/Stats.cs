@@ -1,10 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Erelia.Core.Creature
 {
-	/// <summary>
-	/// Serializable stat container shared by species and creature instances.
-	/// </summary>
 	[System.Serializable]
 	public sealed class Stats
 	{

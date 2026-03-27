@@ -1,13 +1,8 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle.Phase.Initialize
 {
-	/// <summary>
-	/// Initialization phase that prepares battle data.
-	/// Uses the preselected enemy team, computes acceptable floor coordinates, instantiates battle units,
-	/// and transitions to the Placement phase.
-	/// </summary>
 	[System.Serializable]
 	public sealed class Root : Erelia.Battle.Phase.Root
 	{

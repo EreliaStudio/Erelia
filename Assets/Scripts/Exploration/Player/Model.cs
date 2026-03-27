@@ -1,11 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Erelia.Exploration.Player
 {
-	/// <summary>
-	/// Data model for the exploration player.
-	/// Stores the persistent overworld position across scene transitions.
-	/// </summary>
 	public sealed class Model
 	{
 		private Vector3 worldPosition;

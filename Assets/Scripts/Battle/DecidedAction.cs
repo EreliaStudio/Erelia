@@ -1,12 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle
 {
-	/// <summary>
-	/// Runtime description of an action selected during a decision phase.
-	/// </summary>
 	public sealed class DecidedAction
 	{
 		private static readonly Vector3Int[] EmptyPath = Array.Empty<Vector3Int>();

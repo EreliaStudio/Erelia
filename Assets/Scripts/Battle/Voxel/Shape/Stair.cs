@@ -1,31 +1,17 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using System;
 
 namespace Erelia.Battle.Voxel.ShapeType
 {
-	/// <summary>
-	/// Mask shape for stair voxels.
-	/// Defines step faces and cardinal points for placement offsets.
-	/// </summary>
 	[Serializable]
 	public class Stair : Erelia.Battle.Voxel.Mask.Shape
 	{
-		/// <summary>
-		/// Height of each stair step.
-		/// </summary>
 		private const float StepHeight = 0.5f;
-		/// <summary>
-		/// Depth of each stair step.
-		/// </summary>
 		private const float StepDepth = 0.5f;
 
-		/// <summary>
-		/// Constructs the mask faces for a stair voxel.
-		/// </summary>
 		protected override Dictionary<Erelia.Core.VoxelKit.FlipOrientation, List<Erelia.Core.VoxelKit.Face>> ConstructMaskFaces()
 		{
-			// Build stepped faces for the stair shape.
 			const float maskOffset = 0.01f;
 			const float maskXOverhang = 0.01f;
 			const float riserZOffset = 0.01f;
@@ -74,12 +60,8 @@ namespace Erelia.Battle.Voxel.ShapeType
 			};
 		}
 
-		/// <summary>
-		/// Constructs cardinal points for stair placement offsets.
-		/// </summary>
 		protected override Dictionary<Erelia.Core.VoxelKit.FlipOrientation, CardinalPointSet> ConstructCardinalPoints()
 		{
-			// Provide points along the step and fallback to full height when flipped.
 			CardinalPointSet nonFlipped = new CardinalPointSet(
 				positiveX: new Vector3(1f, 0.5f, 0.5f),
 				negativeX: new Vector3(0f, 0.5f, 0.5f),
@@ -102,5 +84,4 @@ namespace Erelia.Battle.Voxel.ShapeType
 		}
 	}
 }
-
 

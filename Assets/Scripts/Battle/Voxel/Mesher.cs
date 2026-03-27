@@ -1,23 +1,15 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle.Voxel
 {
-	/// <summary>
-	/// Builds mesh overlays for battle voxel masks.
-	/// Samples the topmost mask per cell and generates a combined mask mesh.
-	/// </summary>
 	public static class Mesher
 	{
-		/// <summary>
-		/// Builds a mesh for battle mask overlays from the given cells.
-		/// </summary>
 		public static Mesh BuildMaskMesh(
 			Erelia.Battle.Voxel.Cell[,,] cells,
 			Erelia.Core.VoxelKit.Registry registry,
 			Erelia.Battle.MaskSpriteRegistry maskSpriteRegistry)
 		{
-			// Accumulate vertices, triangles, and UVs for mask faces.
 			var vertices = new List<Vector3>();
 			var uvs = new List<Vector2>();
 			var triangles = new List<int>();
@@ -122,14 +114,10 @@ namespace Erelia.Battle.Voxel
 			return result;
 		}
 
-		/// <summary>
-		/// Tries to get the topmost mask type from a cell.
-		/// </summary>
 		private static bool TryGetTopmostMask(
 			Erelia.Battle.Voxel.Cell maskCell,
 			out Erelia.Battle.Voxel.Mask.Type topmost)
 		{
-			// Use the last mask as the topmost.
 			topmost = default;
 			if (maskCell == null || maskCell.Masks == null || maskCell.Masks.Count == 0)
 			{
@@ -140,16 +128,12 @@ namespace Erelia.Battle.Voxel
 			return true;
 		}
 
-		/// <summary>
-		/// Resolves a voxel definition for a cell.
-		/// </summary>
 		private static bool TryGetDefinition(
 			Erelia.Core.VoxelKit.Cell cell,
 			Erelia.Core.VoxelKit.Registry registry,
 			out Erelia.Core.VoxelKit.Definition definition,
 			out Erelia.Core.VoxelKit.Cell resolvedCell)
 		{
-			// Validate the cell and fetch its definition.
 			definition = null;
 			resolvedCell = cell;
 			if (cell == null || cell.Id < 0 || registry == null)
@@ -165,12 +149,8 @@ namespace Erelia.Battle.Voxel
 			return true;
 		}
 
-		/// <summary>
-		/// Gets a transformed face using the orientation cache when possible.
-		/// </summary>
 		private static Erelia.Core.VoxelKit.Face TransformFaceCached(Erelia.Core.VoxelKit.Face face, Erelia.Core.VoxelKit.Orientation orientation)
 		{
-			// Use cached transformed faces for efficiency.
 			if (face == null)
 			{
 				return null;
@@ -188,9 +168,6 @@ namespace Erelia.Battle.Voxel
 			return face;
 		}
 
-		/// <summary>
-		/// Adds a face polygon to the mesh buffers.
-		/// </summary>
 		private static void AddFace(
 			Erelia.Core.VoxelKit.Face face,
 			Vector3 positionOffset,
@@ -201,7 +178,6 @@ namespace Erelia.Battle.Voxel
 			Vector2 uvAnchor,
 			Vector2 uvSize)
 		{
-			// Emit vertices, uvs, and triangles for each polygon.
 			if (face == null || face.Polygons == null || face.Polygons.Count == 0)
 			{
 				return;

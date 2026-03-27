@@ -1,11 +1,8 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle
 {
-	/// <summary>
-	/// Shared runtime state for the active battle.
-	/// </summary>
 	[System.Serializable]
 	public sealed class Data
 	{
@@ -21,14 +18,8 @@ namespace Erelia.Battle
 		[System.NonSerialized] private readonly Erelia.Battle.FeatProgressTracker featProgressTracker =
 			new Erelia.Battle.FeatProgressTracker();
 
-		/// <summary>
-		/// Battle board model for the current encounter.
-		/// </summary>
 		public Erelia.Battle.Board.Model Board;
 
-		/// <summary>
-		/// Enemy team to fight in the current battle.
-		/// </summary>
 		public Erelia.Core.Creature.Team EnemyTeam;
 
 		public IReadOnlyList<Vector3Int> AcceptableCoordinates => acceptableCoordinates;

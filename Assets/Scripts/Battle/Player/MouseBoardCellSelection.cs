@@ -1,41 +1,18 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Erelia.Battle.Player
 {
-	/// <summary>
-	/// Tracks mouse hover selection on the battle board.
-	/// Applies a selection mask to the hovered cell and clears it when hover ends.
-	/// </summary>
 	public sealed class MouseBoardCellSelection : MonoBehaviour
 	{
-		/// <summary>
-		/// Cursor used to detect hovered board cells.
-		/// </summary>
 		[SerializeField] private Erelia.Battle.Player.Camera.MouseBoardCellCursor cursor;
-		/// <summary>
-		/// Presenter that owns the battle board model.
-		/// </summary>
 		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
-		/// <summary>
-		/// Mask type applied to the selected cell.
-		/// </summary>
 		[SerializeField] private Erelia.Battle.Voxel.Mask.Type selectionMask = Erelia.Battle.Voxel.Mask.Type.Selected;
 
-		/// <summary>
-		/// Whether a cell is currently selected.
-		/// </summary>
 		private bool hasSelection;
-		/// <summary>
-		/// Currently selected cell coordinate.
-		/// </summary>
 		private Vector3Int selectedCell;
 
-		/// <summary>
-		/// Unity callback invoked on object initialization.
-		/// </summary>
 		private void Awake()
 		{
-			// Validate required references.
 			if (cursor == null)
 			{
 				Debug.LogWarning("[Erelia.Battle.Player.MouseBoardCellSelection] Mouse board cell cursor is not assigned.");
@@ -47,12 +24,8 @@ namespace Erelia.Battle.Player
 			}
 		}
 
-		/// <summary>
-		/// Unity callback invoked when the component is enabled.
-		/// </summary>
 		private void OnEnable()
 		{
-			// Subscribe to cursor hover events.
 			if (cursor != null)
 			{
 				cursor.CellChanged += OnCellChanged;
@@ -61,12 +34,8 @@ namespace Erelia.Battle.Player
 
 		}
 
-		/// <summary>
-		/// Unity callback invoked when the component is disabled.
-		/// </summary>
 		private void OnDisable()
 		{
-			// Unsubscribe and clear selection state.
 			if (cursor != null)
 			{
 				cursor.CellChanged -= OnCellChanged;
@@ -76,12 +45,8 @@ namespace Erelia.Battle.Player
 			ClearSelection();
 		}
 
-		/// <summary>
-		/// Tries to get the currently selected cell.
-		/// </summary>
 		public bool TryGetSelectedCell(out Vector3Int cell)
 		{
-			// Return the selection if one exists.
 			if (!hasSelection)
 			{
 				cell = default;
@@ -92,12 +57,8 @@ namespace Erelia.Battle.Player
 			return true;
 		}
 
-		/// <summary>
-		/// Handles cursor cell changes.
-		/// </summary>
 		private void OnCellChanged(Vector3Int cell)
 		{
-			// Update selection mask for the hovered cell.
 			if (!TryResolveBoardCell(cell, out Erelia.Battle.Voxel.Cell targetCell))
 			{
 				ClearSelection();
@@ -116,21 +77,13 @@ namespace Erelia.Battle.Player
 			RebuildMasks();
 		}
 
-		/// <summary>
-		/// Handles cursor hover cleared events.
-		/// </summary>
 		private void OnHoverCleared()
 		{
-			// Clear selection when hover ends.
 			ClearSelection();
 		}
 
-		/// <summary>
-		/// Clears the current selection mask.
-		/// </summary>
 		public void ClearSelection()
 		{
-			// Remove mask and reset state.
 			if (!hasSelection)
 			{
 				return;
@@ -141,12 +94,8 @@ namespace Erelia.Battle.Player
 			RebuildMasks();
 		}
 
-		/// <summary>
-		/// Removes the selection mask from the selected cell.
-		/// </summary>
 		private void RemoveSelectionMask()
 		{
-			// Remove the mask from the selected cell.
 			if (!hasSelection)
 			{
 				return;
@@ -160,12 +109,8 @@ namespace Erelia.Battle.Player
 			cell.RemoveMask(selectionMask);
 		}
 
-		/// <summary>
-		/// Tries to resolve a valid board cell at the given position.
-		/// </summary>
 		private bool TryResolveBoardCell(Vector3Int cell, out Erelia.Battle.Voxel.Cell resolvedCell)
 		{
-			// Validate bounds and cell content.
 			resolvedCell = null;
 
 			Erelia.Battle.Board.Model board = boardPresenter != null ? boardPresenter.Model : null;
@@ -196,12 +141,8 @@ namespace Erelia.Battle.Player
 			return true;
 		}
 
-		/// <summary>
-		/// Rebuilds mask meshes on the board presenter.
-		/// </summary>
 		private void RebuildMasks()
 		{
-			// Trigger a mask rebuild if possible.
 			if (boardPresenter == null)
 			{
 				return;

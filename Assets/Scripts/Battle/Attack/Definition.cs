@@ -1,11 +1,8 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle.Attack
 {
-	/// <summary>
-	/// Base asset for battle attacks authored in the Unity editor.
-	/// </summary>
 	[CreateAssetMenu(menuName = "Attack/Attack", fileName = "NewAttack")]
 	public class Definition : ScriptableObject
 	{
