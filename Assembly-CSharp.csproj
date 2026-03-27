@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <!-- Generated file, do not modify, your changes will be overwritten (use AssetPostprocessor.OnGeneratedCSProject) -->
   <PropertyGroup>
     <BaseIntermediateOutputPath>Temp\obj\$(MSBuildProjectName)</BaseIntermediateOutputPath>
@@ -51,178 +51,23 @@
     <Analyzer Include="C:\Users\User\Documents\UnityProject\Erelia\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d\Runtime\MVVM\SourceGenerators\netstandard2.0\MVVMSourceGenerators.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Exploration\Player\PlayerMotionEmitter.cs" />
-    <Compile Include="Assets\Scripts\Exploration\World\Chunk\ChunkData.cs" />
-    <Compile Include="Assets\Scripts\Battle\Attack\TargetType.cs" />
-    <Compile Include="Assets\Scripts\Battle\BattleBoard\Presenter.cs" />
-    <Compile Include="Assets\Scripts\Core\UI\CreatureCardGroupElement.cs" />
-    <Compile Include="Assets\Scripts\Core\Encounter\EncounterTableRegistry.cs" />
-    <Compile Include="Assets\Scripts\Core\Events\ExplorationSceneEvents.cs" />
-    <Compile Include="Assets\Scripts\Core\Creature\FeatProgress.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\Cell.cs" />
-    <Compile Include="Assets\Scripts\Exploration\World\View.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Initialize\AcceptableCoordinateListGenerator.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\Mesher.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\CardinalPointSet.cs" />
-    <Compile Include="Assets\Scripts\Core\PlayerPartyState.cs" />
-    <Compile Include="Assets\Scripts\Battle\BattleBoard\BattleBoardState.cs" />
-    <Compile Include="Assets\Scripts\Battle\Player\Camera\MouseBoardCellCursor.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Cleanup\Root.cs" />
-    <Compile Include="Assets\Scripts\Core\Creature\Form.cs" />
-    <Compile Include="Assets\Scripts\Battle\UI\BattleCreatureCardElement.cs" />
-    <Compile Include="Assets\Scripts\Core\Events\PlayerVictoryEvent.cs" />
-    <Compile Include="Assets\Scripts\Battle\UI\BattleResultHud.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Placement\Event\PlacementUnitSelected.cs" />
-    <Compile Include="Assets\Scripts\Exploration\World\Chunk\View.cs" />
-    <Compile Include="Assets\Scripts\Core\Events\PlayerMotion.cs" />
-    <Compile Include="Assets\Scripts\Battle\Attack\RangePattern.cs" />
-    <Compile Include="Assets\Scripts\Battle\Attack\Effect\HealthModification.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\VoxelRegistry.cs" />
-    <Compile Include="Assets\Scripts\Battle\Unit\BattleUnitSnapshot.cs" />
-    <Compile Include="Assets\Scripts\Exploration\Player\View.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Root.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\MesherUtils.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\PlayerTurn\Root.cs" />
-    <Compile Include="Assets\Scripts\Exploration\World\WorldState.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\Mask\MaskSpriteRegistry.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Controller.cs" />
-    <Compile Include="Assets\Scripts\Core\Creature\FormTier.cs" />
-    <Compile Include="Assets\Scripts\Battle\Attack\TargetingUtility.cs" />
-    <Compile Include="Assets\Scripts\Exploration\Player\ChunkMotionEmitter.cs" />
-    <Compile Include="Assets\Scripts\Battle\Data\BattleState.cs" />
-    <Compile Include="Assets\Scripts\Loading\Loader.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\Shape\Slab.cs" />
-    <Compile Include="Assets\Scripts\Core\Creature\Team.cs" />
-    <Compile Include="Assets\Scripts\Battle\Player\MouseBoardCellSelection.cs" />
-    <Compile Include="Assets\Scripts\Core\UI\CreatureCardElement.cs" />
-    <Compile Include="Assets\Scripts\Battle\Attack\Attack.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Placement\Event\PlacementUnitPlaced.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\ResolveAction\Root.cs" />
-    <Compile Include="Assets\Scripts\Battle\Setup\Loader.cs" />
-    <Compile Include="Assets\Scripts\Battle\Setup\DebugLoader.cs" />
-    <Compile Include="Assets\Scripts\Core\Events\SetSafePosition.cs" />
-    <Compile Include="Assets\Scripts\Exploration\Player\ExplorationPlayerState.cs" />
-    <Compile Include="Assets\Scripts\Battle\Unit\UIView.cs" />
-    <Compile Include="Assets\Scripts\Core\Events\EncounterTriggerEvent.cs" />
-    <Compile Include="Assets\Scripts\Exploration\World\Biome.cs" />
-    <Compile Include="Assets\Scripts\Battle\Unit\LiveStats.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\Enums.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\Mesher.cs" />
-    <Compile Include="Assets\Scripts\Battle\UI\BattleResultEntryView.cs" />
-    <Compile Include="Assets\Scripts\Core\Events\PlayerDefeatEvent.cs" />
-    <Compile Include="Assets\Scripts\Core\Utils\PathUtils.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\VoxelProperties.cs" />
-    <Compile Include="Assets\Scripts\Core\Encounter\EncounterTable.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Placement\Root.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\Cell.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Stair.cs" />
-    <Compile Include="Assets\Scripts\Battle\UI\FeatCardGroupView.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\EnemyTurn\Root.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\MesherUtils.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Placement\UI\SelectableCreatureCardGroupElement.cs" />
-    <Compile Include="Assets\Scripts\Core\Creature\Species.cs" />
-    <Compile Include="Assets\Scripts\Core\Utils\JsonIO.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\Shape\Slope.cs" />
-    <Compile Include="Assets\Scripts\Battle\Unit\Presenter.cs" />
-    <Compile Include="Assets\Scripts\Core\Creature\Instance\CreatureProjection.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Result\Root.cs" />
-    <Compile Include="Assets\Scripts\Battle\UI\BattleCreatureCardGroupElement.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Idle\Root.cs" />
-    <Compile Include="Assets\Scripts\Battle\Attack\AttackRegistry.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\Shape\CrossPlane.cs" />
-    <Compile Include="Assets\Scripts\Core\Events\Bus.cs" />
-    <Compile Include="Assets\Scripts\Exploration\ExplorationState.cs" />
-    <Compile Include="Assets\Scripts\Exploration\Player\Camera\OrbitCameraSettings.cs" />
-    <Compile Include="Assets\Scripts\Battle\Attack\Effect\AttackEffect.cs" />
-    <Compile Include="Assets\Scripts\Battle\Board\UnitPlacementUtility.cs" />
-    <Compile Include="Assets\Scripts\Core\Creature\FeatBoard.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\Mask\Shape.cs" />
-    <Compile Include="Assets\Scripts\Core\Creature\Instance\CreatureInstance.cs" />
-    <Compile Include="Assets\Scripts\Battle\Player\BattlePlayerController.cs" />
-    <Compile Include="Assets\Scripts\Battle\Unit\View.cs" />
-    <Compile Include="Assets\Scripts\Core\Creature\SpeciesRegistry.cs" />
-    <Compile Include="Assets\Scripts\Exploration\World\Chunk\Presenter.cs" />
-    <Compile Include="Assets\Scripts\Core\GameContext.cs" />
-    <Compile Include="Assets\Scripts\Battle\Player\View.cs" />
-    <Compile Include="Assets\Scripts\Core\SingletonRegistry.cs" />
-    <Compile Include="Assets\Scripts\Battle\Unit\BattleUnit.cs" />
-    <Compile Include="Assets\Scripts\Exploration\Player\Camera\View.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\Shape\CrossPlane.cs" />
-    <Compile Include="Assets\Scripts\Exploration\World\VoxelCatalog.cs" />
-    <Compile Include="Assets\Scripts\Battle\Board\MovementPathfinder.cs" />
-    <Compile Include="Assets\Scripts\Exploration\Player\EncounterTriggerEmitter.cs" />
-    <Compile Include="Assets\Scripts\Battle\UI\AttackShortcutBar.cs" />
-    <Compile Include="Assets\Scripts\Core\SceneBootstrapper.cs" />
-    <Compile Include="Assets\Scripts\Battle\FeatProgressTracker.cs" />
-    <Compile Include="Assets\Scripts\Exploration\World\BiomeRegistry.cs" />
-    <Compile Include="Assets\Scripts\Exploration\Player\Presenter.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Slab.cs" />
-    <Compile Include="Assets\Scripts\Battle\Side.cs" />
-    <Compile Include="Assets\Scripts\Battle\Player\Camera\OrbitCameraSettings.cs" />
-    <Compile Include="Assets\Scripts\Battle\Attack\Effect\Kind.cs" />
-    <Compile Include="Assets\Scripts\Exploration\World\Chunk\Coordinates.cs" />
-    <Compile Include="Assets\Scripts\Battle\Player\Presenter.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\Utils.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\Shape.cs" />
-    <Compile Include="Assets\Scripts\Exploration\World\Presenter.cs" />
-    <Compile Include="Assets\Scripts\Battle\BattleResultCreature.cs" />
-    <Compile Include="Assets\Scripts\Battle\UI\FeatCardElement.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Placement\UI\SelectableCreatureCardElement.cs" />
-    <Compile Include="Assets\Scripts\Battle\BattleBoard\View.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\Shape\Cube.cs" />
-    <Compile Include="Assets\Scripts\Core\Events\BattleSceneEvents.cs" />
-    <Compile Include="Assets\Scripts\Battle\DecidedAction.cs" />
-    <Compile Include="Assets\Scripts\Core\Events\PlayerChunkMotion.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Id.cs" />
-    <Compile Include="Assets\Scripts\Core\Creature\FormTag.cs" />
-    <Compile Include="Assets\Scripts\Exploration\World\Chunk\Generation\SimpleDebugChunkGenerator.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\Shape\Stair.cs" />
-    <Compile Include="Assets\Scripts\Battle\Player\Camera\View.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\CardinalPoint.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Initialize\Root.cs" />
-    <Compile Include="Assets\Scripts\Battle\Player\Camera\Presenter.cs" />
-    <Compile Include="Assets\Scripts\Exploration\World\BiomeType.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Orchestrator.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Placement\Event\PlacementUnitUnplaced.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Slope.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\VoxelDefinition.cs" />
-    <Compile Include="Assets\Scripts\Core\Creature\Stats.cs" />
-    <Compile Include="Assets\Scripts\Battle\BattleResultEntry.cs" />
-    <Compile Include="Assets\Scripts\Battle\BattleBoard\BattleBoardConstructor.cs" />
-    <Compile Include="Assets\Scripts\Exploration\Player\Camera\Presenter.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Registry.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\Mask\Type.cs" />
-    <Compile Include="Assets\Scripts\Battle\Voxel\Shape\Cube.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\Face.cs" />
-    <Compile Include="Assets\Scripts\Exploration\World\Chunk\Generation\IGenerator.cs" />
-    <Compile Include="Assets\Scripts\Battle\Phase\Placement\PlacementListBuilder.cs" />
-    <Compile Include="Assets\Scripts\Exploration\Loader.cs" />
-    <Compile Include="Assets\Scripts\Core\UI\ProgressBarView.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMPro.cginc" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMP_SDF-Mobile Overlay.shader" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMP_SDF-Mobile-2-Pass.shader" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMP_Bitmap.shader" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMPro_Mobile.cginc" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMP_SDF SSD.shader" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMP_SDF-Surface-Mobile.shader" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\SDFFunctions.hlsl" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMP_SDF-Surface.shader" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Sprites\EmojiOne Attribution.txt" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMP_Bitmap-Custom-Atlas.shader" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMP_SDF.shader" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMP_SDF-Mobile SSD.shader" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMPro_Properties.cginc" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMPro_Surface.cginc" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Resources\LineBreaking Following Characters.txt" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMP_SDF-Mobile Masking.shader" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMP_SDF Overlay.shader" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMP_Bitmap-Mobile.shader" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Fonts\LiberationSans - OFL.txt" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMP_SDF-Mobile.shader" />
-    <None Include="Assets\ExternalLibraries\TextMesh Pro\Shaders\TMP_Sprite.shader" />
+    <Compile Include="Assets\Scripts\CreatureForm.cs" />
+    <Compile Include="Assets\Scripts\TargetProfile.cs" />
+    <Compile Include="Assets\Scripts\RangeType.cs" />
+    <Compile Include="Assets\Scripts\AreaOfEffectType.cs" />
+    <Compile Include="Assets\Scripts\FeatNodeKind.cs" />
+    <Compile Include="Assets\Scripts\CreatureUnit.cs" />
+    <Compile Include="Assets\Scripts\AbilityCost.cs" />
+    <Compile Include="Assets\Scripts\AttributeType.cs" />
+    <Compile Include="Assets\Scripts\CreatureSpecies.cs" />
+    <Compile Include="Assets\Scripts\FeatRequirement.cs" />
+    <Compile Include="Assets\Scripts\StatValue.cs" />
+    <Compile Include="Assets\Scripts\FeatBoard.cs" />
+    <Compile Include="Assets\Scripts\AbilityEffect.cs" />
+    <Compile Include="Assets\Scripts\FeatNode.cs" />
+    <Compile Include="Assets\Scripts\Ability.cs" />
+    <Compile Include="Assets\Scripts\FeatReward.cs" />
+    <Compile Include="Assets\Scripts\Attributes.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -1635,6 +1480,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="Assembly-CSharp-firstpass.csproj" />
+    <ProjectReference Include="AYellowpaper.SerializedCollections.csproj" />
+    <ProjectReference Include="AYellowpaper.SerializedCollections.Editor.csproj" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <ItemGroup>
@@ -1648,5 +1496,3 @@
     <ProjectCapability Remove="ReferenceManagerAssemblies" />
   </ItemGroup>
 </Project>
-
-

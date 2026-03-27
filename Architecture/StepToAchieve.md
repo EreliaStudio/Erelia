@@ -42,11 +42,11 @@ The steps below are now ordered in the order I recommend you implement them.
 
 If you skip that order, you will likely rebuild the same systems twice.
 
-## Step 1: Redefine The Creature And Action-Ownership Model Before The Battle Refactor
+## Step 1: Redefine The Creature And Ability-Ownership Model Before The Battle Refactor
 
 ### Goal
 
-Replace the prototype creature model with the intended long-term species, instance, form, stats, and action-ownership model.
+Replace the prototype creature model with the intended long-term species, instance, form, stats, and Ability-ownership model.
 
 ### Why
 
@@ -63,7 +63,7 @@ That is not enough for the target architecture, which needs:
 
 - clear separation between species data, creature identity, and battle unit runtime
 - forms or variants
-- unlocked actions instead of raw fixed slots only
+- unlocked Abilitys instead of raw fixed slots only
 - persistent effects and status sources
 - richer stat resolution
 - cleaner ownership of what belongs to the creature, the run, and the battle
@@ -73,10 +73,10 @@ If you skip this and continue refactoring battle first, you will likely rebuild 
 ### What To Do
 
 - redefine `Species` so authored data is not just icon, prefab, display name, and one flat stat block
-- redefine creature instances so they own identity, progression, unlocked actions, and persistent state
+- redefine creature instances so they own identity, progression, unlocked Abilitys, and persistent state
 - decide how forms are authored, selected, and switched
 - separate battle-only runtime values from long-term creature state
-- replace the current direct `Creature.Attacks` ownership with a cleaner action or learned-move model
+- replace the current direct `Creature.Attacks` ownership with a cleaner Ability or learned-move model
 - update stat resolution so species, form, growth, equipment or effects, and battle modifiers do not collapse into one simple additive merge
 
 ### Files To Refactor
@@ -90,7 +90,7 @@ If you skip this and continue refactoring battle first, you will likely rebuild 
 
 ### Done When
 
-- one creature instance has persistent identity, growth, unlocked actions, form data, and persistent state
+- one creature instance has persistent identity, growth, unlocked Abilitys, form data, and persistent state
 - battle units read creature data through a clean runtime projection instead of owning the long-term creature model directly
 - battle refactor work can continue without relying on prototype creature assumptions
 
@@ -98,7 +98,7 @@ If you skip this and continue refactoring battle first, you will likely rebuild 
 
 ### Goal
 
-Fix the current battle issues that make actions, targeting, and turns behave incorrectly, using the clarified creature and action foundations from Step 1 but before the deeper battle refactor begins.
+Fix the current battle issues that make Abilitys, targeting, and turns behave incorrectly, using the clarified creature and Ability foundations from Step 1 but before the deeper battle refactor begins.
 
 This is the first tactical battle-fix step after the combat foundations are clear.
 
@@ -106,13 +106,13 @@ This is the first tactical battle-fix step after the combat foundations are clea
 
 The battle layer is not only incomplete. Some current behaviors are already wrong for the existing prototype:
 
-- enemy turns currently do not take meaningful actions
+- enemy turns currently do not take meaningful Abilitys
 - line of sight is authored on attacks but not enforced
 - attack preview rules and attack resolution rules do not fully match
-- action points can be consumed by attacks that should be rejected or that resolve as no-ops
-- the current action validation path is too fragmented to trust during iteration
+- Ability points can be consumed by attacks that should be rejected or that resolve as no-ops
+- the current Ability validation path is too fragmented to trust during iteration
 
-Once Step 1 defines what a creature owns, what battle reads from it, and where actions live, you can safely repair legality, targeting, and turn behavior without introducing more temporary assumptions.
+Once Step 1 defines what a creature owns, what battle reads from it, and where Abilitys live, you can safely repair legality, targeting, and turn behavior without introducing more temporary assumptions.
 
 If you do not stabilize this here, the prototype becomes harder to test, harder to trust, and harder to use as a baseline while refactoring toward the target battle model.
 
@@ -121,34 +121,34 @@ If you do not stabilize this here, the prototype becomes harder to test, harder 
 - define one source of truth for attack legality
 - enforce line of sight in both preview and resolution
 - make previewed valid targets match actually resolvable targets
-- validate attacks before spending action points
-- prevent invalid or empty actions from consuming resources
+- validate attacks before spending Ability points
+- prevent invalid or empty Abilitys from consuming resources
 - add at least a temporary enemy decision pass instead of immediate auto-end-turn behavior
 - review whether target filtering belongs on the attack, the effect, or both, then remove contradictions
 - add repeatable debug scenarios for:
   - movement
   - single-target attack
-  - ally-targeted action
-  - area-of-effect action
-  - blocked line-of-sight action
+  - ally-targeted Ability
+  - area-of-effect Ability
+  - blocked line-of-sight Ability
   - invalid target or no-op cast
 
 ### Files To Fix First
 
 - `Assets/Scripts/Battle/Phase/PlayerTurn/Root.cs`
-- `Assets/Scripts/Battle/Phase/ResolveAction/Root.cs`
+- `Assets/Scripts/Battle/Phase/ResolveAbility/Root.cs`
 - `Assets/Scripts/Battle/Phase/EnemyTurn/Root.cs`
 - `Assets/Scripts/Battle/Attack/Definition.cs`
 - `Assets/Scripts/Battle/Attack/TargetingUtility.cs`
 - `Assets/Scripts/Battle/Attack/Effect/Definition.cs`
-- `Assets/Scripts/Battle/DecidedAction.cs`
+- `Assets/Scripts/Battle/DecidedAbility.cs`
 
 ### Done When
 
 - player and enemy units can both complete meaningful turns
 - line-of-sight attacks are blocked correctly
 - the previewed target/cell set matches the set that resolves successfully
-- invalid or no-op actions do not spend AP
+- invalid or no-op Abilitys do not spend AP
 - the prototype battle loop is reliable enough to use during the later refactor
 
 ## Step 3: Refactor Battle Into Pure Runtime State
@@ -175,7 +175,7 @@ Current battle data stores runtime presenter references directly, which makes th
 - `Assets/Scripts/Battle/Data/BattleData.cs`
 - `Assets/Scripts/Battle/Unit/Model.cs`
 - `Assets/Scripts/Battle/Phase/Orchestrator.cs`
-- `Assets/Scripts/Battle/DecidedAction.cs`
+- `Assets/Scripts/Battle/DecidedAbility.cs`
 
 ### Done When
 
@@ -198,32 +198,32 @@ Current commands are only:
 The design target needs:
 
 - move command
-- action command
+- Ability command
 - capture command
 - target-selection payloads
-- pending actions
+- pending Abilitys
 - duration state
 - applied board and unit effects
 
 ### What To Do
 
-- replace `DecidedAction` with command classes
+- replace `DecidedAbility` with command classes
 - add target selection models
-- add pending action support
+- add pending Ability support
 - add duration support
 - add board effect runtime state
 
 ### Files To Review
 
-- `Assets/Scripts/Battle/DecidedAction.cs`
-- `Assets/Scripts/Battle/Phase/ResolveAction/Root.cs`
+- `Assets/Scripts/Battle/DecidedAbility.cs`
+- `Assets/Scripts/Battle/Phase/ResolveAbility/Root.cs`
 - `Assets/Scripts/Battle/Attack/Definition.cs`
 - `Assets/Scripts/Battle/Attack/TargetingUtility.cs`
 
 ### Done When
 
-- actions can be immediate, delayed, or recovery-based
-- action targeting is explicit and reusable
+- Abilitys can be immediate, delayed, or recovery-based
+- Ability targeting is explicit and reusable
 
 ## Step 5: Implement Real Enemy AI
 
@@ -240,7 +240,7 @@ Current enemy turn logic only waits, then ends the turn.
 - add AI profile assets
 - add ordered rules
 - add conditions
-- add action choice logic
+- add Ability choice logic
 - make AI evaluate available commands
 
 ### Files To Replace
@@ -249,7 +249,7 @@ Current enemy turn logic only waits, then ends the turn.
 
 ### Done When
 
-- enemies can decide between moving, attacking, waiting, or using support actions
+- enemies can decide between moving, attacking, waiting, or using support Abilitys
 
 ## Step 6: Create The Real Run Root
 
@@ -574,8 +574,8 @@ That is too rigid for the target game.
   - biome wild encounter rules
   - interior wild encounter rules
   - trainer definitions
-  - interaction-triggered events
-  - voxel interaction tags if needed
+  - interAbility-triggered events
+  - voxel interAbility tags if needed
 - separate:
   - encounter trigger logic
   - enemy team selection
@@ -591,7 +591,7 @@ That is too rigid for the target game.
 
 ### Done When
 
-- stepping in grass, entering a cave, talking to a trainer, and triggering a special interaction can all start battles through the same high-level encounter pipeline
+- stepping in grass, entering a cave, talking to a trainer, and triggering a special interAbility can all start battles through the same high-level encounter pipeline
 
 ## Step 15: Merge The Voxel Gameplay Model Properly
 
@@ -670,7 +670,7 @@ This is useful, but it should not come before core gameplay architecture.
 
 ### Done When
 
-- creatures can play reusable authored action and reaction animations without hardcoded prefab-specific animation logic
+- creatures can play reusable authored Ability and reAbility animations without hardcoded prefab-specific animation logic
 
 ## Step 18: Build Content Pipelines And Tooling
 
@@ -680,7 +680,7 @@ Make content production practical after systems are stable.
 
 ### What To Do
 
-- custom inspectors for polymorphic action effects
+- custom inspectors for polymorphic Ability effects
 - custom inspectors for AI conditions
 - custom inspectors for structure templates
 - generation debug views
@@ -704,7 +704,7 @@ If you want a practical milestone breakdown, use this:
 - Step 5
 
 Outcome:
-- the creature and action foundation is defined first, the current battle loop is stabilized second, and then battle is rebuilt on the proper runtime and command model
+- the creature and Ability foundation is defined first, the current battle loop is stabilized second, and then battle is rebuilt on the proper runtime and command model
 
 ### Milestone B: Run Foundation
 
@@ -753,11 +753,11 @@ Outcome:
 
 If you want the best next move right now, do this first:
 
-1. Lock the minimal creature foundation battle depends on: creature identity, stat layers, and action ownership
+1. Lock the minimal creature foundation battle depends on: creature identity, stat layers, and Ability ownership
 2. Update `Battle.Unit.Model` and `LiveStats` so battle reads that foundation cleanly
 3. Fix attack legality so preview and resolution use the same validation rules
-4. Enforce line of sight and prevent invalid or no-op actions from consuming AP
-5. Replace the current enemy auto-end-turn behavior with at least a temporary action-selection pass
+4. Enforce line of sight and prevent invalid or no-op Abilitys from consuming AP
+5. Replace the current enemy auto-end-turn behavior with at least a temporary Ability-selection pass
 6. Then move into Step 3 so battle state and commands stop depending on presenter-heavy prototype flow
 
 Do not start with:
@@ -765,7 +765,7 @@ Do not start with:
 - more debug chunk generation
 - more encounter id stamping
 - more world-generation complexity
-- more one-off battle content built on broken action logic
+- more one-off battle content built on broken Ability logic
 
 Those would deepen prototype debt before the foundation is ready.
 

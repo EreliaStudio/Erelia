@@ -390,14 +390,14 @@ Composed of:
 ## World.Structure.InteractiveObjectDefinition
 This class is a scriptable object.
 
-Represents one reusable authored interaction definition for template-based world objects.
+Represents one reusable authored interAbility definition for template-based world objects.
 
-This is mainly intended for teleporter-like world interactions such as doors, cave entrances, exits, ladders, or similar transition points.
-You define the interaction behavior once as an asset, then local interactive objects inside templates only reference it.
+This is mainly intended for teleporter-like world interAbilitys such as doors, cave entrances, exits, ladders, or similar transition points.
+You define the interAbility behavior once as an asset, then local interactive objects inside templates only reference it.
 
 Composed of:
 - display name
-- interaction type
+- interAbility type
 - default trigger mode
 - default payload data
 - validation or generation tags if needed
@@ -407,8 +407,8 @@ This class is serializable.
 
 Represents an authored local interactive object embedded inside a prefab, module, or template.
 
-This is mainly used for door-like or entrance-like interactions that teleport the player to another place.
-Typical examples are building doors that require a click interaction, and cave or dungeon entrances that trigger when the player walks onto them.
+This is mainly used for door-like or entrance-like interAbilitys that teleport the player to another place.
+Typical examples are building doors that require a click interAbility, and cave or dungeon entrances that trigger when the player walks onto them.
 The interactive object itself does not need its own id if it already lives inside a parent prefab, module, or template.
 Its identity can come from the parent asset plus its position in the local interactive object list.
 
@@ -527,15 +527,15 @@ This class is serializable.
 
 Represents gameplay and authoring data attached to a voxel definition.
 
-This is also the right place to describe voxel-based world interactions such as cuttable trees, breakable rocks, or other obstacles that are removed or changed when the player uses a matching action on that voxel.
-In that model, the interaction is resolved by checking the clicked voxel definition rather than by spawning a separate gate object.
+This is also the right place to describe voxel-based world interAbilitys such as cuttable trees, breakable rocks, or other obstacles that are removed or changed when the player uses a matching Ability on that voxel.
+In that model, the interAbility is resolved by checking the clicked voxel definition rather than by spawning a separate gate object.
 
 Composed of:
 - traversal type
 - blocks line of sight flag
 - movement cost
 - surface tags
-- optional world interaction tags
+- optional world interAbility tags
 - optional replacement or removed state behavior
 - material or texture data if needed
 
@@ -656,7 +656,7 @@ Composed of:
 - unique species name used by the save system
 - display name
 - base stats
-- default actions
+- default Abilitys
 - feat board
 - list of the forms of the species
 - dictionnary linking a name to a form, used for the save/load system
@@ -694,7 +694,7 @@ Composed of:
 - nickname
 - current feat board progress
 - additional stats earned from completed feats
-- unlocked actions
+- unlocked Abilitys
 - persistent unit effects obtained through feat progression
 
 ## Creature.Stats
@@ -708,7 +708,7 @@ Composed of:
 - ability
 - armor
 - resistance
-- action points
+- Ability points
 - movement points
 - stamina
 - range
@@ -762,22 +762,22 @@ Composed of:
 - granted passive effects if relevant
 - duration mode if relevant
 
-## Item.ActionItem
+## Item.AbilityItem
 This class inherit from `Item.Definition`.
 This class is a scriptable object.
 
-Represents one item used on a creature to make it learn a new action.
+Represents one item used on a creature to make it learn a new Ability.
 
 Composed of:
 - inherited item data
-- action to teach
+- Ability to teach
 - target creature filters if relevant
 
 ## Item.KeyItem
 This class inherit from `Item.Definition`.
 This class is a scriptable object.
 
-Represents one non-battle progression or interaction item.
+Represents one non-battle progression or interAbility item.
 
 Composed of:
 - inherited item data
@@ -800,19 +800,19 @@ Composed of:
 - item
 - quantity
 
-# Model.Action
+# Model.Ability
 
-## Action.Definition
+## Ability.Definition
 This class is a scriptable object.
 
 Represents one creature ability that can be used in battle, and optionally in exploration too.
 
-This is kept outside `Battle` because the same action may need to be referenced by species data, feat nodes, battle commands, and world interactions.
-This is the main action asset you should author in Unity, then reference from species default actions, unlocked unit actions, and feat nodes that grant new actions.
-The action should hold a list of `Action.Effect`, and the inspector should let you choose which concrete effect subclass to add.
-In Unity, this implies a custom editor or property drawer for the action effect list.
+This is kept outside `Battle` because the same Ability may need to be referenced by species data, feat nodes, battle commands, and world interAbilitys.
+This is the main Ability asset you should author in Unity, then reference from species default Abilitys, unlocked unit Abilitys, and feat nodes that grant new Abilitys.
+The Ability should hold a list of `Ability.Effect`, and the inspector should let you choose which concrete effect subclass to add.
+In Unity, this implies a custom editor or property drawer for the Ability effect list.
 When adding a new effect, the editor should first let you choose the effect subtype through a selector or enum-like menu, then instantiate the matching concrete effect class and expose only its relevant fields in the inspector.
-The same authoring pattern should also be used for action activation conditions, so an action can declare when it is currently usable.
+The same authoring pattern should also be used for Ability activation conditions, so an Ability can declare when it is currently usable.
 
 Composed of:
 - display name
@@ -827,17 +827,17 @@ Composed of:
 - cast release animation name to request on the caster if relevant
 - usable in battle flag
 - usable in world flag
-- world interaction tags
+- world interAbility tags
 
-## Action.TargetingProfile
+## Ability.TargetingProfile
 This class is serializable.
 
-Represents how an action selects valid targets or cells.
+Represents how an Ability selects valid targets or cells.
 
-This should usually be embedded directly inside `Action.Definition`, not authored as a standalone asset.
-It only needs to be serializable so each action can tune its own targeting rules in the inspector.
-If different targeting modes need different fields, this should also use a custom inspector or property drawer so the action editor stays easy to use.
-It should describe what kind of runtime `Battle.TargetSelection` the action expects, including actions that select more than one board cell or more than one unit.
+This should usually be embedded directly inside `Ability.Definition`, not authored as a standalone asset.
+It only needs to be serializable so each Ability can tune its own targeting rules in the inspector.
+If different targeting modes need different fields, this should also use a custom inspector or property drawer so the Ability editor stays easy to use.
+It should describe what kind of runtime `Battle.TargetSelection` the Ability expects, including Abilitys that select more than one board cell or more than one unit.
 
 Examples:
 - straight line
@@ -856,18 +856,18 @@ Composed of:
 - area shape if relevant
 - filters
 
-## Action.CastProfile
+## Ability.CastProfile
 This class is serializable.
 
-Represents how an action resolves in time instead of assuming every action happens immediately.
+Represents how an Ability resolves in time instead of assuming every Ability happens immediately.
 
 This is the right place for mechanics such as:
-- immediate actions
-- actions that are prepared now and released on a later turn
-- actions that block the caster while waiting
-- actions that resolve now but impose a recovery delay afterward
+- immediate Abilitys
+- Abilitys that are prepared now and released on a later turn
+- Abilitys that block the caster while waiting
+- Abilitys that resolve now but impose a recovery delay afterward
 
-This should stay at the action-definition level, not inside `Action.Effect`, because it controls when the action resolves, whether the caster is blocked, and whether target data is stored for later resolution.
+This should stay at the Ability-definition level, not inside `Ability.Effect`, because it controls when the Ability resolves, whether the caster is blocked, and whether target data is stored for later resolution.
 
 Composed of:
 - cast mode such as immediate, delayed cast, or immediate with recovery
@@ -877,10 +877,10 @@ Composed of:
 - recovery value in turns or seconds if relevant
 - cancel conditions such as on move, on damage, or on death
 
-## Action.ActivationCondition
+## Ability.ActivationCondition
 This class is serializable.
 
-Represents one condition that must pass for an action to be usable.
+Represents one condition that must pass for an Ability to be usable.
 
 This should be the abstract base of a polymorphic activation-condition hierarchy, authored with managed-reference serialization and a custom inspector.
 This is the right place for checks such as required form tags, forbidden form tags, or required unit-effect stack counts on the acting creature.
@@ -888,9 +888,9 @@ This is the right place for checks such as required form tags, forbidden form ta
 Composed of:
 - the data shared by all activation-condition subtypes if any
 
-## Action.RequiredFormTagCondition
+## Ability.RequiredFormTagCondition
 This class is serializable.
-This class inherits from `Action.ActivationCondition`.
+This class inherits from `Ability.ActivationCondition`.
 
 Represents an activation condition requiring the acting creature's current form to have one or several matching form tags.
 
@@ -898,9 +898,9 @@ Composed of:
 - required form tags
 - match-all or match-any rule if relevant
 
-## Action.ForbiddenFormTagCondition
+## Ability.ForbiddenFormTagCondition
 This class is serializable.
-This class inherits from `Action.ActivationCondition`.
+This class inherits from `Ability.ActivationCondition`.
 
 Represents an activation condition forbidding the acting creature's current form from having one or several matching form tags.
 
@@ -908,52 +908,52 @@ Composed of:
 - forbidden form tags
 - match-all or match-any rule if relevant
 
-## Action.UnitEffectStackCondition
+## Ability.UnitEffectStackCondition
 This class is serializable.
-This class inherits from `Action.ActivationCondition`.
+This class inherits from `Ability.ActivationCondition`.
 
 Represents an activation condition requiring the acting creature to currently have a certain number of stacks of one matching unit effect.
 
-This is the main condition to support actions that build stacks first, then can only be used once enough stacks are present.
+This is the main condition to support Abilitys that build stacks first, then can only be used once enough stacks are present.
 
 Composed of:
 - unit effect filters
 - minimum required stack count
 
-## Action.Effect
+## Ability.Effect
 This class is serializable.
 
-Represents one effect applied by an action.
+Represents one effect applied by an Ability.
 
 This should be the abstract base of a polymorphic effect hierarchy, authored with managed-reference serialization and a custom inspector.
-That is a better fit than one rigid enum-only structure, because actions may need custom behaviors such as "reduce all damage received by half", "deal damage based on MP consumed", or "repeat damage once per stack already on the target".
+That is a better fit than one rigid enum-only structure, because Abilitys may need custom behaviors such as "reduce all damage received by half", "deal damage based on MP consumed", or "repeat damage once per stack already on the target".
 
 Examples of concrete effect subclasses:
-- `Action.DamageEffect`
-- `Action.HealEffect`
-- `Action.ReviveEffect`
-- `Action.ApplyUnitEffect`
-- `Action.RemoveUnitEffect`
-- `Action.CleanseEffect`
-- `Action.CreateBoardEffect`
-- `Action.RemoveBoardEffect`
-- `Action.ResourceChangeEffect`
-- `Action.MoveUnitEffect`
-- `Action.SwapPositionEffect`
-- `Action.TeleportEffect`
-- `Action.RecordPositionEffect`
-- `Action.StealResourceEffect`
-- `Action.ConsumeUnitEffect`
-- `Action.ConditionalEffect`
-- `Action.ChangeFormEffect`
+- `Ability.DamageEffect`
+- `Ability.HealEffect`
+- `Ability.ReviveEffect`
+- `Ability.ApplyUnitEffect`
+- `Ability.RemoveUnitEffect`
+- `Ability.CleanseEffect`
+- `Ability.CreateBoardEffect`
+- `Ability.RemoveBoardEffect`
+- `Ability.ResourceChangeEffect`
+- `Ability.MoveUnitEffect`
+- `Ability.SwapPositionEffect`
+- `Ability.TeleportEffect`
+- `Ability.RecordPositionEffect`
+- `Ability.StealResourceEffect`
+- `Ability.ConsumeUnitEffect`
+- `Ability.ConditionalEffect`
+- `Ability.ChangeFormEffect`
 
 Composed of:
 - the data shared by all effect subtypes if any
 
-## Action.ValueFormula
+## Ability.ValueFormula
 This class is serializable.
 
-Represents a reusable numeric formula used by action effects.
+Represents a reusable numeric formula used by Ability effects.
 
 This is what should let an effect say things like:
 - deal a fixed amount of damage
@@ -964,17 +964,17 @@ This is what should let an effect say things like:
 This should be the abstract base of a polymorphic formula hierarchy, authored with managed-reference serialization and a custom inspector driven by the selected formula type.
 
 Examples of concrete formula subclasses :
-- `Action.ConstantFormula`
-- `Action.StatFormula`
-- `Action.ResourceConsumedFormula`
-- `Action.StackCountFormula`
-- `Action.AddFormula`
-- `Action.MultiplyFormula`
+- `Ability.ConstantFormula`
+- `Ability.StatFormula`
+- `Ability.ResourceConsumedFormula`
+- `Ability.StackCountFormula`
+- `Ability.AddFormula`
+- `Ability.MultiplyFormula`
 
 Composed of:
 - the data shared by all formula subtypes if any
 
-## Action.ConstantFormula
+## Ability.ConstantFormula
 This class is serializable.
 
 Represents a formula that always returns a fixed numeric value.
@@ -982,7 +982,7 @@ Represents a formula that always returns a fixed numeric value.
 Composed of:
 - constant value
 
-## Action.StatFormula
+## Ability.StatFormula
 This class is serializable.
 
 Represents a formula that reads a stat from the source unit or target unit.
@@ -992,10 +992,10 @@ Composed of:
 - stat type
 - multiplier if relevant
 
-## Action.ResourceConsumedFormula
+## Ability.ResourceConsumedFormula
 This class is serializable.
 
-Represents a formula based on how much of a resource was consumed while resolving the action.
+Represents a formula based on how much of a resource was consumed while resolving the Ability.
 
 Examples:
 - damage per MP consumed
@@ -1005,7 +1005,7 @@ Composed of:
 - consumed resource type
 - multiplier
 
-## Action.StackCountFormula
+## Ability.StackCountFormula
 This class is serializable.
 
 Represents a formula based on the stack count of a unit effect currently present on a unit.
@@ -1019,7 +1019,7 @@ Composed of:
 - referenced unit effect
 - multiplier if relevant
 
-## Action.AddFormula
+## Ability.AddFormula
 This class is serializable.
 
 Represents a formula that adds the results of several child formulas together.
@@ -1027,7 +1027,7 @@ Represents a formula that adds the results of several child formulas together.
 Composed of:
 - child formulas
 
-## Action.MultiplyFormula
+## Ability.MultiplyFormula
 This class is serializable.
 
 Represents a formula that multiplies the results of several child formulas together.
@@ -1035,7 +1035,7 @@ Represents a formula that multiplies the results of several child formulas toget
 Composed of:
 - child formulas
 
-## Action.DamageEffect
+## Ability.DamageEffect
 This class is serializable.
 
 Represents an effect that deals damage to the affected target or targets.
@@ -1044,7 +1044,7 @@ Composed of:
 - damage formula
 - damage type
 
-## Action.HealEffect
+## Ability.HealEffect
 This class is serializable.
 
 Represents an effect that restores health to the affected target or targets.
@@ -1052,7 +1052,7 @@ Represents an effect that restores health to the affected target or targets.
 Composed of:
 - heal formula
 
-## Action.ReviveEffect
+## Ability.ReviveEffect
 This class is serializable.
 
 Represents an effect that revives one defeated target if that mechanic exists.
@@ -1061,21 +1061,21 @@ Composed of:
 - revived health formula
 - optional target filters
 
-## Action.ApplyUnitEffect
+## Ability.ApplyUnitEffect
 This class is serializable.
 
 Represents an effect that applies an ongoing `UnitEffect` to the affected target.
 
-This is the right place for `UnitEffect` like poison, stun, shielded, armor up, resistance down, lifesteal, or other buffs and debuffs when they are being applied by an action.
+This is the right place for `UnitEffect` like poison, stun, shielded, armor up, resistance down, lifesteal, or other buffs and debuffs when they are being applied by an Ability.
 Applying a unit effect should always add one or more stacks.
-If the target does not already have the matching active unit effect, the action should create it first, then add the stacks.
+If the target does not already have the matching active unit effect, the Ability should create it first, then add the stacks.
 
 Composed of:
 - unit effect
 - unit effect duration override if relevant
 - stack change if relevant
 
-## Action.RemoveUnitEffect
+## Ability.RemoveUnitEffect
 This class is serializable.
 
 Represents an effect that removes one or several existing unit effects from the affected target.
@@ -1084,7 +1084,7 @@ Composed of:
 - unit effect filters
 - amount to remove if relevant
 
-## Action.CleanseEffect
+## Ability.CleanseEffect
 This class is serializable.
 
 Represents an effect that removes unwanted unit effects or similar temporary modifiers.
@@ -1093,28 +1093,28 @@ Composed of:
 - filters deciding what kinds of unit effects can be removed
 - amount to remove if relevant
 
-## Action.ResourceChangeEffect
+## Ability.ResourceChangeEffect
 This class is serializable.
 
-Represents an effect that changes a resource such as action points, movement points, health, shields, or similar battle values.
+Represents an effect that changes a resource such as Ability points, movement points, health, shields, or similar battle values.
 
 Composed of:
 - resource type
 - signed value formula
 
-## Action.CreateBoardEffect
+## Ability.CreateBoardEffect
 This class is serializable.
 
 Represents an effect that creates an ongoing effect on battle board cells or on an area of the board.
 
-This is the general tool for traps, delayed explosions, poison clouds, healing zones, flame walls, and similar persistent action results that are attached to the board rather than to a unit.
+This is the general tool for traps, delayed explosions, poison clouds, healing zones, flame walls, and similar persistent Ability results that are attached to the board rather than to a unit.
 
 Composed of:
 - board effect
 - placement or area rule if relevant
 - board effect duration override if relevant
 
-## Action.RemoveBoardEffect
+## Ability.RemoveBoardEffect
 This class is serializable.
 
 Represents an effect that removes one or several active board effects from the board.
@@ -1123,7 +1123,7 @@ Composed of:
 - board effect filters
 - amount to remove if relevant
 
-## Action.MoveUnitEffect
+## Ability.MoveUnitEffect
 This class is serializable.
 
 Represents an effect that moves one target unit.
@@ -1136,7 +1136,7 @@ Composed of:
 - destination or direction rule
 - collision rule if relevant
 
-## Action.SwapPositionEffect
+## Ability.SwapPositionEffect
 This class is serializable.
 
 Represents an effect that swaps the positions of two units.
@@ -1145,7 +1145,7 @@ Composed of:
 - target filters
 - optional placement validation rules
 
-## Action.TeleportEffect
+## Ability.TeleportEffect
 This class is serializable.
 
 Represents an effect that places one target unit directly at one destination board coordinate.
@@ -1154,16 +1154,16 @@ Composed of:
 - destination rule
 - optional placement validation rules
 
-## Action.RecordPositionEffect
+## Ability.RecordPositionEffect
 This class is serializable.
 
-Represents an effect that records one board position for later use by another action such as a return or teleport.
+Represents an effect that records one board position for later use by another Ability such as a return or teleport.
 
 Composed of:
 - recorded position source
 - record target such as self or one target
 
-## Action.StealResourceEffect
+## Ability.StealResourceEffect
 This class is serializable.
 
 Represents an effect that transfers one resource from one target to another.
@@ -1173,7 +1173,7 @@ Composed of:
 - stolen amount formula
 - source and destination filters
 
-## Action.ConsumeUnitEffect
+## Ability.ConsumeUnitEffect
 This class is serializable.
 
 Represents an effect that consumes one or several unit effects or stacks to produce another result.
@@ -1183,7 +1183,7 @@ Composed of:
 - consume rule
 - child effect or value formula produced by the consumption
 
-## Action.ConditionalEffect
+## Ability.ConditionalEffect
 This class is serializable.
 
 Represents an effect that resolves different child effects depending on whether one condition passes.
@@ -1193,26 +1193,26 @@ Composed of:
 - success effects
 - failure effects if relevant
 
-## Action.ChangeFormEffect
+## Ability.ChangeFormEffect
 This class is serializable.
 
 Represents an effect that changes the current active form of the acting or targeted creature during battle.
 
 This is useful for creatures that switch between forms such as a ranged form and a close-combat form.
-Actions that should only be usable in some forms should rely on the action definition's activation conditions, especially form-tag conditions.
+Abilitys that should only be usable in some forms should rely on the Ability definition's activation conditions, especially form-tag conditions.
 
 Composed of:
 - target form
 - target filters if relevant
 
-## Action.UnitEffect
+## Ability.UnitEffect
 This class is serializable.
 
 Represents one ongoing effect that can affect a unit.
 
 This is the general embedded data package used for poison, stun, lifesteal, damage bonuses, resistances, shields, and similar ongoing modifiers.
-It should usually be authored directly inside `Action.ApplyUnitEffect`, feat node data, species data, or other owner data rather than as a standalone asset.
-It can be granted permanently by species data or feat nodes, or temporarily during battle by an action.
+It should usually be authored directly inside `Ability.ApplyUnitEffect`, feat node data, species data, or other owner data rather than as a standalone asset.
+It can be granted permanently by species data or feat nodes, or temporarily during battle by an Ability.
 Its runtime application should be represented by `Battle.AppliedUnitEffect`.
 Its behavior should come from a list of effect rules that battle systems evaluate at specific hook points.
 
@@ -1229,7 +1229,7 @@ Composed of:
 - default unit effect duration
 - effect rules
 
-## Action.UnitEffectDuration
+## Ability.UnitEffectDuration
 This class is serializable.
 
 Represents how long a unit effect should remain active.
@@ -1240,13 +1240,13 @@ Composed of:
 - duration mode such as permanent, turn-based, or time-based
 - duration value
 
-## Action.BoardEffect
+## Ability.BoardEffect
 This class is serializable.
 
 Represents one ongoing effect attached to battle board cells or to a board area.
 
 This is the general embedded data package used for traps, delayed explosions, poison clouds, healing zones, flame walls, and similar persistent board-side modifiers.
-It should usually be authored directly inside `Action.CreateBoardEffect` or other owner data rather than as a standalone asset.
+It should usually be authored directly inside `Ability.CreateBoardEffect` or other owner data rather than as a standalone asset.
 Its runtime application should be represented by `Battle.AppliedBoardEffect`.
 Its behavior should come from a list of board-effect rules that battle systems evaluate at specific board and timing hook points.
 
@@ -1262,7 +1262,7 @@ Composed of:
 - default board effect duration
 - board effect rules
 
-## Action.BoardEffectDuration
+## Ability.BoardEffectDuration
 This class is serializable.
 
 Represents how long a board effect should remain active.
@@ -1273,7 +1273,7 @@ Composed of:
 - duration mode such as until-triggered, turn-based, or time-based
 - duration value
 
-## Action.BoardEffectRule
+## Ability.BoardEffectRule
 This class is serializable.
 
 Represents one rule contained inside a board effect.
@@ -1282,19 +1282,19 @@ This should be the abstract base of a polymorphic board-effect-rule hierarchy, a
 Each rule should describe both when it is evaluated and what it does on the board or to units interacting with the board effect.
 
 Examples of concrete board effect rule subclasses:
-- `Action.TriggerOnEnterRule`
-- `Action.TriggerOnTurnStartInsideRule`
-- `Action.TriggerOnTimerEndRule`
-- `Action.TriggerOnExitRule`
-- `Action.ApplyEffectsToUnitsInAreaRule`
-- `Action.DestroyAfterTriggerRule`
+- `Ability.TriggerOnEnterRule`
+- `Ability.TriggerOnTurnStartInsideRule`
+- `Ability.TriggerOnTimerEndRule`
+- `Ability.TriggerOnExitRule`
+- `Ability.ApplyEffectsToUnitsInAreaRule`
+- `Ability.DestroyAfterTriggerRule`
 
 Composed of:
 - hook point
 - filters deciding when the rule applies
-- child effects or child actions depending on the rule subtype
+- child effects or child Abilitys depending on the rule subtype
 
-## Action.BoardEffectHookPoint
+## Ability.BoardEffectHookPoint
 Represents the enum-like list of hook points used by board effect rules.
 
 Examples:
@@ -1306,11 +1306,11 @@ Examples:
 - when a unit leaves the affected cells
 - when the board effect is triggered
 
-## Action.UnitEffectHookPoint
+## Ability.UnitEffectHookPoint
 Represents the enum-like list of hook points used by unit effect rules.
 
 Examples:
-- before validating whether an action can be used
+- before validating whether an Ability can be used
 - before validating targets or affected cells
 - before paying a resource cost
 - before dealing outgoing damage
@@ -1321,23 +1321,23 @@ Examples:
 - when moving
 - when consuming a resource
 
-## Action.UnitEffectRule
+## Ability.UnitEffectRule
 This class is serializable.
 
 Represents one rule contained inside a unit effect.
 
 This should be the abstract base of a polymorphic effect-rule hierarchy, authored with managed-reference serialization and a custom inspector.
 Each rule should describe both when it is evaluated and what it changes.
-The battle flow should consult active effect rules at the relevant moments, instead of trying to hardcode all ongoing effect behavior in one big damage or action method.
+The battle flow should consult active effect rules at the relevant moments, instead of trying to hardcode all ongoing effect behavior in one big damage or Ability method.
 
 Examples of concrete effect rule subclasses:
-- `Action.ModifyOutgoingDamageRule`
-- `Action.ModifyIncomingDamageRule`
-- `Action.ModifyActionCostRule`
-- `Action.ModifyRangeRule`
-- `Action.PreventEffectApplicationRule`
-- `Action.LifestealRule`
-- `Action.TriggerOnEventRule`
+- `Ability.ModifyOutgoingDamageRule`
+- `Ability.ModifyIncomingDamageRule`
+- `Ability.ModifyAbilityCostRule`
+- `Ability.ModifyRangeRule`
+- `Ability.PreventEffectApplicationRule`
+- `Ability.LifestealRule`
+- `Ability.TriggerOnEventRule`
 
 Composed of:
 - hook point
@@ -1377,14 +1377,14 @@ Composed of:
 - requirements
 - adjacent nodes
 
-## Feat.ActionNode
+## Feat.AbilityNode
 This class is serializable.
 
-Represents a feat node that unlocks a new battle action for the creature.
+Represents a feat node that unlocks a new battle Ability for the creature.
 
 Composed of:
 - inherited node data
-- action definition to unlock
+- Ability definition to unlock
 
 ## Feat.StatNode
 This class is serializable.
@@ -1433,7 +1433,7 @@ This class is serializable.
 
 Represents a condition needed to complete a feat node.
 
-This is where action-based progression lives.
+This is where Ability-based progression lives.
 This should be the abstract base of a polymorphic requirement hierarchy, authored with managed-reference serialization and a custom inspector.
 That inspector should let the creator add one or several concrete requirement subtypes inside one node, then configure only the fields relevant to each requirement.
 Many requirement subtypes should also use shared enum-like helper types such as requirement scope or damage-type filters, instead of creating a separate concrete requirement class for every "single fight", "single turn", or "single attack" variant.
@@ -1448,7 +1448,7 @@ This is the shared scope type that should let one requirement mean:
 - total progress across all battles
 - progress within a single battle
 - progress within a single turn
-- progress within a single action resolution
+- progress within a single Ability resolution
 
 If a requirement also needs things like consecutive tracking, that should usually be expressed by extra fields on the concrete requirement subtype rather than inside the scope type itself.
 
@@ -1456,7 +1456,7 @@ Examples:
 - lifetime
 - single battle
 - single turn
-- single action
+- single Ability
 
 ## Feat.DamageTypeFilter
 Represents the enum-like filter used by damage-related feat requirements.
@@ -1466,58 +1466,58 @@ Examples:
 - magical only
 - both or any
 
-## Feat.ActionUseRequirement
+## Feat.AbilityUseRequirement
 This class is serializable.
 This class inherits from `Feat.Requirement`.
 
-Represents a requirement asking the creature to use one or several matching actions a certain number of times.
+Represents a requirement asking the creature to use one or several matching Abilitys a certain number of times.
 
 This is the requirement family that should also cover cases like:
-- use matching actions 20 times total
-- use one matching action 5 times in one battle
-- use one matching action 3 times in one turn
+- use matching Abilitys 20 times total
+- use one matching Ability 5 times in one battle
+- use one matching Ability 3 times in one turn
 
 Composed of:
-- action filters
+- Ability filters
 - target use count
 - requirement scope
 - optional battle context filters
 
-## Feat.ActionHitRequirement
+## Feat.AbilityHitRequirement
 This class is serializable.
 This class inherits from `Feat.Requirement`.
 
-Represents a requirement asking the creature to hit targets with one or several matching actions a certain number of times.
+Represents a requirement asking the creature to hit targets with one or several matching Abilitys a certain number of times.
 
 Composed of:
-- action filters
+- Ability filters
 - target hit count
 - requirement scope
 - optional target filters
 - optional battle context filters
 
-## Feat.ActionTargetCountRequirement
+## Feat.AbilityTargetCountRequirement
 This class is serializable.
 This class inherits from `Feat.Requirement`.
 
-Represents a requirement asking the creature to hit or select a certain number of targets or board cells with one action use.
+Represents a requirement asking the creature to hit or select a certain number of targets or board cells with one Ability use.
 
-This is useful for area attacks, split attacks, or actions that select several different board cells.
+This is useful for area attacks, split attacks, or Abilitys that select several different board cells.
 
 Composed of:
-- action filters
+- Ability filters
 - minimum selected or affected target count
 - requirement scope
 - optional target-selection filters
 
-## Feat.ActionSequenceRequirement
+## Feat.AbilitySequenceRequirement
 This class is serializable.
 This class inherits from `Feat.Requirement`.
 
-Represents a requirement asking the creature to use a specific ordered sequence of actions.
+Represents a requirement asking the creature to use a specific ordered sequence of Abilitys.
 
 Composed of:
-- ordered action filters
+- ordered Ability filters
 - target sequence count
 - requirement scope
 - optional maximum delay between sequence steps
@@ -1538,7 +1538,7 @@ Composed of:
 - target damage amount
 - damage type filter
 - requirement scope
-- optional action filters
+- optional Ability filters
 - optional target filters
 
 ## Feat.DamageTakenRequirement
@@ -1563,7 +1563,7 @@ Represents a requirement asking the creature to heal a certain amount of health.
 Composed of:
 - target healing amount
 - requirement scope
-- optional action filters
+- optional Ability filters
 - optional target filters
 
 ## Feat.ResourceSpentRequirement
@@ -1576,7 +1576,7 @@ Composed of:
 - resource type
 - target spent amount
 - requirement scope
-- optional action filters
+- optional Ability filters
 
 ## Feat.UnitEffectAppliedRequirement
 This class is serializable.
@@ -1588,7 +1588,7 @@ Composed of:
 - unit effect filters
 - target application count
 - requirement scope
-- optional action filters
+- optional Ability filters
 
 ## Feat.UnitEffectReceivedRequirement
 This class is serializable.
@@ -1612,7 +1612,7 @@ Composed of:
 - unit effect filters
 - target cleanse count
 - requirement scope
-- optional action filters
+- optional Ability filters
 
 ## Feat.UnitDefeatedRequirement
 This class is serializable.
@@ -1689,12 +1689,12 @@ Composed of:
 This class is serializable.
 This class inherits from `Feat.Requirement`.
 
-Represents a requirement asking the creature to end turns or perform actions while adjacent to one enemy.
+Represents a requirement asking the creature to end turns or perform Abilitys while adjacent to one enemy.
 
 Composed of:
 - target adjacency count
 - requirement scope
-- optional action filters
+- optional Ability filters
 - optional target filters
 
 ## Feat.BoardAreaOccupationRequirement
@@ -1718,7 +1718,7 @@ Composed of:
 - board effect filters
 - target trigger count
 - requirement scope
-- optional action filters
+- optional Ability filters
 
 ## Feat.NoDamageBattleRequirement
 This class is serializable.
@@ -1870,11 +1870,11 @@ If the source unit is actually an `Encounter.Unit`, its AI behavior can be read 
 Composed of:
 - source creature unit
 - current health
-- current action points
+- current Ability points
 - current movement points
 - board position
 - current applied unit effects
-- current pending action if any
+- current pending Ability if any
 - blocked or recovering flag if relevant
 - alive or defeated flag
 
@@ -1893,7 +1893,7 @@ Composed of:
 - board shape rule if relevant
 - walkable surface sampling rule
 - source world or interior sampling rule
-- trigger bounds or source interaction bounds if relevant
+- trigger bounds or source interAbility bounds if relevant
 - acceptable player deployment pattern types
 - acceptable enemy deployment pattern types
 - pattern weights or priorities if relevant
@@ -1932,7 +1932,7 @@ Represents the categories of masks that can be drawn on top of battle board cell
 Examples:
 - deployment
 - movement range
-- action range
+- Ability range
 - selection
 - target preview
 
@@ -1997,10 +1997,10 @@ Composed of:
 - command type
 
 ## Battle.TargetSelection
-Represents the abstract base runtime payload describing what an action is targeting.
+Represents the abstract base runtime payload describing what an Ability is targeting.
 
-This is the object that should be carried by `Battle.ActionCommand` and `Battle.PendingAction`.
-It should support actions that target one board cell, several board cells, one unit, several units, one direction, or one path.
+This is the object that should be carried by `Battle.AbilityCommand` and `Battle.PendingAbility`.
+It should support Abilitys that target one board cell, several board cells, one unit, several units, one direction, or one path.
 
 Composed of:
 - the data shared by all target-selection subtypes if any
@@ -2008,7 +2008,7 @@ Composed of:
 ## Battle.BoardCellTargetSelection
 Represents one target selection made of one or several selected board coordinates.
 
-This is the runtime target payload to use for actions that can select multiple board cells, such as an action that strikes two different spaces.
+This is the runtime target payload to use for Abilitys that can select multiple board cells, such as an Ability that strikes two different spaces.
 
 Composed of:
 - selected board coordinates
@@ -2044,31 +2044,31 @@ Composed of:
 - inherited command data
 - destination board coordinate
 
-## Battle.ActionCommand
+## Battle.AbilityCommand
 This class inherits from `Battle.BattleCommand`.
 
-Represents a combat action command.
+Represents a combat Ability command.
 
 Composed of:
 - inherited command data
-- action definition
+- Ability definition
 - target selection
 
-This command may either resolve immediately or create a `Battle.PendingAction`, depending on the action cast profile.
+This command may either resolve immediately or create a `Battle.PendingAbility`, depending on the Ability cast profile.
 
-## Battle.PendingAction
-Represents one action that has been chosen but has not resolved yet.
+## Battle.PendingAbility
+Represents one Ability that has been chosen but has not resolved yet.
 
-This is the runtime state used for delayed casts, charged attacks, or recovery-style actions that lock the caster across turns or across a timed delay.
+This is the runtime state used for delayed casts, charged attacks, or recovery-style Abilitys that lock the caster across turns or across a timed delay.
 
 Composed of:
 - source battle unit
-- action definition
+- Ability definition
 - stored target selection if chosen at cast start
 - delay duration state
 - blocked caster flag
 - recovery duration state if relevant
-- cancel conditions copied from the action cast profile if needed
+- cancel conditions copied from the Ability cast profile if needed
 
 ## Battle.CaptureCommand
 This class inherits from `Battle.BattleCommand`.
@@ -2090,7 +2090,7 @@ Composed of:
 ## Battle.DurationState
 Represents one shared runtime duration state used by battle systems.
 
-This should be the common runtime object used for delayed actions, applied unit effects, and applied board effects, instead of duplicating separate remaining-turn and remaining-second fields on each class.
+This should be the common runtime object used for delayed Abilitys, applied unit effects, and applied board effects, instead of duplicating separate remaining-turn and remaining-second fields on each class.
 It is the right place to store the current timing state and let battle flow update it consistently.
 
 Composed of:
@@ -2118,7 +2118,7 @@ Composed of:
 Represents one ongoing unit effect currently affecting a battle unit.
 
 This is the runtime state of a unit effect granted by species data, feat progression, or a temporary battle effect.
-Battle systems should read the active applied unit effects on a unit and evaluate their effect rules at the relevant hook points during action resolution, damage resolution, effect application, turn flow, movement, or time updates.
+Battle systems should read the active applied unit effects on a unit and evaluate their effect rules at the relevant hook points during Ability resolution, damage resolution, effect application, turn flow, movement, or time updates.
 
 Composed of:
 - unit effect
@@ -2129,9 +2129,9 @@ Composed of:
 ## Battle.AppliedBoardEffect
 Represents one ongoing board effect currently active on battle board cells or on a board area.
 
-This is the runtime state of a board effect created by an action, such as a trap, delayed explosion, poison cloud, healing zone, or flame wall.
-Instances of this class should be created when an `Action.CreateBoardEffect` resolves.
-Battle systems should update these instances during turn flow, time flow, and board interaction checks, then evaluate their board-effect rules at the relevant hook points.
+This is the runtime state of a board effect created by an Ability, such as a trap, delayed explosion, poison cloud, healing zone, or flame wall.
+Instances of this class should be created when an `Ability.CreateBoardEffect` resolves.
+Battle systems should update these instances during turn flow, time flow, and board interAbility checks, then evaluate their board-effect rules at the relevant hook points.
 
 Composed of:
 - board effect
@@ -2173,7 +2173,7 @@ Its condition list should usually be stored as a polymorphic managed-reference l
 
 Composed of:
 - conditions
-- action choice data
+- Ability choice data
 
 ### Battle.AI.Condition
 This class is serializable.
@@ -2193,7 +2193,7 @@ This class inherits from `Battle.AI.Condition`.
 Represents a condition checking whether one enemy can currently be reached or targeted in range.
 
 Composed of:
-- action or range source if relevant
+- Ability or range source if relevant
 - target filters
 
 ### Battle.AI.AllyHealthBelowCondition
@@ -2227,24 +2227,24 @@ Composed of:
 - presence or absence rule
 - target filters
 
-### Battle.AI.CanUseActionCondition
+### Battle.AI.CanUseAbilityCondition
 This class is serializable.
 This class inherits from `Battle.AI.Condition`.
 
-Represents a condition checking whether one action is currently usable.
+Represents a condition checking whether one Ability is currently usable.
 
 Composed of:
-- action filters
+- Ability filters
 - optional target filters
 
-### Battle.AI.ActionChoice
+### Battle.AI.AbilityChoice
 This class is serializable.
 
-Represents the action to take if an AI rule passes.
+Represents the Ability to take if an AI rule passes.
 
 Composed of:
-- action type
-- preferred action if relevant
+- Ability type
+- preferred Ability if relevant
 - target preference
 - movement preference
 
@@ -2289,7 +2289,7 @@ Composed of:
 ## Progression.MilestoneFlag
 This class is a scriptable object.
 
-Represents one progression flag that can be unlocked to gate later dialogue, events, or world interactions.
+Represents one progression flag that can be unlocked to gate later dialogue, events, or world interAbilitys.
 
 Composed of:
 - display name
@@ -2402,7 +2402,7 @@ Those mandatory names should be:
 - `TakeDamage`
 - `Death`
 
-Action definitions that request caster animations should use names expected to exist inside this set.
+Ability definitions that request caster animations should use names expected to exist inside this set.
 
 Composed of:
 - serialized dictionary from animation name to recipe
@@ -2568,7 +2568,7 @@ Represents the runtime component that executes animation recipes on an instantia
 This should read the rig, resolve logical parts, apply steps relative to the captured rest pose, and restore parts cleanly when phases end.
 It should stay simple at first:
 - one main animation channel
-- optional one additive overlay channel for hit flashes, recoil, or other short reactions
+- optional one additive overlay channel for hit flashes, recoil, or other short reAbilitys
 
 Board movement itself should usually stay outside this recipe system.
 The creature view can be moved from tile to tile by a separate movement tween, while the animation animator only adds body bob, lunge, recoil, squash, and similar fake-animation offsets.

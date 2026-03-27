@@ -211,7 +211,7 @@ It does not need to be a full drivable voxel road.
 
 At gameplay level, it can later become:
 
-- a sailing interaction
+- a sailing interAbility
 - a ferry
 - a fast-travel route
 - a world transition point

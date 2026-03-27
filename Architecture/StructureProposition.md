@@ -351,7 +351,7 @@ Composed of:
 Kind: ScriptableObject
 Composed of:
 - string DisplayName
-- InteractionType InteractionType
+- InterAbilityType InterAbilityType
 - DefaultTriggerMode DefaultTriggerMode
 - DefaultPayloadData DefaultPayloadData
 - ValidationOrGenerationTags ValidationOrGenerationTags
@@ -430,7 +430,7 @@ Composed of:
 - bool BlocksLineOfSightFlag
 - MovementCost MovementCost
 - List<SurfaceTag> SurfaceTags
-- List<OptionalWorldInteractionTag> OptionalWorldInteractionTags
+- List<OptionalWorldInterAbilityTag> OptionalWorldInterAbilityTags
 - OptionalReplacementOrRemovedStateBehavior OptionalReplacementOrRemovedStateBehavior
 - MaterialOrTextureData MaterialOrTextureData
 
@@ -499,7 +499,7 @@ Composed of:
 - string IdentificationName
 - string DisplayName
 - Creature.Stats BaseStats
-- List<Action.Definition> DefaultActions
+- List<Ability.Definition> DefaultAbilitys
 - Feat.Board Board
 - List<Creature.Form> AvailableForms
 - Dictionary<string, Creature.Form> AvailableFormsByName
@@ -519,8 +519,8 @@ Composed of:
 - string Nickname
 - Feat.BoardProgress BoardProgress
 - Creature.Stats AdditionalStats
-- List<Action.Definition> UnlockedActions
-- List<Action.UnitEffect> PersistentUnitEffects
+- List<Ability.Definition> UnlockedAbilitys
+- List<Ability.UnitEffect> PersistentUnitEffects
 
 ## Creature.Stats
 Kind: Serializable
@@ -530,7 +530,7 @@ Composed of:
 - int Ability
 - int Armor
 - int Resistance
-- int ActionPoints
+- int AbilityPoints
 - int MovementPoints
 - int Stamina
 - int Range
@@ -558,7 +558,7 @@ Inherits from: `Item.Definition`
 Composed of:
 - InheritedItemData InheritedItemData
 - BattleTargetingRules BattleTargetingRules
-- List<Action.Effect> BattleEffects
+- List<Ability.Effect> BattleEffects
 
 ## Item.PassiveItem
 Kind: ScriptableObject
@@ -566,15 +566,15 @@ Inherits from: `Item.Definition`
 Composed of:
 - InheritedItemData InheritedItemData
 - Creature.Stats GrantedStatBonuses
-- List<Action.UnitEffect> GrantedPassiveEffects
+- List<Ability.UnitEffect> GrantedPassiveEffects
 - DurationMode DurationMode
 
-## Item.ActionItem
+## Item.AbilityItem
 Kind: ScriptableObject
 Inherits from: `Item.Definition`
 Composed of:
 - InheritedItemData InheritedItemData
-- Action.Definition ActionToTeach
+- Ability.Definition AbilityToTeach
 - TargetCreatureFilters TargetCreatureFilters
 
 ## Item.KeyItem
@@ -595,9 +595,9 @@ Composed of:
 - Item.Definition Item
 - int Quantity
 
-# Model.Action
+# Model.Ability
 
-## Action.Definition
+## Ability.Definition
 Kind: ScriptableObject
 Composed of:
 - string DisplayName
@@ -612,9 +612,9 @@ Composed of:
 - CastReleaseAnimationNameToRequestOnTheCaster CastReleaseAnimationNameToRequestOnTheCaster
 - bool UsableInBattleFlag
 - bool UsableInWorldFlag
-- List<WorldInteractionTag> WorldInteractionTags
+- List<WorldInterAbilityTag> WorldInterAbilityTags
 
-## Action.TargetingProfile
+## Ability.TargetingProfile
 Kind: Serializable
 Composed of:
 - ExpectedTargetSelectionKind ExpectedTargetSelectionKind
@@ -624,7 +624,7 @@ Composed of:
 - AreaShape AreaShape
 - List<Filter> Filters
 
-## Action.CastProfile
+## Ability.CastProfile
 Kind: Serializable
 Composed of:
 - CastModeImmediateDelayedCastOrImmediateWithRecovery CastModeImmediateDelayedCastOrImmediateWithRecovery
@@ -634,133 +634,133 @@ Composed of:
 - RecoveryValueInTurnsOrSeconds RecoveryValueInTurnsOrSeconds
 - CancelConditionsOnMoveOnDamageOrOnDeath CancelConditionsOnMoveOnDamageOrOnDeath
 
-## Action.ActivationCondition
+## Ability.ActivationCondition
 Kind: Serializable
 Composed of:
 - TheDataSharedByAllActivationConditionSubtypesIfAny TheDataSharedByAllActivationConditionSubtypesIfAny
 
-## Action.RequiredFormTagCondition
+## Ability.RequiredFormTagCondition
 Kind: Serializable
-Inherits from: `Action.ActivationCondition`
+Inherits from: `Ability.ActivationCondition`
 Composed of:
 - List<RequiredFormTag> RequiredFormTags
 - MatchAllOrMatchAnyRule MatchAllOrMatchAnyRule
 
-## Action.ForbiddenFormTagCondition
+## Ability.ForbiddenFormTagCondition
 Kind: Serializable
-Inherits from: `Action.ActivationCondition`
+Inherits from: `Ability.ActivationCondition`
 Composed of:
 - List<ForbiddenFormTag> ForbiddenFormTags
 - MatchAllOrMatchAnyRule MatchAllOrMatchAnyRule
 
-## Action.UnitEffectStackCondition
+## Ability.UnitEffectStackCondition
 Kind: Serializable
-Inherits from: `Action.ActivationCondition`
+Inherits from: `Ability.ActivationCondition`
 Composed of:
 - List<UnitEffectFilter> UnitEffectFilters
 - int MinimumRequiredStackCount
 
-## Action.Effect
+## Ability.Effect
 Kind: Serializable
 Composed of:
 - TheDataSharedByAllEffectSubtypesIfAny TheDataSharedByAllEffectSubtypesIfAny
 
-## Action.ValueFormula
+## Ability.ValueFormula
 Kind: Serializable
 Composed of:
 - TheDataSharedByAllFormulaSubtypesIfAny TheDataSharedByAllFormulaSubtypesIfAny
 
-## Action.ConstantFormula
+## Ability.ConstantFormula
 Kind: Serializable
 Composed of:
 - int ConstantValue
 
-## Action.StatFormula
+## Ability.StatFormula
 Kind: Serializable
 Composed of:
 - StatSourceSourceOrTarget StatSourceSourceOrTarget
 - StatType StatType
 - float Multiplier
 
-## Action.ResourceConsumedFormula
+## Ability.ResourceConsumedFormula
 Kind: Serializable
 Composed of:
 - ConsumedResourceType ConsumedResourceType
 - float Multiplier
 
-## Action.StackCountFormula
+## Ability.StackCountFormula
 Kind: Serializable
 Composed of:
 - StackSourceSourceOrTarget StackSourceSourceOrTarget
 - ReferencedUnitEffect ReferencedUnitEffect
 - float Multiplier
 
-## Action.AddFormula
+## Ability.AddFormula
 Kind: Serializable
 Composed of:
 - List<ChildFormula> ChildFormulas
 
-## Action.MultiplyFormula
+## Ability.MultiplyFormula
 Kind: Serializable
 Composed of:
 - List<ChildFormula> ChildFormulas
 
-## Action.DamageEffect
+## Ability.DamageEffect
 Kind: Serializable
 Composed of:
 - DamageFormula DamageFormula
 - DamageType DamageType
 
-## Action.HealEffect
+## Ability.HealEffect
 Kind: Serializable
 Composed of:
 - HealFormula HealFormula
 
-## Action.ReviveEffect
+## Ability.ReviveEffect
 Kind: Serializable
 Composed of:
 - RevivedHealthFormula RevivedHealthFormula
 - List<OptionalTargetFilter> OptionalTargetFilters
 
-## Action.ApplyUnitEffect
+## Ability.ApplyUnitEffect
 Kind: Serializable
 Composed of:
 - UnitEffect UnitEffect
 - UnitEffectDurationOverride UnitEffectDurationOverride
 - StackChange StackChange
 
-## Action.RemoveUnitEffect
+## Ability.RemoveUnitEffect
 Kind: Serializable
 Composed of:
 - List<UnitEffectFilter> UnitEffectFilters
 - AmountToRemove AmountToRemove
 
-## Action.CleanseEffect
+## Ability.CleanseEffect
 Kind: Serializable
 Composed of:
 - FiltersDecidingWhatKindsOfUnitEffectsCanBeRemoved FiltersDecidingWhatKindsOfUnitEffectsCanBeRemoved
 - AmountToRemove AmountToRemove
 
-## Action.ResourceChangeEffect
+## Ability.ResourceChangeEffect
 Kind: Serializable
 Composed of:
 - ResourceType ResourceType
 - SignedValueFormula SignedValueFormula
 
-## Action.CreateBoardEffect
+## Ability.CreateBoardEffect
 Kind: Serializable
 Composed of:
 - BoardEffect BoardEffect
 - PlacementOrAreaRule PlacementOrAreaRule
 - BoardEffectDurationOverride BoardEffectDurationOverride
 
-## Action.RemoveBoardEffect
+## Ability.RemoveBoardEffect
 Kind: Serializable
 Composed of:
 - List<BoardEffectFilter> BoardEffectFilters
 - AmountToRemove AmountToRemove
 
-## Action.MoveUnitEffect
+## Ability.MoveUnitEffect
 Kind: Serializable
 Composed of:
 - MovementMode MovementMode
@@ -768,85 +768,85 @@ Composed of:
 - DestinationOrDirectionRule DestinationOrDirectionRule
 - CollisionRule CollisionRule
 
-## Action.SwapPositionEffect
+## Ability.SwapPositionEffect
 Kind: Serializable
 Composed of:
 - List<TargetFilter> TargetFilters
 - List<OptionalPlacementValidationRule> OptionalPlacementValidationRules
 
-## Action.TeleportEffect
+## Ability.TeleportEffect
 Kind: Serializable
 Composed of:
 - DestinationRule DestinationRule
 - List<OptionalPlacementValidationRule> OptionalPlacementValidationRules
 
-## Action.RecordPositionEffect
+## Ability.RecordPositionEffect
 Kind: Serializable
 Composed of:
 - RecordedPositionSource RecordedPositionSource
 - RecordTargetSelfOrOneTarget RecordTargetSelfOrOneTarget
 
-## Action.StealResourceEffect
+## Ability.StealResourceEffect
 Kind: Serializable
 Composed of:
 - ResourceType ResourceType
 - StolenAmountFormula StolenAmountFormula
 - List<SourceAndDestinationFilter> SourceAndDestinationFilters
 
-## Action.ConsumeUnitEffect
+## Ability.ConsumeUnitEffect
 Kind: Serializable
 Composed of:
 - List<UnitEffectFilter> UnitEffectFilters
 - ConsumeRule ConsumeRule
 - ChildEffectOrValueFormulaProducedByTheConsumption ChildEffectOrValueFormulaProducedByTheConsumption
 
-## Action.ConditionalEffect
+## Ability.ConditionalEffect
 Kind: Serializable
 Composed of:
 - ConditionData ConditionData
 - List<SuccessEffect> SuccessEffects
 - FailureEffects FailureEffects
 
-## Action.ChangeFormEffect
+## Ability.ChangeFormEffect
 Kind: Serializable
 Composed of:
 - TargetForm TargetForm
 - TargetFilters TargetFilters
 
-## Action.UnitEffect
+## Ability.UnitEffect
 Kind: Serializable
 Composed of:
 - string DisplayName
 - DefaultUnitEffectDuration DefaultUnitEffectDuration
 - List<EffectRule> EffectRules
 
-## Action.UnitEffectDuration
+## Ability.UnitEffectDuration
 Kind: Serializable
 Composed of:
 - DurationModePermanentTurnBasedOrTimeBased DurationModePermanentTurnBasedOrTimeBased
 - float DurationValue
 
-## Action.BoardEffect
+## Ability.BoardEffect
 Kind: Serializable
 Composed of:
 - string DisplayName
 - DefaultBoardEffectDuration DefaultBoardEffectDuration
 - List<BoardEffectRule> BoardEffectRules
 
-## Action.BoardEffectDuration
+## Ability.BoardEffectDuration
 Kind: Serializable
 Composed of:
 - DurationModeUntilTriggeredTurnBasedOrTimeBased DurationModeUntilTriggeredTurnBasedOrTimeBased
 - float DurationValue
 
-## Action.BoardEffectRule
+## Ability.BoardEffectRule
 Kind: Serializable
 Composed of:
 - HookPoint HookPoint
 - List<FiltersDecidingWhenTheRuleApply> FiltersDecidingWhenTheRuleApplies
-- ChildEffectsOrChildActionsDependingOnTheRuleSubtype ChildEffectsOrChildActionsDependingOnTheRuleSubtype
+- ChildEffectsOrChildAbilitysDependingOnTheRuleSubtype ChildEffectsOrChildAbilitysDependingOnTheRuleSubtype
 
-## Action.BoardEffectHookPoint
+## Ability.BoardEffectHookPoint
 Kind: Enum
 Represents when a board effect rule is evaluated.
 Values:
@@ -858,11 +858,11 @@ Values:
 - WhenAUnitLeavesTheAffectedCells: fire when a unit exits the affected area.
 - WhenTheBoardEffectIsTriggered: fire when the board effect explicitly resolves its trigger behavior.
 
-## Action.UnitEffectHookPoint
+## Ability.UnitEffectHookPoint
 Kind: Enum
 Represents when a unit effect rule is evaluated on its owner.
 Values:
-- BeforeValidatingWhetherAnActionCanBeUsed: fire before checking whether an action is currently usable.
+- BeforeValidatingWhetherAnAbilityCanBeUsed: fire before checking whether an Ability is currently usable.
 - BeforeValidatingTargetsOrAffectedCells: fire before validating targets or affected cells.
 - BeforePayingAResourceCost: fire before resources such as AP or stamina are spent.
 - BeforeDealingOutgoingDamage: fire before the owner deals damage.
@@ -873,7 +873,7 @@ Values:
 - WhenMoving: fire when the owner moves.
 - WhenConsumingAResource: fire when the owner consumes a tracked resource.
 
-## Action.UnitEffectRule
+## Ability.UnitEffectRule
 Kind: Serializable
 Composed of:
 - HookPoint HookPoint
@@ -896,11 +896,11 @@ Composed of:
 - List<Feat.Requirement> Requirements
 - List<AdjacentNode> AdjacentNodes
 
-## Feat.ActionNode
+## Feat.AbilityNode
 Kind: Serializable
 Composed of:
 - InheritedNodeData InheritedNodeData
-- ActionDefinitionToUnlock ActionDefinitionToUnlock
+- AbilityDefinitionToUnlock AbilityDefinitionToUnlock
 
 ## Feat.StatNode
 Kind: Serializable
@@ -938,7 +938,7 @@ Values:
 - Lifetime: progress persists across the whole creature lifetime or run.
 - SingleBattle: progress resets when the current battle ends.
 - SingleTurn: progress resets at the end of the current turn.
-- SingleAction: progress is only measured during one action resolution.
+- SingleAbility: progress is only measured during one Ability resolution.
 
 ## Feat.DamageTypeFilter
 Kind: Enum
@@ -948,39 +948,39 @@ Values:
 - MagicalOnly: only magical damage counts.
 - BothOrAny: either physical or magical damage counts.
 
-## Feat.ActionUseRequirement
+## Feat.AbilityUseRequirement
 Kind: Serializable
 Inherits from: `Feat.Requirement`
 Composed of:
-- List<ActionFilter> ActionFilters
+- List<AbilityFilter> AbilityFilters
 - int TargetUseCount
 - RequirementScope RequirementScope
 - List<OptionalBattleContextFilter> OptionalBattleContextFilters
 
-## Feat.ActionHitRequirement
+## Feat.AbilityHitRequirement
 Kind: Serializable
 Inherits from: `Feat.Requirement`
 Composed of:
-- List<ActionFilter> ActionFilters
+- List<AbilityFilter> AbilityFilters
 - int TargetHitCount
 - RequirementScope RequirementScope
 - List<OptionalTargetFilter> OptionalTargetFilters
 - List<OptionalBattleContextFilter> OptionalBattleContextFilters
 
-## Feat.ActionTargetCountRequirement
+## Feat.AbilityTargetCountRequirement
 Kind: Serializable
 Inherits from: `Feat.Requirement`
 Composed of:
-- List<ActionFilter> ActionFilters
+- List<AbilityFilter> AbilityFilters
 - int MinimumSelectedOrAffectedTargetCount
 - RequirementScope RequirementScope
 - List<OptionalTargetSelectionFilter> OptionalTargetSelectionFilters
 
-## Feat.ActionSequenceRequirement
+## Feat.AbilitySequenceRequirement
 Kind: Serializable
 Inherits from: `Feat.Requirement`
 Composed of:
-- List<OrderedActionFilter> OrderedActionFilters
+- List<OrderedAbilityFilter> OrderedAbilityFilters
 - int TargetSequenceCount
 - RequirementScope RequirementScope
 - List<OptionalMaximumDelayBetweenSequenceStep> OptionalMaximumDelayBetweenSequenceSteps
@@ -992,7 +992,7 @@ Composed of:
 - int TargetDamageAmount
 - DamageTypeFilter DamageTypeFilter
 - RequirementScope RequirementScope
-- List<OptionalActionFilter> OptionalActionFilters
+- List<OptionalAbilityFilter> OptionalAbilityFilters
 - List<OptionalTargetFilter> OptionalTargetFilters
 
 ## Feat.DamageTakenRequirement
@@ -1011,7 +1011,7 @@ Inherits from: `Feat.Requirement`
 Composed of:
 - int TargetHealingAmount
 - RequirementScope RequirementScope
-- List<OptionalActionFilter> OptionalActionFilters
+- List<OptionalAbilityFilter> OptionalAbilityFilters
 - List<OptionalTargetFilter> OptionalTargetFilters
 
 ## Feat.ResourceSpentRequirement
@@ -1021,7 +1021,7 @@ Composed of:
 - ResourceType ResourceType
 - int TargetSpentAmount
 - RequirementScope RequirementScope
-- List<OptionalActionFilter> OptionalActionFilters
+- List<OptionalAbilityFilter> OptionalAbilityFilters
 
 ## Feat.UnitEffectAppliedRequirement
 Kind: Serializable
@@ -1030,7 +1030,7 @@ Composed of:
 - List<UnitEffectFilter> UnitEffectFilters
 - int TargetApplicationCount
 - RequirementScope RequirementScope
-- List<OptionalActionFilter> OptionalActionFilters
+- List<OptionalAbilityFilter> OptionalAbilityFilters
 
 ## Feat.UnitEffectReceivedRequirement
 Kind: Serializable
@@ -1048,7 +1048,7 @@ Composed of:
 - List<UnitEffectFilter> UnitEffectFilters
 - int TargetCleanseCount
 - RequirementScope RequirementScope
-- List<OptionalActionFilter> OptionalActionFilters
+- List<OptionalAbilityFilter> OptionalAbilityFilters
 
 ## Feat.UnitDefeatedRequirement
 Kind: Serializable
@@ -1105,7 +1105,7 @@ Inherits from: `Feat.Requirement`
 Composed of:
 - int TargetAdjacencyCount
 - RequirementScope RequirementScope
-- List<OptionalActionFilter> OptionalActionFilters
+- List<OptionalAbilityFilter> OptionalAbilityFilters
 - List<OptionalTargetFilter> OptionalTargetFilters
 
 ## Feat.BoardAreaOccupationRequirement
@@ -1123,7 +1123,7 @@ Composed of:
 - List<BoardEffectFilter> BoardEffectFilters
 - int TargetTriggerCount
 - RequirementScope RequirementScope
-- List<OptionalActionFilter> OptionalActionFilters
+- List<OptionalAbilityFilter> OptionalAbilityFilters
 
 ## Feat.NoDamageBattleRequirement
 Kind: Serializable
@@ -1214,11 +1214,11 @@ Composed of:
 Composed of:
 - SourceCreatureUnit SourceCreatureUnit
 - int CurrentHealth
-- int CurrentActionPoints
+- int CurrentAbilityPoints
 - int CurrentMovementPoints
 - Vector2Int BoardPosition
 - List<Battle.AppliedUnitEffect> AppliedUnitEffects
-- Battle.PendingAction CurrentPendingAction
+- Battle.PendingAbility CurrentPendingAbility
 - bool BlockedOrRecoveringFlag
 - bool IsAlive
 
@@ -1230,7 +1230,7 @@ Composed of:
 - BoardShapeRule BoardShapeRule
 - WalkableSurfaceSamplingRule WalkableSurfaceSamplingRule
 - SourceWorldOrInteriorSamplingRule SourceWorldOrInteriorSamplingRule
-- TriggerBoundsOrSourceInteractionBounds TriggerBoundsOrSourceInteractionBounds
+- TriggerBoundsOrSourceInterAbilityBounds TriggerBoundsOrSourceInterAbilityBounds
 - List<AcceptablePlayerDeploymentPatternType> AcceptablePlayerDeploymentPatternTypes
 - List<AcceptableEnemyDeploymentPatternType> AcceptableEnemyDeploymentPatternTypes
 - PatternWeightsOrPriorities PatternWeightsOrPriorities
@@ -1254,9 +1254,9 @@ Represents a visual overlay drawn on battle board cells.
 Values:
 - Deployment: cells where a unit may be placed during setup.
 - MovementRange: cells reachable by the currently selected movement.
-- ActionRange: cells within the currently selected action range.
+- AbilityRange: cells within the currently selected Ability range.
 - Selection: cells currently selected by the player.
-- TargetPreview: cells previewed as affected by the pending action.
+- TargetPreview: cells previewed as affected by the pending Ability.
 
 ## Battle.DeploymentZone
 Composed of:
@@ -1326,22 +1326,22 @@ Composed of:
 - InheritedCommandData InheritedCommandData
 - Vector2Int DestinationBoardCoordinate
 
-## Battle.ActionCommand
+## Battle.AbilityCommand
 Inherits from: `Battle.BattleCommand`
 Composed of:
 - InheritedCommandData InheritedCommandData
-- ActionDefinition ActionDefinition
+- AbilityDefinition AbilityDefinition
 - TargetSelection TargetSelection
 
-## Battle.PendingAction
+## Battle.PendingAbility
 Composed of:
 - SourceBattleUnit SourceBattleUnit
-- ActionDefinition ActionDefinition
+- AbilityDefinition AbilityDefinition
 - StoredTargetSelectionIfChosenAtCastStart StoredTargetSelectionIfChosenAtCastStart
 - DelayDurationState DelayDurationState
 - bool BlockedCasterFlag
 - RecoveryDurationState RecoveryDurationState
-- CancelConditionsCopiedFromTheActionCastProfile CancelConditionsCopiedFromTheActionCastProfile
+- CancelConditionsCopiedFromTheAbilityCastProfile CancelConditionsCopiedFromTheAbilityCastProfile
 
 ## Battle.CaptureCommand
 Inherits from: `Battle.BattleCommand`
@@ -1401,7 +1401,7 @@ Composed of:
 Kind: Serializable
 Composed of:
 - List<Condition> Conditions
-- ActionChoiceData ActionChoiceData
+- AbilityChoiceData AbilityChoiceData
 
 ### Battle.AI.Condition
 Kind: Serializable
@@ -1412,7 +1412,7 @@ Composed of:
 Kind: Serializable
 Inherits from: `Battle.AI.Condition`
 Composed of:
-- ActionOrRangeSource ActionOrRangeSource
+- AbilityOrRangeSource AbilityOrRangeSource
 - List<TargetFilter> TargetFilters
 
 ### Battle.AI.AllyHealthBelowCondition
@@ -1437,18 +1437,18 @@ Composed of:
 - PresenceOrAbsenceRule PresenceOrAbsenceRule
 - List<TargetFilter> TargetFilters
 
-### Battle.AI.CanUseActionCondition
+### Battle.AI.CanUseAbilityCondition
 Kind: Serializable
 Inherits from: `Battle.AI.Condition`
 Composed of:
-- List<ActionFilter> ActionFilters
+- List<AbilityFilter> AbilityFilters
 - List<OptionalTargetFilter> OptionalTargetFilters
 
-### Battle.AI.ActionChoice
+### Battle.AI.AbilityChoice
 Kind: Serializable
 Composed of:
-- ActionType ActionType
-- PreferredAction PreferredAction
+- AbilityType AbilityType
+- PreferredAbility PreferredAbility
 - TargetPreference TargetPreference
 - MovementPreference MovementPreference
 

@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <!-- Generated file, do not modify, your changes will be overwritten (use AssetPostprocessor.OnGeneratedCSProject) -->
   <PropertyGroup>
     <BaseIntermediateOutputPath>Temp\obj\$(MSBuildProjectName)</BaseIntermediateOutputPath>
@@ -51,8 +51,12 @@
     <Analyzer Include="C:\Users\User\Documents\UnityProject\Erelia\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d\Runtime\MVVM\SourceGenerators\netstandard2.0\MVVMSourceGenerators.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Battle\Attack\Editor\AttackEditor.cs" />
-    <Compile Include="Assets\Scripts\Core\Voxel\Editor\VoxelDefinitionEditor.cs" />
+    <Compile Include="Assets\Scripts\Editor\AbilityCostDrawer.cs" />
+    <Compile Include="Assets\Scripts\Editor\AbilityEditor.cs" />
+    <Compile Include="Assets\Scripts\Editor\CreatureSpecies.cs" />
+    <Compile Include="Assets\Scripts\Editor\AbilityEffectDrawer.cs" />
+    <Compile Include="Assets\Scripts\Editor\FeatBoardEditorWindow.cs" />
+    <Compile Include="Assets\Scripts\Editor\AttributesDrawer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -1537,7 +1541,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="Assembly-CSharp-firstpass.csproj" />
     <ProjectReference Include="Assembly-CSharp.csproj" />
+    <ProjectReference Include="AYellowpaper.SerializedCollections.csproj" />
+    <ProjectReference Include="AYellowpaper.SerializedCollections.Editor.csproj" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <ItemGroup>
@@ -1551,6 +1558,3 @@
     <ProjectCapability Remove="ReferenceManagerAssemblies" />
   </ItemGroup>
 </Project>
-
-
-

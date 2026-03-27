@@ -7,13 +7,13 @@ Target: Single-player, offline
 ---
 
 ## 1) High-Level Concept
-Erelia is a creature-collection RPG inspired by classic Pokemon, but with a different battle system and progression model. The world is procedurally generated each playthrough: towns, gyms, routes, and encounter tables shift with the seed. Creatures do not gain levels; instead, they earn **Quest Validation** through battle actions, which unlocks abilities, stat bonuses, and evolutions on a **License Board**-style progression screen (FF12/PoE inspiration).
+Erelia is a creature-collection RPG inspired by classic Pokemon, but with a different battle system and progression model. The world is procedurally generated each playthrough: towns, gyms, routes, and encounter tables shift with the seed. Creatures do not gain levels; instead, they earn **Quest Validation** through battle Abilitys, which unlocks abilities, stat bonuses, and evolutions on a **License Board**-style progression screen (FF12/PoE inspiration).
 
 ---
 
 ## 2) Core Pillars
-1. **Familiar loop, new progression**: Explore ? encounter ? battle ? progress. Progress is action-based unlocks, not XP levels.
-2. **Stamina-turn combat**: Faster creatures act more often, but all actions happen in discrete turns.
+1. **Familiar loop, new progression**: Explore ? encounter ? battle ? progress. Progress is Ability-based unlocks, not XP levels.
+2. **Stamina-turn combat**: Faster creatures act more often, but all Abilitys happen in discrete turns.
 3. **Procedural world**: Each run has a different layout, gym order, and progression path.
 4. **Clear tactical placement**: Battles take place on a board derived from the world or predefined arenas.
 
@@ -37,7 +37,7 @@ Secondary goals:
 2. Trigger encounters (wild or trainer).
 3. Enter battle on a board (world-derived or predefined).
 4. Win/Lose battle ? creatures earn Quest Validation.
-5. Unlock new actions, bonuses, evolutions.
+5. Unlock new Abilitys, bonuses, evolutions.
 6. Continue exploring and progress through gyms.
 
 ---
@@ -69,9 +69,9 @@ Secondary goals:
 - Each creature has a **Stamina** value that determines how quickly its turn comes.
 - The battle progresses through time until a creature is ready to act.
 - When a creature reaches its turn time, the game pauses and accepts a command.
-- At the start of its turn, the creature's **Action Points (AP)** and **Movement Points (MP)** are restored to their maximum values.
+- At the start of its turn, the creature's **Ability Points (AP)** and **Movement Points (MP)** are restored to their maximum values.
 - Stamina is likely a "seconds to fill the **Turn Bar**" value (lower is better). Name may change if it does not fit.
-- Some actions can reduce a target's AP/MP, but turns generally start at full pools.
+- Some Abilitys can reduce a target's AP/MP, but turns generally start at full pools.
 - **Turn Bar UI**: displayed on the left side, showing each creature's Turn Bar progression.
 - **Stun**: pauses Turn Bar fill; when stun ends, the bar resumes filling from its current value.
 
@@ -86,17 +86,17 @@ actor AI
 class BattleLoop
 class TurnService
 class BattleState
-class ActionResolver
+class AbilityResolver
 
 BattleLoop -> TurnService : AdvanceTime()
 TurnService -> BattleState : SelectReadyUnit()
 BattleLoop -> BattleState : PauseAtReadyUnit()
-BattleLoop -> Player : RequestAction (if player unit)
-BattleLoop -> AI : RequestAction (if enemy unit)
-Player --> BattleLoop : ChosenAction
-AI --> BattleLoop : ChosenAction
-BattleLoop -> ActionResolver : ResolveAction()
-ActionResolver -> BattleState : ApplyEffects (damage, buffs, movement)
+BattleLoop -> Player : RequestAbility (if player unit)
+BattleLoop -> AI : RequestAbility (if enemy unit)
+Player --> BattleLoop : ChosenAbility
+AI --> BattleLoop : ChosenAbility
+BattleLoop -> AbilityResolver : ResolveAbility()
+AbilityResolver -> BattleState : ApplyEffects (damage, buffs, movement)
 BattleLoop -> TurnService : ScheduleNextTurn()
 @enduml
 ```
@@ -115,16 +115,16 @@ BattleLoop -> TurnService : ScheduleNextTurn()
 - Enemies are placed using placement policies (random/fixed, by line).
 - Placement uses side-based deployment zones; the game chooses a side for each team and creates placement nodes.
 
-### Actions
-- Each action costs **AP**, has a range, and may require line of sight (or ignore it).
+### Abilitys
+- Each Ability costs **AP**, has a range, and may require line of sight (or ignore it).
 - Targeting can be straight-line, free-form, or area-of-effect.
-- Actions can be: direct damage, damage-over-time, heal-over-time, traps placed on cells, buffs, debuffs, cleanse, shields, armor/resistance boosts.
-- Actions can be **physical** or **magical**, with corresponding mitigation stats.
+- Abilitys can be: direct damage, damage-over-time, heal-over-time, traps placed on cells, buffs, debuffs, cleanse, shields, armor/resistance boosts.
+- Abilitys can be **physical** or **magical**, with corresponding mitigation stats.
 
 ### Movement
 - Movement costs **MP** per cell (default 1 cell = 1 MP).
 - Terrain can modify MP cost (ex: mud costs 2 MP per cell).
-- Movement and actions are separate; you can move and act in the same turn.
+- Movement and Abilitys are separate; you can move and act in the same turn.
 - Obstacles can block line of sight depending on type; elevation does not affect spell range.
 
 ---
@@ -144,7 +144,7 @@ BattleLoop -> TurnService : ScheduleNextTurn()
 - Time-to-unlock varies by quest; there is no fixed battle count target.
 
 Examples:
-- Hit an enemy with spell XXX between Y and Z cells -> unlock a long-range action.
+- Hit an enemy with spell XXX between Y and Z cells -> unlock a long-range Ability.
 - Take XXX total damage while shielded -> unlock shield bonus.
 - Remove Poison from allies X times + Heal allies for XXX HP + Stay away from enemies for X fights -> unlock healer evolution.
 - Get hit by XXX attacks -> gain bonus max health.
@@ -152,7 +152,7 @@ Examples:
 ### License Board
 - Visual progression tree (inspired by FF12 permits / PoE passive tree).
 - Nodes unlock:
-- New actions
+- New Abilitys
 - Stat bonuses
 - Evolutions
 - Nodes require adjacency to a completed node.
@@ -175,14 +175,14 @@ Examples:
 
 ## 9) Enemy AI
 - AI is rule-driven with a decision list.
-- Each enemy has a list of conditions and actions.
-- The AI evaluates top-down and executes the first valid action.
+- Each enemy has a list of conditions and Abilitys.
+- The AI evaluates top-down and executes the first valid Ability.
 - AI uses the same AP/MP rules as the player.
 - AI behavior is per-creature scripted (not purely archetype-based).
 
 Example:
-- If enemy within 3 tiles ? cast Action A.
-- If ally HP < 50% ? cast Action B.
+- If enemy within 3 tiles ? cast Ability A.
+- If ally HP < 50% ? cast Ability B.
 - Otherwise ? move away.
 
 ---
@@ -217,10 +217,10 @@ Save data should include:
 - Ability (boosts magical damage)
 - Armor (reduces physical damage taken)
 - Resistance (reduces magical damage taken)
-- Action Points (AP) (resources to cast actions)
+- Ability Points (AP) (resources to cast Abilitys)
 - Movement Points (MP) (resources to move on the board)
 - Stamina (turn frequency)
-- Range (adds cells to action range)
+- Range (adds cells to Ability range)
 - Passive effects (poison resistance, lifesteal, healing bonuses, immunities, etc.)
 
 ---
