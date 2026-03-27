@@ -1,4 +1,4 @@
-namespace Erelia.Battle.Attack
+namespace Erelia.Battle
 {
 	public enum RangePattern
 	{

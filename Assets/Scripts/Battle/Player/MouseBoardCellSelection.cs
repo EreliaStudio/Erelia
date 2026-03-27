@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Erelia.Battle.Player
 {
@@ -113,7 +113,7 @@ namespace Erelia.Battle.Player
 		{
 			resolvedCell = null;
 
-			Erelia.Battle.Board.Model board = boardPresenter != null ? boardPresenter.Model : null;
+			Erelia.Battle.Board.BattleBoardState board = boardPresenter != null ? boardPresenter.Board : null;
 			Erelia.Battle.Voxel.Cell[,,] cells = board != null ? board.Cells : null;
 			if (cells == null)
 			{

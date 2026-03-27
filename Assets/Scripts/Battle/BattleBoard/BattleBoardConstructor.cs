@@ -1,15 +1,15 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Erelia.Battle.Board
 {
-	public static class Constructor
+	public static class BattleBoardFactory
 	{
-		public static Erelia.Battle.Board.Model ExportArea(
+		public static Erelia.Battle.Board.BattleBoardState ExportArea(
 			Erelia.Core.Encounter.EncounterTable table,
-			Erelia.Exploration.World.Model worldModel,
+			Erelia.Exploration.World.WorldState world,
 			Vector3 worldPosition)
 		{
-			if (table == null || worldModel == null)
+			if (table == null || world == null)
 			{
 				return null;
 			}
@@ -17,7 +17,7 @@ namespace Erelia.Battle.Board
 			int maxRadius = GetMaxRadius(table);
 			int sizeX = (maxRadius * 2) + 1;
 			int sizeZ = (maxRadius * 2) + 1;
-			int sizeY = Erelia.Exploration.World.Chunk.Model.SizeY;
+			int sizeY = Erelia.Exploration.World.Chunk.ChunkData.SizeY;
 
 			var cells = Erelia.Battle.Voxel.Cell.CreatePack(sizeX, sizeY, sizeZ, new Erelia.Battle.Voxel.Cell(-2));
 
@@ -43,14 +43,14 @@ namespace Erelia.Battle.Board
 						continue;
 					}
 
-					if (!TryGetChunk(worldModel, worldX, worldZ, out Erelia.Exploration.World.Chunk.Model chunk, out int localX, out int localZ))
+					if (!TryGetChunk(world, worldX, worldZ, out Erelia.Exploration.World.Chunk.ChunkData chunk, out int localX, out int localZ))
 					{
 						continue;
 					}
 
 					for (int y = 0; y < sizeY; y++)
 					{
-						Erelia.Core.VoxelKit.Cell source = chunk.Cells[localX, y, localZ];
+						Erelia.Core.Voxel.Cell source = chunk.Cells[localX, y, localZ];
 
 						if (source == null)
 						{
@@ -67,7 +67,7 @@ namespace Erelia.Battle.Board
 			Vector3Int origin = new Vector3Int(originX, 0, originZ);
 			Vector3Int center = new Vector3Int(centerCell.x, 0, centerCell.z);
 
-			return new Erelia.Battle.Board.Model(cells, origin, center);
+			return new Erelia.Battle.Board.BattleBoardState(cells, origin, center);
 		}
 
 		public static int GetMaxRadius(Erelia.Core.Encounter.EncounterTable table)
@@ -95,15 +95,15 @@ namespace Erelia.Battle.Board
 		}
 
 		private static bool TryGetChunk(
-			Erelia.Exploration.World.Model worldModel,
+			Erelia.Exploration.World.WorldState world,
 			int worldX,
 			int worldZ,
-			out Erelia.Exploration.World.Chunk.Model chunk,
+			out Erelia.Exploration.World.Chunk.ChunkData chunk,
 			out int localX,
 			out int localZ)
 		{
-			int sizeX = Erelia.Exploration.World.Chunk.Model.SizeX;
-			int sizeZ = Erelia.Exploration.World.Chunk.Model.SizeZ;
+			int sizeX = Erelia.Exploration.World.Chunk.ChunkData.SizeX;
+			int sizeZ = Erelia.Exploration.World.Chunk.ChunkData.SizeZ;
 
 			int chunkX = Mathf.FloorToInt(worldX / (float)sizeX);
 			int chunkZ = Mathf.FloorToInt(worldZ / (float)sizeZ);
@@ -119,7 +119,7 @@ namespace Erelia.Battle.Board
 				return false;
 			}
 
-			return worldModel.Chunks.TryGetValue(coords, out chunk);
+			return world.Chunks.TryGetValue(coords, out chunk);
 		}
 
 		private static Vector3Int WorldToCell(Vector3 worldPosition)
@@ -131,3 +131,4 @@ namespace Erelia.Battle.Board
 		}
 	}
 }
+

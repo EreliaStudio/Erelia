@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f153d1d610e115f4787bbe60b15d5910, type: 3}
   m_Name: Stair
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.BattleVoxel.Definition
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Core.Voxel.VoxelDefinition
   data:
     traversal: 0
   shapeType: 3
@@ -23,7 +23,7 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 1003577070623129910
-      type: {class: Stair, ns: Erelia.Core.VoxelKit.ShapeType, asm: Assembly-CSharp}
+      type: {class: Stair, ns: Erelia.Core.Voxel.ShapeType, asm: Assembly-CSharp}
       data:
         spriteFront: {fileID: -1168464288, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
         spriteBack: {fileID: 482027737, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
@@ -36,3 +36,5 @@ MonoBehaviour:
     - rid: 1003577070623129911
       type: {class: Stair, ns: Erelia.Battle.Voxel.ShapeType, asm: Assembly-CSharp}
       data: 
+
+

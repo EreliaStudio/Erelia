@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,7 +12,7 @@ namespace Erelia.Battle
 			Kind actionKind,
 			Erelia.Battle.Unit.Presenter actor,
 			IReadOnlyList<Vector3Int> movementPath,
-			Erelia.Battle.Attack.Definition attack,
+			Erelia.Battle.Attack attack,
 			Vector3Int targetCell)
 		{
 			ActionKind = actionKind;
@@ -33,7 +33,7 @@ namespace Erelia.Battle
 		public Erelia.Battle.Unit.Presenter Actor { get; }
 		public IReadOnlyList<Vector3Int> MovementPath { get; }
 		public int MovementCost => MovementPath.Count;
-		public Erelia.Battle.Attack.Definition Attack { get; }
+		public Erelia.Battle.Attack Attack { get; }
 		public Vector3Int TargetCell { get; }
 
 		public static DecidedAction CreateMove(
@@ -55,7 +55,7 @@ namespace Erelia.Battle
 
 		public static DecidedAction CreateAttack(
 			Erelia.Battle.Unit.Presenter actor,
-			Erelia.Battle.Attack.Definition attack,
+			Erelia.Battle.Attack attack,
 			Vector3Int targetCell)
 		{
 			if (actor == null)
@@ -98,3 +98,5 @@ namespace Erelia.Battle
 		}
 	}
 }
+
+

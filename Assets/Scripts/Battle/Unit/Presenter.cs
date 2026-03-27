@@ -10,16 +10,15 @@ namespace Erelia.Battle.Unit
 		[SerializeField] private Erelia.Battle.Unit.View view;
 		[SerializeField] private float movementSecondsPerCell = 0.15f;
 
-		private Erelia.Battle.Unit.Model model;
+		private Erelia.Battle.Unit.BattleUnit model;
 		private Vector3 stagedWorldPosition;
 		private bool hasStagedWorldPosition;
 		private Coroutine movementRoutine;
-		private event Action<Erelia.Battle.Unit.Snapshot> snapshotChanged;
+		private event Action<Erelia.Battle.Unit.BattleUnitSnapshot> snapshotChanged;
 
-		public Erelia.Battle.Unit.Model Model => model;
-		public Erelia.Battle.Unit.Model Unit => model;
+		public Erelia.Battle.Unit.BattleUnit Unit => model;
 		public Erelia.Battle.Unit.View View => view;
-		public Erelia.Core.Creature.Instance.Model Creature => model != null ? model.Creature : null;
+		public Erelia.Core.Creature.Instance.CreatureInstance Creature => model != null ? model.Creature : null;
 		public Erelia.Battle.Unit.LiveStats LiveStats => model != null ? model.LiveStats : null;
 		public Erelia.Core.Creature.Stats Stats => model != null ? model.Stats : null;
 		public Erelia.Battle.Side Side => model != null ? model.Side : default;
@@ -32,14 +31,14 @@ namespace Erelia.Battle.Unit
 		public int RemainingActionPoints => model != null ? model.RemainingActionPoints : 0;
 		public int MovementPoints => model != null ? model.MovementPoints : 0;
 		public int RemainingMovementPoints => model != null ? model.RemainingMovementPoints : 0;
-		public System.Collections.Generic.IReadOnlyList<Erelia.Battle.Attack.Definition> Attacks =>
-			model != null ? model.Attacks : System.Array.Empty<Erelia.Battle.Attack.Definition>();
+		public System.Collections.Generic.IReadOnlyList<Erelia.Battle.Attack> Attacks =>
+			model != null ? model.Attacks : System.Array.Empty<Erelia.Battle.Attack>();
 		public float CurrentStaminaSeconds => model != null ? model.CurrentStaminaSeconds : 0f;
 		public float StaminaProgress01 => model != null ? model.StaminaProgress01 : 0f;
 		public bool IsTakingTurn => model != null && model.IsTakingTurn;
 		public bool IsReadyForTurn => model != null && model.IsReadyForTurn;
 		public bool IsMoving => movementRoutine != null;
-		public Erelia.Battle.Unit.Snapshot Snapshot => CreateSnapshot();
+		public Erelia.Battle.Unit.BattleUnitSnapshot Snapshot => CreateSnapshot();
 
 		private void Awake()
 		{
@@ -52,7 +51,7 @@ namespace Erelia.Battle.Unit
 			view?.SetHealthBarPrefab(healthBarPrefab);
 		}
 
-		public void SetUnit(Erelia.Battle.Unit.Model battleUnitModel)
+		public void SetUnit(Erelia.Battle.Unit.BattleUnit battleUnitModel)
 		{
 			model = battleUnitModel ?? throw new ArgumentNullException(nameof(battleUnitModel));
 			ResolveView();
@@ -133,7 +132,7 @@ namespace Erelia.Battle.Unit
 
 		public void MoveAlongPath(
 			IReadOnlyList<Vector3Int> path,
-			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.BattleBoardState board,
 			Erelia.Battle.Board.Presenter boardPresenter,
 			Action onCompleted = null)
 		{
@@ -382,7 +381,7 @@ namespace Erelia.Battle.Unit
 			}
 		}
 
-		private Erelia.Battle.Unit.Snapshot CreateSnapshot()
+		private Erelia.Battle.Unit.BattleUnitSnapshot CreateSnapshot()
 		{
 			Sprite icon = null;
 			string displayName = string.Empty;
@@ -396,11 +395,7 @@ namespace Erelia.Battle.Unit
 
 			if (model != null)
 			{
-				if (model.TryGetSpecies(out Erelia.Core.Creature.Species species))
-				{
-					icon = species.Icon;
-				}
-
+				icon = model.Icon;
 				displayName = model.DisplayName;
 				isPlaced = model.IsPlaced;
 				isAlive = model.IsAlive;
@@ -411,7 +406,7 @@ namespace Erelia.Battle.Unit
 				isTakingTurn = model.IsTakingTurn;
 			}
 
-			return new Erelia.Battle.Unit.Snapshot(
+			return new Erelia.Battle.Unit.BattleUnitSnapshot(
 				icon,
 				displayName,
 				isPlaced,
@@ -425,7 +420,7 @@ namespace Erelia.Battle.Unit
 
 		private void EmitSnapshot()
 		{
-			Erelia.Battle.Unit.Snapshot snapshot = CreateSnapshot();
+			Erelia.Battle.Unit.BattleUnitSnapshot snapshot = CreateSnapshot();
 			view?.ApplySnapshot(snapshot);
 			snapshotChanged?.Invoke(snapshot);
 		}
@@ -473,7 +468,7 @@ namespace Erelia.Battle.Unit
 
 		private void MoveImmediatelyAlongPath(
 			IReadOnlyList<Vector3Int> path,
-			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.BattleBoardState board,
 			Erelia.Battle.Board.Presenter boardPresenter)
 		{
 			Vector3Int currentCell = model.Cell;
@@ -504,7 +499,7 @@ namespace Erelia.Battle.Unit
 
 		private IEnumerator MoveAlongPathRoutine(
 			IReadOnlyList<Vector3Int> path,
-			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.BattleBoardState board,
 			Erelia.Battle.Board.Presenter boardPresenter,
 			Action onCompleted)
 		{
@@ -568,3 +563,5 @@ namespace Erelia.Battle.Unit
 		}
 	}
 }
+
+

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle.Board
@@ -16,7 +16,7 @@ namespace Erelia.Battle.Board
 		};
 
 		public static Dictionary<Vector3Int, List<Vector3Int>> BuildReachablePaths(
-			Erelia.Battle.Data battleData,
+			Erelia.Battle.BattleState battleData,
 			Erelia.Battle.Unit.Presenter unit)
 		{
 			var reachablePaths = new Dictionary<Vector3Int, List<Vector3Int>>();
@@ -25,7 +25,7 @@ namespace Erelia.Battle.Board
 				return reachablePaths;
 			}
 
-			Erelia.Battle.Board.Model board = battleData.Board;
+			Erelia.Battle.Board.BattleBoardState board = battleData.Board;
 			int maxMovementPoints = Mathf.Max(0, unit.RemainingMovementPoints);
 			var acceptableCoordinates = new HashSet<Vector3Int>(battleData.AcceptableCoordinates ?? System.Array.Empty<Vector3Int>());
 			Dictionary<Vector2Int, List<Vector3Int>> acceptableCoordinatesByColumn =
@@ -129,8 +129,8 @@ namespace Erelia.Battle.Board
 		}
 
 		private static bool CanTraverse(
-			Erelia.Battle.Data battleData,
-			Erelia.Battle.Board.Model board,
+			Erelia.Battle.BattleState battleData,
+			Erelia.Battle.Board.BattleBoardState board,
 			HashSet<Vector3Int> acceptableCoordinates,
 			Erelia.Battle.Unit.Presenter unit,
 			Vector3Int currentCoordinate,

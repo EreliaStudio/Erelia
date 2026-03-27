@@ -23,7 +23,7 @@ namespace Erelia.Battle.UI
 			EnsureWidgetHierarchy();
 		}
 
-		public void Apply(Erelia.Battle.BattleResultEntryData data)
+		public void Apply(Erelia.Battle.BattleResultEntry data)
 		{
 			EnsureWidgetHierarchy();
 
@@ -342,3 +342,4 @@ namespace Erelia.Battle.UI
 		}
 	}
 }
+

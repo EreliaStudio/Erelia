@@ -26,7 +26,7 @@ Before starting the steps, keep these rules in mind:
 
 Right now the project is a functional prototype with these characteristics:
 
-- exploration state is split between `Context`, `SystemData`, and `Exploration.Data`
+- exploration state is split between `Context`, `SystemData`, and `ExplorationState`
 - battle state is heavily tied to presenters and scene flow
 - chunk generation is local and debug-oriented
 - biomes are almost empty
@@ -167,7 +167,7 @@ Current battle data stores runtime presenter references directly, which makes th
 - create `Battle.State`
 - create `Battle.Team`
 - create `Battle.Unit`
-- move state ownership out of `Battle.Data`
+- move state ownership out of the current `BattleState` holder
 - keep `Presenter` classes as view/controller adapters only
 
 ### Current Files To Refactor
@@ -304,7 +304,7 @@ Make the game able to save and restore one full run.
 
 ### Why
 
-Your `Saving` folder is empty, and the current save support only covers chunks and generator metadata in `Exploration.World.Model`.
+Your `Saving` folder is empty, and the current save support only covers chunks and generator metadata in `Exploration.World.WorldState`.
 
 That is not enough for the target game.
 
@@ -416,7 +416,7 @@ Turn the biome system into real authored gameplay data.
 Current biome support is minimal:
 
 - `BiomeType` only has `Unknown`
-- `BiomeData` only stores `EncounterId`
+- `Biome` only stores `EncounterId`
 
 That is far below the target described in the docs.
 
@@ -432,7 +432,7 @@ That is far below the target described in the docs.
 ### Files To Replace Or Heavily Refactor
 
 - `Assets/Scripts/Exploration/World/BiomeType.cs`
-- `Assets/Scripts/Exploration/World/BiomeData.cs`
+- `Assets/Scripts/Exploration/World/Biome.cs`
 - `Assets/Scripts/Exploration/World/BiomeRegistry.cs`
 
 ### Done When
@@ -569,7 +569,7 @@ That is too rigid for the target game.
 
 ### What To Do
 
-- remove encounter ownership from `Chunk.Model`
+- remove encounter ownership from `ChunkData`
 - let encounters come from:
   - biome wild encounter rules
   - interior wild encounter rules
@@ -603,7 +603,7 @@ Move toward the target model where one voxel definition drives both exploration 
 
 Right now you still have a split between:
 
-- `Core.VoxelKit.Definition`
+- `Core.Voxel.VoxelDefinition`
 - `Battle.Voxel.Definition`
 
 That split exists because the prototype added battle overlays on top of the exploration voxel model.
@@ -617,9 +617,9 @@ That split exists because the prototype added battle overlays on top of the expl
 
 ### Files To Review
 
-- `Assets/Scripts/Core/VoxelKit/Definition.cs`
+- `Assets/Scripts/Core/Voxel/VoxelDefinition.cs`
 - `Assets/Scripts/Battle/Voxel/Definition.cs`
-- `Assets/Scripts/Core/VoxelKit/Registry.cs`
+- `Assets/Scripts/Core/Voxel/VoxelRegistry.cs`
 - `Assets/Scripts/Battle/Voxel/Mesher.cs`
 
 ### Done When
@@ -781,4 +781,7 @@ Whenever you hesitate between adding a feature quickly to the current prototype 
 - battle extensibility
 
 Those are the systems most likely to force expensive rewrites if you delay the structural work.
+
+
+
 

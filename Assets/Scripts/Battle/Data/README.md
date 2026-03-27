@@ -1,14 +1,13 @@
-# Battle.Data README
+# BattleState README
 
 ## Purpose
-Data contains the serializable containers used to share battle runtime state through `Erelia.Core.Context`.
-These objects hold the board, enemy team, and derived info used during setup and placement.
+This folder currently holds `BattleState`, the serializable runtime object shared through `Erelia.Core.GameContext`.
+It owns the board, enemy team, placed units, active unit, and derived state used during setup and combat flow.
 
 ## Contents
-- `Data`: holds `Board` and `EnemyTeam` for the current battle.
-- `Unit`: wrapper for a creature instance, its occupied cell, and its spawned view.
+- `BattleState`: holds the board, enemy team, runtime units, deployment cells, and active-turn state.
 
 ## Adding Or Extending
-1. Add new fields to `Data` when battle systems need shared state.
+1. Add new fields to `BattleState` when battle systems need shared runtime state.
 2. Initialize new fields in constructors or setup phases to keep defaults safe.
 3. Update loaders or phases that read the new fields.

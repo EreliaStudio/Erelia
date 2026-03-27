@@ -43,7 +43,7 @@ namespace Erelia.Battle.Phase.Placement.UI
 				new Erelia.Battle.Phase.Placement.Event.PlacementUnitSelected(LinkedUnit));
 		}
 
-		public override void ApplySnapshot(Erelia.Battle.Unit.Snapshot snapshot)
+		public override void ApplySnapshot(Erelia.Battle.Unit.BattleUnitSnapshot snapshot)
 		{
 			if (snapshot.IsPlaced)
 			{

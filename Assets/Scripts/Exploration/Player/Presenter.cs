@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Erelia.Exploration.Player
@@ -13,26 +13,26 @@ namespace Erelia.Exploration.Player
 
 		private InputAction resolvedMoveAction;
 
-		private Erelia.Exploration.Player.Model model;
+		private Erelia.Exploration.Player.ExplorationPlayerState player;
 
-		public Erelia.Exploration.Player.Model Model => model;
+		public Erelia.Exploration.Player.ExplorationPlayerState Player => player;
 
-		public void SetModel(Erelia.Exploration.Player.Model newModel)
+		public void SetPlayer(Erelia.Exploration.Player.ExplorationPlayerState playerState)
 		{
-			if (newModel == null)
+			if (playerState == null)
 			{
-				throw new System.ArgumentNullException(nameof(newModel), "[Erelia.Exploration.Player.Presenter] Model cannot be null.");
+				throw new System.ArgumentNullException(nameof(playerState), "[Erelia.Exploration.Player.Presenter] Player state cannot be null.");
 			}
 
-			model = newModel;
+			player = playerState;
 
-			if (model.HasWorldPosition)
+			if (player.HasWorldPosition)
 			{
-				view.transform.position = model.WorldPosition;
+				view.transform.position = player.WorldPosition;
 				return;
 			}
 
-			model.SetWorldPosition(view.transform.position);
+			player.SetWorldPosition(view.transform.position);
 		}
 
 		private void Awake()
@@ -97,7 +97,7 @@ namespace Erelia.Exploration.Player
 			}
 
 			view.gameObject.transform.position += input * moveSpeed * Time.deltaTime;
-			model?.SetWorldPosition(view.gameObject.transform.position);
+			player?.SetWorldPosition(view.gameObject.transform.position);
 		}
 
 		private void ResolveActions()

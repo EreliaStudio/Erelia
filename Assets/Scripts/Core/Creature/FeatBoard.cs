@@ -24,12 +24,12 @@ namespace Erelia.Core.Creature
 	{
 		[SerializeField] private FeatRewardKind kind = FeatRewardKind.None;
 		[SerializeField] private Erelia.Core.Creature.Stats statBonus = new Erelia.Core.Creature.Stats();
-		[SerializeField] private Erelia.Battle.Attack.Definition attack;
+		[SerializeField] private Erelia.Battle.Attack attack;
 		[SerializeField] private string summary;
 
 		public FeatRewardKind Kind => kind;
 		public Erelia.Core.Creature.Stats StatBonus => statBonus ??= new Erelia.Core.Creature.Stats();
-		public Erelia.Battle.Attack.Definition Attack => attack;
+		public Erelia.Battle.Attack Attack => attack;
 		public string Summary => summary;
 
 		public string BuildSummary()
@@ -65,6 +65,26 @@ namespace Erelia.Core.Creature
 				parts.Add($"+{stats.Health} HP");
 			}
 
+			if (stats.Strength != 0)
+			{
+				parts.Add($"+{stats.Strength} Strength");
+			}
+
+			if (stats.Ability != 0)
+			{
+				parts.Add($"+{stats.Ability} Ability");
+			}
+
+			if (stats.Armor != 0)
+			{
+				parts.Add($"+{stats.Armor} Armor");
+			}
+
+			if (stats.Resistance != 0)
+			{
+				parts.Add($"+{stats.Resistance} Resistance");
+			}
+
 			if (stats.ActionPoints != 0)
 			{
 				parts.Add($"+{stats.ActionPoints} AP");
@@ -78,6 +98,11 @@ namespace Erelia.Core.Creature
 			if (!Mathf.Approximately(stats.Stamina, 0f))
 			{
 				parts.Add($"+{stats.Stamina:0.##} Stamina");
+			}
+
+			if (stats.Range != 0)
+			{
+				parts.Add($"+{stats.Range} Range");
 			}
 
 			return parts.Count > 0 ? string.Join(", ", parts) : "Stat bonus";
@@ -298,3 +323,5 @@ namespace Erelia.Core.Creature
 		}
 	}
 }
+
+

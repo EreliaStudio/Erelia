@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 85601c578fac87543b07049c614596b4, type: 3}
   m_Name: Heal
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Attack.Definition
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Attack
   displayName: Heal
   icon: {fileID: 1439816608, guid: 1b03263dee40a734aa6275f7305a0bb1, type: 3}
   actionPointCost: 1
@@ -26,7 +26,10 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 1003577320587919839
-      type: {class: HealthModification, ns: Erelia.Battle.Attack.Effect, asm: Assembly-CSharp}
+      type: {class: HealthModification, ns: Erelia.Battle.Effects, asm: Assembly-CSharp}
       data:
         targetType: 2
         value: 1
+
+
+

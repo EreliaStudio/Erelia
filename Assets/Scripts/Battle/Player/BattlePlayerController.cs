@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -7,7 +7,7 @@ namespace Erelia.Battle.Player
 {
 	public sealed class BattlePlayerController : MonoBehaviour
 	{
-		private const int MaxActionShortcutCount = Erelia.Core.Creature.Instance.Model.MaxAttackCount;
+		private const int MaxActionShortcutCount = Erelia.Core.Creature.Instance.CreatureInstance.MaxAttackCount;
 
 		[SerializeField] private Erelia.Battle.Player.Camera.MouseBoardCellCursor cursor;
 		[SerializeField] private Erelia.Battle.Board.Presenter boardPresenter;
@@ -258,7 +258,7 @@ namespace Erelia.Battle.Player
 		{
 			resolvedCell = null;
 
-			Erelia.Battle.Board.Model board = boardPresenter != null ? boardPresenter.Model : null;
+			Erelia.Battle.Board.BattleBoardState board = boardPresenter != null ? boardPresenter.Board : null;
 			Erelia.Battle.Voxel.Cell[,,] cells = board != null ? board.Cells : null;
 			if (cells == null)
 			{

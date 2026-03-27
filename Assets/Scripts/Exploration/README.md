@@ -7,9 +7,9 @@ Exploration contains the runtime systems for the overworld:
 - Encounter triggering
 
 ## Core Flow
-1. `Erelia.Core.Context` holds an `Exploration.Data` instance.
-2. `Exploration.Loader` binds the world and player models to presenters.
-3. `Exploration.Data` stores the player position and the last safe return position.
+1. `Erelia.Core.GameContext` holds an `ExplorationState` instance.
+2. `Exploration.Loader` binds the world and player state objects to presenters.
+3. `ExplorationState` stores the exploration player state and the loaded world state.
 4. Player movement emits `PlayerMotion` and `PlayerChunkMotion` events.
 5. World presenter streams chunks around the player.
 6. Encounter trigger checks the chunk encounter grid and requests battle scenes.
@@ -23,17 +23,17 @@ Exploration contains the runtime systems for the overworld:
 
 ### Camera:
 - `Exploration.Player.Camera.Presenter` handles orbit and zoom.
-- `Exploration.Player.Camera.Model` stores sensitivity/speed config.
+- `Exploration.Player.Camera.OrbitCameraSettings` stores sensitivity and speed config.
 
 ## World
 ### World
-- `Exploration.World.Model` stores chunks and handles chunk I/O.
+- `Exploration.World.WorldState` stores chunks and handles chunk I/O.
 - `Exploration.World.Presenter` streams chunks based on view radius.
 - `Exploration.World.View` spawns chunk views.
-- `Exploration.World.VoxelRegistry` loads the voxel registry from Resources.
+- `Exploration.World.VoxelCatalog` loads the voxel registry from Resources.
 
 ### Chunks:
-- `Exploration.World.Chunk.Model` stores voxel cells and encounter ids.
+- `Exploration.World.Chunk.ChunkData` stores voxel cells and encounter ids.
 - `Exploration.World.Chunk.Presenter` rebuilds render/collision meshes.
 - `Exploration.World.Chunk.View` holds the mesh components.
 - `Exploration.World.Chunk.Generation.IGenerator` populates new chunks.
@@ -47,8 +47,8 @@ Exploration contains the runtime systems for the overworld:
   - Emits `BattleSceneDataRequest` with the board and enemy team.
 
 ## Serialization
-- World metadata is saved as JSON (`World.Model.Save`).
-- Chunk data is saved as binary via `Chunk.Model.ToFile`.
+- World metadata is saved as JSON (`WorldState.Save`).
+- Chunk data is saved as binary via `ChunkData.ToFile`.
 - Generator state is saved/loaded via `IGenerator.Save/Load`.
 
 ## Authoring Workflow

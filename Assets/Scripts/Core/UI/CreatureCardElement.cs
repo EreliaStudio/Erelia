@@ -75,7 +75,7 @@ namespace Erelia.Core.UI
 			RefreshBoundUnit();
 		}
 
-		public virtual void ApplySnapshot(Erelia.Battle.Unit.Snapshot snapshot)
+		public virtual void ApplySnapshot(Erelia.Battle.Unit.BattleUnitSnapshot snapshot)
 		{
 			isPlaced = snapshot.IsPlaced;
 			image.sprite = snapshot.Icon != null ? snapshot.Icon : noCreatureSprite;

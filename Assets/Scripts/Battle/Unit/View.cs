@@ -22,7 +22,7 @@ namespace Erelia.Battle.Unit
 		private GameObject healthBarPrefab;
 		private GameObject healthBarInstance;
 		private Erelia.Core.UI.ProgressBarView runtimeHealthBarView;
-		private Erelia.Battle.Unit.Model unit;
+		private Erelia.Battle.Unit.BattleUnit unit;
 		private Renderer[] visualRenderers;
 		private Transform visualRenderersRoot;
 		private Vector3 healthBarBaseScale = Vector3.one;
@@ -31,7 +31,7 @@ namespace Erelia.Battle.Unit
 		[SerializeField] private float hoveredHealthBarScaleMultiplier = 3f;
 		[SerializeField] private float hoveredHealthBarScaleLerpSpeed = 12f;
 
-		public Erelia.Battle.Unit.Model Unit => unit;
+		public Erelia.Battle.Unit.BattleUnit Unit => unit;
 		public Transform Pivot => ResolvePivot();
 
 		private void Awake()
@@ -88,12 +88,12 @@ namespace Erelia.Battle.Unit
 			root.position = worldPosition - pivotOffset;
 		}
 
-		public void ApplySnapshot(Erelia.Battle.Unit.Snapshot snapshot)
+		public void ApplySnapshot(Erelia.Battle.Unit.BattleUnitSnapshot snapshot)
 		{
 			RefreshHealthBar(snapshot.CurrentHealth, snapshot.MaxHealth);
 		}
 
-		public void SetUnit(Erelia.Battle.Unit.Model battleUnitModel)
+		public void SetUnit(Erelia.Battle.Unit.BattleUnit battleUnitModel)
 		{
 			unit = battleUnitModel;
 		}

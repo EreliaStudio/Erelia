@@ -17,7 +17,7 @@ namespace Erelia.Battle.UI
 
 		public event Action CloseRequested;
 
-		public void Show(string title, IReadOnlyList<Erelia.Battle.BattleResultCreatureData> creatureResults)
+		public void Show(string title, IReadOnlyList<Erelia.Battle.BattleResultCreature> creatureResults)
 		{
 			if (root != null && !root.activeSelf)
 			{
@@ -106,7 +106,7 @@ namespace Erelia.Battle.UI
 			Canvas.ForceUpdateCanvases();
 		}
 
-		private static string BuildBodyText(IReadOnlyList<Erelia.Battle.BattleResultCreatureData> creatureResults)
+		private static string BuildBodyText(IReadOnlyList<Erelia.Battle.BattleResultCreature> creatureResults)
 		{
 			if (creatureResults == null || creatureResults.Count == 0)
 			{
@@ -117,7 +117,7 @@ namespace Erelia.Battle.UI
 			int shownCreatureCount = 0;
 			for (int i = 0; i < creatureResults.Count; i++)
 			{
-				Erelia.Battle.BattleResultCreatureData creatureData = creatureResults[i];
+				Erelia.Battle.BattleResultCreature creatureData = creatureResults[i];
 				if (!creatureData.HasCreature)
 				{
 					continue;
@@ -132,7 +132,7 @@ namespace Erelia.Battle.UI
 				shownCreatureCount++;
 				builder.Append(ResolveCreatureName(creatureData));
 
-				IReadOnlyList<Erelia.Battle.BattleResultEntryData> entries = creatureData.Entries;
+				IReadOnlyList<Erelia.Battle.BattleResultEntry> entries = creatureData.Entries;
 				if (entries == null || entries.Count == 0)
 				{
 					builder.AppendLine();
@@ -142,7 +142,7 @@ namespace Erelia.Battle.UI
 
 				for (int entryIndex = 0; entryIndex < entries.Count; entryIndex++)
 				{
-					Erelia.Battle.BattleResultEntryData entry = entries[entryIndex];
+					Erelia.Battle.BattleResultEntry entry = entries[entryIndex];
 					builder.AppendLine();
 					builder.Append("- ");
 					builder.Append(string.IsNullOrWhiteSpace(entry.Title) ? "Feat" : entry.Title);
@@ -169,7 +169,7 @@ namespace Erelia.Battle.UI
 				: "Creature and feat results will appear here once this panel is wired to the final interaction flow.";
 		}
 
-		private static string ResolveCreatureName(Erelia.Battle.BattleResultCreatureData creatureData)
+		private static string ResolveCreatureName(Erelia.Battle.BattleResultCreature creatureData)
 		{
 			if (!string.IsNullOrWhiteSpace(creatureData.CreatureName))
 			{
@@ -180,3 +180,4 @@ namespace Erelia.Battle.UI
 		}
 	}
 }
+

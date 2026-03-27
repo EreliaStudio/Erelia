@@ -11,7 +11,7 @@ namespace Erelia.Battle.UI
 		private readonly List<Erelia.Battle.UI.FeatCardElement> spawnedCards =
 			new List<Erelia.Battle.UI.FeatCardElement>();
 
-		public void Show(IReadOnlyList<Erelia.Battle.BattleResultEntryData> entries)
+		public void Show(IReadOnlyList<Erelia.Battle.BattleResultEntry> entries)
 		{
 			Clear();
 			if (contentRoot == null || featCardPrefab == null || entries == null)
@@ -96,3 +96,4 @@ namespace Erelia.Battle.UI
 		}
 	}
 }
+

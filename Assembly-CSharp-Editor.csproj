@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <!-- Generated file, do not modify, your changes will be overwritten (use AssetPostprocessor.OnGeneratedCSProject) -->
   <PropertyGroup>
     <BaseIntermediateOutputPath>Temp\obj\$(MSBuildProjectName)</BaseIntermediateOutputPath>
@@ -51,9 +51,8 @@
     <Analyzer Include="C:\Users\User\Documents\UnityProject\Erelia\Library\PackageCache\com.unity.dt.app-ui@8ac7e730dd5d\Runtime\MVVM\SourceGenerators\netstandard2.0\MVVMSourceGenerators.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Battle\Voxel\Editor\BattleVoxelDefinitionEditor.cs" />
-    <Compile Include="Assets\Scripts\Battle\Attack\Editor\DefinitionEditor.cs" />
-    <Compile Include="Assets\Scripts\Core\VoxelKit\Editor\VoxelDefinitionEditor.cs" />
+    <Compile Include="Assets\Scripts\Battle\Attack\Editor\AttackEditor.cs" />
+    <Compile Include="Assets\Scripts\Core\Voxel\Editor\VoxelDefinitionEditor.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -1552,3 +1551,6 @@
     <ProjectCapability Remove="ReferenceManagerAssemblies" />
   </ItemGroup>
 </Project>
+
+
+

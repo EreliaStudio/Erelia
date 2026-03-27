@@ -1,17 +1,17 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Erelia.Battle.Board
 {
 	public sealed class Presenter : MonoBehaviour
 	{
 		[SerializeField] private Erelia.Battle.Board.View view;
-		private Erelia.Battle.Board.Model model;
+		private Erelia.Battle.Board.BattleBoardState board;
 
-		public Erelia.Battle.Board.Model Model => model;
+		public Erelia.Battle.Board.BattleBoardState Board => board;
 
-		public void SetModel(Erelia.Battle.Board.Model newModel)
+		public void SetBoard(Erelia.Battle.Board.BattleBoardState newBoard)
 		{
-			model = newModel;
+			board = newBoard;
 			RebuildAll();
 		}
 
@@ -22,27 +22,27 @@ namespace Erelia.Battle.Board
 
 		public void RebuildAll()
 		{
-			if (model == null || view == null)
+			if (board == null || view == null)
 			{
 				return;
 			}
 
-			Erelia.Core.VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
-			view.SetRenderMesh(Erelia.Core.VoxelKit.Mesher.BuildRenderMesh(model.Cells, registry, Erelia.Core.VoxelKit.Mesher.AnyVoxelPredicate));
-			view.SetCollisionMesh(Erelia.Core.VoxelKit.Mesher.BuildCollisionMesh(model.Cells, registry, Erelia.Core.VoxelKit.Mesher.OnlyObstacleVoxelPredicate));
+			Erelia.Core.Voxel.VoxelRegistry registry = Erelia.Exploration.World.VoxelCatalog.Instance;
+			view.SetRenderMesh(Erelia.Core.Voxel.Mesher.BuildRenderMesh(board.Cells, registry, Erelia.Core.Voxel.Mesher.AnyVoxelPredicate));
+			view.SetCollisionMesh(Erelia.Core.Voxel.Mesher.BuildCollisionMesh(board.Cells, registry, Erelia.Core.Voxel.Mesher.OnlyObstacleVoxelPredicate));
 			RebuildMasks();
 		}
 
 		public void RebuildMasks()
 		{
-			if (model == null || view == null)
+			if (board == null || view == null)
 			{
 				return;
 			}
 
-			Erelia.Core.VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
+			Erelia.Core.Voxel.VoxelRegistry registry = Erelia.Exploration.World.VoxelCatalog.Instance;
 			Mesh maskMesh = Erelia.Battle.Voxel.Mesher.BuildMaskMesh(
-				model.Cells,
+				board.Cells,
 				registry,
 				Erelia.Battle.MaskSpriteRegistry.Instance);
 
@@ -50,3 +50,5 @@ namespace Erelia.Battle.Board
 		}
 	}
 }
+
+

@@ -1,4 +1,4 @@
-﻿using Erelia.Core.Event;
+using Erelia.Core.Event;
 using UnityEngine;
 
 namespace Erelia.Core
@@ -28,12 +28,12 @@ namespace Erelia.Core
 
 			Event.Bus.Subscribe<Erelia.Core.Event.SetSafePosition>(evt =>
 			{
-				Context.Instance.ExplorationData?.SetSafePosition(evt.WorldPosition);
+				GameContext.Instance.Exploration?.SetSafePosition(evt.WorldPosition);
 			});
 
 			Event.Bus.Subscribe<Erelia.Core.Event.BattleSceneDataRequest>(evt =>
 			{
-				Context.Instance.SetBattle(evt.EnemyTeam, evt.BattleBoard);
+				GameContext.Instance.SetBattle(evt.EnemyTeam, evt.BattleBoard);
 
 				LoadScene(SceneKind.Battle);
 			});

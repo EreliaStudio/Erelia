@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Exploration.World
@@ -13,7 +13,7 @@ namespace Erelia.Exploration.World
 
 		[SerializeField] private Erelia.Exploration.World.Chunk.Generation.IGenerator chunkGenerator;
 
-		private Erelia.Exploration.World.Model worldModel;
+		private Erelia.Exploration.World.WorldState world;
 
 		private readonly Dictionary<Erelia.Exploration.World.Chunk.Coordinates, Erelia.Exploration.World.Chunk.Presenter> presenters = new();
 
@@ -23,7 +23,7 @@ namespace Erelia.Exploration.World
 
 		private float updateTimer;
 
-		public Erelia.Exploration.World.Model WorldModel => worldModel;
+		public Erelia.Exploration.World.WorldState World => world;
 
 		private void Awake()
 		{
@@ -32,27 +32,27 @@ namespace Erelia.Exploration.World
 				throw new System.InvalidOperationException("Chunk generator must be assigned on World.Presenter.");
 			}
 
-			if (worldModel == null)
+			if (world == null)
 			{
-				worldModel = Erelia.Core.Context.Instance.ExplorationData?.WorldModel;
-				if (worldModel != null && !worldModel.HasChunkGenerator)
+				world = Erelia.Core.GameContext.Instance.Exploration?.World;
+				if (world != null && !world.HasChunkGenerator)
 				{
-					worldModel.SetChunkGenerator(chunkGenerator);
+					world.SetChunkGenerator(chunkGenerator);
 				}
 			}
 		}
 
-		public void SetModel(Erelia.Exploration.World.Model model)
+		public void SetWorld(Erelia.Exploration.World.WorldState worldState)
 		{
-			if (model == null)
+			if (worldState == null)
 			{
-				throw new System.ArgumentNullException(nameof(model), "World model cannot be null.");
+				throw new System.ArgumentNullException(nameof(worldState), "World state cannot be null.");
 			}
 
-			worldModel = model;
-			if (!worldModel.HasChunkGenerator)
+			world = worldState;
+			if (!world.HasChunkGenerator)
 			{
-				worldModel.SetChunkGenerator(chunkGenerator);
+				world.SetChunkGenerator(chunkGenerator);
 			}
 			pendingChunks.Clear();
 			queuedChunkKeys.Clear();
@@ -68,21 +68,21 @@ namespace Erelia.Exploration.World
 			Erelia.Core.Event.Bus.Unsubscribe<Erelia.Core.Event.PlayerChunkMotion>(OnPlayerChunkMotion);
 		}
 
-		public Erelia.Exploration.World.Chunk.Model CreateChunk(Erelia.Exploration.World.Chunk.Coordinates coordinates)
+		public Erelia.Exploration.World.Chunk.ChunkData CreateChunk(Erelia.Exploration.World.Chunk.Coordinates coordinates)
 		{
-			if (worldModel == null)
+			if (world == null)
 			{
-				worldModel = Erelia.Core.Context.Instance.ExplorationData?.WorldModel;
-				if (worldModel == null)
+				world = Erelia.Core.GameContext.Instance.Exploration?.World;
+				if (world == null)
 				{
-					Debug.LogWarning("[Erelia.Exploration.World.Presenter] World model is missing.");
+					Debug.LogWarning("[Erelia.Exploration.World.Presenter] World state is missing.");
 					return null;
 				}
 			}
 
 			if (IsChunkLoaded(coordinates))
 			{
-				return worldModel.GetOrCreateChunk(coordinates);
+				return world.GetOrCreateChunk(coordinates);
 			}
 
 			return CreateChunkPresenter(coordinates);
@@ -114,30 +114,30 @@ namespace Erelia.Exploration.World
 			return presenters.ContainsKey(coordinates);
 		}
 
-		private Erelia.Exploration.World.Chunk.Model CreateChunkPresenter(Erelia.Exploration.World.Chunk.Coordinates coordinates)
+		private Erelia.Exploration.World.Chunk.ChunkData CreateChunkPresenter(Erelia.Exploration.World.Chunk.Coordinates coordinates)
 		{
-			if (worldModel == null)
+			if (world == null)
 			{
-				throw new System.InvalidOperationException("World model must be assigned before creating chunk presenters.");
+				throw new System.InvalidOperationException("World state must be assigned before creating chunk presenters.");
 			}
 
-			Erelia.Exploration.World.Chunk.Model model = worldModel.GetOrCreateChunk(coordinates);
+			Erelia.Exploration.World.Chunk.ChunkData chunk = world.GetOrCreateChunk(coordinates);
 
 			if (presenters.ContainsKey(coordinates))
 			{
-				return model;
+				return chunk;
 			}
 
 			Erelia.Exploration.World.Chunk.View view = worldView != null
 				? worldView.CreateChunkView(coordinates)
 				: null;
 
-			var presenter = new Erelia.Exploration.World.Chunk.Presenter(model, view);
+			var presenter = new Erelia.Exploration.World.Chunk.Presenter(chunk, view);
 			presenter.Bind();
 			presenter.ForceRebuild();
 
 			presenters.Add(coordinates, presenter);
-			return model;
+			return chunk;
 		}
 
 		private void ProcessPending(int maxCount)
@@ -161,12 +161,12 @@ namespace Erelia.Exploration.World
 
 		private void OnPlayerChunkMotion(Erelia.Core.Event.PlayerChunkMotion evt)
 		{
-			if (worldModel == null)
+			if (world == null)
 			{
-				worldModel = Erelia.Core.Context.Instance.ExplorationData?.WorldModel;
-				if (worldModel == null)
+				world = Erelia.Core.GameContext.Instance.Exploration?.World;
+				if (world == null)
 				{
-					Debug.LogWarning("[Erelia.Exploration.World.Presenter] World model is missing.");
+					Debug.LogWarning("[Erelia.Exploration.World.Presenter] World state is missing.");
 					return;
 				}
 			}
@@ -241,3 +241,5 @@ namespace Erelia.Exploration.World
 		}
 	}
 }
+
+

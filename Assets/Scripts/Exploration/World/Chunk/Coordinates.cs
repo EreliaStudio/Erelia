@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace Erelia.Exploration.World.Chunk
@@ -37,8 +37,8 @@ namespace Erelia.Exploration.World.Chunk
 
 		public static Coordinates FromWorld(Vector3 worldPosition)
 		{
-			int x = Mathf.FloorToInt(worldPosition.x / Erelia.Exploration.World.Chunk.Model.SizeX);
-			int z = Mathf.FloorToInt(worldPosition.z / Erelia.Exploration.World.Chunk.Model.SizeZ);
+			int x = Mathf.FloorToInt(worldPosition.x / Erelia.Exploration.World.Chunk.ChunkData.SizeX);
+			int z = Mathf.FloorToInt(worldPosition.z / Erelia.Exploration.World.Chunk.ChunkData.SizeZ);
 			return new Coordinates(x, z);
 		}
 
@@ -55,18 +55,18 @@ namespace Erelia.Exploration.World.Chunk
 		public Vector3 WorldOrigin(float y = 0f)
 		{
 			return new Vector3(
-				X * Erelia.Exploration.World.Chunk.Model.SizeX,
+				X * Erelia.Exploration.World.Chunk.ChunkData.SizeX,
 				y,
-				Z * Erelia.Exploration.World.Chunk.Model.SizeZ
+				Z * Erelia.Exploration.World.Chunk.ChunkData.SizeZ
 			);
 		}
 
 		public Vector3 WorldCenter(float y = 0f)
 		{
 			return WorldOrigin(y) + new Vector3(
-				Erelia.Exploration.World.Chunk.Model.SizeX * 0.5f,
+				Erelia.Exploration.World.Chunk.ChunkData.SizeX * 0.5f,
 				0f,
-				Erelia.Exploration.World.Chunk.Model.SizeZ * 0.5f
+				Erelia.Exploration.World.Chunk.ChunkData.SizeZ * 0.5f
 			);
 		}
 

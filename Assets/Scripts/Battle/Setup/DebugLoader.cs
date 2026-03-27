@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Erelia.Battle
 {
@@ -42,10 +42,10 @@ namespace Erelia.Battle
 				return;
 			}
 
-			Erelia.Core.Context context = Erelia.Core.Context.Instance;
-			EnsurePlayerTeam(context.SystemData);
+			Erelia.Core.GameContext context = Erelia.Core.GameContext.Instance;
+			EnsurePlayerTeam(context.PlayerParty);
 
-			if (HasValidBattleData(context.BattleData))
+			if (HasValidBattleState(context.Battle))
 			{
 				return;
 			}
@@ -57,26 +57,26 @@ namespace Erelia.Battle
 				return;
 			}
 
-			Erelia.Battle.Board.Model board = CreateDebugBoard();
+			Erelia.Battle.Board.BattleBoardState board = CreateDebugBoard();
 			context.SetBattle(enemyTeam, board);
 			Debug.Log("[Erelia.Battle.DebugLoader] Debug battle context initialized.");
 		}
 
-		private void EnsurePlayerTeam(Erelia.Core.SystemData systemData)
+		private void EnsurePlayerTeam(Erelia.Core.PlayerPartyState playerParty)
 		{
-			if (systemData == null || systemData.PlayerTeam != null)
+			if (playerParty == null || playerParty.PlayerTeam != null)
 			{
 				return;
 			}
 
-			systemData.SetPlayerTeam(CreateDebugPlayerTeam());
+			playerParty.SetPlayerTeam(CreateDebugPlayerTeam());
 		}
 
-		private static bool HasValidBattleData(Erelia.Battle.Data data)
+		private static bool HasValidBattleState(Erelia.Battle.BattleState battle)
 		{
-			return data != null &&
-				data.Board != null &&
-				data.EnemyTeam != null;
+			return battle != null &&
+				battle.Board != null &&
+				battle.EnemyTeam != null;
 		}
 
 		private static Erelia.Core.Creature.Team CreateDebugEnemyTeam()
@@ -105,15 +105,15 @@ namespace Erelia.Battle
 		private Erelia.Core.Creature.Team CreateDebugPlayerTeam()
 		{
 			var team = new Erelia.Core.Creature.Team();
-			Erelia.Core.Creature.Instance.Model[] slots = team.Slots;
-			Erelia.Battle.Attack.Definition[] defaultAttacks = CreateDebugPlayerAttacks();
+			Erelia.Core.Creature.Instance.CreatureInstance[] slots = team.Slots;
+			Erelia.Battle.Attack[] defaultAttacks = CreateDebugPlayerAttacks();
 
-			slots[0] = new Erelia.Core.Creature.Instance.Model(
+			slots[0] = new Erelia.Core.Creature.Instance.CreatureInstance(
 				DebugPlayerSpeciesIdA,
 				DebugPlayerNicknameA,
 				CreateDebugPlayerBonusStats(DebugPlayerSpeciesIdA),
 				defaultAttacks);
-			slots[1] = new Erelia.Core.Creature.Instance.Model(
+			slots[1] = new Erelia.Core.Creature.Instance.CreatureInstance(
 				DebugPlayerSpeciesIdB,
 				DebugPlayerNicknameB,
 				CreateDebugPlayerBonusStats(DebugPlayerSpeciesIdB),
@@ -122,7 +122,7 @@ namespace Erelia.Battle
 			return team;
 		}
 
-		private Erelia.Battle.Board.Model CreateDebugBoard()
+		private Erelia.Battle.Board.BattleBoardState CreateDebugBoard()
 		{
 			int sizeX = Mathf.Max(1, debugBoardSize.x);
 			int sizeY = Mathf.Max(2, debugBoardSize.y);
@@ -150,7 +150,7 @@ namespace Erelia.Battle
 
 			Vector3Int origin = Vector3Int.zero;
 			Vector3Int center = new Vector3Int(sizeX / 2, groundHeight - 1, sizeZ / 2);
-			return new Erelia.Battle.Board.Model(cells, origin, center);
+			return new Erelia.Battle.Board.BattleBoardState(cells, origin, center);
 		}
 
 		private Erelia.Core.Creature.Stats CreateDebugPlayerBonusStats(int speciesId)
@@ -168,10 +168,10 @@ namespace Erelia.Battle
 			return new Erelia.Core.Creature.Stats(0, 0f, movementBonus);
 		}
 
-		private static Erelia.Battle.Attack.Definition[] CreateDebugPlayerAttacks()
+		private static Erelia.Battle.Attack[] CreateDebugPlayerAttacks()
 		{
-			var attacks = new Erelia.Battle.Attack.Definition[Erelia.Core.Creature.Instance.Model.MaxAttackCount];
-			Erelia.Battle.Attack.AttackRegistry registry = Erelia.Battle.Attack.AttackRegistry.Instance;
+			var attacks = new Erelia.Battle.Attack[Erelia.Core.Creature.Instance.CreatureInstance.MaxAttackCount];
+			Erelia.Battle.AttackRegistry registry = Erelia.Battle.AttackRegistry.Instance;
 			if (registry == null)
 			{
 				return attacks;
@@ -183,9 +183,9 @@ namespace Erelia.Battle
 		}
 
 		private static void TryAssignAttack(
-			Erelia.Battle.Attack.AttackRegistry registry,
+			Erelia.Battle.AttackRegistry registry,
 			int attackId,
-			Erelia.Battle.Attack.Definition[] attacks,
+			Erelia.Battle.Attack[] attacks,
 			int slotIndex)
 		{
 			if (registry == null ||
@@ -196,7 +196,7 @@ namespace Erelia.Battle
 				return;
 			}
 
-			if (registry.TryGet(attackId, out Erelia.Battle.Attack.Definition attack))
+			if (registry.TryGet(attackId, out Erelia.Battle.Attack attack))
 			{
 				attacks[slotIndex] = attack;
 			}
@@ -216,22 +216,22 @@ namespace Erelia.Battle
 			int centerZ = sizeZ / 2;
 
 			FillRect(cells, centerX - 2, platformY, centerZ - 2, centerX + 2, centerZ + 2, debugGroundVoxelId);
-			TrySetCell(cells, centerX, platformY, centerZ - 3, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveX);
-			TrySetCell(cells, centerX, platformY, centerZ + 3, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.NegativeX);
-			TrySetCell(cells, centerX - 3, platformY, centerZ, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveZ);
-			TrySetCell(cells, centerX + 3, platformY, centerZ, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.NegativeZ);
+			TrySetCell(cells, centerX, platformY, centerZ - 3, DebugStairVoxelId, Erelia.Core.Voxel.Orientation.PositiveX);
+			TrySetCell(cells, centerX, platformY, centerZ + 3, DebugStairVoxelId, Erelia.Core.Voxel.Orientation.NegativeX);
+			TrySetCell(cells, centerX - 3, platformY, centerZ, DebugStairVoxelId, Erelia.Core.Voxel.Orientation.PositiveZ);
+			TrySetCell(cells, centerX + 3, platformY, centerZ, DebugStairVoxelId, Erelia.Core.Voxel.Orientation.NegativeZ);
 
 			FillRect(cells, centerX - 1, upperPlatformY, centerZ - 1, centerX + 1, centerZ + 1, debugGroundVoxelId);
-			TrySetCell(cells, centerX, upperPlatformY, centerZ - 2, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveX);
-			TrySetCell(cells, centerX, upperPlatformY, centerZ + 2, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.NegativeX);
-			TrySetCell(cells, centerX - 2, upperPlatformY, centerZ, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveZ);
-			TrySetCell(cells, centerX + 2, upperPlatformY, centerZ, DebugStairVoxelId, Erelia.Core.VoxelKit.Orientation.NegativeZ);
+			TrySetCell(cells, centerX, upperPlatformY, centerZ - 2, DebugStairVoxelId, Erelia.Core.Voxel.Orientation.PositiveX);
+			TrySetCell(cells, centerX, upperPlatformY, centerZ + 2, DebugStairVoxelId, Erelia.Core.Voxel.Orientation.NegativeX);
+			TrySetCell(cells, centerX - 2, upperPlatformY, centerZ, DebugStairVoxelId, Erelia.Core.Voxel.Orientation.PositiveZ);
+			TrySetCell(cells, centerX + 2, upperPlatformY, centerZ, DebugStairVoxelId, Erelia.Core.Voxel.Orientation.NegativeZ);
 
 			FillRect(cells, centerX - 8, platformY, centerZ - 7, centerX - 6, centerZ - 7, DebugSlabVoxelId);
 			FillRect(cells, centerX - 5, platformY, centerZ - 7, centerX - 3, centerZ - 7, debugGroundVoxelId);
 
-			TrySetCell(cells, centerX + 5, platformY, centerZ - 7, DebugSlopeVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveX);
-			TrySetCell(cells, centerX + 6, platformY, centerZ - 6, DebugSlopeVoxelId, Erelia.Core.VoxelKit.Orientation.PositiveZ);
+			TrySetCell(cells, centerX + 5, platformY, centerZ - 7, DebugSlopeVoxelId, Erelia.Core.Voxel.Orientation.PositiveX);
+			TrySetCell(cells, centerX + 6, platformY, centerZ - 6, DebugSlopeVoxelId, Erelia.Core.Voxel.Orientation.PositiveZ);
 			FillRect(cells, centerX + 7, platformY, centerZ - 6, centerX + 8, centerZ - 5, debugGroundVoxelId);
 
 			for (int y = platformY; y <= wallTopY; y++)
@@ -248,8 +248,8 @@ namespace Erelia.Battle
 			int maxX,
 			int maxZ,
 			int voxelId,
-			Erelia.Core.VoxelKit.Orientation orientation = Erelia.Core.VoxelKit.Orientation.PositiveX,
-			Erelia.Core.VoxelKit.FlipOrientation flipOrientation = Erelia.Core.VoxelKit.FlipOrientation.PositiveY)
+			Erelia.Core.Voxel.Orientation orientation = Erelia.Core.Voxel.Orientation.PositiveX,
+			Erelia.Core.Voxel.FlipOrientation flipOrientation = Erelia.Core.Voxel.FlipOrientation.PositiveY)
 		{
 			if (cells == null)
 			{
@@ -271,8 +271,8 @@ namespace Erelia.Battle
 			int y,
 			int z,
 			int voxelId,
-			Erelia.Core.VoxelKit.Orientation orientation = Erelia.Core.VoxelKit.Orientation.PositiveX,
-			Erelia.Core.VoxelKit.FlipOrientation flipOrientation = Erelia.Core.VoxelKit.FlipOrientation.PositiveY)
+			Erelia.Core.Voxel.Orientation orientation = Erelia.Core.Voxel.Orientation.PositiveX,
+			Erelia.Core.Voxel.FlipOrientation flipOrientation = Erelia.Core.Voxel.FlipOrientation.PositiveY)
 		{
 			if (cells == null ||
 				x < 0 || x >= cells.GetLength(0) ||
@@ -286,3 +286,7 @@ namespace Erelia.Battle
 		}
 	}
 }
+
+
+
+

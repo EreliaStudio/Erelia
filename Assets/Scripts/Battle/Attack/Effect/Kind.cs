@@ -1,4 +1,4 @@
-namespace Erelia.Battle.Attack.Effect
+namespace Erelia.Battle.Effects
 {
 	public enum Kind
 	{

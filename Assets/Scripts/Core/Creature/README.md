@@ -25,7 +25,7 @@ Core flow:
 - `EmptySpeciesId = -1` means "no species".
 
 ## Instance Model
-- `Erelia.Core.Creature.Instance.Model` stores:
+- `Erelia.Core.Creature.Instance.CreatureInstance` stores:
   - `speciesId` (from `SpeciesRegistry`)
   - optional `nickname`
   - up to 8 runtime attack definitions
@@ -43,7 +43,7 @@ Core flow:
 - Teams and instances are serialized as JSON objects:
   - Team JSON contains `"slots"` array.
   - Instance JSON contains `"speciesId"`, `"nickname"`, `"stats"`, and `"attackIds"`.
-  - `attackIds` entries are resolved through `Erelia.Battle.Attack.AttackRegistry`.
+  - `attackIds` entries are resolved through `Erelia.Battle.AttackRegistry`.
 - File I/O is handled externally (see `Erelia.Core.Utils.JsonIO`).
 
 ## Authoring Workflow
@@ -75,3 +75,4 @@ Team loaded = JsonIO.Load<Team>(path);
   - Slot is `null`, or the model has `speciesId < 0`.
 - Duplicate species ids:
   - Registry keeps the first and warns in the console.
+

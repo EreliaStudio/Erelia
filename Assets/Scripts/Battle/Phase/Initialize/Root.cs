@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle.Phase.Initialize
@@ -22,7 +22,7 @@ namespace Erelia.Battle.Phase.Initialize
 
 		public override void Enter(Erelia.Battle.Orchestrator Orchestrator)
 		{
-			pendingSetup = !TrySetupBattleData();
+			pendingSetup = !TrySetupBattle();
 			if (!pendingSetup && Orchestrator != null)
 			{
 				Orchestrator.RequestTransition(Erelia.Battle.Phase.Id.Placement);
@@ -36,91 +36,91 @@ namespace Erelia.Battle.Phase.Initialize
 				return;
 			}
 
-			pendingSetup = !TrySetupBattleData();
+			pendingSetup = !TrySetupBattle();
 			if (!pendingSetup && Orchestrator != null)
 			{
 				Orchestrator.RequestTransition(Erelia.Battle.Phase.Id.Placement);
 			}
 		}
 
-		private bool TrySetupBattleData()
+		private bool TrySetupBattle()
 		{
-			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
-			if (battleData == null || battleData.Board == null || battleData.EnemyTeam == null)
+			Erelia.Battle.BattleState battle = Erelia.Core.GameContext.Instance.Battle;
+			if (battle == null || battle.Board == null || battle.EnemyTeam == null)
 			{
 				return false;
 			}
 
-			battleData.ClearRuntime();
-			if (!TrySetupPlacementAreas(battleData))
+			battle.ClearRuntime();
+			if (!TrySetupPlacementAreas(battle))
 			{
 				return false;
 			}
 
-			CreateUnits(battleData, Erelia.Core.Context.Instance.SystemData?.PlayerTeam, Erelia.Battle.Side.Player);
-			CreateUnits(battleData, battleData.EnemyTeam, Erelia.Battle.Side.Enemy);
-			battleData.FeatProgressTracker.BeginBattle(battleData.PlayerUnits);
+			CreateUnits(battle, Erelia.Core.GameContext.Instance.PlayerParty?.PlayerTeam, Erelia.Battle.Side.Player);
+			CreateUnits(battle, battle.EnemyTeam, Erelia.Battle.Side.Enemy);
+			battle.FeatProgressTracker.BeginBattle(battle.PlayerUnits);
 			return true;
 		}
 
-		private bool TrySetupPlacementAreas(Erelia.Battle.Data battleData)
+		private bool TrySetupPlacementAreas(Erelia.Battle.BattleState battle)
 		{
 			if (!Erelia.Battle.Phase.Initialize.AcceptableCoordinateListGenerator.TryGenerate(
-					battleData.Board,
+					battle.Board,
 					out List<Vector3Int> acceptableCoordinates))
 			{
 				return false;
 			}
 
-			battleData.AddAcceptableCoordinates(acceptableCoordinates);
+			battle.AddAcceptableCoordinates(acceptableCoordinates);
 			return true;
 		}
 
 		private void CreateUnits(
-			Erelia.Battle.Data battleData,
+			Erelia.Battle.BattleState battle,
 			Erelia.Core.Creature.Team team,
 			Erelia.Battle.Side side)
 		{
-			Erelia.Core.Creature.Instance.Model[] slots = team?.Slots;
-			if (battleData == null || slots == null)
+			Erelia.Core.Creature.Instance.CreatureInstance[] slots = team?.Slots;
+			if (battle == null || slots == null)
 			{
 				return;
 			}
 
 			Transform parent = ResolveUnitsRoot(side);
 			GameObject healthBarPrefab = ResolveHealthBarPrefab();
-			Vector3 baseWorldPosition = ResolveStageBaseWorldPosition(battleData.Board, side, parent);
+			Vector3 baseWorldPosition = ResolveStageBaseWorldPosition(battle.Board, side, parent);
 			for (int i = 0; i < slots.Length; i++)
 			{
-				Erelia.Core.Creature.Instance.Model creature = slots[i];
+				Erelia.Core.Creature.Instance.CreatureInstance creature = slots[i];
 				if (creature == null || creature.IsEmpty)
 				{
 					continue;
 				}
 
-				var unitModel = new Erelia.Battle.Unit.Model(creature, side);
-				Erelia.Battle.Unit.Presenter unitPresenter = CreateUnitPresenter(unitModel, parent, healthBarPrefab);
+				var unit = new Erelia.Battle.Unit.BattleUnit(creature, side);
+				Erelia.Battle.Unit.Presenter unitPresenter = CreateUnitPresenter(unit, parent, healthBarPrefab);
 				if (unitPresenter == null)
 				{
 					continue;
 				}
 
 				unitPresenter.Stage(baseWorldPosition + ResolveStageOffset(side, i));
-				battleData.AddUnit(unitPresenter);
+				battle.AddUnit(unitPresenter);
 			}
 		}
 
 		private Erelia.Battle.Unit.Presenter CreateUnitPresenter(
-			Erelia.Battle.Unit.Model unitModel,
+			Erelia.Battle.Unit.BattleUnit unit,
 			Transform parent,
 			GameObject healthBarPrefab)
 		{
-			if (unitModel == null)
+			if (unit == null)
 			{
 				return null;
 			}
 
-			GameObject unitObject = InstantiateUnitObject(unitModel, parent);
+			GameObject unitObject = InstantiateUnitObject(unit, parent);
 			Erelia.Battle.Unit.Presenter presenter = ResolveUnitPresenter(unitObject);
 			if (presenter == null)
 			{
@@ -128,13 +128,13 @@ namespace Erelia.Battle.Phase.Initialize
 			}
 
 			presenter.SetHealthBarPrefab(healthBarPrefab);
-			presenter.SetUnit(unitModel);
+			presenter.SetUnit(unit);
 			return presenter;
 		}
 
-		private GameObject InstantiateUnitObject(Erelia.Battle.Unit.Model unitModel, Transform parent)
+		private GameObject InstantiateUnitObject(Erelia.Battle.Unit.BattleUnit unit, Transform parent)
 		{
-			if (!TryResolveUnitPrefab(unitModel, out GameObject unitPrefab) || unitPrefab == null)
+			if (!TryResolveUnitPrefab(unit, out GameObject unitPrefab) || unitPrefab == null)
 			{
 				GameObject fallbackObject = new GameObject("BattleUnit");
 				if (parent != null)
@@ -170,23 +170,22 @@ namespace Erelia.Battle.Phase.Initialize
 			return unitObject.AddComponent<Erelia.Battle.Unit.Presenter>();
 		}
 
-		private static bool TryResolveUnitPrefab(Erelia.Battle.Unit.Model unitModel, out GameObject unitPrefab)
+		private static bool TryResolveUnitPrefab(Erelia.Battle.Unit.BattleUnit unit, out GameObject unitPrefab)
 		{
-			unitPrefab = null;
-			if (unitModel == null || !unitModel.TryGetSpecies(out Erelia.Core.Creature.Species species))
+			unitPrefab = unit != null ? unit.UnitPrefab : null;
+			if (unitPrefab != null)
+			{
+				return true;
+			}
+
+			if (unit == null || !unit.TryGetSpecies(out Erelia.Core.Creature.Species species))
 			{
 				Debug.LogWarning("[Erelia.Battle.Phase.Initialize.Root] Failed to resolve unit species.");
 				return false;
 			}
 
-			unitPrefab = species.UnitPrefab;
-			if (unitPrefab == null)
-			{
-				Debug.LogWarning($"[Erelia.Battle.Phase.Initialize.Root] Species '{species.DisplayName}' has no unit prefab.");
-				return false;
-			}
-
-			return true;
+			Debug.LogWarning($"[Erelia.Battle.Phase.Initialize.Root] Creature '{species.DisplayName}' has no unit prefab on its current form or species.");
+			return false;
 		}
 
 		private GameObject ResolveHealthBarPrefab()
@@ -215,7 +214,7 @@ namespace Erelia.Battle.Phase.Initialize
 		}
 
 		private Vector3 ResolveStageBaseWorldPosition(
-			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.BattleBoardState board,
 			Erelia.Battle.Side side,
 			Transform fallbackParent)
 		{
@@ -230,7 +229,7 @@ namespace Erelia.Battle.Phase.Initialize
 		}
 
 		private static bool TryResolveStageBaseLocalPosition(
-			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.BattleBoardState board,
 			Erelia.Battle.Side side,
 			out Vector3 localPosition)
 		{
@@ -264,3 +263,5 @@ namespace Erelia.Battle.Phase.Initialize
 		}
 	}
 }
+
+

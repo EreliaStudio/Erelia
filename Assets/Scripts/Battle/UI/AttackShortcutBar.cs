@@ -21,7 +21,7 @@ namespace Erelia.Battle.UI
 #pragma warning restore 0649
 
 		[SerializeField] private SlotBinding[] slots =
-			new SlotBinding[Erelia.Core.Creature.Instance.Model.MaxAttackCount];
+			new SlotBinding[Erelia.Core.Creature.Instance.CreatureInstance.MaxAttackCount];
 		[SerializeField] private Color availableButtonColor = new Color(1f, 1f, 1f, 0.95f);
 		[SerializeField] private Color selectedButtonColor = new Color(0.95f, 0.84f, 0.4f, 1f);
 		[SerializeField] private Color disabledButtonColor = new Color(0.4f, 0.4f, 0.4f, 0.55f);
@@ -30,9 +30,9 @@ namespace Erelia.Battle.UI
 		[SerializeField] private Color disabledLabelColor = new Color(0.85f, 0.85f, 0.85f, 0.75f);
 
 		private readonly UnityAction[] clickHandlers =
-			new UnityAction[Erelia.Core.Creature.Instance.Model.MaxAttackCount];
+			new UnityAction[Erelia.Core.Creature.Instance.CreatureInstance.MaxAttackCount];
 
-		private IReadOnlyList<Erelia.Battle.Attack.Definition> attacks;
+		private IReadOnlyList<Erelia.Battle.Attack> attacks;
 		private string[] shortcutLabels = CreateDefaultShortcutLabels();
 		private int selectedIndex = -1;
 		private int availableActionPoints = int.MaxValue;
@@ -69,7 +69,7 @@ namespace Erelia.Battle.UI
 		}
 #endif
 
-		public void SetAttacks(IReadOnlyList<Erelia.Battle.Attack.Definition> values)
+		public void SetAttacks(IReadOnlyList<Erelia.Battle.Attack> values)
 		{
 			attacks = values;
 			Refresh();
@@ -175,7 +175,7 @@ namespace Erelia.Battle.UI
 				return;
 			}
 
-			Erelia.Battle.Attack.Definition attack =
+			Erelia.Battle.Attack attack =
 				attacks != null && index < attacks.Count ? attacks[index] : null;
 			bool hasAttack = attack != null;
 			bool hasEnoughActionPoints = hasAttack && attack.ActionPointCost <= availableActionPoints;
@@ -221,12 +221,12 @@ namespace Erelia.Battle.UI
 
 		private void EnsureSlotArrayLength()
 		{
-			if (slots != null && slots.Length == Erelia.Core.Creature.Instance.Model.MaxAttackCount)
+			if (slots != null && slots.Length == Erelia.Core.Creature.Instance.CreatureInstance.MaxAttackCount)
 			{
 				return;
 			}
 
-			SlotBinding[] resized = new SlotBinding[Erelia.Core.Creature.Instance.Model.MaxAttackCount];
+			SlotBinding[] resized = new SlotBinding[Erelia.Core.Creature.Instance.CreatureInstance.MaxAttackCount];
 			if (slots != null)
 			{
 				Array.Copy(slots, resized, Mathf.Min(slots.Length, resized.Length));
@@ -250,7 +250,7 @@ namespace Erelia.Battle.UI
 
 		private static string[] CreateDefaultShortcutLabels()
 		{
-			var labels = new string[Erelia.Core.Creature.Instance.Model.MaxAttackCount];
+			var labels = new string[Erelia.Core.Creature.Instance.CreatureInstance.MaxAttackCount];
 			for (int i = 0; i < labels.Length; i++)
 			{
 				labels[i] = (i + 1).ToString();
@@ -260,3 +260,5 @@ namespace Erelia.Battle.UI
 		}
 	}
 }
+
+

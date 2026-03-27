@@ -1,4 +1,4 @@
-﻿using Erelia.Core;
+using Erelia.Core;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -41,10 +41,10 @@ namespace Erelia.Battle.Phase.Placement
 			}
 			else
 			{
-				creatureCardGroup.PopulateUnits(Context.Instance.BattleData?.PlayerUnits);
+				creatureCardGroup.PopulateUnits(GameContext.Instance.Battle?.PlayerUnits);
 			}
 
-			enemyCreatureCardGroup?.PopulateUnits(Context.Instance.BattleData?.EnemyUnits);
+			enemyCreatureCardGroup?.PopulateUnits(GameContext.Instance.Battle?.EnemyUnits);
 			InitializeEnemyUnits();
 			RefreshConfirmPlacementButton();
 			InitializePlacementMaskCells();
@@ -70,7 +70,7 @@ namespace Erelia.Battle.Phase.Placement
 
 		public override void OnConfirm(Erelia.Battle.Player.BattlePlayerController controller)
 		{
-			Erelia.Battle.Data battleData = Context.Instance.BattleData;
+			Erelia.Battle.BattleState battleData = GameContext.Instance.Battle;
 			Erelia.Battle.Unit.Presenter selectedUnit = creatureCardGroup != null ? creatureCardGroup.GetSelectedUnit() : null;
 			if (battleData == null || selectedUnit == null)
 			{
@@ -124,7 +124,7 @@ namespace Erelia.Battle.Phase.Placement
 
 		private void InitializePlacementMaskCells()
 		{
-			Erelia.Battle.Board.Model board = Context.Instance.BattleData?.Board;
+			Erelia.Battle.Board.BattleBoardState board = GameContext.Instance.Battle?.Board;
 			if (playerPlacementCoordinates == null || board == null)
 			{
 				return;
@@ -147,7 +147,7 @@ namespace Erelia.Battle.Phase.Placement
 
 		private void ClearPlacementMaskCells()
 		{
-			Erelia.Battle.Board.Model board = Context.Instance.BattleData?.Board;
+			Erelia.Battle.Board.BattleBoardState board = GameContext.Instance.Battle?.Board;
 			if (playerPlacementCoordinates == null || board == null)
 			{
 				return;
@@ -173,7 +173,7 @@ namespace Erelia.Battle.Phase.Placement
 			playerPlacementCoordinates = null;
 			enemyPlacementCoordinates = null;
 
-			Erelia.Battle.Data battleData = Context.Instance.BattleData;
+			Erelia.Battle.BattleState battleData = GameContext.Instance.Battle;
 			if (battleData == null)
 			{
 				return;
@@ -194,7 +194,7 @@ namespace Erelia.Battle.Phase.Placement
 			out Vector3Int targetCell)
 		{
 			targetCell = default;
-			Erelia.Battle.Board.Model board = Context.Instance.BattleData?.Board;
+			Erelia.Battle.Board.BattleBoardState board = GameContext.Instance.Battle?.Board;
 			if (controller == null || !controller.HasHoveredCell() || board == null)
 			{
 				return false;
@@ -215,7 +215,7 @@ namespace Erelia.Battle.Phase.Placement
 			out Erelia.Battle.Unit.Presenter unit)
 		{
 			unit = null;
-			Erelia.Battle.Data battleData = Context.Instance.BattleData;
+			Erelia.Battle.BattleState battleData = GameContext.Instance.Battle;
 			if (controller == null || !controller.HasHoveredCell() || battleData == null)
 			{
 				return false;
@@ -246,7 +246,7 @@ namespace Erelia.Battle.Phase.Placement
 
 		private void InitializeEnemyUnits()
 		{
-			Erelia.Battle.Data battleData = Context.Instance.BattleData;
+			Erelia.Battle.BattleState battleData = GameContext.Instance.Battle;
 			IReadOnlyList<Erelia.Battle.Unit.Presenter> enemyUnits = battleData?.EnemyUnits;
 			if (battleData == null || enemyUnits == null || enemyPlacementCoordinates == null || enemyPlacementCoordinates.Count == 0)
 			{
@@ -376,7 +376,7 @@ namespace Erelia.Battle.Phase.Placement
 		private bool AreAllPlayerUnitsPlaced()
 		{
 			System.Collections.Generic.IReadOnlyList<Erelia.Battle.Unit.Presenter> playerUnits =
-				Context.Instance.BattleData?.PlayerUnits;
+				GameContext.Instance.Battle?.PlayerUnits;
 			if (playerUnits == null || playerUnits.Count == 0)
 			{
 				return true;

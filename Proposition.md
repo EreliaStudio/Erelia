@@ -498,7 +498,7 @@ This class is a scriptable object.
 
 Represents the optional singleton registry used to resolve a compact voxel definition index to a `Voxel.Definition`.
 
-This follows the previous `VoxelKit` approach and is especially useful because chunks contain large voxel arrays that should stay compact in memory and in serialization.
+This follows the previous voxel registry approach and is especially useful because chunks contain large voxel arrays that should stay compact in memory and in serialization.
 Unlike most authored definitions, voxel cells are numerous enough that keeping a compact numeric index such as a `ushort` is still preferable.
 
 Composed of:
@@ -511,7 +511,7 @@ This class is a scriptable object.
 
 Represents one authored voxel asset used by both exploration and battle.
 
-This is the merged version of the old `Core.VoxelKit.Definition` and `Battle.Voxel.Definition`.
+This is the merged version of the old `Core.Voxel.VoxelDefinition` and `Battle.Voxel.Definition`.
 One voxel definition owns:
 - gameplay data for traversal
 - render and collision geometry
@@ -2579,3 +2579,5 @@ Composed of:
 - current main recipe state
 - current overlay recipe state if relevant
 - runtime pose offsets
+
+

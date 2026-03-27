@@ -13,7 +13,7 @@ namespace Erelia.Battle.UI
 		[SerializeField] private Erelia.Core.UI.ProgressBarView progressBar;
 		[SerializeField] private Sprite defaultIconSprite;
 
-		public void Apply(Erelia.Battle.BattleResultEntryData data)
+		public void Apply(Erelia.Battle.BattleResultEntry data)
 		{
 			if (iconImage != null)
 			{
@@ -44,3 +44,4 @@ namespace Erelia.Battle.UI
 		}
 	}
 }
+

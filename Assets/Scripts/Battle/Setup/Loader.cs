@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Erelia.Battle
 {
@@ -20,23 +20,23 @@ namespace Erelia.Battle
 
 		private void BindFromContext()
 		{
-			Erelia.Battle.Data data = Erelia.Core.Context.Instance.BattleData;
-			Erelia.Battle.Board.Model board = data != null ? data.Board : null;
+			Erelia.Battle.BattleState data = Erelia.Core.GameContext.Instance.Battle;
+			Erelia.Battle.Board.BattleBoardState board = data != null ? data.Board : null;
 			if (board == null)
 			{
-				Debug.LogWarning("[Erelia.Battle.Loader] Battle board model is null.");
+				Debug.LogWarning("[Erelia.Battle.Loader] Battle board state is null.");
 				return;
 			}
 
 			if (presenter != null)
 			{
-				presenter.SetModel(board);
+				presenter.SetBoard(board);
 			}
 
 			CenterPlayer(board);
 		}
 
-		private void CenterPlayer(Erelia.Battle.Board.Model board)
+		private void CenterPlayer(Erelia.Battle.Board.BattleBoardState board)
 		{
 			if (playerTransform == null || board == null)
 			{
@@ -51,3 +51,4 @@ namespace Erelia.Battle
 		}
 	}
 }
+

@@ -7,14 +7,12 @@ It augments the core voxel system with masks for placement, ranges, and selectio
 ## Contents
 - `Cell`: battle voxel cell with mask support.
 - `Type`: mask type enum for overlays.
-- `Definition`: battle voxel definition with mask shape data.
-- `Data`: placeholder for battle-only voxel metadata.
 - `Mask.Shape`: base class for overlay mask shapes.
 - `Mesher`: builds overlay meshes from masks.
 - `MesherUtils`: caches transformed cardinal point sets.
 - `CardinalPoint` and `CardinalPointSet`: placement entry point helpers.
 - `Shape`: concrete mask shapes for voxel geometry.
-- `Editor`: custom inspector utilities for battle voxel definitions.
+- `Editor`: notes about the shared voxel inspector used by `Erelia.Core.Voxel.VoxelDefinition`.
 
 ## Adding Or Extending
 1. Add new mask types in `Type` and wire sprites in `Battle/Mask`.

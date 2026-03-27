@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle.Voxel
 {
-	public class Cell : Erelia.Core.VoxelKit.Cell
+	public class Cell : Erelia.Core.Voxel.Cell
 	{
 		private List<Erelia.Battle.Voxel.Mask.Type> masks = new List<Erelia.Battle.Voxel.Mask.Type>();
 
@@ -15,12 +15,12 @@ namespace Erelia.Battle.Voxel
 		{
 		}
 
-		public Cell(int id, Erelia.Core.VoxelKit.Orientation orientation)
+		public Cell(int id, Erelia.Core.Voxel.Orientation orientation)
 			: base(id, orientation)
 		{
 		}
 
-		public Cell(int id, Erelia.Core.VoxelKit.Orientation orientation, Erelia.Core.VoxelKit.FlipOrientation flipOrientation)
+		public Cell(int id, Erelia.Core.Voxel.Orientation orientation, Erelia.Core.Voxel.FlipOrientation flipOrientation)
 			: base(id, orientation, flipOrientation)
 		{
 		}
@@ -87,3 +87,4 @@ namespace Erelia.Battle.Voxel
 		}
 	}
 }
+

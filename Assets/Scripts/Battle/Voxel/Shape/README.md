@@ -14,4 +14,5 @@ These shapes define the overlay faces and cardinal points used by mask rendering
 ## Adding Or Extending
 1. Create a new class that derives from `Mask.Shape`.
 2. Implement `ConstructMaskFaces` and any custom cardinal points.
-3. Map the new shape in `BattleVoxelDefinitionEditor`.
+3. Map the new shape in `Core.Voxel.Editor.VoxelDefinitionEditor`.
+

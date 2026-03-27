@@ -1,17 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Erelia.Battle.Attack
+namespace Erelia.Battle
 {
 	public static class TargetingUtility
 	{
 		public static int ApplyAttack(
-			Erelia.Battle.Data battleData,
+			Erelia.Battle.BattleState battle,
 			Erelia.Battle.Unit.Presenter caster,
-			Erelia.Battle.Attack.Definition attack,
+			Erelia.Battle.Attack attack,
 			Vector3Int castCell)
 		{
-			if (battleData == null ||
+			if (battle == null ||
 				caster == null ||
 				attack == null ||
 				!caster.IsAlive ||
@@ -21,10 +21,10 @@ namespace Erelia.Battle.Attack
 			}
 
 			List<Vector3Int> affectedCells = BuildAreaOfEffectCoordinates(
-				battleData,
+				battle,
 				castCell,
 				attack.AreaOfEffectRange);
-			IReadOnlyList<Erelia.Battle.Attack.Effect.Definition> effects = attack.Effects;
+			IReadOnlyList<Erelia.Battle.Effects.AttackEffect> effects = attack.Effects;
 			if (affectedCells.Count == 0 || effects == null || effects.Count == 0)
 			{
 				return 0;
@@ -36,7 +36,7 @@ namespace Erelia.Battle.Attack
 			for (int i = 0; i < affectedCells.Count; i++)
 			{
 				Vector3Int affectedCell = affectedCells[i];
-				if (!battleData.TryGetPlacedUnitAtCell(affectedCell, out Erelia.Battle.Unit.Presenter targetUnit) ||
+				if (!battle.TryGetPlacedUnitAtCell(affectedCell, out Erelia.Battle.Unit.Presenter targetUnit) ||
 					targetUnit == null ||
 					!processedUnits.Add(targetUnit))
 				{
@@ -47,10 +47,10 @@ namespace Erelia.Battle.Attack
 
 				for (int effectIndex = 0; effectIndex < effects.Count; effectIndex++)
 				{
-					Erelia.Battle.Attack.Effect.Definition effect = effects[effectIndex];
+					Erelia.Battle.Effects.AttackEffect effect = effects[effectIndex];
 					int previousHealth = targetUnit.CurrentHealth;
 					effect?.ApplyTo(caster, targetUnit, castCell);
-					battleData.FeatProgressTracker.RegisterHealthChange(
+					battle.FeatProgressTracker.RegisterHealthChange(
 						caster,
 						targetUnit,
 						previousHealth,
@@ -62,13 +62,13 @@ namespace Erelia.Battle.Attack
 		}
 
 		public static List<Vector3Int> BuildRangeCoordinates(
-			Erelia.Battle.Data battleData,
+			Erelia.Battle.BattleState battle,
 			Vector3Int originCell,
 			int range,
-			Erelia.Battle.Attack.RangePattern rangePattern)
+			Erelia.Battle.RangePattern rangePattern)
 		{
 			var coordinates = new List<Vector3Int>();
-			IReadOnlyList<Vector3Int> acceptableCoordinates = battleData?.AcceptableCoordinates;
+			IReadOnlyList<Vector3Int> acceptableCoordinates = battle?.AcceptableCoordinates;
 			if (acceptableCoordinates == null)
 			{
 				return coordinates;
@@ -89,24 +89,24 @@ namespace Erelia.Battle.Attack
 		}
 
 		public static List<Vector3Int> BuildAreaOfEffectCoordinates(
-			Erelia.Battle.Data battleData,
+			Erelia.Battle.BattleState battle,
 			Vector3Int originCell,
 			int areaOfEffectRange)
 		{
 			return BuildRangeCoordinates(
-				battleData,
+				battle,
 				originCell,
 				areaOfEffectRange,
-				Erelia.Battle.Attack.RangePattern.Circle);
+				Erelia.Battle.RangePattern.Circle);
 		}
 
 		public static Dictionary<Vector3Int, Erelia.Battle.Unit.Presenter> BuildTargetableUnits(
-			Erelia.Battle.Data battleData,
+			Erelia.Battle.BattleState battle,
 			Erelia.Battle.Unit.Presenter actingUnit,
-			Erelia.Battle.Attack.Definition attack)
+			Erelia.Battle.Attack attack)
 		{
 			var targets = new Dictionary<Vector3Int, Erelia.Battle.Unit.Presenter>();
-			if (battleData == null ||
+			if (battle == null ||
 				actingUnit == null ||
 				attack == null ||
 				!actingUnit.IsAlive ||
@@ -115,7 +115,7 @@ namespace Erelia.Battle.Attack
 				return targets;
 			}
 
-			IReadOnlyList<Erelia.Battle.Unit.Presenter> units = battleData.Units;
+			IReadOnlyList<Erelia.Battle.Unit.Presenter> units = battle.Units;
 			for (int i = 0; i < units.Count; i++)
 			{
 				Erelia.Battle.Unit.Presenter candidate = units[i];
@@ -139,7 +139,7 @@ namespace Erelia.Battle.Attack
 		private static bool IsValidTarget(
 			Erelia.Battle.Unit.Presenter actingUnit,
 			Erelia.Battle.Unit.Presenter candidate,
-			Erelia.Battle.Attack.Definition attack)
+			Erelia.Battle.Attack attack)
 		{
 			if (actingUnit == null ||
 				candidate == null ||
@@ -152,13 +152,13 @@ namespace Erelia.Battle.Attack
 
 			switch (attack.TargetType)
 			{
-				case Erelia.Battle.Attack.TargetType.Enemy:
+				case Erelia.Battle.TargetType.Enemy:
 					return candidate.Side != actingUnit.Side;
 
-				case Erelia.Battle.Attack.TargetType.Ally:
+				case Erelia.Battle.TargetType.Ally:
 					return candidate.Side == actingUnit.Side;
 
-				case Erelia.Battle.Attack.TargetType.Both:
+				case Erelia.Battle.TargetType.Both:
 					return true;
 
 				default:
@@ -169,7 +169,7 @@ namespace Erelia.Battle.Attack
 		public static bool IsWithinRange(
 			Vector3Int delta,
 			int range,
-			Erelia.Battle.Attack.RangePattern rangePattern)
+			Erelia.Battle.RangePattern rangePattern)
 		{
 			int horizontalX = Mathf.Abs(delta.x);
 			int horizontalZ = Mathf.Abs(delta.z);
@@ -177,7 +177,7 @@ namespace Erelia.Battle.Attack
 
 			switch (rangePattern)
 			{
-				case Erelia.Battle.Attack.RangePattern.StraightLine:
+				case Erelia.Battle.RangePattern.StraightLine:
 					if (horizontalX != 0 && horizontalZ != 0)
 					{
 						return false;
@@ -185,10 +185,10 @@ namespace Erelia.Battle.Attack
 
 					return Mathf.Max(horizontalX, horizontalZ) <= clampedRange;
 
-				case Erelia.Battle.Attack.RangePattern.Diagonal:
+				case Erelia.Battle.RangePattern.Diagonal:
 					return horizontalX == horizontalZ && horizontalX <= clampedRange;
 
-				case Erelia.Battle.Attack.RangePattern.Circle:
+				case Erelia.Battle.RangePattern.Circle:
 					return horizontalX * horizontalX + horizontalZ * horizontalZ <= clampedRange * clampedRange;
 
 				default:
@@ -197,3 +197,6 @@ namespace Erelia.Battle.Attack
 		}
 	}
 }
+
+
+

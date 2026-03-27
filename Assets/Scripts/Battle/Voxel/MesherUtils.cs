@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,10 +9,10 @@ namespace Erelia.Battle.Voxel.MesherUtils
 		private readonly struct Key : IEquatable<Key>
 		{
 			private readonly CardinalPointSet source;
-			private readonly Erelia.Core.VoxelKit.Orientation orientation;
+			private readonly Erelia.Core.Voxel.Orientation orientation;
 			public Key(
 				CardinalPointSet source,
-				Erelia.Core.VoxelKit.Orientation orientation)
+				Erelia.Core.Voxel.Orientation orientation)
 			{
 				this.source = source;
 				this.orientation = orientation;
@@ -45,7 +45,7 @@ namespace Erelia.Battle.Voxel.MesherUtils
 
 		public static bool TryGetValue(
 			CardinalPointSet source,
-			Erelia.Core.VoxelKit.Orientation orientation,
+			Erelia.Core.Voxel.Orientation orientation,
 			out CardinalPointSet output)
 		{
 			output = null;
@@ -68,40 +68,40 @@ namespace Erelia.Battle.Voxel.MesherUtils
 
 		private static CardinalPointSet TransformCardinalPoints(
 			CardinalPointSet source,
-			Erelia.Core.VoxelKit.Orientation orientation)
+			Erelia.Core.Voxel.Orientation orientation)
 		{
 			Vector3 posX = TransformPointForWorldDirection(source, Erelia.Battle.Voxel.CardinalPoint.PositiveX, orientation);
 			Vector3 negX = TransformPointForWorldDirection(source, Erelia.Battle.Voxel.CardinalPoint.NegativeX, orientation);
 			Vector3 posZ = TransformPointForWorldDirection(source, Erelia.Battle.Voxel.CardinalPoint.PositiveZ, orientation);
 			Vector3 negZ = TransformPointForWorldDirection(source, Erelia.Battle.Voxel.CardinalPoint.NegativeZ, orientation);
-			Vector3 stationary = Erelia.Core.VoxelKit.Utils.Geometry.TransformPoint(
+			Vector3 stationary = Erelia.Core.Voxel.Utils.Geometry.TransformPoint(
 				source.Stationary,
 				orientation,
-				Erelia.Core.VoxelKit.FlipOrientation.PositiveY);
+				Erelia.Core.Voxel.FlipOrientation.PositiveY);
 			return new CardinalPointSet(posX, negX, posZ, negZ, stationary);
 		}
 
 		private static Vector3 TransformPointForWorldDirection(
 			CardinalPointSet source,
 			Erelia.Battle.Voxel.CardinalPoint worldDirection,
-			Erelia.Core.VoxelKit.Orientation orientation)
+			Erelia.Core.Voxel.Orientation orientation)
 		{
 			Erelia.Battle.Voxel.CardinalPoint localDirection = ResolveLocalDirection(worldDirection, orientation);
-			return Erelia.Core.VoxelKit.Utils.Geometry.TransformPoint(
+			return Erelia.Core.Voxel.Utils.Geometry.TransformPoint(
 				source.Get(localDirection),
 				orientation,
-				Erelia.Core.VoxelKit.FlipOrientation.PositiveY);
+				Erelia.Core.Voxel.FlipOrientation.PositiveY);
 		}
 
 		private static Erelia.Battle.Voxel.CardinalPoint ResolveLocalDirection(
 			Erelia.Battle.Voxel.CardinalPoint worldDirection,
-			Erelia.Core.VoxelKit.Orientation orientation)
+			Erelia.Core.Voxel.Orientation orientation)
 		{
 			switch (orientation)
 			{
-				case Erelia.Core.VoxelKit.Orientation.PositiveX:
+				case Erelia.Core.Voxel.Orientation.PositiveX:
 					return worldDirection;
-				case Erelia.Core.VoxelKit.Orientation.PositiveZ:
+				case Erelia.Core.Voxel.Orientation.PositiveZ:
 					return worldDirection switch
 					{
 						Erelia.Battle.Voxel.CardinalPoint.PositiveX => Erelia.Battle.Voxel.CardinalPoint.PositiveZ,
@@ -110,7 +110,7 @@ namespace Erelia.Battle.Voxel.MesherUtils
 						Erelia.Battle.Voxel.CardinalPoint.NegativeZ => Erelia.Battle.Voxel.CardinalPoint.PositiveX,
 						_ => Erelia.Battle.Voxel.CardinalPoint.Stationary
 					};
-				case Erelia.Core.VoxelKit.Orientation.NegativeX:
+				case Erelia.Core.Voxel.Orientation.NegativeX:
 					return worldDirection switch
 					{
 						Erelia.Battle.Voxel.CardinalPoint.PositiveX => Erelia.Battle.Voxel.CardinalPoint.NegativeX,
@@ -119,7 +119,7 @@ namespace Erelia.Battle.Voxel.MesherUtils
 						Erelia.Battle.Voxel.CardinalPoint.NegativeZ => Erelia.Battle.Voxel.CardinalPoint.PositiveZ,
 						_ => Erelia.Battle.Voxel.CardinalPoint.Stationary
 					};
-				case Erelia.Core.VoxelKit.Orientation.NegativeZ:
+				case Erelia.Core.Voxel.Orientation.NegativeZ:
 					return worldDirection switch
 					{
 						Erelia.Battle.Voxel.CardinalPoint.PositiveX => Erelia.Battle.Voxel.CardinalPoint.NegativeZ,
@@ -134,3 +134,4 @@ namespace Erelia.Battle.Voxel.MesherUtils
 		}
 	}
 }
+

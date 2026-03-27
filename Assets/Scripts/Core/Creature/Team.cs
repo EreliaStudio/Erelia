@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Erelia.Core.Creature
 {
@@ -7,10 +7,10 @@ namespace Erelia.Core.Creature
 	{
 		public const int DefaultSize = 6;
 
-		[SerializeField] private Erelia.Core.Creature.Instance.Model[] slots =
-			new Erelia.Core.Creature.Instance.Model[DefaultSize];
+		[SerializeField] private Erelia.Core.Creature.Instance.CreatureInstance[] slots =
+			new Erelia.Core.Creature.Instance.CreatureInstance[DefaultSize];
 
-		public Erelia.Core.Creature.Instance.Model[] Slots => slots;
+		public Erelia.Core.Creature.Instance.CreatureInstance[] Slots => slots;
 
 		public int SlotCount => slots != null ? slots.Length : 0;
 

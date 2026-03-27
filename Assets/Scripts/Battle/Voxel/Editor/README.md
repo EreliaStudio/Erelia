@@ -1,12 +1,14 @@
 # Battle.Voxel.Editor README
 
 ## Purpose
-Editor contains Unity editor extensions for battle voxel definitions.
-It keeps battle-specific fields visible and synchronized with voxel shape types.
+This folder no longer owns a separate voxel-definition inspector.
+Battle overlay authoring now lives directly on `Core.Voxel.VoxelDefinition`, and the shared inspector is `Core.Voxel.Editor.VoxelDefinitionEditor`.
 
 ## Contents
-- `BattleVoxelDefinitionEditor`: custom inspector for `Battle.Voxel.Definition`.
+- no runtime code remains here after the voxel-definition merge
 
 ## Adding Or Extending
-1. Add editor fields here when new battle voxel data is introduced.
-2. Update the shape-to-mask mapping if new voxel shapes are added.
+1. Extend `Core.Voxel.Editor.VoxelDefinitionEditor` when new shared voxel authoring fields are introduced.
+2. Update the shared shape-to-mask mapping there if new voxel shapes are added.
+
+

@@ -11,9 +11,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c6f1caa350b177c49a5f7d548321cacf, type: 3}
   m_Name: AttackRegistry
-  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.Attack.AttackRegistry
+  m_EditorClassIdentifier: Assembly-CSharp::Erelia.Battle.AttackRegistry
   entries:
   - Id: 0
     Attack: {fileID: 11400000, guid: b0a1d10e239c6e14290484f9096dc23d, type: 2}
   - Id: 1
     Attack: {fileID: 11400000, guid: 1432c35c8340c8f4a8bde36fadbe13e3, type: 2}
+

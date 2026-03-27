@@ -6,26 +6,23 @@ namespace Erelia.Battle.Unit
 	{
 		private const float MinimumStamina = 0.1f;
 
-		private readonly Erelia.Core.Creature.Stats baseStats;
-		private readonly Erelia.Core.Creature.Stats bonusStats;
-		private readonly Erelia.Core.Creature.Stats totalStats;
+		private Erelia.Core.Creature.Stats persistentStats;
+		private Erelia.Core.Creature.Stats battleModifierStats;
+		private Erelia.Core.Creature.Stats totalStats;
 
 		public LiveStats(
-			Erelia.Core.Creature.Stats baseStats,
-			Erelia.Core.Creature.Stats bonusStats)
+			Erelia.Core.Creature.Stats persistentStats,
+			Erelia.Core.Creature.Stats battleModifierStats = null)
 		{
-			this.baseStats = (baseStats ?? new Erelia.Core.Creature.Stats()).Clone();
-			this.bonusStats = (bonusStats ?? new Erelia.Core.Creature.Stats()).Clone();
-			totalStats = Erelia.Core.Creature.Stats.Combine(this.baseStats, this.bonusStats);
-
-			CurrentHealth = MaxHealth;
-			CurrentStamina = BaseStamina;
-			RemainingActionPoints = ActionPoints;
-			RemainingMovementPoints = MovementPoints;
+			this.persistentStats = (persistentStats ?? new Erelia.Core.Creature.Stats()).Clone();
+			this.battleModifierStats = (battleModifierStats ?? new Erelia.Core.Creature.Stats()).Clone();
+			RefreshTotals(resetResources: true);
 		}
 
-		public Erelia.Core.Creature.Stats BaseStats => baseStats;
-		public Erelia.Core.Creature.Stats BonusStats => bonusStats;
+		public Erelia.Core.Creature.Stats PersistentStats => persistentStats;
+		public Erelia.Core.Creature.Stats BattleModifierStats => battleModifierStats;
+		public Erelia.Core.Creature.Stats BaseStats => persistentStats;
+		public Erelia.Core.Creature.Stats BonusStats => battleModifierStats;
 		public Erelia.Core.Creature.Stats TotalStats => totalStats;
 		public int MaxHealth => totalStats.Health;
 		public int CurrentHealth { get; private set; }
@@ -41,6 +38,12 @@ namespace Erelia.Battle.Unit
 		public float StaminaProgress01 => BaseStamina <= 0f
 			? 1f
 			: Mathf.Clamp01(1f - (CurrentStamina / BaseStamina));
+
+		public void SetBattleModifierStats(Erelia.Core.Creature.Stats value)
+		{
+			battleModifierStats = (value ?? new Erelia.Core.Creature.Stats()).Clone();
+			RefreshTotals(resetResources: false);
+		}
 
 		public bool TickStamina(float deltaTime)
 		{
@@ -219,6 +222,25 @@ namespace Erelia.Battle.Unit
 			}
 
 			return SetCurrentHealth(CurrentHealth + amount);
+		}
+
+		private void RefreshTotals(bool resetResources)
+		{
+			totalStats = Erelia.Core.Creature.Stats.Combine(persistentStats, battleModifierStats);
+
+			if (resetResources)
+			{
+				CurrentHealth = MaxHealth;
+				CurrentStamina = BaseStamina;
+				RemainingActionPoints = ActionPoints;
+				RemainingMovementPoints = MovementPoints;
+				return;
+			}
+
+			CurrentHealth = Mathf.Clamp(CurrentHealth, 0, MaxHealth);
+			CurrentStamina = Mathf.Clamp(CurrentStamina, 0f, BaseStamina);
+			RemainingActionPoints = Mathf.Clamp(RemainingActionPoints, 0, ActionPoints);
+			RemainingMovementPoints = Mathf.Clamp(RemainingMovementPoints, 0, MovementPoints);
 		}
 	}
 }

@@ -19,7 +19,7 @@ namespace Erelia.Battle.Phase.Idle
 
 		public override void Enter(Erelia.Battle.Orchestrator Orchestrator)
 		{
-			Erelia.Battle.Data battleData = Context.Instance.BattleData;
+			Erelia.Battle.BattleState battleData = GameContext.Instance.Battle;
 			PopulateHud(battleData);
 			SetHudVisible(true);
 			SetPlayerHudVisible(false);
@@ -29,7 +29,7 @@ namespace Erelia.Battle.Phase.Idle
 
 		public override void Tick(Erelia.Battle.Orchestrator Orchestrator, float deltaTime)
 		{
-			Erelia.Battle.Data battleData = Context.Instance.BattleData;
+			Erelia.Battle.BattleState battleData = GameContext.Instance.Battle;
 			if (battleData == null || battleData.ActiveUnit != null)
 			{
 				return;
@@ -50,7 +50,7 @@ namespace Erelia.Battle.Phase.Idle
 					: Erelia.Battle.Phase.Id.PlayerTurn);
 		}
 
-		private static Erelia.Battle.Unit.Presenter FindReadyUnit(Erelia.Battle.Data battleData, float deltaTime)
+		private static Erelia.Battle.Unit.Presenter FindReadyUnit(Erelia.Battle.BattleState battleData, float deltaTime)
 		{
 			System.Collections.Generic.IReadOnlyList<Erelia.Battle.Unit.Presenter> units = battleData.Units;
 			if (units == null)
@@ -76,7 +76,7 @@ namespace Erelia.Battle.Phase.Idle
 			return readyUnit;
 		}
 
-		private void PopulateHud(Erelia.Battle.Data battleData)
+		private void PopulateHud(Erelia.Battle.BattleState battleData)
 		{
 			playerCreatureCardGroup?.PopulateUnits(battleData?.PlayerUnits);
 			enemyCreatureCardGroup?.PopulateUnits(battleData?.EnemyUnits);

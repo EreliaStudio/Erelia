@@ -46,7 +46,7 @@ namespace Erelia.Battle.UI
 			base.LinkUnit(presenter);
 		}
 
-		public override void ApplySnapshot(Erelia.Battle.Unit.Snapshot snapshot)
+		public override void ApplySnapshot(Erelia.Battle.Unit.BattleUnitSnapshot snapshot)
 		{
 			isAlive = snapshot.IsAlive;
 			isTurnActive = snapshot.IsTurnActive && snapshot.IsAlive;

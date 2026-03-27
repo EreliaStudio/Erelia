@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Erelia.Battle
 {
@@ -154,13 +154,13 @@ namespace Erelia.Battle
 
 		public bool RequestDecisionPhase()
 		{
-			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance?.BattleData;
-			Erelia.Battle.Unit.Presenter activeUnit = battleData?.ActiveUnit;
+			Erelia.Battle.BattleState battle = Erelia.Core.GameContext.Instance?.Battle;
+			Erelia.Battle.Unit.Presenter activeUnit = battle?.ActiveUnit;
 			if (activeUnit == null || !activeUnit.IsAlive || !activeUnit.IsTakingTurn)
 			{
-				if (battleData != null && activeUnit != null)
+				if (battle != null && activeUnit != null)
 				{
-					battleData.ClearActiveUnit();
+					battle.ClearActiveUnit();
 				}
 
 				return RequestTransition(Erelia.Battle.Phase.Id.Idle);
@@ -220,10 +220,10 @@ namespace Erelia.Battle
 		{
 			Debug.Log("Defeat ...");
 
-			Erelia.Exploration.Data explorationData = Erelia.Core.Context.Instance?.ExplorationData;
-			if (explorationData?.PlayerModel != null && explorationData.TryGetSafePosition(out Vector3 safePosition))
+			Erelia.Exploration.ExplorationState exploration = Erelia.Core.GameContext.Instance?.Exploration;
+			if (exploration?.Player != null && exploration.TryGetSafePosition(out Vector3 safePosition))
 			{
-				explorationData.PlayerModel.SetWorldPosition(safePosition);
+				exploration.Player.SetWorldPosition(safePosition);
 			}
 			else
 			{
@@ -234,3 +234,5 @@ namespace Erelia.Battle
 		}
 	}
 }
+
+

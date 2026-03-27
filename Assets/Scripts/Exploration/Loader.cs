@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Erelia.Exploration
 {
@@ -24,22 +24,26 @@ namespace Erelia.Exploration
 
 		private void BindFromContext()
 		{
-			var context = Erelia.Core.Context.Instance;
+			var context = Erelia.Core.GameContext.Instance;
 
-			Erelia.Exploration.Data data = context.ExplorationData;
-			if (data == null || data.WorldModel == null || data.PlayerModel == null)
+			Erelia.Exploration.ExplorationState exploration = context.Exploration;
+			if (exploration == null || exploration.World == null || exploration.Player == null)
 			{
 				Debug.LogWarning("[Erelia.Exploration.Loader] Exploration data is missing.");
 				return;
 			}
 
-			worldPresenter.SetModel(data.WorldModel);
-			playerPresenter.SetModel(data.PlayerModel);
+			worldPresenter.SetWorld(exploration.World);
+			playerPresenter.SetPlayer(exploration.Player);
 
-			if (!data.HasSafePosition && data.PlayerModel.HasWorldPosition)
+			if (!exploration.HasSafePosition && exploration.Player.HasWorldPosition)
 			{
-				Erelia.Core.Event.Bus.Emit(new Erelia.Core.Event.SetSafePosition(data.PlayerModel.WorldPosition));
+				Erelia.Core.Event.Bus.Emit(new Erelia.Core.Event.SetSafePosition(exploration.Player.WorldPosition));
 			}
 		}
 	}
 }
+
+
+
+

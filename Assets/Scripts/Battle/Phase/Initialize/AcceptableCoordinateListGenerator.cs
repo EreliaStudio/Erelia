@@ -6,7 +6,7 @@ namespace Erelia.Battle.Phase.Initialize
 	public static class AcceptableCoordinateListGenerator
 	{
 		public static bool TryGenerate(
-			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.BattleBoardState board,
 			out List<Vector3Int> acceptableCoordinates)
 		{
 			acceptableCoordinates = new List<Vector3Int>();
@@ -34,10 +34,10 @@ namespace Erelia.Battle.Phase.Initialize
 			return acceptableCoordinates.Count > 0;
 		}
 
-		private static bool IsAcceptableCoordinate(Erelia.Battle.Board.Model board, int x, int y, int z)
+		private static bool IsAcceptableCoordinate(Erelia.Battle.Board.BattleBoardState board, int x, int y, int z)
 		{
 			Erelia.Battle.Voxel.Cell cell = board.Cells[x, y, z];
-			if (!Erelia.Exploration.World.VoxelRegistry.Instance.TryGet(cell.Id, out Erelia.Core.VoxelKit.Definition definition))
+			if (!Erelia.Exploration.World.VoxelCatalog.Instance.TryGet(cell.Id, out Erelia.Core.Voxel.VoxelDefinition definition))
 			{
 				return false;
 			}
@@ -47,12 +47,12 @@ namespace Erelia.Battle.Phase.Initialize
 				HasAvailableSpace(board, x, y, z);
 		}
 
-		private static bool IsAcceptableAsFloor(Erelia.Core.VoxelKit.Definition definition)
+		private static bool IsAcceptableAsFloor(Erelia.Core.Voxel.VoxelDefinition definition)
 		{
-			return definition.Data.Traversal == Erelia.Core.VoxelKit.Traversal.Obstacle;
+			return definition.Properties.Traversal == Erelia.Core.Voxel.Traversal.Obstacle;
 		}
 
-		private static bool HasAirOrWalkableBlockOnTop(Erelia.Battle.Board.Model board, int x, int y, int z)
+		private static bool HasAirOrWalkableBlockOnTop(Erelia.Battle.Board.BattleBoardState board, int x, int y, int z)
 		{
 			int targetY = y + 1;
 			if (targetY >= board.SizeY)
@@ -61,15 +61,15 @@ namespace Erelia.Battle.Phase.Initialize
 			}
 
 			Erelia.Battle.Voxel.Cell cell = board.Cells[x, targetY, z];
-			if (!Erelia.Exploration.World.VoxelRegistry.Instance.TryGet(cell.Id, out Erelia.Core.VoxelKit.Definition definition))
+			if (!Erelia.Exploration.World.VoxelCatalog.Instance.TryGet(cell.Id, out Erelia.Core.Voxel.VoxelDefinition definition))
 			{
 				return true;
 			}
 
-			return definition.Data.Traversal == Erelia.Core.VoxelKit.Traversal.Walkable;
+			return definition.Properties.Traversal == Erelia.Core.Voxel.Traversal.Walkable;
 		}
 
-		private static bool HasAvailableSpace(Erelia.Battle.Board.Model board, int x, int y, int z)
+		private static bool HasAvailableSpace(Erelia.Battle.Board.BattleBoardState board, int x, int y, int z)
 		{
 			const int UnitHeight = 2;
 			for (int deltaY = 1; deltaY < UnitHeight; deltaY++)
@@ -81,8 +81,8 @@ namespace Erelia.Battle.Phase.Initialize
 				}
 
 				Erelia.Battle.Voxel.Cell cell = board.Cells[x, targetY, z];
-				if (Erelia.Exploration.World.VoxelRegistry.Instance.TryGet(cell.Id, out Erelia.Core.VoxelKit.Definition definition) &&
-					definition.Data.Traversal == Erelia.Core.VoxelKit.Traversal.Obstacle)
+				if (Erelia.Exploration.World.VoxelCatalog.Instance.TryGet(cell.Id, out Erelia.Core.Voxel.VoxelDefinition definition) &&
+					definition.Properties.Traversal == Erelia.Core.Voxel.Traversal.Obstacle)
 				{
 					return false;
 				}
@@ -92,3 +92,6 @@ namespace Erelia.Battle.Phase.Initialize
 		}
 	}
 }
+
+
+

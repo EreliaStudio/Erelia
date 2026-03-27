@@ -26,7 +26,7 @@ namespace Erelia.Battle.Phase.EnemyTurn
 			activeOrchestrator = Orchestrator;
 			remainingDelay = UnityEngine.Mathf.Max(0f, endTurnDelaySeconds);
 
-			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
+			Erelia.Battle.BattleState battleData = Erelia.Core.GameContext.Instance.Battle;
 			Erelia.Battle.Unit.Presenter activeUnit = battleData?.ActiveUnit;
 			if (activeUnit == null || !activeUnit.IsAlive)
 			{
@@ -56,7 +56,7 @@ namespace Erelia.Battle.Phase.EnemyTurn
 
 		public override void Tick(Erelia.Battle.Orchestrator Orchestrator, float deltaTime)
 		{
-			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
+			Erelia.Battle.BattleState battleData = Erelia.Core.GameContext.Instance.Battle;
 			if (battleData?.ActiveUnit == null)
 			{
 				return;
@@ -98,7 +98,7 @@ namespace Erelia.Battle.Phase.EnemyTurn
 			return activeUnit.Creature.DisplayName + " is deciding";
 		}
 
-		private void PopulateHud(Erelia.Battle.Data battleData)
+		private void PopulateHud(Erelia.Battle.BattleState battleData)
 		{
 			playerCreatureCardGroup?.PopulateUnits(battleData?.PlayerUnits);
 			enemyCreatureCardGroup?.PopulateUnits(battleData?.EnemyUnits);
@@ -163,3 +163,4 @@ namespace Erelia.Battle.Phase.EnemyTurn
 		}
 	}
 }
+

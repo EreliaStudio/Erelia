@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Erelia.Loading
 {
@@ -17,13 +17,13 @@ namespace Erelia.Loading
 
 		public void InitializeContext()
 		{
-			var context = Erelia.Core.Context.Instance;
-			EnsurePlayerTeam(context.SystemData);
+			var context = Erelia.Core.GameContext.Instance;
+			EnsurePlayerTeam(context.PlayerParty);
 		}
 
-		private void EnsurePlayerTeam(Erelia.Core.SystemData systemData)
+		private void EnsurePlayerTeam(Erelia.Core.PlayerPartyState playerParty)
 		{
-			if (systemData == null || systemData.PlayerTeam != null)
+			if (playerParty == null || playerParty.PlayerTeam != null)
 			{
 				return;
 			}
@@ -45,7 +45,10 @@ namespace Erelia.Loading
 			}
 
 			team.NormalizeSlots();
-			systemData.SetPlayerTeam(team);
+			playerParty.SetPlayerTeam(team);
 		}
 	}
 }
+
+
+

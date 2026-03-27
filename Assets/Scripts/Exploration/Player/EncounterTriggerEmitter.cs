@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Erelia.Exploration.Player
 {
@@ -23,46 +23,46 @@ namespace Erelia.Exploration.Player
 				return;
 			}
 
-			if (worldPresenter == null || worldPresenter.WorldModel == null)
+			if (worldPresenter == null || worldPresenter.World == null)
 			{
 				return;
 			}
 
-			Erelia.Exploration.World.Model worldModel = worldPresenter.WorldModel;
-			Erelia.Exploration.Player.Model playerModel = Erelia.Core.Context.Instance.ExplorationData?.PlayerModel;
+			Erelia.Exploration.World.WorldState world = worldPresenter.World;
+			Erelia.Exploration.Player.ExplorationPlayerState player = Erelia.Core.GameContext.Instance.Exploration?.Player;
 
 			Vector3 worldPosition = evt.WorldPosition;
 			Vector3Int cell = evt.CellPosition;
 			Erelia.Exploration.World.Chunk.Coordinates chunkCoords = Erelia.Exploration.World.Chunk.Coordinates.FromWorld(worldPosition);
 
-			if (playerModel != null)
+			if (player != null)
 			{
-				if (playerModel.IsEncounterLockedAt(cell))
+				if (player.IsEncounterLockedAt(cell))
 				{
 					return;
 				}
 
-				playerModel.ClearEncounterLockCell(cell);
+				player.ClearEncounterLockCell(cell);
 			}
 
-			if (!worldModel.Chunks.TryGetValue(chunkCoords, out Erelia.Exploration.World.Chunk.Model chunk))
+			if (!world.Chunks.TryGetValue(chunkCoords, out Erelia.Exploration.World.Chunk.ChunkData chunk))
 			{
 				return;
 			}
 
-			int localX = cell.x - (chunkCoords.X * Erelia.Exploration.World.Chunk.Model.SizeX);
-			int localZ = cell.z - (chunkCoords.Z * Erelia.Exploration.World.Chunk.Model.SizeZ);
+			int localX = cell.x - (chunkCoords.X * Erelia.Exploration.World.Chunk.ChunkData.SizeX);
+			int localZ = cell.z - (chunkCoords.Z * Erelia.Exploration.World.Chunk.ChunkData.SizeZ);
 			int localY = cell.y;
 
-			if (localX < 0 || localX >= Erelia.Exploration.World.Chunk.Model.SizeX ||
-				localY < 0 || localY >= Erelia.Exploration.World.Chunk.Model.SizeY ||
-				localZ < 0 || localZ >= Erelia.Exploration.World.Chunk.Model.SizeZ)
+			if (localX < 0 || localX >= Erelia.Exploration.World.Chunk.ChunkData.SizeX ||
+				localY < 0 || localY >= Erelia.Exploration.World.Chunk.ChunkData.SizeY ||
+				localZ < 0 || localZ >= Erelia.Exploration.World.Chunk.ChunkData.SizeZ)
 			{
 				return;
 			}
 
 			int encounterId = chunk.GetEncounterId(localX, localY, localZ);
-			if (encounterId == Erelia.Exploration.World.Chunk.Model.NoEncounterId)
+			if (encounterId == Erelia.Exploration.World.Chunk.ChunkData.NoEncounterId)
 			{
 				return;
 			}
@@ -83,14 +83,14 @@ namespace Erelia.Exploration.Player
 				return;
 			}
 
-			Erelia.Battle.Board.Model battleBoard = Erelia.Battle.Board.Constructor.ExportArea(table, worldModel, worldPosition);
+			Erelia.Battle.Board.BattleBoardState battleBoard = Erelia.Battle.Board.BattleBoardFactory.ExportArea(table, world, worldPosition);
 			if (battleBoard == null)
 			{
 				return;
 			}
 
-			playerModel?.SetWorldPosition(worldPosition);
-			playerModel?.SetEncounterLockCell(cell);
+			player?.SetWorldPosition(worldPosition);
+			player?.SetEncounterLockCell(cell);
 
 			Debug.Log($"Encounter trigger: id={encounterId} world={worldPosition} cell=({localX},{localY},{localZ})");
 			Erelia.Core.Event.Bus.Emit(new Erelia.Core.Event.EncounterTriggerEvent(enemyTeam, battleBoard));
@@ -98,3 +98,6 @@ namespace Erelia.Exploration.Player
 		}
 	}
 }
+
+
+

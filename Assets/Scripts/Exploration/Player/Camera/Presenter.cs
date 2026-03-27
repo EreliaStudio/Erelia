@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Erelia.Exploration.Player.Camera
@@ -13,7 +13,7 @@ namespace Erelia.Exploration.Player.Camera
 
 		[SerializeField] private InputActionReference zoomAction;
 
-		[SerializeField] private Erelia.Exploration.Player.Camera.Model model = new Erelia.Exploration.Player.Camera.Model();
+		[SerializeField] private Erelia.Exploration.Player.Camera.OrbitCameraSettings settings = new Erelia.Exploration.Player.Camera.OrbitCameraSettings();
 
 		private InputAction resolvedLookAction;
 
@@ -28,9 +28,9 @@ namespace Erelia.Exploration.Player.Camera
 				throw new System.Exception("[Erelia.Exploration.Player.Camera.Presenter] View is not assigned.");
 			}
 
-			if (model == null)
+			if (settings == null)
 			{
-				model = new Erelia.Exploration.Player.Camera.Model();
+				settings = new Erelia.Exploration.Player.Camera.OrbitCameraSettings();
 			}
 
 			ResolveActions();
@@ -66,8 +66,8 @@ namespace Erelia.Exploration.Player.Camera
 			float orbitAxis = resolvedOrbitAction.ReadValue<float>();
 			float zoomAxis = resolvedZoomAction.ReadValue<float>();
 
-			float yawFromMouse = lookAxis * model.MouseOrbitSensitivity;
-			float yawFromKeys = orbitAxis * model.KeyOrbitSpeed * Time.deltaTime;
+			float yawFromMouse = lookAxis * settings.MouseOrbitSensitivity;
+			float yawFromKeys = orbitAxis * settings.KeyOrbitSpeed * Time.deltaTime;
 
 			if (Mathf.Abs(yawFromMouse) > 0.0001f || Mathf.Abs(yawFromKeys) > 0.0001f)
 			{
@@ -77,7 +77,7 @@ namespace Erelia.Exploration.Player.Camera
 			if (Mathf.Abs(zoomAxis) > 0.01f)
 			{
 				float scrollSteps = zoomAxis / 120f;
-				float zoomDelta = -scrollSteps * model.ZoomSpeed;
+				float zoomDelta = -scrollSteps * settings.ZoomSpeed;
 				ApplyZoom(zoomDelta);
 			}
 		}
@@ -138,7 +138,7 @@ namespace Erelia.Exploration.Player.Camera
 				return;
 			}
 
-			float clamped = Mathf.Clamp(distance + zoomDelta, model.MinOrbitDistance, model.MaxOrbitDistance);
+			float clamped = Mathf.Clamp(distance + zoomDelta, settings.MinOrbitDistance, settings.MaxOrbitDistance);
 			cameraTransform.localPosition = offset.normalized * clamped;
 			LookAtPivot();
 		}
@@ -161,3 +161,4 @@ namespace Erelia.Exploration.Player.Camera
 		}
 	}
 }
+

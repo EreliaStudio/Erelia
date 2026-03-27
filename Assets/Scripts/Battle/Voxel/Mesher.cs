@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Erelia.Battle.Voxel
@@ -7,7 +7,7 @@ namespace Erelia.Battle.Voxel
 	{
 		public static Mesh BuildMaskMesh(
 			Erelia.Battle.Voxel.Cell[,,] cells,
-			Erelia.Core.VoxelKit.Registry registry,
+			Erelia.Core.Voxel.VoxelRegistry registry,
 			Erelia.Battle.MaskSpriteRegistry maskSpriteRegistry)
 		{
 			var vertices = new List<Vector3>();
@@ -31,7 +31,7 @@ namespace Erelia.Battle.Voxel
 					Erelia.Battle.Voxel.Mask.Type type = (Erelia.Battle.Voxel.Mask.Type)i;
 					if (maskSpriteRegistry.TryGetSprite(type, out Sprite sprite) && sprite != null)
 					{
-						Erelia.Core.VoxelKit.Utils.SpriteUv.GetSpriteUvRect(sprite, out Vector2 uvAnchor, out Vector2 uvSize);
+						Erelia.Core.Voxel.Utils.SpriteUv.GetSpriteUvRect(sprite, out Vector2 uvAnchor, out Vector2 uvSize);
 						uvAnchors[i] = uvAnchor;
 						uvSizes[i] = uvSize;
 						hasUv[i] = true;
@@ -50,12 +50,7 @@ namespace Erelia.Battle.Voxel
 					for (int z = 0; z < sizeZ; z++)
 					{
 						Erelia.Battle.Voxel.Cell maskCell = cells[x, y, z];
-						if (!TryGetDefinition(maskCell, registry, out Erelia.Core.VoxelKit.Definition definition, out Erelia.Core.VoxelKit.Cell cell))
-						{
-							continue;
-						}
-
-						if (!(definition is Erelia.Battle.Voxel.Definition battleDefinition))
+						if (!TryGetDefinition(maskCell, registry, out Erelia.Core.Voxel.VoxelDefinition definition, out Erelia.Core.Voxel.Cell cell))
 						{
 							continue;
 						}
@@ -65,13 +60,13 @@ namespace Erelia.Battle.Voxel
 							continue;
 						}
 
-						Erelia.Battle.Voxel.Mask.Shape maskShape = battleDefinition.MaskShape;
+						Erelia.Battle.Voxel.Mask.Shape maskShape = definition.MaskShape;
 						if (maskShape == null || maskShape.MaskFaces == null)
 						{
 							continue;
 						}
 
-						if (!maskShape.MaskFaces.TryGetValue(cell.FlipOrientation, out List<Erelia.Core.VoxelKit.Face> faces) || faces == null)
+						if (!maskShape.MaskFaces.TryGetValue(cell.FlipOrientation, out List<Erelia.Core.Voxel.Face> faces) || faces == null)
 						{
 							continue;
 						}
@@ -85,7 +80,7 @@ namespace Erelia.Battle.Voxel
 
 						for (int i = 0; i < faces.Count; i++)
 						{
-							Erelia.Core.VoxelKit.Face transformed = TransformFaceCached(faces[i], cell.Orientation);
+							Erelia.Core.Voxel.Face transformed = TransformFaceCached(faces[i], cell.Orientation);
 							AddFace(
 								transformed,
 								offset,
@@ -129,10 +124,10 @@ namespace Erelia.Battle.Voxel
 		}
 
 		private static bool TryGetDefinition(
-			Erelia.Core.VoxelKit.Cell cell,
-			Erelia.Core.VoxelKit.Registry registry,
-			out Erelia.Core.VoxelKit.Definition definition,
-			out Erelia.Core.VoxelKit.Cell resolvedCell)
+			Erelia.Core.Voxel.Cell cell,
+			Erelia.Core.Voxel.VoxelRegistry registry,
+			out Erelia.Core.Voxel.VoxelDefinition definition,
+			out Erelia.Core.Voxel.Cell resolvedCell)
 		{
 			definition = null;
 			resolvedCell = cell;
@@ -149,18 +144,18 @@ namespace Erelia.Battle.Voxel
 			return true;
 		}
 
-		private static Erelia.Core.VoxelKit.Face TransformFaceCached(Erelia.Core.VoxelKit.Face face, Erelia.Core.VoxelKit.Orientation orientation)
+		private static Erelia.Core.Voxel.Face TransformFaceCached(Erelia.Core.Voxel.Face face, Erelia.Core.Voxel.Orientation orientation)
 		{
 			if (face == null)
 			{
 				return null;
 			}
 
-			if (Erelia.Core.VoxelKit.MesherUtils.FaceByOrientationCache.TryGetValue(
+			if (Erelia.Core.Voxel.MesherUtils.FaceByOrientationCache.TryGetValue(
 					face,
 					orientation,
-					Erelia.Core.VoxelKit.FlipOrientation.PositiveY,
-					out Erelia.Core.VoxelKit.Face output))
+					Erelia.Core.Voxel.FlipOrientation.PositiveY,
+					out Erelia.Core.Voxel.Face output))
 			{
 				return output;
 			}
@@ -169,7 +164,7 @@ namespace Erelia.Battle.Voxel
 		}
 
 		private static void AddFace(
-			Erelia.Core.VoxelKit.Face face,
+			Erelia.Core.Voxel.Face face,
 			Vector3 positionOffset,
 			List<Vector3> vertices,
 			List<int> triangles,
@@ -183,10 +178,10 @@ namespace Erelia.Battle.Voxel
 				return;
 			}
 
-			List<List<Erelia.Core.VoxelKit.Face.Vertex>> facePolygons = face.Polygons;
+			List<List<Erelia.Core.Voxel.Face.Vertex>> facePolygons = face.Polygons;
 			for (int p = 0; p < facePolygons.Count; p++)
 			{
-				List<Erelia.Core.VoxelKit.Face.Vertex> faceVertices = facePolygons[p];
+				List<Erelia.Core.Voxel.Face.Vertex> faceVertices = facePolygons[p];
 				if (faceVertices == null || faceVertices.Count < 3)
 				{
 					continue;
@@ -195,7 +190,7 @@ namespace Erelia.Battle.Voxel
 				int start = vertices.Count;
 				for (int i = 0; i < faceVertices.Count; i++)
 				{
-					Erelia.Core.VoxelKit.Face.Vertex vertex = faceVertices[i];
+					Erelia.Core.Voxel.Face.Vertex vertex = faceVertices[i];
 					vertices.Add(positionOffset + vertex.Position);
 					Vector2 uv = vertex.TileUV;
 					if (hasUvTransform)
@@ -215,3 +210,6 @@ namespace Erelia.Battle.Voxel
 		}
 	}
 }
+
+
+

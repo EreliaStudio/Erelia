@@ -21,12 +21,12 @@ namespace Erelia.Battle
 
 		private sealed class CreatureBattleState
 		{
-			public CreatureBattleState(Erelia.Core.Creature.Instance.Model creature)
+			public CreatureBattleState(Erelia.Core.Creature.Instance.CreatureInstance creature)
 			{
 				Creature = creature;
 			}
 
-			public Erelia.Core.Creature.Instance.Model Creature { get; }
+			public Erelia.Core.Creature.Instance.CreatureInstance Creature { get; }
 			public readonly List<ImpactedFeatNodeState> ImpactedNodes =
 				new List<ImpactedFeatNodeState>();
 			public readonly Dictionary<string, ImpactedFeatNodeState> ImpactedNodeLookup =
@@ -36,15 +36,15 @@ namespace Erelia.Battle
 			public bool RewardsResolved { get; set; }
 		}
 
-		[NonSerialized] private readonly Dictionary<Erelia.Core.Creature.Instance.Model, CreatureBattleState> stateByCreature =
-			new Dictionary<Erelia.Core.Creature.Instance.Model, CreatureBattleState>();
-		[NonSerialized] private readonly List<Erelia.Battle.BattleResultEntryData> resultEntries =
-			new List<Erelia.Battle.BattleResultEntryData>();
-		[NonSerialized] private readonly List<Erelia.Battle.BattleResultCreatureData> creatureResults =
-			new List<Erelia.Battle.BattleResultCreatureData>();
+		[NonSerialized] private readonly Dictionary<Erelia.Core.Creature.Instance.CreatureInstance, CreatureBattleState> stateByCreature =
+			new Dictionary<Erelia.Core.Creature.Instance.CreatureInstance, CreatureBattleState>();
+		[NonSerialized] private readonly List<Erelia.Battle.BattleResultEntry> resultEntries =
+			new List<Erelia.Battle.BattleResultEntry>();
+		[NonSerialized] private readonly List<Erelia.Battle.BattleResultCreature> creatureResults =
+			new List<Erelia.Battle.BattleResultCreature>();
 
-		public IReadOnlyList<Erelia.Battle.BattleResultEntryData> ResultEntries => resultEntries;
-		public IReadOnlyList<Erelia.Battle.BattleResultCreatureData> CreatureResults => creatureResults;
+		public IReadOnlyList<Erelia.Battle.BattleResultEntry> ResultEntries => resultEntries;
+		public IReadOnlyList<Erelia.Battle.BattleResultCreature> CreatureResults => creatureResults;
 
 		public void Reset()
 		{
@@ -154,13 +154,13 @@ namespace Erelia.Battle
 			resultEntries.Clear();
 			creatureResults.Clear();
 
-			Erelia.Core.Creature.Instance.Model[] slots = playerTeam?.Slots;
+			Erelia.Core.Creature.Instance.CreatureInstance[] slots = playerTeam?.Slots;
 			if (HasAnyCreatureSlot(slots))
 			{
 				int slotCount = Mathf.Max(Erelia.Core.Creature.Team.DefaultSize, slots.Length);
 				for (int i = 0; i < slotCount; i++)
 				{
-					Erelia.Core.Creature.Instance.Model creature = i < slots.Length ? slots[i] : null;
+					Erelia.Core.Creature.Instance.CreatureInstance creature = i < slots.Length ? slots[i] : null;
 					creatureResults.Add(BuildCreatureResult(i, creature, playerUnits));
 				}
 
@@ -174,7 +174,7 @@ namespace Erelia.Battle
 			}
 		}
 
-		private static bool HasAnyCreatureSlot(Erelia.Core.Creature.Instance.Model[] slots)
+		private static bool HasAnyCreatureSlot(Erelia.Core.Creature.Instance.CreatureInstance[] slots)
 		{
 			if (slots == null || slots.Length == 0)
 			{
@@ -183,7 +183,7 @@ namespace Erelia.Battle
 
 			for (int i = 0; i < slots.Length; i++)
 			{
-				Erelia.Core.Creature.Instance.Model creature = slots[i];
+				Erelia.Core.Creature.Instance.CreatureInstance creature = slots[i];
 				if (creature != null && !creature.IsEmpty)
 				{
 					return true;
@@ -222,7 +222,7 @@ namespace Erelia.Battle
 			return null;
 		}
 
-		private CreatureBattleState GetTrackedState(Erelia.Core.Creature.Instance.Model creature)
+		private CreatureBattleState GetTrackedState(Erelia.Core.Creature.Instance.CreatureInstance creature)
 		{
 			if (creature == null || !stateByCreature.TryGetValue(creature, out CreatureBattleState state))
 			{
@@ -232,7 +232,7 @@ namespace Erelia.Battle
 			return state;
 		}
 
-		private CreatureBattleState GetOrCreateState(Erelia.Core.Creature.Instance.Model creature)
+		private CreatureBattleState GetOrCreateState(Erelia.Core.Creature.Instance.CreatureInstance creature)
 		{
 			if (creature == null)
 			{
@@ -345,9 +345,9 @@ namespace Erelia.Battle
 			state.RewardsResolved = true;
 		}
 
-		private Erelia.Battle.BattleResultCreatureData BuildCreatureResult(
+		private Erelia.Battle.BattleResultCreature BuildCreatureResult(
 			int slotIndex,
-			Erelia.Core.Creature.Instance.Model creature,
+			Erelia.Core.Creature.Instance.CreatureInstance creature,
 			IReadOnlyList<Erelia.Battle.Unit.Presenter> playerUnits)
 		{
 			if (creature == null || creature.IsEmpty)
@@ -359,7 +359,7 @@ namespace Erelia.Battle
 			CreatureBattleState state = GetOrCreateState(creature);
 			ResolvePendingRewards(state);
 
-			var entries = new List<Erelia.Battle.BattleResultEntryData>();
+			var entries = new List<Erelia.Battle.BattleResultEntry>();
 			if (state != null)
 			{
 				for (int i = 0; i < state.ImpactedNodes.Count; i++)
@@ -370,7 +370,7 @@ namespace Erelia.Battle
 						continue;
 					}
 
-					Erelia.Battle.BattleResultEntryData entry = BuildResultEntry(unit, creature, impactedState);
+					Erelia.Battle.BattleResultEntry entry = BuildResultEntry(unit, creature, impactedState);
 					entries.Add(entry);
 					resultEntries.Add(entry);
 				}
@@ -378,12 +378,12 @@ namespace Erelia.Battle
 
 			if (entries.Count == 0)
 			{
-				Erelia.Battle.BattleResultEntryData emptyEntry = BuildNoProgressEntry();
+				Erelia.Battle.BattleResultEntry emptyEntry = BuildNoProgressEntry();
 				entries.Add(emptyEntry);
 				resultEntries.Add(emptyEntry);
 			}
 
-			return new Erelia.Battle.BattleResultCreatureData(
+			return new Erelia.Battle.BattleResultCreature(
 				slotIndex,
 				ResolveCreatureName(unit, creature, slotIndex),
 				ResolveCreatureIcon(creature),
@@ -391,25 +391,25 @@ namespace Erelia.Battle
 				entries.ToArray());
 		}
 
-		private static Erelia.Battle.BattleResultCreatureData BuildEmptyCreatureResult(int slotIndex)
+		private static Erelia.Battle.BattleResultCreature BuildEmptyCreatureResult(int slotIndex)
 		{
-			return new Erelia.Battle.BattleResultCreatureData(
+			return new Erelia.Battle.BattleResultCreature(
 				slotIndex,
 				string.Empty,
 				null,
 				false,
-				Array.Empty<Erelia.Battle.BattleResultEntryData>());
+				Array.Empty<Erelia.Battle.BattleResultEntry>());
 		}
 
-		private static Erelia.Battle.BattleResultEntryData BuildResultEntry(
+		private static Erelia.Battle.BattleResultEntry BuildResultEntry(
 			Erelia.Battle.Unit.Presenter unit,
-			Erelia.Core.Creature.Instance.Model creature,
+			Erelia.Core.Creature.Instance.CreatureInstance creature,
 			ImpactedFeatNodeState impactedState)
 		{
 			Erelia.Core.Creature.FeatNode node = impactedState?.Node;
 			if (node == null)
 			{
-				return new Erelia.Battle.BattleResultEntryData(
+				return new Erelia.Battle.BattleResultEntry(
 					Color.white,
 					"Unknown Feat",
 					"Unknown feat impact",
@@ -435,7 +435,7 @@ namespace Erelia.Battle
 				? $"Completed {currentValue}/{node.RequiredValue}"
 				: $"{currentValue}/{node.RequiredValue}";
 
-			return new Erelia.Battle.BattleResultEntryData(
+			return new Erelia.Battle.BattleResultEntry(
 				ResolveAccentColor(node, impactedState.CompletedThisBattle),
 				node.DisplayName,
 				description,
@@ -443,9 +443,9 @@ namespace Erelia.Battle
 				progressLabel);
 		}
 
-		private static Erelia.Battle.BattleResultEntryData BuildNoProgressEntry()
+		private static Erelia.Battle.BattleResultEntry BuildNoProgressEntry()
 		{
-			return new Erelia.Battle.BattleResultEntryData(
+			return new Erelia.Battle.BattleResultEntry(
 				new Color(0.62f, 0.67f, 0.75f, 1f),
 				"No Feat Progress",
 				"No active feat node gained progress for this creature during the fight.",
@@ -550,7 +550,7 @@ namespace Erelia.Battle
 
 		private static Erelia.Battle.Unit.Presenter FindPresenterForCreature(
 			IReadOnlyList<Erelia.Battle.Unit.Presenter> playerUnits,
-			Erelia.Core.Creature.Instance.Model creature)
+			Erelia.Core.Creature.Instance.CreatureInstance creature)
 		{
 			if (playerUnits == null || creature == null)
 			{
@@ -569,27 +569,14 @@ namespace Erelia.Battle
 			return null;
 		}
 
-		private static Sprite ResolveCreatureIcon(Erelia.Core.Creature.Instance.Model creature)
+		private static Sprite ResolveCreatureIcon(Erelia.Core.Creature.Instance.CreatureInstance creature)
 		{
-			if (creature == null || creature.IsEmpty)
-			{
-				return null;
-			}
-
-			Erelia.Core.Creature.SpeciesRegistry registry = Erelia.Core.Creature.SpeciesRegistry.Instance;
-			if (registry != null &&
-				registry.TryGet(creature.SpeciesId, out Erelia.Core.Creature.Species species) &&
-				species != null)
-			{
-				return species.Icon;
-			}
-
-			return null;
+			return creature != null && !creature.IsEmpty ? creature.Icon : null;
 		}
 
 		private static string ResolveCreatureName(
 			Erelia.Battle.Unit.Presenter unit,
-			Erelia.Core.Creature.Instance.Model creature,
+			Erelia.Core.Creature.Instance.CreatureInstance creature,
 			int slotIndex)
 		{
 			if (!string.IsNullOrEmpty(creature?.DisplayName))
@@ -611,3 +598,4 @@ namespace Erelia.Battle
 		}
 	}
 }
+

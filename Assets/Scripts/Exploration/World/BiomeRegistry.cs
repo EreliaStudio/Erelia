@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,7 +14,7 @@ namespace Erelia.Exploration.World
 		{
 			public BiomeType Type;
 
-			public BiomeData Data;
+			public Biome Biome;
 		}
 
 		[SerializeField] private List<Entry> entries = new List<Entry>();
@@ -23,10 +23,10 @@ namespace Erelia.Exploration.World
 
 		[SerializeField] private string encounterRegistryResourcePath = "Encounter/EncounterRegistry";
 
-		[NonSerialized] private readonly Dictionary<BiomeType, BiomeData> biomes =
-			new Dictionary<BiomeType, BiomeData>();
+		[NonSerialized] private readonly Dictionary<BiomeType, Biome> biomes =
+			new Dictionary<BiomeType, Biome>();
 
-		public IReadOnlyDictionary<BiomeType, BiomeData> Biomes => biomes;
+		public IReadOnlyDictionary<BiomeType, Biome> Biomes => biomes;
 
 		public IReadOnlyList<Entry> Entries => entries;
 
@@ -45,28 +45,29 @@ namespace Erelia.Exploration.World
 			for (int i = 0; i < entries.Count; i++)
 			{
 				Entry entry = entries[i];
-				if (entry.Data == null)
+				if (entry.Biome == null)
 				{
 					continue;
 				}
 
-				biomes[entry.Type] = entry.Data;
+				biomes[entry.Type] = entry.Biome;
 			}
 		}
 
-		public void Register(BiomeType type, BiomeData data)
+		public void Register(BiomeType type, Biome biome)
 		{
-			if (data == null)
+			if (biome == null)
 			{
 				return;
 			}
 
-			biomes[type] = data;
+			biomes[type] = biome;
 		}
 
-		public bool TryGet(BiomeType type, out BiomeData data)
+		public bool TryGet(BiomeType type, out Biome biome)
 		{
-			return biomes.TryGetValue(type, out data);
+			return biomes.TryGetValue(type, out biome);
 		}
 	}
 }
+

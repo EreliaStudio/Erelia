@@ -5,7 +5,7 @@ Setup contains scene-level bootstrapping for battles. It binds battle data to pr
 and positions the player relative to the board.
 
 ## Contents
-- `Loader`: reads `Erelia.Core.Context` and assigns the battle board to the presenter.
+- `Loader`: reads `Erelia.Core.GameContext` and assigns the battle board to the presenter.
 
 ## Adding Or Extending
 1. Add new scene-level bindings in `Loader` when additional presenters need data.

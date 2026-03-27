@@ -12,7 +12,7 @@ namespace Erelia.Battle.Board
 		private static readonly Vector3 DefaultPositiveZOffset = new Vector3(0.5f, 1f, 1f);
 		private static readonly Vector3 DefaultNegativeZOffset = new Vector3(0.5f, 1f, 0f);
 
-		public static bool IsInsideBoard(Erelia.Battle.Board.Model board, Vector3Int coordinate)
+		public static bool IsInsideBoard(Erelia.Battle.Board.BattleBoardState board, Vector3Int coordinate)
 		{
 			return board != null &&
 				coordinate.x >= 0 && coordinate.x < board.SizeX &&
@@ -21,7 +21,7 @@ namespace Erelia.Battle.Board
 		}
 
 		public static bool TryResolveWorldPosition(
-			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.BattleBoardState board,
 			Erelia.Battle.Board.Presenter boardPresenter,
 			Vector3Int targetCell,
 			out Vector3 worldPosition)
@@ -35,7 +35,7 @@ namespace Erelia.Battle.Board
 		}
 
 		public static bool TryResolveWorldPosition(
-			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.BattleBoardState board,
 			Erelia.Battle.Board.Presenter boardPresenter,
 			Vector3Int targetCell,
 			Erelia.Battle.Voxel.CardinalPoint point,
@@ -62,7 +62,7 @@ namespace Erelia.Battle.Board
 		}
 
 		public static bool TryResolveMovementStepWorldPositions(
-			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.BattleBoardState board,
 			Erelia.Battle.Board.Presenter boardPresenter,
 			Vector3Int currentCell,
 			Vector3Int nextCell,
@@ -82,7 +82,7 @@ namespace Erelia.Battle.Board
 		}
 
 		public static bool TryCanTraverseMovementStep(
-			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.BattleBoardState board,
 			Vector3Int currentCell,
 			Vector3Int nextCell,
 			float maximumVerticalGap,
@@ -157,7 +157,7 @@ namespace Erelia.Battle.Board
 		}
 
 		private static bool TryResolveMovementTransitionLocalPositions(
-			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.BattleBoardState board,
 			Vector3Int currentCell,
 			Vector3Int nextCell,
 			out Vector3 currentExitLocalPosition,
@@ -175,7 +175,7 @@ namespace Erelia.Battle.Board
 		}
 
 		private static bool TryResolveLocalPosition(
-			Erelia.Battle.Board.Model board,
+			Erelia.Battle.Board.BattleBoardState board,
 			Vector3Int targetCell,
 			Erelia.Battle.Voxel.CardinalPoint point,
 			out Vector3 localPosition)
@@ -205,15 +205,14 @@ namespace Erelia.Battle.Board
 				return ResolveDefaultOffset(point);
 			}
 
-			if (!Erelia.Exploration.World.VoxelRegistry.Instance.TryGet(cell.Id, out Erelia.Core.VoxelKit.Definition definition))
+			if (!Erelia.Exploration.World.VoxelCatalog.Instance.TryGet(cell.Id, out Erelia.Core.Voxel.VoxelDefinition definition))
 			{
 				return ResolveDefaultOffset(point);
 			}
 
-			if (definition is Erelia.Battle.Voxel.Definition battleDefinition &&
-				battleDefinition.MaskShape != null)
+			if (definition.MaskShape != null)
 			{
-				return battleDefinition.MaskShape.GetCardinalPoint(
+				return definition.MaskShape.GetCardinalPoint(
 					point,
 					cell.Orientation,
 					cell.FlipOrientation);
@@ -241,3 +240,5 @@ namespace Erelia.Battle.Board
 		}
 	}
 }
+
+

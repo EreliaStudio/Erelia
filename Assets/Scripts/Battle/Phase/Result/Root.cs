@@ -35,9 +35,9 @@ namespace Erelia.Battle.Phase.Result
 				return;
 			}
 
-			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
+			Erelia.Battle.BattleState battleData = Erelia.Core.GameContext.Instance.Battle;
 			battleData?.FeatProgressTracker.FinalizeBattle(
-				Erelia.Core.Context.Instance.SystemData?.PlayerTeam,
+				Erelia.Core.GameContext.Instance.PlayerParty?.PlayerTeam,
 				battleData.PlayerUnits);
 			battleResultHud.CloseRequested -= HandleCloseRequested;
 			battleResultHud.CloseRequested += HandleCloseRequested;
@@ -94,3 +94,4 @@ namespace Erelia.Battle.Phase.Result
 		}
 	}
 }
+

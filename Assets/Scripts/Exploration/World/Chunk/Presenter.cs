@@ -1,14 +1,14 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Erelia.Exploration.World.Chunk
 {
 	public sealed class Presenter
 	{
-		private readonly Erelia.Exploration.World.Chunk.Model model;
+		private readonly Erelia.Exploration.World.Chunk.ChunkData model;
 
 		private readonly Erelia.Exploration.World.Chunk.View view;
 
-		public Presenter(Erelia.Exploration.World.Chunk.Model model, Erelia.Exploration.World.Chunk.View view)
+		public Presenter(Erelia.Exploration.World.Chunk.ChunkData model, Erelia.Exploration.World.Chunk.View view)
 		{
 			this.model = model;
 			this.view = view;
@@ -35,7 +35,7 @@ namespace Erelia.Exploration.World.Chunk
 			RebuildMeshes();
 		}
 
-		private void OnValidated(Erelia.Exploration.World.Chunk.Model validatedModel)
+		private void OnValidated(Erelia.Exploration.World.Chunk.ChunkData validatedModel)
 		{
 			RebuildMeshes();
 		}
@@ -47,10 +47,10 @@ namespace Erelia.Exploration.World.Chunk
 				return;
 			}
 
-			Erelia.Core.VoxelKit.Registry registry = Erelia.Exploration.World.VoxelRegistry.Instance;
+			Erelia.Core.Voxel.VoxelRegistry registry = Erelia.Exploration.World.VoxelCatalog.Instance;
 
-			view.SetRenderMesh(Erelia.Core.VoxelKit.Mesher.BuildRenderMesh(model.Cells, registry, Erelia.Core.VoxelKit.Mesher.AnyVoxelPredicate));
-			view.SetCollisionMesh(Erelia.Core.VoxelKit.Mesher.BuildCollisionMesh(model.Cells, registry, Erelia.Core.VoxelKit.Mesher.OnlyObstacleVoxelPredicate));
+			view.SetRenderMesh(Erelia.Core.Voxel.Mesher.BuildRenderMesh(model.Cells, registry, Erelia.Core.Voxel.Mesher.AnyVoxelPredicate));
+			view.SetCollisionMesh(Erelia.Core.Voxel.Mesher.BuildCollisionMesh(model.Cells, registry, Erelia.Core.Voxel.Mesher.OnlyObstacleVoxelPredicate));
 
 		}
 
@@ -73,4 +73,6 @@ namespace Erelia.Exploration.World.Chunk
 
 	}
 }
+
+
 

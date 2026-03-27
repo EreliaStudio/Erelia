@@ -47,17 +47,17 @@ namespace Erelia.Core.Encounter
 				return;
 			}
 
-			RegistryData data = JsonUtility.FromJson<RegistryData>(json);
-			if (data == null || data.Encounters == null)
+			EncounterRegistryFile registryFile = JsonUtility.FromJson<EncounterRegistryFile>(json);
+			if (registryFile == null || registryFile.Encounters == null)
 			{
 				Debug.LogWarning("[EncounterTableRegistry] Failed to parse registry JSON.");
 				isLoaded = true;
 				return;
 			}
 
-			for (int i = 0; i < data.Encounters.Count; i++)
+			for (int i = 0; i < registryFile.Encounters.Count; i++)
 			{
-				Entry entry = data.Encounters[i];
+				Entry entry = registryFile.Encounters[i];
 				if (entry == null || string.IsNullOrEmpty(entry.Path))
 				{
 					continue;
@@ -105,7 +105,7 @@ namespace Erelia.Core.Encounter
 		}
 
 		[System.Serializable]
-		private sealed class RegistryData
+		private sealed class EncounterRegistryFile
 		{
 			public List<Entry> Encounters = new List<Entry>();
 		}

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,35 +9,35 @@ namespace Erelia.Battle.Voxel.ShapeType
 	{
 		private const float Height = 0.5f;
 
-		protected override Dictionary<Erelia.Core.VoxelKit.FlipOrientation, List<Erelia.Core.VoxelKit.Face>> ConstructMaskFaces()
+		protected override Dictionary<Erelia.Core.Voxel.FlipOrientation, List<Erelia.Core.Voxel.Face>> ConstructMaskFaces()
 		{
 			const float maskOffset = 0.01f;
 
-			var faces = new List<Erelia.Core.VoxelKit.Face>
+			var faces = new List<Erelia.Core.Voxel.Face>
 			{
-				Erelia.Core.VoxelKit.Utils.Geometry.CreateRectangle(
-					new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, Height + maskOffset, 0f), TileUV = new Vector2(0f, 0f) },
-					new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, Height + maskOffset, 0f), TileUV = new Vector2(1f, 0f) },
-					new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, Height + maskOffset, 1f), TileUV = new Vector2(1f, 1f) },
-					new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, Height + maskOffset, 1f), TileUV = new Vector2(0f, 1f) })
+				Erelia.Core.Voxel.Utils.Geometry.CreateRectangle(
+					new Erelia.Core.Voxel.Face.Vertex { Position = new Vector3(0f, Height + maskOffset, 0f), TileUV = new Vector2(0f, 0f) },
+					new Erelia.Core.Voxel.Face.Vertex { Position = new Vector3(1f, Height + maskOffset, 0f), TileUV = new Vector2(1f, 0f) },
+					new Erelia.Core.Voxel.Face.Vertex { Position = new Vector3(1f, Height + maskOffset, 1f), TileUV = new Vector2(1f, 1f) },
+					new Erelia.Core.Voxel.Face.Vertex { Position = new Vector3(0f, Height + maskOffset, 1f), TileUV = new Vector2(0f, 1f) })
 			};
 
-			var flippedFaces = new List<Erelia.Core.VoxelKit.Face>();
-			Erelia.Core.VoxelKit.Face top = Erelia.Core.VoxelKit.Utils.Geometry.CreateRectangle(
-				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, 1f + maskOffset, 0f), TileUV = new Vector2(0f, 0f) },
-				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, 1f + maskOffset, 0f), TileUV = new Vector2(1f, 0f) },
-				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(1f, 1f + maskOffset, 1f), TileUV = new Vector2(1f, 1f) },
-				new Erelia.Core.VoxelKit.Face.Vertex { Position = new Vector3(0f, 1f + maskOffset, 1f), TileUV = new Vector2(0f, 1f) });
+			var flippedFaces = new List<Erelia.Core.Voxel.Face>();
+			Erelia.Core.Voxel.Face top = Erelia.Core.Voxel.Utils.Geometry.CreateRectangle(
+				new Erelia.Core.Voxel.Face.Vertex { Position = new Vector3(0f, 1f + maskOffset, 0f), TileUV = new Vector2(0f, 0f) },
+				new Erelia.Core.Voxel.Face.Vertex { Position = new Vector3(1f, 1f + maskOffset, 0f), TileUV = new Vector2(1f, 0f) },
+				new Erelia.Core.Voxel.Face.Vertex { Position = new Vector3(1f, 1f + maskOffset, 1f), TileUV = new Vector2(1f, 1f) },
+				new Erelia.Core.Voxel.Face.Vertex { Position = new Vector3(0f, 1f + maskOffset, 1f), TileUV = new Vector2(0f, 1f) });
 			flippedFaces.Add(top);
 
-			return new Dictionary<Erelia.Core.VoxelKit.FlipOrientation, List<Erelia.Core.VoxelKit.Face>>
+			return new Dictionary<Erelia.Core.Voxel.FlipOrientation, List<Erelia.Core.Voxel.Face>>
 			{
-				[Erelia.Core.VoxelKit.FlipOrientation.PositiveY] = faces,
-				[Erelia.Core.VoxelKit.FlipOrientation.NegativeY] = flippedFaces
+				[Erelia.Core.Voxel.FlipOrientation.PositiveY] = faces,
+				[Erelia.Core.Voxel.FlipOrientation.NegativeY] = flippedFaces
 			};
 		}
 
-		protected override Dictionary<Erelia.Core.VoxelKit.FlipOrientation, CardinalPointSet> ConstructCardinalPoints()
+		protected override Dictionary<Erelia.Core.Voxel.FlipOrientation, CardinalPointSet> ConstructCardinalPoints()
 		{
 			CardinalPointSet nonFlipped = new CardinalPointSet(
 				positiveX: new Vector3(1f, Height, 0.5f),
@@ -53,12 +53,13 @@ namespace Erelia.Battle.Voxel.ShapeType
 				negativeZ: new Vector3(0.5f, 1f, 0f),
 				stationary: new Vector3(0.5f, 1f, 0.5f));
 
-			return new Dictionary<Erelia.Core.VoxelKit.FlipOrientation, CardinalPointSet>
+			return new Dictionary<Erelia.Core.Voxel.FlipOrientation, CardinalPointSet>
 			{
-				[Erelia.Core.VoxelKit.FlipOrientation.PositiveY] = nonFlipped,
-				[Erelia.Core.VoxelKit.FlipOrientation.NegativeY] = flipped
+				[Erelia.Core.Voxel.FlipOrientation.PositiveY] = nonFlipped,
+				[Erelia.Core.Voxel.FlipOrientation.NegativeY] = flipped
 			};
 		}
 	}
 }
+
 

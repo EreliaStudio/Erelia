@@ -65,7 +65,7 @@ namespace Erelia.Battle.Phase.ResolveAction
 
 		private void ExecuteMovement(Erelia.Battle.DecidedAction decidedAction)
 		{
-			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
+			Erelia.Battle.BattleState battleData = Erelia.Core.GameContext.Instance.Battle;
 			Erelia.Battle.Unit.Presenter actor = decidedAction.Actor;
 			if (battleData == null ||
 				battleData.Board == null ||
@@ -89,9 +89,9 @@ namespace Erelia.Battle.Phase.ResolveAction
 
 		private void ExecuteAttack(Erelia.Battle.DecidedAction decidedAction)
 		{
-			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
+			Erelia.Battle.BattleState battleData = Erelia.Core.GameContext.Instance.Battle;
 			Erelia.Battle.Unit.Presenter actor = decidedAction.Actor;
-			Erelia.Battle.Attack.Definition attack = decidedAction.Attack;
+			Erelia.Battle.Attack attack = decidedAction.Attack;
 			if (battleData == null ||
 				actor == null ||
 				attack == null ||
@@ -103,7 +103,7 @@ namespace Erelia.Battle.Phase.ResolveAction
 				return;
 			}
 
-			Erelia.Battle.Attack.TargetingUtility.ApplyAttack(
+			Erelia.Battle.TargetingUtility.ApplyAttack(
 				battleData,
 				actor,
 				attack,
@@ -114,7 +114,7 @@ namespace Erelia.Battle.Phase.ResolveAction
 
 		private void ExecuteEndTurn(Erelia.Battle.DecidedAction decidedAction)
 		{
-			Erelia.Battle.Data battleData = Erelia.Core.Context.Instance.BattleData;
+			Erelia.Battle.BattleState battleData = Erelia.Core.GameContext.Instance.Battle;
 			Erelia.Battle.Unit.Presenter actor = decidedAction.Actor;
 			actor?.EndTurn();
 			battleData?.FeatProgressTracker.RegisterTurnEnded(actor, battleData.Units);
@@ -150,7 +150,7 @@ namespace Erelia.Battle.Phase.ResolveAction
 			}
 
 			if (TryGetBattleOutcome(
-				Erelia.Core.Context.Instance.BattleData,
+				Erelia.Core.GameContext.Instance.Battle,
 				out Erelia.Battle.Orchestrator.BattleOutcome outcome))
 			{
 				activeOrchestrator.SubmitBattleOutcome(outcome);
@@ -171,7 +171,7 @@ namespace Erelia.Battle.Phase.ResolveAction
 		}
 
 		private static bool TryGetBattleOutcome(
-			Erelia.Battle.Data battleData,
+			Erelia.Battle.BattleState battleData,
 			out Erelia.Battle.Orchestrator.BattleOutcome outcome)
 		{
 			if (battleData == null)
@@ -219,3 +219,6 @@ namespace Erelia.Battle.Phase.ResolveAction
 		}
 	}
 }
+
+
+

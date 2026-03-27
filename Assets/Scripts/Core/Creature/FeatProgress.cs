@@ -169,17 +169,14 @@ namespace Erelia.Core.Creature
 
 	public static class FeatProgression
 	{
-		public static Erelia.Core.Creature.FeatBoard GetBoard(Erelia.Core.Creature.Instance.Model creature)
+		public static Erelia.Core.Creature.FeatBoard GetBoard(Erelia.Core.Creature.Instance.CreatureInstance creature)
 		{
 			if (creature == null || creature.IsEmpty)
 			{
 				return null;
 			}
 
-			Erelia.Core.Creature.SpeciesRegistry registry = Erelia.Core.Creature.SpeciesRegistry.Instance;
-			if (registry == null ||
-				!registry.TryGet(creature.SpeciesId, out Erelia.Core.Creature.Species species) ||
-				species == null)
+			if (!creature.TryGetSpecies(out Erelia.Core.Creature.Species species) || species == null)
 			{
 				return null;
 			}
@@ -187,7 +184,7 @@ namespace Erelia.Core.Creature
 			return species.FeatBoard;
 		}
 
-		public static void EnsureInitialized(Erelia.Core.Creature.Instance.Model creature)
+		public static void EnsureInitialized(Erelia.Core.Creature.Instance.CreatureInstance creature)
 		{
 			if (creature == null || creature.IsEmpty)
 			{
@@ -214,7 +211,7 @@ namespace Erelia.Core.Creature
 			}
 		}
 
-		public static bool IsBoardComplete(Erelia.Core.Creature.Instance.Model creature)
+		public static bool IsBoardComplete(Erelia.Core.Creature.Instance.CreatureInstance creature)
 		{
 			EnsureInitialized(creature);
 
@@ -237,7 +234,7 @@ namespace Erelia.Core.Creature
 		}
 
 		public static bool TryGetPrimaryActiveNode(
-			Erelia.Core.Creature.Instance.Model creature,
+			Erelia.Core.Creature.Instance.CreatureInstance creature,
 			out Erelia.Core.Creature.FeatNode node,
 			out Erelia.Core.Creature.FeatNodeProgress progress)
 		{
@@ -263,7 +260,7 @@ namespace Erelia.Core.Creature
 		}
 
 		public static int RegisterDamageDealt(
-			Erelia.Core.Creature.Instance.Model creature,
+			Erelia.Core.Creature.Instance.CreatureInstance creature,
 			int amount,
 			List<Erelia.Core.Creature.FeatNode> impactedNodes = null,
 			List<Erelia.Core.Creature.FeatNode> completedNodes = null)
@@ -278,7 +275,7 @@ namespace Erelia.Core.Creature
 		}
 
 		public static int RegisterHealingDone(
-			Erelia.Core.Creature.Instance.Model creature,
+			Erelia.Core.Creature.Instance.CreatureInstance creature,
 			int amount,
 			List<Erelia.Core.Creature.FeatNode> impactedNodes = null,
 			List<Erelia.Core.Creature.FeatNode> completedNodes = null)
@@ -293,7 +290,7 @@ namespace Erelia.Core.Creature
 		}
 
 		public static int RegisterTurnEndedAwayFromEnemies(
-			Erelia.Core.Creature.Instance.Model creature,
+			Erelia.Core.Creature.Instance.CreatureInstance creature,
 			int closestEnemyDistance,
 			List<Erelia.Core.Creature.FeatNode> impactedNodes = null,
 			List<Erelia.Core.Creature.FeatNode> completedNodes = null)
@@ -313,7 +310,7 @@ namespace Erelia.Core.Creature
 		}
 
 		public static bool TryApplyReward(
-			Erelia.Core.Creature.Instance.Model creature,
+			Erelia.Core.Creature.Instance.CreatureInstance creature,
 			Erelia.Core.Creature.FeatNode node,
 			out string rewardSummary)
 		{
@@ -402,7 +399,7 @@ namespace Erelia.Core.Creature
 		}
 
 		private static int RegisterProgress(
-			Erelia.Core.Creature.Instance.Model creature,
+			Erelia.Core.Creature.Instance.CreatureInstance creature,
 			Erelia.Core.Creature.FeatObjectiveKind objectiveKind,
 			int amount,
 			int closestEnemyDistance,
