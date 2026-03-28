@@ -523,11 +523,9 @@ public class FeatBoardEditorWindow : EditorWindow
 		FeatNode node = GetSelectedNode();
 		if (node == null)
 		{
-			EditorGUILayout.HelpBox("Select a node on the grid to edit its contents, position and links.", MessageType.Info);
+			EditorGUILayout.HelpBox("Select a node on the grid to edit its contents and position.", MessageType.Info);
 			return;
 		}
-
-		EditorGUILayout.HelpBox("Shift+Click another node on the grid to toggle a link. Link Mode keeps the link source active for multiple connections.", MessageType.Info);
 
 		EditorGUI.BeginChangeCheck();
 		string newDisplayName = EditorGUILayout.TextField("Display Name", node.DisplayName);
@@ -579,12 +577,6 @@ public class FeatBoardEditorWindow : EditorWindow
 		EditorGUILayout.Space(6f);
 		EditorGUILayout.BeginHorizontal();
 
-		if (GUILayout.Button(linkSourceNodeId == node.Id ? "Stop Link Mode" : "Start Link Mode"))
-		{
-			linkSourceNodeId = linkSourceNodeId == node.Id ? null : node.Id;
-			Repaint();
-		}
-
 		if (GUILayout.Button("Snap Position"))
 		{
 			ApplySpeciesChange("Snap Feat Node Position", () => node.Position = SnapToGrid(node.Position));
@@ -604,55 +596,9 @@ public class FeatBoardEditorWindow : EditorWindow
 		}
 
 		EditorGUILayout.Space(10f);
-		DrawLinksInspector(node);
-		EditorGUILayout.Space(10f);
 		DrawRequirementsInspector(node);
 		EditorGUILayout.Space(10f);
 		DrawRewardsInspector(node);
-	}
-
-	private void DrawLinksInspector(FeatNode node)
-	{
-		EditorGUILayout.LabelField("Links", EditorStyles.boldLabel);
-
-		if (node.NeighbourNodeIds == null || node.NeighbourNodeIds.Count == 0)
-		{
-			EditorGUILayout.HelpBox("No links yet.", MessageType.None);
-			return;
-		}
-
-		string linkToRemove = null;
-
-		for (int i = 0; i < node.NeighbourNodeIds.Count; i++)
-		{
-			string neighbourId = node.NeighbourNodeIds[i];
-			FeatNode neighbour = GetNodeById(neighbourId);
-			string label = neighbour != null ? GetNodeLabel(neighbour) : neighbourId;
-
-			EditorGUILayout.BeginHorizontal();
-
-			if (GUILayout.Button(label, EditorStyles.miniButtonLeft))
-			{
-				selectedNodeId = neighbourId;
-				if (neighbour != null)
-				{
-					FrameNode(neighbour);
-				}
-			}
-
-			if (GUILayout.Button("Unlink", EditorStyles.miniButtonRight, GUILayout.Width(58f)))
-			{
-				linkToRemove = neighbourId;
-			}
-
-			EditorGUILayout.EndHorizontal();
-		}
-
-		if (!string.IsNullOrEmpty(linkToRemove))
-		{
-			ToggleLink(node.Id, linkToRemove);
-			GUIUtility.ExitGUI();
-		}
 	}
 
 	private void DrawRepeatTimeField(FeatNode node)

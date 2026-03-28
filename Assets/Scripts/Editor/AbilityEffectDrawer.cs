@@ -7,6 +7,19 @@ public class EffectDrawer : PropertyDrawer
 	private enum EffectKind
 	{
 		None,
+		ApplyStatus,
+		RemoveStatus,
+		Revive,
+		Cleanse,
+		ResourceChange,
+		MoveStatus,
+		SwapPosition,
+		Teleport,
+		StealResource,
+		ConsumeStatus,
+		ChangeForm,
+		AdjustTurnBarTime,
+		AdjustTurnBarDuration,
 		DamageTarget,
 		HealTarget
 	}
@@ -166,6 +179,45 @@ public class EffectDrawer : PropertyDrawer
 	{
 		switch (p_kind)
 		{
+			case EffectKind.ApplyStatus:
+				return new ApplyStatusEffect();
+
+			case EffectKind.RemoveStatus:
+				return new RemoveStatusEffect();
+
+			case EffectKind.Revive:
+				return new ReviveEffect();
+
+			case EffectKind.Cleanse:
+				return new CleanseEffect();
+
+			case EffectKind.ResourceChange:
+				return new ResourceChangeEffect();
+
+			case EffectKind.MoveStatus:
+				return new MoveStatus();
+
+			case EffectKind.SwapPosition:
+				return new SwapPositionEffect();
+
+			case EffectKind.Teleport:
+				return new TeleportEffect();
+
+			case EffectKind.StealResource:
+				return new StealResourceEffect();
+
+			case EffectKind.ConsumeStatus:
+				return new ConsumeStatus();
+
+			case EffectKind.ChangeForm:
+				return new ChangeFormEffect();
+
+			case EffectKind.AdjustTurnBarTime:
+				return new AdjustTurnBarTimeEffect();
+
+			case EffectKind.AdjustTurnBarDuration:
+				return new AdjustTurnBarDurationEffect();
+
 			case EffectKind.DamageTarget:
 				return new DamageTargetEffect();
 
@@ -184,6 +236,45 @@ public class EffectDrawer : PropertyDrawer
 
 		if (value == null)
 			return EffectKind.None;
+
+		if (value is ApplyStatusEffect)
+			return EffectKind.ApplyStatus;
+
+		if (value is RemoveStatusEffect)
+			return EffectKind.RemoveStatus;
+
+		if (value is ReviveEffect)
+			return EffectKind.Revive;
+
+		if (value is CleanseEffect)
+			return EffectKind.Cleanse;
+
+		if (value is ResourceChangeEffect)
+			return EffectKind.ResourceChange;
+
+		if (value is MoveStatus)
+			return EffectKind.MoveStatus;
+
+		if (value is SwapPositionEffect)
+			return EffectKind.SwapPosition;
+
+		if (value is TeleportEffect)
+			return EffectKind.Teleport;
+
+		if (value is StealResourceEffect)
+			return EffectKind.StealResource;
+
+		if (value is ConsumeStatus)
+			return EffectKind.ConsumeStatus;
+
+		if (value is ChangeFormEffect)
+			return EffectKind.ChangeForm;
+
+		if (value is AdjustTurnBarTimeEffect)
+			return EffectKind.AdjustTurnBarTime;
+
+		if (value is AdjustTurnBarDurationEffect)
+			return EffectKind.AdjustTurnBarDuration;
 
 		if (value is DamageTargetEffect)
 			return EffectKind.DamageTarget;
