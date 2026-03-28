@@ -4,7 +4,6 @@ using UnityEngine;
 [CustomEditor(typeof(Ability))]
 public class AbilityEditor : Editor
 {
-	private SerializedProperty _nameProperty;
 	private SerializedProperty _costProperty;
 	private SerializedProperty _rangeTypeProperty;
 	private SerializedProperty _rangeValueProperty;
@@ -24,7 +23,6 @@ public class AbilityEditor : Editor
 
 	private void OnEnable()
 	{
-		_nameProperty = serializedObject.FindProperty("Name");
 		_costProperty = serializedObject.FindProperty("Cost");
 		_rangeTypeProperty = serializedObject.FindProperty("RangeType");
 		_rangeValueProperty = serializedObject.FindProperty("RangeValue");
@@ -47,7 +45,6 @@ public class AbilityEditor : Editor
 
 		DrawScriptField();
 
-		EditorGUILayout.PropertyField(_nameProperty);
 		EditorGUILayout.PropertyField(_costProperty);
 
 		EditorGUILayout.Space(4);

@@ -2,13 +2,13 @@ using System;
 using UnityEngine;
 
 [Serializable]
-public abstract class AbilityEffect
+public abstract class Effect
 {
 	public abstract void Apply(CreatureUnit caster, CreatureUnit target);
 }
 
 [Serializable]
-public class DamageTargetEffect : AbilityEffect
+public class DamageTargetEffect : Effect
 {
 	public int Value = 1;
 
@@ -19,7 +19,7 @@ public class DamageTargetEffect : AbilityEffect
 }
 
 [Serializable]
-public class HealTargetEffect : AbilityEffect
+public class HealTargetEffect : Effect
 {
 	public int Value = 1;
 

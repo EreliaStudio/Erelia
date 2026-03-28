@@ -1781,7 +1781,7 @@ public class FeatBoardEditorWindow : EditorWindow
 				return (bonusStats.Value >= 0 ? "+" : string.Empty) + bonusStats.Value + " " + ObjectNames.NicifyVariableName(bonusStats.Attribute.ToString());
 
 			case AbilityReward abilityReward:
-				return "Ability: " + (abilityReward.Ability != null ? abilityReward.Ability.Name : "Unassigned");
+				return "Ability: " + (abilityReward.Ability != null ? abilityReward.Ability.name : "Unassigned");
 
 			case PassiveReward passiveReward:
 				return "Passive: " + (string.IsNullOrWhiteSpace(passiveReward.PassiveName) ? "Unnamed" : passiveReward.PassiveName);

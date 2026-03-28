@@ -858,7 +858,7 @@ Values:
 - WhenAUnitLeavesTheAffectedCells: fire when a unit exits the affected area.
 - WhenTheBoardEffectIsTriggered: fire when the board effect explicitly resolves its trigger behavior.
 
-## Ability.UnitEffectHookPoint
+## Ability.StatusHookPoint
 Kind: Enum
 Represents when a unit effect rule is evaluated on its owner.
 Values:

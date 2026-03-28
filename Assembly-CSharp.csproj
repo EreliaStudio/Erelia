@@ -56,6 +56,7 @@
     <Compile Include="Assets\Scripts\RangeType.cs" />
     <Compile Include="Assets\Scripts\AreaOfEffectType.cs" />
     <Compile Include="Assets\Scripts\FeatNodeKind.cs" />
+    <Compile Include="Assets\Scripts\Effect.cs" />
     <Compile Include="Assets\Scripts\CreatureUnit.cs" />
     <Compile Include="Assets\Scripts\AbilityCost.cs" />
     <Compile Include="Assets\Scripts\AttributeType.cs" />
@@ -63,8 +64,9 @@
     <Compile Include="Assets\Scripts\FeatRequirement.cs" />
     <Compile Include="Assets\Scripts\StatValue.cs" />
     <Compile Include="Assets\Scripts\FeatBoard.cs" />
-    <Compile Include="Assets\Scripts\AbilityEffect.cs" />
+    <Compile Include="Assets\Scripts\StatusHookPoint.cs" />
     <Compile Include="Assets\Scripts\FeatNode.cs" />
+    <Compile Include="Assets\Scripts\Status.cs" />
     <Compile Include="Assets\Scripts\Ability.cs" />
     <Compile Include="Assets\Scripts\FeatReward.cs" />
     <Compile Include="Assets\Scripts\Attributes.cs" />

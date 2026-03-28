@@ -4,8 +4,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewAbility", menuName = "Game/Ability")]
 public class Ability : ScriptableObject
 {
-	public string Name = "UnnamedAbility";
-
 	public AbilityCost Cost = new AbilityCost();
 	public RangeType RangeType = RangeType.Circle;
 	public int RangeValue = 10;
@@ -15,5 +13,5 @@ public class Ability : ScriptableObject
 
 	public TargetProfile TargetProfile = TargetProfile.Everything;
 
-	[SerializeReference] public List<AbilityEffect> Effects = new List<AbilityEffect>();
+	[SerializeReference] public List<Effect> Effects = new List<Effect>();
 }

@@ -1,8 +1,8 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomPropertyDrawer(typeof(AbilityEffect), true)]
-public class AbilityEffectDrawer : PropertyDrawer
+[CustomPropertyDrawer(typeof(Effect), true)]
+public class EffectDrawer : PropertyDrawer
 {
 	private enum EffectKind
 	{
@@ -162,7 +162,7 @@ public class AbilityEffectDrawer : PropertyDrawer
 		return totalHeight;
 	}
 
-	private AbilityEffect CreateEffectInstance(EffectKind p_kind)
+	private Effect CreateEffectInstance(EffectKind p_kind)
 	{
 		switch (p_kind)
 		{

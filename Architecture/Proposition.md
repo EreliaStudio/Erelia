@@ -1306,7 +1306,7 @@ Examples:
 - when a unit leaves the affected cells
 - when the board effect is triggered
 
-## Ability.UnitEffectHookPoint
+## Ability.StatusHookPoint
 Represents the enum-like list of hook points used by unit effect rules.
 
 Examples:
