@@ -8,6 +8,8 @@ public class CreatureSpecies : ScriptableObject
 	public string DisplayName= "UnnamedSpecies";
 	public Attributes Attributes = new Attributes();
 	public List<Ability> Abilities = new List<Ability>();
+
+	[HideInInspector]
 	public FeatBoard FeatBoard = new FeatBoard();
 
 	[SerializedDictionary("Form Name", "Form Data")]

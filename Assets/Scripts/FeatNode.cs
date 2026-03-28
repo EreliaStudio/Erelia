@@ -14,6 +14,8 @@ public class FeatNode
 
 	public List<string> NeighbourNodeIds = new List<string>();
 
+	public int NumberOfRepeatTime = 0;
+
 	[SerializeReference]
 	public List<FeatRequirement> Requirements = new List<FeatRequirement>();
 

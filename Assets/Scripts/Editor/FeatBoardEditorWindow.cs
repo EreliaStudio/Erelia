@@ -15,6 +15,13 @@ public class FeatBoardEditorWindow : EditorWindow
 
 	private static readonly Vector2 NodeGridSize = new Vector2(5f, 4f);
 
+	private enum RepeatTimeMode
+	{
+		Unique,
+		Repeatable,
+		Infinite
+	}
+
 	private static readonly Type[] RewardTypes =
 	{
 		typeof(BonusStatsReward),
@@ -533,8 +540,17 @@ public class FeatBoardEditorWindow : EditorWindow
 		FeatNodeKind newKind = (FeatNodeKind)EditorGUILayout.EnumPopup("Kind", node.Kind);
 		if (EditorGUI.EndChangeCheck())
 		{
-			ApplySpeciesChange("Change Feat Node Kind", () => node.Kind = newKind);
+			ApplySpeciesChange("Change Feat Node Kind", () =>
+			{
+				node.Kind = newKind;
+				if (node.Kind != FeatNodeKind.StatsBonus)
+				{
+					node.NumberOfRepeatTime = 0;
+				}
+			});
 		}
+
+		DrawRepeatTimeField(node);
 
 		EditorGUI.BeginChangeCheck();
 		Vector2 newPosition = EditorGUILayout.Vector2Field("Grid Position", node.Position);
@@ -636,6 +652,62 @@ public class FeatBoardEditorWindow : EditorWindow
 		{
 			ToggleLink(node.Id, linkToRemove);
 			GUIUtility.ExitGUI();
+		}
+	}
+
+	private void DrawRepeatTimeField(FeatNode node)
+	{
+		if (node.Kind != FeatNodeKind.StatsBonus)
+		{
+			return;
+		}
+
+		RepeatTimeMode currentMode = GetRepeatTimeMode(node.NumberOfRepeatTime);
+		int newRepeatTime = node.NumberOfRepeatTime;
+
+		Rect rect = EditorGUILayout.GetControlRect();
+		rect = EditorGUI.PrefixLabel(rect, new GUIContent("Repeat time"));
+
+		Rect modeRect = rect;
+		Rect valueRect = Rect.zero;
+		if (currentMode == RepeatTimeMode.Repeatable)
+		{
+			const float spacing = 4f;
+			float halfWidth = (rect.width - spacing) * 0.5f;
+			modeRect.width = halfWidth;
+			valueRect = new Rect(modeRect.xMax + spacing, rect.y, rect.width - halfWidth - spacing, rect.height);
+		}
+
+		EditorGUI.BeginChangeCheck();
+		RepeatTimeMode newMode = (RepeatTimeMode)EditorGUI.EnumPopup(modeRect, currentMode);
+
+		if (newMode != currentMode)
+		{
+			switch (newMode)
+			{
+				case RepeatTimeMode.Unique:
+					newRepeatTime = 0;
+					break;
+
+				case RepeatTimeMode.Repeatable:
+					newRepeatTime = node.NumberOfRepeatTime > 0 ? node.NumberOfRepeatTime : 1;
+					break;
+
+				case RepeatTimeMode.Infinite:
+					newRepeatTime = -1;
+					break;
+			}
+		}
+
+		if (newMode == RepeatTimeMode.Repeatable)
+		{
+			int displayedValue = newRepeatTime > 0 ? newRepeatTime : 1;
+			newRepeatTime = Mathf.Max(1, EditorGUI.IntField(valueRect, displayedValue));
+		}
+
+		if (EditorGUI.EndChangeCheck())
+		{
+			ApplySpeciesChange("Edit Feat Repeat Time", () => node.NumberOfRepeatTime = newRepeatTime);
 		}
 	}
 
@@ -1444,6 +1516,13 @@ public class FeatBoardEditorWindow : EditorWindow
 				node.Rewards = new List<FeatReward>();
 				changed = true;
 			}
+
+			if (node.Kind != FeatNodeKind.StatsBonus && node.NumberOfRepeatTime != 0)
+			{
+				RecordUndoIfNeeded();
+				node.NumberOfRepeatTime = 0;
+				changed = true;
+			}
 		}
 
 		Dictionary<string, FeatNode> lookup = BuildNodeLookup(nodes);
@@ -1625,7 +1704,7 @@ public class FeatBoardEditorWindow : EditorWindow
 	{
 		List<string> lines = new List<string>
 		{
-			"Grid " + FormatVector2(node.Position),
+			FormatGridLine(node),
 			string.Empty,
 			"Requirement"
 		};
@@ -1660,6 +1739,37 @@ public class FeatBoardEditorWindow : EditorWindow
 		if (!hasEntries)
 		{
 			lines.Add("None");
+		}
+	}
+
+	private RepeatTimeMode GetRepeatTimeMode(int numberOfRepeatTime)
+	{
+		if (numberOfRepeatTime < 0)
+		{
+			return RepeatTimeMode.Infinite;
+		}
+
+		return numberOfRepeatTime > 0 ? RepeatTimeMode.Repeatable : RepeatTimeMode.Unique;
+	}
+
+	private string FormatGridLine(FeatNode node)
+	{
+		string gridText = "Grid " + FormatVector2(node.Position);
+		if (node == null || node.Kind != FeatNodeKind.StatsBonus)
+		{
+			return gridText;
+		}
+
+		switch (GetRepeatTimeMode(node.NumberOfRepeatTime))
+		{
+			case RepeatTimeMode.Repeatable:
+				return gridText + " | Repeat " + node.NumberOfRepeatTime + " times";
+
+			case RepeatTimeMode.Infinite:
+				return gridText + " | Infinite";
+
+			default:
+				return gridText + " | Unique";
 		}
 	}
 
