@@ -59,6 +59,7 @@
     <Compile Include="Assets\Scripts\Effect.cs" />
     <Compile Include="Assets\Scripts\CreatureUnit.cs" />
     <Compile Include="Assets\Scripts\AbilityCost.cs" />
+    <Compile Include="Assets\Scripts\FeatBoardProgress.cs" />
     <Compile Include="Assets\Scripts\AttributeType.cs" />
     <Compile Include="Assets\Scripts\CreatureSpecies.cs" />
     <Compile Include="Assets\Scripts\FeatRequirement.cs" />
@@ -70,6 +71,7 @@
     <Compile Include="Assets\Scripts\Ability.cs" />
     <Compile Include="Assets\Scripts\FeatReward.cs" />
     <Compile Include="Assets\Scripts\Attributes.cs" />
+    <Compile Include="Assets\Scripts\FeatNodeProgress.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

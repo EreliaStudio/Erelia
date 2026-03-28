@@ -1186,7 +1186,10 @@ public class FeatBoardEditorWindow : EditorWindow
 			Position = boardPosition
 		};
 
-		ApplySpeciesChange("Add Feat Node", () => GetNodes().Add(newNode));
+		ApplySpeciesChange("Add Feat Node", () =>
+		{
+			species.FeatBoard.NodesByGuid[newNode.Id] = newNode;
+		});
 
 		selectedNodeId = newNode.Id;
 		linkSourceNodeId = null;
@@ -1200,7 +1203,6 @@ public class FeatBoardEditorWindow : EditorWindow
 			return;
 		}
 
-		List<FeatNode> nodes = GetNodes();
 		FeatNode node = GetNodeById(nodeId);
 		if (node == null)
 		{
@@ -1209,6 +1211,7 @@ public class FeatBoardEditorWindow : EditorWindow
 
 		ApplySpeciesChange("Delete Feat Node", () =>
 		{
+			List<FeatNode> nodes = GetNodes();
 			for (int i = 0; i < nodes.Count; i++)
 			{
 				if (nodes[i] != null && nodes[i].NeighbourNodeIds != null)
@@ -1217,7 +1220,7 @@ public class FeatBoardEditorWindow : EditorWindow
 				}
 			}
 
-			nodes.Remove(node);
+		species.FeatBoard.NodesByGuid.Remove(nodeId);
 		});
 
 		if (selectedNodeId == nodeId)
@@ -1405,22 +1408,23 @@ public class FeatBoardEditorWindow : EditorWindow
 			changed = true;
 		}
 
-		if (species.FeatBoard.Nodes == null)
+		if (species.FeatBoard.NodesByGuid == null)
 		{
 			RecordUndoIfNeeded();
-			species.FeatBoard.Nodes = new List<FeatNode>();
+			species.FeatBoard.NodesByGuid = new AYellowpaper.SerializedCollections.SerializedDictionary<string, FeatNode>();
 			changed = true;
 		}
 
-		List<FeatNode> nodes = species.FeatBoard.Nodes;
+		List<FeatNode> nodes = GetNodes();
+		bool rebuildNodeDictionary = species.FeatBoard.NodesByGuid == null || species.FeatBoard.NodesByGuid.Count != nodes.Count;
 
 		for (int i = nodes.Count - 1; i >= 0; i--)
 		{
 			if (nodes[i] == null)
 			{
-				RecordUndoIfNeeded();
 				nodes.RemoveAt(i);
 				changed = true;
+				rebuildNodeDictionary = true;
 			}
 		}
 
@@ -1438,6 +1442,7 @@ public class FeatBoardEditorWindow : EditorWindow
 				RecordUndoIfNeeded();
 				node.Id = Guid.NewGuid().ToString();
 				changed = true;
+				rebuildNodeDictionary = true;
 			}
 
 			usedIds.Add(node.Id);
@@ -1469,6 +1474,14 @@ public class FeatBoardEditorWindow : EditorWindow
 				node.NumberOfRepeatTime = 0;
 				changed = true;
 			}
+		}
+
+		if (rebuildNodeDictionary)
+		{
+			RecordUndoIfNeeded();
+			species.FeatBoard.NodesByGuid = BuildNodeDictionary(nodes);
+			changed = true;
+			nodes = GetNodes();
 		}
 
 		Dictionary<string, FeatNode> lookup = BuildNodeLookup(nodes);
@@ -1547,12 +1560,12 @@ public class FeatBoardEditorWindow : EditorWindow
 			species.FeatBoard = new FeatBoard();
 		}
 
-		if (species.FeatBoard.Nodes == null)
+		if (species.FeatBoard.NodesByGuid == null)
 		{
-			species.FeatBoard.Nodes = new List<FeatNode>();
+			species.FeatBoard.NodesByGuid = new AYellowpaper.SerializedCollections.SerializedDictionary<string, FeatNode>();
 		}
 
-		return species.FeatBoard.Nodes;
+		return new List<FeatNode>(species.FeatBoard.NodesByGuid.Values);
 	}
 
 	private FeatNode GetSelectedNode()
@@ -1567,17 +1580,14 @@ public class FeatBoardEditorWindow : EditorWindow
 			return null;
 		}
 
-		List<FeatNode> nodes = GetNodes();
-		for (int i = 0; i < nodes.Count; i++)
+		if (species == null || species.FeatBoard == null || species.FeatBoard.NodesByGuid == null)
 		{
-			FeatNode node = nodes[i];
-			if (node != null && node.Id == nodeId)
-			{
-				return node;
-			}
+			return null;
 		}
 
-		return null;
+		return species.FeatBoard.NodesByGuid.TryGetValue(nodeId, out FeatNode node)
+			? node
+			: null;
 	}
 
 	private FeatNode GetNodeAtCanvasPosition(Vector2 localPosition)
@@ -1810,6 +1820,22 @@ public class FeatBoardEditorWindow : EditorWindow
 		}
 
 		return lookup;
+	}
+
+	private AYellowpaper.SerializedCollections.SerializedDictionary<string, FeatNode> BuildNodeDictionary(List<FeatNode> nodes)
+	{
+		AYellowpaper.SerializedCollections.SerializedDictionary<string, FeatNode> dictionary = new AYellowpaper.SerializedCollections.SerializedDictionary<string, FeatNode>();
+
+		for (int i = 0; i < nodes.Count; i++)
+		{
+			FeatNode node = nodes[i];
+			if (node != null && !string.IsNullOrWhiteSpace(node.Id))
+			{
+				dictionary[node.Id] = node;
+			}
+		}
+
+		return dictionary;
 	}
 
 	private void EnsureStyles()
