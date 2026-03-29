@@ -10,6 +10,6 @@ public class CreatureSpecies : ScriptableObject
 	[HideInInspector]
 	public FeatBoard FeatBoard = new FeatBoard();
 
-	[SerializedDictionary("Form Name", "Form Data")]
+	[SerializedDictionary("Form Id", "Form Data")]
 	public SerializedDictionary<string, CreatureForm> Forms = new SerializedDictionary<string, CreatureForm>();
 };

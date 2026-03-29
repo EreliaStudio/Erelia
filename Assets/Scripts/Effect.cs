@@ -135,10 +135,11 @@ public class ConsumeStatus : Effect
 [Serializable]
 public class ChangeFormEffect : Effect
 {
-	public CreatureForm FormToApply;
+	public string FormID;
 	
 	public override void Apply(CreatureUnit caster, CreatureUnit target)
 	{
+		
 	}
 }
 
@@ -171,7 +172,7 @@ public class DamageTargetEffect : Effect
 
 	public override void Apply(CreatureUnit caster, CreatureUnit target)
 	{
-		target.Attributes.Health -= Value;
+		
 	}
 }
 
@@ -182,6 +183,6 @@ public class HealTargetEffect : Effect
 
 	public override void Apply(CreatureUnit caster, CreatureUnit target)
 	{
-		target.Attributes.Health += Value;
+		
 	}
 }

@@ -56,18 +56,26 @@
     <Compile Include="Assets\Scripts\FeatNodeKind.cs" />
     <Compile Include="Assets\Scripts\Effect.cs" />
     <Compile Include="Assets\Scripts\CreatureUnit.cs" />
+    <Compile Include="Assets\Scripts\Trainer.cs" />
     <Compile Include="Assets\Scripts\AbilityCost.cs" />
     <Compile Include="Assets\Scripts\FeatBoardProgress.cs" />
+    <Compile Include="Assets\Scripts\AICondition.cs" />
+    <Compile Include="Assets\Scripts\Player.cs" />
+    <Compile Include="Assets\Scripts\Badge.cs" />
+    <Compile Include="Assets\Scripts\AIBehaviour.cs" />
     <Compile Include="Assets\Scripts\CreatureSpecies.cs" />
     <Compile Include="Assets\Scripts\FeatRequirement.cs" />
     <Compile Include="Assets\Scripts\FeatBoard.cs" />
     <Compile Include="Assets\Scripts\StatusHookPoint.cs" />
+    <Compile Include="Assets\Scripts\AIRule.cs" />
     <Compile Include="Assets\Scripts\FeatNode.cs" />
+    <Compile Include="Assets\Scripts\AIDecision.cs" />
     <Compile Include="Assets\Scripts\Status.cs" />
     <Compile Include="Assets\Scripts\Ability.cs" />
     <Compile Include="Assets\Scripts\FeatReward.cs" />
     <Compile Include="Assets\Scripts\Attributes.cs" />
     <Compile Include="Assets\Scripts\FeatNodeProgress.cs" />
+    <Compile Include="Assets\Scripts\TrainerReward.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
