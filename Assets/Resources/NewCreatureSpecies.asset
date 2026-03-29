@@ -14,15 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CreatureSpecies
   DisplayName: UnnamedSpecies
   Attributes:
-    Health:
-      Value: 10
-      Maximum: 10
-    ActionPoints:
-      Value: 6
-      Maximum: 6
-    Movement:
-      Value: 3
-      Maximum: 3
+    Health: 10
+    ActionPoints: 6
+    Movement: 3
     Attack: 0
     Armor: 0
     Magic: 0

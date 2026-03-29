@@ -8,6 +8,19 @@ public abstract class FeatReward
 [Serializable]
 public class BonusStatsReward : FeatReward
 {
+	public enum AttributeType
+	{
+		Health,
+		ActionPoints,
+		Movement,
+		Attack,
+		Armor,
+		Magic,
+		Resistance,
+		BonusRange,
+		Recovery
+	};
+
 	public AttributeType Attribute;
 	public int Value = 1;
 }

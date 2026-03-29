@@ -787,7 +787,7 @@ public class FeatBoardEditorWindow : EditorWindow
 		{
 			case BonusStatsReward bonusStats:
 				EditorGUI.BeginChangeCheck();
-				AttributeType attribute = (AttributeType)EditorGUILayout.EnumPopup("Attribute", bonusStats.Attribute);
+				BonusStatsReward.AttributeType attribute = (BonusStatsReward.AttributeType)EditorGUILayout.EnumPopup("Attribute", bonusStats.Attribute);
 				if (EditorGUI.EndChangeCheck())
 				{
 					ApplySpeciesChange("Edit Feat Reward", () => bonusStats.Attribute = attribute);

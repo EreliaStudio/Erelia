@@ -16,11 +16,13 @@ MonoBehaviour:
   Cost:
     Ability: 1
     Movement: 0
-  RangeType: 0
-  RangeValue: 10
-  RequireLineOfSight: 1
-  AreaOfEffectType: 1
-  AreaOfEffectValue: 1
+  Range:
+    Type: 0
+    Value: 10
+    RequireLineOfSight: 1
+  AreaOfEffect:
+    Type: 1
+    Value: 1
   TargetProfile: 0
   Effects:
   - rid: -2

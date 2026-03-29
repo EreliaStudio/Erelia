@@ -3,11 +3,11 @@ using System;
 [Serializable]
 public class Attributes
 {
-	public StatValue Health = new StatValue(10);
+	public int Health = 10;
 
-	public StatValue ActionPoints = new StatValue(6);
+	public int ActionPoints = 6;
 
-	public StatValue Movement = new StatValue(3);
+	public int Movement = 3;
 
 	public int Attack = 0;
 	public int Armor = 0;
@@ -15,5 +15,5 @@ public class Attributes
 	public int Resistance = 0;
 	public int BonusRange = 0;
 
-	public float Recovery = 4.0f;
+	public float Recovery = 4f;
 };

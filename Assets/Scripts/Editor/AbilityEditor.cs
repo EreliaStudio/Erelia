@@ -24,11 +24,13 @@ public class AbilityEditor : Editor
 	private void OnEnable()
 	{
 		_costProperty = serializedObject.FindProperty("Cost");
-		_rangeTypeProperty = serializedObject.FindProperty("RangeType");
-		_rangeValueProperty = serializedObject.FindProperty("RangeValue");
-		_requireLineOfSightProperty = serializedObject.FindProperty("RequireLineOfSight");
-		_areaOfEffectTypeProperty = serializedObject.FindProperty("AreaOfEffectType");
-		_areaOfEffectValueProperty = serializedObject.FindProperty("AreaOfEffectValue");
+		SerializedProperty rangeProperty = serializedObject.FindProperty("Range");
+		_rangeTypeProperty = rangeProperty.FindPropertyRelative("Type");
+		_rangeValueProperty = rangeProperty.FindPropertyRelative("Value");
+		_requireLineOfSightProperty = rangeProperty.FindPropertyRelative("RequireLineOfSight");
+		SerializedProperty areaOfEffectProperty = serializedObject.FindProperty("AreaOfEffect");
+		_areaOfEffectTypeProperty = areaOfEffectProperty.FindPropertyRelative("Type");
+		_areaOfEffectValueProperty = areaOfEffectProperty.FindPropertyRelative("Value");
 		_targetProfileProperty = serializedObject.FindProperty("TargetProfile");
 		_effectsProperty = serializedObject.FindProperty("Effects");
 	}

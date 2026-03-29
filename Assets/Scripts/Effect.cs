@@ -171,7 +171,7 @@ public class DamageTargetEffect : Effect
 
 	public override void Apply(CreatureUnit caster, CreatureUnit target)
 	{
-		target.Attributes.Health.Value -= Value;
+		target.Attributes.Health -= Value;
 	}
 }
 
@@ -182,6 +182,6 @@ public class HealTargetEffect : Effect
 
 	public override void Apply(CreatureUnit caster, CreatureUnit target)
 	{
-		target.Attributes.Health.Value += Value;
+		target.Attributes.Health += Value;
 	}
 }
