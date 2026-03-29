@@ -1,14 +1,11 @@
 using System;
+using System.Collections.Generic;
 
 [Serializable]
 public class Trainer
 {
-	public class Unit
-	{
-		CreatureUnit CreatureUnit;
-		AIBehaviour AIBehaviour;
-	};
-
-	public Unit[] Team = new Unit[6];
-	public TrainerReward Reward;
+	public EncounterDefinition Encounter;
+	public List<TrainerReward> Reward = new List<TrainerReward>();
+	public string BeforeFightDialogue = "";
+	public string AfterDefeatDialogue = "";
 };

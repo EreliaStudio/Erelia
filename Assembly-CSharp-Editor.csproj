@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Editor\AbilityCostDrawer.cs" />
     <Compile Include="Assets\Scripts\Editor\AbilityEditor.cs" />
+    <Compile Include="Assets\Scripts\Editor\AIRuleDrawer.cs" />
     <Compile Include="Assets\Scripts\Editor\CreatureSpecies.cs" />
     <Compile Include="Assets\Scripts\Editor\AbilityEffectDrawer.cs" />
     <Compile Include="Assets\Scripts\Editor\FeatBoardEditorWindow.cs" />
