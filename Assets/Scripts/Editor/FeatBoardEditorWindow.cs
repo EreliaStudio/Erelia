@@ -39,8 +39,8 @@ public class FeatBoardEditorWindow : EditorWindow
 	private static readonly List<FeatNode> EmptyNodeList = new List<FeatNode>();
 
 	private CreatureSpecies species;
-	private string selectedNodeId;
-	private string linkSourceNodeId;
+	private FeatNode selectedNode;
+	private FeatNode linkSourceNode;
 
 	private Vector2 canvasPan = new Vector2(320f, 220f);
 	private Vector2 lastCanvasSize = new Vector2(700f, 500f);
@@ -50,7 +50,7 @@ public class FeatBoardEditorWindow : EditorWindow
 	private bool snapToGrid = true;
 
 	private bool isDraggingNode;
-	private string draggedNodeId;
+	private FeatNode draggedNode;
 	private Vector2 dragNodeStart;
 	private Vector2 dragMouseStart;
 
@@ -133,9 +133,9 @@ public class FeatBoardEditorWindow : EditorWindow
 	private void SetSpecies(CreatureSpecies targetSpecies)
 	{
 		species = targetSpecies;
-		selectedNodeId = null;
-		linkSourceNodeId = null;
-		draggedNodeId = null;
+		selectedNode = null;
+		linkSourceNode = null;
+		draggedNode = null;
 		isDraggingNode = false;
 		isPanningCanvas = false;
 		inspectorScroll = Vector2.zero;
@@ -196,10 +196,10 @@ public class FeatBoardEditorWindow : EditorWindow
 			FeatNode selectedNode = GetSelectedNode();
 			using (new EditorGUI.DisabledScope(selectedNode == null))
 			{
-				string linkButtonLabel = linkSourceNodeId == selectedNodeId ? "Stop Link" : "Link Mode";
+				string linkButtonLabel = linkSourceNode == selectedNode ? "Stop Link" : "Link Mode";
 				if (GUI.Button(new Rect(x, y, 78f, height), linkButtonLabel, EditorStyles.toolbarButton))
 				{
-					linkSourceNodeId = linkSourceNodeId == selectedNodeId ? null : selectedNodeId;
+					linkSourceNode = linkSourceNode == selectedNode ? null : selectedNode;
 					Repaint();
 				}
 			}
@@ -215,10 +215,9 @@ public class FeatBoardEditorWindow : EditorWindow
 			}
 		}
 
-		if (!string.IsNullOrEmpty(linkSourceNodeId))
+		if (linkSourceNode != null)
 		{
-			FeatNode linkNode = GetNodeById(linkSourceNodeId);
-			string linkLabel = linkNode != null ? "Linking from: " + GetNodeLabel(linkNode) : "Link mode active";
+			string linkLabel = "Linking from: " + GetNodeLabel(linkSourceNode);
 			Vector2 size = EditorStyles.miniLabel.CalcSize(new GUIContent(linkLabel));
 			Rect infoRect = new Rect(rect.xMax - size.x - 18f, y + 1f, size.x + 10f, height);
 			GUI.Label(infoRect, linkLabel, EditorStyles.miniLabel);
@@ -314,26 +313,26 @@ public class FeatBoardEditorWindow : EditorWindow
 			return;
 		}
 
-		Dictionary<string, FeatNode> lookup = BuildNodeLookup(nodes);
+		Dictionary<FeatNode, int> indexLookup = BuildNodeIndexLookup(nodes);
 		Handles.BeginGUI();
 
 		for (int i = 0; i < nodes.Count; i++)
 		{
 			FeatNode node = nodes[i];
-			if (node == null || node.NeighbourNodeIds == null)
+			if (node == null || node.NeighbourNodes == null)
 			{
 				continue;
 			}
 
-			for (int j = 0; j < node.NeighbourNodeIds.Count; j++)
+			for (int j = 0; j < node.NeighbourNodes.Count; j++)
 			{
-				string neighbourId = node.NeighbourNodeIds[j];
-				if (!lookup.TryGetValue(neighbourId, out FeatNode neighbour))
+				FeatNode neighbour = node.NeighbourNodes[j];
+				if (neighbour == null || !indexLookup.TryGetValue(neighbour, out int neighbourIndex))
 				{
 					continue;
 				}
 
-				if (string.CompareOrdinal(node.Id, neighbour.Id) > 0)
+				if (neighbourIndex < i)
 				{
 					continue;
 				}
@@ -342,10 +341,10 @@ public class FeatBoardEditorWindow : EditorWindow
 				Vector3 to = GetNodeRect(neighbour).center;
 
 				bool isHighlighted =
-					node.Id == selectedNodeId ||
-					neighbour.Id == selectedNodeId ||
-					node.Id == linkSourceNodeId ||
-					neighbour.Id == linkSourceNodeId;
+					node == selectedNode ||
+					neighbour == selectedNode ||
+					node == linkSourceNode ||
+					neighbour == linkSourceNode;
 
 				Handles.color = isHighlighted
 					? new Color(1f, 0.94f, 0.5f, 0.95f)
@@ -388,8 +387,8 @@ public class FeatBoardEditorWindow : EditorWindow
 
 	private void DrawNodeCard(FeatNode node, Rect rect)
 	{
-		bool isSelected = node.Id == selectedNodeId;
-		bool isLinkSource = node.Id == linkSourceNodeId;
+		bool isSelected = node == selectedNode;
+		bool isLinkSource = node == linkSourceNode;
 
 		Color kindColor = GetNodeColor(node.Kind);
 		Color fillColor = Color.Lerp(kindColor, EditorGUIUtility.isProSkin ? new Color(0.14f, 0.14f, 0.14f) : Color.white, EditorGUIUtility.isProSkin ? 0.78f : 0.74f);
@@ -449,7 +448,7 @@ public class FeatBoardEditorWindow : EditorWindow
 		Rect hintRect = new Rect(14f, 14f, Mathf.Min(canvasSize.x - 28f, 510f), 58f);
 		EditorGUI.DrawRect(hintRect, EditorGUIUtility.isProSkin ? new Color(0f, 0f, 0f, 0.2f) : new Color(1f, 1f, 1f, 0.7f));
 
-		string hintText = string.IsNullOrEmpty(linkSourceNodeId)
+		string hintText = linkSourceNode == null
 			? "LMB select and drag  |  Shift+Click toggle link  |  Double-click empty space to add  |  Alt+LMB or MMB pan  |  Mouse wheel zoom"
 			: "Link mode: click another node to toggle a link, or click the source node again to cancel.";
 
@@ -569,11 +568,6 @@ public class FeatBoardEditorWindow : EditorWindow
 			ApplySpeciesChange("Change Feat Node Icon", () => node.Icon = newIcon);
 		}
 
-		using (new EditorGUI.DisabledScope(true))
-		{
-			EditorGUILayout.TextField("Id", node.Id);
-		}
-
 		EditorGUILayout.Space(6f);
 		EditorGUILayout.BeginHorizontal();
 
@@ -591,7 +585,7 @@ public class FeatBoardEditorWindow : EditorWindow
 
 		if (GUILayout.Button("Delete Node"))
 		{
-			RemoveNode(node.Id);
+			RemoveNode(node);
 			GUIUtility.ExitGUI();
 		}
 
@@ -812,10 +806,10 @@ public class FeatBoardEditorWindow : EditorWindow
 
 			case PassiveReward passiveReward:
 				EditorGUI.BeginChangeCheck();
-				string passiveName = EditorGUILayout.TextField("Passive Name", passiveReward.PassiveName);
+				Status passiveStatus = (Status)EditorGUILayout.ObjectField("Passive", passiveReward.Status, typeof(Status), false);
 				if (EditorGUI.EndChangeCheck())
 				{
-					ApplySpeciesChange("Edit Feat Reward", () => passiveReward.PassiveName = passiveName);
+					ApplySpeciesChange("Edit Feat Reward", () => passiveReward.Status = passiveStatus);
 				}
 				break;
 
@@ -950,21 +944,21 @@ public class FeatBoardEditorWindow : EditorWindow
 
 			FeatNode clickedNode = GetNodeAtCanvasPosition(localMouse);
 
-			if (!string.IsNullOrEmpty(linkSourceNodeId))
+			if (linkSourceNode != null)
 			{
 				if (clickedNode == null)
 				{
-					linkSourceNodeId = null;
+					linkSourceNode = null;
 				}
-				else if (clickedNode.Id == linkSourceNodeId)
+				else if (clickedNode == linkSourceNode)
 				{
-					linkSourceNodeId = null;
-					selectedNodeId = clickedNode.Id;
+					linkSourceNode = null;
+					selectedNode = clickedNode;
 				}
 				else
 				{
-					ToggleLink(linkSourceNodeId, clickedNode.Id);
-					selectedNodeId = clickedNode.Id;
+					ToggleLink(linkSourceNode, clickedNode);
+					selectedNode = clickedNode;
 				}
 
 				evt.Use();
@@ -973,7 +967,7 @@ public class FeatBoardEditorWindow : EditorWindow
 
 			if (clickedNode == null)
 			{
-				selectedNodeId = null;
+				selectedNode = null;
 
 				if (evt.clickCount == 2)
 				{
@@ -984,15 +978,15 @@ public class FeatBoardEditorWindow : EditorWindow
 				return;
 			}
 
-			if (evt.shift && !string.IsNullOrEmpty(selectedNodeId) && clickedNode.Id != selectedNodeId)
+			if (evt.shift && selectedNode != null && clickedNode != selectedNode)
 			{
-				ToggleLink(selectedNodeId, clickedNode.Id);
+				ToggleLink(selectedNode, clickedNode);
 				evt.Use();
 				return;
 			}
 
-			selectedNodeId = clickedNode.Id;
-			draggedNodeId = clickedNode.Id;
+			selectedNode = clickedNode;
+			draggedNode = clickedNode;
 			isDraggingNode = true;
 			dragNodeStart = clickedNode.Position;
 			dragMouseStart = localMouse;
@@ -1015,7 +1009,6 @@ public class FeatBoardEditorWindow : EditorWindow
 
 			if (isDraggingNode && evt.button == 0)
 			{
-				FeatNode draggedNode = GetNodeById(draggedNodeId);
 				if (draggedNode != null)
 				{
 					Vector2 deltaBoard = (localMouse - dragMouseStart) / GetScaledGridSize();
@@ -1039,7 +1032,7 @@ public class FeatBoardEditorWindow : EditorWindow
 			if (evt.button == 0 && isDraggingNode)
 			{
 				isDraggingNode = false;
-				draggedNodeId = null;
+				draggedNode = null;
 				evt.Use();
 				return;
 			}
@@ -1056,7 +1049,7 @@ public class FeatBoardEditorWindow : EditorWindow
 		{
 			if (evt.keyCode == KeyCode.Escape)
 			{
-				linkSourceNodeId = null;
+				linkSourceNode = null;
 				isDraggingNode = false;
 				isPanningCanvas = false;
 				Repaint();
@@ -1066,7 +1059,7 @@ public class FeatBoardEditorWindow : EditorWindow
 
 			if (evt.keyCode == KeyCode.Delete || evt.keyCode == KeyCode.Backspace)
 			{
-				RemoveNode(selectedNodeId);
+				RemoveNode(selectedNode);
 				evt.Use();
 				return;
 			}
@@ -1086,8 +1079,8 @@ public class FeatBoardEditorWindow : EditorWindow
 				return;
 			}
 
-			FeatNode selectedNode = GetSelectedNode();
-			if (selectedNode == null)
+			FeatNode currentSelectedNode = GetSelectedNode();
+			if (currentSelectedNode == null)
 			{
 				return;
 			}
@@ -1114,9 +1107,9 @@ public class FeatBoardEditorWindow : EditorWindow
 			{
 				ApplySpeciesChange("Move Feat Node", () =>
 				{
-					selectedNode.Position = snapToGrid
-						? SnapToGrid(selectedNode.Position + delta)
-						: selectedNode.Position + delta;
+					currentSelectedNode.Position = snapToGrid
+						? SnapToGrid(currentSelectedNode.Position + delta)
+						: currentSelectedNode.Position + delta;
 				});
 				evt.Use();
 			}
@@ -1130,18 +1123,18 @@ public class FeatBoardEditorWindow : EditorWindow
 
 		if (node != null)
 		{
-			menu.AddItem(new GUIContent("Select"), node.Id == selectedNodeId, () => selectedNodeId = node.Id);
-			menu.AddItem(new GUIContent(linkSourceNodeId == node.Id ? "Stop Link Mode" : "Start Link Mode"), false, () =>
+			menu.AddItem(new GUIContent("Select"), node == selectedNode, () => selectedNode = node);
+			menu.AddItem(new GUIContent(linkSourceNode == node ? "Stop Link Mode" : "Start Link Mode"), false, () =>
 			{
-				selectedNodeId = node.Id;
-				linkSourceNodeId = linkSourceNodeId == node.Id ? null : node.Id;
+				selectedNode = node;
+				linkSourceNode = linkSourceNode == node ? null : node;
 				Repaint();
 			});
 
-			if (!string.IsNullOrEmpty(selectedNodeId) && selectedNodeId != node.Id)
+			if (selectedNode != null && selectedNode != node)
 			{
-				string toggleLabel = AreLinked(selectedNodeId, node.Id) ? "Remove Link With Selected" : "Create Link With Selected";
-				menu.AddItem(new GUIContent(toggleLabel), false, () => ToggleLink(selectedNodeId, node.Id));
+				string toggleLabel = AreLinked(selectedNode, node) ? "Remove Link With Selected" : "Create Link With Selected";
+				menu.AddItem(new GUIContent(toggleLabel), false, () => ToggleLink(selectedNode, node));
 			}
 			else
 			{
@@ -1150,7 +1143,7 @@ public class FeatBoardEditorWindow : EditorWindow
 
 			menu.AddItem(new GUIContent("Frame Node"), false, () => FrameNode(node));
 			menu.AddSeparator(string.Empty);
-			menu.AddItem(new GUIContent("Delete Node"), false, () => RemoveNode(node.Id));
+			menu.AddItem(new GUIContent("Delete Node"), false, () => RemoveNode(node));
 		}
 		else
 		{
@@ -1188,23 +1181,17 @@ public class FeatBoardEditorWindow : EditorWindow
 
 		ApplySpeciesChange("Add Feat Node", () =>
 		{
-			species.FeatBoard.NodesByGuid[newNode.Id] = newNode;
+			species.FeatBoard.Nodes.Add(newNode);
 		});
 
-		selectedNodeId = newNode.Id;
-		linkSourceNodeId = null;
-		FrameNode(newNode);
+		selectedNode = newNode;
+		linkSourceNode = null;
+		Repaint();
 	}
 
-	private void RemoveNode(string nodeId)
+	private void RemoveNode(FeatNode node)
 	{
-		if (species == null || string.IsNullOrEmpty(nodeId))
-		{
-			return;
-		}
-
-		FeatNode node = GetNodeById(nodeId);
-		if (node == null)
+		if (species == null || node == null)
 		{
 			return;
 		}
@@ -1214,73 +1201,65 @@ public class FeatBoardEditorWindow : EditorWindow
 			List<FeatNode> nodes = GetNodes();
 			for (int i = 0; i < nodes.Count; i++)
 			{
-				if (nodes[i] != null && nodes[i].NeighbourNodeIds != null)
+				if (nodes[i] != null && nodes[i].NeighbourNodes != null)
 				{
-					nodes[i].NeighbourNodeIds.Remove(nodeId);
+					nodes[i].NeighbourNodes.Remove(node);
 				}
 			}
 
-		species.FeatBoard.NodesByGuid.Remove(nodeId);
+			species.FeatBoard.Nodes.Remove(node);
 		});
 
-		if (selectedNodeId == nodeId)
+		if (selectedNode == node)
 		{
-			selectedNodeId = null;
+			selectedNode = null;
 		}
 
-		if (linkSourceNodeId == nodeId)
+		if (linkSourceNode == node)
 		{
-			linkSourceNodeId = null;
+			linkSourceNode = null;
 		}
 	}
 
-	private void ToggleLink(string firstNodeId, string secondNodeId)
+	private void ToggleLink(FeatNode first, FeatNode second)
 	{
-		if (species == null || string.IsNullOrEmpty(firstNodeId) || string.IsNullOrEmpty(secondNodeId) || firstNodeId == secondNodeId)
+		if (species == null || first == null || second == null || first == second)
 		{
 			return;
 		}
 
-		FeatNode first = GetNodeById(firstNodeId);
-		FeatNode second = GetNodeById(secondNodeId);
-		if (first == null || second == null)
-		{
-			return;
-		}
-
-		bool currentlyLinked = AreLinked(firstNodeId, secondNodeId);
+		bool currentlyLinked = AreLinked(first, second);
 
 		ApplySpeciesChange(currentlyLinked ? "Remove Feat Link" : "Create Feat Link", () =>
 		{
 			if (currentlyLinked)
 			{
-				first.NeighbourNodeIds.Remove(secondNodeId);
-				second.NeighbourNodeIds.Remove(firstNodeId);
+				first.NeighbourNodes.Remove(second);
+				second.NeighbourNodes.Remove(first);
 			}
 			else
 			{
-				if (!first.NeighbourNodeIds.Contains(secondNodeId))
+				if (!first.NeighbourNodes.Contains(second))
 				{
-					first.NeighbourNodeIds.Add(secondNodeId);
+					first.NeighbourNodes.Add(second);
 				}
 
-				if (!second.NeighbourNodeIds.Contains(firstNodeId))
+				if (!second.NeighbourNodes.Contains(first))
 				{
-					second.NeighbourNodeIds.Add(firstNodeId);
+					second.NeighbourNodes.Add(first);
 				}
 			}
 		});
 	}
 
-	private bool AreLinked(string firstNodeId, string secondNodeId)
+	private bool AreLinked(FeatNode first, FeatNode second)
 	{
-		FeatNode first = GetNodeById(firstNodeId);
-		if (first == null || first.NeighbourNodeIds == null)
+		if (first == null || second == null || first.NeighbourNodes == null)
 		{
 			return false;
 		}
 
-		return first.NeighbourNodeIds.Contains(secondNodeId);
+		return first.NeighbourNodes.Contains(second);
 	}
 
 	private void FrameSelectedNode()
@@ -1408,27 +1387,25 @@ public class FeatBoardEditorWindow : EditorWindow
 			changed = true;
 		}
 
-		if (species.FeatBoard.NodesByGuid == null)
+		if (species.FeatBoard.Nodes == null)
 		{
 			RecordUndoIfNeeded();
-			species.FeatBoard.NodesByGuid = new AYellowpaper.SerializedCollections.SerializedDictionary<string, FeatNode>();
+			species.FeatBoard.Nodes = new List<FeatNode>();
 			changed = true;
 		}
 
 		List<FeatNode> nodes = GetNodes();
-		bool rebuildNodeDictionary = species.FeatBoard.NodesByGuid == null || species.FeatBoard.NodesByGuid.Count != nodes.Count;
 
 		for (int i = nodes.Count - 1; i >= 0; i--)
 		{
 			if (nodes[i] == null)
 			{
+				RecordUndoIfNeeded();
 				nodes.RemoveAt(i);
 				changed = true;
-				rebuildNodeDictionary = true;
 			}
 		}
 
-		HashSet<string> usedIds = new HashSet<string>(StringComparer.Ordinal);
 		for (int i = 0; i < nodes.Count; i++)
 		{
 			FeatNode node = nodes[i];
@@ -1437,20 +1414,10 @@ public class FeatBoardEditorWindow : EditorWindow
 				continue;
 			}
 
-			if (string.IsNullOrWhiteSpace(node.Id) || usedIds.Contains(node.Id))
+			if (node.NeighbourNodes == null)
 			{
 				RecordUndoIfNeeded();
-				node.Id = Guid.NewGuid().ToString();
-				changed = true;
-				rebuildNodeDictionary = true;
-			}
-
-			usedIds.Add(node.Id);
-
-			if (node.NeighbourNodeIds == null)
-			{
-				RecordUndoIfNeeded();
-				node.NeighbourNodeIds = new List<string>();
+				node.NeighbourNodes = new List<FeatNode>();
 				changed = true;
 			}
 
@@ -1476,33 +1443,25 @@ public class FeatBoardEditorWindow : EditorWindow
 			}
 		}
 
-		if (rebuildNodeDictionary)
-		{
-			RecordUndoIfNeeded();
-			species.FeatBoard.NodesByGuid = BuildNodeDictionary(nodes);
-			changed = true;
-			nodes = GetNodes();
-		}
-
-		Dictionary<string, FeatNode> lookup = BuildNodeLookup(nodes);
+		HashSet<FeatNode> nodeSet = new HashSet<FeatNode>(nodes);
 
 		for (int i = 0; i < nodes.Count; i++)
 		{
 			FeatNode node = nodes[i];
-			if (node == null || node.NeighbourNodeIds == null)
+			if (node == null || node.NeighbourNodes == null)
 			{
 				continue;
 			}
 
-			HashSet<string> uniqueNeighbours = new HashSet<string>(StringComparer.Ordinal);
-			for (int j = node.NeighbourNodeIds.Count - 1; j >= 0; j--)
+			HashSet<FeatNode> uniqueNeighbours = new HashSet<FeatNode>();
+			for (int j = node.NeighbourNodes.Count - 1; j >= 0; j--)
 			{
-				string neighbourId = node.NeighbourNodeIds[j];
+				FeatNode neighbour = node.NeighbourNodes[j];
 				bool isInvalid =
-					string.IsNullOrWhiteSpace(neighbourId) ||
-					neighbourId == node.Id ||
-					!lookup.ContainsKey(neighbourId) ||
-					!uniqueNeighbours.Add(neighbourId);
+					neighbour == null ||
+					neighbour == node ||
+					!nodeSet.Contains(neighbour) ||
+					!uniqueNeighbours.Add(neighbour);
 
 				if (!isInvalid)
 				{
@@ -1510,7 +1469,7 @@ public class FeatBoardEditorWindow : EditorWindow
 				}
 
 				RecordUndoIfNeeded();
-				node.NeighbourNodeIds.RemoveAt(j);
+				node.NeighbourNodes.RemoveAt(j);
 				changed = true;
 			}
 		}
@@ -1518,28 +1477,44 @@ public class FeatBoardEditorWindow : EditorWindow
 		for (int i = 0; i < nodes.Count; i++)
 		{
 			FeatNode node = nodes[i];
-			if (node == null || node.NeighbourNodeIds == null)
+			if (node == null || node.NeighbourNodes == null)
 			{
 				continue;
 			}
 
-			for (int j = 0; j < node.NeighbourNodeIds.Count; j++)
+			for (int j = 0; j < node.NeighbourNodes.Count; j++)
 			{
-				string neighbourId = node.NeighbourNodeIds[j];
-				if (!lookup.TryGetValue(neighbourId, out FeatNode neighbour))
+				FeatNode neighbour = node.NeighbourNodes[j];
+				if (neighbour == null || neighbour.NeighbourNodes == null)
 				{
 					continue;
 				}
 
-				if (neighbour.NeighbourNodeIds.Contains(node.Id))
+				if (neighbour.NeighbourNodes.Contains(node))
 				{
 					continue;
 				}
 
 				RecordUndoIfNeeded();
-				neighbour.NeighbourNodeIds.Add(node.Id);
+				neighbour.NeighbourNodes.Add(node);
 				changed = true;
 			}
+		}
+
+		if (selectedNode != null && !nodeSet.Contains(selectedNode))
+		{
+			selectedNode = null;
+		}
+
+		if (linkSourceNode != null && !nodeSet.Contains(linkSourceNode))
+		{
+			linkSourceNode = null;
+		}
+
+		if (draggedNode != null && !nodeSet.Contains(draggedNode))
+		{
+			draggedNode = null;
+			isDraggingNode = false;
 		}
 
 		if (changed)
@@ -1560,34 +1535,17 @@ public class FeatBoardEditorWindow : EditorWindow
 			species.FeatBoard = new FeatBoard();
 		}
 
-		if (species.FeatBoard.NodesByGuid == null)
+		if (species.FeatBoard.Nodes == null)
 		{
-			species.FeatBoard.NodesByGuid = new AYellowpaper.SerializedCollections.SerializedDictionary<string, FeatNode>();
+			species.FeatBoard.Nodes = new List<FeatNode>();
 		}
 
-		return new List<FeatNode>(species.FeatBoard.NodesByGuid.Values);
+		return species.FeatBoard.Nodes;
 	}
 
 	private FeatNode GetSelectedNode()
 	{
-		return GetNodeById(selectedNodeId);
-	}
-
-	private FeatNode GetNodeById(string nodeId)
-	{
-		if (string.IsNullOrEmpty(nodeId))
-		{
-			return null;
-		}
-
-		if (species == null || species.FeatBoard == null || species.FeatBoard.NodesByGuid == null)
-		{
-			return null;
-		}
-
-		return species.FeatBoard.NodesByGuid.TryGetValue(nodeId, out FeatNode node)
-			? node
-			: null;
+		return selectedNode;
 	}
 
 	private FeatNode GetNodeAtCanvasPosition(Vector2 localPosition)
@@ -1740,7 +1698,7 @@ public class FeatBoardEditorWindow : EditorWindow
 				return "Ability: " + (abilityReward.Ability != null ? abilityReward.Ability.name : "Unassigned");
 
 			case PassiveReward passiveReward:
-				return "Passive: " + (string.IsNullOrWhiteSpace(passiveReward.PassiveName) ? "Unnamed" : passiveReward.PassiveName);
+				return "Passive: " + (passiveReward.Status != null ? passiveReward.Status.name : "Unassigned");
 
 			case ChangeFormReward changeFormReward:
 				return "Form: " + (string.IsNullOrWhiteSpace(changeFormReward.FormKey) ? "Unassigned" : changeFormReward.FormKey);
@@ -1806,36 +1764,20 @@ public class FeatBoardEditorWindow : EditorWindow
 		return keys;
 	}
 
-	private Dictionary<string, FeatNode> BuildNodeLookup(List<FeatNode> nodes)
+	private Dictionary<FeatNode, int> BuildNodeIndexLookup(List<FeatNode> nodes)
 	{
-		Dictionary<string, FeatNode> lookup = new Dictionary<string, FeatNode>(StringComparer.Ordinal);
+		Dictionary<FeatNode, int> lookup = new Dictionary<FeatNode, int>();
 
 		for (int i = 0; i < nodes.Count; i++)
 		{
 			FeatNode node = nodes[i];
-			if (node != null && !string.IsNullOrEmpty(node.Id) && !lookup.ContainsKey(node.Id))
+			if (node != null && !lookup.ContainsKey(node))
 			{
-				lookup.Add(node.Id, node);
+				lookup.Add(node, i);
 			}
 		}
 
 		return lookup;
-	}
-
-	private AYellowpaper.SerializedCollections.SerializedDictionary<string, FeatNode> BuildNodeDictionary(List<FeatNode> nodes)
-	{
-		AYellowpaper.SerializedCollections.SerializedDictionary<string, FeatNode> dictionary = new AYellowpaper.SerializedCollections.SerializedDictionary<string, FeatNode>();
-
-		for (int i = 0; i < nodes.Count; i++)
-		{
-			FeatNode node = nodes[i];
-			if (node != null && !string.IsNullOrWhiteSpace(node.Id))
-			{
-				dictionary[node.Id] = node;
-			}
-		}
-
-		return dictionary;
 	}
 
 	private void EnsureStyles()

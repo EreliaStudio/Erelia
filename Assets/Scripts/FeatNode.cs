@@ -5,14 +5,14 @@ using UnityEngine;
 [Serializable]
 public class FeatNode
 {
-	public string Id = Guid.NewGuid().ToString();
 	public string DisplayName = "New Feat";
 	public Vector2 Position;
 
 	public FeatNodeKind Kind = FeatNodeKind.StatsBonus;
 	public Sprite Icon;
 
-	public List<string> NeighbourNodeIds = new List<string>();
+	[SerializeReference]
+	public List<FeatNode> NeighbourNodes = new List<FeatNode>();
 
 	public int NumberOfRepeatTime = 0;
 

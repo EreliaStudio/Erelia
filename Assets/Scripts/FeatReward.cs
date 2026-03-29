@@ -3,6 +3,7 @@ using System;
 [Serializable]
 public abstract class FeatReward
 {
+	public abstract void Apply(CreatureUnit creatureUnit);
 }
 
 [Serializable]
@@ -23,22 +24,42 @@ public class BonusStatsReward : FeatReward
 
 	public AttributeType Attribute;
 	public int Value = 1;
+
+	public override void Apply(CreatureUnit p_creatureUnit)
+	{
+		
+	}
 }
 
 [Serializable]
 public class AbilityReward : FeatReward
 {
 	public Ability Ability;
+
+	public override void Apply(CreatureUnit p_creatureUnit)
+	{
+		
+	}
 }
 
 [Serializable]
 public class PassiveReward : FeatReward
 {
-	public string PassiveName;
+	public Status Status;
+
+	public override void Apply(CreatureUnit p_creatureUnit)
+	{
+		
+	}
 }
 
 [Serializable]
 public class ChangeFormReward : FeatReward
 {
 	public string FormKey;
+
+	public override void Apply(CreatureUnit p_creatureUnit)
+	{
+		
+	}
 }

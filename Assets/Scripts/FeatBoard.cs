@@ -1,9 +1,10 @@
-using AYellowpaper.SerializedCollections;
 using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 [Serializable]
 public class FeatBoard
 {
-	[SerializedDictionary("Node Guid", "Node")]
-	public SerializedDictionary<string, FeatNode> NodesByGuid = new SerializedDictionary<string, FeatNode>();
+	[SerializeReference]
+	public List<FeatNode> Nodes = new List<FeatNode>();
 }
