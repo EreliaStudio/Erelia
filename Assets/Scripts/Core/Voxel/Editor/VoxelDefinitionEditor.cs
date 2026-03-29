@@ -5,8 +5,6 @@ using UnityEngine;
 [CustomEditor(typeof(VoxelDefinition), true)]
 public class VoxelDefinitionEditor : Editor
 {
-	private const float ShapePopupWidth = 140f;
-
 	private enum ShapeSelection
 	{
 		Cube = 0,
@@ -34,7 +32,7 @@ public class VoxelDefinitionEditor : Editor
 	{
 		serializedObject.Update();
 
-		EditorGUILayout.PropertyField(dataProp, true);
+		DrawSectionBody("Data", dataProp);
 
 		object current = shapeProp.managedReferenceValue;
 		bool hasKnownShape = TryGetShapeSelection(current?.GetType(), out ShapeSelection currentSelection);
@@ -45,7 +43,6 @@ public class VoxelDefinitionEditor : Editor
 		bool shapeReplaced = EnsureShapeInstance(current, selectedShape, shapeTypeChanged);
 		if (shapeReplaced)
 		{
-			shapeProp.isExpanded = true;
 			serializedObject.ApplyModifiedProperties();
 			serializedObject.Update();
 			RefreshProperties();
@@ -59,7 +56,7 @@ public class VoxelDefinitionEditor : Editor
 			EditorGUILayout.HelpBox($"Unknown shape type '{current.GetType().Name}'. Changing the selector will replace it.", MessageType.Info);
 		}
 
-		DrawShapeBody();
+		DrawPropertyChildren(shapeProp);
 
 		serializedObject.ApplyModifiedProperties();
 
@@ -72,13 +69,7 @@ public class VoxelDefinitionEditor : Editor
 	private ShapeSelection DrawShapeHeader(ShapeSelection displayedSelection, out bool shapeTypeChanged)
 	{
 		Rect rowRect = EditorGUILayout.GetControlRect();
-		Rect foldoutRect = rowRect;
-		foldoutRect.width -= ShapePopupWidth + 4f;
-
-		Rect popupRect = rowRect;
-		popupRect.xMin = popupRect.xMax - ShapePopupWidth;
-
-		shapeProp.isExpanded = EditorGUI.Foldout(foldoutRect, shapeProp.isExpanded, "Shape", true);
+		Rect popupRect = EditorGUI.PrefixLabel(rowRect, new GUIContent("Shape"));
 
 		EditorGUI.BeginChangeCheck();
 		ShapeSelection selectedShape = (ShapeSelection)EditorGUI.EnumPopup(popupRect, displayedSelection);
@@ -87,16 +78,22 @@ public class VoxelDefinitionEditor : Editor
 		return selectedShape;
 	}
 
-	private void DrawShapeBody()
+	private void DrawSectionBody(string label, SerializedProperty property)
 	{
-		if (!shapeProp.isExpanded || shapeProp.managedReferenceValue == null)
+		EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
+		DrawPropertyChildren(property);
+	}
+
+	private void DrawPropertyChildren(SerializedProperty property)
+	{
+		if (property == null)
 		{
 			return;
 		}
 
 		EditorGUI.indentLevel++;
 
-		SerializedProperty iterator = shapeProp.Copy();
+		SerializedProperty iterator = property.Copy();
 		SerializedProperty endProperty = iterator.GetEndProperty();
 		bool enterChildren = true;
 

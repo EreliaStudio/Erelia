@@ -1,3 +1,9 @@
+public enum VoxelTraversal
+{
+	Obstacle = 0,
+	Walkable = 1
+}
+
 public enum VoxelOrientation
 {
 	PositiveX = 0,
