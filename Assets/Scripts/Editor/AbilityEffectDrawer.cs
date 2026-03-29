@@ -21,7 +21,9 @@ public class EffectDrawer : PropertyDrawer
 		AdjustTurnBarTime,
 		AdjustTurnBarDuration,
 		DamageTarget,
-		HealTarget
+		HealTarget,
+		PlaceInteractiveObject,
+		RemoveInteractiveObject
 	}
 
 	private const float LabelColumnWidth = 90f;
@@ -224,6 +226,12 @@ public class EffectDrawer : PropertyDrawer
 			case EffectKind.HealTarget:
 				return new HealTargetEffect();
 
+			case EffectKind.PlaceInteractiveObject:
+				return new PlaceInteractiveObjectEffect();
+
+			case EffectKind.RemoveInteractiveObject:
+				return new RemoveInteractiveObjectEffect();
+
 			case EffectKind.None:
 			default:
 				return null;
@@ -281,6 +289,12 @@ public class EffectDrawer : PropertyDrawer
 
 		if (value is HealTargetEffect)
 			return EffectKind.HealTarget;
+
+		if (value is PlaceInteractiveObjectEffect)
+			return EffectKind.PlaceInteractiveObject;
+
+		if (value is RemoveInteractiveObjectEffect)
+			return EffectKind.RemoveInteractiveObject;
 
 		return EffectKind.None;
 	}

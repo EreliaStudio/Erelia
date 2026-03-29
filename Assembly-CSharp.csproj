@@ -57,10 +57,11 @@
     <Compile Include="Assets\Scripts\FeatNodeKind.cs" />
     <Compile Include="Assets\Scripts\Effect.cs" />
     <Compile Include="Assets\Scripts\CreatureUnit.cs" />
+    <Compile Include="Assets\Scripts\BattleInteractiveObject.cs" />
+    <Compile Include="Assets\Scripts\BattleObject.cs" />
+    <Compile Include="Assets\Scripts\BattleSide.cs" />
     <Compile Include="Assets\Scripts\Trainer.cs" />
     <Compile Include="Assets\Scripts\EncounterTier.cs" />
-    <Compile Include="Assets\Scripts\BattleContext.cs" />
-    <Compile Include="Assets\Scripts\BattleUnit.cs" />
     <Compile Include="Assets\Scripts\AbilityCost.cs" />
     <Compile Include="Assets\Scripts\FeatBoardProgress.cs" />
     <Compile Include="Assets\Scripts\AICondition.cs" />
@@ -68,9 +69,13 @@
     <Compile Include="Assets\Scripts\Badge.cs" />
     <Compile Include="Assets\Scripts\AIBehaviour.cs" />
     <Compile Include="Assets\Scripts\CreatureSpecies.cs" />
+    <Compile Include="Assets\Scripts\BattleUnit.cs" />
+    <Compile Include="Assets\Scripts\InteractionObject.cs" />
     <Compile Include="Assets\Scripts\EncounterTeam.cs" />
+    <Compile Include="Assets\Scripts\BattleContext.cs" />
     <Compile Include="Assets\Scripts\FeatRequirement.cs" />
     <Compile Include="Assets\Scripts\FeatBoard.cs" />
+    <Compile Include="Assets\Scripts\Duration.cs" />
     <Compile Include="Assets\Scripts\StatusHookPoint.cs" />
     <Compile Include="Assets\Scripts\EncounterDefinition.cs" />
     <Compile Include="Assets\Scripts\AIRule.cs" />
@@ -82,6 +87,7 @@
     <Compile Include="Assets\Scripts\FeatReward.cs" />
     <Compile Include="Assets\Scripts\Attributes.cs" />
     <Compile Include="Assets\Scripts\FeatNodeProgress.cs" />
+    <Compile Include="Assets\Scripts\BattleStatus.cs" />
     <Compile Include="Assets\Scripts\TrainerReward.cs" />
   </ItemGroup>
   <ItemGroup>

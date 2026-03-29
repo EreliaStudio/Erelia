@@ -5,16 +5,17 @@ using UnityEngine;
 [Serializable]
 public abstract class Effect
 {
-	public abstract void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext);
+	public abstract void Apply(BattleObject caster, BattleObject target, BattleContext battleContext);
 }
 
 [Serializable]
 public class ApplyStatusEffect : Effect
 {
 	public Status Status;
+	public Duration Duration = new Duration();
 	public int StackCount = 1;
 
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 		
 	}
@@ -26,7 +27,7 @@ public class RemoveStatusEffect : Effect
 	public Status Status;
 	public int StackCount = 1;
 
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 		
 	}
@@ -35,7 +36,7 @@ public class RemoveStatusEffect : Effect
 [Serializable]
 public class ReviveEffect : Effect
 {
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 	}
 }
@@ -45,7 +46,7 @@ public class CleanseEffect : Effect
 {
 	public List<string> TagsToCleanse = new List<string>();
 
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 	}
 }
@@ -63,7 +64,7 @@ public class ResourceChangeEffect : Effect
 	public Target ResourceTargeted = Target.ActionPoint;
 	public int Value = 1;
 
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 	}
 }
@@ -80,7 +81,7 @@ public class MoveStatus : Effect
 	public Orientation ForceOrientation = Orientation.AwayFromCaster;
 	public int Force = 1;
 
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 	}
 }
@@ -88,7 +89,7 @@ public class MoveStatus : Effect
 [Serializable]
 public class SwapPositionEffect : Effect
 {
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 	}
 }
@@ -96,7 +97,7 @@ public class SwapPositionEffect : Effect
 [Serializable]
 public class TeleportEffect : Effect
 {
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 	}
 }
@@ -116,7 +117,7 @@ public class StealResourceEffect : Effect
 	public Target ResourceTargeted = Target.ActionPoint;
 	public int Value = 1;
 
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 	}
 }
@@ -127,7 +128,7 @@ public class ConsumeStatus : Effect
 	public Status Status;
 	public int NbOfStackConsumed = 1;
 
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 	}
 }
@@ -137,7 +138,7 @@ public class ChangeFormEffect : Effect
 {
 	public string FormID;
 	
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 		
 	}
@@ -148,7 +149,7 @@ public class AdjustTurnBarTimeEffect : Effect
 {
 	public float Delta = 1f;
 
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 		
 	}
@@ -159,7 +160,7 @@ public class AdjustTurnBarDurationEffect : Effect
 {
 	public float Delta = 1f;
 
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 		
 	}
@@ -170,7 +171,7 @@ public class DamageTargetEffect : Effect
 {
 	public int Value = 1;
 
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 		
 	}
@@ -181,8 +182,29 @@ public class HealTargetEffect : Effect
 {
 	public int Value = 1;
 
-	public override void Apply(BattleUnit caster, BattleUnit target, BattleContext battleContext)
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
 		
+	}
+}
+
+[Serializable]
+public class PlaceInteractiveObjectEffect : Effect
+{
+	public InteractionObject InteractionObject;
+	public Duration Duration = new Duration();
+
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
+	{
+	}
+}
+
+[Serializable]
+public class RemoveInteractiveObjectEffect : Effect
+{
+	public InteractionObject InteractionObject;
+
+	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
+	{
 	}
 }
