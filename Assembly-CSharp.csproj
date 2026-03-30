@@ -53,6 +53,8 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Statuses\Status.cs" />
     <Compile Include="Assets\Scripts\Board\BoardView.cs" />
+    <Compile Include="Assets\Scripts\Board\WorldExtractionConfiguration.cs" />
+    <Compile Include="Assets\Scripts\Board\WorldExtractor.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterTier.cs" />
     <Compile Include="Assets\Scripts\Trainers\Trainer.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatNodeProgress.cs" />
