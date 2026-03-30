@@ -9,20 +9,20 @@ public class WorldData
 	[NonSerialized]
 	public readonly Dictionary<ChunkCoordinates, Chunk> Chunks = new Dictionary<ChunkCoordinates, Chunk>();
 
-	public bool TryGetChunk(ChunkCoordinates coordinates, out Chunk chunk)
+	public Chunk GetChunk(ChunkCoordinates coordinates)
 	{
-		if (Chunks.TryGetValue(coordinates, out chunk) && chunk != null)
+		if (Chunks.TryGetValue(coordinates, out Chunk result))
 		{
-			return true;
+			return result;
 		}
 
-		chunk = Generator.GenerateChunk(coordinates);
-		Chunks[coordinates] = chunk;
-		return chunk != null;
+		result = Generator.GenerateChunk(coordinates);
+		Chunks[coordinates] = result;
+		return result;
 	}
 
 	public bool HasChunk(ChunkCoordinates coordinates)
 	{
-		return Chunks.TryGetValue(coordinates, out Chunk chunk) && chunk != null;
+		return Chunks.ContainsKey(coordinates);
 	}
 }

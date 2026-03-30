@@ -13,38 +13,27 @@ public class WorldPresenter : MonoBehaviour
 	[NonSerialized]
 	public readonly Dictionary<ChunkCoordinates, ChunkPresenter> Chunks = new Dictionary<ChunkCoordinates, ChunkPresenter>();
 
-	public void Assign(WorldData targetWorldData)
+	public void Initialize(WorldData targetWorldData)
 	{
-		worldData = targetWorldData ?? new WorldData();
+		worldData = targetWorldData;
 	}
 
-	public bool TryGetChunkPresenter(ChunkCoordinates coordinates, out ChunkPresenter presenter)
+	public ChunkPresenter GetChunkPresenter(ChunkCoordinates coordinates)
 	{
-		if (Chunks.TryGetValue(coordinates, out presenter) && presenter != null)
+		if (Chunks.TryGetValue(coordinates, out ChunkPresenter result) && result != null)
 		{
-			return true;
+			return result;
 		}
 
-		if (chunkPrefab == null)
-		{
-			presenter = null;
-			return false;
-		}
+		result = Instantiate(chunkPrefab, transform);
+		result.transform.position = new Vector3(coordinates.X * Chunk.FixedSizeX, 0, coordinates.Z * Chunk.FixedSizeZ);
+		result.gameObject.name = $"Chunk {coordinates}";
 
-		if (!worldData.TryGetChunk(coordinates, out Chunk chunk))
-		{
-			presenter = null;
-			return false;
-		}
+		Chunks[coordinates] = result;
 
-		presenter = Instantiate(chunkPrefab, transform);
-		presenter.transform.position = new Vector3(
-			coordinates.X * Chunk.FixedSizeX, 0, coordinates.Z * Chunk.FixedSizeZ);
-		presenter.gameObject.name = $"Chunk {coordinates}";
+		result.Assign(worldData.GetChunk(coordinates));
 
-		Chunks[coordinates] = presenter;
-		presenter.Assign(chunk);
-		return true;
+		return result;
 	}
 
 	public bool HasChunkPresenter(ChunkCoordinates coordinates)
