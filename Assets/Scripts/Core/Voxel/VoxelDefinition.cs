@@ -18,11 +18,4 @@ public class VoxelDefinition : ScriptableObject
 	{
 		Initialize();
 	}
-
-#if UNITY_EDITOR
-	private void OnValidate()
-	{
-		Initialize();
-	}
-#endif
 }

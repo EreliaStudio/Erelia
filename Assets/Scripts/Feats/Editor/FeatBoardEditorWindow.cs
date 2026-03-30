@@ -22,21 +22,11 @@ public class FeatBoardEditorWindow : EditorWindow
 		Infinite
 	}
 
-	private static readonly Type[] RewardTypes =
-	{
-		typeof(BonusStatsReward),
-		typeof(AbilityReward),
-		typeof(PassiveReward),
-		typeof(ChangeFormReward)
-	};
-
-	private static readonly Type[] RequirementTypes =
-	{
-		typeof(DealDamageRequirement),
-		typeof(HealHealthRequirement)
-	};
-
 	private static readonly List<FeatNode> EmptyNodeList = new List<FeatNode>();
+	private static readonly Comparison<Type> FeatRewardTypeComparison =
+		(left, right) => string.CompareOrdinal(GetFeatRewardLabel(left), GetFeatRewardLabel(right));
+	private static readonly Comparison<Type> FeatRequirementTypeComparison =
+		(left, right) => string.CompareOrdinal(GetFeatRequirementLabel(left), GetFeatRequirementLabel(right));
 
 	private CreatureSpecies species;
 	private FeatNode selectedNode;
@@ -863,15 +853,16 @@ public class FeatBoardEditorWindow : EditorWindow
 	private void ShowAddRewardMenu(FeatNode node)
 	{
 		GenericMenu menu = new GenericMenu();
+		Type[] rewardTypes = ManagedReferenceTypePicker.GetConcreteTypes(typeof(FeatReward), FeatRewardTypeComparison);
 
-		for (int i = 0; i < RewardTypes.Length; i++)
+		for (int i = 0; i < rewardTypes.Length; i++)
 		{
-			Type rewardType = RewardTypes[i];
-			string label = ObjectNames.NicifyVariableName(rewardType.Name.Replace("Reward", string.Empty));
+			Type rewardType = rewardTypes[i];
+			string label = GetFeatRewardLabel(rewardType);
 
 			menu.AddItem(new GUIContent(label), false, () =>
 			{
-				ApplySpeciesChange("Add Feat Reward", () => node.Rewards.Add((FeatReward)Activator.CreateInstance(rewardType)));
+				ApplySpeciesChange("Add Feat Reward", () => node.Rewards.Add((FeatReward)ManagedReferenceTypePicker.CreateInstance(rewardType)));
 			});
 		}
 
@@ -881,19 +872,30 @@ public class FeatBoardEditorWindow : EditorWindow
 	private void ShowAddRequirementMenu(FeatNode node)
 	{
 		GenericMenu menu = new GenericMenu();
+		Type[] requirementTypes = ManagedReferenceTypePicker.GetConcreteTypes(typeof(FeatRequirement), FeatRequirementTypeComparison);
 
-		for (int i = 0; i < RequirementTypes.Length; i++)
+		for (int i = 0; i < requirementTypes.Length; i++)
 		{
-			Type requirementType = RequirementTypes[i];
-			string label = ObjectNames.NicifyVariableName(requirementType.Name.Replace("Requirement", string.Empty));
+			Type requirementType = requirementTypes[i];
+			string label = GetFeatRequirementLabel(requirementType);
 
 			menu.AddItem(new GUIContent(label), false, () =>
 			{
-				ApplySpeciesChange("Add Feat Requirement", () => node.Requirements.Add((FeatRequirement)Activator.CreateInstance(requirementType)));
+				ApplySpeciesChange("Add Feat Requirement", () => node.Requirements.Add((FeatRequirement)ManagedReferenceTypePicker.CreateInstance(requirementType)));
 			});
 		}
 
 		menu.ShowAsContext();
+	}
+
+	private static string GetFeatRewardLabel(Type rewardType)
+	{
+		return ManagedReferenceTypePicker.NicifyTypeName(rewardType, suffixToTrim: "Reward");
+	}
+
+	private static string GetFeatRequirementLabel(Type requirementType)
+	{
+		return ManagedReferenceTypePicker.NicifyTypeName(requirementType, suffixToTrim: "Requirement");
 	}
 
 	private void HandleCanvasInput(Rect canvasRect)

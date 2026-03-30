@@ -1,18 +1,13 @@
 #if UNITY_EDITOR
+using System;
 using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(VoxelDefinition), true)]
 public class VoxelDefinitionEditor : Editor
 {
-	private enum ShapeSelection
-	{
-		Cube = 0,
-		Slab = 1,
-		Slope = 2,
-		Stair = 3,
-		CrossPlane = 4
-	}
+	private static readonly Comparison<Type> ShapeTypeComparison =
+		(left, right) => string.CompareOrdinal(GetShapeDisplayName(left), GetShapeDisplayName(right));
 
 	private SerializedProperty dataProp;
 	private SerializedProperty shapeProp;
@@ -35,12 +30,15 @@ public class VoxelDefinitionEditor : Editor
 		DrawSectionBody("Data", dataProp);
 
 		object current = shapeProp.managedReferenceValue;
-		bool hasKnownShape = TryGetShapeSelection(current?.GetType(), out ShapeSelection currentSelection);
-		ShapeSelection displayedSelection = hasKnownShape ? currentSelection : ShapeSelection.Cube;
+		Type[] shapeTypes = ManagedReferenceTypePicker.GetConcreteTypes(typeof(VoxelShape), ShapeTypeComparison);
+		int currentIndex = ManagedReferenceTypePicker.GetSelectionIndex(current?.GetType(), shapeTypes, includeNullOption: false);
+		int displayedIndex = currentIndex >= 0 ? currentIndex : 0;
 
-		ShapeSelection selectedShape = DrawShapeHeader(displayedSelection, out bool shapeTypeChanged);
+		int selectedIndex = DrawShapeHeader(shapeTypes, displayedIndex, out bool shapeTypeChanged);
+		Type selectedShapeType = ManagedReferenceTypePicker.GetTypeForSelection(selectedIndex, shapeTypes, includeNullOption: false);
 
-		bool shapeReplaced = EnsureShapeInstance(current, selectedShape, shapeTypeChanged);
+		bool hasKnownShape = currentIndex >= 0;
+		bool shapeReplaced = EnsureShapeInstance(current, selectedShapeType, shapeTypeChanged);
 		if (shapeReplaced)
 		{
 			serializedObject.ApplyModifiedProperties();
@@ -48,7 +46,7 @@ public class VoxelDefinitionEditor : Editor
 			RefreshProperties();
 
 			current = shapeProp.managedReferenceValue;
-			hasKnownShape = TryGetShapeSelection(current?.GetType(), out currentSelection);
+			hasKnownShape = ManagedReferenceTypePicker.GetSelectionIndex(current?.GetType(), shapeTypes, includeNullOption: false) >= 0;
 		}
 
 		if (!hasKnownShape && current != null)
@@ -66,16 +64,17 @@ public class VoxelDefinitionEditor : Editor
 		}
 	}
 
-	private ShapeSelection DrawShapeHeader(ShapeSelection displayedSelection, out bool shapeTypeChanged)
+	private int DrawShapeHeader(Type[] shapeTypes, int displayedIndex, out bool shapeTypeChanged)
 	{
 		Rect rowRect = EditorGUILayout.GetControlRect();
 		Rect popupRect = EditorGUI.PrefixLabel(rowRect, new GUIContent("Shape"));
+		string[] options = ManagedReferenceTypePicker.BuildDisplayNames(shapeTypes, GetShapeDisplayName, includeNullOption: false);
 
 		EditorGUI.BeginChangeCheck();
-		ShapeSelection selectedShape = (ShapeSelection)EditorGUI.EnumPopup(popupRect, displayedSelection);
+		int selectedIndex = EditorGUI.Popup(popupRect, displayedIndex, options);
 		shapeTypeChanged = EditorGUI.EndChangeCheck();
 
-		return selectedShape;
+		return selectedIndex;
 	}
 
 	private void DrawSectionBody(string label, SerializedProperty property)
@@ -106,69 +105,20 @@ public class VoxelDefinitionEditor : Editor
 		EditorGUI.indentLevel--;
 	}
 
-	private bool EnsureShapeInstance(object current, ShapeSelection selectedShape, bool forceReplace)
+	private bool EnsureShapeInstance(object current, Type selectedShapeType, bool forceReplace)
 	{
 		if (current == null || forceReplace)
 		{
-			shapeProp.managedReferenceValue = CreateShapeInstance(selectedShape);
+			shapeProp.managedReferenceValue = ManagedReferenceTypePicker.CreateInstance(selectedShapeType);
 			return true;
 		}
 
 		return false;
 	}
 
-	private static bool TryGetShapeSelection(System.Type shapeType, out ShapeSelection selection)
+	private static string GetShapeDisplayName(Type shapeType)
 	{
-		if (shapeType == typeof(VoxelCubeShape))
-		{
-			selection = ShapeSelection.Cube;
-			return true;
-		}
-
-		if (shapeType == typeof(VoxelSlabShape))
-		{
-			selection = ShapeSelection.Slab;
-			return true;
-		}
-
-		if (shapeType == typeof(VoxelSlopeShape))
-		{
-			selection = ShapeSelection.Slope;
-			return true;
-		}
-
-		if (shapeType == typeof(VoxelStairShape))
-		{
-			selection = ShapeSelection.Stair;
-			return true;
-		}
-
-		if (shapeType == typeof(VoxelCrossPlaneShape))
-		{
-			selection = ShapeSelection.CrossPlane;
-			return true;
-		}
-
-		selection = ShapeSelection.Cube;
-		return false;
-	}
-
-	private static VoxelShape CreateShapeInstance(ShapeSelection shapeType)
-	{
-		switch (shapeType)
-		{
-			case ShapeSelection.Slab:
-				return new VoxelSlabShape();
-			case ShapeSelection.Slope:
-				return new VoxelSlopeShape();
-			case ShapeSelection.Stair:
-				return new VoxelStairShape();
-			case ShapeSelection.CrossPlane:
-				return new VoxelCrossPlaneShape();
-			case ShapeSelection.Cube:
-			default:
-				return new VoxelCubeShape();
-		}
+		return ManagedReferenceTypePicker.NicifyTypeName(shapeType, prefixToTrim: "Voxel", suffixToTrim: "Shape");
 	}
 }
 #endif

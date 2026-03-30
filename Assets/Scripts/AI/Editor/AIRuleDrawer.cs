@@ -5,30 +5,13 @@ using UnityEngine;
 [CustomPropertyDrawer(typeof(AIRule))]
 public class AIRuleDrawer : PropertyDrawer
 {
-	private enum AIConditionKind
-	{
-		None,
-		EnemyIsAtDistance,
-		AllyIsAtDistance,
-		HPThreshold,
-		HasStatus,
-		CanUseAbility,
-		ActiveModeIs,
-	}
-
-	private enum AIDecisionKind
-	{
-		None,
-		CastAbility,
-		MoveUnit,
-		EndTurn,
-	}
-
 	private const float RowSpacing = 2f;
 	private const float SectionSpacing = 4f;
 	private const float RemoveButtonWidth = 24f;
 	private const float AddButtonWidth = 44f;
 	private const float FoldoutWidth = 110f;
+	private static readonly Comparison<Type> AITypeComparison =
+		(left, right) => string.CompareOrdinal(GetAITypeDisplayName(left), GetAITypeDisplayName(right));
 
 	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
 	{
@@ -156,12 +139,16 @@ public class AIRuleDrawer : PropertyDrawer
 			true
 		);
 
-		AIConditionKind currentKind = GetConditionKind(conditionProperty);
+		Type[] conditionTypes = ManagedReferenceTypePicker.GetConcreteTypes(typeof(AICondition), AITypeComparison);
+		int currentIndex = ManagedReferenceTypePicker.GetSelectionIndex(conditionProperty.managedReferenceValue?.GetType(), conditionTypes, includeNullOption: true);
+		string[] options = ManagedReferenceTypePicker.BuildDisplayNames(conditionTypes, GetAITypeDisplayName, includeNullOption: true);
+
 		EditorGUI.BeginChangeCheck();
-		AIConditionKind newKind = (AIConditionKind)EditorGUI.EnumPopup(popupRect, currentKind);
+		int newIndex = EditorGUI.Popup(popupRect, Mathf.Max(0, currentIndex), options);
 		if (EditorGUI.EndChangeCheck())
 		{
-			conditionProperty.managedReferenceValue = CreateConditionInstance(newKind);
+			Type selectedType = ManagedReferenceTypePicker.GetTypeForSelection(newIndex, conditionTypes, includeNullOption: true);
+			conditionProperty.managedReferenceValue = ManagedReferenceTypePicker.CreateInstance(selectedType);
 			conditionProperty.serializedObject.ApplyModifiedProperties();
 			conditionProperty.serializedObject.Update();
 		}
@@ -206,12 +193,16 @@ public class AIRuleDrawer : PropertyDrawer
 			true
 		);
 
-		AIDecisionKind currentKind = GetDecisionKind(decisionProperty);
+		Type[] decisionTypes = ManagedReferenceTypePicker.GetConcreteTypes(typeof(AIDecision), AITypeComparison);
+		int currentIndex = ManagedReferenceTypePicker.GetSelectionIndex(decisionProperty.managedReferenceValue?.GetType(), decisionTypes, includeNullOption: true);
+		string[] options = ManagedReferenceTypePicker.BuildDisplayNames(decisionTypes, GetAITypeDisplayName, includeNullOption: true);
+
 		EditorGUI.BeginChangeCheck();
-		AIDecisionKind newKind = (AIDecisionKind)EditorGUI.EnumPopup(popupRect, currentKind);
+		int newIndex = EditorGUI.Popup(popupRect, Mathf.Max(0, currentIndex), options);
 		if (EditorGUI.EndChangeCheck())
 		{
-			decisionProperty.managedReferenceValue = CreateDecisionInstance(newKind);
+			Type selectedType = ManagedReferenceTypePicker.GetTypeForSelection(newIndex, decisionTypes, includeNullOption: true);
+			decisionProperty.managedReferenceValue = ManagedReferenceTypePicker.CreateInstance(selectedType);
 			decisionProperty.serializedObject.ApplyModifiedProperties();
 			decisionProperty.serializedObject.Update();
 		}
@@ -315,101 +306,8 @@ public class AIRuleDrawer : PropertyDrawer
 		return height;
 	}
 
-	private AICondition CreateConditionInstance(AIConditionKind kind)
+	private static string GetAITypeDisplayName(Type type)
 	{
-		switch (kind)
-		{
-			case AIConditionKind.EnemyIsAtDistance:
-				return new EnemyIsAtDistance();
-
-			case AIConditionKind.AllyIsAtDistance:
-				return new AllyIsAtDistance();
-
-			case AIConditionKind.HPThreshold:
-				return new HPThreshold();
-
-			case AIConditionKind.HasStatus:
-				return new HasStatus();
-
-			case AIConditionKind.CanUseAbility:
-				return new CanUseAbility();
-
-			case AIConditionKind.ActiveModeIs:
-				return new ActiveModeIs();
-
-			case AIConditionKind.None:
-			default:
-				return null;
-		}
-	}
-
-	private AIDecision CreateDecisionInstance(AIDecisionKind kind)
-	{
-		switch (kind)
-		{
-			case AIDecisionKind.CastAbility:
-				return new CastAbility();
-
-			case AIDecisionKind.MoveUnit:
-				return new MoveUnit();
-
-			case AIDecisionKind.EndTurn:
-				return new EndTurn();
-
-			case AIDecisionKind.None:
-			default:
-				return null;
-		}
-	}
-
-	private AIConditionKind GetConditionKind(SerializedProperty property)
-	{
-		object value = property.managedReferenceValue;
-
-		if (value == null)
-		{
-			return AIConditionKind.None;
-		}
-
-		if (value is EnemyIsAtDistance)
-			return AIConditionKind.EnemyIsAtDistance;
-
-		if (value is AllyIsAtDistance)
-			return AIConditionKind.AllyIsAtDistance;
-
-		if (value is HPThreshold)
-			return AIConditionKind.HPThreshold;
-
-		if (value is HasStatus)
-			return AIConditionKind.HasStatus;
-
-		if (value is CanUseAbility)
-			return AIConditionKind.CanUseAbility;
-
-		if (value is ActiveModeIs)
-			return AIConditionKind.ActiveModeIs;
-
-		return AIConditionKind.None;
-	}
-
-	private AIDecisionKind GetDecisionKind(SerializedProperty property)
-	{
-		object value = property.managedReferenceValue;
-
-		if (value == null)
-		{
-			return AIDecisionKind.None;
-		}
-
-		if (value is CastAbility)
-			return AIDecisionKind.CastAbility;
-
-		if (value is MoveUnit)
-			return AIDecisionKind.MoveUnit;
-
-		if (value is EndTurn)
-			return AIDecisionKind.EndTurn;
-
-		return AIDecisionKind.None;
+		return ManagedReferenceTypePicker.NicifyTypeName(type);
 	}
 }

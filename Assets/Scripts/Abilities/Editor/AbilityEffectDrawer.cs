@@ -1,33 +1,14 @@
+using System;
 using UnityEditor;
 using UnityEngine;
 
 [CustomPropertyDrawer(typeof(Effect), true)]
 public class EffectDrawer : PropertyDrawer
 {
-	private enum EffectKind
-	{
-		None,
-		ApplyStatus,
-		RemoveStatus,
-		Revive,
-		Cleanse,
-		ResourceChange,
-		MoveStatus,
-		SwapPosition,
-		Teleport,
-		StealResource,
-		ConsumeStatus,
-		ChangeForm,
-		AdjustTurnBarTime,
-		AdjustTurnBarDuration,
-		DamageTarget,
-		HealTarget,
-		PlaceInteractiveObject,
-		RemoveInteractiveObject
-	}
-
 	private const float LabelColumnWidth = 90f;
 	private const float RowSpacing = 2f;
+	private static readonly Comparison<Type> EffectTypeComparison =
+		(left, right) => string.CompareOrdinal(GetEffectDisplayName(left), GetEffectDisplayName(right));
 
 	public override void OnGUI(Rect p_position, SerializedProperty p_property, GUIContent p_label)
 	{
@@ -69,13 +50,16 @@ public class EffectDrawer : PropertyDrawer
 			true
 		);
 
-		EffectKind currentKind = GetEffectKindFromProperty(p_property);
+		Type[] effectTypes = ManagedReferenceTypePicker.GetConcreteTypes(typeof(Effect), EffectTypeComparison);
+		int currentIndex = ManagedReferenceTypePicker.GetSelectionIndex(p_property.managedReferenceValue?.GetType(), effectTypes, includeNullOption: true);
+		string[] options = ManagedReferenceTypePicker.BuildDisplayNames(effectTypes, GetEffectDisplayName, includeNullOption: true);
 
 		EditorGUI.BeginChangeCheck();
-		EffectKind newKind = (EffectKind)EditorGUI.EnumPopup(popupRect, currentKind);
+		int newIndex = EditorGUI.Popup(popupRect, Mathf.Max(0, currentIndex), options);
 		if (EditorGUI.EndChangeCheck())
 		{
-			p_property.managedReferenceValue = CreateEffectInstance(newKind);
+			Type selectedType = ManagedReferenceTypePicker.GetTypeForSelection(newIndex, effectTypes, includeNullOption: true);
+			p_property.managedReferenceValue = ManagedReferenceTypePicker.CreateInstance(selectedType);
 			p_property.serializedObject.ApplyModifiedProperties();
 			p_property.serializedObject.Update();
 		}
@@ -177,125 +161,8 @@ public class EffectDrawer : PropertyDrawer
 		return totalHeight;
 	}
 
-	private Effect CreateEffectInstance(EffectKind p_kind)
+	private static string GetEffectDisplayName(Type effectType)
 	{
-		switch (p_kind)
-		{
-			case EffectKind.ApplyStatus:
-				return new ApplyStatusEffect();
-
-			case EffectKind.RemoveStatus:
-				return new RemoveStatusEffect();
-
-			case EffectKind.Revive:
-				return new ReviveEffect();
-
-			case EffectKind.Cleanse:
-				return new CleanseEffect();
-
-			case EffectKind.ResourceChange:
-				return new ResourceChangeEffect();
-
-			case EffectKind.MoveStatus:
-				return new MoveStatus();
-
-			case EffectKind.SwapPosition:
-				return new SwapPositionEffect();
-
-			case EffectKind.Teleport:
-				return new TeleportEffect();
-
-			case EffectKind.StealResource:
-				return new StealResourceEffect();
-
-			case EffectKind.ConsumeStatus:
-				return new ConsumeStatus();
-
-			case EffectKind.ChangeForm:
-				return new ChangeFormEffect();
-
-			case EffectKind.AdjustTurnBarTime:
-				return new AdjustTurnBarTimeEffect();
-
-			case EffectKind.AdjustTurnBarDuration:
-				return new AdjustTurnBarDurationEffect();
-
-			case EffectKind.DamageTarget:
-				return new DamageTargetEffect();
-
-			case EffectKind.HealTarget:
-				return new HealTargetEffect();
-
-			case EffectKind.PlaceInteractiveObject:
-				return new PlaceInteractiveObjectEffect();
-
-			case EffectKind.RemoveInteractiveObject:
-				return new RemoveInteractiveObjectEffect();
-
-			case EffectKind.None:
-			default:
-				return null;
-		}
-	}
-
-	private EffectKind GetEffectKindFromProperty(SerializedProperty p_property)
-	{
-		object value = p_property.managedReferenceValue;
-
-		if (value == null)
-			return EffectKind.None;
-
-		if (value is ApplyStatusEffect)
-			return EffectKind.ApplyStatus;
-
-		if (value is RemoveStatusEffect)
-			return EffectKind.RemoveStatus;
-
-		if (value is ReviveEffect)
-			return EffectKind.Revive;
-
-		if (value is CleanseEffect)
-			return EffectKind.Cleanse;
-
-		if (value is ResourceChangeEffect)
-			return EffectKind.ResourceChange;
-
-		if (value is MoveStatus)
-			return EffectKind.MoveStatus;
-
-		if (value is SwapPositionEffect)
-			return EffectKind.SwapPosition;
-
-		if (value is TeleportEffect)
-			return EffectKind.Teleport;
-
-		if (value is StealResourceEffect)
-			return EffectKind.StealResource;
-
-		if (value is ConsumeStatus)
-			return EffectKind.ConsumeStatus;
-
-		if (value is ChangeFormEffect)
-			return EffectKind.ChangeForm;
-
-		if (value is AdjustTurnBarTimeEffect)
-			return EffectKind.AdjustTurnBarTime;
-
-		if (value is AdjustTurnBarDurationEffect)
-			return EffectKind.AdjustTurnBarDuration;
-
-		if (value is DamageTargetEffect)
-			return EffectKind.DamageTarget;
-
-		if (value is HealTargetEffect)
-			return EffectKind.HealTarget;
-
-		if (value is PlaceInteractiveObjectEffect)
-			return EffectKind.PlaceInteractiveObject;
-
-		if (value is RemoveInteractiveObjectEffect)
-			return EffectKind.RemoveInteractiveObject;
-
-		return EffectKind.None;
+		return ManagedReferenceTypePicker.NicifyTypeName(effectType, suffixToTrim: "Effect");
 	}
 }
