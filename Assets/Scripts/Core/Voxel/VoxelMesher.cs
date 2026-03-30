@@ -4,6 +4,8 @@ using UnityEngine.Rendering;
 
 public static partial class VoxelMesher
 {
+	private const float MaskLayerOffset = 0.001f;
+
 	private static readonly Dictionary<FaceTransformKey, VoxelShape.Face> FaceTransformCache = new Dictionary<FaceTransformKey, VoxelShape.Face>();
 	private static readonly Dictionary<FaceOcclusionKey, bool> FaceOcclusionCache = new Dictionary<FaceOcclusionKey, bool>();
 
@@ -116,7 +118,7 @@ public static partial class VoxelMesher
 		return BuildColliderMeshInternal(cells, voxelRegistry);
 	}
 
-	public static Mesh BuildMaskMesh(VoxelCell[,,] cells, MaskType[,,] maskGrid, VoxelRegistry voxelRegistry, VoxelMaskRegistry maskRegistry)
+	public static Mesh BuildMaskMesh(VoxelCell[,,] cells, VoxelMaskCell[,,] maskGrid, VoxelRegistry voxelRegistry, VoxelMaskRegistry maskRegistry)
 	{
 		var vertices = new List<Vector3>();
 		var triangles = new List<int>();
@@ -137,24 +139,45 @@ public static partial class VoxelMesher
 			{
 				for (int z = 0; z < sizeZ; z++)
 				{
-					if (maskGrid[x, y, z] == MaskType.None ||
+					VoxelMaskCell maskCell = maskGrid[x, y, z];
+					if (maskCell == null ||
+						maskCell.Masks == null ||
+						maskCell.Masks.Count == 0 ||
 						!TryGetVoxelDefinition(cells[x, y, z], voxelRegistry, out VoxelDefinition voxelDefinition, out VoxelCell cell))
 					{
 						continue;
 					}
 
 					List<VoxelShape.Face> maskFaces = voxelDefinition.Shape?.GetMaskFaces(cell.FlipOrientation);
-					if (maskFaces == null || maskFaces.Count == 0 || !maskRegistry.TryGetSprite(maskGrid[x, y, z], out Sprite sprite) || sprite == null)
+					if (maskFaces == null || maskFaces.Count == 0)
 					{
 						continue;
 					}
 
-					GetSpriteUvRect(sprite, out Vector2 uvAnchor, out Vector2 uvSize);
 					Vector3 offset = new Vector3(x, y, z);
-
-					for (int i = 0; i < maskFaces.Count; i++)
+					for (int maskIndex = 0; maskIndex < maskCell.Masks.Count; maskIndex++)
 					{
-						AddFace(TransformFaceCached(maskFaces[i], cell.Orientation, VoxelFlipOrientation.PositiveY), offset, vertices, triangles, uvs, true, uvAnchor, uvSize);
+						VoxelMask mask = maskCell.Masks[maskIndex];
+						if (mask == VoxelMask.None || !maskRegistry.TryGetSprite(mask, out Sprite sprite) || sprite == null)
+						{
+							continue;
+						}
+
+						GetSpriteUvRect(sprite, out Vector2 uvAnchor, out Vector2 uvSize);
+						Vector3 layerOffset = new Vector3(0f, maskIndex * MaskLayerOffset, 0f);
+
+						for (int faceIndex = 0; faceIndex < maskFaces.Count; faceIndex++)
+						{
+							AddFace(
+								TransformFaceCached(maskFaces[faceIndex], cell.Orientation, VoxelFlipOrientation.PositiveY),
+								offset + layerOffset,
+								vertices,
+								triangles,
+								uvs,
+								true,
+								uvAnchor,
+								uvSize);
+						}
 					}
 				}
 			}

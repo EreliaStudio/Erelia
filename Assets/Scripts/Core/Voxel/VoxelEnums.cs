@@ -27,13 +27,3 @@ public enum VoxelAxisPlane
 	PosZ = 4,
 	NegZ = 5
 }
-
-public enum MaskType
-{
-	None = 0,
-	Placement = 1,
-	AttackRange = 2,
-	MovementRange = 3,
-	AreaOfEffect = 4,
-	Selected = 5
-}

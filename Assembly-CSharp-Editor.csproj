@@ -59,6 +59,7 @@
     <Compile Include="Assets\Scripts\Creatures\Editor\CreatureSpeciesEditor.cs" />
     <Compile Include="Assets\Scripts\Core\Editor\AttributesDrawer.cs" />
     <Compile Include="Assets\Scripts\Feats\Editor\FeatBoardEditorWindow.cs" />
+    <Compile Include="Assets\Scripts\Core\Editor\Utils\ManagedReferenceTypePicker.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

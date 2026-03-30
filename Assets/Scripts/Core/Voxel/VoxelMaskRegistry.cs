@@ -5,10 +5,10 @@ using UnityEngine;
 public class VoxelMaskRegistry : ScriptableObject
 {
 	[SerializedDictionary("Mask Type", "Sprite")]
-	public SerializedDictionary<MaskType, Sprite> Sprites = new SerializedDictionary<MaskType, Sprite>();
+	public SerializedDictionary<VoxelMask, Sprite> Sprites = new SerializedDictionary<VoxelMask, Sprite>();
 
-	public bool TryGetSprite(MaskType maskType, out Sprite sprite)
+	public bool TryGetSprite(VoxelMask VoxelMask, out Sprite sprite)
 	{
-		return Sprites.TryGetValue(maskType, out sprite);
+		return Sprites.TryGetValue(VoxelMask, out sprite);
 	}
 }
