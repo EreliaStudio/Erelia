@@ -532,6 +532,28 @@ public class FeatBoardEditorWindow : EditorWindow
 		}
 
 		EditorGUI.BeginChangeCheck();
+
+		EditorGUILayout.Space(6f);
+
+		EditorGUILayout.BeginHorizontal();
+
+		using (new EditorGUI.DisabledScope(IsRootNode(node)))
+		{
+			if (GUILayout.Button("Make Root"))
+			{
+				SetRootNode(node);
+			}
+		}
+
+		using (new EditorGUI.DisabledScope(!IsRootNode(node)))
+		{
+			if (GUILayout.Button("Clear Root"))
+			{
+				SetRootNode(null);
+			}
+		}
+
+		EditorGUILayout.EndHorizontal();
 		FeatNodeKind newKind = (FeatNodeKind)EditorGUILayout.EnumPopup("Kind", node.Kind);
 		if (EditorGUI.EndChangeCheck())
 		{
@@ -565,31 +587,6 @@ public class FeatBoardEditorWindow : EditorWindow
 		{
 			ApplySpeciesChange("Change Feat Node Icon", () => node.Icon = newIcon);
 		}
-
-		EditorGUILayout.Space(6f);
-
-		bool isRootNode = IsRootNode(node);
-		EditorGUILayout.LabelField("Root", isRootNode ? "Yes" : "No");
-
-		EditorGUILayout.BeginHorizontal();
-
-		using (new EditorGUI.DisabledScope(isRootNode))
-		{
-			if (GUILayout.Button("Make Root"))
-			{
-				SetRootNode(node);
-			}
-		}
-
-		using (new EditorGUI.DisabledScope(!isRootNode))
-		{
-			if (GUILayout.Button("Clear Root"))
-			{
-				SetRootNode(null);
-			}
-		}
-
-		EditorGUILayout.EndHorizontal();
 
 		EditorGUILayout.Space(6f);
 		EditorGUILayout.BeginHorizontal();

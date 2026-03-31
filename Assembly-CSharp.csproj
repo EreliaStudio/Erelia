@@ -83,11 +83,13 @@
     <Compile Include="Assets\Scripts\Encounters\EncounterUnit.cs" />
     <Compile Include="Assets\Scripts\Statuses\StatusHookPoint.cs" />
     <Compile Include="Assets\Scripts\UI\AttributesElementUI.cs" />
+    <Compile Include="Assets\Scripts\Debug\DebugEncounterTeamHolder.cs" />
     <Compile Include="Assets\Scripts\Interaction\InteractionObject.cs" />
     <Compile Include="Assets\Scripts\World\Chunk.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelDefinition.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMaskRegistry.cs" />
     <Compile Include="Assets\Scripts\Abilities\Effect.cs" />
+    <Compile Include="Assets\Scripts\Debug\DebugCreatureTeamHolder.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMask.cs" />
     <Compile Include="Assets\Scripts\WorldExtractor\WorldExtractor.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelCrossPlaneShape.cs" />
@@ -128,7 +130,6 @@
     <Compile Include="Assets\Scripts\World\ChunkView.cs" />
     <Compile Include="Assets\Scripts\AI\AICondition.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatBoardProgress.cs" />
-    <Compile Include="Assets\Scripts\UI\DebugCreatureTeamHolder.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
