@@ -227,35 +227,10 @@ public class EncounterTeamEditorWindow : EditorWindow
 	}
 
 	private void DrawSelectedUnitBoard(Rect p_rect)
-	{
-		CreatureUnit unit = GetSelectedUnit();
-
-		_boardView.Draw(p_rect, unit);
-
-		DrawEditFeatBoardButton(p_rect, unit);
-	}
-
-	private void DrawEditFeatBoardButton(Rect p_rect, CreatureUnit p_unit)
-	{
-		const float buttonWidth = 120f;
-		const float buttonHeight = 26f;
-		const float padding = 8f;
-
-		Rect buttonRect = new Rect(
-			p_rect.xMax - buttonWidth - padding,
-			p_rect.y + padding,
-			buttonWidth,
-			buttonHeight
-		);
-
-		using (new EditorGUI.DisabledScope(p_unit == null || p_unit.Species == null))
-		{
-			if (GUI.Button(buttonRect, "Edit Feat Board"))
-			{
-				FeatBoardEditorWindow.Open(p_unit.Species);
-			}
-		}
-	}
+{
+	CreatureUnit unit = GetSelectedUnit();
+	_boardView.Draw(p_rect, unit);
+}
 
 	private void DrawSelectedUnitInspector(Rect p_rect)
 	{

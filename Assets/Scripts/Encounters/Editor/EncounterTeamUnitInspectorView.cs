@@ -24,13 +24,7 @@ public class EncounterTeamUnitInspectorView
 		SerializedProperty speciesProperty = p_unitProperty.FindPropertyRelative("Species");
 		SerializedProperty attributesProperty = p_unitProperty.FindPropertyRelative("Attributes");
 
-		EditorGUI.BeginChangeCheck();
-		EditorGUILayout.PropertyField(speciesProperty);
-		if (EditorGUI.EndChangeCheck())
-		{
-			p_unit.EnsureInitialized();
-			p_boardView.ClearSelection();
-		}
+		DrawSpeciesRow(speciesProperty, p_unit, p_boardView);
 
 		EditorGUILayout.Space(4f);
 
@@ -60,6 +54,70 @@ public class EncounterTeamUnitInspectorView
 
 		EditorGUILayout.EndScrollView();
 		GUILayout.EndArea();
+	}
+
+	private void DrawSpeciesRow(SerializedProperty p_speciesProperty, CreatureUnit p_unit, EncounterTeamProgressBoardView p_boardView)
+	{
+		Rect rect = EditorGUILayout.GetControlRect();
+
+		Rect labelRect = new Rect(
+			rect.x,
+			rect.y,
+			EditorGUIUtility.labelWidth,
+			rect.height
+		);
+
+		const float buttonWidth = 120f;
+		const float spacing = 4f;
+
+		Rect buttonRect = new Rect(
+			rect.xMax - buttonWidth,
+			rect.y,
+			buttonWidth,
+			rect.height
+		);
+
+		Rect fieldRect = new Rect(
+			labelRect.xMax,
+			rect.y,
+			rect.width - EditorGUIUtility.labelWidth - buttonWidth - spacing,
+			rect.height
+		);
+
+		EditorGUI.LabelField(labelRect, "Species");
+
+		EditorGUI.BeginChangeCheck();
+		CreatureSpecies newSpecies = (CreatureSpecies)EditorGUI.ObjectField(
+			fieldRect,
+			(CreatureSpecies)p_speciesProperty.objectReferenceValue,
+			typeof(CreatureSpecies),
+			false
+		);
+		if (EditorGUI.EndChangeCheck())
+		{
+			p_speciesProperty.objectReferenceValue = newSpecies;
+
+			if (p_unit != null)
+			{
+				p_unit.EnsureInitialized();
+			}
+
+			if (p_boardView != null)
+			{
+				p_boardView.ClearSelection();
+			}
+		}
+
+		CreatureSpecies currentSpecies = (CreatureSpecies)p_speciesProperty.objectReferenceValue;
+
+		using (new EditorGUI.DisabledScope(currentSpecies == null))
+		{
+			if (GUI.Button(buttonRect, "Edit Feat Board"))
+			{
+				FeatBoardEditorWindow.Open(currentSpecies);
+				GUI.FocusControl(null);
+			}
+		}
 	}
 
 	private void DrawHeader(CreatureUnit p_unit)
