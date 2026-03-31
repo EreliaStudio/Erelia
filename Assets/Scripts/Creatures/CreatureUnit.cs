@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 [Serializable]
 public class CreatureUnit
@@ -10,6 +11,155 @@ public class CreatureUnit
 	public List<Ability> Abilities = new List<Ability>();
 	public List<Status> PermanentPassives = new List<Status>();
 	public FeatBoardProgress FeatBoardProgress = new FeatBoardProgress();
+
+	public void EnsureInitialized()
+	{
+		if (Species == null)
+		{
+			return;
+		}
+
+		if (FeatBoardProgress == null)
+		{
+			FeatBoardProgress = new FeatBoardProgress();
+		}
+
+		if (FeatBoardProgress.NodeProgress == null)
+		{
+			FeatBoardProgress.NodeProgress = new List<FeatNodeProgress>();
+		}
+
+		if (string.IsNullOrEmpty(CurrentFormID) || HasForm(CurrentFormID) == false)
+		{
+			CurrentFormID = GetDefaultFormID();
+		}
+
+		EnsureRootNodeUnlocked();
+		RebuildFromProgress();
+	}
+
+	public void ResetFromSpecies()
+	{
+		if (Species == null)
+		{
+			Attributes = new Attributes();
+			Abilities = new List<Ability>();
+			PermanentPassives = new List<Status>();
+			CurrentFormID = string.Empty;
+			return;
+		}
+
+		Attributes = CloneAttributes(Species.Attributes);
+		Abilities = new List<Ability>();
+		PermanentPassives = new List<Status>();
+
+		if (string.IsNullOrEmpty(CurrentFormID) || HasForm(CurrentFormID) == false)
+		{
+			CurrentFormID = GetDefaultFormID();
+		}
+	}
+
+	public void EnsureRootNodeUnlocked()
+	{
+		if (Species == null || Species.FeatBoard == null || Species.FeatBoard.RootNode == null)
+		{
+			return;
+		}
+
+		if (FeatBoardProgress == null)
+		{
+			FeatBoardProgress = new FeatBoardProgress();
+		}
+
+		if (FeatBoardProgress.NodeProgress == null)
+		{
+			FeatBoardProgress.NodeProgress = new List<FeatNodeProgress>();
+		}
+
+		FeatNode rootNode = Species.FeatBoard.RootNode;
+		FeatNodeProgress rootProgress = FeatBoardProgress.GetOrCreateProgress(rootNode);
+
+		if (rootProgress.CompletionCount <= 0)
+		{
+			rootProgress.CompletionCount = 1;
+			rootProgress.ResetRequirementProgress();
+		}
+	}
+
+	public void RebuildFromProgress()
+	{
+		ResetFromSpecies();
+
+		if (Species == null)
+		{
+			return;
+		}
+
+		if (FeatBoardProgress == null || FeatBoardProgress.NodeProgress == null)
+		{
+			return;
+		}
+
+		for (int progressIndex = 0; progressIndex < FeatBoardProgress.NodeProgress.Count; progressIndex++)
+		{
+			FeatNodeProgress nodeProgress = FeatBoardProgress.NodeProgress[progressIndex];
+			if (nodeProgress == null || nodeProgress.Node == null)
+			{
+				continue;
+			}
+
+			if (nodeProgress.Node.Rewards == null)
+			{
+				continue;
+			}
+
+			for (int completionIndex = 0; completionIndex < nodeProgress.CompletionCount; completionIndex++)
+			{
+				for (int rewardIndex = 0; rewardIndex < nodeProgress.Node.Rewards.Count; rewardIndex++)
+				{
+					FeatReward reward = nodeProgress.Node.Rewards[rewardIndex];
+					if (reward == null)
+					{
+						continue;
+					}
+
+					reward.Apply(this);
+				}
+			}
+		}
+	}
+
+	public string GetDefaultFormID()
+	{
+		if (Species == null || Species.Forms == null || Species.Forms.Count == 0)
+		{
+			return string.Empty;
+		}
+
+		return Species.Forms.Keys.FirstOrDefault() ?? string.Empty;
+	}
+
+	public bool HasForm(string p_formID)
+	{
+		if (Species == null || Species.Forms == null || string.IsNullOrEmpty(p_formID))
+		{
+			return false;
+		}
+
+		return Species.Forms.ContainsKey(p_formID);
+	}
+
+	public void ClearProgress()
+	{
+		if (FeatBoardProgress == null)
+		{
+			FeatBoardProgress = new FeatBoardProgress();
+		}
+
+		FeatBoardProgress.NodeProgress = new List<FeatNodeProgress>();
+		EnsureRootNodeUnlocked();
+		RebuildFromProgress();
+	}
 
 	public CreatureForm GetForm()
 	{
@@ -37,5 +187,26 @@ public class CreatureUnit
 		}
 
 		return form;
+	}
+
+	private static Attributes CloneAttributes(Attributes p_source)
+	{
+		if (p_source == null)
+		{
+			return new Attributes();
+		}
+
+		return new Attributes
+		{
+			Health = p_source.Health,
+			ActionPoints = p_source.ActionPoints,
+			Movement = p_source.Movement,
+			Attack = p_source.Attack,
+			Armor = p_source.Armor,
+			Magic = p_source.Magic,
+			Resistance = p_source.Resistance,
+			BonusRange = p_source.BonusRange,
+			Recovery = p_source.Recovery
+		};
 	}
 };

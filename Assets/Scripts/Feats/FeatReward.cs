@@ -1,9 +1,10 @@
 using System;
+using System.Collections.Generic;
 
 [Serializable]
 public abstract class FeatReward
 {
-	public abstract void Apply(CreatureUnit creatureUnit);
+	public abstract void Apply(CreatureUnit p_creatureUnit);
 }
 
 [Serializable]
@@ -27,7 +28,49 @@ public class BonusStatsReward : FeatReward
 
 	public override void Apply(CreatureUnit p_creatureUnit)
 	{
-		
+		if (p_creatureUnit == null || p_creatureUnit.Attributes == null)
+		{
+			return;
+		}
+
+		switch (Attribute)
+		{
+			case AttributeType.Health:
+				p_creatureUnit.Attributes.Health += Value;
+				break;
+
+			case AttributeType.ActionPoints:
+				p_creatureUnit.Attributes.ActionPoints += Value;
+				break;
+
+			case AttributeType.Movement:
+				p_creatureUnit.Attributes.Movement += Value;
+				break;
+
+			case AttributeType.Attack:
+				p_creatureUnit.Attributes.Attack += Value;
+				break;
+
+			case AttributeType.Armor:
+				p_creatureUnit.Attributes.Armor += Value;
+				break;
+
+			case AttributeType.Magic:
+				p_creatureUnit.Attributes.Magic += Value;
+				break;
+
+			case AttributeType.Resistance:
+				p_creatureUnit.Attributes.Resistance += Value;
+				break;
+
+			case AttributeType.BonusRange:
+				p_creatureUnit.Attributes.BonusRange += Value;
+				break;
+
+			case AttributeType.Recovery:
+				p_creatureUnit.Attributes.Recovery += Value;
+				break;
+		}
 	}
 }
 
@@ -38,7 +81,20 @@ public class AbilityReward : FeatReward
 
 	public override void Apply(CreatureUnit p_creatureUnit)
 	{
-		
+		if (p_creatureUnit == null || Ability == null)
+		{
+			return;
+		}
+
+		if (p_creatureUnit.Abilities == null)
+		{
+			p_creatureUnit.Abilities = new List<Ability>();
+		}
+
+		if (p_creatureUnit.Abilities.Contains(Ability) == false)
+		{
+			p_creatureUnit.Abilities.Add(Ability);
+		}
 	}
 }
 
@@ -49,7 +105,20 @@ public class PassiveReward : FeatReward
 
 	public override void Apply(CreatureUnit p_creatureUnit)
 	{
-		
+		if (p_creatureUnit == null || Status == null)
+		{
+			return;
+		}
+
+		if (p_creatureUnit.PermanentPassives == null)
+		{
+			p_creatureUnit.PermanentPassives = new List<Status>();
+		}
+
+		if (p_creatureUnit.PermanentPassives.Contains(Status) == false)
+		{
+			p_creatureUnit.PermanentPassives.Add(Status);
+		}
 	}
 }
 
@@ -60,6 +129,26 @@ public class ChangeFormReward : FeatReward
 
 	public override void Apply(CreatureUnit p_creatureUnit)
 	{
-		
+		if (p_creatureUnit == null || p_creatureUnit.Species == null)
+		{
+			return;
+		}
+
+		if (string.IsNullOrEmpty(FormKey))
+		{
+			return;
+		}
+
+		if (p_creatureUnit.Species.Forms == null)
+		{
+			return;
+		}
+
+		if (p_creatureUnit.Species.Forms.ContainsKey(FormKey) == false)
+		{
+			return;
+		}
+
+		p_creatureUnit.CurrentFormID = FormKey;
 	}
 }

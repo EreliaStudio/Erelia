@@ -44,18 +44,21 @@ MonoBehaviour:
     - Key: Base
       Value:
         DisplayName: A.BaseForm
+        Tier: 0
         Icon: {fileID: -591304385, guid: f303ab216d88d8d41a34b9f9b337c64b, type: 3}
         ModelPrefab: {fileID: 0}
         Tags: []
     - Key: Dps
       Value:
         DisplayName: A.DPSForm
+        Tier: 1
         Icon: {fileID: 833745316, guid: f303ab216d88d8d41a34b9f9b337c64b, type: 3}
         ModelPrefab: {fileID: 0}
         Tags: []
     - Key: Tank
       Value:
         DisplayName: A.TankForm
+        Tier: 1
         Icon: {fileID: 937269529, guid: f303ab216d88d8d41a34b9f9b337c64b, type: 3}
         ModelPrefab: {fileID: 0}
         Tags: []
@@ -76,6 +79,7 @@ MonoBehaviour:
         - rid: 1003577749767455502
         - rid: 1003577749767455516
         NumberOfRepeatTime: -1
+        FormTier: 0
         Requirements:
         - rid: 1003577749767455506
         Rewards: []
@@ -90,6 +94,7 @@ MonoBehaviour:
         - rid: 1003577749767455493
         - rid: 1003577749767455514
         NumberOfRepeatTime: 10
+        FormTier: 0
         Requirements:
         - rid: 1003577749767455507
         Rewards: []
@@ -106,6 +111,7 @@ MonoBehaviour:
         - rid: 1003577749767455497
         - rid: 1003577749767455510
         NumberOfRepeatTime: 0
+        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455501
@@ -122,6 +128,7 @@ MonoBehaviour:
         - rid: 1003577749767455500
         - rid: 1003577749767455512
         NumberOfRepeatTime: 0
+        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455505
@@ -135,6 +142,7 @@ MonoBehaviour:
         NeighbourNodes:
         - rid: 1003577749767455495
         NumberOfRepeatTime: 10
+        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455508
@@ -148,6 +156,7 @@ MonoBehaviour:
         NeighbourNodes:
         - rid: 1003577749767455495
         NumberOfRepeatTime: 10
+        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455509
@@ -161,6 +170,7 @@ MonoBehaviour:
         NeighbourNodes:
         - rid: 1003577749767455496
         NumberOfRepeatTime: 0
+        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455518
@@ -174,6 +184,7 @@ MonoBehaviour:
         NeighbourNodes:
         - rid: 1003577749767455496
         NumberOfRepeatTime: 0
+        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455517
@@ -191,6 +202,7 @@ MonoBehaviour:
         NeighbourNodes:
         - rid: 1003577749767455493
         NumberOfRepeatTime: 0
+        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455503
@@ -230,6 +242,7 @@ MonoBehaviour:
         NeighbourNodes:
         - rid: 1003577749767455495
         NumberOfRepeatTime: 0
+        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455511
@@ -247,6 +260,7 @@ MonoBehaviour:
         NeighbourNodes:
         - rid: 1003577749767455496
         NumberOfRepeatTime: 0
+        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455513
@@ -265,6 +279,7 @@ MonoBehaviour:
         - rid: 1003577749767455494
         - rid: 1003577749767455516
         NumberOfRepeatTime: 0
+        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455515
@@ -283,6 +298,7 @@ MonoBehaviour:
         - rid: 1003577749767455493
         - rid: 1003577749767455514
         NumberOfRepeatTime: 0
+        FormTier: 0
         Requirements: []
         Rewards: []
     - rid: 1003577749767455517

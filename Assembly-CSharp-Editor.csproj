@@ -55,9 +55,12 @@
     <Compile Include="Assets\Scripts\Core\Voxel\Editor\VoxelDefinitionEditor.cs" />
     <Compile Include="Assets\Scripts\AI\Editor\AIRuleDrawer.cs" />
     <Compile Include="Assets\Scripts\Abilities\Editor\AbilityCostDrawer.cs" />
+    <Compile Include="Assets\Scripts\Encounters\Editor\SerializedPropertyObjectResolver.cs" />
+    <Compile Include="Assets\Scripts\Encounters\Editor\EncounterTeamProgressBoardView.cs" />
     <Compile Include="Assets\Scripts\Abilities\Editor\AbilityEditor.cs" />
     <Compile Include="Assets\Scripts\Creatures\Editor\CreatureSpeciesEditor.cs" />
-    <Compile Include="Assets\Scripts\Encounters\Editor\EncounterTeamUnitEditor.cs" />
+    <Compile Include="Assets\Scripts\Creatures\Editor\CreatureUnitFeatProgressUtility.cs" />
+    <Compile Include="Assets\Scripts\Encounters\Editor\EncounterTeamUnitInspectorView.cs" />
     <Compile Include="Assets\Scripts\Core\Editor\AttributesDrawer.cs" />
     <Compile Include="Assets\Scripts\Feats\Editor\FeatBoardEditorWindow.cs" />
     <Compile Include="Assets\Scripts\Encounters\Editor\EncounterTierDrawer.cs" />

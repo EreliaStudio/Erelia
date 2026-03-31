@@ -472,6 +472,7 @@ MonoBehaviour:
           Icon: {fileID: 0}
           NeighbourNodes: []
           NumberOfRepeatTime: 0
+          FormTier: 0
           Requirements: []
           Rewards: []
         CompletionCount: 0
@@ -924,110 +925,712 @@ MonoBehaviour:
   m_GameObject: {fileID: 2058802322}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: edb34049ee52de148b5f6d995f384c47, type: 3}
+  m_Script: {fileID: 11500000, guid: 1b5e9969aa63802408187f4c1636ff59, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DebugCreatureTeamHolder
+  m_EditorClassIdentifier: Assembly-CSharp::DebugEncounterTeamHolder
   creatureCardListElementUI: {fileID: 0}
-  creatureTeam:
-  - Species: {fileID: 11400000, guid: e5ab009c3c0e3fe4385aff3dad08583a, type: 2}
-    CurrentFormID: Base
-    Attributes:
-      Health: 10
-      ActionPoints: 6
-      Movement: 3
-      Attack: 0
-      Armor: 0
-      Magic: 0
-      Resistance: 0
-      BonusRange: 0
-      Recovery: 4
-    Abilities: []
-    PermanentPassives: []
-    FeatBoardProgress:
-      NodeProgress: []
-  - Species: {fileID: 11400000, guid: 079bb0afb73b86a438a7a9cf84d730bd, type: 2}
-    CurrentFormID: 
-    Attributes:
-      Health: 10
-      ActionPoints: 6
-      Movement: 3
-      Attack: 0
-      Armor: 0
-      Magic: 0
-      Resistance: 0
-      BonusRange: 0
-      Recovery: 4
-    Abilities: []
-    PermanentPassives: []
-    FeatBoardProgress:
-      NodeProgress: []
-  - Species: {fileID: 0}
-    CurrentFormID: 
-    Attributes:
-      Health: 10
-      ActionPoints: 6
-      Movement: 3
-      Attack: 0
-      Armor: 0
-      Magic: 0
-      Resistance: 0
-      BonusRange: 0
-      Recovery: 4
-    Abilities: []
-    PermanentPassives: []
-    FeatBoardProgress:
-      NodeProgress: []
-  - Species: {fileID: 0}
-    CurrentFormID: 
-    Attributes:
-      Health: 10
-      ActionPoints: 6
-      Movement: 3
-      Attack: 0
-      Armor: 0
-      Magic: 0
-      Resistance: 0
-      BonusRange: 0
-      Recovery: 4
-    Abilities: []
-    PermanentPassives: []
-    FeatBoardProgress:
-      NodeProgress: []
-  - Species: {fileID: 0}
-    CurrentFormID: 
-    Attributes:
-      Health: 10
-      ActionPoints: 6
-      Movement: 3
-      Attack: 0
-      Armor: 0
-      Magic: 0
-      Resistance: 0
-      BonusRange: 0
-      Recovery: 4
-    Abilities: []
-    PermanentPassives: []
-    FeatBoardProgress:
-      NodeProgress: []
-  - Species: {fileID: 0}
-    CurrentFormID: 
-    Attributes:
-      Health: 10
-      ActionPoints: 6
-      Movement: 3
-      Attack: 0
-      Armor: 0
-      Magic: 0
-      Resistance: 0
-      BonusRange: 0
-      Recovery: 4
-    Abilities: []
-    PermanentPassives: []
-    FeatBoardProgress:
-      NodeProgress: []
+  encounterTier:
+    WeightedTeams:
+    - Team:
+      - Species: {fileID: 11400000, guid: e5ab009c3c0e3fe4385aff3dad08583a, type: 2}
+        CurrentFormID: Base
+        Attributes:
+          Health: 10
+          ActionPoints: 6
+          Movement: 3
+          Attack: 0
+          Armor: 0
+          Magic: 0
+          Resistance: 0
+          BonusRange: 0
+          Recovery: 4
+        Abilities: []
+        PermanentPassives: []
+        FeatBoardProgress:
+          NodeProgress:
+          - Node:
+              DisplayName: BaseForm
+              Position: {x: 9, y: 10}
+              Kind: 3
+              Icon: {fileID: 0}
+              NeighbourNodes:
+              - rid: 1003577757238558787
+              NumberOfRepeatTime: 0
+              FormTier: 0
+              Requirements: []
+              Rewards:
+              - rid: 1003577757238558788
+            CompletionCount: 1
+            RequirementProgress: []
+          - Node:
+              DisplayName: BonusHP
+              Position: {x: 8, y: 3}
+              Kind: 0
+              Icon: {fileID: 0}
+              NeighbourNodes:
+              - rid: 1003577757238558789
+              - rid: 1003577757238558790
+              - rid: 1003577757238558791
+              - rid: 1003577757238558792
+              - rid: 1003577757238558793
+              NumberOfRepeatTime: -1
+              FormTier: 0
+              Requirements:
+              - rid: 1003577757238558794
+              Rewards: []
+            CompletionCount: 3
+            RequirementProgress:
+            - CurrentProgress: 0
+          - Node:
+              DisplayName: TankForm
+              Position: {x: 15, y: -1}
+              Kind: 3
+              Icon: {fileID: 0}
+              NeighbourNodes:
+              - rid: 1003577757238558787
+              - rid: 1003577757238558801
+              - rid: 1003577757238558802
+              - rid: 1003577757238558803
+              NumberOfRepeatTime: 0
+              FormTier: 0
+              Requirements: []
+              Rewards:
+              - rid: 1003577757238558804
+            CompletionCount: 1
+            RequirementProgress: []
+          - Node:
+              DisplayName: BaseForm
+              Position: {x: 9, y: 10}
+              Kind: 3
+              Icon: {fileID: 0}
+              NeighbourNodes:
+              - rid: 1003577757238558820
+              NumberOfRepeatTime: 0
+              FormTier: 0
+              Requirements: []
+              Rewards:
+              - rid: 1003577757238558821
+            CompletionCount: 1
+            RequirementProgress: []
+          - Node:
+              DisplayName: BonusHP
+              Position: {x: 8, y: 3}
+              Kind: 0
+              Icon: {fileID: 0}
+              NeighbourNodes:
+              - rid: 1003577757238558822
+              - rid: 1003577757238558823
+              - rid: 1003577757238558824
+              - rid: 1003577757238558825
+              - rid: 1003577757238558826
+              NumberOfRepeatTime: -1
+              FormTier: 0
+              Requirements:
+              - rid: 1003577757238558827
+              Rewards: []
+            CompletionCount: 3
+            RequirementProgress:
+            - CurrentProgress: 0
+        Behaviour:
+          ActiveMode: 
+          RulesByModes:
+            _serializedList: []
+      - Species: {fileID: 0}
+        CurrentFormID: 
+        Attributes:
+          Health: 0
+          ActionPoints: 0
+          Movement: 0
+          Attack: 0
+          Armor: 0
+          Magic: 0
+          Resistance: 0
+          BonusRange: 0
+          Recovery: 0
+        Abilities: []
+        PermanentPassives: []
+        FeatBoardProgress:
+          NodeProgress: []
+        Behaviour:
+          ActiveMode: 
+          RulesByModes:
+            _serializedList: []
+      - Species: {fileID: 0}
+        CurrentFormID: 
+        Attributes:
+          Health: 0
+          ActionPoints: 0
+          Movement: 0
+          Attack: 0
+          Armor: 0
+          Magic: 0
+          Resistance: 0
+          BonusRange: 0
+          Recovery: 0
+        Abilities: []
+        PermanentPassives: []
+        FeatBoardProgress:
+          NodeProgress: []
+        Behaviour:
+          ActiveMode: 
+          RulesByModes:
+            _serializedList: []
+      - Species: {fileID: 0}
+        CurrentFormID: 
+        Attributes:
+          Health: 0
+          ActionPoints: 0
+          Movement: 0
+          Attack: 0
+          Armor: 0
+          Magic: 0
+          Resistance: 0
+          BonusRange: 0
+          Recovery: 0
+        Abilities: []
+        PermanentPassives: []
+        FeatBoardProgress:
+          NodeProgress: []
+        Behaviour:
+          ActiveMode: 
+          RulesByModes:
+            _serializedList: []
+      - Species: {fileID: 0}
+        CurrentFormID: 
+        Attributes:
+          Health: 0
+          ActionPoints: 0
+          Movement: 0
+          Attack: 0
+          Armor: 0
+          Magic: 0
+          Resistance: 0
+          BonusRange: 0
+          Recovery: 0
+        Abilities: []
+        PermanentPassives: []
+        FeatBoardProgress:
+          NodeProgress: []
+        Behaviour:
+          ActiveMode: 
+          RulesByModes:
+            _serializedList: []
+      - Species: {fileID: 0}
+        CurrentFormID: 
+        Attributes:
+          Health: 0
+          ActionPoints: 0
+          Movement: 0
+          Attack: 0
+          Armor: 0
+          Magic: 0
+          Resistance: 0
+          BonusRange: 0
+          Recovery: 0
+        Abilities: []
+        PermanentPassives: []
+        FeatBoardProgress:
+          NodeProgress: []
+        Behaviour:
+          ActiveMode: 
+          RulesByModes:
+            _serializedList: []
+      Weight: 0
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 1003577757238558787
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusHP
+        Position: {x: 8, y: 3}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558789
+        - rid: 1003577757238558790
+        - rid: 1003577757238558791
+        - rid: 1003577757238558792
+        - rid: 1003577757238558793
+        NumberOfRepeatTime: -1
+        FormTier: 0
+        Requirements:
+        - rid: 1003577757238558794
+        Rewards: []
+    - rid: 1003577757238558788
+      type: {class: ChangeFormReward, ns: , asm: Assembly-CSharp}
+      data:
+        FormKey: Base
+    - rid: 1003577757238558789
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusHP2
+        Position: {x: 0, y: -0}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558787
+        - rid: 1003577757238558795
+        NumberOfRepeatTime: 10
+        FormTier: 0
+        Requirements:
+        - rid: 1003577757238558796
+        Rewards: []
+    - rid: 1003577757238558790
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: DPSForm
+        Position: {x: 6, y: -4}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558787
+        - rid: 1003577757238558797
+        - rid: 1003577757238558798
+        - rid: 1003577757238558799
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558800
+    - rid: 1003577757238558791
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: TankForm
+        Position: {x: 15, y: -1}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558787
+        - rid: 1003577757238558801
+        - rid: 1003577757238558802
+        - rid: 1003577757238558803
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558804
+    - rid: 1003577757238558792
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BaseForm
+        Position: {x: 9, y: 10}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558787
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558788
+    - rid: 1003577757238558793
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusHP3
+        Position: {x: -0, y: 6}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558787
+        - rid: 1003577757238558795
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards: []
+    - rid: 1003577757238558794
+      type: {class: DealDamageRequirement, ns: , asm: Assembly-CSharp}
+      data:
+        RequiredAmount: 10
+    - rid: 1003577757238558795
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: New Feat
+        Position: {x: -9, y: 2}
+        Kind: 2
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558789
+        - rid: 1003577757238558793
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558805
+    - rid: 1003577757238558796
+      type: {class: DealDamageRequirement, ns: , asm: Assembly-CSharp}
+      data:
+        RequiredAmount: 10
+    - rid: 1003577757238558797
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusAttack
+        Position: {x: 3, y: -12}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558790
+        NumberOfRepeatTime: 10
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558806
+    - rid: 1003577757238558798
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusMagic
+        Position: {x: -3, y: -9}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558790
+        NumberOfRepeatTime: 10
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558807
+    - rid: 1003577757238558799
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: New Feat
+        Position: {x: 9, y: -12}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558790
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558808
+    - rid: 1003577757238558800
+      type: {class: ChangeFormReward, ns: , asm: Assembly-CSharp}
+      data:
+        FormKey: Dps
+    - rid: 1003577757238558801
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusArmor
+        Position: {x: 16, y: -9}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558791
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558809
+    - rid: 1003577757238558802
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusResistance
+        Position: {x: 22, y: -7}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558791
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558810
+    - rid: 1003577757238558803
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: New Feat
+        Position: {x: 24, y: -1}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558791
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558811
+    - rid: 1003577757238558804
+      type: {class: ChangeFormReward, ns: , asm: Assembly-CSharp}
+      data:
+        FormKey: Tank
+    - rid: 1003577757238558805
+      type: {class: PassiveReward, ns: , asm: Assembly-CSharp}
+      data:
+        Status: {fileID: 0}
+    - rid: 1003577757238558806
+      type: {class: BonusStatsReward, ns: , asm: Assembly-CSharp}
+      data:
+        Attribute: 3
+        Value: 1
+    - rid: 1003577757238558807
+      type: {class: BonusStatsReward, ns: , asm: Assembly-CSharp}
+      data:
+        Attribute: 5
+        Value: 1
+    - rid: 1003577757238558808
+      type: {class: AbilityReward, ns: , asm: Assembly-CSharp}
+      data:
+        Ability: {fileID: 0}
+    - rid: 1003577757238558809
+      type: {class: BonusStatsReward, ns: , asm: Assembly-CSharp}
+      data:
+        Attribute: 4
+        Value: 1
+    - rid: 1003577757238558810
+      type: {class: BonusStatsReward, ns: , asm: Assembly-CSharp}
+      data:
+        Attribute: 6
+        Value: 1
+    - rid: 1003577757238558811
+      type: {class: AbilityReward, ns: , asm: Assembly-CSharp}
+      data:
+        Ability: {fileID: 0}
+    - rid: 1003577757238558820
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusHP
+        Position: {x: 8, y: 3}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558822
+        - rid: 1003577757238558823
+        - rid: 1003577757238558824
+        - rid: 1003577757238558825
+        - rid: 1003577757238558826
+        NumberOfRepeatTime: -1
+        FormTier: 0
+        Requirements:
+        - rid: 1003577757238558827
+        Rewards: []
+    - rid: 1003577757238558821
+      type: {class: ChangeFormReward, ns: , asm: Assembly-CSharp}
+      data:
+        FormKey: Base
+    - rid: 1003577757238558822
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusHP2
+        Position: {x: 0, y: -0}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558820
+        - rid: 1003577757238558828
+        NumberOfRepeatTime: 10
+        FormTier: 0
+        Requirements:
+        - rid: 1003577757238558829
+        Rewards: []
+    - rid: 1003577757238558823
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: DPSForm
+        Position: {x: 6, y: -4}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558820
+        - rid: 1003577757238558830
+        - rid: 1003577757238558831
+        - rid: 1003577757238558832
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558833
+    - rid: 1003577757238558824
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: TankForm
+        Position: {x: 15, y: -1}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558820
+        - rid: 1003577757238558834
+        - rid: 1003577757238558835
+        - rid: 1003577757238558836
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558837
+    - rid: 1003577757238558825
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BaseForm
+        Position: {x: 9, y: 10}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558820
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558821
+    - rid: 1003577757238558826
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusHP3
+        Position: {x: -0, y: 6}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558820
+        - rid: 1003577757238558828
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards: []
+    - rid: 1003577757238558827
+      type: {class: DealDamageRequirement, ns: , asm: Assembly-CSharp}
+      data:
+        RequiredAmount: 10
+    - rid: 1003577757238558828
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: New Feat
+        Position: {x: -9, y: 2}
+        Kind: 2
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558822
+        - rid: 1003577757238558826
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558838
+    - rid: 1003577757238558829
+      type: {class: DealDamageRequirement, ns: , asm: Assembly-CSharp}
+      data:
+        RequiredAmount: 10
+    - rid: 1003577757238558830
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusAttack
+        Position: {x: 3, y: -12}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558823
+        NumberOfRepeatTime: 10
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558839
+    - rid: 1003577757238558831
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusMagic
+        Position: {x: -3, y: -9}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558823
+        NumberOfRepeatTime: 10
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558840
+    - rid: 1003577757238558832
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: New Feat
+        Position: {x: 9, y: -12}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558823
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558841
+    - rid: 1003577757238558833
+      type: {class: ChangeFormReward, ns: , asm: Assembly-CSharp}
+      data:
+        FormKey: Dps
+    - rid: 1003577757238558834
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusArmor
+        Position: {x: 16, y: -9}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558824
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558842
+    - rid: 1003577757238558835
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusResistance
+        Position: {x: 22, y: -7}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558824
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558843
+    - rid: 1003577757238558836
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: New Feat
+        Position: {x: 24, y: -1}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577757238558824
+        NumberOfRepeatTime: 0
+        FormTier: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577757238558844
+    - rid: 1003577757238558837
+      type: {class: ChangeFormReward, ns: , asm: Assembly-CSharp}
+      data:
+        FormKey: Tank
+    - rid: 1003577757238558838
+      type: {class: PassiveReward, ns: , asm: Assembly-CSharp}
+      data:
+        Status: {fileID: 0}
+    - rid: 1003577757238558839
+      type: {class: BonusStatsReward, ns: , asm: Assembly-CSharp}
+      data:
+        Attribute: 3
+        Value: 1
+    - rid: 1003577757238558840
+      type: {class: BonusStatsReward, ns: , asm: Assembly-CSharp}
+      data:
+        Attribute: 5
+        Value: 1
+    - rid: 1003577757238558841
+      type: {class: AbilityReward, ns: , asm: Assembly-CSharp}
+      data:
+        Ability: {fileID: 0}
+    - rid: 1003577757238558842
+      type: {class: BonusStatsReward, ns: , asm: Assembly-CSharp}
+      data:
+        Attribute: 4
+        Value: 1
+    - rid: 1003577757238558843
+      type: {class: BonusStatsReward, ns: , asm: Assembly-CSharp}
+      data:
+        Attribute: 6
+        Value: 1
+    - rid: 1003577757238558844
+      type: {class: AbilityReward, ns: , asm: Assembly-CSharp}
+      data:
+        Ability: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
