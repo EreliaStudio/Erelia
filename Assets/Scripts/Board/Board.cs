@@ -1,9 +1,21 @@
 using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 [Serializable]
 public class Board : VoxelGrid
 {
+	[Serializable]
+	public class BattleCell
+	{
+		public BattleUnit Unit;
+		public List<BattleInteractiveObject> InteractiveObjects = new List<BattleInteractiveObject>();
+	}
+
 	public readonly VoxelMaskCell[,,] MaskCells;
+	public readonly Dictionary<Vector3Int, BattleCell> BattleCells = new Dictionary<Vector3Int, BattleCell>();
+	public readonly Dictionary<BattleObject, Vector3Int> PositionByObject = new Dictionary<BattleObject, Vector3Int>();
+	public List<Vector3Int> ReachableCells = new List<Vector3Int>();
 
 	public Board() : base(0, 0, 0)
 	{

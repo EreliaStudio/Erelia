@@ -53,8 +53,6 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Statuses\Status.cs" />
     <Compile Include="Assets\Scripts\Board\BoardView.cs" />
-    <Compile Include="Assets\Scripts\Board\WorldExtractionConfiguration.cs" />
-    <Compile Include="Assets\Scripts\Board\WorldExtractor.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterTier.cs" />
     <Compile Include="Assets\Scripts\Trainers\Trainer.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatNodeProgress.cs" />
@@ -91,11 +89,13 @@
     <Compile Include="Assets\Scripts\Feats\FeatNode.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatNodeKind.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelEnums.cs" />
+    <Compile Include="Assets\Scripts\Board\WorldExtractor.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMaskCell.cs" />
     <Compile Include="Assets\Scripts\Player\Badge.cs" />
     <Compile Include="Assets\Scripts\AI\AIRule.cs" />
     <Compile Include="Assets\Scripts\World\WorldPresenter.cs" />
     <Compile Include="Assets\Scripts\Abilities\AbilityCost.cs" />
+    <Compile Include="Assets\Scripts\Board\WorldExtractionConfiguration.cs" />
     <Compile Include="Assets\Scripts\Trainers\TrainerReward.cs" />
     <Compile Include="Assets\Scripts\World\WorldGenerator.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleUnit.cs" />
