@@ -1183,13 +1183,13 @@ Composed of:
 ## Encounter.Tier
 Kind: Serializable
 Composed of:
-- List<EncounterTeamsLinkedToEncounterWeight> EncounterTeamsLinkedToEncounterWeights
+- List<CreatureTeamsLinkedToEncounterWeight> CreatureTeamsLinkedToEncounterWeights
 
 # Model.Battle
 
 ## Battle.Input
 Composed of:
-- Encounter.Team EnemyEncounterTeam
+- Encounter.Team EnemyCreatureTeam
 - BattleType BattleType
 - Vector3Int SourceWorldPosition
 - BoundsInt SourceVoxelArea

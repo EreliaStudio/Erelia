@@ -5,5 +5,5 @@ using System.Collections.Generic;
 public class Player
 {
 	public List<Badge> ObtainedBadges = new List<Badge>();
-	public CreatureUnit[] Team = new CreatureUnit[6];
+	public CreatureUnit[] Team = new CreatureUnit[GameRule.TeamMemberCount];
 };

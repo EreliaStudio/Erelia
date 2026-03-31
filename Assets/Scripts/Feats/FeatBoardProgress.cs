@@ -1,38 +1,87 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 [Serializable]
 public class FeatBoardProgress
 {
-	public List<FeatNode> ExhaustedNodes = new List<FeatNode>();
-	public List<FeatNodeProgress> ActiveNodeProgress = new List<FeatNodeProgress>();
+	public List<FeatNodeProgress> NodeProgress = new List<FeatNodeProgress>();
 
-	private void CompleteNode(FeatNodeProgress nodeProgress)
+	public void Register(FeatRequirement.EventBase p_featEvent)
 	{
-		//Check for repeat time of the node. If its reach, remove it from the active node
-		//Add its neighbour node if not already added to the list of active node
-	}
-
-	public void Register(FeatRequirement.EventBase featEvent)
-	{
-		foreach (var nodeProgress in ActiveNodeProgress)
+		foreach (FeatNodeProgress nodeProgress in NodeProgress)
 		{
-			nodeProgress.Register(featEvent);
+			if (nodeProgress == null || nodeProgress.Node == null)
+			{
+				continue;
+			}
+
+			if (nodeProgress.IsExhausted)
+			{
+				continue;
+			}
+
+			nodeProgress.Register(p_featEvent);
 		}
 	}
 
-	public void ApplyCompletedNode(CreatureUnit creatureUnit)
+	public void ApplyCompletedNode(CreatureUnit p_creatureUnit)
 	{
-		foreach (var nodeProgress in ActiveNodeProgress)
+		foreach (FeatNodeProgress nodeProgress in NodeProgress)
 		{
-			if (nodeProgress.IsCompleted == true)
+			if (nodeProgress == null || nodeProgress.Node == null)
 			{
-				foreach (var reward in nodeProgress.Node.Rewards)
-				{	
-					reward.Apply(creatureUnit);
-				}
-				CompleteNode(nodeProgress);
+				continue;
+			}
+
+			if (nodeProgress.IsCompleted == false)
+			{
+				continue;
+			}
+
+			foreach (FeatReward reward in nodeProgress.Node.Rewards)
+			{
+				reward.Apply(p_creatureUnit);
+			}
+
+			nodeProgress.Complete();
+		}
+	}
+
+	public FeatNodeProgress GetOrCreateProgress(FeatNode p_node)
+	{
+		FeatNodeProgress nodeProgress = NodeProgress.FirstOrDefault(p_progress => p_progress != null && p_progress.Node == p_node);
+		if (nodeProgress != null)
+		{
+			return nodeProgress;
+		}
+
+		nodeProgress = CreateProgress(p_node);
+		NodeProgress.Add(nodeProgress);
+		return nodeProgress;
+	}
+
+	private static FeatNodeProgress CreateProgress(FeatNode p_node)
+	{
+		FeatNodeProgress nodeProgress = new FeatNodeProgress
+		{
+			Node = p_node,
+			CompletionCount = 0,
+			RequirementProgress = new List<FeatRequirementProgress>()
+		};
+
+		if (p_node != null)
+		{
+			foreach (FeatRequirement requirement in p_node.Requirements)
+			{
+				nodeProgress.RequirementProgress.Add(new FeatRequirementProgress
+				{
+					Requirement = requirement,
+					CurrentProgress = 0f
+				});
 			}
 		}
+
+		return nodeProgress;
 	}
 }

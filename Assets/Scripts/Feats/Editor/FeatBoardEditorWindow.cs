@@ -431,6 +431,13 @@ public class FeatBoardEditorWindow : EditorWindow
 
 		GUI.Label(bodyRect, BuildNodeBody(node), bodyStyle);
 		EditorGUIUtility.AddCursorRect(ToScreenRect(rect), MouseCursor.MoveArrow);
+
+		if (IsRootNode(node))
+		{
+			Rect rootRect = new Rect(rect.x + padding, rect.yMax - 22f * zoom, 52f * zoom, 16f * zoom);
+			EditorGUI.DrawRect(rootRect, new Color(1f, 0.85f, 0.25f, 0.9f));
+			GUI.Label(rootRect, "ROOT", badgeStyle);
+		}
 	}
 
 	private void DrawCanvasOverlay(Vector2 canvasSize)
@@ -482,6 +489,7 @@ public class FeatBoardEditorWindow : EditorWindow
 
 		EditorGUILayout.ObjectField("Species", species, typeof(CreatureSpecies), false);
 		EditorGUILayout.LabelField("Node Count", GetNodes().Count.ToString());
+		EditorGUILayout.LabelField("Root Node", GetRootNode() != null ? GetNodeLabel(GetRootNode()) : "None");
 		EditorGUILayout.LabelField("Selected Node", GetSelectedNode() != null ? GetNodeLabel(GetSelectedNode()) : "None");
 
 		EditorGUILayout.Space(4f);
@@ -557,6 +565,31 @@ public class FeatBoardEditorWindow : EditorWindow
 		{
 			ApplySpeciesChange("Change Feat Node Icon", () => node.Icon = newIcon);
 		}
+
+		EditorGUILayout.Space(6f);
+
+		bool isRootNode = IsRootNode(node);
+		EditorGUILayout.LabelField("Root", isRootNode ? "Yes" : "No");
+
+		EditorGUILayout.BeginHorizontal();
+
+		using (new EditorGUI.DisabledScope(isRootNode))
+		{
+			if (GUILayout.Button("Make Root"))
+			{
+				SetRootNode(node);
+			}
+		}
+
+		using (new EditorGUI.DisabledScope(!isRootNode))
+		{
+			if (GUILayout.Button("Clear Root"))
+			{
+				SetRootNode(null);
+			}
+		}
+
+		EditorGUILayout.EndHorizontal();
 
 		EditorGUILayout.Space(6f);
 		EditorGUILayout.BeginHorizontal();
@@ -1192,36 +1225,41 @@ public class FeatBoardEditorWindow : EditorWindow
 	}
 
 	private void RemoveNode(FeatNode node)
+{
+	if (species == null || node == null)
 	{
-		if (species == null || node == null)
-		{
-			return;
-		}
-
-		ApplySpeciesChange("Delete Feat Node", () =>
-		{
-			List<FeatNode> nodes = GetNodes();
-			for (int i = 0; i < nodes.Count; i++)
-			{
-				if (nodes[i] != null && nodes[i].NeighbourNodes != null)
-				{
-					nodes[i].NeighbourNodes.Remove(node);
-				}
-			}
-
-			species.FeatBoard.Nodes.Remove(node);
-		});
-
-		if (selectedNode == node)
-		{
-			selectedNode = null;
-		}
-
-		if (linkSourceNode == node)
-		{
-			linkSourceNode = null;
-		}
+		return;
 	}
+
+	ApplySpeciesChange("Delete Feat Node", () =>
+	{
+		List<FeatNode> nodes = GetNodes();
+		for (int i = 0; i < nodes.Count; i++)
+		{
+			if (nodes[i] != null && nodes[i].NeighbourNodes != null)
+			{
+				nodes[i].NeighbourNodes.Remove(node);
+			}
+		}
+
+		if (species.FeatBoard.RootNode == node)
+		{
+			species.FeatBoard.RootNode = null;
+		}
+
+		species.FeatBoard.Nodes.Remove(node);
+	});
+
+	if (selectedNode == node)
+	{
+		selectedNode = null;
+	}
+
+	if (linkSourceNode == node)
+	{
+		linkSourceNode = null;
+	}
+}
 
 	private void ToggleLink(FeatNode first, FeatNode second)
 	{
@@ -1362,51 +1400,60 @@ public class FeatBoardEditorWindow : EditorWindow
 	}
 
 	private void EnsureBoardIntegrity(bool recordUndo, string undoLabel)
+{
+	if (species == null)
 	{
-		if (species == null)
+		return;
+	}
+
+	bool changed = false;
+	bool undoRecorded = false;
+
+	void RecordUndoIfNeeded()
+	{
+		if (!recordUndo || undoRecorded)
 		{
 			return;
 		}
 
-		bool changed = false;
-		bool undoRecorded = false;
+		Undo.RecordObject(species, undoLabel);
+		undoRecorded = true;
+	}
 
-		void RecordUndoIfNeeded()
-		{
-			if (!recordUndo || undoRecorded)
-			{
-				return;
-			}
+	if (species.FeatBoard == null)
+	{
+		RecordUndoIfNeeded();
+		species.FeatBoard = new FeatBoard();
+		changed = true;
+	}
 
-			Undo.RecordObject(species, undoLabel);
-			undoRecorded = true;
-		}
+	if (species.FeatBoard.Nodes == null)
+	{
+		RecordUndoIfNeeded();
+		species.FeatBoard.Nodes = new List<FeatNode>();
+		changed = true;
+	}
 
-		if (species.FeatBoard == null)
+	List<FeatNode> nodes = GetNodes();
+
+	for (int i = nodes.Count - 1; i >= 0; i--)
+	{
+		if (nodes[i] == null)
 		{
 			RecordUndoIfNeeded();
-			species.FeatBoard = new FeatBoard();
+			nodes.RemoveAt(i);
 			changed = true;
 		}
+	}
 
-		if (species.FeatBoard.Nodes == null)
-		{
-			RecordUndoIfNeeded();
-			species.FeatBoard.Nodes = new List<FeatNode>();
-			changed = true;
-		}
+	HashSet<FeatNode> nodeSet = new HashSet<FeatNode>(nodes);
 
-		List<FeatNode> nodes = GetNodes();
-
-		for (int i = nodes.Count - 1; i >= 0; i--)
-		{
-			if (nodes[i] == null)
-			{
-				RecordUndoIfNeeded();
-				nodes.RemoveAt(i);
-				changed = true;
-			}
-		}
+	if (species.FeatBoard.RootNode != null && !nodeSet.Contains(species.FeatBoard.RootNode))
+	{
+		RecordUndoIfNeeded();
+		species.FeatBoard.RootNode = null;
+		changed = true;
+	}
 
 		for (int i = 0; i < nodes.Count; i++)
 		{
@@ -1444,8 +1491,6 @@ public class FeatBoardEditorWindow : EditorWindow
 				changed = true;
 			}
 		}
-
-		HashSet<FeatNode> nodeSet = new HashSet<FeatNode>(nodes);
 
 		for (int i = 0; i < nodes.Count; i++)
 		{
@@ -1548,6 +1593,34 @@ public class FeatBoardEditorWindow : EditorWindow
 	private FeatNode GetSelectedNode()
 	{
 		return selectedNode;
+	}
+
+	private FeatNode GetRootNode()
+	{
+		if (species == null || species.FeatBoard == null)
+		{
+			return null;
+		}
+
+		return species.FeatBoard.RootNode;
+	}
+
+	private bool IsRootNode(FeatNode p_node)
+	{
+		return GetRootNode() == p_node;
+	}
+
+	private void SetRootNode(FeatNode p_node)
+	{
+		if (species == null)
+		{
+			return;
+		}
+
+		ApplySpeciesChange("Set Feat Root Node", () =>
+		{
+			species.FeatBoard.RootNode = p_node;
+		});
 	}
 
 	private FeatNode GetNodeAtCanvasPosition(Vector2 localPosition)

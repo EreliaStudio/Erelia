@@ -7,4 +7,7 @@ public class FeatBoard
 {
 	[SerializeReference]
 	public List<FeatNode> Nodes = new List<FeatNode>();
+
+	[SerializeReference]
+	public FeatNode RootNode = null;
 }

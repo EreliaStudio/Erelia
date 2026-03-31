@@ -34,6 +34,7 @@ public class Ability : ScriptableObject
 		public int Value;
 	};
 
+	public Sprite Icon = null;
 	public AbilityCost Cost = new AbilityCost();
 	public RangeDefinition Range = new RangeDefinition{
 		Type = RangeDefinition.Shape.Circle,

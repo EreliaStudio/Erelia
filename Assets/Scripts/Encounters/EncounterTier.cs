@@ -7,7 +7,7 @@ public class EncounterTier
 	[Serializable]
 	public class Entry
 	{
-		public EncounterTeam Team = new EncounterTeam();
+		public EncounterUnit[] Team = new EncounterUnit[GameRule.TeamMemberCount];
 		public int Weight = 1;
 	};
 	public List<Entry> WeightedTeams = new List<Entry>();

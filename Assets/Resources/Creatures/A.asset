@@ -1,0 +1,297 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aae4753f3181e5f42a13212490c4ea7b, type: 3}
+  m_Name: A
+  m_EditorClassIdentifier: Assembly-CSharp::CreatureSpecies
+  Attributes:
+    Health: 10
+    ActionPoints: 6
+    Movement: 3
+    Attack: 0
+    Armor: 0
+    Magic: 0
+    Resistance: 0
+    BonusRange: 0
+    Recovery: 4
+  FeatBoard:
+    Nodes:
+    - rid: 1003577749767455493
+    - rid: 1003577749767455494
+    - rid: 1003577749767455495
+    - rid: 1003577749767455496
+    - rid: 1003577749767455497
+    - rid: 1003577749767455498
+    - rid: 1003577749767455499
+    - rid: 1003577749767455500
+    - rid: 1003577749767455502
+    - rid: 1003577749767455510
+    - rid: 1003577749767455512
+    - rid: 1003577749767455514
+    - rid: 1003577749767455516
+    RootNode:
+      rid: 1003577749767455502
+  Forms:
+    _serializedList:
+    - Key: Base
+      Value:
+        DisplayName: A.BaseForm
+        Icon: {fileID: -591304385, guid: f303ab216d88d8d41a34b9f9b337c64b, type: 3}
+        ModelPrefab: {fileID: 0}
+        Tags: []
+    - Key: Dps
+      Value:
+        DisplayName: A.DPSForm
+        Icon: {fileID: 833745316, guid: f303ab216d88d8d41a34b9f9b337c64b, type: 3}
+        ModelPrefab: {fileID: 0}
+        Tags: []
+    - Key: Tank
+      Value:
+        DisplayName: A.TankForm
+        Icon: {fileID: 937269529, guid: f303ab216d88d8d41a34b9f9b337c64b, type: 3}
+        ModelPrefab: {fileID: 0}
+        Tags: []
+  references:
+    version: 2
+    RefIds:
+    - rid: 1003577749767455493
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusHP
+        Position: {x: 8, y: 3}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577749767455494
+        - rid: 1003577749767455495
+        - rid: 1003577749767455496
+        - rid: 1003577749767455502
+        - rid: 1003577749767455516
+        NumberOfRepeatTime: -1
+        Requirements:
+        - rid: 1003577749767455506
+        Rewards: []
+    - rid: 1003577749767455494
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusHP2
+        Position: {x: 0, y: -0}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577749767455493
+        - rid: 1003577749767455514
+        NumberOfRepeatTime: 10
+        Requirements:
+        - rid: 1003577749767455507
+        Rewards: []
+    - rid: 1003577749767455495
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: DPSForm
+        Position: {x: 6, y: -4}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577749767455493
+        - rid: 1003577749767455498
+        - rid: 1003577749767455497
+        - rid: 1003577749767455510
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577749767455501
+    - rid: 1003577749767455496
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: TankForm
+        Position: {x: 15, y: -1}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577749767455493
+        - rid: 1003577749767455499
+        - rid: 1003577749767455500
+        - rid: 1003577749767455512
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577749767455505
+    - rid: 1003577749767455497
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusMagic
+        Position: {x: -3, y: -9}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577749767455495
+        NumberOfRepeatTime: 10
+        Requirements: []
+        Rewards:
+        - rid: 1003577749767455508
+    - rid: 1003577749767455498
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusAttack
+        Position: {x: 3, y: -12}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577749767455495
+        NumberOfRepeatTime: 10
+        Requirements: []
+        Rewards:
+        - rid: 1003577749767455509
+    - rid: 1003577749767455499
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusArmor
+        Position: {x: 16, y: -9}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577749767455496
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577749767455518
+    - rid: 1003577749767455500
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusResistance
+        Position: {x: 22, y: -7}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577749767455496
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577749767455517
+    - rid: 1003577749767455501
+      type: {class: ChangeFormReward, ns: , asm: Assembly-CSharp}
+      data:
+        FormKey: Dps
+    - rid: 1003577749767455502
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BaseForm
+        Position: {x: 9, y: 10}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577749767455493
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577749767455503
+    - rid: 1003577749767455503
+      type: {class: ChangeFormReward, ns: , asm: Assembly-CSharp}
+      data:
+        FormKey: Base
+    - rid: 1003577749767455505
+      type: {class: ChangeFormReward, ns: , asm: Assembly-CSharp}
+      data:
+        FormKey: Tank
+    - rid: 1003577749767455506
+      type: {class: DealDamageRequirement, ns: , asm: Assembly-CSharp}
+      data:
+        RequiredAmount: 10
+    - rid: 1003577749767455507
+      type: {class: DealDamageRequirement, ns: , asm: Assembly-CSharp}
+      data:
+        RequiredAmount: 10
+    - rid: 1003577749767455508
+      type: {class: BonusStatsReward, ns: , asm: Assembly-CSharp}
+      data:
+        Attribute: 5
+        Value: 1
+    - rid: 1003577749767455509
+      type: {class: BonusStatsReward, ns: , asm: Assembly-CSharp}
+      data:
+        Attribute: 3
+        Value: 1
+    - rid: 1003577749767455510
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: New Feat
+        Position: {x: 9, y: -12}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577749767455495
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577749767455511
+    - rid: 1003577749767455511
+      type: {class: AbilityReward, ns: , asm: Assembly-CSharp}
+      data:
+        Ability: {fileID: 0}
+    - rid: 1003577749767455512
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: New Feat
+        Position: {x: 24, y: -1}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577749767455496
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577749767455513
+    - rid: 1003577749767455513
+      type: {class: AbilityReward, ns: , asm: Assembly-CSharp}
+      data:
+        Ability: {fileID: 0}
+    - rid: 1003577749767455514
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: New Feat
+        Position: {x: -9, y: 2}
+        Kind: 2
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577749767455494
+        - rid: 1003577749767455516
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards:
+        - rid: 1003577749767455515
+    - rid: 1003577749767455515
+      type: {class: PassiveReward, ns: , asm: Assembly-CSharp}
+      data:
+        Status: {fileID: 0}
+    - rid: 1003577749767455516
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        DisplayName: BonusHP3
+        Position: {x: -0, y: 6}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodes:
+        - rid: 1003577749767455493
+        - rid: 1003577749767455514
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 1003577749767455517
+      type: {class: BonusStatsReward, ns: , asm: Assembly-CSharp}
+      data:
+        Attribute: 6
+        Value: 1
+    - rid: 1003577749767455518
+      type: {class: BonusStatsReward, ns: , asm: Assembly-CSharp}
+      data:
+        Attribute: 4
+        Value: 1
