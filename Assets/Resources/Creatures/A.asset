@@ -172,7 +172,7 @@ MonoBehaviour:
         Icon: {fileID: 0}
         NeighbourNodes:
         - rid: 1003577749767455496
-        NumberOfRepeatTime: 0
+        NumberOfRepeatTime: 10
         FormTier: 0
         Requirements: []
         Rewards:
@@ -186,7 +186,7 @@ MonoBehaviour:
         Icon: {fileID: 0}
         NeighbourNodes:
         - rid: 1003577749767455496
-        NumberOfRepeatTime: 0
+        NumberOfRepeatTime: 10
         FormTier: 0
         Requirements: []
         Rewards:
@@ -252,7 +252,7 @@ MonoBehaviour:
     - rid: 1003577749767455511
       type: {class: AbilityReward, ns: , asm: Assembly-CSharp}
       data:
-        Ability: {fileID: 0}
+        Ability: {fileID: 11400000, guid: 9217a9255f20e84439119c3c84d96108, type: 2}
     - rid: 1003577749767455512
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
@@ -270,7 +270,7 @@ MonoBehaviour:
     - rid: 1003577749767455513
       type: {class: AbilityReward, ns: , asm: Assembly-CSharp}
       data:
-        Ability: {fileID: 0}
+        Ability: {fileID: 11400000, guid: c2d1fd2635f6c7a46b0e953962c58b08, type: 2}
     - rid: 1003577749767455514
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
@@ -289,7 +289,7 @@ MonoBehaviour:
     - rid: 1003577749767455515
       type: {class: PassiveReward, ns: , asm: Assembly-CSharp}
       data:
-        Status: {fileID: 0}
+        Status: {fileID: 11400000, guid: 4659c44fd4214524c92cf1bd84ea8f12, type: 2}
     - rid: 1003577749767455516
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:

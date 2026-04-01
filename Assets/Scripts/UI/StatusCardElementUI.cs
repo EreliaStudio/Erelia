@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,25 +5,28 @@ public class StatusCardElementUI : MonoBehaviour
 {
 	[SerializeField] private Image iconImage;
 
-	private Status _linkedStatus;
+	private Status linkedStatus;
 
-	public Status LinkedStatus => _linkedStatus;
-
-	public void Bind(Status p_ability)
+	public void Bind(Status p_status)
 	{
-		_linkedStatus = p_ability;
+		linkedStatus = p_status;
 		Refresh();
 	}
 
 	public void Clear()
 	{
-		_linkedStatus = null;
+		linkedStatus = null;
 		Refresh();
 	}
 
 	public void Refresh()
 	{
-		iconImage.sprite = _linkedStatus != null ? _linkedStatus.Icon : null;
-		iconImage.enabled = iconImage.sprite != null;
+		Sprite icon = linkedStatus != null ? linkedStatus.Icon : null;
+
+		if (iconImage != null)
+		{
+			iconImage.sprite = icon;
+			iconImage.enabled = icon != null;
+		}
 	}
 }

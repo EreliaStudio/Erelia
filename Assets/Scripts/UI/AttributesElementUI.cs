@@ -15,8 +15,6 @@ public class AttributesElementUI : MonoBehaviour
 
 	private Attributes linkedAttributes;
 
-	public Attributes LinkedAttributes => linkedAttributes;
-
 	public void Bind(Attributes p_attributes)
 	{
 		linkedAttributes = p_attributes;
@@ -45,13 +43,13 @@ public class AttributesElementUI : MonoBehaviour
 			return;
 		}
 
-		SetText(healthValueLabel, $"Health : {linkedAttributes.Health}");
-		SetText(actionPointsValueLabel, $"Action Points : {linkedAttributes.ActionPoints}");
-		SetText(movementValueLabel, $"Movement : {linkedAttributes.Movement}");
-		SetText(attackValueLabel, $"Attack : {linkedAttributes.Attack}");
-		SetText(armorValueLabel, $"Armor : {linkedAttributes.Armor}");
-		SetText(magicValueLabel, $"Magic : {linkedAttributes.Magic}");
-		SetText(resistanceValueLabel, $"Resistance : {linkedAttributes.Resistance}");
+		SetText(healthValueLabel, $"HP : {linkedAttributes.Health}");
+		SetText(actionPointsValueLabel, $"AP : {linkedAttributes.ActionPoints}");
+		SetText(movementValueLabel, $"MP : {linkedAttributes.Movement}");
+		SetText(attackValueLabel, $"ATK : {linkedAttributes.Attack}");
+		SetText(armorValueLabel, $"ARM : {linkedAttributes.Armor}");
+		SetText(magicValueLabel, $"MAG : {linkedAttributes.Magic}");
+		SetText(resistanceValueLabel, $"RES : {linkedAttributes.Resistance}");
 		SetText(bonusRangeValueLabel, $"Bonus Range : {linkedAttributes.BonusRange}");
 		SetText(recoveryValueLabel, $"Recovery : {linkedAttributes.Recovery:0.##}");
 	}

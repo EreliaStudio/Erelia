@@ -3,9 +3,8 @@ using UnityEngine;
 public class DebugEncounterTeamHolder : MonoBehaviour
 {
 	[SerializeField] private CreatureCardListElementUI creatureCardListElementUI;
-	[SerializeField] private EncounterTier encounterTier = new EncounterTier(); // The encounter tier should output in the inspector a list,
-	// where i can add or remove weighted teams. I want each element of the list to output on one line, with the weight and the button "Edit Team"
- 
+	[SerializeField] private EncounterTier encounterTier = new EncounterTier();
+
 	private void Start()
 	{
 		Apply();
@@ -18,18 +17,20 @@ public class DebugEncounterTeamHolder : MonoBehaviour
 			return;
 		}
 
-		creatureCardListElementUI.Bind(encounterTier.WeightedTeams[0].Team);
-	}
-
-#if UNITY_EDITOR
-	private void OnValidate()
-	{
-		if (Application.isPlaying == false)
+		if (encounterTier == null ||
+			encounterTier.WeightedTeams == null ||
+			encounterTier.WeightedTeams.Count == 0)
 		{
+			creatureCardListElementUI.Clear();
 			return;
 		}
 
-		Apply();
+		if (encounterTier.WeightedTeams[0] == null)
+		{
+			creatureCardListElementUI.Clear();
+			return;
+		}
+
+		creatureCardListElementUI.Bind(encounterTier.WeightedTeams[0].Team);
 	}
-#endif
 }

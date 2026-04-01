@@ -161,7 +161,7 @@ public class EncounterTeamEditorWindow : EditorWindow
 		}
 
 		Rect fittedRect = GetAspectFittedRect(p_rect, sprite.texture.width, sprite.texture.height);
-		GUI.DrawTexture(fittedRect, sprite.texture, ScaleMode.StretchToFill, true);
+		SpriteGuiUtility.DrawSprite(fittedRect, sprite);
 	}
 
 	private void DrawUnitTabLabel(Rect p_rect, string p_label)

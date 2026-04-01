@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -17,18 +17,19 @@ public class CreatureCardElementUI :
 
 	[Header("Layout")]
 	[SerializeField] private LayoutElement layoutElement;
-	[SerializeField] private RectTransform mainContentRectTransform;
+	[SerializeField] private float collapsedHeight = 56f;
+	[SerializeField] private float expandedHeight = 180f;
+
+	[Header("Hover")]
+	[SerializeField] private float collapseDelay = 0.1f;
 
 	private CreatureUnit linkedCreatureUnit;
 	private bool isExpanded;
-
-	public CreatureUnit LinkedCreatureUnit => linkedCreatureUnit;
-	public bool IsExpanded => isExpanded;
+	private Coroutine collapseCoroutine;
 
 	private void Awake()
 	{
-		SetExpanded(false, true);
-		Clear();
+		ApplyVisualState();
 	}
 
 	public void Bind(CreatureUnit p_creatureUnit)
@@ -41,20 +42,35 @@ public class CreatureCardElementUI :
 	{
 		linkedCreatureUnit = null;
 		Refresh();
+		SetExpanded(false, true);
 	}
 
 	public void Refresh()
 	{
-		RenderHeader(linkedCreatureUnit);
-		RenderExpanded(linkedCreatureUnit);
-		RebuildLayout();
+		RenderHeader();
+		RenderExpanded();
+
+		if (CanExpand() == false)
+		{
+			SetExpanded(false, true);
+		}
+		else
+		{
+			ApplyVisualState();
+		}
 	}
 
 	public void OnPointerEnter(PointerEventData p_eventData)
 	{
-		if (linkedCreatureUnit == null)
+		if (CanExpand() == false)
 		{
 			return;
+		}
+
+		if (collapseCoroutine != null)
+		{
+			StopCoroutine(collapseCoroutine);
+			collapseCoroutine = null;
 		}
 
 		SetExpanded(true, false);
@@ -62,110 +78,111 @@ public class CreatureCardElementUI :
 
 	public void OnPointerExit(PointerEventData p_eventData)
 	{
+		if (collapseCoroutine != null)
+		{
+			StopCoroutine(collapseCoroutine);
+		}
+
+		collapseCoroutine = StartCoroutine(CollapseDelayed());
+	}
+
+	private IEnumerator CollapseDelayed()
+	{
+		yield return new WaitForSeconds(collapseDelay);
+		collapseCoroutine = null;
 		SetExpanded(false, false);
 	}
 
-	private void Clear()
+	private bool CanExpand()
 	{
-		RenderHeader(null);
-		RenderExpanded(null);
-		RebuildLayout();
+		return linkedCreatureUnit != null &&
+			   linkedCreatureUnit.Species != null;
 	}
 
-	private void SetExpanded(bool p_value, bool p_force)
+	private void SetExpanded(bool p_isExpanded, bool p_force)
 	{
-		if (isExpanded == p_value && p_force == false)
+		if (CanExpand() == false)
+		{
+			p_isExpanded = false;
+		}
+
+		if (isExpanded == p_isExpanded && p_force == false)
 		{
 			return;
 		}
 
-		isExpanded = p_value;
+		isExpanded = p_isExpanded;
+		ApplyVisualState();
+	}
+
+	private void ApplyVisualState()
+	{
+		bool shouldShowExpandedRoot = isExpanded && CanExpand();
 
 		if (expandedRoot != null)
 		{
-			expandedRoot.SetActive(isExpanded);
+			expandedRoot.SetActive(shouldShowExpandedRoot);
 		}
 
-		RebuildLayout();
+		if (layoutElement != null)
+		{
+			layoutElement.preferredHeight = shouldShowExpandedRoot
+				? expandedHeight
+				: collapsedHeight;
+		}
 	}
 
-	private void RenderHeader(CreatureUnit p_creatureUnit)
+	private void RenderHeader()
 	{
 		if (headerElementUI == null)
 		{
 			return;
 		}
 
-		if (p_creatureUnit == null)
+		if (linkedCreatureUnit == null)
 		{
 			headerElementUI.Clear();
 			return;
 		}
 
-		headerElementUI.Bind(p_creatureUnit);
+		headerElementUI.Bind(linkedCreatureUnit);
 	}
 
-	private void RenderExpanded(CreatureUnit p_creatureUnit)
+	private void RenderExpanded()
 	{
-		if (p_creatureUnit == null)
+		if (linkedCreatureUnit == null || linkedCreatureUnit.Species == null)
 		{
-			RenderAttributes(null);
-			RenderAbilities(null);
-			RenderStatuses(null);
+			if (attributesElementUI != null)
+			{
+				attributesElementUI.Clear();
+			}
+
+			if (abilityListElementUI != null)
+			{
+				abilityListElementUI.Clear();
+			}
+
+			if (statusListElementUI != null)
+			{
+				statusListElementUI.Clear();
+			}
+
 			return;
 		}
 
-		RenderAttributes(p_creatureUnit.Attributes);
-		RenderAbilities(p_creatureUnit.Abilities);
-		RenderStatuses(p_creatureUnit.PermanentPassives);
-	}
-
-	private void RenderAttributes(Attributes p_attributes)
-	{
-		if (attributesElementUI == null)
+		if (attributesElementUI != null)
 		{
-			return;
+			attributesElementUI.Bind(linkedCreatureUnit.Attributes);
 		}
 
-		attributesElementUI.Bind(p_attributes);
-	}
-
-	private void RenderAbilities(IReadOnlyList<Ability> p_abilities)
-	{
-		if (abilityListElementUI == null)
+		if (abilityListElementUI != null)
 		{
-			return;
+			abilityListElementUI.Bind(linkedCreatureUnit.Abilities);
 		}
 
-		abilityListElementUI.Bind(p_abilities);
-	}
-
-	private void RenderStatuses(IReadOnlyList<Status> p_statuses)
-	{
-		if (statusListElementUI == null)
+		if (statusListElementUI != null)
 		{
-			return;
-		}
-
-		statusListElementUI.Bind(p_statuses);
-	}
-
-	private void RebuildLayout()
-	{
-		if (mainContentRectTransform == null || layoutElement == null)
-		{
-			return;
-		}
-
-		LayoutRebuilder.ForceRebuildLayoutImmediate(mainContentRectTransform);
-
-		float preferredHeight = LayoutUtility.GetPreferredHeight(mainContentRectTransform);
-
-		layoutElement.preferredHeight = preferredHeight;
-
-		if (transform.parent is RectTransform parentRectTransform)
-		{
-			LayoutRebuilder.ForceRebuildLayoutImmediate(parentRectTransform);
+			statusListElementUI.Bind(linkedCreatureUnit.PermanentPassives);
 		}
 	}
 }

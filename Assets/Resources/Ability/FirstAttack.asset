@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38921d23aad9a804c8b45ca6376252b9, type: 3}
+  m_Name: FirstAttack
+  m_EditorClassIdentifier: Assembly-CSharp::Ability
+  Icon: {fileID: -1178796121, guid: f303ab216d88d8d41a34b9f9b337c64b, type: 3}
+  Cost:
+    Ability: 1
+    Movement: 0
+  Range:
+    Type: 0
+    Value: 10
+    RequireLineOfSight: 1
+  AreaOfEffect:
+    Type: 1
+    Value: 1
+  TargetProfile: 0
+  Effects:
+  - rid: 1003577757238559069
+  references:
+    version: 2
+    RefIds:
+    - rid: 1003577757238559069
+      type: {class: DamageTargetEffect, ns: , asm: Assembly-CSharp}
+      data:
+        Value: 1

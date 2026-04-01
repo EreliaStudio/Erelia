@@ -4,6 +4,7 @@ using UnityEngine;
 [CustomEditor(typeof(Ability))]
 public class AbilityEditor : Editor
 {
+	private SerializedProperty _iconProperty;
 	private SerializedProperty _costProperty;
 	private SerializedProperty _rangeTypeProperty;
 	private SerializedProperty _rangeValueProperty;
@@ -23,14 +24,18 @@ public class AbilityEditor : Editor
 
 	private void OnEnable()
 	{
+		_iconProperty = serializedObject.FindProperty("Icon");
 		_costProperty = serializedObject.FindProperty("Cost");
+
 		SerializedProperty rangeProperty = serializedObject.FindProperty("Range");
 		_rangeTypeProperty = rangeProperty.FindPropertyRelative("Type");
 		_rangeValueProperty = rangeProperty.FindPropertyRelative("Value");
 		_requireLineOfSightProperty = rangeProperty.FindPropertyRelative("RequireLineOfSight");
+
 		SerializedProperty areaOfEffectProperty = serializedObject.FindProperty("AreaOfEffect");
 		_areaOfEffectTypeProperty = areaOfEffectProperty.FindPropertyRelative("Type");
 		_areaOfEffectValueProperty = areaOfEffectProperty.FindPropertyRelative("Value");
+		
 		_targetProfileProperty = serializedObject.FindProperty("TargetProfile");
 		_effectsProperty = serializedObject.FindProperty("Effects");
 	}
@@ -46,6 +51,8 @@ public class AbilityEditor : Editor
 		EditorGUIUtility.wideMode = true;
 
 		DrawScriptField();
+
+		EditorGUILayout.PropertyField(_iconProperty);
 
 		EditorGUILayout.PropertyField(_costProperty);
 

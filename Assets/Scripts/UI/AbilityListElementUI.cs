@@ -14,17 +14,17 @@ public class AbilityListElementUI : MonoBehaviour
 
 		for (int index = 0; index < spawnedAbilityCardElements.Count; index++)
 		{
-			AbilityCardElementUI abilityCardElement = spawnedAbilityCardElements[index];
+			AbilityCardElementUI abilityCardElementUI = spawnedAbilityCardElements[index];
 
 			if (p_abilities == null || index >= p_abilities.Count || p_abilities[index] == null)
 			{
-				abilityCardElement.Clear();
-				abilityCardElement.gameObject.SetActive(false);
+				abilityCardElementUI.Clear();
+				abilityCardElementUI.gameObject.SetActive(false);
 				continue;
 			}
 
-			abilityCardElement.gameObject.SetActive(true);
-			abilityCardElement.Bind(p_abilities[index]);
+			abilityCardElementUI.gameObject.SetActive(true);
+			abilityCardElementUI.Bind(p_abilities[index]);
 		}
 	}
 
@@ -37,9 +37,9 @@ public class AbilityListElementUI : MonoBehaviour
 	{
 		while (spawnedAbilityCardElements.Count < p_targetCount)
 		{
-			AbilityCardElementUI abilityCardElement = Instantiate(abilityCardPrefab, gameObject.transform);
-			abilityCardElement.gameObject.SetActive(false);
-			spawnedAbilityCardElements.Add(abilityCardElement);
+			AbilityCardElementUI abilityCardElementUI = Instantiate(abilityCardPrefab, transform, false);
+			abilityCardElementUI.gameObject.SetActive(false);
+			spawnedAbilityCardElements.Add(abilityCardElementUI);
 		}
 	}
 }

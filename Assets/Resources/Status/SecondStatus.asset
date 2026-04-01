@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63af34bf6561339498188b0396fe96fc, type: 3}
+  m_Name: SecondStatus
+  m_EditorClassIdentifier: Assembly-CSharp::Status
+  Icon: {fileID: -2005257262, guid: f303ab216d88d8d41a34b9f9b337c64b, type: 3}
+  Tags: []
+  HookPoint: 0
+  Effects:
+  - rid: -2
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }

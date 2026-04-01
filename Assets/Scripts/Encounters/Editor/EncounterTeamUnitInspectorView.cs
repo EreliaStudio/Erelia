@@ -157,7 +157,7 @@ public class EncounterTeamUnitInspectorView
 			return;
 		}
 
-		GUI.DrawTexture(p_rect, sprite.texture, ScaleMode.ScaleToFit);
+		SpriteGuiUtility.DrawSprite(p_rect, sprite);
 	}
 
 	private string GetUnitDisplayName(CreatureUnit p_unit)

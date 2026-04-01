@@ -57,6 +57,7 @@
     <Compile Include="Assets\Scripts\Trainers\Trainer.cs" />
     <Compile Include="Assets\Scripts\UI\StatusCardElementUI.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatNodeProgress.cs" />
+    <Compile Include="Assets\Scripts\UI\CreatureCardListElementUI.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleContext.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelGrid.cs" />
     <Compile Include="Assets\Scripts\Core\Attributes.cs" />
@@ -72,10 +73,8 @@
     <Compile Include="Assets\Scripts\Battle\BattleStatus.cs" />
     <Compile Include="Assets\Scripts\UI\AbilityCardElementUI.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelRegistry.cs" />
-    <Compile Include="Assets\Scripts\UI\SquareLayoutElement.cs" />
     <Compile Include="Assets\Scripts\Board\Board.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMesher.cs" />
-    <Compile Include="Assets\Scripts\UI\CreatureCardGroupElementUI.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelCell.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelShape.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelData.cs" />

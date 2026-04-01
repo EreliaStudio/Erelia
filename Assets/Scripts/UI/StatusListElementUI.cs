@@ -14,17 +14,17 @@ public class StatusListElementUI : MonoBehaviour
 
 		for (int index = 0; index < spawnedStatusCardElements.Count; index++)
 		{
-			StatusCardElementUI statusCardElement = spawnedStatusCardElements[index];
+			StatusCardElementUI statusCardElementUI = spawnedStatusCardElements[index];
 
 			if (p_statuses == null || index >= p_statuses.Count || p_statuses[index] == null)
 			{
-				statusCardElement.Clear();
-				statusCardElement.gameObject.SetActive(false);
+				statusCardElementUI.Clear();
+				statusCardElementUI.gameObject.SetActive(false);
 				continue;
 			}
 
-			statusCardElement.gameObject.SetActive(true);
-			statusCardElement.Bind(p_statuses[index]);
+			statusCardElementUI.gameObject.SetActive(true);
+			statusCardElementUI.Bind(p_statuses[index]);
 		}
 	}
 
@@ -37,9 +37,9 @@ public class StatusListElementUI : MonoBehaviour
 	{
 		while (spawnedStatusCardElements.Count < p_targetCount)
 		{
-			StatusCardElementUI statusCardElement = Instantiate(statusCardPrefab, gameObject.transform);
-			statusCardElement.gameObject.SetActive(false);
-			spawnedStatusCardElements.Add(statusCardElement);
+			StatusCardElementUI statusCardElementUI = Instantiate(statusCardPrefab, transform, false);
+			statusCardElementUI.gameObject.SetActive(false);
+			spawnedStatusCardElements.Add(statusCardElementUI);
 		}
 	}
 }

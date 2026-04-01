@@ -1,4 +1,3 @@
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,32 +26,26 @@ public class CreatureCardHeaderElementUI : MonoBehaviour
 
 	public void Refresh()
 	{
-		if (linkedCreatureUnit == null)
+		if (linkedCreatureUnit == null || linkedCreatureUnit.Species == null)
 		{
 			Apply(emptyCreatureIcon, emptyCreatureHeaderMessage);
 			return;
 		}
 
-		CreatureForm activeForm = linkedCreatureUnit.GetForm();
+		CreatureForm creatureForm = linkedCreatureUnit.GetForm();
 
-		if (activeForm == null)
+		if (creatureForm == null)
 		{
-			throw new InvalidOperationException("CreatureUnit.GetActiveForm returned null.");
+			Apply(emptyCreatureIcon, emptyCreatureHeaderMessage);
+			return;
 		}
 
-		if (activeForm.Icon == null)
-		{
-			throw new InvalidOperationException(
-				$"Creature form [{activeForm.DisplayName}] has no Icon assigned.");
-		}
+		Sprite icon = creatureForm.Icon != null ? creatureForm.Icon : emptyCreatureIcon;
+		string displayName = string.IsNullOrWhiteSpace(creatureForm.DisplayName)
+			? emptyCreatureHeaderMessage
+			: creatureForm.DisplayName;
 
-		if (string.IsNullOrEmpty(activeForm.DisplayName))
-		{
-			throw new InvalidOperationException(
-				$"Creature form on species [{linkedCreatureUnit.Species.name}] has an empty DisplayName.");
-		}
-
-		Apply(activeForm.Icon, activeForm.DisplayName);
+		Apply(icon, displayName);
 	}
 
 	private void Apply(Sprite p_icon, string p_displayName)
@@ -60,7 +53,7 @@ public class CreatureCardHeaderElementUI : MonoBehaviour
 		if (creatureIconImage != null)
 		{
 			creatureIconImage.sprite = p_icon;
-			creatureIconImage.enabled = true;
+			creatureIconImage.enabled = p_icon != null;
 		}
 
 		if (creatureNameLabel != null)
