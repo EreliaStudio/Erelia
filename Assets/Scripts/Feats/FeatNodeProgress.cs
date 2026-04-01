@@ -5,35 +5,37 @@ using System.Linq;
 [Serializable]
 public class FeatNodeProgress
 {
-	public FeatNode Node;
+	public string NodeId = string.Empty;
 	public int CompletionCount = 0;
 	public List<FeatRequirementProgress> RequirementProgress = new List<FeatRequirementProgress>();
 
 	public bool IsCompleted => RequirementProgress.All(p_requirement => p_requirement.IsCompleted);
 
-	public bool IsExhausted
+	public bool IsExhausted(FeatNode p_node)
 	{
-		get
+		if (p_node == null)
 		{
-			if (Node == null)
-			{
-				return true;
-			}
-
-			if (Node.NumberOfRepeatTime < 0)
-			{
-				return false;
-			}
-
-			int maxCompletionCount = Math.Max(1, Node.NumberOfRepeatTime);
-			return CompletionCount >= maxCompletionCount;
+			return true;
 		}
+
+		if (p_node.NumberOfRepeatTime < 0)
+		{
+			return false;
+		}
+
+		int maxCompletionCount = Math.Max(1, p_node.NumberOfRepeatTime);
+		return CompletionCount >= maxCompletionCount;
 	}
 
 	public void Register(FeatRequirement.EventBase p_featEvent)
 	{
 		foreach (FeatRequirementProgress requirement in RequirementProgress)
 		{
+			if (requirement == null)
+			{
+				continue;
+			}
+
 			requirement.Register(p_featEvent);
 		}
 	}
@@ -42,6 +44,11 @@ public class FeatNodeProgress
 	{
 		foreach (FeatRequirementProgress requirement in RequirementProgress)
 		{
+			if (requirement == null)
+			{
+				continue;
+			}
+
 			requirement.CurrentProgress = 0f;
 		}
 	}
@@ -63,6 +70,11 @@ public class FeatRequirementProgress
 
 	public void Register(FeatRequirement.EventBase p_featEvent)
 	{
+		if (Requirement == null)
+		{
+			return;
+		}
+
 		CurrentProgress += Requirement.Register(p_featEvent);
 	}
 }

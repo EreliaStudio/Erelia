@@ -11,12 +11,7 @@ public class FeatBoardProgress
 	{
 		foreach (FeatNodeProgress nodeProgress in NodeProgress)
 		{
-			if (nodeProgress == null || nodeProgress.Node == null)
-			{
-				continue;
-			}
-
-			if (nodeProgress.IsExhausted)
+			if (nodeProgress == null)
 			{
 				continue;
 			}
@@ -27,9 +22,20 @@ public class FeatBoardProgress
 
 	public void ApplyCompletedNode(CreatureUnit p_creatureUnit)
 	{
+		if (p_creatureUnit == null)
+		{
+			return;
+		}
+
 		foreach (FeatNodeProgress nodeProgress in NodeProgress)
 		{
-			if (nodeProgress == null || nodeProgress.Node == null)
+			if (nodeProgress == null)
+			{
+				continue;
+			}
+
+			FeatNode node = p_creatureUnit.ResolveNode(nodeProgress.NodeId);
+			if (node == null)
 			{
 				continue;
 			}
@@ -39,9 +45,17 @@ public class FeatBoardProgress
 				continue;
 			}
 
-			foreach (FeatReward reward in nodeProgress.Node.Rewards)
+			if (node.Rewards != null)
 			{
-				reward.Apply(p_creatureUnit);
+				foreach (FeatReward reward in node.Rewards)
+				{
+					if (reward == null)
+					{
+						continue;
+					}
+
+					reward.Apply(p_creatureUnit);
+				}
 			}
 
 			nodeProgress.Complete();
@@ -50,7 +64,15 @@ public class FeatBoardProgress
 
 	public FeatNodeProgress GetOrCreateProgress(FeatNode p_node)
 	{
-		FeatNodeProgress nodeProgress = NodeProgress.FirstOrDefault(p_progress => p_progress != null && p_progress.Node == p_node);
+		if (p_node == null || string.IsNullOrEmpty(p_node.Id))
+		{
+			return null;
+		}
+
+		FeatNodeProgress nodeProgress = NodeProgress.FirstOrDefault(
+			p_progress => p_progress != null && p_progress.NodeId == p_node.Id
+		);
+
 		if (nodeProgress != null)
 		{
 			return nodeProgress;
@@ -65,12 +87,12 @@ public class FeatBoardProgress
 	{
 		FeatNodeProgress nodeProgress = new FeatNodeProgress
 		{
-			Node = p_node,
+			NodeId = p_node != null ? p_node.Id : string.Empty,
 			CompletionCount = 0,
 			RequirementProgress = new List<FeatRequirementProgress>()
 		};
 
-		if (p_node != null)
+		if (p_node != null && p_node.Requirements != null)
 		{
 			foreach (FeatRequirement requirement in p_node.Requirements)
 			{

@@ -5,6 +5,7 @@ using UnityEngine;
 [Serializable]
 public class FeatNode
 {
+	public string Id = Guid.NewGuid().ToString();
 	public string DisplayName = "New Feat";
 	public Vector2 Position;
 

@@ -78,6 +78,10 @@ public class CreatureUnit
 
 		FeatNode rootNode = Species.FeatBoard.RootNode;
 		FeatNodeProgress rootProgress = FeatBoardProgress.GetOrCreateProgress(rootNode);
+		if (rootProgress == null)
+		{
+			return;
+		}
 
 		if (rootProgress.CompletionCount <= 0)
 		{
@@ -103,21 +107,27 @@ public class CreatureUnit
 		for (int progressIndex = 0; progressIndex < FeatBoardProgress.NodeProgress.Count; progressIndex++)
 		{
 			FeatNodeProgress nodeProgress = FeatBoardProgress.NodeProgress[progressIndex];
-			if (nodeProgress == null || nodeProgress.Node == null)
+			if (nodeProgress == null)
 			{
 				continue;
 			}
 
-			if (nodeProgress.Node.Rewards == null)
+			FeatNode node = ResolveNode(nodeProgress.NodeId);
+			if (node == null)
+			{
+				continue;
+			}
+
+			if (node.Rewards == null)
 			{
 				continue;
 			}
 
 			for (int completionIndex = 0; completionIndex < nodeProgress.CompletionCount; completionIndex++)
 			{
-				for (int rewardIndex = 0; rewardIndex < nodeProgress.Node.Rewards.Count; rewardIndex++)
+				for (int rewardIndex = 0; rewardIndex < node.Rewards.Count; rewardIndex++)
 				{
-					FeatReward reward = nodeProgress.Node.Rewards[rewardIndex];
+					FeatReward reward = node.Rewards[rewardIndex];
 					if (reward == null)
 					{
 						continue;
@@ -127,6 +137,25 @@ public class CreatureUnit
 				}
 			}
 		}
+	}
+
+	public FeatNode ResolveNode(string p_nodeId)
+	{
+		if (Species == null || Species.FeatBoard == null || Species.FeatBoard.Nodes == null || string.IsNullOrEmpty(p_nodeId))
+		{
+			return null;
+		}
+
+		for (int index = 0; index < Species.FeatBoard.Nodes.Count; index++)
+		{
+			FeatNode node = Species.FeatBoard.Nodes[index];
+			if (node != null && node.Id == p_nodeId)
+			{
+				return node;
+			}
+		}
+
+		return null;
 	}
 
 	public string GetDefaultFormID()
@@ -209,4 +238,4 @@ public class CreatureUnit
 			Recovery = p_source.Recovery
 		};
 	}
-};
+}

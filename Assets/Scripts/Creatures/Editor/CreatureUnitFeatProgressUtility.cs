@@ -35,49 +35,50 @@ public static class CreatureUnitFeatProgressUtility
 	}
 
 	public static bool IsNodeReachable(CreatureUnit p_unit, FeatNode p_node)
-{
-	if (p_unit == null || p_unit.Species == null || p_unit.Species.FeatBoard == null || p_node == null)
 	{
-		return false;
-	}
-
-	FeatNodeProgress progress = FindNodeProgress(p_unit, p_node);
-	if (progress != null && progress.IsExhausted)
-	{
-		return false;
-	}
-
-	if (p_node.Kind == FeatNodeKind.Form && IsFormNodeLockedByCurrentTier(p_unit, p_node))
-	{
-		return false;
-	}
-
-	if (p_unit.Species.FeatBoard.RootNode == p_node)
-	{
-		return true;
-	}
-
-	if (p_node.NeighbourNodes == null)
-	{
-		return false;
-	}
-
-	for (int neighbourIndex = 0; neighbourIndex < p_node.NeighbourNodes.Count; neighbourIndex++)
-	{
-		FeatNode neighbour = p_node.NeighbourNodes[neighbourIndex];
-		if (neighbour == null)
+		if (p_unit == null || p_unit.Species == null || p_unit.Species.FeatBoard == null || p_node == null)
 		{
-			continue;
+			return false;
 		}
 
-		if (GetCompletionCount(p_unit, neighbour) > 0)
+		FeatNodeProgress progress = FindNodeProgress(p_unit, p_node);
+		if (progress != null && progress.IsExhausted(p_node))
+		{
+			return false;
+		}
+
+		if (p_node.Kind == FeatNodeKind.Form && IsFormNodeLockedByCurrentTier(p_unit, p_node))
+		{
+			return false;
+		}
+
+		if (p_unit.Species.FeatBoard.RootNode == p_node)
 		{
 			return true;
 		}
+
+		if (p_node.NeighbourNodes == null)
+		{
+			return false;
+		}
+
+		for (int neighbourIndex = 0; neighbourIndex < p_node.NeighbourNodes.Count; neighbourIndex++)
+		{
+			FeatNode neighbour = p_node.NeighbourNodes[neighbourIndex];
+			if (neighbour == null)
+			{
+				continue;
+			}
+
+			if (GetCompletionCount(p_unit, neighbour) > 0)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
-	return false;
-}
 	public static bool IsNodeCompleted(CreatureUnit p_unit, FeatNode p_node)
 	{
 		return GetCompletionCount(p_unit, p_node) > 0;
@@ -86,7 +87,7 @@ public static class CreatureUnitFeatProgressUtility
 	public static bool IsNodeExhausted(CreatureUnit p_unit, FeatNode p_node)
 	{
 		FeatNodeProgress progress = FindNodeProgress(p_unit, p_node);
-		return progress != null && progress.IsExhausted;
+		return progress != null && progress.IsExhausted(p_node);
 	}
 
 	public static int GetCompletionCount(CreatureUnit p_unit, FeatNode p_node)
@@ -105,7 +106,7 @@ public static class CreatureUnitFeatProgressUtility
 		for (int index = 0; index < p_unit.FeatBoardProgress.NodeProgress.Count; index++)
 		{
 			FeatNodeProgress progress = p_unit.FeatBoardProgress.NodeProgress[index];
-			if (progress != null && progress.Node == p_node)
+			if (progress != null && progress.NodeId == p_node.Id)
 			{
 				return progress;
 			}
@@ -129,7 +130,12 @@ public static class CreatureUnitFeatProgressUtility
 		}
 
 		FeatNodeProgress progress = p_unit.FeatBoardProgress.GetOrCreateProgress(p_node);
-		if (progress.IsExhausted)
+		if (progress == null)
+		{
+			return;
+		}
+
+		if (progress.IsExhausted(p_node))
 		{
 			return;
 		}
@@ -152,8 +158,12 @@ public static class CreatureUnitFeatProgressUtility
 		if (p_unit.Species != null && p_unit.Species.FeatBoard != null && p_unit.Species.FeatBoard.RootNode == p_node)
 		{
 			FeatNodeProgress rootProgress = p_unit.FeatBoardProgress.GetOrCreateProgress(p_node);
-			rootProgress.CompletionCount = 1;
-			rootProgress.ResetRequirementProgress();
+			if (rootProgress != null)
+			{
+				rootProgress.CompletionCount = 1;
+				rootProgress.ResetRequirementProgress();
+			}
+
 			p_unit.RebuildFromProgress();
 			return;
 		}
@@ -161,7 +171,7 @@ public static class CreatureUnitFeatProgressUtility
 		for (int index = p_unit.FeatBoardProgress.NodeProgress.Count - 1; index >= 0; index--)
 		{
 			FeatNodeProgress progress = p_unit.FeatBoardProgress.NodeProgress[index];
-			if (progress == null || progress.Node != p_node)
+			if (progress == null || progress.NodeId != p_node.Id)
 			{
 				continue;
 			}
@@ -194,12 +204,18 @@ public static class CreatureUnitFeatProgressUtility
 		for (int index = 0; index < p_unit.FeatBoardProgress.NodeProgress.Count; index++)
 		{
 			FeatNodeProgress progress = p_unit.FeatBoardProgress.NodeProgress[index];
-			if (progress == null || progress.Node == null)
+			if (progress == null)
 			{
 				continue;
 			}
 
-			if (progress.Node.Kind != FeatNodeKind.Form)
+			FeatNode node = p_unit.ResolveNode(progress.NodeId);
+			if (node == null)
+			{
+				continue;
+			}
+
+			if (node.Kind != FeatNodeKind.Form)
 			{
 				continue;
 			}
@@ -209,9 +225,9 @@ public static class CreatureUnitFeatProgressUtility
 				continue;
 			}
 
-			if (progress.Node.FormTier > highestTier)
+			if (node.FormTier > highestTier)
 			{
-				highestTier = progress.Node.FormTier;
+				highestTier = node.FormTier;
 			}
 		}
 
