@@ -17,6 +17,7 @@ public class CreatureCardElementUI :
 
 	[Header("Layout")]
 	[SerializeField] private LayoutElement layoutElement;
+	[SerializeField] private float preferredWidth = 320f;
 	[SerializeField] private float collapsedHeight = 56f;
 	[SerializeField] private float expandedHeight = 180f;
 
@@ -26,9 +27,13 @@ public class CreatureCardElementUI :
 	private CreatureUnit linkedCreatureUnit;
 	private bool isExpanded;
 	private Coroutine collapseCoroutine;
+	private VerticalLayoutGroup verticalLayoutGroup;
+	private RectTransform expandedRootRectTransform;
 
 	private void Awake()
 	{
+		verticalLayoutGroup = GetComponent<VerticalLayoutGroup>();
+		expandedRootRectTransform = expandedRoot != null ? expandedRoot.transform as RectTransform : null;
 		ApplyVisualState();
 	}
 
@@ -126,10 +131,30 @@ public class CreatureCardElementUI :
 
 		if (layoutElement != null)
 		{
+			layoutElement.preferredWidth = preferredWidth;
 			layoutElement.preferredHeight = shouldShowExpandedRoot
-				? expandedHeight
+				? Mathf.Max(expandedHeight, CalculateExpandedPreferredHeight())
 				: collapsedHeight;
 		}
+	}
+
+	private float CalculateExpandedPreferredHeight()
+	{
+		if (expandedRootRectTransform == null)
+		{
+			return expandedHeight;
+		}
+
+		LayoutRebuilder.ForceRebuildLayoutImmediate(expandedRootRectTransform);
+
+		float preferredHeight = collapsedHeight + LayoutUtility.GetPreferredHeight(expandedRootRectTransform);
+
+		if (verticalLayoutGroup != null)
+		{
+			preferredHeight += verticalLayoutGroup.spacing;
+		}
+
+		return preferredHeight;
 	}
 
 	private void RenderHeader()

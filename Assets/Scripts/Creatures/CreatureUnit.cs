@@ -236,6 +236,6 @@ public class CreatureUnit
 			Resistance = p_source.Resistance,
 			BonusRange = p_source.BonusRange,
 			Recovery = p_source.Recovery
-		};
+		}; 
 	}
 }

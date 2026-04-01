@@ -4,19 +4,25 @@ using UnityEngine;
 public class AbilityListElementUI : MonoBehaviour
 {
 	[SerializeField] private AbilityCardElementUI abilityCardPrefab;
+	[SerializeField] private int minimumVisibleSlotCount = 1;
 
 	private readonly List<AbilityCardElementUI> spawnedAbilityCardElements = new List<AbilityCardElementUI>();
+	[SerializeField] private RectTransform cardContainerRoot;
 
 	public void Bind(IReadOnlyList<Ability> p_abilities)
 	{
-		int targetCount = p_abilities != null ? p_abilities.Count : 0;
+		int actualCount = p_abilities != null ? p_abilities.Count : 0;
+		int targetCount = actualCount > 0
+			? actualCount
+			: Mathf.Max(1, minimumVisibleSlotCount);
+
 		EnsurePoolSize(targetCount);
 
 		for (int index = 0; index < spawnedAbilityCardElements.Count; index++)
 		{
 			AbilityCardElementUI abilityCardElementUI = spawnedAbilityCardElements[index];
 
-			if (p_abilities == null || index >= p_abilities.Count || p_abilities[index] == null)
+			if (index >= targetCount)
 			{
 				abilityCardElementUI.Clear();
 				abilityCardElementUI.gameObject.SetActive(false);
@@ -24,6 +30,13 @@ public class AbilityListElementUI : MonoBehaviour
 			}
 
 			abilityCardElementUI.gameObject.SetActive(true);
+
+			if (p_abilities == null || index >= p_abilities.Count || p_abilities[index] == null)
+			{
+				abilityCardElementUI.Clear();
+				continue;
+			}
+
 			abilityCardElementUI.Bind(p_abilities[index]);
 		}
 	}
@@ -37,9 +50,14 @@ public class AbilityListElementUI : MonoBehaviour
 	{
 		while (spawnedAbilityCardElements.Count < p_targetCount)
 		{
-			AbilityCardElementUI abilityCardElementUI = Instantiate(abilityCardPrefab, transform, false);
+			AbilityCardElementUI abilityCardElementUI = Instantiate(abilityCardPrefab, GetCardContainerRoot(), false);
 			abilityCardElementUI.gameObject.SetActive(false);
 			spawnedAbilityCardElements.Add(abilityCardElementUI);
 		}
+	}
+
+	private Transform GetCardContainerRoot()
+	{
+		return cardContainerRoot != null ? cardContainerRoot : transform;
 	}
 }

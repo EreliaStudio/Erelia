@@ -6,19 +6,19 @@ public class CreatureCardListElementUI : MonoBehaviour
 	[SerializeField] private CreatureCardElementUI creatureCardPrefab;
 	[SerializeField] private int creatureCardCount = 6;
 
-	private readonly List<CreatureCardElementUI> spawnedCreatureCardElements = new List<CreatureCardElementUI>();
+	private readonly List<CreatureCardElementUI> creatureCardElements = new List<CreatureCardElementUI>();
 
 	private void Awake()
 	{
-		EnsurePoolSize(creatureCardCount);
+		EnsureSlotSetup();
 		Clear();
 	}
 
 	public void Bind(CreatureUnit[] p_team)
 	{
-		EnsurePoolSize(creatureCardCount);
+		EnsureSlotSetup();
 
-		for (int index = 0; index < spawnedCreatureCardElements.Count; index++)
+		for (int index = 0; index < creatureCardElements.Count; index++)
 		{
 			CreatureUnit creatureUnit = null;
 
@@ -27,25 +27,59 @@ public class CreatureCardListElementUI : MonoBehaviour
 				creatureUnit = p_team[index];
 			}
 
-			spawnedCreatureCardElements[index].Bind(creatureUnit);
+			creatureCardElements[index].Bind(creatureUnit);
 		}
 	}
 
 	public void Clear()
 	{
-		for (int index = 0; index < spawnedCreatureCardElements.Count; index++)
+		EnsureSlotSetup();
+
+		for (int index = 0; index < creatureCardElements.Count; index++)
 		{
-			spawnedCreatureCardElements[index].ClearBinding();
+			creatureCardElements[index].ClearBinding();
+		}
+	}
+
+	private void OnTransformChildrenChanged()
+	{
+		CacheDirectChildSlots();
+	}
+
+	private void EnsureSlotSetup()
+	{
+		CacheDirectChildSlots();
+		EnsurePoolSize(creatureCardCount);
+	}
+
+	private void CacheDirectChildSlots()
+	{
+		creatureCardElements.Clear();
+
+		for (int index = 0; index < transform.childCount; index++)
+		{
+			Transform childTransform = transform.GetChild(index);
+
+			if (childTransform.TryGetComponent(out CreatureCardElementUI creatureCardElementUI))
+			{
+				creatureCardElements.Add(creatureCardElementUI);
+			}
 		}
 	}
 
 	private void EnsurePoolSize(int p_targetCount)
 	{
-		while (spawnedCreatureCardElements.Count < p_targetCount)
+		while (creatureCardElements.Count < p_targetCount)
 		{
+			if (creatureCardPrefab == null)
+			{
+				Debug.LogWarning($"{nameof(CreatureCardListElementUI)} on {name} is missing a creature card prefab.");
+				return;
+			}
+
 			CreatureCardElementUI creatureCardElementUI = Instantiate(creatureCardPrefab, transform, false);
 			creatureCardElementUI.gameObject.SetActive(true);
-			spawnedCreatureCardElements.Add(creatureCardElementUI);
+			CacheDirectChildSlots();
 		}
 	}
 }
