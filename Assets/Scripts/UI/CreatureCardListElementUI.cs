@@ -14,21 +14,26 @@ public class CreatureCardListElementUI : MonoBehaviour
 		Clear();
 	}
 
-	public void Bind(CreatureUnit[] p_team)
+	public void Bind(BattleUnit[] p_team)
 	{
 		EnsureSlotSetup();
 
 		for (int index = 0; index < creatureCardElements.Count; index++)
 		{
-			CreatureUnit creatureUnit = null;
+			BattleUnit battleUnit = null;
 
 			if (p_team != null && index < p_team.Length)
 			{
-				creatureUnit = p_team[index];
+				battleUnit = p_team[index];
 			}
 
-			creatureCardElements[index].Bind(creatureUnit);
+			creatureCardElements[index].Bind(battleUnit);
 		}
+	}
+
+	public void Bind(CreatureUnit[] p_team)
+	{
+		Bind(CreatePreviewBattleTeam(p_team));
 	}
 
 	public void Clear()
@@ -81,5 +86,23 @@ public class CreatureCardListElementUI : MonoBehaviour
 			creatureCardElementUI.gameObject.SetActive(true);
 			CacheDirectChildSlots();
 		}
+	}
+
+	private static BattleUnit[] CreatePreviewBattleTeam(CreatureUnit[] p_team)
+	{
+		if (p_team == null)
+		{
+			return null;
+		}
+
+		BattleUnit[] battleTeam = new BattleUnit[p_team.Length];
+		for (int index = 0; index < p_team.Length; index++)
+		{
+			battleTeam[index] = p_team[index] != null
+				? BattleUnit.CreateFromSource(p_team[index])
+				: null;
+		}
+
+		return battleTeam;
 	}
 }

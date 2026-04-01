@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -19,34 +20,43 @@ public class CreatureCardElementUI :
 	[SerializeField] private LayoutElement layoutElement;
 	[SerializeField] private float preferredWidth = 320f;
 	[SerializeField] private float collapsedHeight = 56f;
-	[SerializeField] private float expandedHeight = 180f;
+	[SerializeField] private float expandedHeight = 0f;
 
 	[Header("Hover")]
 	[SerializeField] private float collapseDelay = 0.1f;
 
-	private CreatureUnit linkedCreatureUnit;
+	private BattleUnit linkedBattleUnit;
 	private bool isExpanded;
 	private Coroutine collapseCoroutine;
 	private VerticalLayoutGroup verticalLayoutGroup;
 	private RectTransform expandedRootRectTransform;
+	private int lastBindingVersionHash;
 
 	private void Awake()
 	{
+		layoutElement ??= GetComponent<LayoutElement>();
 		verticalLayoutGroup = GetComponent<VerticalLayoutGroup>();
 		expandedRootRectTransform = expandedRoot != null ? expandedRoot.transform as RectTransform : null;
 		ApplyVisualState();
 	}
 
-	public void Bind(CreatureUnit p_creatureUnit)
+	private void OnValidate()
 	{
-		linkedCreatureUnit = p_creatureUnit;
+		layoutElement ??= GetComponent<LayoutElement>();
+	}
+
+	public void Bind(BattleUnit p_battleUnit)
+	{
+		linkedBattleUnit = p_battleUnit;
 		Refresh();
+		lastBindingVersionHash = ComputeBindingVersionHash();
 	}
 
 	public void ClearBinding()
 	{
-		linkedCreatureUnit = null;
+		linkedBattleUnit = null;
 		Refresh();
+		lastBindingVersionHash = 0;
 		SetExpanded(false, true);
 	}
 
@@ -78,6 +88,7 @@ public class CreatureCardElementUI :
 			collapseCoroutine = null;
 		}
 
+		Refresh();
 		SetExpanded(true, false);
 	}
 
@@ -98,10 +109,23 @@ public class CreatureCardElementUI :
 		SetExpanded(false, false);
 	}
 
+	private void LateUpdate()
+	{
+		int currentBindingVersionHash = ComputeBindingVersionHash();
+		if (currentBindingVersionHash == lastBindingVersionHash)
+		{
+			return;
+		}
+
+		lastBindingVersionHash = currentBindingVersionHash;
+		Refresh();
+	}
+
 	private bool CanExpand()
 	{
-		return linkedCreatureUnit != null &&
-			   linkedCreatureUnit.Species != null;
+		return linkedBattleUnit != null &&
+			   linkedBattleUnit.SourceUnit != null &&
+			   linkedBattleUnit.SourceUnit.Species != null;
 	}
 
 	private void SetExpanded(bool p_isExpanded, bool p_force)
@@ -164,18 +188,21 @@ public class CreatureCardElementUI :
 			return;
 		}
 
-		if (linkedCreatureUnit == null)
+		CreatureUnit sourceUnit = linkedBattleUnit != null ? linkedBattleUnit.SourceUnit : null;
+		if (sourceUnit == null)
 		{
 			headerElementUI.Clear();
 			return;
 		}
 
-		headerElementUI.Bind(linkedCreatureUnit);
+		headerElementUI.Bind(sourceUnit);
 	}
 
 	private void RenderExpanded()
 	{
-		if (linkedCreatureUnit == null || linkedCreatureUnit.Species == null)
+		if (linkedBattleUnit == null ||
+			linkedBattleUnit.SourceUnit == null ||
+			linkedBattleUnit.SourceUnit.Species == null)
 		{
 			if (attributesElementUI != null)
 			{
@@ -197,17 +224,117 @@ public class CreatureCardElementUI :
 
 		if (attributesElementUI != null)
 		{
-			attributesElementUI.Bind(linkedCreatureUnit.Attributes);
+			attributesElementUI.Bind(linkedBattleUnit);
 		}
 
 		if (abilityListElementUI != null)
 		{
-			abilityListElementUI.Bind(linkedCreatureUnit.Abilities);
+			abilityListElementUI.Bind(linkedBattleUnit.SourceUnit.Abilities);
 		}
 
 		if (statusListElementUI != null)
 		{
-			statusListElementUI.Bind(linkedCreatureUnit.PermanentPassives);
+			statusListElementUI.Bind(linkedBattleUnit.Statuses);
+		}
+	}
+
+	private int ComputeBindingVersionHash()
+	{
+		if (linkedBattleUnit == null)
+		{
+			return 0;
+		}
+
+		unchecked
+		{
+			int hash = 17;
+			hash = (hash * 31) + RuntimeHelpers.GetHashCode(linkedBattleUnit);
+
+			CreatureUnit sourceUnit = linkedBattleUnit.SourceUnit;
+			hash = (hash * 31) + (sourceUnit != null ? RuntimeHelpers.GetHashCode(sourceUnit) : 0);
+			hash = (hash * 31) + (sourceUnit?.Species != null ? RuntimeHelpers.GetHashCode(sourceUnit.Species) : 0);
+			hash = (hash * 31) + (sourceUnit?.CurrentFormID != null ? sourceUnit.CurrentFormID.GetHashCode() : 0);
+			hash = (hash * 31) + linkedBattleUnit.CurrentHealth;
+			hash = (hash * 31) + linkedBattleUnit.CurrentActionPoints;
+			hash = (hash * 31) + linkedBattleUnit.CurrentMovementPoints;
+			hash = (hash * 31) + linkedBattleUnit.MaxHealth;
+			hash = (hash * 31) + linkedBattleUnit.MaxActionPoints;
+			hash = (hash * 31) + linkedBattleUnit.MaxMovementPoints;
+			hash = (hash * 31) + linkedBattleUnit.IsDefeated.GetHashCode();
+
+			if (sourceUnit != null)
+			{
+				hash = (hash * 31) + GetListSignature(sourceUnit.Abilities);
+			}
+
+			hash = (hash * 31) + GetBattleStatusSignature(linkedBattleUnit.Statuses);
+			return hash;
+		}
+	}
+
+	private static int GetListSignature<TItem>(System.Collections.Generic.IReadOnlyList<TItem> p_items)
+		where TItem : class
+	{
+		if (p_items == null)
+		{
+			return 0;
+		}
+
+		unchecked
+		{
+			int hash = p_items.Count;
+			for (int index = 0; index < p_items.Count; index++)
+			{
+				TItem item = p_items[index];
+				hash = (hash * 31) + (item != null ? RuntimeHelpers.GetHashCode(item) : 0);
+			}
+
+			return hash;
+		}
+	}
+
+	private static int GetBattleStatusSignature(System.Collections.Generic.IReadOnlyList<BattleStatus> p_statuses)
+	{
+		if (p_statuses == null)
+		{
+			return 0;
+		}
+
+		unchecked
+		{
+			int hash = p_statuses.Count;
+			for (int index = 0; index < p_statuses.Count; index++)
+			{
+				BattleStatus battleStatus = p_statuses[index];
+				if (battleStatus == null)
+				{
+					hash *= 31;
+					continue;
+				}
+
+				hash = (hash * 31) + (battleStatus.Status != null ? RuntimeHelpers.GetHashCode(battleStatus.Status) : 0);
+				hash = (hash * 31) + battleStatus.Stack;
+				hash = (hash * 31) + GetDurationSignature(battleStatus.RemainingDuration);
+			}
+
+			return hash;
+		}
+	}
+
+	private static int GetDurationSignature(Duration p_duration)
+	{
+		if (p_duration == null)
+		{
+			return 0;
+		}
+
+		unchecked
+		{
+			int hash = 17;
+			hash = (hash * 31) + (int) p_duration.Type;
+			hash = (hash * 31) + p_duration.Turns;
+			hash = (hash * 31) + p_duration.Seconds.GetHashCode();
+			return hash;
 		}
 	}
 }

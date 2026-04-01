@@ -58,7 +58,7 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 0
-  m_Spacing: 2
+  m_Spacing: 0
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
@@ -93,7 +93,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AbilityListElementUI
   abilityCardPrefab: {fileID: 4137594093261724860, guid: 62862ad438a8d744895f75b76f68fc28, type: 3}
-  minimumVisibleSlotCount: 1
+  minimumVisibleSlotCount: 0
   cardContainerRoot: {fileID: 7410000000000000006}
 --- !u!1 &7410000000000000001
 GameObject:
@@ -112,7 +112,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7410000000000000002
 RectTransform:
   m_ObjectHideFlags: 0

@@ -14,7 +14,7 @@ public class AbilityListElementUI : MonoBehaviour
 		int actualCount = p_abilities != null ? p_abilities.Count : 0;
 		int targetCount = actualCount > 0
 			? actualCount
-			: Mathf.Max(1, minimumVisibleSlotCount);
+			: Mathf.Max(0, minimumVisibleSlotCount);
 
 		EnsurePoolSize(targetCount);
 
@@ -39,6 +39,8 @@ public class AbilityListElementUI : MonoBehaviour
 
 			abilityCardElementUI.Bind(p_abilities[index]);
 		}
+
+		gameObject.SetActive(targetCount > 0);
 	}
 
 	public void Clear()

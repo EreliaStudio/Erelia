@@ -55,6 +55,7 @@
     <Compile Include="Assets\Scripts\Board\BoardView.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterTier.cs" />
     <Compile Include="Assets\Scripts\Trainers\Trainer.cs" />
+    <Compile Include="Assets\Scripts\UI\ProgressBarElementUI.cs" />
     <Compile Include="Assets\Scripts\UI\StatusCardElementUI.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatNodeProgress.cs" />
     <Compile Include="Assets\Scripts\UI\CreatureCardListElementUI.cs" />
