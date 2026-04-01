@@ -141,7 +141,7 @@ MonoBehaviour:
   abilityListElementUI: {fileID: 429418857489912353}
   statusListElementUI: {fileID: 5899242470524319563}
   layoutElement: {fileID: 9039906177031066850}
-  preferredWidth: 284
+  preferredWidth: 220
   collapsedHeight: 56
   expandedHeight: 0
   collapseDelay: 0
