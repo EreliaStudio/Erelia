@@ -8,7 +8,7 @@ public class AttributesDrawer : PropertyDrawer
 	private const float ColumnSpacing = 8f;
 	private const float SingleLabelWidth = 95f;
 	private const float MiniLabelWidth = 100f;
-	private const int RowCount = 6;
+	private const int RowCount = 8;
 
 	public override void OnGUI(Rect p_position, SerializedProperty p_property, GUIContent p_label)
 	{
@@ -21,10 +21,14 @@ public class AttributesDrawer : PropertyDrawer
 		SerializedProperty movementProperty = p_property.FindPropertyRelative("Movement");
 		SerializedProperty attackProperty = p_property.FindPropertyRelative("Attack");
 		SerializedProperty armorProperty = p_property.FindPropertyRelative("Armor");
+		SerializedProperty armorPenetrationProperty = p_property.FindPropertyRelative("ArmorPenetration");
 		SerializedProperty magicProperty = p_property.FindPropertyRelative("Magic");
 		SerializedProperty resistanceProperty = p_property.FindPropertyRelative("Resistance");
+		SerializedProperty resistancePenetrationProperty = p_property.FindPropertyRelative("ResistancePenetration");
 		SerializedProperty bonusRangeProperty = p_property.FindPropertyRelative("BonusRange");
 		SerializedProperty recoveryProperty = p_property.FindPropertyRelative("Recovery");
+		SerializedProperty lifeStealProperty = p_property.FindPropertyRelative("LifeSteal");
+		SerializedProperty omnivamprismProperty = p_property.FindPropertyRelative("Omnivamprism");
 
 		Rect currentRect = new Rect(
 			p_position.x,
@@ -37,7 +41,9 @@ public class AttributesDrawer : PropertyDrawer
 		DrawDoublePropertyRow(ref currentRect, "Action Points", actionPointsProperty, "Movement", movementProperty);
 		DrawDoublePropertyRow(ref currentRect, "Attack", attackProperty, "Armor", armorProperty);
 		DrawDoublePropertyRow(ref currentRect, "Magic", magicProperty, "Resistance", resistanceProperty);
+		DrawDoublePropertyRow(ref currentRect, "Armor Pen.", armorPenetrationProperty, "Resist Pen.", resistancePenetrationProperty);
 		DrawSinglePropertyRow(ref currentRect, "Bonus Range", bonusRangeProperty);
+		DrawDoublePropertyRow(ref currentRect, "Life Steal", lifeStealProperty, "Omnivamprism", omnivamprismProperty);
 		DrawSinglePropertyRow(ref currentRect, "Recovery", recoveryProperty);
 
 		EditorGUI.EndProperty();

@@ -38,6 +38,16 @@ public class VoxelCubeShape : VoxelShape
 		return mask;
 	}
 
+	protected override CardinalHeightSet ConstructPositiveYCardinalHeights()
+	{
+		return new CardinalHeightSet(
+			positiveX: 1f,
+			negativeX: 1f,
+			positiveZ: 1f,
+			negativeZ: 1f,
+			stationary: 1f);
+	}
+
 	private static Face CreateFaceForPlane(Sprite sprite, VoxelAxisPlane plane)
 	{
 		GetSpriteUvRect(sprite, out Vector2 uvAnchor, out Vector2 uvSize);

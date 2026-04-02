@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static EffectUtility;
 
 [Serializable]
 public abstract class Effect
@@ -17,7 +18,12 @@ public class ApplyStatusEffect : Effect
 
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
-		
+		if (target is not BattleUnit targetUnit || Status == null || StackCount <= 0)
+		{
+			return;
+		}
+
+		targetUnit.Statuses.Add(Status, StackCount, Duration.Clone(Duration));
 	}
 }
 
@@ -29,15 +35,35 @@ public class RemoveStatusEffect : Effect
 
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
-		
+		if (target is not BattleUnit targetUnit || Status == null)
+		{
+			return;
+		}
+
+		targetUnit.Statuses.Remove(Status, Math.Max(1, StackCount));
 	}
 }
 
 [Serializable]
 public class ReviveEffect : Effect
 {
+	public int HealthRestored = 1;
+
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
+		if (target is not BattleUnit targetUnit || !targetUnit.IsDefeated)
+		{
+			return;
+		}
+
+		int restoredHealth = MathFormula.ComputeHealing(
+			(caster as BattleUnit)?.SourceUnit?.Attributes,
+			new MathFormula.HealingInput
+			{
+				BaseHealing = Math.Max(1, HealthRestored)
+			});
+
+		targetUnit.BattleAttributes.Health.SetCurrent(Math.Max(1, restoredHealth));
 	}
 }
 
@@ -48,6 +74,12 @@ public class CleanseEffect : Effect
 
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
+		if (target is not BattleUnit targetUnit || TagsToCleanse == null || TagsToCleanse.Count == 0)
+		{
+			return;
+		}
+
+		targetUnit.Statuses.Remove(TagsToCleanse);
 	}
 }
 
@@ -66,6 +98,39 @@ public class ResourceChangeEffect : Effect
 
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
+		if (target is not BattleUnit targetUnit || Value == 0)
+		{
+			return;
+		}
+
+		switch (ResourceTargeted)
+		{
+			case Target.ActionPoint:
+				if (Value > 0)
+				{
+					targetUnit.BattleAttributes.ActionPoints.Increase(Value);
+				}
+				else
+				{
+					targetUnit.BattleAttributes.ActionPoints.Decrease(-Value);
+				}
+				break;
+
+			case Target.MovementPoint:
+				if (Value > 0)
+				{
+					targetUnit.BattleAttributes.MovementPoints.Increase(Value);
+				}
+				else
+				{
+					targetUnit.BattleAttributes.MovementPoints.Decrease(-Value);
+				}
+				break;
+
+			case Target.Range:
+				targetUnit.BattleAttributes.BonusRange.Set(Math.Max(0, targetUnit.BattleAttributes.BonusRange.Value + Value));
+				break;
+		}
 	}
 }
 
@@ -83,6 +148,37 @@ public class MoveStatus : Effect
 
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
+		if (battleContext?.Board == null ||
+			caster is not BattleObject casterObject ||
+			target is not BattleUnit targetUnit ||
+			Force <= 0)
+		{
+			return;
+		}
+
+		if (!battleContext.Board.TryGetPosition(casterObject, out Vector3Int casterPosition) ||
+			!battleContext.Board.TryGetPosition(targetUnit, out Vector3Int targetPosition))
+		{
+			return;
+		}
+
+		Vector3Int step = ComputeDisplacementStep(casterPosition, targetPosition, ForceOrientation);
+		if (step == Vector3Int.zero)
+		{
+			return;
+		}
+
+		Vector3Int currentPosition = targetPosition;
+		for (int index = 0; index < Force; index++)
+		{
+			Vector3Int nextPosition = currentPosition + step;
+			if (!battleContext.Board.TryPlaceUnit(targetUnit, nextPosition))
+			{
+				break;
+			}
+
+			currentPosition = nextPosition;
+		}
 	}
 }
 
@@ -91,14 +187,37 @@ public class SwapPositionEffect : Effect
 {
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
+		if (battleContext?.Board == null ||
+			caster is not BattleUnit casterUnit ||
+			target is not BattleUnit targetUnit)
+		{
+			return;
+		}
+
+		battleContext.Board.SwapUnits(casterUnit, targetUnit);
 	}
 }
 
 [Serializable]
 public class TeleportEffect : Effect
 {
+	public Vector3Int Destination = Vector3Int.zero;
+	public bool RelativeToCaster = true;
+
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
+		if (battleContext?.Board == null || target is not BattleUnit targetUnit)
+		{
+			return;
+		}
+
+		Vector3Int destination = Destination;
+		if (RelativeToCaster && caster != null && battleContext.Board.TryGetPosition(caster, out Vector3Int casterPosition))
+		{
+			destination += casterPosition;
+		}
+
+		battleContext.Board.TryPlaceUnit(targetUnit, destination);
 	}
 }
 
@@ -119,6 +238,33 @@ public class StealResourceEffect : Effect
 
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
+		if (caster is not BattleUnit casterUnit || target is not BattleUnit targetUnit || Value <= 0)
+		{
+			return;
+		}
+
+		switch (ResourceTargeted)
+		{
+			case Target.Health:
+				StealHealth(casterUnit, targetUnit, Value);
+				break;
+
+			case Target.ActionPoint:
+				StealActionPoints(casterUnit, targetUnit, Value);
+				break;
+
+			case Target.MovementPoint:
+				StealMovementPoints(casterUnit, targetUnit, Value);
+				break;
+
+			case Target.Range:
+				StealRange(casterUnit, targetUnit, Value);
+				break;
+
+			case Target.Stamina:
+				StealTurnBarTime(casterUnit, targetUnit, Value);
+				break;
+		}
 	}
 }
 
@@ -130,6 +276,12 @@ public class ConsumeStatus : Effect
 
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
+		if (target is not BattleUnit targetUnit || Status == null)
+		{
+			return;
+		}
+
+		targetUnit.Statuses.Remove(Status, Math.Max(1, NbOfStackConsumed));
 	}
 }
 
@@ -140,7 +292,19 @@ public class ChangeFormEffect : Effect
 	
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
-		
+		if (target is not BattleUnit targetUnit || string.IsNullOrWhiteSpace(FormID))
+		{
+			return;
+		}
+
+		if (targetUnit.SourceUnit.CurrentFormID == FormID || !targetUnit.SourceUnit.HasForm(FormID))
+		{
+			return;
+		}
+
+		targetUnit.SourceUnit.CurrentFormID = FormID;
+		FeatProgressionService.ApplyProgress(targetUnit.SourceUnit);
+		targetUnit.BattleAttributes.Setup(targetUnit.SourceUnit.Attributes);
 	}
 }
 
@@ -151,7 +315,23 @@ public class AdjustTurnBarTimeEffect : Effect
 
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
-		
+		if (target is not BattleUnit targetUnit || Mathf.Approximately(Delta, 0f))
+		{
+			return;
+		}
+
+		float adjustedDelta = MathFormula.ComputeTurnBarTimeDelta(
+			Delta,
+			targetUnit.SourceUnit?.Attributes);
+
+		if (adjustedDelta > 0f)
+		{
+			targetUnit.BattleAttributes.TurnBar.Increase(adjustedDelta);
+		}
+		else
+		{
+			targetUnit.BattleAttributes.TurnBar.Decrease(-adjustedDelta);
+		}
 	}
 }
 
@@ -162,29 +342,89 @@ public class AdjustTurnBarDurationEffect : Effect
 
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
-		
+		if (target is not BattleUnit targetUnit || Mathf.Approximately(Delta, 0f))
+		{
+			return;
+		}
+
+		float adjustedDelta = MathFormula.ComputeTurnBarDurationDelta(
+			Delta,
+			targetUnit.SourceUnit?.Attributes);
+
+		targetUnit.BattleAttributes.TurnBar.SetMax(Math.Max(MathFormula.MinimumTurnBarDuration, targetUnit.BattleAttributes.TurnBar.Max + adjustedDelta));
 	}
 }
 
 [Serializable]
 public class DamageTargetEffect : Effect
 {
-	public int Value = 1;
+	public MathFormula.DamageInput Input = new MathFormula.DamageInput
+	{
+		BaseDamage = 1,
+		DamageKind = MathFormula.DamageInput.Kind.Physical,
+		AttackRatio = 1f,
+		MagicRatio = 0f
+	};
 
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
-		
+		if (target is not BattleUnit targetUnit || Input.BaseDamage <= 0)
+		{
+			return;
+		}
+
+		Attributes casterAttributes = (caster as BattleUnit)?.SourceUnit?.Attributes;
+		Attributes targetAttributes = targetUnit.SourceUnit?.Attributes;
+		int computedDamage = MathFormula.ComputeDamage(casterAttributes, targetAttributes, Input);
+
+		if (computedDamage <= 0)
+		{
+			return;
+		}
+
+		int previousHealth = targetUnit.BattleAttributes.Health.Current;
+		targetUnit.BattleAttributes.Health.Decrease(computedDamage);
+		int appliedDamage = previousHealth - targetUnit.BattleAttributes.Health.Current;
+		if (appliedDamage <= 0 || caster is not BattleUnit casterUnit)
+		{
+			return;
+		}
+
+		int selfHealing = MathFormula.ComputeVampirismHealing(casterAttributes, Input.DamageKind, appliedDamage);
+		if (selfHealing > 0)
+		{
+			casterUnit.BattleAttributes.Health.Increase(selfHealing);
+		}
 	}
 }
 
 [Serializable]
 public class HealTargetEffect : Effect
 {
-	public int Value = 1;
+	public MathFormula.HealingInput Input = new MathFormula.HealingInput
+	{
+		BaseHealing = 1,
+		AttackRatio = 0f,
+		MagicRatio = 0f
+	};
 
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
-		
+		if (target is not BattleUnit targetUnit || Input.BaseHealing <= 0)
+		{
+			return;
+		}
+
+		int computedHealing = MathFormula.ComputeHealing(
+			(caster as BattleUnit)?.SourceUnit?.Attributes,
+			Input);
+
+		if (computedHealing <= 0)
+		{
+			return;
+		}
+
+		targetUnit.BattleAttributes.Health.Increase(computedHealing);
 	}
 }
 
@@ -196,15 +436,174 @@ public class PlaceInteractiveObjectEffect : Effect
 
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
+		if (battleContext?.Board == null || InteractionObject == null)
+		{
+			return;
+		}
+
+		if (!TryResolveAnchorPosition(battleContext.Board, caster, target, out Vector3Int anchorPosition))
+		{
+			return;
+		}
+
+		BattleInteractiveObject interactiveObject = new BattleInteractiveObject
+		{
+			Side = caster != null ? caster.Side : BattleSide.Neutral,
+			InteractionObject = InteractionObject,
+			Tags = InteractionObject.Tags != null ? new List<string>(InteractionObject.Tags) : new List<string>(),
+			RemainingDuration = Duration.Clone(Duration)
+		};
+
+		if (!battleContext.Board.TryAddInteractiveObject(interactiveObject, anchorPosition))
+		{
+			return;
+		}
+
+		battleContext.ActiveObjects ??= new List<BattleObject>();
+		battleContext.ActiveObjects.Add(interactiveObject);
 	}
 }
 
 [Serializable]
 public class RemoveInteractiveObjectEffect : Effect
 {
-	public InteractionObject InteractionObject;
+	public List<string> Tags = new List<string>();
 
 	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
 	{
+		if (battleContext?.Board == null || Tags == null || Tags.Count == 0)
+		{
+			return;
+		}
+
+		List<BattleInteractiveObject> removedObjects = new List<BattleInteractiveObject>();
+		if (TryResolveAnchorPosition(battleContext.Board, caster, target, out Vector3Int anchorPosition))
+		{
+			removedObjects.AddRange(battleContext.Board.RemoveInteractiveObjectsByTags(anchorPosition, Tags));
+		}
+		else
+		{
+			removedObjects.AddRange(battleContext.Board.RemoveInteractiveObjectsByTags(Tags));
+		}
+
+		if (battleContext.ActiveObjects == null || removedObjects.Count == 0)
+		{
+			return;
+		}
+
+		for (int index = 0; index < removedObjects.Count; index++)
+		{
+			battleContext.ActiveObjects.Remove(removedObjects[index]);
+		}
+	}
+}
+
+internal static class EffectUtility
+{
+	public static bool TryResolveAnchorPosition(Board p_board, BattleObject p_caster, BattleObject p_target, out Vector3Int p_position)
+	{
+		if (p_board != null)
+		{
+			if (p_target != null && p_board.TryGetPosition(p_target, out p_position))
+			{
+				return true;
+			}
+
+			if (p_caster != null && p_board.TryGetPosition(p_caster, out p_position))
+			{
+				return true;
+			}
+		}
+
+		p_position = default;
+		return false;
+	}
+
+	public static Vector3Int ComputeDisplacementStep(Vector3Int p_casterPosition, Vector3Int p_targetPosition, MoveStatus.Orientation p_orientation)
+	{
+		Vector3Int delta = p_orientation == MoveStatus.Orientation.TowardCaster
+			? p_casterPosition - p_targetPosition
+			: p_targetPosition - p_casterPosition;
+
+		if (delta == Vector3Int.zero)
+		{
+			return Vector3Int.zero;
+		}
+
+		int stepX = Math.Sign(delta.x);
+		int stepZ = Math.Sign(delta.z);
+
+		if (Math.Abs(delta.x) > Math.Abs(delta.z))
+		{
+			stepZ = 0;
+		}
+		else if (Math.Abs(delta.z) > Math.Abs(delta.x))
+		{
+			stepX = 0;
+		}
+
+		return new Vector3Int(stepX, 0, stepZ);
+	}
+
+	public static void StealHealth(BattleUnit p_casterUnit, BattleUnit p_targetUnit, int p_value)
+	{
+		int previousTargetHealth = p_targetUnit.BattleAttributes.Health.Current;
+		p_targetUnit.BattleAttributes.Health.Decrease(p_value);
+
+		int stolenHealth = previousTargetHealth - p_targetUnit.BattleAttributes.Health.Current;
+		if (stolenHealth <= 0)
+		{
+			return;
+		}
+
+		p_casterUnit.BattleAttributes.Health.Increase(stolenHealth);
+	}
+
+	public static void StealActionPoints(BattleUnit p_casterUnit, BattleUnit p_targetUnit, int p_value)
+	{
+		int stolenPoints = Math.Min(p_value, p_targetUnit.BattleAttributes.ActionPoints.Current);
+		if (stolenPoints <= 0)
+		{
+			return;
+		}
+
+		p_targetUnit.BattleAttributes.ActionPoints.Decrease(stolenPoints);
+		p_casterUnit.BattleAttributes.ActionPoints.Increase(stolenPoints);
+	}
+
+	public static void StealMovementPoints(BattleUnit p_casterUnit, BattleUnit p_targetUnit, int p_value)
+	{
+		int stolenPoints = Math.Min(p_value, p_targetUnit.BattleAttributes.MovementPoints.Current);
+		if (stolenPoints <= 0)
+		{
+			return;
+		}
+
+		p_targetUnit.BattleAttributes.MovementPoints.Decrease(stolenPoints);
+		p_casterUnit.BattleAttributes.MovementPoints.Increase(stolenPoints);
+	}
+
+	public static void StealRange(BattleUnit p_casterUnit, BattleUnit p_targetUnit, int p_value)
+	{
+		int stolenRange = Math.Min(p_value, p_targetUnit.BattleAttributes.BonusRange.Value);
+		if (stolenRange <= 0)
+		{
+			return;
+		}
+
+		p_targetUnit.BattleAttributes.BonusRange.Set(Math.Max(0, p_targetUnit.BattleAttributes.BonusRange.Value - stolenRange));
+		p_casterUnit.BattleAttributes.BonusRange.Set(Math.Max(0, p_casterUnit.BattleAttributes.BonusRange.Value + stolenRange));
+	}
+
+	public static void StealTurnBarTime(BattleUnit p_casterUnit, BattleUnit p_targetUnit, int p_value)
+	{
+		float stolenTime = Math.Min(p_value, p_targetUnit.BattleAttributes.TurnBar.Current);
+		if (stolenTime <= 0f)
+		{
+			return;
+		}
+
+		p_targetUnit.BattleAttributes.TurnBar.Decrease(stolenTime);
+		p_casterUnit.BattleAttributes.TurnBar.Increase(stolenTime);
 	}
 }

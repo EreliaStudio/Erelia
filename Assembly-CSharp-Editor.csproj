@@ -64,10 +64,12 @@
     <Compile Include="Assets\Scripts\Encounters\Editor\EncounterTeamUnitInspectorView.cs" />
     <Compile Include="Assets\Scripts\Core\Editor\AttributesDrawer.cs" />
     <Compile Include="Assets\Scripts\Feats\Editor\FeatBoardEditorWindow.cs" />
+    <Compile Include="Assets\Scripts\Feats\Editor\FeatBoardEditorWindow.Model.cs" />
     <Compile Include="Assets\Scripts\Encounters\Editor\EncounterTierDrawer.cs" />
     <Compile Include="Assets\Scripts\Core\Editor\Utils\ManagedReferenceTypePicker.cs" />
     <Compile Include="Assets\Scripts\Encounters\Editor\EncounterTeamEditorWindow.cs" />
     <Compile Include="Assets\Scripts\Encounters\Editor\EncounterTierEntryDrawer.cs" />
+    <Compile Include="Assets\Scripts\Feats\Editor\FeatBoardEditorWindow.Styles.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

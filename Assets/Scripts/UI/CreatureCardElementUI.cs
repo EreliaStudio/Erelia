@@ -1,5 +1,5 @@
 using System.Collections;
-using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -17,7 +17,6 @@ public class CreatureCardElementUI :
 	[SerializeField] private StatusListElementUI statusListElementUI;
 
 	[Header("Layout")]
-	[SerializeField] private LayoutElement layoutElement;
 	[SerializeField] private float preferredWidth = 320f;
 	[SerializeField] private float collapsedHeight = 56f;
 	[SerializeField] private float expandedHeight = 0f;
@@ -26,53 +25,65 @@ public class CreatureCardElementUI :
 	[SerializeField] private float collapseDelay = 0.1f;
 
 	private BattleUnit linkedBattleUnit;
-	private bool isExpanded;
-	private Coroutine collapseCoroutine;
+	private LayoutElement layoutElement;
 	private VerticalLayoutGroup verticalLayoutGroup;
 	private RectTransform expandedRootRectTransform;
-	private int lastBindingVersionHash;
+	private bool isExpanded;
+	private Coroutine collapseCoroutine;
 
 	private void Awake()
 	{
-		layoutElement ??= GetComponent<LayoutElement>();
+		layoutElement = GetComponent<LayoutElement>();
 		verticalLayoutGroup = GetComponent<VerticalLayoutGroup>();
-		expandedRootRectTransform = expandedRoot != null ? expandedRoot.transform as RectTransform : null;
+		expandedRootRectTransform = (RectTransform) expandedRoot.transform;
 		ApplyVisualState();
-	}
-
-	private void OnValidate()
-	{
-		layoutElement ??= GetComponent<LayoutElement>();
 	}
 
 	public void Bind(BattleUnit p_battleUnit)
 	{
-		linkedBattleUnit = p_battleUnit;
+		if (ReferenceEquals(linkedBattleUnit, p_battleUnit) == false)
+		{
+			UnsubscribeFromBattleUnit(linkedBattleUnit);
+			linkedBattleUnit = p_battleUnit;
+			SubscribeToBattleUnit(linkedBattleUnit);
+		}
+
 		Refresh();
-		lastBindingVersionHash = ComputeBindingVersionHash();
 	}
 
 	public void ClearBinding()
 	{
+		UnsubscribeFromBattleUnit(linkedBattleUnit);
 		linkedBattleUnit = null;
-		Refresh();
-		lastBindingVersionHash = 0;
 		SetExpanded(false, true);
+		Refresh();
+	}
+
+	private void OnDestroy()
+	{
+		UnsubscribeFromBattleUnit(linkedBattleUnit);
 	}
 
 	public void Refresh()
 	{
-		RenderHeader();
-		RenderExpanded();
-
-		if (CanExpand() == false)
+		if (CanExpand())
 		{
-			SetExpanded(false, true);
+			headerElementUI.Bind(linkedBattleUnit);
+			attributesElementUI.Bind(linkedBattleUnit);
+			abilityListElementUI.Bind(linkedBattleUnit.Abilities);
+			statusListElementUI.Bind(linkedBattleUnit.Statuses);
 		}
 		else
 		{
-			ApplyVisualState();
+			headerElementUI.Clear();
+			attributesElementUI.Clear();
+			abilityListElementUI.Clear();
+			statusListElementUI.Clear();
+			SetExpanded(false, true);
+			return;
 		}
+
+		ApplyVisualState();
 	}
 
 	public void OnPointerEnter(PointerEventData p_eventData)
@@ -82,23 +93,13 @@ public class CreatureCardElementUI :
 			return;
 		}
 
-		if (collapseCoroutine != null)
-		{
-			StopCoroutine(collapseCoroutine);
-			collapseCoroutine = null;
-		}
-
-		Refresh();
+		StopCollapseCoroutine();
 		SetExpanded(true, false);
 	}
 
 	public void OnPointerExit(PointerEventData p_eventData)
 	{
-		if (collapseCoroutine != null)
-		{
-			StopCoroutine(collapseCoroutine);
-		}
-
+		StopCollapseCoroutine();
 		collapseCoroutine = StartCoroutine(CollapseDelayed());
 	}
 
@@ -107,18 +108,6 @@ public class CreatureCardElementUI :
 		yield return new WaitForSeconds(collapseDelay);
 		collapseCoroutine = null;
 		SetExpanded(false, false);
-	}
-
-	private void LateUpdate()
-	{
-		int currentBindingVersionHash = ComputeBindingVersionHash();
-		if (currentBindingVersionHash == lastBindingVersionHash)
-		{
-			return;
-		}
-
-		lastBindingVersionHash = currentBindingVersionHash;
-		Refresh();
 	}
 
 	private bool CanExpand()
@@ -147,194 +136,58 @@ public class CreatureCardElementUI :
 	private void ApplyVisualState()
 	{
 		bool shouldShowExpandedRoot = isExpanded && CanExpand();
-
-		if (expandedRoot != null)
-		{
-			expandedRoot.SetActive(shouldShowExpandedRoot);
-		}
-
-		if (layoutElement != null)
-		{
-			layoutElement.preferredWidth = preferredWidth;
-			layoutElement.preferredHeight = shouldShowExpandedRoot
-				? Mathf.Max(expandedHeight, CalculateExpandedPreferredHeight())
-				: collapsedHeight;
-		}
+		expandedRoot.SetActive(shouldShowExpandedRoot);
+		layoutElement.preferredWidth = preferredWidth;
+		layoutElement.preferredHeight = shouldShowExpandedRoot
+			? Mathf.Max(expandedHeight, CalculateExpandedPreferredHeight())
+			: collapsedHeight;
 	}
 
 	private float CalculateExpandedPreferredHeight()
 	{
-		if (expandedRootRectTransform == null)
-		{
-			return expandedHeight;
-		}
-
 		LayoutRebuilder.ForceRebuildLayoutImmediate(expandedRootRectTransform);
-
-		float preferredHeight = collapsedHeight + LayoutUtility.GetPreferredHeight(expandedRootRectTransform);
-
-		if (verticalLayoutGroup != null)
-		{
-			preferredHeight += verticalLayoutGroup.spacing;
-		}
-
-		return preferredHeight;
+		return collapsedHeight + LayoutUtility.GetPreferredHeight(expandedRootRectTransform) + verticalLayoutGroup.spacing;
 	}
 
-	private void RenderHeader()
+	private void SubscribeToBattleUnit(BattleUnit p_battleUnit)
 	{
-		if (headerElementUI == null)
+		if (p_battleUnit == null)
 		{
 			return;
 		}
 
-		CreatureUnit sourceUnit = linkedBattleUnit != null ? linkedBattleUnit.SourceUnit : null;
-		if (sourceUnit == null)
-		{
-			headerElementUI.Clear();
-			return;
-		}
-
-		headerElementUI.Bind(sourceUnit);
+		p_battleUnit.Statuses.Changed += HandleStatusesChanged;
 	}
 
-	private void RenderExpanded()
+	private void UnsubscribeFromBattleUnit(BattleUnit p_battleUnit)
 	{
-		if (linkedBattleUnit == null ||
-			linkedBattleUnit.SourceUnit == null ||
-			linkedBattleUnit.SourceUnit.Species == null)
+		if (p_battleUnit == null)
 		{
-			if (attributesElementUI != null)
-			{
-				attributesElementUI.Clear();
-			}
-
-			if (abilityListElementUI != null)
-			{
-				abilityListElementUI.Clear();
-			}
-
-			if (statusListElementUI != null)
-			{
-				statusListElementUI.Clear();
-			}
-
 			return;
 		}
 
-		if (attributesElementUI != null)
-		{
-			attributesElementUI.Bind(linkedBattleUnit);
-		}
-
-		if (abilityListElementUI != null)
-		{
-			abilityListElementUI.Bind(linkedBattleUnit.SourceUnit.Abilities);
-		}
-
-		if (statusListElementUI != null)
-		{
-			statusListElementUI.Bind(linkedBattleUnit.Statuses);
-		}
+		p_battleUnit.Statuses.Changed -= HandleStatusesChanged;
 	}
 
-	private int ComputeBindingVersionHash()
+	private void HandleStatusesChanged(BattleStatuses p_statuses)
 	{
 		if (linkedBattleUnit == null)
 		{
-			return 0;
+			return;
 		}
 
-		unchecked
-		{
-			int hash = 17;
-			hash = (hash * 31) + RuntimeHelpers.GetHashCode(linkedBattleUnit);
-
-			CreatureUnit sourceUnit = linkedBattleUnit.SourceUnit;
-			hash = (hash * 31) + (sourceUnit != null ? RuntimeHelpers.GetHashCode(sourceUnit) : 0);
-			hash = (hash * 31) + (sourceUnit?.Species != null ? RuntimeHelpers.GetHashCode(sourceUnit.Species) : 0);
-			hash = (hash * 31) + (sourceUnit?.CurrentFormID != null ? sourceUnit.CurrentFormID.GetHashCode() : 0);
-			hash = (hash * 31) + linkedBattleUnit.CurrentHealth;
-			hash = (hash * 31) + linkedBattleUnit.CurrentActionPoints;
-			hash = (hash * 31) + linkedBattleUnit.CurrentMovementPoints;
-			hash = (hash * 31) + linkedBattleUnit.MaxHealth;
-			hash = (hash * 31) + linkedBattleUnit.MaxActionPoints;
-			hash = (hash * 31) + linkedBattleUnit.MaxMovementPoints;
-			hash = (hash * 31) + linkedBattleUnit.IsDefeated.GetHashCode();
-
-			if (sourceUnit != null)
-			{
-				hash = (hash * 31) + GetListSignature(sourceUnit.Abilities);
-			}
-
-			hash = (hash * 31) + GetBattleStatusSignature(linkedBattleUnit.Statuses);
-			return hash;
-		}
+		statusListElementUI.Bind(p_statuses);
+		ApplyVisualState();
 	}
 
-	private static int GetListSignature<TItem>(System.Collections.Generic.IReadOnlyList<TItem> p_items)
-		where TItem : class
+	private void StopCollapseCoroutine()
 	{
-		if (p_items == null)
+		if (collapseCoroutine == null)
 		{
-			return 0;
+			return;
 		}
 
-		unchecked
-		{
-			int hash = p_items.Count;
-			for (int index = 0; index < p_items.Count; index++)
-			{
-				TItem item = p_items[index];
-				hash = (hash * 31) + (item != null ? RuntimeHelpers.GetHashCode(item) : 0);
-			}
-
-			return hash;
-		}
-	}
-
-	private static int GetBattleStatusSignature(System.Collections.Generic.IReadOnlyList<BattleStatus> p_statuses)
-	{
-		if (p_statuses == null)
-		{
-			return 0;
-		}
-
-		unchecked
-		{
-			int hash = p_statuses.Count;
-			for (int index = 0; index < p_statuses.Count; index++)
-			{
-				BattleStatus battleStatus = p_statuses[index];
-				if (battleStatus == null)
-				{
-					hash *= 31;
-					continue;
-				}
-
-				hash = (hash * 31) + (battleStatus.Status != null ? RuntimeHelpers.GetHashCode(battleStatus.Status) : 0);
-				hash = (hash * 31) + battleStatus.Stack;
-				hash = (hash * 31) + GetDurationSignature(battleStatus.RemainingDuration);
-			}
-
-			return hash;
-		}
-	}
-
-	private static int GetDurationSignature(Duration p_duration)
-	{
-		if (p_duration == null)
-		{
-			return 0;
-		}
-
-		unchecked
-		{
-			int hash = 17;
-			hash = (hash * 31) + (int) p_duration.Type;
-			hash = (hash * 31) + p_duration.Turns;
-			hash = (hash * 31) + p_duration.Seconds.GetHashCode();
-			return hash;
-		}
+		StopCoroutine(collapseCoroutine);
+		collapseCoroutine = null;
 	}
 }

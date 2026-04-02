@@ -10,25 +10,9 @@ public class DebugCreatureTeamHolder : MonoBehaviour
 		Apply();
 	}
 
+	[ContextMenu("Apply")]
 	public void Apply()
 	{
-		if (creatureCardListElementUI == null)
-		{
-			return;
-		}
-
 		creatureCardListElementUI.Bind(creatureTeam);
 	}
-
-#if UNITY_EDITOR
-	private void OnValidate()
-	{
-		if (Application.isPlaying == false)
-		{
-			return;
-		}
-
-		Apply();
-	}
-#endif
 }

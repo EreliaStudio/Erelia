@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-public class FeatBoardEditorWindow : EditorWindow
+public partial class FeatBoardEditorWindow : EditorWindow
 {
 	private const float ToolbarHeight = 38f;
 	private const float InspectorWidth = 360f;
@@ -92,7 +92,6 @@ public class FeatBoardEditorWindow : EditorWindow
 	private void OnGUI()
 	{
 		EnsureStyles();
-		EnsureBoardIntegrity(false, string.Empty);
 
 		Rect toolbarRect = new Rect(0f, 0f, position.width, ToolbarHeight);
 		Rect bodyRect = new Rect(0f, ToolbarHeight, position.width, Mathf.Max(0f, position.height - ToolbarHeight));
@@ -129,8 +128,6 @@ public class FeatBoardEditorWindow : EditorWindow
 		isDraggingNode = false;
 		isPanningCanvas = false;
 		inspectorScroll = Vector2.zero;
-
-		EnsureBoardIntegrity(false, string.Empty);
 		Repaint();
 	}
 
@@ -298,7 +295,7 @@ public class FeatBoardEditorWindow : EditorWindow
 	private void DrawLinks()
 	{
 		List<FeatNode> nodes = GetNodes();
-		if (nodes.Count == 0)
+		if (nodes.Count == 0 || species?.FeatBoard == null)
 		{
 			return;
 		}
@@ -309,14 +306,15 @@ public class FeatBoardEditorWindow : EditorWindow
 		for (int i = 0; i < nodes.Count; i++)
 		{
 			FeatNode node = nodes[i];
-			if (node == null || node.NeighbourNodes == null)
+			if (node == null)
 			{
 				continue;
 			}
 
-			for (int j = 0; j < node.NeighbourNodes.Count; j++)
+			List<FeatNode> neighbours = species.FeatBoard.GetNeighbourNodes(node);
+			for (int j = 0; j < neighbours.Count; j++)
 			{
-				FeatNode neighbour = node.NeighbourNodes[j];
+				FeatNode neighbour = neighbours[j];
 				if (neighbour == null || !indexLookup.TryGetValue(neighbour, out int neighbourIndex))
 				{
 					continue;
@@ -503,11 +501,6 @@ public class FeatBoardEditorWindow : EditorWindow
 		if (GUILayout.Button("Frame All"))
 		{
 			FrameAllNodes();
-		}
-
-		if (GUILayout.Button("Repair"))
-		{
-			EnsureBoardIntegrity(true, "Repair Feat Board");
 		}
 
 		EditorGUILayout.EndHorizontal();
@@ -808,7 +801,7 @@ public class FeatBoardEditorWindow : EditorWindow
 				}
 
 				EditorGUI.BeginChangeCheck();
-				int statValue = EditorGUILayout.IntField("Value", bonusStats.Value);
+				float statValue = EditorGUILayout.FloatField("Value", bonusStats.Value);
 				if (EditorGUI.EndChangeCheck())
 				{
 					ApplySpeciesChange("Edit Feat Reward", () => bonusStats.Value = statValue);
@@ -1207,6 +1200,7 @@ public class FeatBoardEditorWindow : EditorWindow
 
 		FeatNode newNode = new FeatNode
 		{
+			Id = Guid.NewGuid().ToString("N"),
 			DisplayName = "New Feat",
 			Position = boardPosition
 		};
@@ -1233,15 +1227,15 @@ public class FeatBoardEditorWindow : EditorWindow
 		List<FeatNode> nodes = GetNodes();
 		for (int i = 0; i < nodes.Count; i++)
 		{
-			if (nodes[i] != null && nodes[i].NeighbourNodes != null)
+			if (nodes[i] != null && nodes[i].NeighbourNodeIds != null)
 			{
-				nodes[i].NeighbourNodes.Remove(node);
+				nodes[i].NeighbourNodeIds.Remove(node.Id);
 			}
 		}
 
-		if (species.FeatBoard.RootNode == node)
+		if (species.FeatBoard.IsRootNode(node))
 		{
-			species.FeatBoard.RootNode = null;
+			species.FeatBoard.RootNodeId = string.Empty;
 		}
 
 		species.FeatBoard.Nodes.Remove(node);
@@ -1271,19 +1265,19 @@ public class FeatBoardEditorWindow : EditorWindow
 		{
 			if (currentlyLinked)
 			{
-				first.NeighbourNodes.Remove(second);
-				second.NeighbourNodes.Remove(first);
+				first.NeighbourNodeIds.Remove(second.Id);
+				second.NeighbourNodeIds.Remove(first.Id);
 			}
 			else
 			{
-				if (!first.NeighbourNodes.Contains(second))
+				if (!first.NeighbourNodeIds.Contains(second.Id))
 				{
-					first.NeighbourNodes.Add(second);
+					first.NeighbourNodeIds.Add(second.Id);
 				}
 
-				if (!second.NeighbourNodes.Contains(first))
+				if (!second.NeighbourNodeIds.Contains(first.Id))
 				{
-					second.NeighbourNodes.Add(first);
+					second.NeighbourNodeIds.Add(first.Id);
 				}
 			}
 		});
@@ -1291,12 +1285,12 @@ public class FeatBoardEditorWindow : EditorWindow
 
 	private bool AreLinked(FeatNode first, FeatNode second)
 	{
-		if (first == null || second == null || first.NeighbourNodes == null)
+		if (first == null || second == null || first.NeighbourNodeIds == null)
 		{
 			return false;
 		}
 
-		return first.NeighbourNodes.Contains(second);
+		return first.NeighbourNodeIds.Contains(second.Id);
 	}
 
 	private void FrameSelectedNode()
@@ -1371,656 +1365,5 @@ public class FeatBoardEditorWindow : EditorWindow
 	{
 		canvasPan = lastCanvasSize * 0.5f;
 		Repaint();
-	}
-
-	private void ApplySpeciesChange(string undoLabel, Action mutation)
-	{
-		if (species == null || mutation == null)
-		{
-			return;
-		}
-
-		Undo.RecordObject(species, undoLabel);
-		mutation();
-		MarkSpeciesDirty();
-	}
-
-	private void MarkSpeciesDirty()
-	{
-		if (species == null)
-		{
-			return;
-		}
-
-		EditorUtility.SetDirty(species);
-		Repaint();
-	}
-
-	private void EnsureBoardIntegrity(bool recordUndo, string undoLabel)
-{
-	if (species == null)
-	{
-		return;
-	}
-
-	bool changed = false;
-	bool undoRecorded = false;
-
-	void RecordUndoIfNeeded()
-	{
-		if (!recordUndo || undoRecorded)
-		{
-			return;
-		}
-
-		Undo.RecordObject(species, undoLabel);
-		undoRecorded = true;
-	}
-
-	if (species.FeatBoard == null)
-	{
-		RecordUndoIfNeeded();
-		species.FeatBoard = new FeatBoard();
-		changed = true;
-	}
-
-	if (species.FeatBoard.Nodes == null)
-	{
-		RecordUndoIfNeeded();
-		species.FeatBoard.Nodes = new List<FeatNode>();
-		changed = true;
-	}
-
-	List<FeatNode> nodes = GetNodes();
-
-	for (int i = nodes.Count - 1; i >= 0; i--)
-	{
-		if (nodes[i] == null)
-		{
-			RecordUndoIfNeeded();
-			nodes.RemoveAt(i);
-			changed = true;
-		}
-	}
-
-	HashSet<FeatNode> nodeSet = new HashSet<FeatNode>(nodes);
-
-	if (species.FeatBoard.RootNode != null && !nodeSet.Contains(species.FeatBoard.RootNode))
-	{
-		RecordUndoIfNeeded();
-		species.FeatBoard.RootNode = null;
-		changed = true;
-	}
-
-		for (int i = 0; i < nodes.Count; i++)
-		{
-			FeatNode node = nodes[i];
-			if (node == null)
-			{
-				continue;
-			}
-
-			if (node.NeighbourNodes == null)
-			{
-				RecordUndoIfNeeded();
-				node.NeighbourNodes = new List<FeatNode>();
-				changed = true;
-			}
-
-			if (node.Requirements == null)
-			{
-				RecordUndoIfNeeded();
-				node.Requirements = new List<FeatRequirement>();
-				changed = true;
-			}
-
-			if (node.Rewards == null)
-			{
-				RecordUndoIfNeeded();
-				node.Rewards = new List<FeatReward>();
-				changed = true;
-			}
-
-			if (node.Kind != FeatNodeKind.StatsBonus && node.NumberOfRepeatTime != 0)
-			{
-				RecordUndoIfNeeded();
-				node.NumberOfRepeatTime = 0;
-				changed = true;
-			}
-		}
-
-		for (int i = 0; i < nodes.Count; i++)
-		{
-			FeatNode node = nodes[i];
-			if (node == null || node.NeighbourNodes == null)
-			{
-				continue;
-			}
-
-			HashSet<FeatNode> uniqueNeighbours = new HashSet<FeatNode>();
-			for (int j = node.NeighbourNodes.Count - 1; j >= 0; j--)
-			{
-				FeatNode neighbour = node.NeighbourNodes[j];
-				bool isInvalid =
-					neighbour == null ||
-					neighbour == node ||
-					!nodeSet.Contains(neighbour) ||
-					!uniqueNeighbours.Add(neighbour);
-
-				if (!isInvalid)
-				{
-					continue;
-				}
-
-				RecordUndoIfNeeded();
-				node.NeighbourNodes.RemoveAt(j);
-				changed = true;
-			}
-		}
-
-		for (int i = 0; i < nodes.Count; i++)
-		{
-			FeatNode node = nodes[i];
-			if (node == null || node.NeighbourNodes == null)
-			{
-				continue;
-			}
-
-			for (int j = 0; j < node.NeighbourNodes.Count; j++)
-			{
-				FeatNode neighbour = node.NeighbourNodes[j];
-				if (neighbour == null || neighbour.NeighbourNodes == null)
-				{
-					continue;
-				}
-
-				if (neighbour.NeighbourNodes.Contains(node))
-				{
-					continue;
-				}
-
-				RecordUndoIfNeeded();
-				neighbour.NeighbourNodes.Add(node);
-				changed = true;
-			}
-		}
-
-		if (selectedNode != null && !nodeSet.Contains(selectedNode))
-		{
-			selectedNode = null;
-		}
-
-		if (linkSourceNode != null && !nodeSet.Contains(linkSourceNode))
-		{
-			linkSourceNode = null;
-		}
-
-		if (draggedNode != null && !nodeSet.Contains(draggedNode))
-		{
-			draggedNode = null;
-			isDraggingNode = false;
-		}
-
-		if (changed)
-		{
-			MarkSpeciesDirty();
-		}
-	}
-
-	private List<FeatNode> GetNodes()
-	{
-		if (species == null)
-		{
-			return EmptyNodeList;
-		}
-
-		if (species.FeatBoard == null)
-		{
-			species.FeatBoard = new FeatBoard();
-		}
-
-		if (species.FeatBoard.Nodes == null)
-		{
-			species.FeatBoard.Nodes = new List<FeatNode>();
-		}
-
-		return species.FeatBoard.Nodes;
-	}
-
-	private FeatNode GetSelectedNode()
-	{
-		return selectedNode;
-	}
-
-	private FeatNode GetRootNode()
-	{
-		if (species == null || species.FeatBoard == null)
-		{
-			return null;
-		}
-
-		return species.FeatBoard.RootNode;
-	}
-
-	private bool IsRootNode(FeatNode p_node)
-	{
-		return GetRootNode() == p_node;
-	}
-
-	private void SetRootNode(FeatNode p_node)
-	{
-		if (species == null)
-		{
-			return;
-		}
-
-		ApplySpeciesChange("Set Feat Root Node", () =>
-		{
-			species.FeatBoard.RootNode = p_node;
-		});
-	}
-
-	private FeatNode GetNodeAtCanvasPosition(Vector2 localPosition)
-	{
-		List<FeatNode> drawOrder = GetDrawOrder();
-
-		for (int i = drawOrder.Count - 1; i >= 0; i--)
-		{
-			FeatNode node = drawOrder[i];
-			if (node != null && GetNodeRect(node).Contains(localPosition))
-			{
-				return node;
-			}
-		}
-
-		return null;
-	}
-
-	private List<FeatNode> GetDrawOrder()
-	{
-		List<FeatNode> nodes = GetNodes();
-		List<FeatNode> drawOrder = new List<FeatNode>(nodes.Count);
-		FeatNode selectedNode = GetSelectedNode();
-
-		for (int i = 0; i < nodes.Count; i++)
-		{
-			FeatNode node = nodes[i];
-			if (node != null && node != selectedNode)
-			{
-				drawOrder.Add(node);
-			}
-		}
-
-		if (selectedNode != null)
-		{
-			drawOrder.Add(selectedNode);
-		}
-
-		return drawOrder;
-	}
-
-	private Rect GetNodeRect(FeatNode node)
-	{
-		Vector2 size = NodeGridSize * GetScaledGridSize();
-		Vector2 position = BoardToCanvas(node.Position);
-		return new Rect(position, size);
-	}
-
-	private Vector2 BoardToCanvas(Vector2 boardPosition)
-	{
-		return canvasPan + boardPosition * GetScaledGridSize();
-	}
-
-	private Vector2 CanvasToBoard(Vector2 canvasPosition)
-	{
-		return (canvasPosition - canvasPan) / GetScaledGridSize();
-	}
-
-	private float GetScaledGridSize()
-	{
-		return BaseGridSize * zoom;
-	}
-
-	private Vector2 SnapToGrid(Vector2 positionToSnap)
-	{
-		return new Vector2(Mathf.Round(positionToSnap.x), Mathf.Round(positionToSnap.y));
-	}
-
-	private string BuildNodeBody(FeatNode node)
-	{
-		List<string> lines = new List<string>
-		{
-			FormatGridLine(node),
-			string.Empty,
-			"Requirement"
-		};
-
-		AppendSummaryLines(lines, node.Requirements, FormatRequirementSummary);
-		lines.Add(string.Empty);
-		lines.Add("Reward");
-		AppendSummaryLines(lines, node.Rewards, FormatRewardSummary);
-
-		return string.Join("\n", lines);
-	}
-
-	private void AppendSummaryLines<T>(List<string> lines, List<T> entries, Func<T, string> formatter) where T : class
-	{
-		bool hasEntries = false;
-
-		if (entries != null)
-		{
-			for (int i = 0; i < entries.Count; i++)
-			{
-				T entry = entries[i];
-				if (entry == null)
-				{
-					continue;
-				}
-
-				lines.Add(formatter(entry));
-				hasEntries = true;
-			}
-		}
-
-		if (!hasEntries)
-		{
-			lines.Add("None");
-		}
-	}
-
-	private RepeatTimeMode GetRepeatTimeMode(int numberOfRepeatTime)
-	{
-		if (numberOfRepeatTime < 0)
-		{
-			return RepeatTimeMode.Infinite;
-		}
-
-		return numberOfRepeatTime > 0 ? RepeatTimeMode.Repeatable : RepeatTimeMode.Unique;
-	}
-
-	private string FormatGridLine(FeatNode node)
-	{
-		string gridText = "Grid " + FormatVector2(node.Position);
-		if (node == null || node.Kind != FeatNodeKind.StatsBonus)
-		{
-			return gridText;
-		}
-
-		switch (GetRepeatTimeMode(node.NumberOfRepeatTime))
-		{
-			case RepeatTimeMode.Repeatable:
-				return gridText + " | Repeat " + node.NumberOfRepeatTime + " times";
-
-			case RepeatTimeMode.Infinite:
-				return gridText + " | Infinite";
-
-			default:
-				return gridText + " | Unique";
-		}
-	}
-
-	private string FormatRewardSummary(FeatReward reward)
-	{
-		switch (reward)
-		{
-			case BonusStatsReward bonusStats:
-				return (bonusStats.Value >= 0 ? "+" : string.Empty) + bonusStats.Value + " " + ObjectNames.NicifyVariableName(bonusStats.Attribute.ToString());
-
-			case AbilityReward abilityReward:
-				return "Ability: " + (abilityReward.Ability != null ? abilityReward.Ability.name : "Unassigned");
-
-			case PassiveReward passiveReward:
-				return "Passive: " + (passiveReward.Status != null ? passiveReward.Status.name : "Unassigned");
-
-			case ChangeFormReward changeFormReward:
-				return "Form: " + (string.IsNullOrWhiteSpace(changeFormReward.FormKey) ? "Unassigned" : changeFormReward.FormKey);
-
-			default:
-				return "Unknown reward";
-		}
-	}
-
-	private string FormatRequirementSummary(FeatRequirement requirement)
-	{
-		switch (requirement)
-		{
-			case DealDamageRequirement dealDamage:
-				return "Deal " + dealDamage.RequiredAmount + " damage";
-
-			case HealHealthRequirement healHealth:
-				return "Heal " + healHealth.RequiredAmount;
-
-			default:
-				return "Unknown requirement";
-		}
-	}
-
-	private string GetNodeLabel(FeatNode node)
-	{
-		if (node == null)
-		{
-			return "Missing Node";
-		}
-
-		string name = string.IsNullOrWhiteSpace(node.DisplayName) ? "Unnamed Node" : node.DisplayName;
-		return name + " [" + GetKindLabel(node.Kind) + "]";
-	}
-
-	private string GetKindLabel(FeatNodeKind kind)
-	{
-		return ObjectNames.NicifyVariableName(kind.ToString());
-	}
-
-	private string FormatVector2(Vector2 value)
-	{
-		return Mathf.RoundToInt(value.x) + ", " + Mathf.RoundToInt(value.y);
-	}
-
-	private List<string> GetSpeciesFormKeys()
-	{
-		List<string> keys = new List<string>();
-		if (species == null || species.Forms == null)
-		{
-			return keys;
-		}
-
-		foreach (var entry in species.Forms)
-		{
-			if (!string.IsNullOrWhiteSpace(entry.Key))
-			{
-				keys.Add(entry.Key);
-			}
-		}
-
-		keys.Sort(StringComparer.OrdinalIgnoreCase);
-		return keys;
-	}
-
-	private Dictionary<FeatNode, int> BuildNodeIndexLookup(List<FeatNode> nodes)
-	{
-		Dictionary<FeatNode, int> lookup = new Dictionary<FeatNode, int>();
-
-		for (int i = 0; i < nodes.Count; i++)
-		{
-			FeatNode node = nodes[i];
-			if (node != null && !lookup.ContainsKey(node))
-			{
-				lookup.Add(node, i);
-			}
-		}
-
-		return lookup;
-	}
-
-	private void EnsureStyles()
-	{
-		if (nodeTitleStyle == null)
-		{
-			nodeTitleStyle = new GUIStyle(EditorStyles.boldLabel)
-			{
-				wordWrap = true,
-				clipping = TextClipping.Clip,
-				alignment = TextAnchor.MiddleLeft
-			};
-		}
-
-		if (nodeBodyStyle == null)
-		{
-			nodeBodyStyle = new GUIStyle(EditorStyles.miniLabel)
-			{
-				wordWrap = true,
-				clipping = TextClipping.Clip
-			};
-		}
-
-		if (nodeBadgeStyle == null)
-		{
-			nodeBadgeStyle = new GUIStyle(EditorStyles.miniBoldLabel)
-			{
-				alignment = TextAnchor.MiddleCenter
-			};
-		}
-
-		if (canvasHintStyle == null)
-		{
-			canvasHintStyle = new GUIStyle(EditorStyles.miniLabel)
-			{
-				wordWrap = true
-			};
-		}
-
-		if (canvasEmptyTitleStyle == null)
-		{
-			canvasEmptyTitleStyle = new GUIStyle(EditorStyles.boldLabel)
-			{
-				fontSize = 15,
-				alignment = TextAnchor.MiddleLeft
-			};
-		}
-
-		if (canvasEmptyBodyStyle == null)
-		{
-			canvasEmptyBodyStyle = new GUIStyle(EditorStyles.wordWrappedLabel)
-			{
-				alignment = TextAnchor.UpperLeft
-			};
-		}
-
-		float zoomT = Mathf.InverseLerp(MinZoom, MaxZoom, zoom);
-		nodeTitleStyle.fontSize = Mathf.RoundToInt(Mathf.Lerp(11f, 16f, zoomT));
-		nodeBodyStyle.fontSize = Mathf.RoundToInt(Mathf.Lerp(9f, 12f, zoomT));
-		nodeBadgeStyle.fontSize = Mathf.RoundToInt(Mathf.Lerp(8f, 10f, zoomT));
-	}
-
-	private Color GetCanvasBackgroundColor()
-	{
-		return EditorGUIUtility.isProSkin ? new Color(0.16f, 0.17f, 0.18f) : new Color(0.89f, 0.9f, 0.92f);
-	}
-
-	private Color GetMinorGridColor()
-	{
-		return EditorGUIUtility.isProSkin ? new Color(1f, 1f, 1f, 0.045f) : new Color(0f, 0f, 0f, 0.045f);
-	}
-
-	private Color GetMajorGridColor()
-	{
-		return EditorGUIUtility.isProSkin ? new Color(1f, 1f, 1f, 0.11f) : new Color(0f, 0f, 0f, 0.1f);
-	}
-
-	private Color GetNodeColor(FeatNodeKind kind)
-	{
-		switch (kind)
-		{
-			case FeatNodeKind.StatsBonus:
-				return new Color(0.18f, 0.56f, 0.96f);
-
-			case FeatNodeKind.Ability:
-				return new Color(0.9f, 0.33f, 0.3f);
-
-			case FeatNodeKind.Passive:
-				return new Color(0.2f, 0.76f, 0.48f);
-
-			case FeatNodeKind.Form:
-				return new Color(0.96f, 0.7f, 0.22f);
-
-			default:
-				return new Color(0.6f, 0.6f, 0.6f);
-		}
-	}
-
-	private bool ShouldUseDarkText(Color backgroundColor)
-	{
-		float luminance =
-			backgroundColor.r * 0.299f +
-			backgroundColor.g * 0.587f +
-			backgroundColor.b * 0.114f;
-
-		return luminance >= 0.6f;
-	}
-
-	private Color GetReadableTextColor(Color backgroundColor)
-	{
-		return ShouldUseDarkText(backgroundColor)
-			? new Color(0.14f, 0.14f, 0.14f, 0.98f)
-			: new Color(0.96f, 0.96f, 0.96f, 0.98f);
-	}
-
-	private GUIStyle CreateColoredStyle(GUIStyle baseStyle, Color textColor)
-	{
-		GUIStyle style = new GUIStyle(baseStyle);
-		style.normal.textColor = textColor;
-		style.hover.textColor = textColor;
-		style.active.textColor = textColor;
-		style.focused.textColor = textColor;
-		style.onNormal.textColor = textColor;
-		style.onHover.textColor = textColor;
-		style.onActive.textColor = textColor;
-		style.onFocused.textColor = textColor;
-		return style;
-	}
-
-	private void DrawRectOutline(Rect rect, Color color, float thickness)
-	{
-		EditorGUI.DrawRect(new Rect(rect.x, rect.y, rect.width, thickness), color);
-		EditorGUI.DrawRect(new Rect(rect.x, rect.yMax - thickness, rect.width, thickness), color);
-		EditorGUI.DrawRect(new Rect(rect.x, rect.y, thickness, rect.height), color);
-		EditorGUI.DrawRect(new Rect(rect.xMax - thickness, rect.y, thickness, rect.height), color);
-	}
-
-	private void DrawSpritePreview(Rect rect, Sprite sprite)
-	{
-		if (sprite == null || sprite.texture == null)
-		{
-			return;
-		}
-
-		Texture2D texture = sprite.texture;
-		Rect spriteRect = sprite.rect;
-		Rect uv = new Rect(
-			spriteRect.x / texture.width,
-			spriteRect.y / texture.height,
-			spriteRect.width / texture.width,
-			spriteRect.height / texture.height);
-
-		GUI.DrawTextureWithTexCoords(rect, texture, uv, true);
-	}
-
-	private Rect ToScreenRect(Rect localRect)
-	{
-		return new Rect(localRect.x, localRect.y + ToolbarHeight, localRect.width, localRect.height);
-	}
-
-	private int CountNonNull<T>(List<T> list) where T : class
-	{
-		int count = 0;
-		for (int i = 0; i < list.Count; i++)
-		{
-			if (list[i] != null)
-			{
-				count++;
-			}
-		}
-
-		return count;
 	}
 }

@@ -5,39 +5,30 @@ public class AbilityListElementUI : MonoBehaviour
 {
 	[SerializeField] private AbilityCardElementUI abilityCardPrefab;
 	[SerializeField] private int minimumVisibleSlotCount = 1;
-
-	private readonly List<AbilityCardElementUI> spawnedAbilityCardElements = new List<AbilityCardElementUI>();
 	[SerializeField] private RectTransform cardContainerRoot;
+
+	private readonly List<AbilityCardElementUI> abilityCardElements = new List<AbilityCardElementUI>();
 
 	public void Bind(IReadOnlyList<Ability> p_abilities)
 	{
-		int actualCount = p_abilities != null ? p_abilities.Count : 0;
-		int targetCount = actualCount > 0
-			? actualCount
-			: Mathf.Max(0, minimumVisibleSlotCount);
+		int actualCount = p_abilities?.Count ?? 0;
+		int targetCount = Mathf.Max(actualCount, minimumVisibleSlotCount);
 
 		EnsurePoolSize(targetCount);
 
-		for (int index = 0; index < spawnedAbilityCardElements.Count; index++)
+		for (int index = 0; index < abilityCardElements.Count; index++)
 		{
-			AbilityCardElementUI abilityCardElementUI = spawnedAbilityCardElements[index];
+			AbilityCardElementUI abilityCardElementUI = abilityCardElements[index];
+			bool isVisible = index < targetCount;
 
-			if (index >= targetCount)
-			{
-				abilityCardElementUI.Clear();
-				abilityCardElementUI.gameObject.SetActive(false);
-				continue;
-			}
-
-			abilityCardElementUI.gameObject.SetActive(true);
-
-			if (p_abilities == null || index >= p_abilities.Count || p_abilities[index] == null)
+			abilityCardElementUI.gameObject.SetActive(isVisible);
+			if (isVisible == false)
 			{
 				abilityCardElementUI.Clear();
 				continue;
 			}
 
-			abilityCardElementUI.Bind(p_abilities[index]);
+			abilityCardElementUI.Bind(index < actualCount ? p_abilities[index] : null);
 		}
 
 		gameObject.SetActive(targetCount > 0);
@@ -50,16 +41,10 @@ public class AbilityListElementUI : MonoBehaviour
 
 	private void EnsurePoolSize(int p_targetCount)
 	{
-		while (spawnedAbilityCardElements.Count < p_targetCount)
+		while (abilityCardElements.Count < p_targetCount)
 		{
-			AbilityCardElementUI abilityCardElementUI = Instantiate(abilityCardPrefab, GetCardContainerRoot(), false);
-			abilityCardElementUI.gameObject.SetActive(false);
-			spawnedAbilityCardElements.Add(abilityCardElementUI);
+			AbilityCardElementUI element = Instantiate(abilityCardPrefab, cardContainerRoot, false);
+			abilityCardElements.Add(element);
 		}
-	}
-
-	private Transform GetCardContainerRoot()
-	{
-		return cardContainerRoot != null ? cardContainerRoot : transform;
 	}
 }

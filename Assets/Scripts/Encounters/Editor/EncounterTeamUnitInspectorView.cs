@@ -99,7 +99,7 @@ public class EncounterTeamUnitInspectorView
 
 			if (p_unit != null)
 			{
-				p_unit.EnsureInitialized();
+				FeatProgressionService.ApplyProgress(p_unit);
 			}
 
 			if (p_boardView != null)

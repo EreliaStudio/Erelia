@@ -45,6 +45,26 @@ public class VoxelSlabShape : VoxelShape
 		return mask;
 	}
 
+	protected override CardinalHeightSet ConstructPositiveYCardinalHeights()
+	{
+		return new CardinalHeightSet(
+			positiveX: Height,
+			negativeX: Height,
+			positiveZ: Height,
+			negativeZ: Height,
+			stationary: Height);
+	}
+
+	protected override CardinalHeightSet ConstructNegativeYCardinalHeights()
+	{
+		return new CardinalHeightSet(
+			positiveX: 1f,
+			negativeX: 1f,
+			positiveZ: 1f,
+			negativeZ: 1f,
+			stationary: 1f);
+	}
+
 	private Face CreateTopInnerFace()
 	{
 		GetSpriteUvRect(spritePosY, out Vector2 uvAnchor, out Vector2 uvSize);

@@ -12,11 +12,9 @@ public class FeatNode
 	public FeatNodeKind Kind = FeatNodeKind.StatsBonus;
 	public Sprite Icon;
 
-	[SerializeReference]
-	public List<FeatNode> NeighbourNodes = new List<FeatNode>();
+	public List<string> NeighbourNodeIds = new List<string>();
 
 	public int NumberOfRepeatTime = 0;
-	public int FormTier = 0;
 
 	[SerializeReference]
 	public List<FeatRequirement> Requirements = new List<FeatRequirement>();

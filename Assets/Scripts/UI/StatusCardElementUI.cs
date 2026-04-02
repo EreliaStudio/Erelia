@@ -1,32 +1,34 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class StatusCardElementUI : MonoBehaviour
+public sealed class StatusCardElementUI : ObservableValue<BattleStatus>.Listener
 {
 	[SerializeField] private Image iconImage;
 
-	private Status linkedStatus;
-
-	public void Bind(Status p_status)
+	public void Bind(ObservableValue<BattleStatus> p_status)
 	{
-		linkedStatus = p_status;
-		Refresh();
+		SubscribeTo(p_status);
 	}
 
 	public void Clear()
 	{
-		linkedStatus = null;
-		Refresh();
+		ClearBinding();
 	}
 
-	public void Refresh()
+	protected override void ReactToEdition(BattleStatus p_value)
 	{
-		Sprite icon = linkedStatus != null ? linkedStatus.Icon : null;
+		Apply(p_value?.Status != null ? p_value.Status.Icon : null);
+	}
 
-		if (iconImage != null)
-		{
-			iconImage.sprite = icon;
-			iconImage.enabled = icon != null;
-		}
+	protected override void ClearRenderedValue()
+	{
+		Apply(null);
+	}
+
+	private void Apply(Sprite p_icon)
+	{
+		iconImage ??= GetComponent<Image>();
+		iconImage.sprite = p_icon;
+		iconImage.enabled = p_icon != null;
 	}
 }

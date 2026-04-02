@@ -9,7 +9,28 @@ public class FeatNodeProgress
 	public int CompletionCount = 0;
 	public List<FeatRequirementProgress> RequirementProgress = new List<FeatRequirementProgress>();
 
-	public bool IsCompleted => RequirementProgress.All(p_requirement => p_requirement.IsCompleted);
+	public FeatNodeProgress(FeatNode p_node)
+	{
+		NodeId = p_node != null ? p_node.Id : string.Empty;
+		RequirementProgress = new List<FeatRequirementProgress>();
+
+		if (p_node?.Requirements == null)
+		{
+			return;
+		}
+
+		for (int index = 0; index < p_node.Requirements.Count; index++)
+		{
+			RequirementProgress.Add(new FeatRequirementProgress
+			{
+				Requirement = p_node.Requirements[index],
+				CurrentProgress = 0f
+			});
+		}
+	}
+
+	public bool HasRequirements => RequirementProgress.Count > 0;
+	public bool IsCompleted => HasRequirements && RequirementProgress.All(p_requirement => p_requirement != null && p_requirement.IsCompleted);
 
 	public bool IsExhausted(FeatNode p_node)
 	{
@@ -75,6 +96,6 @@ public class FeatRequirementProgress
 			return;
 		}
 
-		CurrentProgress += Requirement.Register(p_featEvent);
+		CurrentProgress = Math.Min(100f, CurrentProgress + Requirement.Register(p_featEvent));
 	}
 }

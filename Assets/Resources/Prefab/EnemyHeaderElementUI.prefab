@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2353959747885684822}
   - component: {fileID: 6925876242663279638}
   - component: {fileID: 365229297381601024}
+  - component: {fileID: 365229297381601025}
   m_Layer: 5
   m_Name: CreatureNameLabel
   m_TagString: Untagged
@@ -158,6 +159,20 @@ MonoBehaviour:
   m_FlexibleWidth: 1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &365229297381601025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1243705430001750264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9af63a9984f64d43ae4afc1c0e9a5d72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CreatureCardHeaderNameElementUI
+  label: {fileID: 0}
+  emptyMessage: -----
 --- !u!1 &3423022336732993035
 GameObject:
   m_ObjectHideFlags: 0
@@ -189,8 +204,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 4810915011521002632}
   - {fileID: 3395259551062614849}
+  - {fileID: 4810915011521002632}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -272,6 +287,7 @@ GameObject:
   - component: {fileID: 3792562353602802154}
   - component: {fileID: 4607602713034177739}
   - component: {fileID: 6559352728143128294}
+  - component: {fileID: 6559352728143128295}
   m_Layer: 5
   m_Name: CreatureIconImage
   m_TagString: Untagged
@@ -356,3 +372,17 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &6559352728143128295
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4086976801304031490}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f5c693018d54266a75cc7c2991cf9f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CreatureCardHeaderIconElementUI
+  iconImage: {fileID: 0}
+  emptyIcon: {fileID: 0}

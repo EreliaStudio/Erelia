@@ -74,6 +74,26 @@ public class VoxelStairShape : VoxelShape
 		return mask;
 	}
 
+	protected override CardinalHeightSet ConstructPositiveYCardinalHeights()
+	{
+		return new CardinalHeightSet(
+			positiveX: 0.5f,
+			negativeX: 0.5f,
+			positiveZ: 1f,
+			negativeZ: 0f,
+			stationary: 0.5f);
+	}
+
+	protected override CardinalHeightSet ConstructNegativeYCardinalHeights()
+	{
+		return new CardinalHeightSet(
+			positiveX: 1f,
+			negativeX: 1f,
+			positiveZ: 1f,
+			negativeZ: 1f,
+			stationary: 1f);
+	}
+
 	private Face CreateInnerStepTop()
 	{
 		GetSpriteUvRect(spriteStepTop, out Vector2 uvAnchor, out Vector2 uvSize);

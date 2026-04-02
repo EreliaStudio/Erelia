@@ -38,8 +38,9 @@ MonoBehaviour:
     - rid: 1003577749767455514
     - rid: 1003577749767455516
     - rid: 1003577757238559010
+    RootNodeId: e234e652-ccc8-44d7-8464-ecafbaff23ed
     RootNode:
-      rid: 1003577749767455502
+      rid: -2
   Forms:
     _serializedList:
     - Key: Base
@@ -66,37 +67,41 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
     - rid: 1003577749767455493
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
+        Id: faccb834-0b8e-4dd6-bf15-5057a330dc7c
         DisplayName: BonusHP
         Position: {x: 8, y: 3}
         Kind: 0
         Icon: {fileID: 0}
-        NeighbourNodes:
-        - rid: 1003577749767455494
-        - rid: 1003577749767455495
-        - rid: 1003577749767455496
-        - rid: 1003577749767455502
-        - rid: 1003577749767455516
-        - rid: 1003577757238559010
+        NeighbourNodeIds:
+        - c289a39a-66d9-49ff-aa96-72ff4e3a7039
+        - aeb9fee1-d98e-4ab5-8eba-f60e574eb07b
+        - be119eaf-a24f-4cba-93d3-48b079914f8a
+        - e234e652-ccc8-44d7-8464-ecafbaff23ed
+        - cb6aa158-cae3-46d3-8382-239076e21e44
+        - 7a4d667c-c9a3-4d66-b6ca-064aa5dc1dc4
+        NeighbourNodes: []
         NumberOfRepeatTime: -1
-        FormTier: 0
         Requirements:
         - rid: 1003577749767455506
         Rewards: []
     - rid: 1003577749767455494
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
+        Id: c289a39a-66d9-49ff-aa96-72ff4e3a7039
         DisplayName: BonusHP2
         Position: {x: 0, y: -0}
         Kind: 0
         Icon: {fileID: 0}
-        NeighbourNodes:
-        - rid: 1003577749767455493
-        - rid: 1003577749767455514
+        NeighbourNodeIds:
+        - faccb834-0b8e-4dd6-bf15-5057a330dc7c
+        - 70b452cc-ae70-4471-8a5f-10ec2d9decd6
+        NeighbourNodes: []
         NumberOfRepeatTime: 10
-        FormTier: 0
         Requirements:
         - rid: 1003577749767455507
         Rewards:
@@ -104,90 +109,96 @@ MonoBehaviour:
     - rid: 1003577749767455495
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
+        Id: aeb9fee1-d98e-4ab5-8eba-f60e574eb07b
         DisplayName: DPSForm
         Position: {x: 6, y: -4}
         Kind: 3
         Icon: {fileID: 0}
-        NeighbourNodes:
-        - rid: 1003577749767455493
-        - rid: 1003577749767455498
-        - rid: 1003577749767455497
-        - rid: 1003577749767455510
+        NeighbourNodeIds:
+        - faccb834-0b8e-4dd6-bf15-5057a330dc7c
+        - d3a172e3-2615-4d4a-a230-dd81697ae352
+        - 8cd44551-9904-43db-925b-7d3a1ce0240f
+        - 7cf1cceb-ffc8-459a-9724-37f6a217ff89
+        NeighbourNodes: []
         NumberOfRepeatTime: 0
-        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455501
     - rid: 1003577749767455496
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
+        Id: be119eaf-a24f-4cba-93d3-48b079914f8a
         DisplayName: TankForm
         Position: {x: 15, y: -1}
         Kind: 3
         Icon: {fileID: 0}
-        NeighbourNodes:
-        - rid: 1003577749767455493
-        - rid: 1003577749767455499
-        - rid: 1003577749767455500
-        - rid: 1003577749767455512
+        NeighbourNodeIds:
+        - faccb834-0b8e-4dd6-bf15-5057a330dc7c
+        - 0a7ed2c8-68b7-4157-9dcf-21d2f90a8943
+        - 7f0512f4-eefb-47ca-97cd-8a0fd3985597
+        - c851aa02-df86-4093-8eb2-b1b55270eb53
+        NeighbourNodes: []
         NumberOfRepeatTime: 0
-        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455505
     - rid: 1003577749767455497
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
+        Id: 8cd44551-9904-43db-925b-7d3a1ce0240f
         DisplayName: BonusMagic
         Position: {x: -3, y: -9}
         Kind: 0
         Icon: {fileID: 0}
-        NeighbourNodes:
-        - rid: 1003577749767455495
+        NeighbourNodeIds:
+        - aeb9fee1-d98e-4ab5-8eba-f60e574eb07b
+        NeighbourNodes: []
         NumberOfRepeatTime: 10
-        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455508
     - rid: 1003577749767455498
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
+        Id: d3a172e3-2615-4d4a-a230-dd81697ae352
         DisplayName: BonusAttack
         Position: {x: 3, y: -12}
         Kind: 0
         Icon: {fileID: 0}
-        NeighbourNodes:
-        - rid: 1003577749767455495
+        NeighbourNodeIds:
+        - aeb9fee1-d98e-4ab5-8eba-f60e574eb07b
+        NeighbourNodes: []
         NumberOfRepeatTime: 10
-        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455509
     - rid: 1003577749767455499
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
+        Id: 0a7ed2c8-68b7-4157-9dcf-21d2f90a8943
         DisplayName: BonusArmor
         Position: {x: 16, y: -9}
         Kind: 0
         Icon: {fileID: 0}
-        NeighbourNodes:
-        - rid: 1003577749767455496
+        NeighbourNodeIds:
+        - be119eaf-a24f-4cba-93d3-48b079914f8a
+        NeighbourNodes: []
         NumberOfRepeatTime: 10
-        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455518
     - rid: 1003577749767455500
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
+        Id: 7f0512f4-eefb-47ca-97cd-8a0fd3985597
         DisplayName: BonusResistance
         Position: {x: 22, y: -7}
         Kind: 0
         Icon: {fileID: 0}
-        NeighbourNodes:
-        - rid: 1003577749767455496
+        NeighbourNodeIds:
+        - be119eaf-a24f-4cba-93d3-48b079914f8a
+        NeighbourNodes: []
         NumberOfRepeatTime: 10
-        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455517
@@ -198,14 +209,15 @@ MonoBehaviour:
     - rid: 1003577749767455502
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
+        Id: e234e652-ccc8-44d7-8464-ecafbaff23ed
         DisplayName: BaseForm
         Position: {x: 9, y: 10}
         Kind: 3
         Icon: {fileID: 0}
-        NeighbourNodes:
-        - rid: 1003577749767455493
+        NeighbourNodeIds:
+        - faccb834-0b8e-4dd6-bf15-5057a330dc7c
+        NeighbourNodes: []
         NumberOfRepeatTime: 0
-        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455503
@@ -238,14 +250,15 @@ MonoBehaviour:
     - rid: 1003577749767455510
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
+        Id: 7cf1cceb-ffc8-459a-9724-37f6a217ff89
         DisplayName: New Feat
         Position: {x: 9, y: -12}
         Kind: 1
         Icon: {fileID: 0}
-        NeighbourNodes:
-        - rid: 1003577749767455495
+        NeighbourNodeIds:
+        - aeb9fee1-d98e-4ab5-8eba-f60e574eb07b
+        NeighbourNodes: []
         NumberOfRepeatTime: 0
-        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455511
@@ -256,14 +269,15 @@ MonoBehaviour:
     - rid: 1003577749767455512
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
+        Id: c851aa02-df86-4093-8eb2-b1b55270eb53
         DisplayName: New Feat
         Position: {x: 24, y: -1}
         Kind: 1
         Icon: {fileID: 0}
-        NeighbourNodes:
-        - rid: 1003577749767455496
+        NeighbourNodeIds:
+        - be119eaf-a24f-4cba-93d3-48b079914f8a
+        NeighbourNodes: []
         NumberOfRepeatTime: 0
-        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455513
@@ -274,15 +288,16 @@ MonoBehaviour:
     - rid: 1003577749767455514
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
+        Id: 70b452cc-ae70-4471-8a5f-10ec2d9decd6
         DisplayName: New Feat
         Position: {x: -9, y: 2}
         Kind: 2
         Icon: {fileID: 0}
-        NeighbourNodes:
-        - rid: 1003577749767455494
-        - rid: 1003577749767455516
+        NeighbourNodeIds:
+        - c289a39a-66d9-49ff-aa96-72ff4e3a7039
+        - cb6aa158-cae3-46d3-8382-239076e21e44
+        NeighbourNodes: []
         NumberOfRepeatTime: 0
-        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577749767455515
@@ -293,15 +308,16 @@ MonoBehaviour:
     - rid: 1003577749767455516
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
+        Id: cb6aa158-cae3-46d3-8382-239076e21e44
         DisplayName: BonusHP3
         Position: {x: -0, y: 6}
         Kind: 0
         Icon: {fileID: 0}
-        NeighbourNodes:
-        - rid: 1003577749767455493
-        - rid: 1003577749767455514
+        NeighbourNodeIds:
+        - faccb834-0b8e-4dd6-bf15-5057a330dc7c
+        - 70b452cc-ae70-4471-8a5f-10ec2d9decd6
+        NeighbourNodes: []
         NumberOfRepeatTime: 0
-        FormTier: 0
         Requirements: []
         Rewards:
         - rid: 1003577757238559014
@@ -318,14 +334,15 @@ MonoBehaviour:
     - rid: 1003577757238559010
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
+        Id: 7a4d667c-c9a3-4d66-b6ca-064aa5dc1dc4
         DisplayName: New Feat
         Position: {x: 17, y: 5}
         Kind: 0
         Icon: {fileID: 0}
-        NeighbourNodes:
-        - rid: 1003577749767455493
+        NeighbourNodeIds:
+        - faccb834-0b8e-4dd6-bf15-5057a330dc7c
+        NeighbourNodes: []
         NumberOfRepeatTime: 0
-        FormTier: 0
         Requirements: []
         Rewards: []
     - rid: 1003577757238559012

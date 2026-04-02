@@ -1,64 +1,33 @@
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class CreatureCardHeaderElementUI : MonoBehaviour
 {
-	[SerializeField] private Image creatureIconImage;
-	[SerializeField] private TMP_Text creatureNameLabel;
+	private CreatureCardHeaderNameElementUI nameElementUI;
+	private CreatureCardHeaderIconElementUI iconElementUI;
 
-	[SerializeField] private Sprite emptyCreatureIcon;
-	[SerializeField] private string emptyCreatureHeaderMessage = "-----";
-
-	private CreatureUnit linkedCreatureUnit;
-
-	public void Bind(CreatureUnit p_creatureUnit)
+	private void Awake()
 	{
-		linkedCreatureUnit = p_creatureUnit;
-		Refresh();
+		ResolveElements();
+	}
+
+	public void Bind(BattleUnit p_battleUnit)
+	{
+		ResolveElements();
+		CreatureUnit source = p_battleUnit?.SourceUnit;
+		nameElementUI.Bind(source);
+		iconElementUI.Bind(source);
 	}
 
 	public void Clear()
 	{
-		linkedCreatureUnit = null;
-		Refresh();
+		ResolveElements();
+		nameElementUI.Clear();
+		iconElementUI.Clear();
 	}
 
-	public void Refresh()
+	private void ResolveElements()
 	{
-		if (linkedCreatureUnit == null || linkedCreatureUnit.Species == null)
-		{
-			Apply(emptyCreatureIcon, emptyCreatureHeaderMessage);
-			return;
-		}
-
-		CreatureForm creatureForm = linkedCreatureUnit.GetForm();
-
-		if (creatureForm == null)
-		{
-			Apply(emptyCreatureIcon, emptyCreatureHeaderMessage);
-			return;
-		}
-
-		Sprite icon = creatureForm.Icon != null ? creatureForm.Icon : emptyCreatureIcon;
-		string displayName = string.IsNullOrWhiteSpace(creatureForm.DisplayName)
-			? emptyCreatureHeaderMessage
-			: creatureForm.DisplayName;
-
-		Apply(icon, displayName);
-	}
-
-	private void Apply(Sprite p_icon, string p_displayName)
-	{
-		if (creatureIconImage != null)
-		{
-			creatureIconImage.sprite = p_icon;
-			creatureIconImage.enabled = p_icon != null;
-		}
-
-		if (creatureNameLabel != null)
-		{
-			creatureNameLabel.text = p_displayName;
-		}
+		nameElementUI ??= GetComponentInChildren<CreatureCardHeaderNameElementUI>(true);
+		iconElementUI ??= GetComponentInChildren<CreatureCardHeaderIconElementUI>(true);
 	}
 }

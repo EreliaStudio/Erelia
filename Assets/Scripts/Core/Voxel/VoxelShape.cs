@@ -8,6 +8,7 @@ public abstract class VoxelShape
 	[SerializeField, HideInInspector] private FaceSet render = new FaceSet();
 	[SerializeField, HideInInspector] private FaceSet collision = new FaceSet();
 	[SerializeField, HideInInspector] private MaskSet mask = new MaskSet();
+	[SerializeField, HideInInspector] private CardinalHeightCollection cardinalHeights = new CardinalHeightCollection();
 
 	public FaceSet Render => render;
 
@@ -16,6 +17,11 @@ public abstract class VoxelShape
 	public List<Face> GetMaskFaces(VoxelFlipOrientation flipOrientation)
 	{
 		return mask?.GetFaces(flipOrientation);
+	}
+
+	public CardinalHeightSet GetCardinalHeights(VoxelFlipOrientation flipOrientation)
+	{
+		return cardinalHeights?.Get(flipOrientation) ?? CardinalHeightSet.CreateDefault();
 	}
 
 	protected abstract FaceSet ConstructRenderFaces();
@@ -27,11 +33,23 @@ public abstract class VoxelShape
 
 	protected abstract MaskSet ConstructMask();
 
+	protected abstract CardinalHeightSet ConstructPositiveYCardinalHeights();
+
+	protected virtual CardinalHeightSet ConstructNegativeYCardinalHeights()
+	{
+		return ConstructPositiveYCardinalHeights();
+	}
+
 	public virtual void Initialize()
 	{
 		render = ConstructRenderFaces() ?? new FaceSet();
 		collision = ConstructCollisionFaces() ?? new FaceSet();
 		mask = ConstructMask() ?? new MaskSet();
+		cardinalHeights = new CardinalHeightCollection
+		{
+			PositiveY = ConstructPositiveYCardinalHeights() ?? CardinalHeightSet.CreateDefault(),
+			NegativeY = ConstructNegativeYCardinalHeights() ?? CardinalHeightSet.CreateDefault()
+		};
 	}
 
 	protected static Face CreateRectangle(Vector3 aPosition, Vector2 aUv, Vector3 bPosition, Vector2 bUv, Vector3 cPosition, Vector2 cUv, Vector3 dPosition, Vector2 dUv)
@@ -190,6 +208,33 @@ public abstract class VoxelShape
 			}
 
 			return PositiveYFaces;
+		}
+	}
+
+	[Serializable]
+	public class CardinalHeightCollection
+	{
+		public CardinalHeightSet PositiveY = CardinalHeightSet.CreateDefault();
+		public CardinalHeightSet NegativeY = CardinalHeightSet.CreateDefault();
+
+		public CardinalHeightSet Get(VoxelFlipOrientation flipOrientation)
+		{
+			if (flipOrientation == VoxelFlipOrientation.NegativeY && NegativeY != null)
+			{
+				return NegativeY;
+			}
+
+			if (PositiveY != null)
+			{
+				return PositiveY;
+			}
+
+			if (NegativeY != null)
+			{
+				return NegativeY;
+			}
+
+			return CardinalHeightSet.CreateDefault();
 		}
 	}
 

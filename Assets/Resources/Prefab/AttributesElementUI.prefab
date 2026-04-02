@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: HP 30 / 30
+  m_text: PreviewState
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -231,25 +231,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4ed455e4eb7b5d48b0f5147bdd8c36a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AttributesElementUI
-  healthBarElementUI: {fileID: 4100000000000000006}
-  actionPointsBarElementUI: {fileID: 4200000000000000006}
-  movementPointsBarElementUI: {fileID: 4300000000000000006}
-  progressBarBackgroundColor: {r: 0, g: 0, b: 0, a: 0.22}
-  healthBarFillColor: {r: 0.83, g: 0.25, b: 0.25, a: 1}
-  actionPointsBarFillColor: {r: 0.89, g: 0.67, b: 0.2, a: 1}
-  movementPointsBarFillColor: {r: 0.27, g: 0.62, b: 0.89, a: 1}
-  attackIconImage: {fileID: 4511000000000000004}
-  attackValueLabel: {fileID: 4510000000000000004}
-  armorIconImage: {fileID: 4521000000000000004}
-  armorValueLabel: {fileID: 4520000000000000004}
-  magicIconImage: {fileID: 4611000000000000004}
-  magicValueLabel: {fileID: 4610000000000000004}
-  resistanceIconImage: {fileID: 4621000000000000004}
-  resistanceValueLabel: {fileID: 4620000000000000004}
-  attackIconSprite: {fileID: -739995200, guid: dcda558f198faee4ba1f494382e23bd6, type: 3}
-  armorIconSprite: {fileID: 1166813132, guid: dcda558f198faee4ba1f494382e23bd6, type: 3}
-  magicIconSprite: {fileID: 1557024066, guid: dcda558f198faee4ba1f494382e23bd6, type: 3}
-  resistanceIconSprite: {fileID: -343813669, guid: dcda558f198faee4ba1f494382e23bd6, type: 3}
+  healthBarElementUI: {fileID: 4100000000000000007}
+  actionPointsBarElementUI: {fileID: 4200000000000000007}
+  movementPointsBarElementUI: {fileID: 4300000000000000007}
+  attackValueElementUI: {fileID: 2303267096617222011}
+  armorValueElementUI: {fileID: 2636643379662125889}
+  magicValueElementUI: {fileID: 1727931537665142988}
+  resistanceValueElementUI: {fileID: 5991378520719351483}
 --- !u!1 &1368767294614493115
 GameObject:
   m_ObjectHideFlags: 0
@@ -261,6 +249,7 @@ GameObject:
   - component: {fileID: 2636643379662125886}
   - component: {fileID: 2636643379662125887}
   - component: {fileID: 2636643379662125888}
+  - component: {fileID: 2636643379662125889}
   m_Layer: 5
   m_Name: ArmorLayoutElement
   m_TagString: Untagged
@@ -335,6 +324,21 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &2636643379662125889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1368767294614493115}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b9e289ea0ec42d6bfa78b0b5c4f2a13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AttributeValueElementUI
+  iconImage: {fileID: 4521000000000000004}
+  valueLabel: {fileID: 4520000000000000004}
+  iconSprite: {fileID: 1166813132, guid: dcda558f198faee4ba1f494382e23bd6, type: 3}
 --- !u!1 &1373225809272310590
 GameObject:
   m_ObjectHideFlags: 0
@@ -421,6 +425,7 @@ GameObject:
   - component: {fileID: 2046685474133034952}
   - component: {fileID: 5991378520719351481}
   - component: {fileID: 5991378520719351482}
+  - component: {fileID: 5991378520719351483}
   m_Layer: 5
   m_Name: ResistanceLayoutElement
   m_TagString: Untagged
@@ -495,6 +500,21 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &5991378520719351483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1650898779044991565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b9e289ea0ec42d6bfa78b0b5c4f2a13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AttributeValueElementUI
+  iconImage: {fileID: 4621000000000000004}
+  valueLabel: {fileID: 4620000000000000004}
+  iconSprite: {fileID: -343813669, guid: dcda558f198faee4ba1f494382e23bd6, type: 3}
 --- !u!1 &2206630695739653986
 GameObject:
   m_ObjectHideFlags: 0
@@ -560,7 +580,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: MP 3 / 3
+  m_text: PreviewState
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -643,6 +663,7 @@ GameObject:
   - component: {fileID: 7405449900612309270}
   - component: {fileID: 1727931537665142986}
   - component: {fileID: 1727931537665142987}
+  - component: {fileID: 1727931537665142988}
   m_Layer: 5
   m_Name: MagicLayoutElement
   m_TagString: Untagged
@@ -717,6 +738,21 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &1727931537665142988
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2236404386560059890}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b9e289ea0ec42d6bfa78b0b5c4f2a13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AttributeValueElementUI
+  iconImage: {fileID: 4611000000000000004}
+  valueLabel: {fileID: 4610000000000000004}
+  iconSprite: {fileID: 1557024066, guid: dcda558f198faee4ba1f494382e23bd6, type: 3}
 --- !u!1 &3723932513600309785
 GameObject:
   m_ObjectHideFlags: 0
@@ -805,6 +841,7 @@ GameObject:
   - component: {fileID: 4100000000000000004}
   - component: {fileID: 4100000000000000005}
   - component: {fileID: 4100000000000000006}
+  - component: {fileID: 4100000000000000007}
   m_Layer: 5
   m_Name: HealthBarElementUI
   m_TagString: Untagged
@@ -909,8 +946,20 @@ MonoBehaviour:
   backgroundImage: {fileID: 4100000000000000004}
   fillImage: {fileID: 1989312127631779296}
   labelText: {fileID: 9029226294584157195}
-  previewLabel: HP 30 / 30
-  previewProgress01: 1
+--- !u!114 &4100000000000000007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4100000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d6d7a5d43394495b8bfccf9b3e1a2a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObservableResourceBarElementUI
+  progressBarElementUI: {fileID: 4100000000000000006}
+  labelPrefix: HP
 --- !u!1 &4200000000000000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -924,6 +973,7 @@ GameObject:
   - component: {fileID: 4200000000000000004}
   - component: {fileID: 4200000000000000005}
   - component: {fileID: 4200000000000000006}
+  - component: {fileID: 4200000000000000007}
   m_Layer: 5
   m_Name: ActionPointsBarElementUI
   m_TagString: Untagged
@@ -1028,8 +1078,20 @@ MonoBehaviour:
   backgroundImage: {fileID: 4200000000000000004}
   fillImage: {fileID: 481631641709232306}
   labelText: {fileID: 7875275581600693739}
-  previewLabel: AP 6 / 6
-  previewProgress01: 0.75
+--- !u!114 &4200000000000000007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4200000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d6d7a5d43394495b8bfccf9b3e1a2a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObservableResourceBarElementUI
+  progressBarElementUI: {fileID: 4200000000000000006}
+  labelPrefix: AP
 --- !u!1 &4265330013753547739
 GameObject:
   m_ObjectHideFlags: 0
@@ -1095,7 +1157,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: AP 6 / 6
+  m_text: PreviewState
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1180,6 +1242,7 @@ GameObject:
   - component: {fileID: 4300000000000000004}
   - component: {fileID: 4300000000000000005}
   - component: {fileID: 4300000000000000006}
+  - component: {fileID: 4300000000000000007}
   m_Layer: 5
   m_Name: MovementPointsBarElementUI
   m_TagString: Untagged
@@ -1284,8 +1347,20 @@ MonoBehaviour:
   backgroundImage: {fileID: 4300000000000000004}
   fillImage: {fileID: 6352252878082191493}
   labelText: {fileID: 4774839628643682597}
-  previewLabel: MP 3 / 3
-  previewProgress01: 0.5
+--- !u!114 &4300000000000000007
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4300000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d6d7a5d43394495b8bfccf9b3e1a2a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObservableResourceBarElementUI
+  progressBarElementUI: {fileID: 4300000000000000006}
+  labelPrefix: MP
 --- !u!1 &4400000000000000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -1448,9 +1523,9 @@ RectTransform:
   m_Father: {fileID: 2303267096617222008}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 13, y: 0}
-  m_SizeDelta: {x: -26, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4510000000000000003
 CanvasRenderer:
@@ -1605,10 +1680,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 2303267096617222008}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 22, y: 22}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &4511000000000000003
 CanvasRenderer:
@@ -1702,9 +1777,9 @@ RectTransform:
   m_Father: {fileID: 2636643379662125886}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 13, y: 0}
-  m_SizeDelta: {x: -26, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4520000000000000003
 CanvasRenderer:
@@ -1859,10 +1934,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 2636643379662125886}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 22, y: 22}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &4521000000000000003
 CanvasRenderer:
@@ -2020,9 +2095,9 @@ RectTransform:
   m_Father: {fileID: 7405449900612309270}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 13, y: 0}
-  m_SizeDelta: {x: -26, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4610000000000000003
 CanvasRenderer:
@@ -2177,10 +2252,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 7405449900612309270}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 22, y: 22}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &4611000000000000003
 CanvasRenderer:
@@ -2274,9 +2349,9 @@ RectTransform:
   m_Father: {fileID: 2046685474133034952}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 13, y: 0}
-  m_SizeDelta: {x: -26, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4620000000000000003
 CanvasRenderer:
@@ -2431,10 +2506,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 2046685474133034952}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 22, y: 22}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!222 &4621000000000000003
 CanvasRenderer:
@@ -2505,6 +2580,7 @@ GameObject:
   - component: {fileID: 2303267096617222008}
   - component: {fileID: 2303267096617222009}
   - component: {fileID: 2303267096617222010}
+  - component: {fileID: 2303267096617222011}
   m_Layer: 5
   m_Name: AttackLayoutElement
   m_TagString: Untagged
@@ -2579,6 +2655,21 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &2303267096617222011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8094458478179924634}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b9e289ea0ec42d6bfa78b0b5c4f2a13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AttributeValueElementUI
+  iconImage: {fileID: 4511000000000000004}
+  valueLabel: {fileID: 4510000000000000004}
+  iconSprite: {fileID: -739995200, guid: dcda558f198faee4ba1f494382e23bd6, type: 3}
 --- !u!1 &8387218492782051610
 GameObject:
   m_ObjectHideFlags: 0

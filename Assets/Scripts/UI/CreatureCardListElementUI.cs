@@ -16,17 +16,11 @@ public class CreatureCardListElementUI : MonoBehaviour
 
 	public void Bind(BattleUnit[] p_team)
 	{
-		EnsureSlotSetup();
+		EnsurePoolSize(creatureCardCount);
 
 		for (int index = 0; index < creatureCardElements.Count; index++)
 		{
-			BattleUnit battleUnit = null;
-
-			if (p_team != null && index < p_team.Length)
-			{
-				battleUnit = p_team[index];
-			}
-
+			BattleUnit battleUnit = p_team != null && index < p_team.Length ? p_team[index] : null;
 			creatureCardElements[index].Bind(battleUnit);
 		}
 	}
@@ -38,17 +32,12 @@ public class CreatureCardListElementUI : MonoBehaviour
 
 	public void Clear()
 	{
-		EnsureSlotSetup();
+		EnsurePoolSize(creatureCardCount);
 
 		for (int index = 0; index < creatureCardElements.Count; index++)
 		{
 			creatureCardElements[index].ClearBinding();
 		}
-	}
-
-	private void OnTransformChildrenChanged()
-	{
-		CacheDirectChildSlots();
 	}
 
 	private void EnsureSlotSetup()
@@ -63,12 +52,7 @@ public class CreatureCardListElementUI : MonoBehaviour
 
 		for (int index = 0; index < transform.childCount; index++)
 		{
-			Transform childTransform = transform.GetChild(index);
-
-			if (childTransform.TryGetComponent(out CreatureCardElementUI creatureCardElementUI))
-			{
-				creatureCardElements.Add(creatureCardElementUI);
-			}
+			creatureCardElements.Add(transform.GetChild(index).GetComponent<CreatureCardElementUI>());
 		}
 	}
 
@@ -76,15 +60,7 @@ public class CreatureCardListElementUI : MonoBehaviour
 	{
 		while (creatureCardElements.Count < p_targetCount)
 		{
-			if (creatureCardPrefab == null)
-			{
-				Debug.LogWarning($"{nameof(CreatureCardListElementUI)} on {name} is missing a creature card prefab.");
-				return;
-			}
-
-			CreatureCardElementUI creatureCardElementUI = Instantiate(creatureCardPrefab, transform, false);
-			creatureCardElementUI.gameObject.SetActive(true);
-			CacheDirectChildSlots();
+			creatureCardElements.Add(Instantiate(creatureCardPrefab, transform, false));
 		}
 	}
 
@@ -98,9 +74,14 @@ public class CreatureCardListElementUI : MonoBehaviour
 		BattleUnit[] battleTeam = new BattleUnit[p_team.Length];
 		for (int index = 0; index < p_team.Length; index++)
 		{
-			battleTeam[index] = p_team[index] != null
-				? BattleUnit.CreateFromSource(p_team[index])
-				: null;
+			if (p_team[index] == null)
+			{
+				battleTeam[index] = null;
+				continue;
+			}
+
+			FeatProgressionService.ApplyProgress(p_team[index]);
+			battleTeam[index] = new BattleUnit(p_team[index], BattleSide.Neutral);
 		}
 
 		return battleTeam;

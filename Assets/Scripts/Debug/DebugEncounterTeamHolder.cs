@@ -10,27 +10,19 @@ public class DebugEncounterTeamHolder : MonoBehaviour
 		Apply();
 	}
 
+	[ContextMenu("Apply")]
 	public void Apply()
 	{
-		if (creatureCardListElementUI == null)
-		{
-			return;
-		}
+		EncounterTier.Entry teamEntry = encounterTier.WeightedTeams.Count > 0
+			? encounterTier.WeightedTeams[0]
+			: null;
 
-		if (encounterTier == null ||
-			encounterTier.WeightedTeams == null ||
-			encounterTier.WeightedTeams.Count == 0)
+		if (teamEntry == null)
 		{
 			creatureCardListElementUI.Clear();
 			return;
 		}
 
-		if (encounterTier.WeightedTeams[0] == null)
-		{
-			creatureCardListElementUI.Clear();
-			return;
-		}
-
-		creatureCardListElementUI.Bind(encounterTier.WeightedTeams[0].Team);
+		creatureCardListElementUI.Bind(teamEntry.Team);
 	}
 }

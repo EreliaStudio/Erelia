@@ -24,4 +24,19 @@ public class VoxelCell
 		Orientation = orientation;
 		FlipOrientation = flipOrientation;
 	}
+
+	public VoxelCell(VoxelCell p_source)
+	{
+		if (p_source == null)
+		{
+			Id = -1;
+			Orientation = VoxelOrientation.PositiveX;
+			FlipOrientation = VoxelFlipOrientation.PositiveY;
+			return;
+		}
+
+		Id = p_source.Id;
+		Orientation = p_source.Orientation;
+		FlipOrientation = p_source.FlipOrientation;
+	}
 }

@@ -1,32 +1,24 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class AbilityCardElementUI : MonoBehaviour
+public sealed class AbilityCardElementUI : MonoBehaviour
 {
 	[SerializeField] private Image iconImage;
 
-	private Ability linkedAbility;
-
 	public void Bind(Ability p_ability)
 	{
-		linkedAbility = p_ability;
-		Refresh();
+		Apply(p_ability != null ? p_ability.Icon : null);
 	}
 
 	public void Clear()
 	{
-		linkedAbility = null;
-		Refresh();
+		Apply(null);
 	}
 
-	public void Refresh()
+	private void Apply(Sprite p_icon)
 	{
-		Sprite icon = linkedAbility != null ? linkedAbility.Icon : null;
-
-		if (iconImage != null)
-		{
-			iconImage.sprite = icon;
-			iconImage.enabled = icon != null;
-		}
+		iconImage ??= GetComponent<Image>();
+		iconImage.sprite = p_icon;
+		iconImage.enabled = p_icon != null;
 	}
 }

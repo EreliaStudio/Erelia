@@ -165,25 +165,42 @@ public class EncounterTeamProgressBoardView
 
 	private void DrawLinks(CreatureUnit p_unit, List<FeatNode> p_nodes)
 	{
+		FeatBoard featBoard = p_unit?.Species?.FeatBoard;
+		if (featBoard == null)
+		{
+			return;
+		}
+
+		Dictionary<FeatNode, int> indexLookup = new Dictionary<FeatNode, int>();
+		for (int index = 0; index < p_nodes.Count; index++)
+		{
+			FeatNode node = p_nodes[index];
+			if (node != null && !indexLookup.ContainsKey(node))
+			{
+				indexLookup.Add(node, index);
+			}
+		}
+
 		Handles.BeginGUI();
 
 		for (int nodeIndex = 0; nodeIndex < p_nodes.Count; nodeIndex++)
 		{
 			FeatNode node = p_nodes[nodeIndex];
-			if (node == null || node.NeighbourNodes == null)
+			if (node == null)
 			{
 				continue;
 			}
 
-			for (int neighbourIndex = 0; neighbourIndex < node.NeighbourNodes.Count; neighbourIndex++)
+			List<FeatNode> neighbours = featBoard.GetNeighbourNodes(node);
+			for (int neighbourIndex = 0; neighbourIndex < neighbours.Count; neighbourIndex++)
 			{
-				FeatNode neighbour = node.NeighbourNodes[neighbourIndex];
+				FeatNode neighbour = neighbours[neighbourIndex];
 				if (neighbour == null)
 				{
 					continue;
 				}
 
-				if (p_nodes.IndexOf(neighbour) < nodeIndex)
+				if (!indexLookup.TryGetValue(neighbour, out int neighbourNodeIndex) || neighbourNodeIndex < nodeIndex)
 				{
 					continue;
 				}

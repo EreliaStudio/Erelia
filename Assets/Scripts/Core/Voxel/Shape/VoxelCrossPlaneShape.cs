@@ -43,6 +43,16 @@ public class VoxelCrossPlaneShape : VoxelShape
 		return mask;
 	}
 
+	protected override CardinalHeightSet ConstructPositiveYCardinalHeights()
+	{
+		return new CardinalHeightSet(
+			positiveX: 0f,
+			negativeX: 0f,
+			positiveZ: 0f,
+			negativeZ: 0f,
+			stationary: 0f);
+	}
+
 	private Face CreatePlaneA()
 	{
 		GetSpriteUvRect(sprite, out Vector2 uvAnchor, out Vector2 uvSize);

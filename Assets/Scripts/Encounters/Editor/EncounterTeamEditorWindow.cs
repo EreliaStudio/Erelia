@@ -52,7 +52,7 @@ public class EncounterTeamEditorWindow : EditorWindow
 		CreatureUnit selectedUnit = GetSelectedUnit();
 		if (selectedUnit != null)
 		{
-			selectedUnit.EnsureInitialized();
+			FeatProgressionService.ApplyProgress(selectedUnit);
 		}
 
 		Rect fullRect = new Rect(0f, 0f, position.width, position.height);

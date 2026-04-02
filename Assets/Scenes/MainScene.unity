@@ -211,6 +211,98 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1 &88770210
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 88770211}
+  - component: {fileID: 88770214}
+  - component: {fileID: 88770213}
+  - component: {fileID: 88770212}
+  m_Layer: 5
+  m_Name: PlayerTeamUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &88770211
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 88770210}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2058802323}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 20, y: -20}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0, y: 1}
+--- !u!114 &88770212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 88770210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ca8e6b3ff7e9c44ca4b035392bfdd5d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CreatureCardListElementUI
+  creatureCardPrefab: {fileID: 4569567346190856529, guid: 55d841c0dedb4730bbb49635a9033ef9, type: 3}
+  creatureCardCount: 6
+--- !u!114 &88770213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 88770210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
+  m_HorizontalFit: 2
+  m_VerticalFit: 2
+--- !u!114 &88770214
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 88770210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 2
+  m_Spacing: 4
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 1
+  m_ChildControlHeight: 1
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &203844586
 GameObject:
   m_ObjectHideFlags: 0
@@ -666,8 +758,9 @@ GameObject:
   m_Component:
   - component: {fileID: 2058802323}
   - component: {fileID: 2058802324}
+  - component: {fileID: 2058802325}
   m_Layer: 5
-  m_Name: EnemyTeamDebugHolder
+  m_Name: CreatureTeamDebugHolder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -686,6 +779,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 88770111}
+  - {fileID: 88770211}
   m_Father: {fileID: 963803189}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -712,324 +806,48 @@ MonoBehaviour:
       - Species: {fileID: 11400000, guid: e5ab009c3c0e3fe4385aff3dad08583a, type: 2}
         CurrentFormID: Tank
         Attributes:
-          Health: 30
+          Health: 20
           ActionPoints: 6
           Movement: 3
           Attack: 0
-          Armor: 6
+          Armor: 3
           Magic: 0
-          Resistance: 6
+          Resistance: 3
           BonusRange: 0
           Recovery: 4
+          BonusHealing: 0
+          TimeEffectResistance: 0
         Abilities:
         - {fileID: 11400000, guid: c2d1fd2635f6c7a46b0e953962c58b08, type: 2}
         PermanentPassives:
         - {fileID: 11400000, guid: 4659c44fd4214524c92cf1bd84ea8f12, type: 2}
         FeatBoardProgress:
           NodeProgress:
-          - NodeId: 
+          - NodeId: e234e652-ccc8-44d7-8464-ecafbaff23ed
             CompletionCount: 1
             RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 3
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 3
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
+          - NodeId: faccb834-0b8e-4dd6-bf15-5057a330dc7c
             CompletionCount: 1
             RequirementProgress:
             - CurrentProgress: 0
-          - NodeId: 
+          - NodeId: be119eaf-a24f-4cba-93d3-48b079914f8a
             CompletionCount: 1
             RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 7
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 13
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 4
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 7
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 7
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 5
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 4
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 5
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 5
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 3
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 4
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 4
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 5
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 3
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 5
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 5
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 4
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
+          - NodeId: 0a7ed2c8-68b7-4157-9dcf-21d2f90a8943
             CompletionCount: 3
             RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 4
+          - NodeId: 7f0512f4-eefb-47ca-97cd-8a0fd3985597
+            CompletionCount: 3
             RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
+          - NodeId: c851aa02-df86-4093-8eb2-b1b55270eb53
             CompletionCount: 1
             RequirementProgress: []
-          - NodeId: 
+          - NodeId: cb6aa158-cae3-46d3-8382-239076e21e44
             CompletionCount: 1
             RequirementProgress: []
-          - NodeId: 
+          - NodeId: 70b452cc-ae70-4471-8a5f-10ec2d9decd6
             CompletionCount: 1
             RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 5
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 5
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 9e468726-7dbf-4b2c-9537-10c2fe4e5534
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 990e6138-dd17-44d3-aed8-231a6dc9862f
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 206936a7-f040-445d-b18a-4b4a55d3c4e7
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 211162af-3cdc-48fc-b65c-386929c13b3e
-            CompletionCount: 6
-            RequirementProgress: []
-          - NodeId: ef981663-e4ae-4c40-817a-254965463680
-            CompletionCount: 6
-            RequirementProgress: []
-          - NodeId: 0d7e74ae-d293-4868-b6d3-fae3510b4dd4
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: dea656c3-8810-4d97-bc59-a72a50b9ec7d
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: c13def4a-4fbf-4a44-87ef-88fbbda0fb15
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 648c32d3-f201-4767-b63f-1cfa6ed62a5c
-            CompletionCount: 10
-            RequirementProgress:
-            - CurrentProgress: 0
         Behaviour:
           ActiveMode: 
           RulesByModes:
@@ -1037,259 +855,47 @@ MonoBehaviour:
       - Species: {fileID: 11400000, guid: e5ab009c3c0e3fe4385aff3dad08583a, type: 2}
         CurrentFormID: Dps
         Attributes:
-          Health: 20
+          Health: 11
           ActionPoints: 6
           Movement: 3
-          Attack: 5
+          Attack: 4
           Armor: 0
-          Magic: 4
+          Magic: 2
           Resistance: 0
           BonusRange: 0
           Recovery: 4
+          BonusHealing: 0
+          TimeEffectResistance: 0
         Abilities:
         - {fileID: 11400000, guid: 9217a9255f20e84439119c3c84d96108, type: 2}
         PermanentPassives:
         - {fileID: 11400000, guid: 4659c44fd4214524c92cf1bd84ea8f12, type: 2}
         FeatBoardProgress:
           NodeProgress:
-          - NodeId: 
+          - NodeId: e234e652-ccc8-44d7-8464-ecafbaff23ed
             CompletionCount: 1
             RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 7
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 7
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 10
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
+          - NodeId: faccb834-0b8e-4dd6-bf15-5057a330dc7c
             CompletionCount: 1
             RequirementProgress:
             - CurrentProgress: 0
-          - NodeId: 
+          - NodeId: aeb9fee1-d98e-4ab5-8eba-f60e574eb07b
             CompletionCount: 1
             RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 3
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 3
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 6
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 5
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 5
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 5
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 5
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 6
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
+          - NodeId: d3a172e3-2615-4d4a-a230-dd81697ae352
             CompletionCount: 4
             RequirementProgress: []
-          - NodeId: 
+          - NodeId: 8cd44551-9904-43db-925b-7d3a1ce0240f
             CompletionCount: 2
             RequirementProgress: []
-          - NodeId: 
+          - NodeId: 7cf1cceb-ffc8-459a-9724-37f6a217ff89
             CompletionCount: 1
             RequirementProgress: []
-          - NodeId: 
+          - NodeId: c289a39a-66d9-49ff-aa96-72ff4e3a7039
             CompletionCount: 1
             RequirementProgress:
             - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 5
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 6
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 3
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 2
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 4
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 4
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 3
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 9e468726-7dbf-4b2c-9537-10c2fe4e5534
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 990e6138-dd17-44d3-aed8-231a6dc9862f
-            CompletionCount: 6
-            RequirementProgress:
-            - CurrentProgress: 0
-          - NodeId: 06fbb49e-c195-437b-8352-05d58b0cb187
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: c2cc4d4c-7e72-47c5-bbc0-efe91156e2d7
-            CompletionCount: 4
-            RequirementProgress: []
-          - NodeId: 2bca6bfb-953f-47f9-ae20-56a90a8193b7
-            CompletionCount: 5
-            RequirementProgress: []
-          - NodeId: cde07412-20d2-4fe1-900f-cb2c185409d9
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: c13def4a-4fbf-4a44-87ef-88fbbda0fb15
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: dea656c3-8810-4d97-bc59-a72a50b9ec7d
+          - NodeId: 70b452cc-ae70-4471-8a5f-10ec2d9decd6
             CompletionCount: 1
             RequirementProgress: []
         Behaviour:
@@ -1308,6 +914,8 @@ MonoBehaviour:
           Resistance: 0
           BonusRange: 0
           Recovery: 0
+          BonusHealing: 0
+          TimeEffectResistance: 0
         Abilities: []
         PermanentPassives: []
         FeatBoardProgress:
@@ -1328,6 +936,8 @@ MonoBehaviour:
           Resistance: 0
           BonusRange: 0
           Recovery: 0
+          BonusHealing: 0
+          TimeEffectResistance: 0
         Abilities: []
         PermanentPassives: []
         FeatBoardProgress:
@@ -1348,6 +958,8 @@ MonoBehaviour:
           Resistance: 0
           BonusRange: 0
           Recovery: 0
+          BonusHealing: 0
+          TimeEffectResistance: 0
         Abilities: []
         PermanentPassives: []
         FeatBoardProgress:
@@ -1368,6 +980,8 @@ MonoBehaviour:
           Resistance: 0
           BonusRange: 0
           Recovery: 0
+          BonusHealing: 0
+          TimeEffectResistance: 0
         Abilities: []
         PermanentPassives: []
         FeatBoardProgress:
@@ -1380,6 +994,132 @@ MonoBehaviour:
   references:
     version: 2
     RefIds: []
+--- !u!114 &2058802325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2058802322}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4362d865e0a6433d8d8932f571d4082d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DebugPlayerCreatureTeamHolder
+  playerCreatureCardListElementUI: {fileID: 88770212}
+  playerTeam:
+  - Species: {fileID: 11400000, guid: e5ab009c3c0e3fe4385aff3dad08583a, type: 2}
+    CurrentFormID: Tank
+    Attributes:
+      Health: 30
+      ActionPoints: 6
+      Movement: 3
+      Attack: 0
+      Armor: 6
+      Magic: 0
+      Resistance: 6
+      BonusRange: 0
+      Recovery: 4
+      BonusHealing: 0
+      TimeEffectResistance: 0
+    Abilities:
+    - {fileID: 11400000, guid: c2d1fd2635f6c7a46b0e953962c58b08, type: 2}
+    PermanentPassives:
+    - {fileID: 11400000, guid: 4659c44fd4214524c92cf1bd84ea8f12, type: 2}
+    FeatBoardProgress:
+      NodeProgress: []
+  - Species: {fileID: 11400000, guid: e5ab009c3c0e3fe4385aff3dad08583a, type: 2}
+    CurrentFormID: Dps
+    Attributes:
+      Health: 20
+      ActionPoints: 6
+      Movement: 3
+      Attack: 5
+      Armor: 0
+      Magic: 4
+      Resistance: 0
+      BonusRange: 0
+      Recovery: 4
+      BonusHealing: 0
+      TimeEffectResistance: 0
+    Abilities:
+    - {fileID: 11400000, guid: 9217a9255f20e84439119c3c84d96108, type: 2}
+    PermanentPassives:
+    - {fileID: 11400000, guid: 4659c44fd4214524c92cf1bd84ea8f12, type: 2}
+    FeatBoardProgress:
+      NodeProgress: []
+  - Species: {fileID: 0}
+    CurrentFormID: 
+    Attributes:
+      Health: 0
+      ActionPoints: 0
+      Movement: 0
+      Attack: 0
+      Armor: 0
+      Magic: 0
+      Resistance: 0
+      BonusRange: 0
+      Recovery: 0
+      BonusHealing: 0
+      TimeEffectResistance: 0
+    Abilities: []
+    PermanentPassives: []
+    FeatBoardProgress:
+      NodeProgress: []
+  - Species: {fileID: 0}
+    CurrentFormID: 
+    Attributes:
+      Health: 0
+      ActionPoints: 0
+      Movement: 0
+      Attack: 0
+      Armor: 0
+      Magic: 0
+      Resistance: 0
+      BonusRange: 0
+      Recovery: 0
+      BonusHealing: 0
+      TimeEffectResistance: 0
+    Abilities: []
+    PermanentPassives: []
+    FeatBoardProgress:
+      NodeProgress: []
+  - Species: {fileID: 0}
+    CurrentFormID: 
+    Attributes:
+      Health: 0
+      ActionPoints: 0
+      Movement: 0
+      Attack: 0
+      Armor: 0
+      Magic: 0
+      Resistance: 0
+      BonusRange: 0
+      Recovery: 0
+      BonusHealing: 0
+      TimeEffectResistance: 0
+    Abilities: []
+    PermanentPassives: []
+    FeatBoardProgress:
+      NodeProgress: []
+  - Species: {fileID: 0}
+    CurrentFormID: 
+    Attributes:
+      Health: 0
+      ActionPoints: 0
+      Movement: 0
+      Attack: 0
+      Armor: 0
+      Magic: 0
+      Resistance: 0
+      BonusRange: 0
+      Recovery: 0
+      BonusHealing: 0
+      TimeEffectResistance: 0
+    Abilities: []
+    PermanentPassives: []
+    FeatBoardProgress:
+      NodeProgress: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

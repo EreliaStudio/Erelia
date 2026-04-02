@@ -4,68 +4,29 @@ using System.Collections.Generic;
 [Serializable]
 public class BattleUnit : BattleObject
 {
-	public CreatureUnit SourceUnit;
-	public int CurrentHealth = 0;
-	public int CurrentActionPoints = 0;
-	public int CurrentMovementPoints = 0;
-	public List<BattleStatus> Statuses = new List<BattleStatus>();
-	public bool IsDefeated = false;
-
-	public int MaxHealth => SourceUnit?.Attributes?.Health ?? 0;
-	public int MaxActionPoints => SourceUnit?.Attributes?.ActionPoints ?? 0;
-	public int MaxMovementPoints => SourceUnit?.Attributes?.Movement ?? 0;
-
-	public void InitializeFromSourceUnit()
+	public BattleUnit(CreatureUnit p_sourceUnit, BattleSide p_side)
 	{
-		if (SourceUnit == null)
+		SourceUnit = p_sourceUnit ?? throw new ArgumentNullException(nameof(p_sourceUnit));
+		Side = p_side;
+
+		BattleAttributes = new BattleAttributes(SourceUnit.Attributes);
+
+		foreach (Status status in SourceUnit.PermanentPassives)
 		{
-			CurrentHealth = 0;
-			CurrentActionPoints = 0;
-			CurrentMovementPoints = 0;
-			Statuses = new List<BattleStatus>();
-			IsDefeated = false;
-			return;
-		}
-
-		SourceUnit.EnsureInitialized();
-
-		CurrentHealth = MaxHealth;
-		CurrentActionPoints = MaxActionPoints;
-		CurrentMovementPoints = MaxMovementPoints;
-		IsDefeated = CurrentHealth <= 0;
-
-		Statuses = new List<BattleStatus>();
-
-		if (SourceUnit.PermanentPassives == null)
-		{
-			return;
-		}
-
-		for (int index = 0; index < SourceUnit.PermanentPassives.Count; index++)
-		{
-			Status status = SourceUnit.PermanentPassives[index];
 			if (status == null)
 			{
 				continue;
 			}
 
-			Statuses.Add(new BattleStatus
-			{
-				Status = status,
-				Stack = 1
-			});
+			Statuses.Add(status, 1, new Duration { Type = Duration.Kind.Infinite }, true);
 		}
 	}
 
-	public static BattleUnit CreateFromSource(CreatureUnit p_sourceUnit, BattleSide p_side = BattleSide.Neutral)
-	{
-		BattleUnit battleUnit = new BattleUnit
-		{
-			SourceUnit = p_sourceUnit,
-			Side = p_side
-		};
+	public CreatureUnit SourceUnit { get; }
+	public BattleAttributes BattleAttributes { get; }
+	public BattleStatuses Statuses { get; } = new();
 
-		battleUnit.InitializeFromSourceUnit();
-		return battleUnit;
-	}
-};
+	public IReadOnlyList<Ability> Abilities => SourceUnit.Abilities;
+	public bool IsDefeated => BattleAttributes.Health.Current <= 0;
+	public bool IsTurnReady => BattleAttributes.TurnBar.Current >= BattleAttributes.TurnBar.Max;
+}

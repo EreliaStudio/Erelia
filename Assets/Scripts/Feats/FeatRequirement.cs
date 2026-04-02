@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 [Serializable]
 public abstract class FeatRequirement
@@ -9,6 +10,21 @@ public abstract class FeatRequirement
 	}
 
 	public abstract float Register(EventBase p_event);
+
+	protected static float ComputeLinearProgress(int p_amount, int p_requiredAmount)
+	{
+		if (p_requiredAmount <= 0)
+		{
+			return 100f;
+		}
+
+		if (p_amount <= 0)
+		{
+			return 0f;
+		}
+
+		return Mathf.Clamp((float)p_amount / p_requiredAmount * 100f, 0f, 100f);
+	}
 }
 
 [Serializable]
@@ -41,7 +57,7 @@ public class DealDamageRequirement : FeatRequirementTemplated<DealDamageRequirem
 
 	protected override float ComputeProgress(Event p_event)
 	{
-		return 0;
+		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
 	}
 }
 
@@ -58,6 +74,6 @@ public class HealHealthRequirement : FeatRequirementTemplated<HealHealthRequirem
 
 	protected override float ComputeProgress(Event p_event)
 	{
-		return 0;
+		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
 	}
 }
