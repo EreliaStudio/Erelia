@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Abilities\Editor\AbilityEffectDrawer.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Editor\VoxelDefinitionEditor.cs" />
+    <Compile Include="Assets\Editor\BattleActionBarPrefabComposer.cs" />
     <Compile Include="Assets\Scripts\AI\Editor\AIRuleDrawer.cs" />
     <Compile Include="Assets\Scripts\Abilities\Editor\AbilityCostDrawer.cs" />
     <Compile Include="Assets\Scripts\Encounters\Editor\SerializedPropertyObjectResolver.cs" />

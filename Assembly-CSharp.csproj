@@ -65,6 +65,7 @@
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelGrid.cs" />
     <Compile Include="Assets\Scripts\Core\Attributes.cs" />
     <Compile Include="Assets\Scripts\World\WorldData.cs" />
+    <Compile Include="Assets\Scripts\UI\BattleActionBarElementUI.cs" />
     <Compile Include="Assets\Scripts\Creatures\CreatureSpecies.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMesher.Collider.cs" />
     <Compile Include="Assets\Scripts\AI\AIDecision.cs" />
@@ -96,6 +97,7 @@
     <Compile Include="Assets\Scripts\Debug\DebugEncounterTeamHolder.cs" />
     <Compile Include="Assets\Scripts\Interaction\InteractionObject.cs" />
     <Compile Include="Assets\Scripts\World\Chunk.cs" />
+    <Compile Include="Assets\Scripts\UI\StatusPresentationUtility.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelDefinition.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMaskRegistry.cs" />
     <Compile Include="Assets\Scripts\Abilities\Effect.cs" />
@@ -127,11 +129,13 @@
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelCubeShape.cs" />
     <Compile Include="Assets\Scripts\Core\MathFormula.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelSlopeShape.cs" />
+    <Compile Include="Assets\Scripts\Debug\DebugBattleActionBarHolder.cs" />
     <Compile Include="Assets\Scripts\Player\Player.cs" />
     <Compile Include="Assets\Scripts\WorldExtractor\WorldExtractionConfiguration.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelStairShape.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatRequirement.cs" />
     <Compile Include="Assets\Scripts\World\ChunkCoordinates.cs" />
+    <Compile Include="Assets\Scripts\UI\ActionInfoElementUI.cs" />
     <Compile Include="Assets\Scripts\Board\BoardPresenter.cs" />
     <Compile Include="Assets\Scripts\UI\ObservableResourceBarElementUI.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleObject.cs" />
@@ -146,6 +150,7 @@
     <Compile Include="Assets\Scripts\AI\AICondition.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatBoardProgress.cs" />
     <Compile Include="Assets\Scripts\Core\ObservableFloatResource.cs" />
+    <Compile Include="Assets\Scripts\UI\AbilityPresentationUtility.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
