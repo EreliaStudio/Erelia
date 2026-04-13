@@ -7,7 +7,7 @@ Target: Single-player, offline
 ---
 
 ## 1) High-Level Concept
-Erelia is a creature-collection RPG inspired by classic Pokemon, but with a different battle system and progression model. The world is procedurally generated each playthrough: towns, gyms, routes, and encounter tables shift with the seed. Creatures do not gain levels; instead, they earn **Quest Validation** through battle Abilitys, which unlocks abilities, stat bonuses, and evolutions on a **License Board**-style progression screen (FF12/PoE inspiration).
+Erelia is a creature-collection RPG inspired by classic Pokemon, but with a different battle system and progression model. The world is procedurally generated each playthrough: towns, gyms, routes, and encounter tables shift with the seed. Creatures do not gain levels; instead, they earn **Quest Validation** through battle Abilitys, which unlocks abilities, stat bonuses, and evolutions on a **Feat Board**-style progression screen (FF12/PoE inspiration).
 
 ---
 
@@ -26,7 +26,7 @@ Primary goals:
 
 Secondary goals:
 - Collect and evolve creatures.
-- Optimize License Boards for different builds.
+- Optimize Feat Boards for different builds.
 - Find rare encounters in specific biomes.
 
 ---
@@ -136,11 +136,11 @@ BattleLoop -> TurnService : ScheduleNextTurn()
 
 ### Quest Validation
 - Creatures gain validation by fulfilling conditions in battle.
-- Validation unlocks nodes on a License Board.
-- Quest validation is per-creature via a dedicated **License Board** UI/class, rendered on a creature-specific HUD.
+- Validation unlocks nodes on a Feat Board.
+- Quest validation is per-creature via a dedicated **Feat Board** UI/class, rendered on a creature-specific HUD.
 - Quests are **not all active at once**. The center node starts completed, and all adjacent quests become active. Completing a quest activates its adjacent quests.
 - Progress is permanent and passive; quests are not failed or abandoned.
-- Each species has its own unique License Board. Some quest types can be shared across species (generic nodes), but layouts are species-specific.
+- Each species has its own unique Feat Board. Some quest types can be shared across species (generic nodes), but layouts are species-specific.
 - Time-to-unlock varies by quest; there is no fixed battle count target.
 
 Examples:
@@ -149,7 +149,7 @@ Examples:
 - Remove Poison from allies X times + Heal allies for XXX HP + Stay away from enemies for X fights -> unlock healer evolution.
 - Get hit by XXX attacks -> gain bonus max health.
 
-### License Board
+### Feat Board
 - Visual progression tree (inspired by FF12 permits / PoE passive tree).
 - Nodes unlock:
 - New Abilitys
@@ -200,7 +200,7 @@ Example:
 Save data should include:
 - World seed and generated POI layout.
 - Player team and PC storage.
-- License board unlocks per creature.
+- Feat board unlocks per creature.
 - Defeated gyms and trainers.
 - World seed is fixed for the entire run and persists across saves.
 

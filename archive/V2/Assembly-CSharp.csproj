@@ -54,6 +54,7 @@
     <Compile Include="Assets\Scripts\Statuses\Status.cs" />
     <Compile Include="Assets\Scripts\Board\BoardView.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterTier.cs" />
+    <Compile Include="Assets\Scripts\Bootstrap\GameSaveService.cs" />
     <Compile Include="Assets\Scripts\Trainers\Trainer.cs" />
     <Compile Include="Assets\Scripts\UI\ProgressBarElementUI.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\CardinalHeightSet.cs" />
@@ -109,12 +110,14 @@
     <Compile Include="Assets\Scripts\Feats\FeatNode.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatNodeKind.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelEnums.cs" />
+    <Compile Include="Assets\Scripts\Bootstrap\GameData.cs" />
     <Compile Include="Assets\Scripts\Core\GameRule.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMaskCell.cs" />
     <Compile Include="Assets\Scripts\Player\Badge.cs" />
     <Compile Include="Assets\Scripts\AI\AIRule.cs" />
     <Compile Include="Assets\Scripts\World\WorldPresenter.cs" />
     <Compile Include="Assets\Scripts\Abilities\AbilityCost.cs" />
+    <Compile Include="Assets\Scripts\Bootstrap\GameSession.cs" />
     <Compile Include="Assets\Scripts\UI\StatusListElementUI.cs" />
     <Compile Include="Assets\Scripts\Trainers\TrainerReward.cs" />
     <Compile Include="Assets\Scripts\UI\AttributeValueElementUI.cs" />
@@ -125,11 +128,13 @@
     <Compile Include="Assets\Scripts\Board\BattleCellGraph.cs" />
     <Compile Include="Assets\Scripts\Core\ObservableValue.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMesher.Geometry.cs" />
+    <Compile Include="Assets\Scripts\Bootstrap\MainMenuController.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleSide.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelCubeShape.cs" />
     <Compile Include="Assets\Scripts\Core\MathFormula.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelSlopeShape.cs" />
     <Compile Include="Assets\Scripts\Debug\DebugBattleActionBarHolder.cs" />
+    <Compile Include="Assets\Scripts\Bootstrap\GameLoadLogger.cs" />
     <Compile Include="Assets\Scripts\Player\Player.cs" />
     <Compile Include="Assets\Scripts\WorldExtractor\WorldExtractionConfiguration.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelStairShape.cs" />
