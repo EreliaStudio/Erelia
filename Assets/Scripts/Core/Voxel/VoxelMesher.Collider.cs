@@ -15,7 +15,7 @@ public static partial class VoxelMesher
 		public int Volume => SX * SY * SZ;
 	}
 
-	private static Mesh BuildColliderMeshInternal(VoxelCell[,,] cells, VoxelRegistry voxelRegistry)
+	private static Mesh BuildColliderMeshInternal(VoxelCell[,,] cells, VoxelRegistry voxelRegistry, VoxelTraversal expectedVoxelTraversal)
 	{
 		if (cells == null || voxelRegistry == null)
 		{
@@ -26,7 +26,7 @@ public static partial class VoxelMesher
 		int sizeY = cells.GetLength(1);
 		int sizeZ = cells.GetLength(2);
 
-		BuildSolidAndCubicMaps(cells, voxelRegistry, out bool[,,] solid, out bool[,,] cubic, out int[,,] ids);
+		BuildSolidAndCubicMaps(cells, voxelRegistry, expectedVoxelTraversal, out bool[,,] solid, out bool[,,] cubic, out int[,,] ids);
 
 		var consumed = new bool[sizeX, sizeY, sizeZ];
 		ConsumeLargestCubicBoxes(ids, solid, cubic, consumed, sizeX, sizeY, sizeZ);
@@ -40,7 +40,7 @@ public static partial class VoxelMesher
 		return BuildMesh(vertices, triangles, null);
 	}
 
-	private static void BuildSolidAndCubicMaps(VoxelCell[,,] cells, VoxelRegistry voxelRegistry, out bool[,,] solid, out bool[,,] cubic, out int[,,] ids)
+	private static void BuildSolidAndCubicMaps(VoxelCell[,,] cells, VoxelRegistry voxelRegistry, VoxelTraversal expectedVoxelTraversal, out bool[,,] solid, out bool[,,] cubic, out int[,,] ids)
 	{
 		int sizeX = cells.GetLength(0);
 		int sizeY = cells.GetLength(1);
@@ -59,6 +59,11 @@ public static partial class VoxelMesher
 					ids[x, y, z] = -1;
 
 					if (!TryGetVoxelDefinition(cells[x, y, z], voxelRegistry, out VoxelDefinition voxelDefinition, out VoxelCell cell))
+					{
+						continue;
+					}
+
+					if (voxelDefinition.Data.Traversal != expectedVoxelTraversal)
 					{
 						continue;
 					}

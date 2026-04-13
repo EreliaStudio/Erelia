@@ -29,7 +29,7 @@ public class ChunkPresenter : MonoBehaviour
 		}
 
 		chunkView.SetRenderMesh(VoxelMesher.BuildRenderMesh(chunkData.Cells, voxelRegistry));
-		chunkView.SetCollisionMesh(VoxelMesher.BuildColliderMesh(chunkData.Cells, voxelRegistry));
+		chunkView.SetCollisionMesh(VoxelMesher.BuildColliderMesh(chunkData.Cells, voxelRegistry, VoxelTraversal.Obstacle));
 	}
 
 	private void Reset()

@@ -212,7 +212,7 @@ MonoBehaviour:
       X: 0
       Z: 0
   playerView: {fileID: 449240313}
-  playerCamera: {fileID: 0}
+  playerCamera: {fileID: 987900521}
   cameraTargetLocalPoint: {x: 0, y: 0, z: 0}
   controlCameraLook: 1
 --- !u!114 &449240313

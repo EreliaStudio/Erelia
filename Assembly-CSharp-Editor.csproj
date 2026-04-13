@@ -48,8 +48,17 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.1f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Tmp\Abilities\Editor\AbilityEffectDrawer.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Editor\VoxelDefinitionEditor.cs" />
+    <Compile Include="Assets\Scripts\Tmp\Creatures\Editor\CreatureSpeciesEditor.cs" />
+    <Compile Include="Assets\Scripts\Tmp\Feats\Editor\FeatBoardEditorWindow.Model.cs" />
+    <Compile Include="Assets\Scripts\Tmp\AI\Editor\AIRuleDrawer.cs" />
+    <Compile Include="Assets\Scripts\Tmp\Feats\Editor\FeatBoardEditorWindow.cs" />
     <Compile Include="Assets\Scripts\Core\Editor\Utils\ManagedReferenceTypePicker.cs" />
+    <Compile Include="Assets\Scripts\Tmp\Abilities\Editor\AbilityEditor.cs" />
+    <Compile Include="Assets\Scripts\Tmp\Abilities\Editor\AbilityCostDrawer.cs" />
+    <Compile Include="Assets\Scripts\Tmp\Creatures\Editor\CreatureUnitFeatProgressUtility.cs" />
+    <Compile Include="Assets\Scripts\Tmp\Feats\Editor\FeatBoardEditorWindow.Styles.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
@@ -1164,6 +1173,10 @@
       <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.2D.Sprite.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.2D.Sprite.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>Library\ScriptAssemblies\Unity.TextMeshPro.dll</HintPath>
       <Private>False</Private>
@@ -1282,6 +1295,10 @@
     </Reference>
     <Reference Include="Unity.RenderPipelines.Core.Editor.Shared">
       <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Editor.Shared.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.2D.Sprite.AIIntegration.Editor">
+      <HintPath>Library\ScriptAssemblies\Unity.2D.Sprite.AIIntegration.Editor.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.InputSystem">

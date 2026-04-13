@@ -113,9 +113,9 @@ public static partial class VoxelMesher
 		return BuildMesh(vertices, triangles, uvs);
 	}
 
-	public static Mesh BuildColliderMesh(VoxelCell[,,] cells, VoxelRegistry voxelRegistry)
+	public static Mesh BuildColliderMesh(VoxelCell[,,] cells, VoxelRegistry voxelRegistry, VoxelTraversal expectedVoxelTraversal)
 	{
-		return BuildColliderMeshInternal(cells, voxelRegistry);
+		return BuildColliderMeshInternal(cells, voxelRegistry, expectedVoxelTraversal);
 	}
 
 	public static Mesh BuildMaskMesh(VoxelCell[,,] cells, VoxelMaskCell[,,] maskGrid, VoxelRegistry voxelRegistry, VoxelMaskRegistry maskRegistry)
