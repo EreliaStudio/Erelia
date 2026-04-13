@@ -7,5 +7,6 @@ public enum VoxelMask
 	AttackRange = 2,
 	MovementRange = 3,
 	AreaOfEffect = 4,
-	Selected = 5
+	Selected = 5,
+	BattleAreaBorder = 6
 }

@@ -198,9 +198,9 @@ MonoBehaviour:
             positiveZ: 1
             negativeZ: 1
             stationary: 1
-        spritePosX: {fileID: 458550512, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spriteNegX: {fileID: 458550512, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spritePosY: {fileID: 1392016584, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spriteNegY: {fileID: 1392016584, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spritePosZ: {fileID: 458550512, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spriteNegZ: {fileID: 458550512, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spritePosX: {fileID: 1789603433, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteNegX: {fileID: 1789603433, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spritePosY: {fileID: 1794991396, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteNegY: {fileID: 1794991396, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spritePosZ: {fileID: 1789603433, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteNegZ: {fileID: 1789603433, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}

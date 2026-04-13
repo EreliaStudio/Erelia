@@ -182,4 +182,4 @@ MonoBehaviour:
             positiveZ: 0
             negativeZ: 0
             stationary: 0
-        sprite: {fileID: -1058494076, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        sprite: {fileID: 1677567480, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}

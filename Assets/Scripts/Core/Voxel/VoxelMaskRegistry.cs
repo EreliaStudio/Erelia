@@ -9,6 +9,7 @@ public class VoxelMaskRegistry : ScriptableObject
 	public Sprite MovementRange = null;
 	public Sprite AreaOfEffect = null;
 	public Sprite Selected = null;
+	public Sprite BattleAreaBorder = null;
 
 	public bool TryGetSprite(VoxelMask p_voxelMask, out Sprite p_sprite)
 	{
@@ -19,6 +20,7 @@ public class VoxelMaskRegistry : ScriptableObject
 			VoxelMask.MovementRange => MovementRange,
 			VoxelMask.AreaOfEffect => AreaOfEffect,
 			VoxelMask.Selected => Selected,
+			VoxelMask.BattleAreaBorder => BattleAreaBorder,
 			_ => throw new System.ArgumentOutOfRangeException(nameof(p_voxelMask), p_voxelMask, null)
 		};
 

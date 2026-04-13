@@ -97,7 +97,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: CubeBase
+      name: VoxelTexture_0
       rect:
         serializedVersion: 2
         x: 0
@@ -112,14 +112,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 264a68b2183ab1c42b6fb10823b6d59e
-      internalID: 1472335643
+      spriteID: 992e3f24dd563414aa2c46b6b8c081ae
+      internalID: -1903576479
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SlopeBase
+      name: VoxelTexture_1
       rect:
         serializedVersion: 2
         x: 16
@@ -134,14 +134,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 529995c79315f3b4ea24421184b9ba46
-      internalID: -185238634
+      spriteID: 5e2ec76d6fcf7ac47b43a24d71a080e7
+      internalID: -2094776005
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SlopeSlope
+      name: VoxelTexture_2
       rect:
         serializedVersion: 2
         x: 32
@@ -156,14 +156,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5a2fa6c8db43b944bafa4a354583a422
-      internalID: 380570255
+      spriteID: ed36fd9078d72724191f2324fbc662b0
+      internalID: -1671842413
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SlopeSide
+      name: VoxelTexture_3
       rect:
         serializedVersion: 2
         x: 48
@@ -178,14 +178,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: eb6c189ca6dca9741a2ebcb6a60f9fda
-      internalID: 718823219
+      spriteID: 647d4669ff25bed4b98a3696c6dce44a
+      internalID: -630279166
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: StairBase
+      name: VoxelTexture_4
       rect:
         serializedVersion: 2
         x: 64
@@ -200,14 +200,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: dee82341bc0414a4d98a8c5224f34369
-      internalID: 482027737
+      spriteID: b619aa99746832748b77bb1f61cd263c
+      internalID: 1107562854
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: StairRaiser
+      name: VoxelTexture_5
       rect:
         serializedVersion: 2
         x: 80
@@ -222,14 +222,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 158ec561533f73d47a58eaea3854ac73
-      internalID: -1168464288
+      spriteID: 5cd20cc8a9e07c3419a89965dc383763
+      internalID: -1499279301
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: StairTop
+      name: VoxelTexture_6
       rect:
         serializedVersion: 2
         x: 96
@@ -244,14 +244,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6a1dfb211f6244048ac0928083325786
-      internalID: -1214638521
+      spriteID: 2e3be2a577cf655479e2091615943ad1
+      internalID: -433133321
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: StairSide
+      name: VoxelTexture_7
       rect:
         serializedVersion: 2
         x: 112
@@ -266,14 +266,58 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 52e6e5e24a8cb384a875f43049dac281
-      internalID: 1388158363
+      spriteID: ecf808aa2f5d10544b2e72d7dfb5e692
+      internalID: 1930365693
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SlabBase
+      name: VoxelTexture_8
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 16
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 319d53104b030f84c88f3b87fb496749
+      internalID: -1325672240
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoxelTexture_9
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 16
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8debc112a0484fc40a22b928c307bd25
+      internalID: 1578982366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoxelTexture_10
       rect:
         serializedVersion: 2
         x: 0
@@ -288,14 +332,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 8d508d83ed88b2f4d8e27749f44ee249
-      internalID: 1392016584
+      spriteID: 9a03ba9e30a69c34dad702eb3b98e052
+      internalID: 1794991396
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: SlabSide
+      name: VoxelTexture_11
       rect:
         serializedVersion: 2
         x: 16
@@ -310,14 +354,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 518f277d369e760459dff68932241b36
-      internalID: 458550512
+      spriteID: 5d98beafbcaa5b64e8f6612e5c07ae48
+      internalID: 1789603433
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Bush
+      name: VoxelTexture_12
       rect:
         serializedVersion: 2
         x: 32
@@ -332,8 +376,162 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: dc5916f2ca1d7644ca43440adc7e6c53
-      internalID: -1058494076
+      spriteID: f4d6aefe20a43b64e9160429f0ae1c58
+      internalID: 1677567480
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoxelTexture_13
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: feb3ce319e0fadb43905589301986421
+      internalID: -1881970291
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoxelTexture_14
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f32e95deb4103984785edf436b4307d0
+      internalID: 1483640741
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoxelTexture_15
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0781c9a0079d94441b78972553213c4b
+      internalID: 112503560
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoxelTexture_16
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bd8ae2e4a57743347986934a370c6a5b
+      internalID: 1809818477
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoxelTexture_17
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bc305aca76ff82d4b9659b46e0a202d6
+      internalID: -589208711
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoxelTexture_18
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 680e2d2ae1ab567468c09b1d5efc1faa
+      internalID: 1535163131
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: VoxelTexture_19
+      rect:
+        serializedVersion: 2
+        x: 144
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 90b395e4a6e4b064c9544e5bae7994aa
+      internalID: 725008297
       vertices: []
       indices: 
       edges: []
@@ -352,19 +550,28 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":16.0,"y":16.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":10.0,"y":2.0},"gridSpriteSize":{"x":16.0,"y":16.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":2,"keepEmptyRects":true,"isAlternate":false}'
     nameFileIdTable:
-      Bush: -1058494076
-      CubeBase: 1472335643
-      SlabBase: 1392016584
-      SlabSide: 458550512
-      SlopeBase: -185238634
-      SlopeSide: 718823219
-      SlopeSlope: 380570255
-      StairBase: 482027737
-      StairRaiser: -1168464288
-      StairSide: 1388158363
-      StairTop: -1214638521
+      VoxelTexture_0: -1903576479
+      VoxelTexture_1: -2094776005
+      VoxelTexture_10: 1794991396
+      VoxelTexture_11: 1789603433
+      VoxelTexture_12: 1677567480
+      VoxelTexture_13: -1881970291
+      VoxelTexture_14: 1483640741
+      VoxelTexture_15: 112503560
+      VoxelTexture_16: 1809818477
+      VoxelTexture_17: -589208711
+      VoxelTexture_18: 1535163131
+      VoxelTexture_19: 725008297
+      VoxelTexture_2: -1671842413
+      VoxelTexture_3: -630279166
+      VoxelTexture_4: 1107562854
+      VoxelTexture_5: -1499279301
+      VoxelTexture_6: -433133321
+      VoxelTexture_7: 1930365693
+      VoxelTexture_8: -1325672240
+      VoxelTexture_9: 1578982366
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

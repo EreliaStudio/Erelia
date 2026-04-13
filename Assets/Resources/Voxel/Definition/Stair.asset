@@ -292,11 +292,11 @@ MonoBehaviour:
             positiveZ: 1
             negativeZ: 1
             stationary: 1
-        spriteFront: {fileID: -1168464288, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spriteBack: {fileID: 482027737, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spriteBottom: {fileID: 482027737, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spriteTop: {fileID: -1214638521, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spriteSideLeft: {fileID: 1388158363, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spriteSideRight: {fileID: 1388158363, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spriteStepTop: {fileID: -1214638521, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spriteStepRiser: {fileID: -1168464288, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteFront: {fileID: -1499279301, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteBack: {fileID: 1107562854, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteBottom: {fileID: 1107562854, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteTop: {fileID: -433133321, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteSideLeft: {fileID: 1930365693, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteSideRight: {fileID: 1930365693, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteStepTop: {fileID: -433133321, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteStepRiser: {fileID: -1499279301, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}

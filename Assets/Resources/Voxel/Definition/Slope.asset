@@ -172,8 +172,8 @@ MonoBehaviour:
             positiveZ: 1
             negativeZ: 1
             stationary: 1
-        spriteBack: {fileID: -185238634, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spriteBottom: {fileID: -185238634, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spriteSlope: {fileID: 380570255, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spriteSideLeft: {fileID: 718823219, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
-        spriteSideRight: {fileID: 718823219, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteBack: {fileID: -2094776005, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteBottom: {fileID: -2094776005, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteSlope: {fileID: -1671842413, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteSideLeft: {fileID: -630279166, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        spriteSideRight: {fileID: -630279166, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}

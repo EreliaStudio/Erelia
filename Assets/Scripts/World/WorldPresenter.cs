@@ -5,26 +5,86 @@ public class WorldPresenter : MonoBehaviour
 {
 	[SerializeField] private WorldData worldData = new WorldData();
 	[SerializeField] private ChunkPresenter chunkPrefab;
-	[SerializeField] private SimpleDebugChunkGenerator generator = new SimpleDebugChunkGenerator();
-	[SerializeField] private Vector2Int minChunk = Vector2Int.zero;
-	[SerializeField] private Vector2Int maxChunk = Vector2Int.zero;
-	[SerializeField] private bool buildOnAwake = true;
+	[SerializeField] private WorldLoader worldLoader = new WorldLoader();
 
 	private readonly Dictionary<ChunkCoordinates, ChunkPresenter> chunkPresenters = new Dictionary<ChunkCoordinates, ChunkPresenter>();
 
 	public WorldData WorldData => worldData;
+	public WorldLoader WorldLoader => worldLoader;
 
-	[ContextMenu("Build Debug World")]
-	public void BuildDebugWorld()
+	[ContextMenu("Load Around Origin")]
+	public void LoadAroundOrigin()
+	{
+		ApplyLoadResult(SetCenterChunk(new ChunkCoordinates(0, 0)));
+	}
+
+	private void Awake()
+	{
+		if (worldData == null)
+		{
+			worldData = new WorldData();
+		}
+	}
+
+	private void OnEnable()
+	{
+		EventCenter.PlayerChunkChanged += OnPlayerChunkChanged;
+	}
+
+	private void OnDisable()
+	{
+		EventCenter.PlayerChunkChanged -= OnPlayerChunkChanged;
+	}
+
+	private void OnDestroy()
+	{
+		ClearChunkPresenters();
+		if (worldData != null)
+		{
+			worldData.Clear();
+		}
+	}
+
+	private void OnPlayerChunkChanged(ChunkCoordinates centerChunk)
+	{
+		ApplyLoadResult(SetCenterChunk(centerChunk));
+	}
+
+	private void Update()
+	{
+		if (worldData == null || worldLoader == null)
+		{
+			return;
+		}
+
+		ApplyLoadResult(worldLoader.ProcessPending(worldData, Time.deltaTime));
+	}
+
+	private WorldLoadResult SetCenterChunk(ChunkCoordinates centerChunk)
 	{
 		if (worldData == null)
 		{
 			worldData = new WorldData();
 		}
 
-		if (generator == null)
+		if (worldLoader == null)
 		{
-			generator = new SimpleDebugChunkGenerator();
+			worldLoader = new WorldLoader();
+		}
+
+		return worldLoader.SetCenterChunk(worldData, centerChunk);
+	}
+
+	private void ApplyLoadResult(WorldLoadResult loadResult)
+	{
+		if (loadResult == null)
+		{
+			return;
+		}
+
+		for (int i = 0; i < loadResult.UnloadedChunks.Count; i++)
+		{
+			DestroyChunkPresenter(loadResult.UnloadedChunks[i]);
 		}
 
 		if (chunkPrefab == null)
@@ -32,32 +92,25 @@ public class WorldPresenter : MonoBehaviour
 			return;
 		}
 
-		ClearChunkPresenters();
-		worldData.Clear();
-
-		for (int chunkX = minChunk.x; chunkX <= maxChunk.x; chunkX++)
+		for (int i = 0; i < loadResult.LoadedChunks.Count; i++)
 		{
-			for (int chunkZ = minChunk.y; chunkZ <= maxChunk.y; chunkZ++)
+			ChunkCoordinates coordinates = loadResult.LoadedChunks[i];
+			if (!worldData.TryGetChunk(coordinates, out ChunkData chunkData) || chunkData == null)
 			{
-				var coordinates = new ChunkCoordinates(chunkX, chunkZ);
-				ChunkData chunkData = generator.GenerateChunk(coordinates);
-
-				worldData.SetChunk(coordinates, chunkData);
-				CreateChunkPresenter(coordinates).Assign(chunkData);
+				continue;
 			}
-		}
-	}
 
-	private void Awake()
-	{
-		if (buildOnAwake)
-		{
-			BuildDebugWorld();
+			CreateChunkPresenter(coordinates).Assign(chunkData);
 		}
 	}
 
 	private ChunkPresenter CreateChunkPresenter(ChunkCoordinates coordinates)
 	{
+		if (chunkPresenters.TryGetValue(coordinates, out ChunkPresenter existingPresenter) && existingPresenter != null)
+		{
+			return existingPresenter;
+		}
+
 		ChunkPresenter presenter = Instantiate(chunkPrefab, transform);
 		presenter.transform.localPosition = new Vector3(
 			coordinates.X * ChunkData.FixedSizeX,
@@ -68,25 +121,32 @@ public class WorldPresenter : MonoBehaviour
 		return presenter;
 	}
 
-	private void ClearChunkPresenters()
+	private void DestroyChunkPresenter(ChunkCoordinates coordinates)
 	{
-		foreach (ChunkPresenter presenter in chunkPresenters.Values)
+		if (!chunkPresenters.TryGetValue(coordinates, out ChunkPresenter presenter) || presenter == null)
 		{
-			if (presenter == null)
-			{
-				continue;
-			}
-
-			if (Application.isPlaying)
-			{
-				Destroy(presenter.gameObject);
-			}
-			else
-			{
-				DestroyImmediate(presenter.gameObject);
-			}
+			chunkPresenters.Remove(coordinates);
+			return;
 		}
 
-		chunkPresenters.Clear();
+		if (Application.isPlaying)
+		{
+			Destroy(presenter.gameObject);
+		}
+		else
+		{
+			DestroyImmediate(presenter.gameObject);
+		}
+
+		chunkPresenters.Remove(coordinates);
+	}
+
+	private void ClearChunkPresenters()
+	{
+		var coordinates = new List<ChunkCoordinates>(chunkPresenters.Keys);
+		for (int i = 0; i < coordinates.Count; i++)
+		{
+			DestroyChunkPresenter(coordinates[i]);
+		}
 	}
 }
