@@ -6,12 +6,12 @@ using UnityEngine;
 public sealed class BoardNavigationLayer
 {
 	[NonSerialized]
-	private BattleCellGraph _graph;
+	private VoxelTraversalGraph _graph;
 
-	public BattleCellGraph Graph => _graph;
+	public VoxelTraversalGraph Graph => _graph;
 
-	public IReadOnlyList<BattleCellGraph.Node> Nodes =>
-		_graph != null ? _graph.AllNodes : Array.Empty<BattleCellGraph.Node>();
+	public IReadOnlyList<VoxelTraversalGraph.Node> Nodes =>
+		_graph != null ? _graph.AllNodes : Array.Empty<VoxelTraversalGraph.Node>();
 
 	public void Clear()
 	{
@@ -26,7 +26,7 @@ public sealed class BoardNavigationLayer
 			return;
 		}
 
-		_graph = BattleCellGraphBuilder.Build(p_terrainLayer, p_terrainLayer.VoxelRegistry);
+		_graph = VoxelTraversalGraphBuilder.Build(p_terrainLayer, p_terrainLayer.VoxelRegistry);
 	}
 
 	public bool HasNode(Vector3Int p_position)
@@ -34,7 +34,7 @@ public sealed class BoardNavigationLayer
 		return _graph != null && _graph.ContainsNode(p_position);
 	}
 
-	public bool TryGetNode(Vector3Int p_position, out BattleCellGraph.Node p_node)
+	public bool TryGetNode(Vector3Int p_position, out VoxelTraversalGraph.Node p_node)
 	{
 		if (_graph == null)
 		{

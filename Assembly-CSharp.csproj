@@ -58,7 +58,8 @@
     <Compile Include="Assets\Scripts\World\SimpleDebugChunkGenerator.cs" />
     <Compile Include="Assets\Scripts\Tmp\Feats\FeatBoard.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\CardinalHeightSet.cs" />
-    <Compile Include="Assets\Scripts\Tmp\BattleCellGraph\BattleCellGraphBuilder.cs" />
+    <Compile Include="Assets\Scripts\World\Navigation\WorldVoxelRaycaster.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\World\WorldPresenter.cs" />
     <Compile Include="Assets\Scripts\Tmp\Abilities\AbilityCost.cs" />
     <Compile Include="Assets\Scripts\Tmp\Board\BoardTerrainLayer.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="Assets\Scripts\Core\Event\EventCenter.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMesher.Collider.cs" />
     <Compile Include="Assets\Scripts\Tmp\Core\GameRule.cs" />
+    <Compile Include="Assets\Scripts\World\Navigation\WorldPathfinder.cs" />
     <Compile Include="Assets\Scripts\Tmp\Battle\BattleSide.cs" />
     <Compile Include="Assets\Scripts\World\ChunkPresenter.cs" />
     <Compile Include="Assets\Scripts\Tmp\Abilities\Effect.cs" />
@@ -77,7 +79,9 @@
     <Compile Include="Assets\Scripts\Player\PlayerPresenter.cs" />
     <Compile Include="Assets\Scripts\Tmp\AI\AIBehaviour.cs" />
     <Compile Include="Assets\Scripts\Tmp\Creatures\CreatureUnit.cs" />
+    <Compile Include="Assets\Scripts\World\Navigation\VoxelTraversalUtility.cs" />
     <Compile Include="Assets\Scripts\Tmp\Board\BoardView.cs" />
+    <Compile Include="Assets\Scripts\World\Navigation\WorldTraversalGraphCache.cs" />
     <Compile Include="Assets\Scripts\Tmp\Feats\FeatReward.cs" />
     <Compile Include="Assets\Scripts\Tmp\Battle\BattleAttributes.cs" />
     <Compile Include="Assets\Scripts\Tmp\Battle\BattleObject.cs" />
@@ -87,6 +91,7 @@
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelCubeShape.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelSlopeShape.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelRegistry.cs" />
+    <Compile Include="Assets\Scripts\Tmp\BattleCellGraph\VoxelTraversalGraph.cs" />
     <Compile Include="Assets\Scripts\Tmp\Statuses\Status.cs" />
     <Compile Include="Assets\Scripts\Tmp\Abilities\Ability.cs" />
     <Compile Include="Assets\Scripts\Tmp\Board\BoardRuntimeRegistry.cs" />
@@ -107,9 +112,8 @@
     <Compile Include="Assets\Scripts\Tmp\Battle\BattleStatus.cs" />
     <Compile Include="Assets\Scripts\Tmp\AI\AIDecision.cs" />
     <Compile Include="Assets\Scripts\Tmp\Statuses\StatusHookPoint.cs" />
-    <Compile Include="Assets\Scripts\Tmp\Creatures\CreatureSpecies.cs" />
     <Compile Include="Assets\Scripts\Tmp\Battle\BattleStatuses.cs" />
-    <Compile Include="Assets\Scripts\Tmp\BattleCellGraph\BattleCellGraph.cs" />
+    <Compile Include="Assets\Scripts\Tmp\Creatures\CreatureSpecies.cs" />
     <Compile Include="Assets\Scripts\Tmp\Core\ObservableFloatResource.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelSlabShape.cs" />
     <Compile Include="Assets\Scripts\World\ChunkView.cs" />
@@ -124,6 +128,7 @@
     <Compile Include="Assets\Scripts\World\WorldLoader.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelCrossPlaneShape.cs" />
     <Compile Include="Assets\Scripts\Tmp\Board\BoardNavigationLayer.cs" />
+    <Compile Include="Assets\Scripts\Tmp\BattleCellGraph\VoxelTraversalGraphBuilder.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelEnums.cs" />
     <Compile Include="Assets\Scripts\Tmp\Creatures\CreatureForm.cs" />
   </ItemGroup>
@@ -1204,12 +1209,12 @@
       <HintPath>Library\ScriptAssemblies\Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Unity.RenderPipelines.Core.Editor.Shared">
-      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Editor.Shared.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Unity.2D.Sprite.AIIntegration.Editor">
       <HintPath>Library\ScriptAssemblies\Unity.2D.Sprite.AIIntegration.Editor.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Unity.RenderPipelines.Core.Editor.Shared">
+      <HintPath>Library\ScriptAssemblies\Unity.RenderPipelines.Core.Editor.Shared.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Unity.InputSystem">

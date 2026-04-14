@@ -8,6 +8,7 @@ public class ChunkPresenter : MonoBehaviour
 
 	public ChunkData ChunkData => chunkData;
 	public ChunkView View => chunkView;
+	public VoxelRegistry VoxelRegistry => voxelRegistry;
 
 	public void Assign(ChunkData targetChunkData)
 	{

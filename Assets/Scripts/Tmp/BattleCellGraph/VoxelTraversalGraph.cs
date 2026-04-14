@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public sealed class BattleCellGraph
+public sealed class VoxelTraversalGraph
 {
 	[Serializable]
 	public sealed class Node
@@ -62,18 +62,18 @@ public sealed class BattleCellGraph
 		}
 	}
 
-	private readonly Node[,,] _nodes;
-	private readonly List<Node> _allNodes = new List<Node>();
+	private readonly Node[,,] nodes;
+	private readonly List<Node> allNodes = new List<Node>();
 
-	public int SizeX => _nodes.GetLength(0);
-	public int SizeY => _nodes.GetLength(1);
-	public int SizeZ => _nodes.GetLength(2);
+	public int SizeX => nodes.GetLength(0);
+	public int SizeY => nodes.GetLength(1);
+	public int SizeZ => nodes.GetLength(2);
 
-	public IReadOnlyList<Node> AllNodes => _allNodes;
+	public IReadOnlyList<Node> AllNodes => allNodes;
 
-	public BattleCellGraph(int p_sizeX, int p_sizeY, int p_sizeZ)
+	public VoxelTraversalGraph(int p_sizeX, int p_sizeY, int p_sizeZ)
 	{
-		_nodes = new Node[p_sizeX, p_sizeY, p_sizeZ];
+		nodes = new Node[p_sizeX, p_sizeY, p_sizeZ];
 	}
 
 	public bool IsInside(Vector3Int p_position)
@@ -85,7 +85,7 @@ public sealed class BattleCellGraph
 
 	public bool ContainsNode(Vector3Int p_position)
 	{
-		return IsInside(p_position) && _nodes[p_position.x, p_position.y, p_position.z] != null;
+		return IsInside(p_position) && nodes[p_position.x, p_position.y, p_position.z] != null;
 	}
 
 	public bool TryGetNode(Vector3Int p_position, out Node p_node)
@@ -96,7 +96,7 @@ public sealed class BattleCellGraph
 			return false;
 		}
 
-		p_node = _nodes[p_position.x, p_position.y, p_position.z];
+		p_node = nodes[p_position.x, p_position.y, p_position.z];
 		return p_node != null;
 	}
 
@@ -104,7 +104,7 @@ public sealed class BattleCellGraph
 	{
 		if (!TryGetNode(p_position, out Node node))
 		{
-			throw new InvalidOperationException($"No battle node at position {p_position}.");
+			throw new InvalidOperationException($"No traversal node at position {p_position}.");
 		}
 
 		return node;
@@ -117,15 +117,15 @@ public sealed class BattleCellGraph
 			throw new ArgumentOutOfRangeException(nameof(p_position), $"Position {p_position} is outside the graph.");
 		}
 
-		Node existingNode = _nodes[p_position.x, p_position.y, p_position.z];
+		Node existingNode = nodes[p_position.x, p_position.y, p_position.z];
 		if (existingNode != null)
 		{
 			return existingNode;
 		}
 
 		Node newNode = new Node(p_position);
-		_nodes[p_position.x, p_position.y, p_position.z] = newNode;
-		_allNodes.Add(newNode);
+		nodes[p_position.x, p_position.y, p_position.z] = newNode;
+		allNodes.Add(newNode);
 		return newNode;
 	}
 }

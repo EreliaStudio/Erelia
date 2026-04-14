@@ -11,6 +11,7 @@ public class WorldPresenter : MonoBehaviour
 
 	public WorldData WorldData => worldData;
 	public WorldLoader WorldLoader => worldLoader;
+	public VoxelRegistry VoxelRegistry => chunkPrefab != null ? chunkPrefab.VoxelRegistry : null;
 
 	[ContextMenu("Load Around Origin")]
 	public void LoadAroundOrigin()
@@ -119,6 +120,17 @@ public class WorldPresenter : MonoBehaviour
 		presenter.gameObject.name = $"Chunk {coordinates}";
 		chunkPresenters[coordinates] = presenter;
 		return presenter;
+	}
+
+	public bool TryGetChunk(ChunkCoordinates coordinates, out ChunkData chunkData)
+	{
+		if (worldData != null && worldData.TryGetChunk(coordinates, out chunkData))
+		{
+			return true;
+		}
+
+		chunkData = null;
+		return false;
 	}
 
 	private void DestroyChunkPresenter(ChunkCoordinates coordinates)

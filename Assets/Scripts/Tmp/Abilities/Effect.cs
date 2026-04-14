@@ -294,29 +294,6 @@ public class ConsumeStatus : Effect
 }
 
 [Serializable]
-public class ChangeFormEffect : Effect
-{
-	public string FormID;
-
-	public override void Apply(BattleObject caster, BattleObject target, BattleContext battleContext)
-	{
-		if (target is not BattleUnit targetUnit || string.IsNullOrWhiteSpace(FormID))
-		{
-			return;
-		}
-
-		if (targetUnit.SourceUnit.CurrentFormID == FormID || !targetUnit.SourceUnit.HasForm(FormID))
-		{
-			return;
-		}
-
-		targetUnit.SourceUnit.CurrentFormID = FormID;
-		FeatProgressionService.ApplyProgress(targetUnit.SourceUnit);
-		targetUnit.BattleAttributes.Setup(targetUnit.SourceUnit.Attributes);
-	}
-}
-
-[Serializable]
 public class AdjustTurnBarTimeEffect : Effect
 {
 	public float Delta = 1f;
