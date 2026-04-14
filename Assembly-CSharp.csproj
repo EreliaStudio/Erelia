@@ -59,6 +59,7 @@
     <Compile Include="Assets\Scripts\Tmp\Feats\FeatBoard.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\CardinalHeightSet.cs" />
     <Compile Include="Assets\Scripts\World\Navigation\WorldVoxelRaycaster.cs" />
+    <Compile Include="Assets\Scripts\World\ChunkOverlayView.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\World\WorldPresenter.cs" />
     <Compile Include="Assets\Scripts\Tmp\Abilities\AbilityCost.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="Assets\Scripts\World\Navigation\WorldPathfinder.cs" />
     <Compile Include="Assets\Scripts\Tmp\Battle\BattleSide.cs" />
     <Compile Include="Assets\Scripts\World\ChunkPresenter.cs" />
+    <Compile Include="Assets\Scripts\Actors\Actor.cs" />
     <Compile Include="Assets\Scripts\Tmp\Abilities\Effect.cs" />
     <Compile Include="Assets\Scripts\Tmp\Core\ObservableResource.cs" />
     <Compile Include="Assets\Scripts\World\WorldLoadResult.cs" />
@@ -80,6 +82,7 @@
     <Compile Include="Assets\Scripts\Tmp\AI\AIBehaviour.cs" />
     <Compile Include="Assets\Scripts\Tmp\Creatures\CreatureUnit.cs" />
     <Compile Include="Assets\Scripts\World\Navigation\VoxelTraversalUtility.cs" />
+    <Compile Include="Assets\Scripts\Actors\ActorMovementRequest.cs" />
     <Compile Include="Assets\Scripts\Tmp\Board\BoardView.cs" />
     <Compile Include="Assets\Scripts\World\Navigation\WorldTraversalGraphCache.cs" />
     <Compile Include="Assets\Scripts\Tmp\Feats\FeatReward.cs" />
@@ -90,11 +93,13 @@
     <Compile Include="Assets\Scripts\Tmp\AI\AIRule.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelCubeShape.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelSlopeShape.cs" />
+    <Compile Include="Assets\Scripts\Actors\ActorMover.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelRegistry.cs" />
     <Compile Include="Assets\Scripts\Tmp\BattleCellGraph\VoxelTraversalGraph.cs" />
     <Compile Include="Assets\Scripts\Tmp\Statuses\Status.cs" />
     <Compile Include="Assets\Scripts\Tmp\Abilities\Ability.cs" />
     <Compile Include="Assets\Scripts\Tmp\Board\BoardRuntimeRegistry.cs" />
+    <Compile Include="Assets\Scripts\Actors\ActorManager.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerData.cs" />
     <Compile Include="Assets\Scripts\Tmp\Feats\FeatRequirement.cs" />
     <Compile Include="Assets\Scripts\Tmp\InteractiveObject\InteractionObject.cs" />

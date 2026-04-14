@@ -133,6 +133,56 @@ public class WorldPresenter : MonoBehaviour
 		return false;
 	}
 
+	public void ClearAllChunkMasks()
+	{
+		if (worldData == null)
+		{
+			return;
+		}
+
+		foreach (KeyValuePair<ChunkCoordinates, ChunkData> entry in worldData.Chunks)
+		{
+			entry.Value?.ClearMasks();
+		}
+	}
+
+	public bool TryAddMask(Vector3Int worldPosition, VoxelMask mask)
+	{
+		if (mask == VoxelMask.None || worldData == null)
+		{
+			return false;
+		}
+
+		if (!worldData.TryGetChunk(worldPosition, out _, out Vector3Int localPosition, out ChunkData chunkData) || chunkData == null)
+		{
+			return false;
+		}
+
+		VoxelMaskCell maskCell = chunkData.MaskCells[localPosition.x, localPosition.y, localPosition.z];
+		if (maskCell == null)
+		{
+			return false;
+		}
+
+		if (!maskCell.Masks.Contains(mask))
+		{
+			maskCell.Masks.Add(mask);
+		}
+
+		return true;
+	}
+
+	public void RebuildAllChunkOverlays()
+	{
+		foreach (ChunkPresenter presenter in chunkPresenters.Values)
+		{
+			if (presenter != null)
+			{
+				presenter.RebuildOverlay();
+			}
+		}
+	}
+
 	private void DestroyChunkPresenter(ChunkCoordinates coordinates)
 	{
 		if (!chunkPresenters.TryGetValue(coordinates, out ChunkPresenter presenter) || presenter == null)

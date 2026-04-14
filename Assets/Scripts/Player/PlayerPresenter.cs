@@ -1,10 +1,12 @@
 using UnityEngine;
 
 [RequireComponent(typeof(PlayerView))]
+[RequireComponent(typeof(Actor))]
 [DisallowMultipleComponent]
 public class PlayerPresenter : MonoBehaviour
 {
 	[SerializeField] private PlayerData playerData = new PlayerData();
+	[SerializeField] private Actor actor;
 	[SerializeField] private PlayerView playerView;
 	[SerializeField] private Transform playerCamera;
 	[SerializeField] private Vector3 cameraTargetLocalPoint = Vector3.zero;
@@ -18,6 +20,11 @@ public class PlayerPresenter : MonoBehaviour
 
 	private void Reset()
 	{
+		if (actor == null)
+		{
+			actor = GetComponent<Actor>();
+		}
+
 		if (playerView == null)
 		{
 			playerView = GetComponent<PlayerView>();
@@ -35,33 +42,34 @@ public class PlayerPresenter : MonoBehaviour
 
 	private void Awake()
 	{
+		if (actor == null)
+		{
+			actor = GetComponent<Actor>();
+		}
+
 		InitializeFromTransform();
+	}
+
+	private void OnEnable()
+	{
+		if (actor != null)
+		{
+			actor.CellReached += OnActorCellReached;
+		}
+	}
+
+	private void OnDisable()
+	{
+		if (actor != null)
+		{
+			actor.CellReached -= OnActorCellReached;
+		}
 	}
 
 	private void Start()
 	{
 		EventCenter.EmitPlayerMoved(lastWorldPosition);
 		EventCenter.EmitPlayerChunkChanged(lastChunkCoordinates);
-	}
-
-	private void Update()
-	{
-		Vector3 currentWorldPosition = transform.position;
-		ChunkCoordinates currentChunkCoordinates = ChunkCoordinates.FromWorldPosition(currentWorldPosition);
-
-		if (currentWorldPosition != lastWorldPosition)
-		{
-			lastWorldPosition = currentWorldPosition;
-			playerData.CellPosition = Vector3Int.FloorToInt(currentWorldPosition);
-			EventCenter.EmitPlayerMoved(currentWorldPosition);
-		}
-
-		if (!currentChunkCoordinates.Equals(lastChunkCoordinates))
-		{
-			lastChunkCoordinates = currentChunkCoordinates;
-			playerData.ChunkCoordinates = currentChunkCoordinates;
-			EventCenter.EmitPlayerChunkChanged(currentChunkCoordinates);
-		}
 	}
 
 	private void LateUpdate()
@@ -73,8 +81,28 @@ public class PlayerPresenter : MonoBehaviour
 	{
 		lastWorldPosition = transform.position;
 		lastChunkCoordinates = ChunkCoordinates.FromWorldPosition(lastWorldPosition);
-		playerData.CellPosition = Vector3Int.FloorToInt(lastWorldPosition);
-		playerData.ChunkCoordinates = lastChunkCoordinates;
+	}
+
+	private void OnActorCellReached(Actor sourceActor, Vector3Int worldCellPosition)
+	{
+		if (sourceActor != actor)
+		{
+			return;
+		}
+
+		Vector3 currentWorldPosition = transform.position;
+		ChunkCoordinates currentChunkCoordinates = ChunkCoordinates.FromWorldVoxelPosition(worldCellPosition);
+
+		lastWorldPosition = currentWorldPosition;
+		EventCenter.EmitPlayerMoved(currentWorldPosition);
+
+		if (currentChunkCoordinates.Equals(lastChunkCoordinates))
+		{
+			return;
+		}
+
+		lastChunkCoordinates = currentChunkCoordinates;
+		EventCenter.EmitPlayerChunkChanged(currentChunkCoordinates);
 	}
 
 	private void UpdateCameraLook()

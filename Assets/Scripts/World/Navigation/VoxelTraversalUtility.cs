@@ -43,17 +43,32 @@ public static class VoxelTraversalUtility
 
 	public static bool IsReachableCell(VoxelGrid p_grid, Vector3Int p_position, VoxelRegistry p_voxelRegistry)
 	{
-		return IsWalkable(p_grid.Cells[p_position.x, p_position.y, p_position.z], p_voxelRegistry) &&
-			   IsAirOrWalkable(p_grid.Cells[p_position.x, p_position.y + 1, p_position.z], p_voxelRegistry) &&
-			   IsAirOrWalkable(p_grid.Cells[p_position.x, p_position.y + 2, p_position.z], p_voxelRegistry);
+		return IsSolid(p_grid.Cells[p_position.x, p_position.y, p_position.z], p_voxelRegistry) &&
+			   IsPassableSpace(p_grid.Cells[p_position.x, p_position.y + 1, p_position.z], p_voxelRegistry) &&
+			   IsPassableSpace(p_grid.Cells[p_position.x, p_position.y + 2, p_position.z], p_voxelRegistry);
 	}
 
-	public static bool IsAirOrWalkable(VoxelCell p_cell, VoxelRegistry p_voxelRegistry)
+	public static bool IsPassableSpace(VoxelCell p_cell, VoxelRegistry p_voxelRegistry)
 	{
-		return p_cell == null || p_cell.IsEmpty || IsWalkable(p_cell, p_voxelRegistry);
+		return p_cell == null || p_cell.IsEmpty || IsPassable(p_cell, p_voxelRegistry);
 	}
 
-	public static bool IsWalkable(VoxelCell p_cell, VoxelRegistry p_voxelRegistry)
+	public static bool IsSolid(VoxelCell p_cell, VoxelRegistry p_voxelRegistry)
+	{
+		if (p_cell == null || p_cell.IsEmpty)
+		{
+			return false;
+		}
+
+		if (!p_voxelRegistry.TryGetVoxel(p_cell.Id, out VoxelDefinition voxelDefinition) || voxelDefinition == null)
+		{
+			return false;
+		}
+
+		return voxelDefinition.Data != null && voxelDefinition.Data.Traversal == VoxelTraversal.Obstacle;
+	}
+
+	public static bool IsPassable(VoxelCell p_cell, VoxelRegistry p_voxelRegistry)
 	{
 		if (p_cell == null || p_cell.IsEmpty)
 		{
