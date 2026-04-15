@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,20 +6,29 @@ using UnityEngine.InputSystem;
 [DisallowMultipleComponent]
 public class PlayerController : MonoBehaviour
 {
+	private const string DefaultInputAssetResourcePath = "Input/ExplorationPlayer";
+	private const string ValidateActionName = "Player/Validate";
+	private const string CancelActionName = "Player/Cancel";
+
 	[SerializeField] private Actor actor;
 	[SerializeField] private WorldPresenter worldPresenter;
 	[SerializeField] private Camera inputCamera;
+	[SerializeField] private InputActionAsset inputActionsAsset;
+	[SerializeField] private InputActionReference validateAction;
+	[SerializeField] private InputActionReference cancelAction;
 	[SerializeField, Min(0.1f)] private float selectionMaxDistance = 128f;
 	[SerializeField, Min(0.01f)] private float selectionStepDistance = 0.1f;
 
 	private readonly WorldTraversalGraphCache graphCache = new WorldTraversalGraphCache();
-	private readonly List<Vector3Int> previewPath = new List<Vector3Int>();
-	private readonly List<Vector3Int> previousPreviewPath = new List<Vector3Int>();
+	private InputAction resolvedValidateAction;
+	private InputAction resolvedCancelAction;
+	private Vector2 lastPointerPosition;
+	private bool hasLastPointerPosition;
+	private bool selectionDirty = true;
 	private Vector3Int? selectedVoxel;
 	private Vector3Int? previousOverlaySelection;
 
 	public Vector3Int? SelectedVoxel => selectedVoxel;
-	public IReadOnlyList<Vector3Int> CurrentPath => previewPath;
 
 	private void Reset()
 	{
@@ -37,6 +45,11 @@ public class PlayerController : MonoBehaviour
 		if (worldPresenter == null)
 		{
 			worldPresenter = FindFirstObjectByType<WorldPresenter>();
+		}
+
+		if (inputActionsAsset == null)
+		{
+			inputActionsAsset = Resources.Load<InputActionAsset>(DefaultInputAssetResourcePath);
 		}
 	}
 
@@ -56,6 +69,19 @@ public class PlayerController : MonoBehaviour
 		{
 			worldPresenter = FindFirstObjectByType<WorldPresenter>();
 		}
+
+		if (inputActionsAsset == null)
+		{
+			inputActionsAsset = Resources.Load<InputActionAsset>(DefaultInputAssetResourcePath);
+		}
+
+		ResolveActions();
+	}
+
+	private void OnEnable()
+	{
+		EnableAction(resolvedValidateAction);
+		EnableAction(resolvedCancelAction);
 	}
 
 	private void Update()
@@ -66,29 +92,42 @@ public class PlayerController : MonoBehaviour
 		}
 
 		UpdateSelectedVoxel();
-		UpdatePreviewPath();
-		UpdateExplorationOverlay();
+		HandleCancelRequest();
 		HandleMoveRequest();
+		UpdateExplorationOverlay();
 	}
 
 	private void OnDisable()
 	{
+		DisableAction(resolvedValidateAction);
+		DisableAction(resolvedCancelAction);
 		ClearExplorationOverlay();
-		previewPath.Clear();
-		previousPreviewPath.Clear();
 		selectedVoxel = null;
 		previousOverlaySelection = null;
+		hasLastPointerPosition = false;
+		selectionDirty = true;
 		graphCache.Clear();
 	}
 
 	private void UpdateSelectedVoxel()
 	{
-		selectedVoxel = null;
-
 		if (inputCamera == null || !TryGetPointerPosition(out Vector2 pointerPosition))
+		{
+			selectedVoxel = null;
+			hasLastPointerPosition = false;
+			selectionDirty = true;
+			return;
+		}
+
+		if (!selectionDirty && hasLastPointerPosition && (pointerPosition - lastPointerPosition).sqrMagnitude <= 0.0001f)
 		{
 			return;
 		}
+
+		lastPointerPosition = pointerPosition;
+		hasLastPointerPosition = true;
+		selectionDirty = false;
+		selectedVoxel = null;
 
 		Ray ray = inputCamera.ScreenPointToRay(pointerPosition);
 		if (!WorldVoxelRaycaster.TryRaycast(
@@ -109,34 +148,27 @@ public class PlayerController : MonoBehaviour
 		}
 	}
 
-	private void UpdatePreviewPath()
-	{
-		previewPath.Clear();
-
-		if (!selectedVoxel.HasValue)
-		{
-			return;
-		}
-
-		if (!WorldPathfinder.TryResolveStandingCell(worldPresenter.WorldData, worldPresenter.VoxelRegistry, graphCache, transform.position, out Vector3Int startWorldPosition))
-		{
-			return;
-		}
-
-		if (WorldPathfinder.TryFindPath(worldPresenter.WorldData, worldPresenter.VoxelRegistry, graphCache, startWorldPosition, selectedVoxel.Value, out List<Vector3Int> path))
-		{
-			previewPath.AddRange(path);
-		}
-	}
-
 	private void HandleMoveRequest()
 	{
-		if (!selectedVoxel.HasValue || !WasMovementRequested())
+		if (!selectedVoxel.HasValue || !WasValidateRequested())
 		{
 			return;
 		}
 
 		EventCenter.EmitActorMoveRequested(new ActorMovementRequest(actor, selectedVoxel.Value));
+		selectedVoxel = null;
+		selectionDirty = true;
+	}
+
+	private void HandleCancelRequest()
+	{
+		if (!WasCancelRequested())
+		{
+			return;
+		}
+
+		selectedVoxel = null;
+		selectionDirty = true;
 	}
 
 	private void UpdateExplorationOverlay()
@@ -146,11 +178,21 @@ public class PlayerController : MonoBehaviour
 			return;
 		}
 
-		worldPresenter.ClearAllChunkMasks();
+		ChunkCoordinates? previousCoordinates = previousOverlaySelection.HasValue
+			? ChunkCoordinates.FromWorldVoxelPosition(previousOverlaySelection.Value)
+			: (ChunkCoordinates?)null;
+		ChunkCoordinates? currentCoordinates = selectedVoxel.HasValue
+			? ChunkCoordinates.FromWorldVoxelPosition(selectedVoxel.Value)
+			: (ChunkCoordinates?)null;
 
-		for (int i = 1; i < previewPath.Count; i++)
+		if (previousCoordinates.HasValue)
 		{
-			worldPresenter.TryAddMask(previewPath[i], VoxelMask.MovementRange);
+			worldPresenter.ClearChunkMasks(previousCoordinates.Value);
+		}
+
+		if (currentCoordinates.HasValue && (!previousCoordinates.HasValue || !currentCoordinates.Value.Equals(previousCoordinates.Value)))
+		{
+			worldPresenter.ClearChunkMasks(currentCoordinates.Value);
 		}
 
 		if (selectedVoxel.HasValue)
@@ -158,7 +200,16 @@ public class PlayerController : MonoBehaviour
 			worldPresenter.TryAddMask(selectedVoxel.Value, VoxelMask.Selected);
 		}
 
-		worldPresenter.RebuildAllChunkOverlays();
+		if (previousCoordinates.HasValue)
+		{
+			worldPresenter.RebuildChunkOverlay(previousCoordinates.Value);
+		}
+
+		if (currentCoordinates.HasValue && (!previousCoordinates.HasValue || !currentCoordinates.Value.Equals(previousCoordinates.Value)))
+		{
+			worldPresenter.RebuildChunkOverlay(currentCoordinates.Value);
+		}
+
 		StoreOverlayState();
 	}
 
@@ -173,39 +224,34 @@ public class PlayerController : MonoBehaviour
 		worldPresenter.RebuildAllChunkOverlays();
 	}
 
-	private static bool WasMovementRequested()
+	private bool WasValidateRequested()
 	{
+		if (resolvedValidateAction != null)
+		{
+			return resolvedValidateAction.WasPressedThisFrame();
+		}
+
+		return Mouse.current != null ? Mouse.current.leftButton.wasPressedThisFrame : Input.GetMouseButtonDown(0);
+	}
+
+	private bool WasCancelRequested()
+	{
+		if (resolvedCancelAction != null)
+		{
+			return resolvedCancelAction.WasPressedThisFrame();
+		}
+
 		return Mouse.current != null ? Mouse.current.rightButton.wasPressedThisFrame : Input.GetMouseButtonDown(1);
 	}
 
 	private bool HasOverlayStateChanged()
 	{
-		if (previousOverlaySelection != selectedVoxel)
-		{
-			return true;
-		}
-
-		if (previousPreviewPath.Count != previewPath.Count)
-		{
-			return true;
-		}
-
-		for (int i = 0; i < previewPath.Count; i++)
-		{
-			if (previousPreviewPath[i] != previewPath[i])
-			{
-				return true;
-			}
-		}
-
-		return false;
+		return previousOverlaySelection != selectedVoxel;
 	}
 
 	private void StoreOverlayState()
 	{
 		previousOverlaySelection = selectedVoxel;
-		previousPreviewPath.Clear();
-		previousPreviewPath.AddRange(previewPath);
 	}
 
 	private static bool TryGetPointerPosition(out Vector2 pointerPosition)
@@ -218,5 +264,37 @@ public class PlayerController : MonoBehaviour
 
 		pointerPosition = Input.mousePosition;
 		return true;
+	}
+
+	private void ResolveActions()
+	{
+		resolvedValidateAction = validateAction != null ? validateAction.action : FindAction(ValidateActionName);
+		resolvedCancelAction = cancelAction != null ? cancelAction.action : FindAction(CancelActionName);
+	}
+
+	private InputAction FindAction(string actionName)
+	{
+		if (inputActionsAsset == null)
+		{
+			return null;
+		}
+
+		return inputActionsAsset.FindAction(actionName);
+	}
+
+	private static void EnableAction(InputAction action)
+	{
+		if (action != null && !action.enabled)
+		{
+			action.Enable();
+		}
+	}
+
+	private static void DisableAction(InputAction action)
+	{
+		if (action != null && action.enabled)
+		{
+			action.Disable();
+		}
 	}
 }

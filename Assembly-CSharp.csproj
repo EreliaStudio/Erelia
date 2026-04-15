@@ -133,6 +133,7 @@
     <Compile Include="Assets\Scripts\World\WorldLoader.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelCrossPlaneShape.cs" />
     <Compile Include="Assets\Scripts\Tmp\Board\BoardNavigationLayer.cs" />
+    <Compile Include="Assets\Scripts\Camera\OrbitingObject.cs" />
     <Compile Include="Assets\Scripts\Tmp\BattleCellGraph\VoxelTraversalGraphBuilder.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelEnums.cs" />
     <Compile Include="Assets\Scripts\Tmp\Creatures\CreatureForm.cs" />

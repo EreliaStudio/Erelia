@@ -8,10 +8,6 @@ public class PlayerPresenter : MonoBehaviour
 	[SerializeField] private PlayerData playerData = new PlayerData();
 	[SerializeField] private Actor actor;
 	[SerializeField] private PlayerView playerView;
-	[SerializeField] private Transform playerCamera;
-	[SerializeField] private Vector3 cameraTargetLocalPoint = Vector3.zero;
-	[SerializeField] private bool controlCameraLook = true;
-
 	private Vector3 lastWorldPosition;
 	private ChunkCoordinates lastChunkCoordinates;
 
@@ -28,15 +24,6 @@ public class PlayerPresenter : MonoBehaviour
 		if (playerView == null)
 		{
 			playerView = GetComponent<PlayerView>();
-		}
-
-		if (playerCamera == null)
-		{
-			Camera childCamera = GetComponentInChildren<Camera>();
-			if (childCamera != null)
-			{
-				playerCamera = childCamera.transform;
-			}
 		}
 	}
 
@@ -72,11 +59,6 @@ public class PlayerPresenter : MonoBehaviour
 		EventCenter.EmitPlayerChunkChanged(lastChunkCoordinates);
 	}
 
-	private void LateUpdate()
-	{
-		UpdateCameraLook();
-	}
-
 	private void InitializeFromTransform()
 	{
 		lastWorldPosition = transform.position;
@@ -103,23 +85,5 @@ public class PlayerPresenter : MonoBehaviour
 
 		lastChunkCoordinates = currentChunkCoordinates;
 		EventCenter.EmitPlayerChunkChanged(currentChunkCoordinates);
-	}
-
-	private void UpdateCameraLook()
-	{
-		if (!controlCameraLook || playerCamera == null)
-		{
-			return;
-		}
-
-		Vector3 localCameraPosition = transform.InverseTransformPoint(playerCamera.position);
-		Vector3 localDirection = cameraTargetLocalPoint - localCameraPosition;
-		if (localDirection.sqrMagnitude <= 0.0001f)
-		{
-			return;
-		}
-
-		Vector3 worldDirection = transform.TransformDirection(localDirection.normalized);
-		playerCamera.rotation = Quaternion.LookRotation(worldDirection, transform.up);
 	}
 }

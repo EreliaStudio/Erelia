@@ -133,6 +133,16 @@ public class WorldPresenter : MonoBehaviour
 		return false;
 	}
 
+	public void ClearChunkMasks(ChunkCoordinates coordinates)
+	{
+		if (worldData == null || !worldData.TryGetChunk(coordinates, out ChunkData chunkData) || chunkData == null)
+		{
+			return;
+		}
+
+		chunkData.ClearMasks();
+	}
+
 	public void ClearAllChunkMasks()
 	{
 		if (worldData == null)
@@ -170,6 +180,14 @@ public class WorldPresenter : MonoBehaviour
 		}
 
 		return true;
+	}
+
+	public void RebuildChunkOverlay(ChunkCoordinates coordinates)
+	{
+		if (chunkPresenters.TryGetValue(coordinates, out ChunkPresenter presenter) && presenter != null)
+		{
+			presenter.RebuildOverlay();
+		}
 	}
 
 	public void RebuildAllChunkOverlays()
