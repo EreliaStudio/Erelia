@@ -53,7 +53,7 @@ public class WorldPresenter : MonoBehaviour
 
 	private void Update()
 	{
-		if (worldData == null || worldLoader == null)
+		if (worldData == null || worldLoader == null || !worldLoader.HasPendingChunks)
 		{
 			return;
 		}

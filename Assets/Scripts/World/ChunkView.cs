@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
@@ -94,6 +95,8 @@ public class ChunkView : MonoBehaviour
 		{
 			meshRenderer.sharedMaterial = material;
 		}
+
+		ApplyRendererSettings();
 	}
 
 	private void LoadDefaultMaterial()
@@ -102,6 +105,21 @@ public class ChunkView : MonoBehaviour
 		{
 			material = Resources.Load<Material>(DefaultMaterialResourcePath);
 		}
+	}
+
+	private void ApplyRendererSettings()
+	{
+		if (meshRenderer == null)
+		{
+			return;
+		}
+
+		meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
+		meshRenderer.receiveShadows = false;
+		meshRenderer.lightProbeUsage = LightProbeUsage.Off;
+		meshRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+		meshRenderer.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
+		meshRenderer.allowOcclusionWhenDynamic = true;
 	}
 
 	private static void DestroyMesh(Mesh mesh)

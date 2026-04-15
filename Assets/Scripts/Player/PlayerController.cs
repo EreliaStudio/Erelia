@@ -22,6 +22,9 @@ public class PlayerController : MonoBehaviour
 	private readonly WorldTraversalGraphCache graphCache = new WorldTraversalGraphCache();
 	private InputAction resolvedValidateAction;
 	private InputAction resolvedCancelAction;
+	private Vector3 lastCameraPosition;
+	private Quaternion lastCameraRotation;
+	private bool hasLastCameraTransform;
 	private Vector2 lastPointerPosition;
 	private bool hasLastPointerPosition;
 	private bool selectionDirty = true;
@@ -104,6 +107,7 @@ public class PlayerController : MonoBehaviour
 		ClearExplorationOverlay();
 		selectedVoxel = null;
 		previousOverlaySelection = null;
+		hasLastCameraTransform = false;
 		hasLastPointerPosition = false;
 		selectionDirty = true;
 		graphCache.Clear();
@@ -114,18 +118,27 @@ public class PlayerController : MonoBehaviour
 		if (inputCamera == null || !TryGetPointerPosition(out Vector2 pointerPosition))
 		{
 			selectedVoxel = null;
+			hasLastCameraTransform = false;
 			hasLastPointerPosition = false;
 			selectionDirty = true;
 			return;
 		}
 
-		if (!selectionDirty && hasLastPointerPosition && (pointerPosition - lastPointerPosition).sqrMagnitude <= 0.0001f)
+		bool cameraChanged = !hasLastCameraTransform ||
+		                     (inputCamera.transform.position - lastCameraPosition).sqrMagnitude > 0.000001f ||
+		                     Quaternion.Angle(inputCamera.transform.rotation, lastCameraRotation) > 0.01f;
+		bool pointerChanged = !hasLastPointerPosition || (pointerPosition - lastPointerPosition).sqrMagnitude > 0.0001f;
+
+		if (!selectionDirty && !pointerChanged && !cameraChanged)
 		{
 			return;
 		}
 
 		lastPointerPosition = pointerPosition;
 		hasLastPointerPosition = true;
+		lastCameraPosition = inputCamera.transform.position;
+		lastCameraRotation = inputCamera.transform.rotation;
+		hasLastCameraTransform = true;
 		selectionDirty = false;
 		selectedVoxel = null;
 

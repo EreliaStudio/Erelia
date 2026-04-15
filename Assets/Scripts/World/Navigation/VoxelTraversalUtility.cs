@@ -123,6 +123,31 @@ public static class VoxelTraversalUtility
 		return true;
 	}
 
+	public static bool TryGetTraversalWorldPoint(WorldData p_worldData, Vector3Int p_position, CardinalHeightSet.Direction p_direction, VoxelRegistry p_voxelRegistry, out Vector3 p_worldPoint)
+	{
+		p_worldPoint = default;
+
+		if (!TryGetWorldHeight(p_worldData, p_position, p_direction, p_voxelRegistry, out float height))
+		{
+			return false;
+		}
+
+		Vector3 horizontalOffset = p_direction switch
+		{
+			CardinalHeightSet.Direction.PositiveX => new Vector3(1f, 0f, 0.5f),
+			CardinalHeightSet.Direction.NegativeX => new Vector3(0f, 0f, 0.5f),
+			CardinalHeightSet.Direction.PositiveZ => new Vector3(0.5f, 0f, 1f),
+			CardinalHeightSet.Direction.NegativeZ => new Vector3(0.5f, 0f, 0f),
+			_ => new Vector3(0.5f, 0f, 0.5f)
+		};
+
+		p_worldPoint = new Vector3(
+			p_position.x + horizontalOffset.x,
+			height,
+			p_position.z + horizontalOffset.z);
+		return true;
+	}
+
 	public static CardinalHeightSet ResolveWorldHeights(CardinalHeightSet p_source, VoxelOrientation p_orientation)
 	{
 		if (p_source == null)

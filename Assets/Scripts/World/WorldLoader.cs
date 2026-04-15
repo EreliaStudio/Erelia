@@ -21,6 +21,7 @@ public class WorldLoader
 	public float UpdateIntervalSeconds => updateIntervalSeconds;
 	public int Seed => seed;
 	public SimpleDebugChunkGenerator Generator => generator;
+	public bool HasPendingChunks => pendingChunks.Count > 0;
 
 	public WorldLoadResult SetCenterChunk(WorldData worldData, ChunkCoordinates centerChunk)
 	{

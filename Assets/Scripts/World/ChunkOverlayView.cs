@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
@@ -17,6 +18,10 @@ public class ChunkOverlayView : MonoBehaviour
 		CacheReferences();
 		DestroyMesh(meshFilter.sharedMesh);
 		meshFilter.sharedMesh = mesh;
+		if (meshRenderer != null)
+		{
+			meshRenderer.enabled = mesh != null && mesh.vertexCount > 0;
+		}
 	}
 
 	public void SetVisible(bool visible)
@@ -69,6 +74,23 @@ public class ChunkOverlayView : MonoBehaviour
 		{
 			meshRenderer.sharedMaterial = material;
 		}
+
+		ApplyRendererSettings();
+	}
+
+	private void ApplyRendererSettings()
+	{
+		if (meshRenderer == null)
+		{
+			return;
+		}
+
+		meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
+		meshRenderer.receiveShadows = false;
+		meshRenderer.lightProbeUsage = LightProbeUsage.Off;
+		meshRenderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+		meshRenderer.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
+		meshRenderer.allowOcclusionWhenDynamic = true;
 	}
 
 	private static void DestroyMesh(Mesh mesh)
