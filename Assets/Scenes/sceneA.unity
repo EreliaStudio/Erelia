@@ -149,7 +149,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EncounterEmitter
   worldPresenter: {fileID: 379555916}
-  bushTag: Bush
+  detectionHeightInCells: 3
+  encounterResolver:
+    seed: 0
+    minimumStepsBetweenEncounters: 1
 --- !u!4 &11629190
 Transform:
   m_ObjectHideFlags: 0
@@ -333,6 +336,9 @@ MonoBehaviour:
       borderNegativeZVoxelId: 3
       borderPositiveZVoxelId: 4
       raisedPlatformVoxelId: 0
+  metaWorldGenerator:
+    seed: 0
+    defaultBiome: {fileID: 11400000, guid: 20a5d2dd784c4eb4f9ff7bfb2f665317, type: 2}
 --- !u!4 &379555917
 Transform:
   m_ObjectHideFlags: 0

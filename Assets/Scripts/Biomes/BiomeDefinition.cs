@@ -6,24 +6,24 @@ using UnityEngine;
 public class BiomeDefinition : ScriptableObject
 {
 	[SerializedDictionary("Trigger Tag", "Encounter Rule")]
-	public SerializedDictionary<string, BiomeEncounterRule> RulesByTriggerTag =
+	public SerializedDictionary<string, BiomeEncounterRule> WildEncounterRulesByTriggerTag =
 		new SerializedDictionary<string, BiomeEncounterRule>();
 
 	public bool TryGetEncounterRule(string triggerTag, out BiomeEncounterRule rule)
 	{
 		rule = null;
 		string normalizedTag = NormalizeTriggerTag(triggerTag);
-		if (string.IsNullOrEmpty(normalizedTag) || RulesByTriggerTag == null)
+		if (string.IsNullOrEmpty(normalizedTag) || WildEncounterRulesByTriggerTag == null)
 		{
 			return false;
 		}
 
-		if (RulesByTriggerTag.TryGetValue(normalizedTag, out rule) && rule != null)
+		if (WildEncounterRulesByTriggerTag.TryGetValue(normalizedTag, out rule) && rule != null)
 		{
 			return true;
 		}
 
-		foreach (var entry in RulesByTriggerTag)
+		foreach (var entry in WildEncounterRulesByTriggerTag)
 		{
 			if (!string.Equals(NormalizeTriggerTag(entry.Key), normalizedTag, StringComparison.Ordinal))
 			{

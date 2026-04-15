@@ -55,18 +55,18 @@ public class EncounterEmitter : MonoBehaviour
 			return;
 		}
 
-		if (!TryFindTriggerTagInActorColumn(standingCell, biome, out string triggerTag, out Vector3Int taggedWorldCell))
+		if (!TryFindEncounterRuleTagInActorColumn(standingCell, biome, out string encounterRuleTag, out Vector3Int taggedWorldCell))
 		{
 			return;
 		}
 
-		if (!encounterResolver.TryResolveEncounter(biome, triggerTag, taggedWorldCell, out EncounterSelection selection))
+		if (!encounterResolver.TryResolveEncounter(biome, encounterRuleTag, taggedWorldCell, out BattleSetup battleSetup))
 		{
 			return;
 		}
 
-		Debug.Log($"EncounterEmitter: battle start requested from tag '{triggerTag}' at {taggedWorldCell}.", this);
-		EventCenter.EmitBattleStartRequested(selection);
+		Debug.Log($"EncounterEmitter: battle start requested from rule '{encounterRuleTag}' at {taggedWorldCell}.", this);
+		EventCenter.EmitBattleStartRequested(battleSetup);
 	}
 
 	private bool TryGetBiome(Vector3Int standingCell, out BiomeDefinition biome)
@@ -87,14 +87,15 @@ public class EncounterEmitter : MonoBehaviour
 		return biome != null;
 	}
 
-	private bool TryFindTriggerTagInActorColumn(
+	private bool TryFindEncounterRuleTagInActorColumn(
 		Vector3Int standingCell,
 		BiomeDefinition biome,
-		out string triggerTag,
+		out string encounterRuleTag,
 		out Vector3Int taggedWorldCell)
 	{
-		triggerTag = string.Empty;
+		encounterRuleTag = string.Empty;
 		taggedWorldCell = default;
+		string triggerTag = BiomeDefinition.NormalizeTriggerTag(GameRule.EncounterTriggerTag);
 
 		int maxHeight = Mathf.Max(1, detectionHeightInCells);
 		for (int verticalOffset = 0; verticalOffset < maxHeight; verticalOffset++)
@@ -105,19 +106,36 @@ public class EncounterEmitter : MonoBehaviour
 				continue;
 			}
 
+			bool hasEncounterTrigger = false;
 			for (int tagIndex = 0; tagIndex < voxelDefinition.Data.Tags.Count; tagIndex++)
 			{
 				string candidateTag = BiomeDefinition.NormalizeTriggerTag(voxelDefinition.Data.Tags[tagIndex]);
-				if (string.IsNullOrEmpty(candidateTag) || !biome.TryGetEncounterRule(candidateTag, out _))
+				if (string.Equals(candidateTag, triggerTag, System.StringComparison.Ordinal))
+				{
+					hasEncounterTrigger = true;
+					break;
+				}
+			}
+
+			if (!hasEncounterTrigger)
+			{
+				continue;
+			}
+
+			for (int tagIndex = 0; tagIndex < voxelDefinition.Data.Tags.Count; tagIndex++)
+			{
+				string candidateTag = BiomeDefinition.NormalizeTriggerTag(voxelDefinition.Data.Tags[tagIndex]);
+				if (string.IsNullOrEmpty(candidateTag) ||
+				    string.Equals(candidateTag, triggerTag, System.StringComparison.Ordinal) ||
+				    !biome.TryGetEncounterRule(candidateTag, out _))
 				{
 					continue;
 				}
 
-				triggerTag = candidateTag;
+				encounterRuleTag = candidateTag;
 				taggedWorldCell = candidate;
 				return true;
 			}
-
 		}
 
 		return false;

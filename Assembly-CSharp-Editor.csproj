@@ -51,8 +51,8 @@
     <Compile Include="Assets\Scripts\Abilities\Editor\AbilityEffectDrawer.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Editor\VoxelDefinitionEditor.cs" />
     <Compile Include="Assets\Scripts\Feats\Editor\FeatBoardEditorWindow.cs" />
+    <Compile Include="Assets\Scripts\Biomes\Editor\BiomeDefinitionEditor.cs" />
     <Compile Include="Assets\Scripts\Feats\Editor\FeatBoardEditorWindow.Model.cs" />
-    <Compile Include="Assets\Scripts\Encounters\Editor\BiomeDefinitionEditor.cs" />
     <Compile Include="Assets\Scripts\Core\Editor\Utils\ManagedReferenceTypePicker.cs" />
     <Compile Include="Assets\Scripts\AI\Editor\AIRuleDrawer.cs" />
     <Compile Include="Assets\Scripts\Abilities\Editor\AbilityCostDrawer.cs" />

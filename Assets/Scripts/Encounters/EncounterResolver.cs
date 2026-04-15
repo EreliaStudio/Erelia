@@ -14,7 +14,7 @@ public class EncounterResolver
 		BiomeDefinition biome,
 		string triggerTag,
 		Vector3Int triggerCell,
-		out EncounterSelection selection)
+		out BattleSetup selection)
 	{
 		selection = null;
 
@@ -47,14 +47,7 @@ public class EncounterResolver
 		}
 
 		stepsSinceLastEncounter = 0;
-		ChunkCoordinates chunkCoordinates = ChunkCoordinates.FromWorldVoxelPosition(triggerCell);
-		selection = new EncounterSelection(
-			biome,
-			BiomeDefinition.NormalizeTriggerTag(triggerTag),
-			rule,
-			selectedEntry,
-			triggerCell,
-			chunkCoordinates);
+		selection = BattleSetup.FromEntry(selectedEntry, null);
 		return true;
 	}
 

@@ -15,7 +15,7 @@ MonoBehaviour:
   data:
     Traversal: 1
     Tags:
-    - Bush
+    - encounter
   shape:
     rid: 7055333324432343044
   references:

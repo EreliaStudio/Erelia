@@ -342,10 +342,10 @@ public class EncounterTableEditorWindow : EditorWindow
 			return;
 		}
 
-		string newTag = BuildUniqueTriggerTag("trigger");
+		string newTag = BuildUniqueTriggerTag("area");
 		ApplyBiomeChange("Add Encounter Trigger Tag", () =>
 		{
-			biome.RulesByTriggerTag.Add(newTag, new BiomeEncounterRule
+			biome.WildEncounterRulesByTriggerTag.Add(newTag, new BiomeEncounterRule
 			{
 				BaseChancePerStep = 0.1f,
 				EncounterTable = new EncounterTable()
@@ -358,12 +358,12 @@ public class EncounterTableEditorWindow : EditorWindow
 
 	private void RemoveTriggerTag(string triggerTag)
 	{
-		if (biome == null || string.IsNullOrEmpty(triggerTag) || !biome.RulesByTriggerTag.ContainsKey(triggerTag))
+		if (biome == null || string.IsNullOrEmpty(triggerTag) || !biome.WildEncounterRulesByTriggerTag.ContainsKey(triggerTag))
 		{
 			return;
 		}
 
-		ApplyBiomeChange("Remove Encounter Trigger Tag", () => biome.RulesByTriggerTag.Remove(triggerTag));
+		ApplyBiomeChange("Remove Encounter Trigger Tag", () => biome.WildEncounterRulesByTriggerTag.Remove(triggerTag));
 		EnsureSelectedTriggerTag();
 	}
 
@@ -380,13 +380,13 @@ public class EncounterTableEditorWindow : EditorWindow
 			return;
 		}
 
-		if (biome.RulesByTriggerTag.ContainsKey(normalizedTag))
+		if (biome.WildEncounterRulesByTriggerTag.ContainsKey(normalizedTag))
 		{
 			EditorUtility.DisplayDialog("Trigger Tag Already Exists", $"The trigger tag '{normalizedTag}' already exists on this biome.", "OK");
 			return;
 		}
 
-		if (!biome.RulesByTriggerTag.TryGetValue(selectedTriggerTag, out BiomeEncounterRule existingRule))
+		if (!biome.WildEncounterRulesByTriggerTag.TryGetValue(selectedTriggerTag, out BiomeEncounterRule existingRule))
 		{
 			return;
 		}
@@ -394,8 +394,8 @@ public class EncounterTableEditorWindow : EditorWindow
 		string previousTag = selectedTriggerTag;
 		ApplyBiomeChange("Rename Encounter Trigger Tag", () =>
 		{
-			biome.RulesByTriggerTag.Remove(previousTag);
-			biome.RulesByTriggerTag.Add(normalizedTag, existingRule);
+			biome.WildEncounterRulesByTriggerTag.Remove(previousTag);
+			biome.WildEncounterRulesByTriggerTag.Add(normalizedTag, existingRule);
 		});
 
 		selectedTriggerTag = normalizedTag;
@@ -430,27 +430,27 @@ public class EncounterTableEditorWindow : EditorWindow
 		rule = null;
 		return biome != null &&
 		       !string.IsNullOrEmpty(selectedTriggerTag) &&
-		       biome.RulesByTriggerTag != null &&
-		       biome.RulesByTriggerTag.TryGetValue(selectedTriggerTag, out rule) &&
+		       biome.WildEncounterRulesByTriggerTag != null &&
+		       biome.WildEncounterRulesByTriggerTag.TryGetValue(selectedTriggerTag, out rule) &&
 		       rule != null;
 	}
 
 	private void EnsureSelectedTriggerTag()
 	{
-		if (biome == null || biome.RulesByTriggerTag == null || biome.RulesByTriggerTag.Count == 0)
+		if (biome == null || biome.WildEncounterRulesByTriggerTag == null || biome.WildEncounterRulesByTriggerTag.Count == 0)
 		{
 			selectedTriggerTag = string.Empty;
 			renameBuffer = string.Empty;
 			return;
 		}
 
-		if (!string.IsNullOrEmpty(selectedTriggerTag) && biome.RulesByTriggerTag.ContainsKey(selectedTriggerTag))
+		if (!string.IsNullOrEmpty(selectedTriggerTag) && biome.WildEncounterRulesByTriggerTag.ContainsKey(selectedTriggerTag))
 		{
 			renameBuffer = selectedTriggerTag;
 			return;
 		}
 
-		foreach (var entry in biome.RulesByTriggerTag)
+		foreach (var entry in biome.WildEncounterRulesByTriggerTag)
 		{
 			selectedTriggerTag = entry.Key;
 			renameBuffer = selectedTriggerTag;
@@ -461,12 +461,12 @@ public class EncounterTableEditorWindow : EditorWindow
 	private List<string> GetTriggerTags()
 	{
 		var tags = new List<string>();
-		if (biome?.RulesByTriggerTag == null)
+		if (biome?.WildEncounterRulesByTriggerTag == null)
 		{
 			return tags;
 		}
 
-		foreach (var entry in biome.RulesByTriggerTag)
+		foreach (var entry in biome.WildEncounterRulesByTriggerTag)
 		{
 			tags.Add(entry.Key);
 		}
@@ -480,7 +480,7 @@ public class EncounterTableEditorWindow : EditorWindow
 		string candidate = string.IsNullOrEmpty(normalizedBaseTag) ? "trigger" : normalizedBaseTag;
 		int suffix = 1;
 
-		while (biome != null && biome.RulesByTriggerTag != null && biome.RulesByTriggerTag.ContainsKey(candidate))
+		while (biome != null && biome.WildEncounterRulesByTriggerTag != null && biome.WildEncounterRulesByTriggerTag.ContainsKey(candidate))
 		{
 			candidate = $"{normalizedBaseTag}_{suffix}";
 			suffix++;

@@ -29,10 +29,348 @@ MonoBehaviour:
     Omnivamprism: 0
     TimeEffectResistance: 0
   FeatBoard:
-    Nodes: []
-    RootNodeId: 
+    Nodes:
+    - rid: 7055333366454288441
+    - rid: 7055333366454288442
+    - rid: 7055333366454288443
+    - rid: 7055333366454288444
+    - rid: 7055333366454288445
+    - rid: 7055333366454288446
+    - rid: 7055333366454288447
+    - rid: 7055333366454288448
+    - rid: 7055333366454288449
+    - rid: 7055333366454288450
+    - rid: 7055333366454288451
+    - rid: 7055333366454288452
+    - rid: 7055333366454288453
+    - rid: 7055333366454288454
+    - rid: 7055333366454288455
+    - rid: 7055333366454288456
+    - rid: 7055333366454288457
+    - rid: 7055333366454288458
+    - rid: 7055333366454288459
+    - rid: 7055333366454288460
+    - rid: 7055333366454288461
+    - rid: 7055333366454288462
+    RootNodeId: 1af93324228d4cb2bcd6dfcad0451cac
   Forms:
-    _serializedList: []
+    _serializedList:
+    - Key: Default
+      Value:
+        DisplayName: BaseForm
+        Tier: 0
+        Icon: {fileID: 0}
+        ModelPrefab: {fileID: 0}
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 7055333366454288441
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: 1af93324228d4cb2bcd6dfcad0451cac
+        DisplayName: Base node
+        Position: {x: 0, y: 0}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 8ab40fa26eef4a2ca25a6512775c0402
+        - df1f2570fcd74327b84c7d13efece65a
+        - fc9a0fb4dc1b4be596f95fcf0b3c50cb
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288442
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: df1f2570fcd74327b84c7d13efece65a
+        DisplayName: New Feat
+        Position: {x: -0, y: -8}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 1af93324228d4cb2bcd6dfcad0451cac
+        - 10f233495c7a46808a7f80a419374618
+        - 75072b6feb5d4e989203d3938fa6761b
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288443
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: fc9a0fb4dc1b4be596f95fcf0b3c50cb
+        DisplayName: New Feat
+        Position: {x: 7, y: -7}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 1af93324228d4cb2bcd6dfcad0451cac
+        - fe343925b8834917a853527618afd780
+        - 2762d911c2be46e7b7a8b87cbf5b7303
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288444
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: 8ab40fa26eef4a2ca25a6512775c0402
+        DisplayName: New Feat
+        Position: {x: -7, y: -7}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 1af93324228d4cb2bcd6dfcad0451cac
+        - 402c9d5f4e0c4a6db6003f4f36bb0aa3
+        - 505be939a6d34ce181dee312a11b884d
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288445
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: 505be939a6d34ce181dee312a11b884d
+        DisplayName: New Feat
+        Position: {x: -15, y: -7}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 8ab40fa26eef4a2ca25a6512775c0402
+        - 96037d74984e4a7a869e918fb11c00b8
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288446
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: 402c9d5f4e0c4a6db6003f4f36bb0aa3
+        DisplayName: New Feat
+        Position: {x: -12, y: -13}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 8ab40fa26eef4a2ca25a6512775c0402
+        - 2ce09f27a6c745ea930525cfc2499e44
+        - 0f8b128dc6b94fff8832ae2abd097836
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288447
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: 10f233495c7a46808a7f80a419374618
+        DisplayName: New Feat
+        Position: {x: -4, y: -15}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - df1f2570fcd74327b84c7d13efece65a
+        - 05bf2c51397046329e6029b70b79a7a5
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288448
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: 75072b6feb5d4e989203d3938fa6761b
+        DisplayName: New Feat
+        Position: {x: 4, y: -15}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - df1f2570fcd74327b84c7d13efece65a
+        - eb5ab08d464c4930a90cf9ea3d45921b
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288449
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: fe343925b8834917a853527618afd780
+        DisplayName: New Feat
+        Position: {x: 12, y: -13}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - fc9a0fb4dc1b4be596f95fcf0b3c50cb
+        - b87abda26ce64cffa33c8d145e26b891
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288450
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: 2762d911c2be46e7b7a8b87cbf5b7303
+        DisplayName: New Feat
+        Position: {x: 15, y: -7}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - fc9a0fb4dc1b4be596f95fcf0b3c50cb
+        - c7a6c7969a66486b87fd547243ce150f
+        - ae17fad535de4148a4438bcfbb0342be
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288451
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: 05bf2c51397046329e6029b70b79a7a5
+        DisplayName: New Feat
+        Position: {x: -4, y: -21}
+        Kind: 2
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 10f233495c7a46808a7f80a419374618
+        - bc010488f49c4c1db24467fd6b7b2e9d
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288452
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: eb5ab08d464c4930a90cf9ea3d45921b
+        DisplayName: New Feat
+        Position: {x: 4, y: -21}
+        Kind: 2
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 75072b6feb5d4e989203d3938fa6761b
+        - bc010488f49c4c1db24467fd6b7b2e9d
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288453
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: bc010488f49c4c1db24467fd6b7b2e9d
+        DisplayName: New Feat
+        Position: {x: 0, y: -27}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - eb5ab08d464c4930a90cf9ea3d45921b
+        - 05bf2c51397046329e6029b70b79a7a5
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288454
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: 0f8b128dc6b94fff8832ae2abd097836
+        DisplayName: New Feat
+        Position: {x: -12, y: -19}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 402c9d5f4e0c4a6db6003f4f36bb0aa3
+        - c0d4f233b053477bb7e1209a384dee4f
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288455
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: 2ce09f27a6c745ea930525cfc2499e44
+        DisplayName: New Feat
+        Position: {x: -19, y: -15}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 402c9d5f4e0c4a6db6003f4f36bb0aa3
+        - c0d4f233b053477bb7e1209a384dee4f
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288456
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: 96037d74984e4a7a869e918fb11c00b8
+        DisplayName: New Feat
+        Position: {x: -22, y: -7}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 505be939a6d34ce181dee312a11b884d
+        - 9a790cfd5c754972b8b4c626e6ec888e
+        - 2eabe203998f48adaa416a394827ece0
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288457
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: 9a790cfd5c754972b8b4c626e6ec888e
+        DisplayName: New Feat
+        Position: {x: -29, y: -7}
+        Kind: 2
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 96037d74984e4a7a869e918fb11c00b8
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288458
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: 2eabe203998f48adaa416a394827ece0
+        DisplayName: New Feat
+        Position: {x: -27, y: -1}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 96037d74984e4a7a869e918fb11c00b8
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288459
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: ae17fad535de4148a4438bcfbb0342be
+        DisplayName: New Feat
+        Position: {x: 22, y: -7}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 2762d911c2be46e7b7a8b87cbf5b7303
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288460
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: c7a6c7969a66486b87fd547243ce150f
+        DisplayName: New Feat
+        Position: {x: 18, y: -1}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 2762d911c2be46e7b7a8b87cbf5b7303
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288461
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: c0d4f233b053477bb7e1209a384dee4f
+        DisplayName: New Feat
+        Position: {x: -19, y: -21}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 0f8b128dc6b94fff8832ae2abd097836
+        - 2ce09f27a6c745ea930525cfc2499e44
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333366454288462
+      type: {class: FeatNode, ns: , asm: Assembly-CSharp}
+      data:
+        Id: b87abda26ce64cffa33c8d145e26b891
+        DisplayName: New Feat
+        Position: {x: 19, y: -13}
+        Kind: 2
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - fe343925b8834917a853527618afd780
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
