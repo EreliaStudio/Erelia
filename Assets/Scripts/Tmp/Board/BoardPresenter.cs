@@ -27,7 +27,7 @@ public class BoardPresenter : MonoBehaviour
 		boardView.SetMaskMesh(
 			VoxelMesher.BuildMaskMesh(
 				boardData.Terrain.Cells,
-				boardData.Terrain.MaskCells,
+				boardData.Terrain.MaskLayer,
 				voxelRegistry,
 				voxelMaskRegistry));
 	}

@@ -168,18 +168,7 @@ public class WorldPresenter : MonoBehaviour
 			return false;
 		}
 
-		VoxelMaskCell maskCell = chunkData.MaskCells[localPosition.x, localPosition.y, localPosition.z];
-		if (maskCell == null)
-		{
-			return false;
-		}
-
-		if (!maskCell.Masks.Contains(mask))
-		{
-			maskCell.Masks.Add(mask);
-		}
-
-		return true;
+		return chunkData.MaskLayer.TryAddMask(localPosition, mask);
 	}
 
 	public void RebuildChunkOverlay(ChunkCoordinates coordinates)

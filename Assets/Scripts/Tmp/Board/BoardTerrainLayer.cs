@@ -4,7 +4,7 @@ using UnityEngine;
 [Serializable]
 public sealed class BoardTerrainLayer : VoxelGrid
 {
-	public readonly VoxelMaskCell[,,] MaskCells;
+	public readonly VoxelMaskLayer MaskLayer;
 
 	[NonSerialized]
 	private VoxelRegistry _voxelRegistry;
@@ -17,18 +17,7 @@ public sealed class BoardTerrainLayer : VoxelGrid
 
 	public BoardTerrainLayer(int p_sizeX, int p_sizeY, int p_sizeZ) : base(p_sizeX, p_sizeY, p_sizeZ)
 	{
-		MaskCells = new VoxelMaskCell[p_sizeX, p_sizeY, p_sizeZ];
-
-		for (int x = 0; x < p_sizeX; x++)
-		{
-			for (int y = 0; y < p_sizeY; y++)
-			{
-				for (int z = 0; z < p_sizeZ; z++)
-				{
-					MaskCells[x, y, z] = new VoxelMaskCell();
-				}
-			}
-		}
+		MaskLayer = new VoxelMaskLayer(p_sizeX, p_sizeY, p_sizeZ);
 	}
 
 	public void AssignVoxelRegistry(VoxelRegistry p_voxelRegistry)

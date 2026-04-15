@@ -59,7 +59,7 @@ public class ChunkPresenter : MonoBehaviour
 			return;
 		}
 
-		overlayView.SetOverlayMesh(VoxelMesher.BuildMaskMesh(chunkData.Cells, chunkData.MaskCells, voxelRegistry, voxelMaskRegistry));
+		overlayView.SetOverlayMesh(VoxelMesher.BuildMaskMesh(chunkData.Cells, chunkData.MaskLayer, voxelRegistry, voxelMaskRegistry));
 	}
 
 	public void SetTerrainVisible(bool visible)

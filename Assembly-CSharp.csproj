@@ -57,6 +57,7 @@
     <Compile Include="Assets\Scripts\Tmp\Core\Attributes.cs" />
     <Compile Include="Assets\Scripts\World\SimpleDebugChunkGenerator.cs" />
     <Compile Include="Assets\Scripts\Tmp\Feats\FeatBoard.cs" />
+    <Compile Include="Assets\Scripts\Core\Voxel\VoxelMaskLayer.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\CardinalHeightSet.cs" />
     <Compile Include="Assets\Scripts\World\Navigation\WorldVoxelRaycaster.cs" />
     <Compile Include="Assets\Scripts\World\ChunkOverlayView.cs" />

@@ -7,21 +7,11 @@ public class ChunkData : VoxelGrid
 	public const int FixedSizeY = 16;
 	public const int FixedSizeZ = 16;
 
-	public readonly VoxelMaskCell[,,] MaskCells;
+	public readonly VoxelMaskLayer MaskLayer;
 
 	public ChunkData() : base(FixedSizeX, FixedSizeY, FixedSizeZ)
 	{
-		MaskCells = new VoxelMaskCell[FixedSizeX, FixedSizeY, FixedSizeZ];
-		for (int x = 0; x < FixedSizeX; x++)
-		{
-			for (int y = 0; y < FixedSizeY; y++)
-			{
-				for (int z = 0; z < FixedSizeZ; z++)
-				{
-					MaskCells[x, y, z] = new VoxelMaskCell();
-				}
-			}
-		}
+		MaskLayer = new VoxelMaskLayer(FixedSizeX, FixedSizeY, FixedSizeZ);
 	}
 
 	public VoxelCell GetCell(int x, int y, int z)
@@ -34,22 +24,8 @@ public class ChunkData : VoxelGrid
 		Cells[x, y, z] = cell;
 	}
 
-	public VoxelMaskCell GetMaskCell(int x, int y, int z)
-	{
-		return MaskCells[x, y, z];
-	}
-
 	public void ClearMasks()
 	{
-		for (int x = 0; x < FixedSizeX; x++)
-		{
-			for (int y = 0; y < FixedSizeY; y++)
-			{
-				for (int z = 0; z < FixedSizeZ; z++)
-				{
-					MaskCells[x, y, z].Masks.Clear();
-				}
-			}
-		}
+		MaskLayer.Clear();
 	}
 }

@@ -118,69 +118,44 @@ public static partial class VoxelMesher
 		return BuildColliderMeshInternal(cells, voxelRegistry, expectedVoxelTraversal);
 	}
 
-	public static Mesh BuildMaskMesh(VoxelCell[,,] cells, VoxelMaskCell[,,] maskGrid, VoxelRegistry voxelRegistry, VoxelMaskRegistry maskRegistry)
+	public static Mesh BuildMaskMesh(VoxelCell[,,] cells, VoxelMaskLayer maskLayer, VoxelRegistry voxelRegistry, VoxelMaskRegistry maskRegistry)
 	{
 		var vertices = new List<Vector3>();
 		var triangles = new List<int>();
 		var uvs = new List<Vector2>();
 
-		if (cells == null || maskGrid == null || voxelRegistry == null || maskRegistry == null)
+		if (cells == null || maskLayer == null || voxelRegistry == null || maskRegistry == null || maskLayer.ActiveCellCount <= 0)
 		{
 			return new Mesh();
 		}
 
-		int sizeX = Mathf.Min(cells.GetLength(0), maskGrid.GetLength(0));
-		int sizeY = Mathf.Min(cells.GetLength(1), maskGrid.GetLength(1));
-		int sizeZ = Mathf.Min(cells.GetLength(2), maskGrid.GetLength(2));
-
-		for (int x = 0; x < sizeX; x++)
+		foreach (KeyValuePair<Vector3Int, VoxelMaskCell> entry in maskLayer.ActiveCells)
 		{
-			for (int y = 0; y < sizeY; y++)
+			VoxelMaskCell maskCell = entry.Value;
+			if (maskCell == null || maskCell.Masks == null || maskCell.Masks.Count == 0)
 			{
-				for (int z = 0; z < sizeZ; z++)
-				{
-					VoxelMaskCell maskCell = maskGrid[x, y, z];
-					if (maskCell == null ||
-						maskCell.Masks == null ||
-						maskCell.Masks.Count == 0 ||
-						!TryGetVoxelDefinition(cells[x, y, z], voxelRegistry, out VoxelDefinition voxelDefinition, out VoxelCell cell))
-					{
-						continue;
-					}
-
-					List<VoxelShape.Face> maskFaces = voxelDefinition.Shape?.GetMaskFaces(cell.FlipOrientation);
-					if (maskFaces == null || maskFaces.Count == 0)
-					{
-						continue;
-					}
-
-					Vector3 offset = new Vector3(x, y, z);
-					for (int maskIndex = 0; maskIndex < maskCell.Masks.Count; maskIndex++)
-					{
-						VoxelMask mask = maskCell.Masks[maskIndex];
-						if (mask == VoxelMask.None || !maskRegistry.TryGetSprite(mask, out Sprite sprite) || sprite == null)
-						{
-							continue;
-						}
-
-						GetSpriteUvRect(sprite, out Vector2 uvAnchor, out Vector2 uvSize);
-						Vector3 layerOffset = new Vector3(0f, maskIndex * MaskLayerOffset, 0f);
-
-						for (int faceIndex = 0; faceIndex < maskFaces.Count; faceIndex++)
-						{
-							AddFace(
-								TransformFaceCached(maskFaces[faceIndex], cell.Orientation, VoxelFlipOrientation.PositiveY),
-								offset + layerOffset,
-								vertices,
-								triangles,
-								uvs,
-								true,
-								uvAnchor,
-								uvSize);
-						}
-					}
-				}
+				continue;
 			}
+
+			Vector3Int localPosition = entry.Key;
+			if (localPosition.x < 0 || localPosition.x >= cells.GetLength(0) ||
+				localPosition.y < 0 || localPosition.y >= cells.GetLength(1) ||
+				localPosition.z < 0 || localPosition.z >= cells.GetLength(2))
+			{
+				continue;
+			}
+
+			AppendMaskCell(
+				cells,
+				localPosition.x,
+				localPosition.y,
+				localPosition.z,
+				maskCell,
+				voxelRegistry,
+				maskRegistry,
+				vertices,
+				triangles,
+				uvs);
 		}
 
 		return BuildMesh(vertices, triangles, uvs);
@@ -205,5 +180,58 @@ public static partial class VoxelMesher
 		mesh.RecalculateNormals();
 		mesh.RecalculateBounds();
 		return mesh;
+	}
+
+	private static void AppendMaskCell(
+		VoxelCell[,,] cells,
+		int x,
+		int y,
+		int z,
+		VoxelMaskCell maskCell,
+		VoxelRegistry voxelRegistry,
+		VoxelMaskRegistry maskRegistry,
+		List<Vector3> vertices,
+		List<int> triangles,
+		List<Vector2> uvs)
+	{
+		if (maskCell == null ||
+			maskCell.Masks == null ||
+			maskCell.Masks.Count == 0 ||
+			!TryGetVoxelDefinition(cells[x, y, z], voxelRegistry, out VoxelDefinition voxelDefinition, out VoxelCell cell))
+		{
+			return;
+		}
+
+		List<VoxelShape.Face> maskFaces = voxelDefinition.Shape?.GetMaskFaces(cell.FlipOrientation);
+		if (maskFaces == null || maskFaces.Count == 0)
+		{
+			return;
+		}
+
+		Vector3 offset = new Vector3(x, y, z);
+		for (int maskIndex = 0; maskIndex < maskCell.Masks.Count; maskIndex++)
+		{
+			VoxelMask mask = maskCell.Masks[maskIndex];
+			if (mask == VoxelMask.None || !maskRegistry.TryGetSprite(mask, out Sprite sprite) || sprite == null)
+			{
+				continue;
+			}
+
+			GetSpriteUvRect(sprite, out Vector2 uvAnchor, out Vector2 uvSize);
+			Vector3 layerOffset = new Vector3(0f, maskIndex * MaskLayerOffset, 0f);
+
+			for (int faceIndex = 0; faceIndex < maskFaces.Count; faceIndex++)
+			{
+				AddFace(
+					TransformFaceCached(maskFaces[faceIndex], cell.Orientation, VoxelFlipOrientation.PositiveY),
+					offset + layerOffset,
+					vertices,
+					triangles,
+					uvs,
+					true,
+					uvAnchor,
+					uvSize);
+			}
+		}
 	}
 }
