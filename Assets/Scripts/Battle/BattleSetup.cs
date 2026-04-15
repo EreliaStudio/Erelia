@@ -17,6 +17,11 @@ public sealed class BattleSetup
 		return new BattleSetup(entry?.Team, board);
 	}
 
+	public BattleSetup WithBoard(BoardData board)
+	{
+		return new BattleSetup(Team, board);
+	}
+
 	private static EncounterUnit[] CloneTeam(EncounterUnit[] sourceTeam)
 	{
 		EncounterUnit[] clonedTeam = new EncounterUnit[GameRule.TeamMemberCount];

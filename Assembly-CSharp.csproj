@@ -69,6 +69,7 @@
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelGrid.cs" />
     <Compile Include="Assets\Scripts\World\WorldData.cs" />
     <Compile Include="Assets\Scripts\Creatures\CreatureSpecies.cs" />
+    <Compile Include="Assets\Scripts\Board\BoardConfiguration.cs" />
     <Compile Include="Assets\Scripts\Core\Event\EventCenter.cs" />
     <Compile Include="Assets\Scripts\World\MetaWorldData.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMesher.Collider.cs" />
@@ -77,6 +78,7 @@
     <Compile Include="Assets\Scripts\World\ChunkPresenter.cs" />
     <Compile Include="Assets\Scripts\Creatures\CreatureForm.cs" />
     <Compile Include="Assets\Scripts\Actors\Actor.cs" />
+    <Compile Include="Assets\Scripts\Board\BoardDataBuilder.cs" />
     <Compile Include="Assets\Scripts\World\WorldLoadResult.cs" />
     <Compile Include="Assets\Scripts\Abilities\Ability.cs" />
     <Compile Include="Assets\Scripts\Board\BoardTerrainLayer.cs" />
@@ -135,6 +137,7 @@
     <Compile Include="Assets\Scripts\World\ChunkMetaData.cs" />
     <Compile Include="Assets\Scripts\Board\BoardRuntimeRegistry.cs" />
     <Compile Include="Assets\Scripts\World\ChunkView.cs" />
+    <Compile Include="Assets\Scripts\Board\BoardBuildResult.cs" />
     <Compile Include="Assets\Scripts\AI\AICondition.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatBoardProgress.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelDefinition.cs" />

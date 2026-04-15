@@ -228,7 +228,7 @@ public class EncounterTableEditorWindow : EditorWindow
 		EditorGUILayout.BeginHorizontal();
 		GUILayout.FlexibleSpace();
 		using (new EditorGUI.DisabledScope(string.IsNullOrWhiteSpace(renameBuffer) ||
-		                                   string.Equals(BiomeDefinition.NormalizeTriggerTag(renameBuffer), selectedTriggerTag, StringComparison.Ordinal)))
+		                                   BiomeDefinition.AreTriggerTagsEquivalent(renameBuffer, selectedTriggerTag)))
 		{
 			if (GUILayout.Button("Apply Tag Rename", GUILayout.Width(140f)))
 			{
@@ -374,15 +374,15 @@ public class EncounterTableEditorWindow : EditorWindow
 			return;
 		}
 
-		string normalizedTag = BiomeDefinition.NormalizeTriggerTag(proposedTag);
-		if (string.IsNullOrEmpty(normalizedTag) || string.Equals(normalizedTag, selectedTriggerTag, StringComparison.Ordinal))
+		string cleanedTag = BiomeDefinition.CleanTriggerTag(proposedTag);
+		if (string.IsNullOrEmpty(cleanedTag) || BiomeDefinition.AreTriggerTagsEquivalent(cleanedTag, selectedTriggerTag))
 		{
 			return;
 		}
 
-		if (biome.WildEncounterRulesByTriggerTag.ContainsKey(normalizedTag))
+		if (ContainsEquivalentTriggerTag(cleanedTag))
 		{
-			EditorUtility.DisplayDialog("Trigger Tag Already Exists", $"The trigger tag '{normalizedTag}' already exists on this biome.", "OK");
+			EditorUtility.DisplayDialog("Trigger Tag Already Exists", $"The trigger tag '{cleanedTag}' already exists on this biome.", "OK");
 			return;
 		}
 
@@ -395,11 +395,11 @@ public class EncounterTableEditorWindow : EditorWindow
 		ApplyBiomeChange("Rename Encounter Trigger Tag", () =>
 		{
 			biome.WildEncounterRulesByTriggerTag.Remove(previousTag);
-			biome.WildEncounterRulesByTriggerTag.Add(normalizedTag, existingRule);
+			biome.WildEncounterRulesByTriggerTag.Add(cleanedTag, existingRule);
 		});
 
-		selectedTriggerTag = normalizedTag;
-		renameBuffer = normalizedTag;
+		selectedTriggerTag = cleanedTag;
+		renameBuffer = cleanedTag;
 	}
 
 	private void AddTierEntry(EncounterTier tier)
@@ -446,7 +446,11 @@ public class EncounterTableEditorWindow : EditorWindow
 
 		if (!string.IsNullOrEmpty(selectedTriggerTag) && biome.WildEncounterRulesByTriggerTag.ContainsKey(selectedTriggerTag))
 		{
-			renameBuffer = selectedTriggerTag;
+			if (string.IsNullOrEmpty(renameBuffer))
+			{
+				renameBuffer = selectedTriggerTag;
+			}
+
 			return;
 		}
 
@@ -476,17 +480,36 @@ public class EncounterTableEditorWindow : EditorWindow
 
 	private string BuildUniqueTriggerTag(string baseTag)
 	{
-		string normalizedBaseTag = BiomeDefinition.NormalizeTriggerTag(baseTag);
-		string candidate = string.IsNullOrEmpty(normalizedBaseTag) ? "trigger" : normalizedBaseTag;
+		string cleanedBaseTag = BiomeDefinition.CleanTriggerTag(baseTag);
+		string rootTag = string.IsNullOrEmpty(cleanedBaseTag) ? "trigger" : cleanedBaseTag;
+		string candidate = rootTag;
 		int suffix = 1;
 
-		while (biome != null && biome.WildEncounterRulesByTriggerTag != null && biome.WildEncounterRulesByTriggerTag.ContainsKey(candidate))
+		while (ContainsEquivalentTriggerTag(candidate))
 		{
-			candidate = $"{normalizedBaseTag}_{suffix}";
+			candidate = $"{rootTag}_{suffix}";
 			suffix++;
 		}
 
 		return candidate;
+	}
+
+	private bool ContainsEquivalentTriggerTag(string candidate)
+	{
+		if (biome?.WildEncounterRulesByTriggerTag == null || string.IsNullOrWhiteSpace(candidate))
+		{
+			return false;
+		}
+
+		foreach (var entry in biome.WildEncounterRulesByTriggerTag)
+		{
+			if (BiomeDefinition.AreTriggerTagsEquivalent(entry.Key, candidate))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private void ApplyBiomeChange(string undoLabel, Action mutation)

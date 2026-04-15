@@ -213,6 +213,21 @@ public class WorldPresenter : MonoBehaviour
 		}
 	}
 
+	public void ShowBattleAreaBorder(IEnumerable<Vector3Int> borderWorldCells)
+	{
+		ClearAllChunkMasks();
+
+		if (borderWorldCells != null)
+		{
+			foreach (Vector3Int worldCell in borderWorldCells)
+			{
+				TryAddMask(worldCell, VoxelMask.BattleAreaBorder);
+			}
+		}
+
+		RebuildAllChunkOverlays();
+	}
+
 	private void DestroyChunkPresenter(ChunkCoordinates coordinates)
 	{
 		if (!chunkPresenters.TryGetValue(coordinates, out ChunkPresenter presenter) || presenter == null)

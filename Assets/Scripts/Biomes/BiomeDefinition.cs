@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using AYellowpaper.SerializedCollections;
 using UnityEngine;
 
@@ -12,20 +13,20 @@ public class BiomeDefinition : ScriptableObject
 	public bool TryGetEncounterRule(string triggerTag, out BiomeEncounterRule rule)
 	{
 		rule = null;
-		string normalizedTag = NormalizeTriggerTag(triggerTag);
-		if (string.IsNullOrEmpty(normalizedTag) || WildEncounterRulesByTriggerTag == null)
+		if (string.IsNullOrWhiteSpace(triggerTag) || WildEncounterRulesByTriggerTag == null)
 		{
 			return false;
 		}
 
-		if (WildEncounterRulesByTriggerTag.TryGetValue(normalizedTag, out rule) && rule != null)
+		string trimmedTag = CleanTriggerTag(triggerTag);
+		if (WildEncounterRulesByTriggerTag.TryGetValue(trimmedTag, out rule) && rule != null)
 		{
 			return true;
 		}
 
 		foreach (var entry in WildEncounterRulesByTriggerTag)
 		{
-			if (!string.Equals(NormalizeTriggerTag(entry.Key), normalizedTag, StringComparison.Ordinal))
+			if (!AreTriggerTagsEquivalent(entry.Key, trimmedTag))
 			{
 				continue;
 			}
@@ -37,8 +38,53 @@ public class BiomeDefinition : ScriptableObject
 		return false;
 	}
 
-	public static string NormalizeTriggerTag(string triggerTag)
+	public static string CleanTriggerTag(string triggerTag)
 	{
-		return string.IsNullOrWhiteSpace(triggerTag) ? string.Empty : triggerTag.Trim().ToLowerInvariant();
+		return string.IsNullOrWhiteSpace(triggerTag) ? string.Empty : triggerTag.Trim();
+	}
+
+	public static bool AreTriggerTagsEquivalent(string left, string right)
+	{
+		if (string.IsNullOrWhiteSpace(left) || string.IsNullOrWhiteSpace(right))
+		{
+			return false;
+		}
+
+		return string.Equals(CleanTriggerTag(left), CleanTriggerTag(right), StringComparison.OrdinalIgnoreCase);
+	}
+
+	public IReadOnlyList<string> GetEncounterRuleTags()
+	{
+		List<string> tags = new List<string>();
+		if (WildEncounterRulesByTriggerTag == null)
+		{
+			return tags;
+		}
+
+		foreach (var entry in WildEncounterRulesByTriggerTag)
+		{
+			string tag = CleanTriggerTag(entry.Key);
+			if (string.IsNullOrEmpty(tag) || ContainsEquivalentTag(tags, tag))
+			{
+				continue;
+			}
+
+			tags.Add(tag);
+		}
+
+		return tags;
+	}
+
+	private static bool ContainsEquivalentTag(IReadOnlyList<string> tags, string candidate)
+	{
+		for (int index = 0; index < tags.Count; index++)
+		{
+			if (AreTriggerTagsEquivalent(tags[index], candidate))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
