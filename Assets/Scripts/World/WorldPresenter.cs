@@ -4,13 +4,17 @@ using UnityEngine;
 public class WorldPresenter : MonoBehaviour
 {
 	[SerializeField] private WorldData worldData = new WorldData();
+	[SerializeField] private MetaWorldData metaWorldData = new MetaWorldData();
 	[SerializeField] private ChunkPresenter chunkPrefab;
 	[SerializeField] private WorldLoader worldLoader = new WorldLoader();
+	[SerializeField] private MetaWorldGenerator metaWorldGenerator = new MetaWorldGenerator();
 
 	private readonly Dictionary<ChunkCoordinates, ChunkPresenter> chunkPresenters = new Dictionary<ChunkCoordinates, ChunkPresenter>();
 
 	public WorldData WorldData => worldData;
+	public MetaWorldData MetaWorldData => metaWorldData;
 	public WorldLoader WorldLoader => worldLoader;
+	public MetaWorldGenerator MetaWorldGenerator => metaWorldGenerator;
 	public VoxelRegistry VoxelRegistry => chunkPrefab != null ? chunkPrefab.VoxelRegistry : null;
 
 	[ContextMenu("Load Around Origin")]
@@ -24,6 +28,11 @@ public class WorldPresenter : MonoBehaviour
 		if (worldData == null)
 		{
 			worldData = new WorldData();
+		}
+
+		if (metaWorldData == null)
+		{
+			metaWorldData = new MetaWorldData();
 		}
 	}
 
@@ -43,6 +52,11 @@ public class WorldPresenter : MonoBehaviour
 		if (worldData != null)
 		{
 			worldData.Clear();
+		}
+
+		if (metaWorldData != null)
+		{
+			metaWorldData.Clear();
 		}
 	}
 
@@ -85,7 +99,9 @@ public class WorldPresenter : MonoBehaviour
 
 		for (int i = 0; i < loadResult.UnloadedChunks.Count; i++)
 		{
-			DestroyChunkPresenter(loadResult.UnloadedChunks[i]);
+			ChunkCoordinates coordinates = loadResult.UnloadedChunks[i];
+			DestroyChunkPresenter(coordinates);
+			metaWorldData?.SetChunkMeta(coordinates, null);
 		}
 
 		if (chunkPrefab == null)
@@ -99,6 +115,13 @@ public class WorldPresenter : MonoBehaviour
 			if (!worldData.TryGetChunk(coordinates, out ChunkData chunkData) || chunkData == null)
 			{
 				continue;
+			}
+
+			if (metaWorldData != null && !metaWorldData.HasChunkMeta(coordinates))
+			{
+				metaWorldData.SetChunkMeta(coordinates, metaWorldGenerator != null
+					? metaWorldGenerator.GenerateChunkMeta(coordinates)
+					: new ChunkMetaData());
 			}
 
 			CreateChunkPresenter(coordinates).Assign(chunkData);
