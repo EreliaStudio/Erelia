@@ -48,17 +48,17 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.1f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Tmp\Abilities\Editor\AbilityEffectDrawer.cs" />
+    <Compile Include="Assets\Scripts\Abilities\Editor\AbilityEffectDrawer.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Editor\VoxelDefinitionEditor.cs" />
-    <Compile Include="Assets\Scripts\Tmp\Creatures\Editor\CreatureSpeciesEditor.cs" />
-    <Compile Include="Assets\Scripts\Tmp\Feats\Editor\FeatBoardEditorWindow.Model.cs" />
-    <Compile Include="Assets\Scripts\Tmp\AI\Editor\AIRuleDrawer.cs" />
-    <Compile Include="Assets\Scripts\Tmp\Feats\Editor\FeatBoardEditorWindow.cs" />
+    <Compile Include="Assets\Scripts\Feats\Editor\FeatBoardEditorWindow.cs" />
+    <Compile Include="Assets\Scripts\Feats\Editor\FeatBoardEditorWindow.Model.cs" />
     <Compile Include="Assets\Scripts\Core\Editor\Utils\ManagedReferenceTypePicker.cs" />
-    <Compile Include="Assets\Scripts\Tmp\Abilities\Editor\AbilityEditor.cs" />
-    <Compile Include="Assets\Scripts\Tmp\Abilities\Editor\AbilityCostDrawer.cs" />
-    <Compile Include="Assets\Scripts\Tmp\Creatures\Editor\CreatureUnitFeatProgressUtility.cs" />
-    <Compile Include="Assets\Scripts\Tmp\Feats\Editor\FeatBoardEditorWindow.Styles.cs" />
+    <Compile Include="Assets\Scripts\AI\Editor\AIRuleDrawer.cs" />
+    <Compile Include="Assets\Scripts\Abilities\Editor\AbilityCostDrawer.cs" />
+    <Compile Include="Assets\Scripts\Abilities\Editor\AbilityEditor.cs" />
+    <Compile Include="Assets\Scripts\Feats\Editor\FeatBoardEditorWindow.Styles.cs" />
+    <Compile Include="Assets\Scripts\Creatures\Editor\CreatureSpeciesEditor.cs" />
+    <Compile Include="Assets\Scripts\Creatures\Editor\CreatureUnitFeatProgressUtility.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
