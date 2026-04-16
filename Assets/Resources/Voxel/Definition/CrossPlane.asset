@@ -15,7 +15,8 @@ MonoBehaviour:
   data:
     Traversal: 1
     Tags:
-    - encounter
+    - encounterTrigger
+    - default
   shape:
     rid: 7055333324432343044
   references:

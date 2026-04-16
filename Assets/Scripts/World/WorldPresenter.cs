@@ -3,37 +3,29 @@ using UnityEngine;
 
 public class WorldPresenter : MonoBehaviour
 {
-	[SerializeField] private WorldData worldData = new WorldData();
-	[SerializeField] private MetaWorldData metaWorldData = new MetaWorldData();
 	[SerializeField] private ChunkPresenter chunkPrefab;
-	[SerializeField] private WorldLoader worldLoader = new WorldLoader();
-	[SerializeField] private MetaWorldGenerator metaWorldGenerator = new MetaWorldGenerator();
 
 	private readonly Dictionary<ChunkCoordinates, ChunkPresenter> chunkPresenters = new Dictionary<ChunkCoordinates, ChunkPresenter>();
+	private WorldContext worldContext;
 
-	public WorldData WorldData => worldData;
-	public MetaWorldData MetaWorldData => metaWorldData;
-	public WorldLoader WorldLoader => worldLoader;
-	public MetaWorldGenerator MetaWorldGenerator => metaWorldGenerator;
+	public WorldContext WorldContext => worldContext;
+	public WorldData WorldData => worldContext?.WorldData;
+	public MetaWorldData MetaWorldData => worldContext?.MetaWorldData;
+	public WorldLoader WorldLoader => worldContext?.WorldLoader;
+	public MetaWorldGenerator MetaWorldGenerator => worldContext?.MetaWorldGenerator;
 	public VoxelRegistry VoxelRegistry => chunkPrefab != null ? chunkPrefab.VoxelRegistry : null;
 
-	[ContextMenu("Load Around Origin")]
-	public void LoadAroundOrigin()
+	public void Bind(WorldContext targetWorldContext)
 	{
-		ApplyLoadResult(SetCenterChunk(new ChunkCoordinates(0, 0)));
-	}
-
-	private void Awake()
-	{
-		if (worldData == null)
+		if (ReferenceEquals(worldContext, targetWorldContext))
 		{
-			worldData = new WorldData();
+			RefreshLoadedChunkPresenters();
+			return;
 		}
 
-		if (metaWorldData == null)
-		{
-			metaWorldData = new MetaWorldData();
-		}
+		ClearChunkPresenters();
+		worldContext = targetWorldContext;
+		RefreshLoadedChunkPresenters();
 	}
 
 	private void OnEnable()
@@ -49,15 +41,6 @@ public class WorldPresenter : MonoBehaviour
 	private void OnDestroy()
 	{
 		ClearChunkPresenters();
-		if (worldData != null)
-		{
-			worldData.Clear();
-		}
-
-		if (metaWorldData != null)
-		{
-			metaWorldData.Clear();
-		}
 	}
 
 	private void OnPlayerChunkChanged(ChunkCoordinates centerChunk)
@@ -67,27 +50,22 @@ public class WorldPresenter : MonoBehaviour
 
 	private void Update()
 	{
-		if (worldData == null || worldLoader == null || !worldLoader.HasPendingChunks)
+		if (worldContext == null || worldContext.WorldData == null || worldContext.WorldLoader == null || !worldContext.WorldLoader.HasPendingChunks)
 		{
 			return;
 		}
 
-		ApplyLoadResult(worldLoader.ProcessPending(worldData, Time.deltaTime));
+		ApplyLoadResult(worldContext.WorldLoader.ProcessPending(worldContext.WorldData, Time.deltaTime));
 	}
 
 	private WorldLoadResult SetCenterChunk(ChunkCoordinates centerChunk)
 	{
-		if (worldData == null)
+		if (worldContext == null || worldContext.WorldData == null || worldContext.WorldLoader == null)
 		{
-			worldData = new WorldData();
+			return null;
 		}
 
-		if (worldLoader == null)
-		{
-			worldLoader = new WorldLoader();
-		}
-
-		return worldLoader.SetCenterChunk(worldData, centerChunk);
+		return worldContext.WorldLoader.SetCenterChunk(worldContext.WorldData, centerChunk);
 	}
 
 	private void ApplyLoadResult(WorldLoadResult loadResult)
@@ -101,7 +79,7 @@ public class WorldPresenter : MonoBehaviour
 		{
 			ChunkCoordinates coordinates = loadResult.UnloadedChunks[i];
 			DestroyChunkPresenter(coordinates);
-			metaWorldData?.SetChunkMeta(coordinates, null);
+			worldContext?.MetaWorldData?.SetChunkMeta(coordinates, null);
 		}
 
 		if (chunkPrefab == null)
@@ -112,20 +90,49 @@ public class WorldPresenter : MonoBehaviour
 		for (int i = 0; i < loadResult.LoadedChunks.Count; i++)
 		{
 			ChunkCoordinates coordinates = loadResult.LoadedChunks[i];
-			if (!worldData.TryGetChunk(coordinates, out ChunkData chunkData) || chunkData == null)
+			if (worldContext == null ||
+			    !worldContext.WorldData.TryGetChunk(coordinates, out ChunkData chunkData) ||
+			    chunkData == null)
 			{
 				continue;
 			}
 
-			if (metaWorldData != null && !metaWorldData.HasChunkMeta(coordinates))
+			if (worldContext.MetaWorldData != null && !worldContext.MetaWorldData.HasChunkMeta(coordinates))
 			{
-				metaWorldData.SetChunkMeta(coordinates, metaWorldGenerator != null
-					? metaWorldGenerator.GenerateChunkMeta(coordinates)
+				worldContext.MetaWorldData.SetChunkMeta(coordinates, worldContext.MetaWorldGenerator != null
+					? worldContext.MetaWorldGenerator.GenerateChunkMeta(coordinates)
 					: new ChunkMetaData());
 			}
 
 			CreateChunkPresenter(coordinates).Assign(chunkData);
 		}
+	}
+
+	public void LoadImmediatelyAroundWorldCell(Vector3Int worldCell)
+	{
+		if (worldContext == null)
+		{
+			return;
+		}
+
+		ApplyLoadResult(SetCenterChunk(ChunkCoordinates.FromWorldVoxelPosition(worldCell)));
+
+		if (worldContext.WorldLoader == null || worldContext.WorldData == null)
+		{
+			return;
+		}
+
+		float stepDeltaTime = worldContext.WorldLoader.UpdateIntervalSeconds > 0f ? worldContext.WorldLoader.UpdateIntervalSeconds : 0f;
+		while (worldContext.WorldLoader.HasPendingChunks)
+		{
+			ApplyLoadResult(worldContext.WorldLoader.ProcessPending(worldContext.WorldData, stepDeltaTime));
+		}
+	}
+
+	[ContextMenu("Load Around Origin")]
+	public void LoadAroundOrigin()
+	{
+		ApplyLoadResult(SetCenterChunk(new ChunkCoordinates(0, 0)));
 	}
 
 	private ChunkPresenter CreateChunkPresenter(ChunkCoordinates coordinates)
@@ -145,9 +152,25 @@ public class WorldPresenter : MonoBehaviour
 		return presenter;
 	}
 
+	private void RefreshLoadedChunkPresenters()
+	{
+		if (worldContext?.WorldData == null || chunkPrefab == null)
+		{
+			return;
+		}
+
+		foreach (KeyValuePair<ChunkCoordinates, ChunkData> entry in worldContext.WorldData.Chunks)
+		{
+			if (entry.Value != null)
+			{
+				CreateChunkPresenter(entry.Key).Assign(entry.Value);
+			}
+		}
+	}
+
 	public bool TryGetChunk(ChunkCoordinates coordinates, out ChunkData chunkData)
 	{
-		if (worldData != null && worldData.TryGetChunk(coordinates, out chunkData))
+		if (worldContext?.WorldData != null && worldContext.WorldData.TryGetChunk(coordinates, out chunkData))
 		{
 			return true;
 		}
@@ -158,7 +181,7 @@ public class WorldPresenter : MonoBehaviour
 
 	public void ClearChunkMasks(ChunkCoordinates coordinates)
 	{
-		if (worldData == null || !worldData.TryGetChunk(coordinates, out ChunkData chunkData) || chunkData == null)
+		if (worldContext?.WorldData == null || !worldContext.WorldData.TryGetChunk(coordinates, out ChunkData chunkData) || chunkData == null)
 		{
 			return;
 		}
@@ -168,12 +191,12 @@ public class WorldPresenter : MonoBehaviour
 
 	public void ClearAllChunkMasks()
 	{
-		if (worldData == null)
+		if (worldContext?.WorldData == null)
 		{
 			return;
 		}
 
-		foreach (KeyValuePair<ChunkCoordinates, ChunkData> entry in worldData.Chunks)
+		foreach (KeyValuePair<ChunkCoordinates, ChunkData> entry in worldContext.WorldData.Chunks)
 		{
 			entry.Value?.ClearMasks();
 		}
@@ -181,12 +204,12 @@ public class WorldPresenter : MonoBehaviour
 
 	public bool TryAddMask(Vector3Int worldPosition, VoxelMask mask)
 	{
-		if (mask == VoxelMask.None || worldData == null)
+		if (mask == VoxelMask.None || worldContext?.WorldData == null)
 		{
 			return false;
 		}
 
-		if (!worldData.TryGetChunk(worldPosition, out _, out Vector3Int localPosition, out ChunkData chunkData) || chunkData == null)
+		if (!worldContext.WorldData.TryGetChunk(worldPosition, out _, out Vector3Int localPosition, out ChunkData chunkData) || chunkData == null)
 		{
 			return false;
 		}

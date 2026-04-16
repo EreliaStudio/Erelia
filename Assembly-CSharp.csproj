@@ -71,6 +71,12 @@
     <Compile Include="Assets\Scripts\Creatures\CreatureSpecies.cs" />
     <Compile Include="Assets\Scripts\Board\BoardConfiguration.cs" />
     <Compile Include="Assets\Scripts\Core\Event\EventCenter.cs" />
+    <Compile Include="Assets\Scripts\Core\State\BattleMode.cs" />
+    <Compile Include="Assets\Scripts\Core\State\ExplorationMode.cs" />
+    <Compile Include="Assets\Scripts\Core\State\Mode.cs" />
+    <Compile Include="Assets\Scripts\Core\State\ModeContext.cs" />
+    <Compile Include="Assets\Scripts\Core\State\ModeKind.cs" />
+    <Compile Include="Assets\Scripts\Core\State\ModeManager.cs" />
     <Compile Include="Assets\Scripts\World\MetaWorldData.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMesher.Collider.cs" />
     <Compile Include="Assets\Scripts\AI\AIDecision.cs" />
@@ -81,6 +87,8 @@
     <Compile Include="Assets\Scripts\Board\BoardDataBuilder.cs" />
     <Compile Include="Assets\Scripts\World\WorldLoadResult.cs" />
     <Compile Include="Assets\Scripts\Abilities\Ability.cs" />
+    <Compile Include="Assets\Scripts\Bootstrap\DebugBattleBootstrapper.cs" />
+    <Compile Include="Assets\Scripts\Bootstrap\GameBootstrapper.cs" />
     <Compile Include="Assets\Scripts\Board\BoardTerrainLayer.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerPresenter.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleUnit.cs" />
@@ -100,6 +108,8 @@
     <Compile Include="Assets\Scripts\Core\Observables\ObservableResource.cs" />
     <Compile Include="Assets\Scripts\Board\BoardData.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleAttributes.cs" />
+    <Compile Include="Assets\Scripts\Data\GameContext.cs" />
+    <Compile Include="Assets\Scripts\Data\GameSaveData.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatProgressionService.cs" />
     <Compile Include="Assets\Scripts\Core\Observables\ObservableValue.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorManager.cs" />
@@ -126,6 +136,7 @@
     <Compile Include="Assets\Scripts\Battle\BattleObject.cs" />
     <Compile Include="Assets\Scripts\Core\Targeting\TargetProfile.cs" />
     <Compile Include="Assets\Scripts\World\MetaWorldGenerator.cs" />
+    <Compile Include="Assets\Scripts\World\WorldContext.cs" />
     <Compile Include="Assets\Scripts\Biomes\BiomeDefinition.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatBoard.cs" />
     <Compile Include="Assets\Scripts\Statuses\StatusHookPoint.cs" />

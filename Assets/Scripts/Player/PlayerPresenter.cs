@@ -5,7 +5,7 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class PlayerPresenter : MonoBehaviour
 {
-	[SerializeField] private PlayerData playerData = new PlayerData();
+	[SerializeField] private PlayerData playerData;
 	[SerializeField] private Actor actor;
 	[SerializeField] private PlayerView playerView;
 	private Vector3 lastWorldPosition;
@@ -34,7 +34,7 @@ public class PlayerPresenter : MonoBehaviour
 			actor = GetComponent<Actor>();
 		}
 
-		InitializeFromTransform();
+		SyncToTransform();
 	}
 
 	private void OnEnable()
@@ -53,16 +53,32 @@ public class PlayerPresenter : MonoBehaviour
 		}
 	}
 
-	private void Start()
+	public void SyncToTransformAndEmit()
 	{
-		EventCenter.EmitPlayerMoved(lastWorldPosition);
-		EventCenter.EmitPlayerChunkChanged(lastChunkCoordinates);
+		SyncToTransform();
+		EmitCurrentState();
 	}
 
-	private void InitializeFromTransform()
+	public void Bind(PlayerData targetPlayerData)
+	{
+		playerData = targetPlayerData;
+		SyncToTransform();
+	}
+
+	private void SyncToTransform()
 	{
 		lastWorldPosition = transform.position;
 		lastChunkCoordinates = ChunkCoordinates.FromWorldPosition(lastWorldPosition);
+		if (playerData != null)
+		{
+			playerData.WorldCell = Vector3Int.RoundToInt(lastWorldPosition);
+		}
+	}
+
+	private void EmitCurrentState()
+	{
+		EventCenter.EmitPlayerMoved(lastWorldPosition);
+		EventCenter.EmitPlayerChunkChanged(lastChunkCoordinates);
 	}
 
 	private void OnActorCellReached(Actor sourceActor, Vector3Int worldCellPosition)
@@ -76,6 +92,11 @@ public class PlayerPresenter : MonoBehaviour
 		ChunkCoordinates currentChunkCoordinates = ChunkCoordinates.FromWorldVoxelPosition(worldCellPosition);
 
 		lastWorldPosition = currentWorldPosition;
+		if (playerData != null)
+		{
+			playerData.WorldCell = worldCellPosition;
+		}
+
 		EventCenter.EmitPlayerMoved(currentWorldPosition);
 
 		if (currentChunkCoordinates.Equals(lastChunkCoordinates))

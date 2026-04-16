@@ -23,6 +23,11 @@ public class WorldLoader
 	public SimpleDebugChunkGenerator Generator => generator;
 	public bool HasPendingChunks => pendingChunks.Count > 0;
 
+	public void SetSeed(int value)
+	{
+		seed = value;
+	}
+
 	public WorldLoadResult SetCenterChunk(WorldData worldData, ChunkCoordinates centerChunk)
 	{
 		currentCenterChunk = centerChunk;

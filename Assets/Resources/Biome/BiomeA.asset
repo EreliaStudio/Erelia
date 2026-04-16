@@ -12,15 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41bf31b6f48dbd04eabe434013955a14, type: 3}
   m_Name: BiomeA
   m_EditorClassIdentifier: Assembly-CSharp::BiomeDefinition
-  RulesByTriggerTag:
+  WildEncounterRulesByTriggerTag:
     _serializedList:
     - Key: default
       Value:
-        BaseChancePerStep: 1
+        BaseChancePerStep: 0.1
         EncounterTable:
           NoBadge:
             WeightedTeams:
-            - DisplayName: TeamA
+            - DisplayName: BaseForm
               Team:
               - Species: {fileID: 11400000, guid: f5a248bd686323248b57fc2852fb4709, type: 2}
                 CurrentFormID: Default
@@ -50,23 +50,20 @@ MonoBehaviour:
                   - NodeId: 8ab40fa26eef4a2ca25a6512775c0402
                     CompletionCount: 1
                     RequirementProgress: []
-                  - NodeId: 402c9d5f4e0c4a6db6003f4f36bb0aa3
-                    CompletionCount: 1
-                    RequirementProgress: []
                   - NodeId: df1f2570fcd74327b84c7d13efece65a
                     CompletionCount: 1
                     RequirementProgress: []
-                  - NodeId: 10f233495c7a46808a7f80a419374618
+                  - NodeId: 402c9d5f4e0c4a6db6003f4f36bb0aa3
                     CompletionCount: 1
                     RequirementProgress: []
-                  - NodeId: 05bf2c51397046329e6029b70b79a7a5
+                  - NodeId: 0f8b128dc6b94fff8832ae2abd097836
                     CompletionCount: 1
                     RequirementProgress: []
-                  - NodeId: bc010488f49c4c1db24467fd6b7b2e9d
+                  - NodeId: c0d4f233b053477bb7e1209a384dee4f
                     CompletionCount: 1
                     RequirementProgress: []
                 Behaviour:
-                  rid: 7055333366454288417
+                  rid: 7055333366454288464
               - Species: {fileID: 0}
                 CurrentFormID: 
                 Attributes:
@@ -90,7 +87,7 @@ MonoBehaviour:
                 FeatBoardProgress:
                   NodeProgress: []
                 Behaviour:
-                  rid: 7055333366454288418
+                  rid: 7055333366454288465
               - Species: {fileID: 0}
                 CurrentFormID: 
                 Attributes:
@@ -114,7 +111,7 @@ MonoBehaviour:
                 FeatBoardProgress:
                   NodeProgress: []
                 Behaviour:
-                  rid: 7055333366454288419
+                  rid: 7055333366454288466
               - Species: {fileID: 0}
                 CurrentFormID: 
                 Attributes:
@@ -138,7 +135,7 @@ MonoBehaviour:
                 FeatBoardProgress:
                   NodeProgress: []
                 Behaviour:
-                  rid: 7055333366454288420
+                  rid: 7055333366454288467
               - Species: {fileID: 0}
                 CurrentFormID: 
                 Attributes:
@@ -162,7 +159,7 @@ MonoBehaviour:
                 FeatBoardProgress:
                   NodeProgress: []
                 Behaviour:
-                  rid: 7055333366454288421
+                  rid: 7055333366454288468
               - Species: {fileID: 0}
                 CurrentFormID: 
                 Attributes:
@@ -186,8 +183,32 @@ MonoBehaviour:
                 FeatBoardProgress:
                   NodeProgress: []
                 Behaviour:
-                  rid: 7055333366454288422
+                  rid: 7055333366454288469
               Weight: 1
+          OneBadge:
+            WeightedTeams: []
+          TwoBadges:
+            WeightedTeams: []
+          ThreeBadges:
+            WeightedTeams: []
+          FourBadges:
+            WeightedTeams: []
+          FiveBadges:
+            WeightedTeams: []
+          SixBadges:
+            WeightedTeams: []
+          SevenBadges:
+            WeightedTeams: []
+          EightBadges:
+            WeightedTeams: []
+          PostGame:
+            WeightedTeams: []
+    - Key: normal_custom
+      Value:
+        BaseChancePerStep: 0.1
+        EncounterTable:
+          NoBadge:
+            WeightedTeams: []
           OneBadge:
             WeightedTeams: []
           TwoBadges:
@@ -209,37 +230,37 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 7055333366454288417
+    - rid: 7055333366454288464
       type: {class: AIBehaviour, ns: , asm: Assembly-CSharp}
       data:
         ActiveMode: 
         RulesByModes:
           _serializedList: []
-    - rid: 7055333366454288418
+    - rid: 7055333366454288465
       type: {class: AIBehaviour, ns: , asm: Assembly-CSharp}
       data:
         ActiveMode: 
         RulesByModes:
           _serializedList: []
-    - rid: 7055333366454288419
+    - rid: 7055333366454288466
       type: {class: AIBehaviour, ns: , asm: Assembly-CSharp}
       data:
         ActiveMode: 
         RulesByModes:
           _serializedList: []
-    - rid: 7055333366454288420
+    - rid: 7055333366454288467
       type: {class: AIBehaviour, ns: , asm: Assembly-CSharp}
       data:
         ActiveMode: 
         RulesByModes:
           _serializedList: []
-    - rid: 7055333366454288421
+    - rid: 7055333366454288468
       type: {class: AIBehaviour, ns: , asm: Assembly-CSharp}
       data:
         ActiveMode: 
         RulesByModes:
           _serializedList: []
-    - rid: 7055333366454288422
+    - rid: 7055333366454288469
       type: {class: AIBehaviour, ns: , asm: Assembly-CSharp}
       data:
         ActiveMode: 
