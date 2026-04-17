@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public sealed class ActorMover
+public sealed class ActorPathDriver
 {
 	private const float PositionEpsilon = 0.0001f;
 
@@ -11,17 +11,17 @@ public sealed class ActorMover
 		MoveToStationaryPoint
 	}
 
-	private readonly Actor actor;
+	private readonly ActorPresenter presenter;
 	private readonly List<Vector3Int> path = new List<Vector3Int>();
 	private int pathIndex;
 	private MovementPhase movementPhase = MovementPhase.MoveToTransitionPoint;
 
-	public Actor Actor => actor;
-	public bool IsMoving => actor != null && pathIndex > 0 && pathIndex < path.Count;
+	public ActorPresenter Presenter => presenter;
+	public bool IsMoving => presenter != null && pathIndex > 0 && pathIndex < path.Count;
 
-	public ActorMover(Actor p_actor)
+	public ActorPathDriver(ActorPresenter p_presenter)
 	{
-		actor = p_actor;
+		presenter = p_presenter;
 	}
 
 	public void SetPath(IReadOnlyList<Vector3Int> p_path)
@@ -52,7 +52,7 @@ public sealed class ActorMover
 
 	public bool Tick(WorldData p_worldData, VoxelRegistry p_voxelRegistry, float p_deltaTime)
 	{
-		if (actor == null || !IsMoving)
+		if (presenter == null || !IsMoving)
 		{
 			return false;
 		}
@@ -73,21 +73,21 @@ public sealed class ActorMover
 			return false;
 		}
 
-		Transform actorTransform = actor.transform;
-		actorTransform.position = Vector3.MoveTowards(actorTransform.position, targetWorldPoint, actor.MovementSpeed * p_deltaTime);
-		if ((actorTransform.position - targetWorldPoint).sqrMagnitude > PositionEpsilon)
+		Transform presenterTransform = presenter.transform;
+		presenterTransform.position = Vector3.MoveTowards(presenterTransform.position, targetWorldPoint, presenter.MovementSpeed * p_deltaTime);
+		if ((presenterTransform.position - targetWorldPoint).sqrMagnitude > PositionEpsilon)
 		{
 			return true;
 		}
 
-		actorTransform.position = targetWorldPoint;
+		presenterTransform.position = targetWorldPoint;
 		if (movementPhase == MovementPhase.MoveToTransitionPoint)
 		{
 			movementPhase = MovementPhase.MoveToStationaryPoint;
 			return true;
 		}
 
-		actor.NotifyCellReached(targetCell);
+		presenter.NotifyCellReached(targetCell);
 		pathIndex++;
 		movementPhase = MovementPhase.MoveToTransitionPoint;
 
@@ -145,10 +145,7 @@ public sealed class ActorMover
 		Vector3 selectedPoint = useExitPoint ? exitWorldPoint : entryWorldPoint;
 		Vector3 otherPoint = useExitPoint ? entryWorldPoint : exitWorldPoint;
 
-		p_transitionWorldPoint = new Vector3(
-			selectedPoint.x,
-			selectedPoint.y,
-			selectedPoint.z);
+		p_transitionWorldPoint = new Vector3(selectedPoint.x, selectedPoint.y, selectedPoint.z);
 
 		if ((selectedPoint - otherPoint).sqrMagnitude > PositionEpsilon)
 		{
@@ -166,25 +163,10 @@ public sealed class ActorMover
 		int deltaX = p_targetCell.x - p_previousCell.x;
 		int deltaZ = p_targetCell.z - p_previousCell.z;
 
-		if (deltaX > 0)
-		{
-			return CardinalHeightSet.Direction.NegativeX;
-		}
-
-		if (deltaX < 0)
-		{
-			return CardinalHeightSet.Direction.PositiveX;
-		}
-
-		if (deltaZ > 0)
-		{
-			return CardinalHeightSet.Direction.NegativeZ;
-		}
-
-		if (deltaZ < 0)
-		{
-			return CardinalHeightSet.Direction.PositiveZ;
-		}
+		if (deltaX > 0) return CardinalHeightSet.Direction.NegativeX;
+		if (deltaX < 0) return CardinalHeightSet.Direction.PositiveX;
+		if (deltaZ > 0) return CardinalHeightSet.Direction.NegativeZ;
+		if (deltaZ < 0) return CardinalHeightSet.Direction.PositiveZ;
 
 		return CardinalHeightSet.Direction.Stationary;
 	}
@@ -194,25 +176,10 @@ public sealed class ActorMover
 		int deltaX = p_targetCell.x - p_previousCell.x;
 		int deltaZ = p_targetCell.z - p_previousCell.z;
 
-		if (deltaX > 0)
-		{
-			return CardinalHeightSet.Direction.PositiveX;
-		}
-
-		if (deltaX < 0)
-		{
-			return CardinalHeightSet.Direction.NegativeX;
-		}
-
-		if (deltaZ > 0)
-		{
-			return CardinalHeightSet.Direction.PositiveZ;
-		}
-
-		if (deltaZ < 0)
-		{
-			return CardinalHeightSet.Direction.NegativeZ;
-		}
+		if (deltaX > 0) return CardinalHeightSet.Direction.PositiveX;
+		if (deltaX < 0) return CardinalHeightSet.Direction.NegativeX;
+		if (deltaZ > 0) return CardinalHeightSet.Direction.PositiveZ;
+		if (deltaZ < 0) return CardinalHeightSet.Direction.NegativeZ;
 
 		return CardinalHeightSet.Direction.Stationary;
 	}

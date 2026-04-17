@@ -6,16 +6,7 @@ public class GameBootstrapper : MonoBehaviour
 	[SerializeField] private ModeManager modeManager;
 	[SerializeField] private GameSaveData gameSaveData = new GameSaveData();
 	[SerializeField] private bool bootstrapOnStart = true;
-	[SerializeField] private bool debugLogging;
-	[SerializeField] private WorldPresenter worldPresenter; // manually assign this in the Inspector
-
-	private void Reset()
-	{
-		if (modeManager == null)
-		{
-			modeManager = FindFirstObjectByType<ModeManager>(FindObjectsInactive.Include);
-		}
-	}
+	[SerializeField] private WorldPresenter worldPresenter;
 
 	private void Awake()
 	{

@@ -1,8 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Actor))]
-[RequireComponent(typeof(PlayerPresenter))]
 [DisallowMultipleComponent]
 public class PlayerController : MonoBehaviour
 {
@@ -10,7 +8,7 @@ public class PlayerController : MonoBehaviour
 	private const string ValidateActionName = "Player/Validate";
 	private const string CancelActionName = "Player/Cancel";
 
-	[SerializeField] private Actor actor;
+	[SerializeField] private ActorPresenter controlledActor;
 	[SerializeField] private WorldPresenter worldPresenter;
 	[SerializeField] private Camera inputCamera;
 	[SerializeField] private InputActionAsset inputActionsAsset;
@@ -33,44 +31,21 @@ public class PlayerController : MonoBehaviour
 
 	public Vector3Int? SelectedVoxel => selectedVoxel;
 
-	private void Reset()
-	{
-		if (actor == null)
-		{
-			actor = GetComponent<Actor>();
-		}
-
-		if (inputCamera == null)
-		{
-			inputCamera = GetComponentInChildren<Camera>();
-		}
-
-		if (worldPresenter == null)
-		{
-			worldPresenter = FindFirstObjectByType<WorldPresenter>();
-		}
-
-		if (inputActionsAsset == null)
-		{
-			inputActionsAsset = Resources.Load<InputActionAsset>(DefaultInputAssetResourcePath);
-		}
-	}
-
 	private void Awake()
 	{
-		if (actor == null)
+		if (controlledActor == null)
 		{
-			actor = GetComponent<Actor>();
+			Logger.LogError("[PlayerController] ControlledActor is not assigned in the inspector. Please assign an ActorPresenter to the PlayerController component.", Logger.Severity.Critical, this);
 		}
 
 		if (inputCamera == null)
 		{
-			inputCamera = GetComponentInChildren<Camera>();
+			Logger.LogError("[PlayerController] InputCamera is not assigned in the inspector. Please assign a Camera to the PlayerController component.", Logger.Severity.Critical, this);
 		}
 
 		if (worldPresenter == null)
 		{
-			worldPresenter = FindFirstObjectByType<WorldPresenter>();
+			Logger.LogError("[PlayerController] WorldPresenter is not assigned in the inspector. Please assign a WorldPresenter to the PlayerController component.", Logger.Severity.Critical, this);
 		}
 
 		if (inputActionsAsset == null)
@@ -89,7 +64,7 @@ public class PlayerController : MonoBehaviour
 
 	private void Update()
 	{
-		if (actor == null || worldPresenter == null || worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
+		if (controlledActor == null || worldPresenter == null || worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
 		{
 			return;
 		}
@@ -168,7 +143,7 @@ public class PlayerController : MonoBehaviour
 			return;
 		}
 
-		EventCenter.EmitActorMoveRequested(new ActorMovementRequest(actor, selectedVoxel.Value));
+		EventCenter.EmitActorMoveRequested(new ActorMovementRequest(controlledActor, selectedVoxel.Value));
 		selectedVoxel = null;
 		selectionDirty = true;
 	}

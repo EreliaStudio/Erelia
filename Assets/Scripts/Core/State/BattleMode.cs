@@ -9,30 +9,27 @@ public sealed class BattleMode : Mode
 	public override ModeKind Kind => ModeKind.Battle;
 	public BattleSetup CurrentSetup => currentSetup;
 
-	protected override void Reset()
+	private void Awake()
 	{
-		base.Reset();
 		if (boardPresenter == null)
 		{
-			boardPresenter = GetComponentInChildren<BoardPresenter>(true);
+			Logger.LogError("[BattleMode] BoardPresenter is not assigned in the inspector. Please assign a BoardPresenter to the BattleMode component.", Logger.Severity.Critical, this);
 		}
 	}
 
 	protected override void OnEnter(ModeContext context)
 	{
 		currentSetup = context?.BattleSetup;
-		if (boardPresenter == null)
-		{
-			boardPresenter = GetComponentInChildren<BoardPresenter>(true);
-		}
-
-		if (currentSetup?.Board == null)
+		if (currentSetup == null || currentSetup.Board == null)
 		{
 			LogDebug("Entered battle mode without a valid board.");
 			return;
 		}
 
-		boardPresenter?.Assign(currentSetup.Board);
+		if (boardPresenter != null)
+		{
+			boardPresenter.Assign(currentSetup.Board);
+		}
 		LogDebug($"Battle setup assigned. EnemyTeamSize={CountUnits(currentSetup.Team)}.");
 	}
 

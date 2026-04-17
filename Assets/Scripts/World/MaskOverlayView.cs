@@ -3,19 +3,16 @@ using UnityEngine.Rendering;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
-public class ChunkOverlayView : MonoBehaviour
+public class MaskOverlayView : MonoBehaviour
 {
 	[SerializeField] private MeshFilter meshFilter;
 	[SerializeField] private MeshRenderer meshRenderer;
-	[SerializeField] private Material material;
 
 	public MeshFilter MeshFilter => meshFilter;
 	public MeshRenderer MeshRenderer => meshRenderer;
-	public Material Material => material;
 
-	public void SetOverlayMesh(Mesh mesh)
+	public void SetMaskMesh(Mesh mesh)
 	{
-		CacheReferences();
 		DestroyMesh(meshFilter.sharedMesh);
 		meshFilter.sharedMesh = mesh;
 		if (meshRenderer != null)
@@ -29,22 +26,19 @@ public class ChunkOverlayView : MonoBehaviour
 		gameObject.SetActive(visible);
 	}
 
-	private void Reset()
-	{
-		CacheReferences();
-		ApplyMaterial();
-	}
-
-	private void OnValidate()
-	{
-		CacheReferences();
-		ApplyMaterial();
-	}
-
 	private void Awake()
 	{
-		CacheReferences();
-		ApplyMaterial();
+		if (meshFilter == null)
+		{
+			Logger.LogError("[MaskOverlayView] MeshFilter is not assigned in the inspector. Please assign a MeshFilter to the MaskOverlayView component.", Logger.Severity.Critical, this);
+		}
+
+		if (meshRenderer == null)
+		{
+			Logger.LogError("[MaskOverlayView] MeshRenderer is not assigned in the inspector. Please assign a MeshRenderer to the MaskOverlayView component.", Logger.Severity.Critical, this);
+		}
+
+		ApplyRendererSettings();
 	}
 
 	private void OnDestroy()
@@ -53,29 +47,6 @@ public class ChunkOverlayView : MonoBehaviour
 		{
 			DestroyMesh(meshFilter.sharedMesh);
 		}
-	}
-
-	private void CacheReferences()
-	{
-		if (meshFilter == null)
-		{
-			meshFilter = GetComponent<MeshFilter>();
-		}
-
-		if (meshRenderer == null)
-		{
-			meshRenderer = GetComponent<MeshRenderer>();
-		}
-	}
-
-	private void ApplyMaterial()
-	{
-		if (meshRenderer != null && material != null)
-		{
-			meshRenderer.sharedMaterial = material;
-		}
-
-		ApplyRendererSettings();
 	}
 
 	private void ApplyRendererSettings()

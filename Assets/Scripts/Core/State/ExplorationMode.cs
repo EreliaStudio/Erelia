@@ -5,21 +5,25 @@ public sealed class ExplorationMode : Mode
 	public override ModeKind Kind => ModeKind.Exploration;
 
 	[SerializeField] private WorldPresenter worldPresenter;
-	[SerializeField] private Transform playerTransform;
-	[SerializeField] private PlayerPresenter playerPresenter;
 	[SerializeField] private GameObject playerPrefab;
-	[SerializeField] private Transform playerParent;
 
-	protected override void Reset()
+	private PlayerPresenter spawnedPlayer;
+
+	private void Awake()
 	{
-		base.Reset();
-		ResolveReferences();
+		if (worldPresenter == null)
+		{
+			Logger.LogError("[ExplorationMode] WorldPresenter is not assigned in the inspector. Please assign a WorldPresenter to the ExplorationMode component.", Logger.Severity.Critical, this);
+		}
+
+		if (playerPrefab == null)
+		{
+			Logger.LogError("[ExplorationMode] PlayerPrefab is not assigned in the inspector. Please assign a player prefab to the ExplorationMode component.", Logger.Severity.Critical, this);
+		}
 	}
 
 	protected override void OnEnter(ModeContext context)
 	{
-		ResolveReferences();
-
 		GameContext gameContext = context?.GameContext;
 		if (gameContext == null)
 		{
@@ -27,7 +31,10 @@ public sealed class ExplorationMode : Mode
 			return;
 		}
 
-		worldPresenter?.Bind(gameContext.World);
+		if (worldPresenter != null)
+		{
+			worldPresenter.Bind(gameContext.World);
+		}
 
 		if (!EnsurePlayerInstance())
 		{
@@ -35,46 +42,20 @@ public sealed class ExplorationMode : Mode
 			return;
 		}
 
-		if (playerPresenter == null)
+		spawnedPlayer.transform.position = gameContext.Player.WorldPosition;
+		spawnedPlayer.Bind(gameContext.Player);
+
+		if (worldPresenter != null)
 		{
-			playerPresenter = playerTransform.GetComponent<PlayerPresenter>();
+			worldPresenter.LoadImmediatelyAroundWorldCell(gameContext.Player.WorldCell);
 		}
 
-		playerPresenter?.Bind(gameContext.Player);
-		worldPresenter?.LoadImmediatelyAroundWorldCell(gameContext.Player.WorldCell);
-		playerTransform.position = gameContext.Player.WorldPosition;
-
-		if (playerPresenter != null)
-		{
-			playerPresenter.SyncToTransformAndEmit();
-			return;
-		}
-
-		EventCenter.EmitPlayerMoved(playerTransform.position);
-		EventCenter.EmitPlayerChunkChanged(ChunkCoordinates.FromWorldPosition(playerTransform.position));
-	}
-
-	private void ResolveReferences()
-	{
-		if (worldPresenter == null)
-		{
-			worldPresenter = FindFirstObjectByType<WorldPresenter>(FindObjectsInactive.Include);
-		}
-
-		if (playerPresenter == null)
-		{
-			playerPresenter = FindFirstObjectByType<PlayerPresenter>(FindObjectsInactive.Include);
-		}
-
-		if (playerTransform == null && playerPresenter != null)
-		{
-			playerTransform = playerPresenter.transform;
-		}
+		spawnedPlayer.SyncToTransformAndEmit();
 	}
 
 	private bool EnsurePlayerInstance()
 	{
-		if (playerTransform != null)
+		if (spawnedPlayer != null)
 		{
 			return true;
 		}
@@ -84,18 +65,9 @@ public sealed class ExplorationMode : Mode
 			return false;
 		}
 
-		Transform parent = playerParent;
-		if (parent == null && Root != null)
-		{
-			parent = Root.transform;
-		}
-
-		GameObject playerInstance = parent != null
-			? Instantiate(playerPrefab, parent)
-			: Instantiate(playerPrefab);
-		playerTransform = playerInstance.transform;
-		playerPresenter = playerInstance.GetComponent<PlayerPresenter>();
+		GameObject playerInstance = Instantiate(playerPrefab, transform);
+		spawnedPlayer = playerInstance.GetComponent<PlayerPresenter>();
 		LogDebug("Player prefab instantiated for exploration mode.");
-		return true;
+		return spawnedPlayer != null;
 	}
 }

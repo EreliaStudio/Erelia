@@ -15,19 +15,11 @@ public class EncounterEmitter : MonoBehaviour
 
 	private readonly WorldTraversalGraphCache graphCache = new WorldTraversalGraphCache();
 
-	private void Reset()
-	{
-		if (worldPresenter == null)
-		{
-			worldPresenter = FindFirstObjectByType<WorldPresenter>();
-		}
-	}
-
 	private void Awake()
 	{
 		if (worldPresenter == null)
 		{
-			worldPresenter = FindFirstObjectByType<WorldPresenter>();
+			Logger.LogError("[EncounterEmitter] WorldPresenter is not assigned in the inspector. Please assign a WorldPresenter to the EncounterEmitter component.", Logger.Severity.Critical, this);
 		}
 	}
 

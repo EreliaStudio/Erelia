@@ -2,24 +2,14 @@ using UnityEngine;
 
 public abstract class Mode : MonoBehaviour
 {
-	[SerializeField] private GameObject root;
-	[SerializeField] private bool debugLogging;
+	private const bool DebugLogging = false;
 
 	public abstract ModeKind Kind { get; }
-	public GameObject Root => root;
-	public bool IsActive => root != null && root.activeSelf;
-
-	protected virtual void Reset()
-	{
-		if (root == null)
-		{
-			root = gameObject;
-		}
-	}
+	public bool IsActive => gameObject.activeSelf;
 
 	public void Enter(ModeContext context = null)
 	{
-		SetRootActive(true);
+		gameObject.SetActive(true);
 		OnEnter(context ?? ModeContext.Empty);
 		LogDebug($"{Kind} mode entered.");
 	}
@@ -27,7 +17,7 @@ public abstract class Mode : MonoBehaviour
 	public void Exit(ModeContext context = null)
 	{
 		OnExit(context ?? ModeContext.Empty);
-		SetRootActive(false);
+		gameObject.SetActive(false);
 		LogDebug($"{Kind} mode exited.");
 	}
 
@@ -39,26 +29,13 @@ public abstract class Mode : MonoBehaviour
 	{
 	}
 
-	protected void SetRoot(GameObject targetRoot)
-	{
-		root = targetRoot;
-	}
-
 	protected void LogDebug(string message)
 	{
-		if (!debugLogging)
+		if (!DebugLogging)
 		{
 			return;
 		}
 
 		Debug.Log($"[{GetType().Name}] {message}", this);
-	}
-
-	private void SetRootActive(bool value)
-	{
-		if (root != null)
-		{
-			root.SetActive(value);
-		}
 	}
 }

@@ -9,10 +9,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5596756192120683163}
+  - component: {fileID: 2097270092286891202}
   - component: {fileID: 4995193376233844581}
   - component: {fileID: 2001916760848391831}
   - component: {fileID: 3327950438736901549}
-  - component: {fileID: 7598639261786374649}
   m_Layer: 0
   m_Name: Terrain
   m_TagString: Untagged
@@ -35,6 +35,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 9025320957008316016}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2097270092286891202
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2205694682756853032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8ac2faed6ea0c44a8c15f897502392e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TerrainView
+  meshFilter: {fileID: 4995193376233844581}
+  meshRenderer: {fileID: 2001916760848391831}
+  meshCollider: {fileID: 3327950438736901549}
 --- !u!33 &4995193376233844581
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -114,22 +129,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
---- !u!114 &7598639261786374649
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2205694682756853032}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c7fe2eda25521e43a72ca74c1f14ba2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ChunkView
-  meshFilter: {fileID: 4995193376233844581}
-  meshRenderer: {fileID: 2001916760848391831}
-  meshCollider: {fileID: 3327950438736901549}
-  material: {fileID: 2100000, guid: c9a059d193722c94785651c9e539b926, type: 2}
 --- !u!1 &5186757437565674604
 GameObject:
   m_ObjectHideFlags: 0
@@ -176,8 +175,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97042615efe6b134a9693f8da7dd2b78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ChunkPresenter
-  terrainView: {fileID: 7598639261786374649}
-  overlayView: {fileID: 6266572757444401325}
+  terrainView: {fileID: 2097270092286891202}
+  overlayView: {fileID: 8952136259171437219}
   voxelRegistry: {fileID: 11400000, guid: 7f2876a8319b8c3458bd5e3d6675e04e, type: 2}
   voxelMaskRegistry: {fileID: 11400000, guid: d1eb0bdd11887f846b9d99abb6e62378, type: 2}
 --- !u!1 &9016105773855314464
@@ -189,7 +188,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5425248143711187720}
-  - component: {fileID: 6266572757444401325}
+  - component: {fileID: 8952136259171437219}
   - component: {fileID: 2917860803436060349}
   - component: {fileID: 6760283360251374594}
   m_Layer: 0
@@ -214,7 +213,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 9025320957008316016}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6266572757444401325
+--- !u!114 &8952136259171437219
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -223,12 +222,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 9016105773855314464}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e6cd066e836189347be2a72f1364db9d, type: 3}
+  m_Script: {fileID: 11500000, guid: f0bcfca83720f5a449fa4edc2cecefcb, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ChunkOverlayView
+  m_EditorClassIdentifier: Assembly-CSharp::MaskOverlayView
   meshFilter: {fileID: 2917860803436060349}
   meshRenderer: {fileID: 6760283360251374594}
-  material: {fileID: 2100000, guid: d53f29f320f641f4c861276a6e4e37d2, type: 2}
 --- !u!33 &2917860803436060349
 MeshFilter:
   m_ObjectHideFlags: 0

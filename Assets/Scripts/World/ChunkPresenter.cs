@@ -3,15 +3,14 @@ using UnityEngine;
 public class ChunkPresenter : MonoBehaviour
 {
 	[SerializeField] private ChunkData chunkData = new ChunkData();
-	[SerializeField] private ChunkView terrainView;
-	[SerializeField] private ChunkOverlayView overlayView;
+	[SerializeField] private TerrainView terrainView;
+	[SerializeField] private MaskOverlayView overlayView;
 	[SerializeField] private VoxelRegistry voxelRegistry;
 	[SerializeField] private VoxelMaskRegistry voxelMaskRegistry;
 
 	public ChunkData ChunkData => chunkData;
-	public ChunkView View => terrainView;
-	public ChunkView TerrainView => terrainView;
-	public ChunkOverlayView OverlayView => overlayView;
+	public TerrainView TerrainView => terrainView;
+	public MaskOverlayView OverlayView => overlayView;
 	public VoxelRegistry VoxelRegistry => voxelRegistry;
 	public VoxelMaskRegistry VoxelMaskRegistry => voxelMaskRegistry;
 
@@ -24,8 +23,6 @@ public class ChunkPresenter : MonoBehaviour
 	[ContextMenu("Rebuild Chunk")]
 	public void Rebuild()
 	{
-		CacheReferences();
-
 		if (chunkData == null || voxelRegistry == null)
 		{
 			return;
@@ -55,16 +52,15 @@ public class ChunkPresenter : MonoBehaviour
 
 		if (chunkData == null || voxelRegistry == null || voxelMaskRegistry == null)
 		{
-			overlayView.SetOverlayMesh(null);
+			overlayView.SetMaskMesh(null);
 			return;
 		}
 
-		overlayView.SetOverlayMesh(VoxelMesher.BuildMaskMesh(chunkData.Cells, chunkData.MaskLayer, voxelRegistry, voxelMaskRegistry));
+		overlayView.SetMaskMesh(VoxelMesher.BuildMaskMesh(chunkData.Cells, chunkData.MaskLayer, voxelRegistry, voxelMaskRegistry));
 	}
 
 	public void SetTerrainVisible(bool visible)
 	{
-		CacheReferences();
 		if (terrainView != null)
 		{
 			terrainView.SetVisible(visible);
@@ -73,7 +69,6 @@ public class ChunkPresenter : MonoBehaviour
 
 	public void SetOverlayVisible(bool visible)
 	{
-		CacheReferences();
 		if (overlayView != null)
 		{
 			overlayView.SetVisible(visible);
@@ -86,26 +81,18 @@ public class ChunkPresenter : MonoBehaviour
 		SetOverlayVisible(visible);
 	}
 
-	private void Reset()
-	{
-		CacheReferences();
-	}
-
 	private void Awake()
-	{
-		Rebuild();
-	}
-
-	private void CacheReferences()
 	{
 		if (terrainView == null)
 		{
-			terrainView = GetComponentInChildren<ChunkView>(true);
+			Logger.LogError("[ChunkPresenter] TerrainView is not assigned in the inspector. Please assign a TerrainView child to the ChunkPresenter component.", Logger.Severity.Critical, this);
 		}
 
 		if (overlayView == null)
 		{
-			overlayView = GetComponentInChildren<ChunkOverlayView>(true);
+			Logger.LogError("[ChunkPresenter] MaskOverlayView is not assigned in the inspector. Please assign a MaskOverlayView child to the ChunkPresenter component.", Logger.Severity.Critical, this);
 		}
+
+		Rebuild();
 	}
 }

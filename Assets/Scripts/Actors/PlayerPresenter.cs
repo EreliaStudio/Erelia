@@ -1,68 +1,34 @@
 using UnityEngine;
 
-[RequireComponent(typeof(PlayerView))]
-[RequireComponent(typeof(Actor))]
 [DisallowMultipleComponent]
-public class PlayerPresenter : MonoBehaviour
+public class PlayerPresenter : ActorPresenter
 {
-	[SerializeField] private PlayerData playerData;
-	[SerializeField] private Actor actor;
-	[SerializeField] private PlayerView playerView;
+	private PlayerData playerData;
 	private Vector3 lastWorldPosition;
 	private ChunkCoordinates lastChunkCoordinates;
 
 	public PlayerData PlayerData => playerData;
-	public PlayerView PlayerView => playerView;
-
-	private void Reset()
-	{
-		if (actor == null)
-		{
-			actor = GetComponent<Actor>();
-		}
-
-		if (playerView == null)
-		{
-			playerView = GetComponent<PlayerView>();
-		}
-	}
-
-	private void Awake()
-	{
-		if (actor == null)
-		{
-			actor = GetComponent<Actor>();
-		}
-
-		SyncToTransform();
-	}
 
 	private void OnEnable()
 	{
-		if (actor != null)
-		{
-			actor.CellReached += OnActorCellReached;
-		}
+		CellReached += OnCellReached;
 	}
 
 	private void OnDisable()
 	{
-		if (actor != null)
-		{
-			actor.CellReached -= OnActorCellReached;
-		}
-	}
-
-	public void SyncToTransformAndEmit()
-	{
-		SyncToTransform();
-		EmitCurrentState();
+		CellReached -= OnCellReached;
 	}
 
 	public void Bind(PlayerData targetPlayerData)
 	{
 		playerData = targetPlayerData;
 		SyncToTransform();
+	}
+
+	public void SyncToTransformAndEmit()
+	{
+		SyncToTransform();
+		EmitCurrentState();
 	}
 
 	private void SyncToTransform()
@@ -81,13 +47,8 @@ public class PlayerPresenter : MonoBehaviour
 		EventCenter.EmitPlayerChunkChanged(lastChunkCoordinates);
 	}
 
-	private void OnActorCellReached(Actor sourceActor, Vector3Int worldCellPosition)
+	private void OnCellReached(ActorPresenter presenter, Vector3Int worldCellPosition)
 	{
-		if (sourceActor != actor)
-		{
-			return;
-		}
-
 		Vector3 currentWorldPosition = transform.position;
 		ChunkCoordinates currentChunkCoordinates = ChunkCoordinates.FromWorldVoxelPosition(worldCellPosition);
 

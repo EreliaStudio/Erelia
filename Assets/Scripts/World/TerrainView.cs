@@ -4,30 +4,24 @@ using UnityEngine.Rendering;
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
 [RequireComponent(typeof(MeshCollider))]
-public class ChunkView : MonoBehaviour
+public class TerrainView : MonoBehaviour
 {
-	private const string DefaultMaterialResourcePath = "Voxel/Definition/VoxelMaterial";
-
 	[SerializeField] private MeshFilter meshFilter;
 	[SerializeField] private MeshRenderer meshRenderer;
 	[SerializeField] private MeshCollider meshCollider;
-	[SerializeField] private Material material;
 
 	public MeshFilter MeshFilter => meshFilter;
 	public MeshRenderer MeshRenderer => meshRenderer;
 	public MeshCollider MeshCollider => meshCollider;
-	public Material Material => material;
 
 	public void SetRenderMesh(Mesh mesh)
 	{
-		CacheReferences();
 		DestroyMesh(meshFilter.sharedMesh);
 		meshFilter.sharedMesh = mesh;
 	}
 
 	public void SetCollisionMesh(Mesh mesh)
 	{
-		CacheReferences();
 		DestroyMesh(meshCollider.sharedMesh);
 		meshCollider.sharedMesh = mesh;
 	}
@@ -37,25 +31,24 @@ public class ChunkView : MonoBehaviour
 		gameObject.SetActive(visible);
 	}
 
-	private void Reset()
-	{
-		CacheReferences();
-		LoadDefaultMaterial();
-		ApplyMaterial();
-	}
-
-	private void OnValidate()
-	{
-		CacheReferences();
-		LoadDefaultMaterial();
-		ApplyMaterial();
-	}
-
 	private void Awake()
 	{
-		CacheReferences();
-		LoadDefaultMaterial();
-		ApplyMaterial();
+		if (meshFilter == null)
+		{
+			Logger.LogError("[TerrainView] MeshFilter is not assigned in the inspector. Please assign a MeshFilter to the TerrainView component.", Logger.Severity.Critical, this);
+		}
+
+		if (meshRenderer == null)
+		{
+			Logger.LogError("[TerrainView] MeshRenderer is not assigned in the inspector. Please assign a MeshRenderer to the TerrainView component.", Logger.Severity.Critical, this);
+		}
+
+		if (meshCollider == null)
+		{
+			Logger.LogError("[TerrainView] MeshCollider is not assigned in the inspector. Please assign a MeshCollider to the TerrainView component.", Logger.Severity.Critical, this);
+		}
+
+		ApplyRendererSettings();
 	}
 
 	private void OnDestroy()
@@ -68,42 +61,6 @@ public class ChunkView : MonoBehaviour
 		if (meshCollider != null)
 		{
 			DestroyMesh(meshCollider.sharedMesh);
-		}
-	}
-
-	private void CacheReferences()
-	{
-		if (meshFilter == null)
-		{
-			meshFilter = GetComponent<MeshFilter>();
-		}
-
-		if (meshRenderer == null)
-		{
-			meshRenderer = GetComponent<MeshRenderer>();
-		}
-
-		if (meshCollider == null)
-		{
-			meshCollider = GetComponent<MeshCollider>();
-		}
-	}
-
-	private void ApplyMaterial()
-	{
-		if (meshRenderer != null && material != null)
-		{
-			meshRenderer.sharedMaterial = material;
-		}
-
-		ApplyRendererSettings();
-	}
-
-	private void LoadDefaultMaterial()
-	{
-		if (material == null)
-		{
-			material = Resources.Load<Material>(DefaultMaterialResourcePath);
 		}
 	}
 

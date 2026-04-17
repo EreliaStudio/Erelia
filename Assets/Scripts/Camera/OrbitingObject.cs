@@ -21,15 +21,6 @@ public class OrbitingObject : MonoBehaviour
 
 	private void Reset()
 	{
-		if (orbitingTransform == null)
-		{
-			Camera childCamera = GetComponentInChildren<Camera>();
-			if (childCamera != null)
-			{
-				orbitingTransform = childCamera.transform;
-			}
-		}
-
 		ResolveOrbitSpace();
 
 		if (inputActionsAsset == null)
@@ -40,6 +31,11 @@ public class OrbitingObject : MonoBehaviour
 
 	private void Awake()
 	{
+		if (orbitingTransform == null)
+		{
+			Logger.LogError("[OrbitingObject] OrbitingTransform is not assigned in the inspector. Please assign a Transform to the OrbitingObject component.", Logger.Severity.Critical, this);
+		}
+
 		ResolveOrbitSpace();
 
 		if (inputActionsAsset == null)
@@ -58,15 +54,6 @@ public class OrbitingObject : MonoBehaviour
 
 	private void OnValidate()
 	{
-		if (orbitingTransform == null)
-		{
-			Camera childCamera = GetComponentInChildren<Camera>();
-			if (childCamera != null)
-			{
-				orbitingTransform = childCamera.transform;
-			}
-		}
-
 		ResolveOrbitSpace();
 
 		if (!Application.isPlaying)

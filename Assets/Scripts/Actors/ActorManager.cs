@@ -6,23 +6,15 @@ public class ActorManager : MonoBehaviour
 {
 	[SerializeField] private WorldPresenter worldPresenter;
 
-	private readonly Dictionary<Actor, ActorMover> moversByActor = new Dictionary<Actor, ActorMover>();
-	private readonly List<Actor> completedActors = new List<Actor>();
+	private readonly Dictionary<ActorPresenter, ActorPathDriver> driversByPresenter = new Dictionary<ActorPresenter, ActorPathDriver>();
+	private readonly List<ActorPresenter> completedPresenters = new List<ActorPresenter>();
 	private readonly WorldTraversalGraphCache graphCache = new WorldTraversalGraphCache();
-
-	private void Reset()
-	{
-		if (worldPresenter == null)
-		{
-			worldPresenter = FindFirstObjectByType<WorldPresenter>();
-		}
-	}
 
 	private void Awake()
 	{
 		if (worldPresenter == null)
 		{
-			worldPresenter = FindFirstObjectByType<WorldPresenter>();
+			Logger.LogError("[ActorManager] WorldPresenter is not assigned in the inspector. Please assign a WorldPresenter to the ActorManager component.", Logger.Severity.Critical, this);
 		}
 	}
 
@@ -34,8 +26,8 @@ public class ActorManager : MonoBehaviour
 	private void OnDisable()
 	{
 		EventCenter.ActorMoveRequested -= OnActorMoveRequested;
-		moversByActor.Clear();
-		completedActors.Clear();
+		driversByPresenter.Clear();
+		completedPresenters.Clear();
 		graphCache.Clear();
 	}
 
@@ -46,28 +38,26 @@ public class ActorManager : MonoBehaviour
 			return;
 		}
 
-		completedActors.Clear();
+		completedPresenters.Clear();
 
-		foreach (KeyValuePair<Actor, ActorMover> pair in moversByActor)
+		foreach (KeyValuePair<ActorPresenter, ActorPathDriver> pair in driversByPresenter)
 		{
-			Actor actor = pair.Key;
-			ActorMover mover = pair.Value;
-			if (actor == null || mover == null || !mover.Tick(worldPresenter.WorldData, worldPresenter.VoxelRegistry, Time.deltaTime))
+			ActorPresenter presenter = pair.Key;
+			ActorPathDriver driver = pair.Value;
+			if (presenter == null || driver == null || !driver.Tick(worldPresenter.WorldData, worldPresenter.VoxelRegistry, Time.deltaTime))
 			{
-				completedActors.Add(actor);
+				completedPresenters.Add(presenter);
 			}
 		}
 
-		for (int index = 0; index < completedActors.Count; index++)
+		for (int index = 0; index < completedPresenters.Count; index++)
 		{
-			moversByActor.Remove(completedActors[index]);
+			driversByPresenter.Remove(completedPresenters[index]);
 		}
 	}
 
 	private void OnActorMoveRequested(ActorMovementRequest p_request)
 	{
-		Debug.Log($"ActorManager received move request for '{p_request.Actor?.name ?? "null"}' toward {p_request.DestinationWorldPosition}.", this);
-
 		if (p_request.Actor == null || worldPresenter == null || worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
 		{
 			return;
@@ -94,19 +84,18 @@ public class ActorManager : MonoBehaviour
 			return;
 		}
 
-		ActorMover mover = GetOrCreateMover(p_request.Actor);
-		mover.SetPath(path);
+		GetOrCreateDriver(p_request.Actor).SetPath(path);
 	}
 
-	private ActorMover GetOrCreateMover(Actor p_actor)
+	private ActorPathDriver GetOrCreateDriver(ActorPresenter p_presenter)
 	{
-		if (moversByActor.TryGetValue(p_actor, out ActorMover existingMover) && existingMover != null)
+		if (driversByPresenter.TryGetValue(p_presenter, out ActorPathDriver existingDriver) && existingDriver != null)
 		{
-			return existingMover;
+			return existingDriver;
 		}
 
-		ActorMover mover = new ActorMover(p_actor);
-		moversByActor[p_actor] = mover;
-		return mover;
+		ActorPathDriver driver = new ActorPathDriver(p_presenter);
+		driversByPresenter[p_presenter] = driver;
+		return driver;
 	}
 }

@@ -15,6 +15,14 @@ public class WorldPresenter : MonoBehaviour
 	public MetaWorldGenerator MetaWorldGenerator => worldContext?.MetaWorldGenerator;
 	public VoxelRegistry VoxelRegistry => chunkPrefab != null ? chunkPrefab.VoxelRegistry : null;
 
+	private void Awake()
+	{
+		if (chunkPrefab == null)
+		{
+			Logger.LogError("[WorldPresenter] ChunkPrefab is not assigned in the inspector. Please assign a ChunkPresenter prefab to the WorldPresenter component.", Logger.Severity.Critical, this);
+		}
+	}
+
 	public void Bind(WorldContext targetWorldContext)
 	{
 		if (ReferenceEquals(worldContext, targetWorldContext))

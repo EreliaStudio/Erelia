@@ -5,7 +5,6 @@ public class ModeManager : MonoBehaviour
 {
 	[SerializeField] private ExplorationMode explorationMode;
 	[SerializeField] private BattleMode battleMode;
-	[SerializeField] private bool debugLogging;
 
 	private Mode currentMode;
 	private GameContext currentGameContext;
@@ -13,29 +12,16 @@ public class ModeManager : MonoBehaviour
 	public Mode CurrentMode => currentMode;
 	public GameContext CurrentGameContext => currentGameContext;
 
-	private void Reset()
-	{
-		if (explorationMode == null)
-		{
-			explorationMode = FindFirstObjectByType<ExplorationMode>(FindObjectsInactive.Include);
-		}
-
-		if (battleMode == null)
-		{
-			battleMode = FindFirstObjectByType<BattleMode>(FindObjectsInactive.Include);
-		}
-	}
-
 	private void Awake()
 	{
 		if (explorationMode == null)
 		{
-			explorationMode = FindFirstObjectByType<ExplorationMode>(FindObjectsInactive.Include);
+			Logger.LogError("[ModeManager] ExplorationMode is not assigned in the inspector. Please assign an ExplorationMode to the ModeManager component.", Logger.Severity.Critical, this);
 		}
 
 		if (battleMode == null)
 		{
-			battleMode = FindFirstObjectByType<BattleMode>(FindObjectsInactive.Include);
+			Logger.LogError("[ModeManager] BattleMode is not assigned in the inspector. Please assign a BattleMode to the ModeManager component.", Logger.Severity.Critical, this);
 		}
 
 		if (explorationMode != null)
@@ -81,7 +67,6 @@ public class ModeManager : MonoBehaviour
 	{
 		if (setup == null || setup.Board == null)
 		{
-			LogDebug("Battle start ignored because the setup or board is missing.");
 			return;
 		}
 
@@ -105,7 +90,6 @@ public class ModeManager : MonoBehaviour
 	{
 		if (nextMode == null)
 		{
-			LogDebug("Requested mode switch to a null mode.");
 			return;
 		}
 
@@ -115,19 +99,11 @@ public class ModeManager : MonoBehaviour
 			return;
 		}
 
-		currentMode?.Exit(context);
+		if (currentMode != null)
+		{
+			currentMode.Exit(context);
+		}
 		currentMode = nextMode;
 		currentMode.Enter(context);
-		LogDebug($"Current mode is now {currentMode.Kind}.");
-	}
-
-	private void LogDebug(string message)
-	{
-		if (!debugLogging)
-		{
-			return;
-		}
-
-		Debug.Log($"[ModeManager] {message}", this);
 	}
 }

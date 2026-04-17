@@ -11,18 +11,17 @@ public class DebugBattleBootstrapper : MonoBehaviour
 	[SerializeField] private EncounterUnit[] enemyTeam = new EncounterUnit[GameRule.TeamMemberCount];
 	[SerializeField] private bool showBattleAreaBorder = true;
 	[SerializeField] private bool bootstrapOnStart;
-	[SerializeField] private bool debugLogging;
 
-	private void Reset()
+	private void Awake()
 	{
 		if (modeManager == null)
 		{
-			modeManager = FindFirstObjectByType<ModeManager>(FindObjectsInactive.Include);
+			Logger.LogError("[DebugBattleBootstrapper] ModeManager is not assigned in the inspector. Please assign a ModeManager to the DebugBattleBootstrapper component.", Logger.Severity.Critical, this);
 		}
 
 		if (worldPresenter == null)
 		{
-			worldPresenter = FindFirstObjectByType<WorldPresenter>(FindObjectsInactive.Include);
+			Logger.LogError("[DebugBattleBootstrapper] WorldPresenter is not assigned in the inspector. Please assign a WorldPresenter to the DebugBattleBootstrapper component.", Logger.Severity.Critical, this);
 		}
 	}
 
@@ -37,19 +36,8 @@ public class DebugBattleBootstrapper : MonoBehaviour
 	[ContextMenu("Bootstrap Debug Battle")]
 	public void Bootstrap()
 	{
-		if (modeManager == null)
-		{
-			modeManager = FindFirstObjectByType<ModeManager>(FindObjectsInactive.Include);
-		}
-
-		if (worldPresenter == null)
-		{
-			worldPresenter = FindFirstObjectByType<WorldPresenter>(FindObjectsInactive.Include);
-		}
-
 		if (modeManager == null || worldPresenter == null || worldPresenter.VoxelRegistry == null)
 		{
-			LogDebug("Debug battle bootstrap failed because the mode manager, world presenter, or voxel registry is missing.");
 			return;
 		}
 
@@ -66,7 +54,6 @@ public class DebugBattleBootstrapper : MonoBehaviour
 
 		if (boardBuildResult == null || boardBuildResult.Board == null)
 		{
-			LogDebug("Debug battle bootstrap failed because the board could not be built.");
 			return;
 		}
 
@@ -76,36 +63,6 @@ public class DebugBattleBootstrapper : MonoBehaviour
 		}
 
 		EventCenter.EmitBattleStartRequested(new BattleSetup(enemyTeam, boardBuildResult.Board));
-		LogDebug(
-			$"Debug battle bootstrapped. Anchor={battleAnchorWorldPosition}, EnemyTeamSize={CountUnits(enemyTeam)}, BorderShown={showBattleAreaBorder}.");
 	}
 
-	private static int CountUnits(EncounterUnit[] team)
-	{
-		if (team == null)
-		{
-			return 0;
-		}
-
-		int count = 0;
-		for (int index = 0; index < team.Length; index++)
-		{
-			if (team[index] != null)
-			{
-				count++;
-			}
-		}
-
-		return count;
-	}
-
-	private void LogDebug(string message)
-	{
-		if (!debugLogging)
-		{
-			return;
-		}
-
-		Debug.Log($"[DebugBattleBootstrapper] {message}", this);
-	}
 }
