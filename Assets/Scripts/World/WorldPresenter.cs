@@ -209,6 +209,21 @@ public class WorldPresenter : MonoBehaviour
 		}
 	}
 
+	public bool TryRemoveMask(Vector3Int worldPosition, VoxelMask mask)
+	{
+		if (mask == VoxelMask.None || worldContext?.WorldData == null)
+		{
+			return false;
+		}
+
+		if (!worldContext.WorldData.TryGetChunk(worldPosition, out _, out Vector3Int localPosition, out ChunkData chunkData) || chunkData == null)
+		{
+			return false;
+		}
+
+		return chunkData.MaskLayer.TryRemoveMask(localPosition, mask);
+	}
+
 	public bool TryAddMask(Vector3Int worldPosition, VoxelMask mask)
 	{
 		if (mask == VoxelMask.None || worldContext?.WorldData == null)

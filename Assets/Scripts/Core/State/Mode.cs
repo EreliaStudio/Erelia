@@ -16,8 +16,8 @@ public abstract class Mode : MonoBehaviour
 
 	public void Exit(ModeContext context = null)
 	{
-		OnExit(context ?? ModeContext.Empty);
 		gameObject.SetActive(false);
+		OnExit(context ?? ModeContext.Empty);
 		LogDebug($"{Kind} mode exited.");
 	}
 

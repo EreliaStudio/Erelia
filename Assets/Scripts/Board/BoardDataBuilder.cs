@@ -14,7 +14,7 @@ public static class BoardDataBuilder
 		Vector3Int worldOrigin = configuration.GetWorldOrigin(anchorWorldPosition);
 
 		BoardTerrainLayer terrain = new BoardTerrainLayer(size.x, size.y, size.z);
-		BoardData board = new BoardData(terrain, new BoardNavigationLayer(), new BoardRuntimeRegistry());
+		BoardData board = new BoardData(terrain, new BoardNavigationLayer(), new BoardRuntimeRegistry(), worldOrigin);
 		board.AssignVoxelRegistry(voxelRegistry);
 
 		for (int x = 0; x < size.x; x++)
@@ -34,7 +34,7 @@ public static class BoardDataBuilder
 
 		board.RebuildNavigation();
 		List<Vector3Int> borderWorldCells = BuildBorder(board, worldOrigin, size);
-		return new BoardBuildResult(board, worldOrigin, borderWorldCells);
+		return new BoardBuildResult(board, borderWorldCells);
 	}
 
 	private static List<Vector3Int> BuildBorder(BoardData board, Vector3Int worldOrigin, Vector3Int size)

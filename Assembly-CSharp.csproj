@@ -61,7 +61,6 @@
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMaskLayer.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\CardinalHeightSet.cs" />
     <Compile Include="Assets\Scripts\World\Navigation\WorldVoxelRaycaster.cs" />
-    <Compile Include="Assets\Scripts\Player\PlayerController.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatNodeProgress.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleStartDebugLogger.cs" />
     <Compile Include="Assets\Scripts\World\WorldPresenter.cs" />
@@ -155,6 +154,7 @@
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMaskRegistry.cs" />
     <Compile Include="Assets\Scripts\Abilities\Effect.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMask.cs" />
+    <Compile Include="Assets\Scripts\Player\ExplorationPlayerController.cs" />
     <Compile Include="Assets\Scripts\World\ChunkData.cs" />
     <Compile Include="Assets\Scripts\World\WorldLoader.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorPathDriver.cs" />
@@ -163,6 +163,7 @@
     <Compile Include="Assets\Scripts\Feats\FeatNode.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatNodeKind.cs" />
     <Compile Include="Assets\Scripts\World\MaskOverlayView.cs" />
+    <Compile Include="Assets\Scripts\Player\BattlePlayerController.cs" />
     <Compile Include="Assets\Scripts\Camera\OrbitingObject.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelEnums.cs" />
   </ItemGroup>

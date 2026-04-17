@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [DisallowMultipleComponent]
-public class PlayerController : MonoBehaviour
+public class ExplorationPlayerController : MonoBehaviour
 {
 	[SerializeField] private WorldPresenter worldPresenter;
 	[SerializeField] private InputActionReference validateAction;
@@ -16,7 +16,7 @@ public class PlayerController : MonoBehaviour
 	private Camera inputCamera;
 	private OrbitingObject orbitingObject;
 
-	private readonly WorldTraversalGraphCache graphCache = new WorldTraversalGraphCache();
+	private readonly WorldTraversalGraphCache graphCache = new();
 	private InputAction resolvedValidateAction;
 	private InputAction resolvedCancelAction;
 	private InputAction resolvedOrbitLeftAction;
@@ -28,7 +28,6 @@ public class PlayerController : MonoBehaviour
 	private bool hasLastPointerPosition;
 	private bool selectionDirty = true;
 	private Vector3Int? selectedVoxel;
-	private Vector3Int? previousOverlaySelection;
 
 	public Vector3Int? SelectedVoxel => selectedVoxel;
 
@@ -45,8 +44,7 @@ public class PlayerController : MonoBehaviour
 		controlledActor = null;
 		inputCamera = null;
 		orbitingObject = null;
-		selectedVoxel = null;
-		previousOverlaySelection = null;
+		ClearSelectionMask();
 		selectionDirty = true;
 	}
 
@@ -54,27 +52,27 @@ public class PlayerController : MonoBehaviour
 	{
 		if (worldPresenter == null)
 		{
-			Logger.LogError("[PlayerController] WorldPresenter is not assigned in the inspector. Please assign a WorldPresenter to the PlayerController component.", Logger.Severity.Critical, this);
+			Logger.LogError("[ExplorationPlayerController] WorldPresenter is not assigned in the inspector.", Logger.Severity.Critical, this);
 		}
 
 		if (validateAction == null)
 		{
-			Logger.LogError("[PlayerController] ValidateAction is not assigned in the inspector. Please assign an InputActionReference to the PlayerController component.", Logger.Severity.Critical, this);
+			Logger.LogError("[ExplorationPlayerController] ValidateAction is not assigned in the inspector.", Logger.Severity.Critical, this);
 		}
 
 		if (cancelAction == null)
 		{
-			Logger.LogError("[PlayerController] CancelAction is not assigned in the inspector. Please assign an InputActionReference to the PlayerController component.", Logger.Severity.Critical, this);
+			Logger.LogError("[ExplorationPlayerController] CancelAction is not assigned in the inspector.", Logger.Severity.Critical, this);
 		}
 
 		if (orbitLeftAction == null)
 		{
-			Logger.LogError("[PlayerController] OrbitLeftAction is not assigned in the inspector. Please assign an InputActionReference to the PlayerController component.", Logger.Severity.Critical, this);
+			Logger.LogError("[ExplorationPlayerController] OrbitLeftAction is not assigned in the inspector.", Logger.Severity.Critical, this);
 		}
 
 		if (orbitRightAction == null)
 		{
-			Logger.LogError("[PlayerController] OrbitRightAction is not assigned in the inspector. Please assign an InputActionReference to the PlayerController component.", Logger.Severity.Critical, this);
+			Logger.LogError("[ExplorationPlayerController] OrbitRightAction is not assigned in the inspector.", Logger.Severity.Critical, this);
 		}
 
 		ResolveActions();
@@ -94,9 +92,8 @@ public class PlayerController : MonoBehaviour
 		DisableAction(resolvedCancelAction);
 		DisableAction(resolvedOrbitLeftAction);
 		DisableAction(resolvedOrbitRightAction);
-		ClearExplorationOverlay();
+		ClearSelectionMask();
 		selectedVoxel = null;
-		previousOverlaySelection = null;
 		hasLastCameraTransform = false;
 		hasLastPointerPosition = false;
 		selectionDirty = true;
@@ -114,7 +111,6 @@ public class PlayerController : MonoBehaviour
 		UpdateSelectedVoxel();
 		HandleCancelRequest();
 		HandleMoveRequest();
-		UpdateExplorationOverlay();
 	}
 
 	private void HandleOrbitRequest()
@@ -146,7 +142,7 @@ public class PlayerController : MonoBehaviour
 	{
 		if (inputCamera == null || !TryGetPointerPosition(out Vector2 pointerPosition))
 		{
-			selectedVoxel = null;
+			SetSelectedVoxel(null);
 			hasLastCameraTransform = false;
 			hasLastPointerPosition = false;
 			selectionDirty = true;
@@ -169,7 +165,6 @@ public class PlayerController : MonoBehaviour
 		lastCameraRotation = inputCamera.transform.rotation;
 		hasLastCameraTransform = true;
 		selectionDirty = false;
-		selectedVoxel = null;
 
 		Ray ray = inputCamera.ScreenPointToRay(pointerPosition);
 		if (!WorldVoxelRaycaster.TryRaycast(
@@ -181,12 +176,48 @@ public class PlayerController : MonoBehaviour
 				WorldVoxelRaycaster.ByTraversal(VoxelTraversal.Obstacle),
 				out WorldVoxelRaycaster.Hit hit))
 		{
+			SetSelectedVoxel(null);
 			return;
 		}
 
 		if (WorldPathfinder.TryResolveSelectableTarget(worldPresenter.WorldData, worldPresenter.VoxelRegistry, graphCache, hit.WorldPosition, out Vector3Int targetWorldPosition))
 		{
-			selectedVoxel = targetWorldPosition;
+			SetSelectedVoxel(targetWorldPosition);
+		}
+		else
+		{
+			SetSelectedVoxel(null);
+		}
+	}
+
+	private void SetSelectedVoxel(Vector3Int? newVoxel)
+	{
+		if (newVoxel == selectedVoxel)
+		{
+			return;
+		}
+
+		if (selectedVoxel.HasValue && worldPresenter.WorldData != null)
+		{
+			worldPresenter.TryRemoveMask(selectedVoxel.Value, VoxelMask.Selected);
+			worldPresenter.RebuildChunkOverlay(ChunkCoordinates.FromWorldVoxelPosition(selectedVoxel.Value));
+		}
+
+		selectedVoxel = newVoxel;
+
+		if (selectedVoxel.HasValue && worldPresenter.WorldData != null)
+		{
+			worldPresenter.TryAddMask(selectedVoxel.Value, VoxelMask.Selected);
+			worldPresenter.RebuildChunkOverlay(ChunkCoordinates.FromWorldVoxelPosition(selectedVoxel.Value));
+		}
+	}
+
+	private void ClearSelectionMask()
+	{
+		if (selectedVoxel.HasValue && worldPresenter.WorldData != null)
+		{
+			worldPresenter.TryRemoveMask(selectedVoxel.Value, VoxelMask.Selected);
+			worldPresenter.RebuildChunkOverlay(ChunkCoordinates.FromWorldVoxelPosition(selectedVoxel.Value));
 		}
 	}
 
@@ -198,7 +229,7 @@ public class PlayerController : MonoBehaviour
 		}
 
 		EventCenter.EmitActorMoveRequested(new ActorMovementRequest(controlledActor, selectedVoxel.Value));
-		selectedVoxel = null;
+		SetSelectedVoxel(null);
 		selectionDirty = true;
 	}
 
@@ -209,61 +240,8 @@ public class PlayerController : MonoBehaviour
 			return;
 		}
 
-		selectedVoxel = null;
+		SetSelectedVoxel(null);
 		selectionDirty = true;
-	}
-
-	private void UpdateExplorationOverlay()
-	{
-		if (worldPresenter.WorldData == null || !HasOverlayStateChanged())
-		{
-			return;
-		}
-
-		ChunkCoordinates? previousCoordinates = previousOverlaySelection.HasValue
-			? ChunkCoordinates.FromWorldVoxelPosition(previousOverlaySelection.Value)
-			: (ChunkCoordinates?)null;
-		ChunkCoordinates? currentCoordinates = selectedVoxel.HasValue
-			? ChunkCoordinates.FromWorldVoxelPosition(selectedVoxel.Value)
-			: (ChunkCoordinates?)null;
-
-		if (previousCoordinates.HasValue)
-		{
-			worldPresenter.ClearChunkMasks(previousCoordinates.Value);
-		}
-
-		if (currentCoordinates.HasValue && (!previousCoordinates.HasValue || !currentCoordinates.Value.Equals(previousCoordinates.Value)))
-		{
-			worldPresenter.ClearChunkMasks(currentCoordinates.Value);
-		}
-
-		if (selectedVoxel.HasValue)
-		{
-			worldPresenter.TryAddMask(selectedVoxel.Value, VoxelMask.Selected);
-		}
-
-		if (previousCoordinates.HasValue)
-		{
-			worldPresenter.RebuildChunkOverlay(previousCoordinates.Value);
-		}
-
-		if (currentCoordinates.HasValue && (!previousCoordinates.HasValue || !currentCoordinates.Value.Equals(previousCoordinates.Value)))
-		{
-			worldPresenter.RebuildChunkOverlay(currentCoordinates.Value);
-		}
-
-		StoreOverlayState();
-	}
-
-	private void ClearExplorationOverlay()
-	{
-		if (worldPresenter.WorldData == null)
-		{
-			return;
-		}
-
-		worldPresenter.ClearAllChunkMasks();
-		worldPresenter.RebuildAllChunkOverlays();
 	}
 
 	private bool WasValidateRequested()
@@ -284,16 +262,6 @@ public class PlayerController : MonoBehaviour
 		}
 
 		return Mouse.current != null ? Mouse.current.rightButton.wasPressedThisFrame : Input.GetMouseButtonDown(1);
-	}
-
-	private bool HasOverlayStateChanged()
-	{
-		return previousOverlaySelection != selectedVoxel;
-	}
-
-	private void StoreOverlayState()
-	{
-		previousOverlaySelection = selectedVoxel;
 	}
 
 	private static bool TryGetPointerPosition(out Vector2 pointerPosition)

@@ -4,7 +4,7 @@ public sealed class ExplorationMode : Mode
 {
 	[SerializeField] private WorldPresenter worldPresenter;
 	[SerializeField] private ActorManager actorManager;
-	[SerializeField] private PlayerController playerController;
+	[SerializeField] private ExplorationPlayerController playerController;
 	[SerializeField] private GameObject cameraPrefab;
 	[SerializeField] private Vector3 cameraLocalOffset = new Vector3(8f, 11f, 8f);
 
@@ -29,7 +29,7 @@ public sealed class ExplorationMode : Mode
 
 		if (playerController == null)
 		{
-			Logger.LogError("[ExplorationMode] PlayerController is not assigned in the inspector. Please assign a PlayerController to the ExplorationMode component.", Logger.Severity.Critical, this);
+			Logger.LogError("[ExplorationMode] ExplorationPlayerController is not assigned in the inspector. Please assign a ExplorationPlayerController to the ExplorationMode component.", Logger.Severity.Critical, this);
 		}
 
 		if (cameraPrefab == null)

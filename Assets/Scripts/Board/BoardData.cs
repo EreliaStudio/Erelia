@@ -7,6 +7,7 @@ public sealed class BoardData
 	public BoardTerrainLayer Terrain { get; }
 	public BoardNavigationLayer Navigation { get; }
 	public BoardRuntimeRegistry Runtime { get; }
+	public Vector3Int WorldAnchor { get; private set; }
 
 	public BoardData() : this(new BoardTerrainLayer(), new BoardNavigationLayer(), new BoardRuntimeRegistry())
 	{
@@ -15,11 +16,13 @@ public sealed class BoardData
 	public BoardData(
 		BoardTerrainLayer p_terrainLayer,
 		BoardNavigationLayer p_navigationLayer,
-		BoardRuntimeRegistry p_runtimeRegistry)
+		BoardRuntimeRegistry p_runtimeRegistry,
+		Vector3Int worldAnchor = default)
 	{
 		Terrain = p_terrainLayer ?? throw new ArgumentNullException(nameof(p_terrainLayer));
 		Navigation = p_navigationLayer ?? throw new ArgumentNullException(nameof(p_navigationLayer));
 		Runtime = p_runtimeRegistry ?? throw new ArgumentNullException(nameof(p_runtimeRegistry));
+		WorldAnchor = worldAnchor;
 
 		Runtime.AttachNavigationLayer(Navigation);
 	}

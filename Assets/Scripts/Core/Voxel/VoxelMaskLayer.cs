@@ -43,6 +43,27 @@ public sealed class VoxelMaskLayer
 		return true;
 	}
 
+	public bool TryRemoveMask(Vector3Int p_localPosition, VoxelMask p_mask)
+	{
+		if (!IsInside(p_localPosition) || p_mask == VoxelMask.None)
+		{
+			return false;
+		}
+
+		if (!activeCells.TryGetValue(p_localPosition, out VoxelMaskCell maskCell) || maskCell == null)
+		{
+			return false;
+		}
+
+		bool removed = maskCell.Masks.Remove(p_mask);
+		if (maskCell.Masks.Count == 0)
+		{
+			activeCells.Remove(p_localPosition);
+		}
+
+		return removed;
+	}
+
 	public bool TryGetMaskCell(Vector3Int p_localPosition, out VoxelMaskCell p_maskCell)
 	{
 		if (!IsInside(p_localPosition))

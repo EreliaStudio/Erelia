@@ -10,7 +10,6 @@ public sealed class GameSaveData
 
 	public int WorldSeed => worldSeed;
 	public Vector3Int PlayerWorldCell => playerWorldCell;
-	public Vector3 PlayerWorldPosition => playerWorldCell;
 	public bool PlayerSpawnResolved => playerSpawnResolved;
 
 	public void SetResolvedSpawn(Vector3Int cell)
