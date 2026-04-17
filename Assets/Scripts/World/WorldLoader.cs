@@ -28,6 +28,11 @@ public class WorldLoader
 		seed = value;
 	}
 
+	public void SetVisibilityRange(int value)
+	{
+		visibilityRange = Mathf.Max(0, value);
+	}
+
 	public WorldLoadResult SetCenterChunk(WorldData worldData, ChunkCoordinates centerChunk)
 	{
 		currentCenterChunk = centerChunk;

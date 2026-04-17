@@ -4,6 +4,7 @@ using UnityEngine;
 public class WorldPresenter : MonoBehaviour
 {
 	[SerializeField] private ChunkPresenter chunkPrefab;
+	[SerializeField, Min(0)] private int chunkViewRadius = 2;
 
 	private readonly Dictionary<ChunkCoordinates, ChunkPresenter> chunkPresenters = new Dictionary<ChunkCoordinates, ChunkPresenter>();
 	private WorldContext worldContext;
@@ -33,6 +34,7 @@ public class WorldPresenter : MonoBehaviour
 
 		ClearChunkPresenters();
 		worldContext = targetWorldContext;
+		worldContext?.WorldLoader?.SetVisibilityRange(chunkViewRadius);
 		RefreshLoadedChunkPresenters();
 	}
 

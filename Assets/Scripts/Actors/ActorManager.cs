@@ -5,6 +5,7 @@ using UnityEngine;
 public class ActorManager : MonoBehaviour
 {
 	[SerializeField] private WorldPresenter worldPresenter;
+	[SerializeField] private GameObject actorPrefab;
 
 	private readonly Dictionary<ActorPresenter, ActorPathDriver> driversByPresenter = new Dictionary<ActorPresenter, ActorPathDriver>();
 	private readonly List<ActorPresenter> completedPresenters = new List<ActorPresenter>();
@@ -16,6 +17,28 @@ public class ActorManager : MonoBehaviour
 		{
 			Logger.LogError("[ActorManager] WorldPresenter is not assigned in the inspector. Please assign a WorldPresenter to the ActorManager component.", Logger.Severity.Critical, this);
 		}
+
+		if (actorPrefab == null)
+		{
+			Logger.LogError("[ActorManager] ActorPrefab is not assigned in the inspector. Please assign an actor prefab to the ActorManager component.", Logger.Severity.Critical, this);
+		}
+	}
+
+	public ActorPresenter SpawnActor(Vector3 position, ActorData data, Transform parent = null)
+	{
+		if (actorPrefab == null)
+		{
+			return null;
+		}
+
+		GameObject instance = Instantiate(actorPrefab, position, Quaternion.identity, parent);
+		if (!instance.TryGetComponent(out ActorPresenter presenter))
+		{
+			return null;
+		}
+
+		presenter.Bind(data);
+		return presenter;
 	}
 
 	private void OnEnable()

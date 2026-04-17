@@ -44,15 +44,10 @@ public class GameBootstrapper : MonoBehaviour
 		if (worldPresenter != null)
 		{
 			worldPresenter.Bind(gameContext.World);
-			worldPresenter.LoadImmediatelyAroundWorldCell(gameContext.Player.WorldCell);
-			Logger.LogDebug("WorldPresenter bound and preloaded by bootstrapper.");
-		}
-		else
-		{
-			Logger.LogError("Cannot bind WorldPresenter because it is not assigned. Bootstrap will continue without preloading the world.", Logger.Severity.Error, this);
+			worldPresenter.LoadImmediatelyAroundWorldCell(gameSaveData.PlayerWorldCell);
+			gameContext.EnsurePlayerSpawn(gameSaveData, worldPresenter.WorldData, worldPresenter.VoxelRegistry);
 		}
 
 		modeManager.EnterExplorationMode(gameContext);
-		Logger.LogDebug($"Game bootstrapped in exploration mode. PlayerCell={gameSaveData.PlayerWorldCell}, WorldSeed={gameSaveData.WorldSeed}.");
 	}
 }

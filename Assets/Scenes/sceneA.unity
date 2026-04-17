@@ -144,7 +144,7 @@ Transform:
   m_GameObject: {fileID: 191534103}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.09319, y: -0, z: -0.01341}
+  m_LocalPosition: {x: 0, y: -0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -152,6 +152,20 @@ Transform:
   - {fileID: 1670222967}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &338277610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/OrbitLeft
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
+  m_ActionId: 8f42d57d-cd02-436e-a6fe-eb1947803772
 --- !u!1 &724917472
 GameObject:
   m_ObjectHideFlags: 0
@@ -200,6 +214,7 @@ MonoBehaviour:
   gameSaveData:
     worldSeed: 1
     playerWorldCell: {x: 0, y: 0, z: 0}
+    playerSpawnResolved: 0
   bootstrapOnStart: 1
   worldPresenter: {fileID: 1034705929}
 --- !u!1 &738431669
@@ -227,7 +242,7 @@ Transform:
   m_GameObject: {fileID: 738431669}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.09319, y: -0, z: -0.01341}
+  m_LocalPosition: {x: 0, y: -0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -236,6 +251,20 @@ Transform:
   - {fileID: 1122334823}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &795442146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Cancel
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
+  m_ActionId: 4f1750bd-c5bb-49fe-aa32-b4560f593e64
 --- !u!1 &1008231886
 GameObject:
   m_ObjectHideFlags: 0
@@ -298,7 +327,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1963466775}
   m_Father: {fileID: 191534104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1027634504
@@ -314,7 +344,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExplorationMode
   worldPresenter: {fileID: 1034705929}
-  playerPrefab: {fileID: 1378404045545513489, guid: b11a0125a779e134599a5190d40da0a2, type: 3}
+  actorManager: {fileID: 1296333418}
+  playerController: {fileID: 1963466776}
+  cameraPrefab: {fileID: 3540945603934700970, guid: 218e00fbd596f7d4da5c7dcd07e7a2ad, type: 3}
+  cameraLocalOffset: {x: 8, y: 11, z: 8}
 --- !u!1 &1034705928
 GameObject:
   m_ObjectHideFlags: 0
@@ -345,6 +378,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldPresenter
   chunkPrefab: {fileID: 376539866898005260, guid: 8a2761efadc6ed64d845ff4f2435e6fb, type: 3}
+  chunkViewRadius: 4
 --- !u!4 &1034705930
 Transform:
   m_ObjectHideFlags: 0
@@ -535,7 +569,7 @@ Transform:
   m_GameObject: {fileID: 1162672411}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.09319, y: -0, z: -0.01341}
+  m_LocalPosition: {x: 0, y: -0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -588,6 +622,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ActorManager
   worldPresenter: {fileID: 1034705929}
+  actorPrefab: {fileID: 2733933296148126701, guid: 1b85d6f68f592dd41bbabe783ae6828a, type: 3}
 --- !u!1 &1310856751
 GameObject:
   m_ObjectHideFlags: 0
@@ -688,10 +723,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1310856751}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dac2a5b8861c7e841b167a0f7cac92e4, type: 3}
+  m_Script: {fileID: 11500000, guid: f0bcfca83720f5a449fa4edc2cecefcb, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BoardView
+  m_EditorClassIdentifier: Assembly-CSharp::MaskOverlayView
   meshFilter: {fileID: 1310856754}
+  meshRenderer: {fileID: 1310856753}
 --- !u!1 &1341780660
 GameObject:
   m_ObjectHideFlags: 0
@@ -736,9 +772,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5005e0bcdd42064ba217b3651364c29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoardPresenter
-  overlayView: {fileID: 0}
+  overlayView: {fileID: 1310856755}
   voxelRegistry: {fileID: 11400000, guid: 7f2876a8319b8c3458bd5e3d6675e04e, type: 2}
   voxelMaskRegistry: {fileID: 11400000, guid: d1eb0bdd11887f846b9d99abb6e62378, type: 2}
+--- !u!114 &1552844765
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/OrbitRight
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
+  m_ActionId: cb3fb5b4-dbf4-4653-bcac-9520fc576d60
 --- !u!1 &1589046161
 GameObject:
   m_ObjectHideFlags: 0
@@ -863,6 +913,71 @@ Transform:
   - {fileID: 1034705930}
   m_Father: {fileID: 738431670}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1963466774
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1963466775}
+  - component: {fileID: 1963466776}
+  m_Layer: 0
+  m_Name: PlayerController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1963466775
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1963466774}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1027634503}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1963466776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1963466774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9bad3050907ca7e438de2c52dcb7c8bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  worldPresenter: {fileID: 1034705929}
+  validateAction: {fileID: 2095179485}
+  cancelAction: {fileID: 795442146}
+  orbitLeftAction: {fileID: 338277610}
+  orbitRightAction: {fileID: 1552844765}
+  selectionMaxDistance: 128
+  selectionStepDistance: 0.1
+--- !u!114 &2095179485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Validate
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
+  m_ActionId: c92b74c7-dab6-4c37-9fe9-180179efba2d
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

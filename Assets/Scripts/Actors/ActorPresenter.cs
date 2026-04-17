@@ -3,14 +3,20 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class ActorPresenter : MonoBehaviour
 {
-	[SerializeField] private ActorData actorData = new ActorData();
 	[SerializeField] private ActorView actorView;
+
+	private ActorData actorData;
 
 	public event System.Action<ActorPresenter, Vector3Int> CellReached;
 
 	public ActorData ActorData => actorData;
 	public ActorView ActorView => actorView;
 	public float MovementSpeed => actorData != null ? actorData.MovementSpeed : 0f;
+
+	public void Bind(ActorData data)
+	{
+		actorData = data;
+	}
 
 	protected virtual void Awake()
 	{

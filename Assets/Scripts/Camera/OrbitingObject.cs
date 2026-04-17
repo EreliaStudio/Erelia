@@ -1,49 +1,13 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [DisallowMultipleComponent]
 public class OrbitingObject : MonoBehaviour
 {
-	private const string DefaultInputAssetResourcePath = "Input/ExplorationPlayer";
-	private const string OrbitLeftActionName = "Player/OrbitLeft";
-	private const string OrbitRightActionName = "Player/OrbitRight";
-
-	[SerializeField] private Transform orbitingTransform;
-	[SerializeField] private Transform orbitSpace;
 	[SerializeField] private Vector3 orbitTargetLocalPoint = Vector3.zero;
-	[SerializeField] private InputActionAsset inputActionsAsset;
-	[SerializeField] private InputActionReference orbitLeftAction;
-	[SerializeField] private InputActionReference orbitRightAction;
-	[SerializeField, Min(0f)] private float keyOrbitSpeed = 120f;
-
-	private InputAction resolvedOrbitLeftAction;
-	private InputAction resolvedOrbitRightAction;
-
-	private void Reset()
-	{
-		ResolveOrbitSpace();
-
-		if (inputActionsAsset == null)
-		{
-			inputActionsAsset = Resources.Load<InputActionAsset>(DefaultInputAssetResourcePath);
-		}
-	}
+	[SerializeField, Min(0f)] private float orbitSpeed = 120f;
 
 	private void Awake()
 	{
-		if (orbitingTransform == null)
-		{
-			Logger.LogError("[OrbitingObject] OrbitingTransform is not assigned in the inspector. Please assign a Transform to the OrbitingObject component.", Logger.Severity.Critical, this);
-		}
-
-		ResolveOrbitSpace();
-
-		if (inputActionsAsset == null)
-		{
-			inputActionsAsset = Resources.Load<InputActionAsset>(DefaultInputAssetResourcePath);
-		}
-
-		ResolveActions();
 		LookAtTarget();
 	}
 
@@ -54,60 +18,10 @@ public class OrbitingObject : MonoBehaviour
 
 	private void OnValidate()
 	{
-		ResolveOrbitSpace();
-
 		if (!Application.isPlaying)
 		{
 			LookAtTarget();
 		}
-	}
-
-	private void OnEnable()
-	{
-		EnableAction(resolvedOrbitLeftAction);
-		EnableAction(resolvedOrbitRightAction);
-	}
-
-	private void OnDisable()
-	{
-		DisableAction(resolvedOrbitLeftAction);
-		DisableAction(resolvedOrbitRightAction);
-	}
-
-	private void Update()
-	{
-		if (orbitingTransform == null)
-		{
-			return;
-		}
-
-		float orbitAxis = 0f;
-		if (resolvedOrbitLeftAction != null && resolvedOrbitLeftAction.IsPressed())
-		{
-			orbitAxis -= 1f;
-		}
-
-		if (resolvedOrbitRightAction != null && resolvedOrbitRightAction.IsPressed())
-		{
-			orbitAxis += 1f;
-		}
-
-		if (Mathf.Abs(orbitAxis) <= 0.0001f)
-		{
-			return;
-		}
-
-		Transform activeOrbitSpace = GetOrbitSpace();
-		Vector3 localOrbitingPosition = activeOrbitSpace.InverseTransformPoint(orbitingTransform.position);
-		Vector3 localOffset = localOrbitingPosition - orbitTargetLocalPoint;
-		if (localOffset.sqrMagnitude <= 0.0001f)
-		{
-			return;
-		}
-
-		Quaternion rotation = Quaternion.AngleAxis(orbitAxis * keyOrbitSpeed * Time.deltaTime, Vector3.up);
-		Vector3 rotatedLocalPosition = orbitTargetLocalPoint + rotation * localOffset;
-		orbitingTransform.position = activeOrbitSpace.TransformPoint(rotatedLocalPosition);
 	}
 
 	private void LateUpdate()
@@ -115,86 +29,35 @@ public class OrbitingObject : MonoBehaviour
 		LookAtTarget();
 	}
 
-	[ContextMenu("Look At Target")]
-	private void ForceLookAtTarget()
+	public void Orbit(float axis, float deltaTime)
 	{
-		LookAtTarget();
-	}
-
-	private void ResolveActions()
-	{
-		resolvedOrbitLeftAction = orbitLeftAction != null ? orbitLeftAction.action : FindAction(OrbitLeftActionName);
-		resolvedOrbitRightAction = orbitRightAction != null ? orbitRightAction.action : FindAction(OrbitRightActionName);
-	}
-
-	private InputAction FindAction(string actionName)
-	{
-		if (inputActionsAsset == null)
+		if (Mathf.Abs(axis) <= 0.0001f)
 		{
-			return null;
+			return;
 		}
 
-		return inputActionsAsset.FindAction(actionName);
-	}
-
-	private static void EnableAction(InputAction action)
-	{
-		if (action != null && !action.enabled)
+		Vector3 localOffset = transform.localPosition - orbitTargetLocalPoint;
+		if (localOffset.sqrMagnitude <= 0.0001f)
 		{
-			action.Enable();
+			return;
 		}
-	}
 
-	private static void DisableAction(InputAction action)
-	{
-		if (action != null && action.enabled)
-		{
-			action.Disable();
-		}
+		Quaternion rotation = Quaternion.AngleAxis(axis * orbitSpeed * deltaTime, Vector3.up);
+		transform.localPosition = orbitTargetLocalPoint + rotation * localOffset;
 	}
 
 	private void LookAtTarget()
 	{
-		if (orbitingTransform == null)
+		Vector3 worldTarget = transform.parent != null
+			? transform.parent.TransformPoint(orbitTargetLocalPoint)
+			: orbitTargetLocalPoint;
+
+		Vector3 direction = worldTarget - transform.position;
+		if (direction.sqrMagnitude <= 0.0001f)
 		{
 			return;
 		}
 
-		Transform activeOrbitSpace = GetOrbitSpace();
-		Vector3 localOrbitingPosition = activeOrbitSpace.InverseTransformPoint(orbitingTransform.position);
-		Vector3 localDirection = orbitTargetLocalPoint - localOrbitingPosition;
-		if (localDirection.sqrMagnitude <= 0.0001f)
-		{
-			return;
-		}
-
-		Quaternion localRotation = Quaternion.LookRotation(localDirection.normalized, Vector3.up);
-		orbitingTransform.rotation = activeOrbitSpace.rotation * localRotation;
-	}
-
-	private void ResolveOrbitSpace()
-	{
-		if (orbitSpace != null)
-		{
-			return;
-		}
-
-		if (orbitingTransform != null && orbitingTransform.parent != null)
-		{
-			orbitSpace = orbitingTransform.parent;
-			return;
-		}
-
-		orbitSpace = transform;
-	}
-
-	private Transform GetOrbitSpace()
-	{
-		if (orbitSpace == null)
-		{
-			ResolveOrbitSpace();
-		}
-
-		return orbitSpace != null ? orbitSpace : transform;
+		transform.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
 	}
 }

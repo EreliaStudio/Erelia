@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 [Serializable]
-public class PlayerData
+public class PlayerData : ActorData
 {
 	[SerializeField] private Vector3Int worldCell = Vector3Int.zero;
 
