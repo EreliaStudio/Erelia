@@ -9,9 +9,7 @@ public class EncounterEmitter : MonoBehaviour
 
 	[SerializeField] private WorldPresenter worldPresenter;
 	[SerializeField, Min(1)] private int detectionHeightInCells = DefaultDetectionHeightInCells;
-	[SerializeField] private bool debugLogging = true;
 	[SerializeField] private EncounterResolver encounterResolver = new EncounterResolver();
-	[SerializeField] private BoardConfiguration boardConfiguration = new BoardConfiguration();
 
 	private readonly WorldTraversalGraphCache graphCache = new WorldTraversalGraphCache();
 
@@ -56,7 +54,12 @@ public class EncounterEmitter : MonoBehaviour
 			return;
 		}
 
-		if (!encounterResolver.TryResolveEncounter(biome, encounterRuleTag, taggedWorldCell, out EncounterUnit[] selectedTeam, debugLogging, this))
+		if (!encounterResolver.TryResolveEncounter(biome, encounterRuleTag, taggedWorldCell, out EncounterUnit[] selectedTeam, this))
+		{
+			return;
+		}
+
+		if (!biome.TryPickBoardConfiguration(out BoardConfiguration boardConfiguration))
 		{
 			return;
 		}
@@ -77,9 +80,6 @@ public class EncounterEmitter : MonoBehaviour
 			boardBuildResult.Board,
 			worldPosition);
 
-		LogDebug(
-			$"Battle board built successfully. Size={boardBuildResult.Board.Terrain.SizeX}x{boardBuildResult.Board.Terrain.SizeY}x{boardBuildResult.Board.Terrain.SizeZ}, BorderCellCount={boardBuildResult.BorderWorldCells?.Count ?? 0}.");
-		LogDebug($"Battle start requested from rule '{encounterRuleTag}' at {taggedWorldCell}.");
 		EventCenter.EmitBattleStartRequested(battleSetup);
 	}
 
@@ -172,16 +172,6 @@ public class EncounterEmitter : MonoBehaviour
 		}
 
 		return worldPresenter.VoxelRegistry.TryGetVoxel(cell.Id, out voxelDefinition) && voxelDefinition != null;
-	}
-
-	private void LogDebug(string message)
-	{
-		if (!debugLogging)
-		{
-			return;
-		}
-
-		Debug.Log($"[EncounterEmitter] {message}", this);
 	}
 
 	private static List<string> CollectDistinctTags(VoxelDefinition voxelDefinition)

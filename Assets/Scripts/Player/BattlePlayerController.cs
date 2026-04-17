@@ -146,8 +146,8 @@ public class BattlePlayerController : MonoBehaviour
 		Vector3 movement = (flatRight * input.x + flatForward * input.y) * (panSpeed * Time.deltaTime);
 		Vector3 newPosition = cameraHolder.transform.position + movement;
 
-		newPosition.x = Mathf.Clamp(newPosition.x, boardAnchor.x, boardAnchor.x + boardSize.x - 1);
-		newPosition.z = Mathf.Clamp(newPosition.z, boardAnchor.z, boardAnchor.z + boardSize.z - 1);
+		newPosition.x = Mathf.Clamp(newPosition.x, boardAnchor.x, boardAnchor.x + boardSize.x);
+		newPosition.z = Mathf.Clamp(newPosition.z, boardAnchor.z, boardAnchor.z + boardSize.z);
 
 		cameraHolder.transform.position = newPosition;
 	}

@@ -223,7 +223,7 @@ public static partial class VoxelMesher
 			for (int faceIndex = 0; faceIndex < maskFaces.Count; faceIndex++)
 			{
 				AddFace(
-					TransformFaceCached(maskFaces[faceIndex], cell.Orientation, VoxelFlipOrientation.PositiveY),
+					TransformFaceCached(maskFaces[faceIndex], cell.Orientation, cell.FlipOrientation),
 					offset + layerOffset,
 					vertices,
 					triangles,

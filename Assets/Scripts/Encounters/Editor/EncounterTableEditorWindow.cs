@@ -13,9 +13,15 @@ public class EncounterTableEditorWindow : EditorWindow
 	private const float TierCardMinWidth = 220f;
 	private const float TierCardSpacing = 10f;
 	private const int TierColumnCount = 5;
+	private const float BoardConfigurationCardWidth = 250f;
+	private const float BoardConfigurationCardSpacing = 8f;
+	private const float BoardConfigurationScrollHeight = 118f;
 
 	private BiomeDefinition biome;
+	private SerializedObject biomeSerializedObject;
+	private SerializedProperty boardConfigurationsProperty;
 	private Vector2 triggerListScroll;
+	private Vector2 boardConfigurationScroll;
 	private Vector2 contentScroll;
 	private string selectedTriggerTag = string.Empty;
 	private string renameBuffer = string.Empty;
@@ -81,6 +87,7 @@ public class EncounterTableEditorWindow : EditorWindow
 	private void SetBiome(BiomeDefinition targetBiome)
 	{
 		biome = targetBiome;
+		RebuildSerializedBiomeState();
 		EnsureSelectedTriggerTag();
 		Repaint();
 	}
@@ -195,6 +202,7 @@ public class EncounterTableEditorWindow : EditorWindow
 			return;
 		}
 
+		UpdateSerializedBiomeState();
 		EnsureSelectedTriggerTag();
 		if (!TryGetSelectedRule(out BiomeEncounterRule rule))
 		{
@@ -204,6 +212,8 @@ public class EncounterTableEditorWindow : EditorWindow
 		}
 
 		EncounterEditorUtility.EnsureRule(rule);
+		DrawBoardConfigurationsSection();
+		EditorGUILayout.Space(8f);
 		DrawRuleHeader(rule);
 		EditorGUILayout.Space(8f);
 
@@ -302,6 +312,127 @@ public class EncounterTableEditorWindow : EditorWindow
 		}
 
 		EditorGUILayout.EndVertical();
+	}
+
+	private void DrawBoardConfigurationsSection()
+	{
+		EditorGUILayout.LabelField("Board Configurations", EditorStyles.boldLabel);
+		EditorGUILayout.Space(2f);
+
+		if (boardConfigurationsProperty == null)
+		{
+			EditorGUILayout.HelpBox(
+				"Could not find a biome board-configuration list. Expected a field named 'BoardConfigurations' or 'BoardConfiguration'.",
+				MessageType.Warning);
+			return;
+		}
+
+		if (GUILayout.Button("Add Board Configuration", GUILayout.Width(170f)))
+		{
+			AddBoardConfiguration();
+		}
+
+		EditorGUILayout.Space(4f);
+
+		if (boardConfigurationsProperty.arraySize == 0)
+		{
+			EditorGUILayout.HelpBox("No board configurations defined for this biome.", MessageType.None);
+			return;
+		}
+
+		Rect scrollRect = GUILayoutUtility.GetRect(
+			0f,
+			BoardConfigurationScrollHeight,
+			GUILayout.ExpandWidth(true));
+		Rect contentRect = new Rect(
+			0f,
+			0f,
+			GetBoardConfigurationContentWidth(boardConfigurationsProperty.arraySize),
+			BoardConfigurationScrollHeight - 18f);
+
+		boardConfigurationScroll = GUI.BeginScrollView(
+			scrollRect,
+			boardConfigurationScroll,
+			contentRect,
+			true,
+			false);
+
+		float cardX = 0f;
+		for (int index = 0; index < boardConfigurationsProperty.arraySize; index++)
+		{
+			Rect cardRect = new Rect(cardX, 0f, BoardConfigurationCardWidth, contentRect.height);
+			DrawBoardConfigurationCard(cardRect, index, boardConfigurationsProperty.GetArrayElementAtIndex(index));
+			cardX += BoardConfigurationCardWidth + BoardConfigurationCardSpacing;
+		}
+
+		GUI.EndScrollView();
+	}
+
+	private void DrawBoardConfigurationCard(Rect rect, int index, SerializedProperty configurationProperty)
+	{
+		if (configurationProperty == null)
+		{
+			return;
+		}
+
+		SerializedProperty shapeProperty = configurationProperty.FindPropertyRelative("shape");
+		SerializedProperty sizeProperty = configurationProperty.FindPropertyRelative("size");
+
+		GUILayout.BeginArea(rect, EditorStyles.helpBox);
+		EditorGUILayout.BeginHorizontal();
+		EditorGUILayout.LabelField($"Configuration {index + 1}", EditorStyles.boldLabel, GUILayout.Width(96f));
+		GUILayout.FlexibleSpace();
+
+		if (GUILayout.Button("Remove", GUILayout.Width(70f)))
+		{
+			RemoveBoardConfiguration(index);
+			GUIUtility.ExitGUI();
+		}
+
+		EditorGUILayout.EndHorizontal();
+
+		EditorGUI.BeginChangeCheck();
+
+		if (shapeProperty != null)
+		{
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Type", GUILayout.Width(34f));
+			EditorGUILayout.PropertyField(shapeProperty, GUIContent.none);
+			EditorGUILayout.EndHorizontal();
+		}
+
+		if (sizeProperty != null)
+		{
+			Vector2Int size = sizeProperty.vector2IntValue;
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Size", GUILayout.Width(34f));
+			int width = EditorGUILayout.IntField(Mathf.Max(1, size.x));
+			GUILayout.Label("x", GUILayout.Width(10f));
+			int depth = EditorGUILayout.IntField(Mathf.Max(1, size.y));
+			EditorGUILayout.EndHorizontal();
+			sizeProperty.vector2IntValue = new Vector2Int(Mathf.Max(1, width), Mathf.Max(1, depth));
+		}
+		else
+		{
+			EditorGUILayout.HelpBox("The board configuration is missing its serialized 'size' field.", MessageType.Warning);
+		}
+
+		if (EditorGUI.EndChangeCheck())
+		{
+			ApplySerializedBiomeChanges();
+		}
+
+		GUILayout.EndArea();
+	}
+
+	private static float GetBoardConfigurationContentWidth(int configurationCount)
+	{
+		if (configurationCount <= 0)
+		{
+			return 0f;
+		}
+
+		return configurationCount * BoardConfigurationCardWidth + Mathf.Max(0, configurationCount - 1) * BoardConfigurationCardSpacing;
 	}
 
 	private void DrawTierEntryRow(EncounterTier tier, int tierIndex, EncounterTier.Entry entry, int entryIndex)
@@ -523,6 +654,89 @@ public class EncounterTableEditorWindow : EditorWindow
 		mutation();
 		EditorUtility.SetDirty(biome);
 		Repaint();
+	}
+
+	private void RebuildSerializedBiomeState()
+	{
+		if (biome == null)
+		{
+			biomeSerializedObject = null;
+			boardConfigurationsProperty = null;
+			return;
+		}
+
+		biomeSerializedObject = new SerializedObject(biome);
+		boardConfigurationsProperty = biomeSerializedObject.FindProperty("BoardConfigurations") ??
+		                              biomeSerializedObject.FindProperty("BoardConfiguration");
+	}
+
+	private void UpdateSerializedBiomeState()
+	{
+		if (biome == null)
+		{
+			return;
+		}
+
+		if (biomeSerializedObject == null || biomeSerializedObject.targetObject != biome)
+		{
+			RebuildSerializedBiomeState();
+		}
+
+		biomeSerializedObject?.Update();
+	}
+
+	private void ApplySerializedBiomeChanges()
+	{
+		if (biomeSerializedObject == null)
+		{
+			return;
+		}
+
+		biomeSerializedObject.ApplyModifiedProperties();
+		EditorUtility.SetDirty(biome);
+		Repaint();
+	}
+
+	private void AddBoardConfiguration()
+	{
+		if (biome == null || boardConfigurationsProperty == null)
+		{
+			return;
+		}
+
+		Undo.RecordObject(biome, "Add Board Configuration");
+		UpdateSerializedBiomeState();
+		int newIndex = boardConfigurationsProperty.arraySize;
+		boardConfigurationsProperty.InsertArrayElementAtIndex(newIndex);
+
+		SerializedProperty newConfiguration = boardConfigurationsProperty.GetArrayElementAtIndex(newIndex);
+		SerializedProperty shapeProperty = newConfiguration.FindPropertyRelative("shape");
+		SerializedProperty sizeProperty = newConfiguration.FindPropertyRelative("size");
+
+		if (shapeProperty != null)
+		{
+			shapeProperty.enumValueIndex = (int)BoardConfiguration.Shape.Square;
+		}
+
+		if (sizeProperty != null)
+		{
+			sizeProperty.vector2IntValue = new Vector2Int(9, 9);
+		}
+
+		ApplySerializedBiomeChanges();
+	}
+
+	private void RemoveBoardConfiguration(int index)
+	{
+		if (biome == null || boardConfigurationsProperty == null || index < 0 || index >= boardConfigurationsProperty.arraySize)
+		{
+			return;
+		}
+
+		Undo.RecordObject(biome, "Remove Board Configuration");
+		UpdateSerializedBiomeState();
+		boardConfigurationsProperty.DeleteArrayElementAtIndex(index);
+		ApplySerializedBiomeChanges();
 	}
 }
 #endif

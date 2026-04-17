@@ -32,47 +32,51 @@ public class VoxelStairShape : VoxelShape
 	}
 
 	protected override MaskSet ConstructMask()
-	{
-		const float maskOffset = 0.01f;
-		float lowerY = StepHeight + maskOffset;
-		float upperY = 1f + maskOffset;
-		float riserZ = StepDepth;
-		float uvStep = StepDepth;
-		float right = 1f;
+{
+	const float maskOffset = 0.01f;
+	const float riserOutset = -0.01f;
 
-		var positiveFaces = new List<Face>
-		{
-			CreateRectangle(
-				new Vector3(0f, upperY, StepDepth), new Vector2(0f, uvStep * 2f),
-				new Vector3(right, upperY, StepDepth), new Vector2(1f, uvStep * 2f),
-				new Vector3(right, upperY, 1f), new Vector2(1f, 1f),
-				new Vector3(0f, upperY, 1f), new Vector2(0f, 1f)),
-			CreateRectangle(
-				new Vector3(0f, lowerY, riserZ), new Vector2(0f, uvStep),
-				new Vector3(right, lowerY, riserZ), new Vector2(1f, uvStep),
-				new Vector3(right, upperY, riserZ), new Vector2(1f, uvStep * 2f),
-				new Vector3(0f, upperY, riserZ), new Vector2(0f, uvStep * 2f)),
-			CreateRectangle(
-				new Vector3(0f, lowerY, 0f), new Vector2(0f, 0f),
-				new Vector3(1f, lowerY, 0f), new Vector2(1f, 0f),
-				new Vector3(1f, lowerY, StepDepth), new Vector2(1f, uvStep),
-				new Vector3(0f, lowerY, StepDepth), new Vector2(0f, uvStep))
-		};
+	float lowerY = StepHeight + maskOffset;
+	float upperY = 1f + maskOffset;
+	float riserZ = StepDepth + riserOutset;
+	float right = 1f;
 
-		var negativeFaces = new List<Face>
-		{
-			CreateRectangle(
-				new Vector3(0f, 1f + maskOffset, 0f), new Vector2(0f, 0f),
-				new Vector3(1f, 1f + maskOffset, 0f), new Vector2(1f, 0f),
-				new Vector3(1f, 1f + maskOffset, 1f), new Vector2(1f, 1f),
-				new Vector3(0f, 1f + maskOffset, 1f), new Vector2(0f, 1f))
-		};
+	float v0 = 0f;
+	float v1 = 1f / 3f;
+	float v2 = 2f / 3f;
+	float v3 = 1f;
 
-		var mask = new MaskSet();
-		mask.PositiveYFaces.AddRange(positiveFaces);
-		mask.NegativeYFaces.AddRange(negativeFaces);
-		return mask;
-	}
+	var mask = new MaskSet();
+
+	// Top platform -> top third
+	mask.PositiveYFaces.Add(CreateRectangle(
+		new Vector3(0f, upperY, StepDepth), new Vector2(0f, v2),
+		new Vector3(right, upperY, StepDepth), new Vector2(1f, v2),
+		new Vector3(right, upperY, 1f), new Vector2(1f, v3),
+		new Vector3(0f, upperY, 1f), new Vector2(0f, v3)));
+
+	// Vertical riser -> middle third
+	mask.PositiveYFaces.Add(CreateRectangle(
+		new Vector3(0f, lowerY, riserZ), new Vector2(0f, v1),
+		new Vector3(right, lowerY, riserZ), new Vector2(1f, v1),
+		new Vector3(right, upperY, riserZ), new Vector2(1f, v2),
+		new Vector3(0f, upperY, riserZ), new Vector2(0f, v2)));
+
+	// Lower step top -> bottom third
+	mask.PositiveYFaces.Add(CreateRectangle(
+		new Vector3(0f, lowerY, 0f), new Vector2(0f, v0),
+		new Vector3(1f, lowerY, 0f), new Vector2(1f, v0),
+		new Vector3(1f, lowerY, StepDepth), new Vector2(1f, v1),
+		new Vector3(0f, lowerY, StepDepth), new Vector2(0f, v1)));
+
+	mask.NegativeYFaces.Add(CreateRectangle(
+		new Vector3(0f, 1f + maskOffset, 0f), new Vector2(0f, 0f),
+		new Vector3(1f, 1f + maskOffset, 0f), new Vector2(1f, 0f),
+		new Vector3(1f, 1f + maskOffset, 1f), new Vector2(1f, 1f),
+		new Vector3(0f, 1f + maskOffset, 1f), new Vector2(0f, 1f)));
+
+	return mask;
+}
 
 	protected override CardinalHeightSet ConstructPositiveYCardinalHeights()
 	{

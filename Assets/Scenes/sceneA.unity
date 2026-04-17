@@ -552,12 +552,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EncounterEmitter
   worldPresenter: {fileID: 1034705929}
   detectionHeightInCells: 3
-  debugLogging: 1
   encounterResolver:
     seed: 0
   boardConfiguration:
     size: {x: 9, y: 16, z: 9}
-    anchorOffset: {x: -4, y: 0, z: -4}
+    anchorOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &1162672411
 GameObject:
   m_ObjectHideFlags: 0
@@ -972,6 +971,7 @@ MonoBehaviour:
   cameraPrefab: {fileID: 3540945603934700970, guid: 218e00fbd596f7d4da5c7dcd07e7a2ad, type: 3}
   cameraLocalOffset: {x: 8, y: 11, z: 8}
   panSpeed: 8
+  orbitSpeed: 120
   panAction: {fileID: 1605299031}
   orbitLeftAction: {fileID: 1617825055}
   orbitRightAction: {fileID: 434303370}
