@@ -13,8 +13,6 @@ public sealed class ExplorationMode : Mode
 	private PlayerData currentPlayerData;
 	private ChunkCoordinates lastChunkCoordinates;
 
-	public override ModeKind Kind => ModeKind.Exploration;
-
 	private void Awake()
 	{
 		if (worldPresenter == null)
@@ -29,32 +27,30 @@ public sealed class ExplorationMode : Mode
 
 		if (playerController == null)
 		{
-			Logger.LogError("[ExplorationMode] ExplorationPlayerController is not assigned in the inspector. Please assign a ExplorationPlayerController to the ExplorationMode component.", Logger.Severity.Critical, this);
+			Logger.LogError("[ExplorationMode] ExplorationPlayerController is not assigned in the inspector. Please assign an ExplorationPlayerController to the ExplorationMode component.", Logger.Severity.Critical, this);
 		}
 
 		if (cameraPrefab == null)
 		{
 			Logger.LogError("[ExplorationMode] CameraPrefab is not assigned in the inspector. Please assign a camera prefab to the ExplorationMode component.", Logger.Severity.Critical, this);
 		}
-
 	}
 
-	protected override void OnEnter(ModeContext context)
+	public void Enter(GameContext gameContext)
 	{
-		GameContext gameContext = context?.GameContext;
 		if (gameContext == null)
 		{
-			LogDebug("Entered exploration mode without a game context.");
 			return;
 		}
 
 		currentPlayerData = gameContext.Player;
 
+		base.Enter();
+
 		worldPresenter.Bind(gameContext.World);
 
 		if (!EnsureActorInstance(out ActorPresenter actor))
 		{
-			LogDebug("Exploration mode could not find or create the player actor.");
 			return;
 		}
 
@@ -63,7 +59,6 @@ public sealed class ExplorationMode : Mode
 
 		if (!EnsureCameraInstance(out Camera explorationCamera, out OrbitingObject orbiting))
 		{
-			LogDebug("Exploration mode could not find or create the camera.");
 			return;
 		}
 
@@ -74,7 +69,7 @@ public sealed class ExplorationMode : Mode
 		EmitInitialPlayerState();
 	}
 
-	protected override void OnExit(ModeContext context)
+	protected override void OnExit()
 	{
 		playerController.Unbind();
 		currentPlayerData = null;
@@ -106,7 +101,7 @@ public sealed class ExplorationMode : Mode
 		{
 			camera = spawnedCamera.GetComponentInChildren<Camera>();
 			orbiting = spawnedCamera.GetComponent<OrbitingObject>();
-			return true;
+			return camera != null && orbiting != null;
 		}
 
 		Vector3 cameraWorldPosition = spawnedActor.transform.TransformPoint(cameraLocalOffset);
@@ -114,7 +109,7 @@ public sealed class ExplorationMode : Mode
 
 		camera = spawnedCamera.GetComponentInChildren<Camera>();
 		orbiting = spawnedCamera.GetComponent<OrbitingObject>();
-		return camera != null;
+		return camera != null && orbiting != null;
 	}
 
 	private void EmitInitialPlayerState()

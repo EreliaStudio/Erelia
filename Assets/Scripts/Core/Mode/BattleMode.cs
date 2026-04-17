@@ -7,7 +7,6 @@ public sealed class BattleMode : Mode
 
 	private BattleSetup currentSetup;
 
-	public override ModeKind Kind => ModeKind.Battle;
 	public BattleSetup CurrentSetup => currentSetup;
 
 	private void Awake()
@@ -23,47 +22,32 @@ public sealed class BattleMode : Mode
 		}
 	}
 
-	protected override void OnEnter(ModeContext context)
+	public void Enter(BattleSetup setup)
 	{
-		currentSetup = context?.BattleSetup;
-		if (currentSetup == null || currentSetup.Board == null)
+		if (setup == null || setup.Board == null)
 		{
-			LogDebug("Entered battle mode without a valid board.");
 			return;
 		}
 
-		boardPresenter.transform.position = (Vector3)currentSetup.Board.WorldAnchor;
+		currentSetup = setup;
+
+		base.Enter();
+
+		boardPresenter.transform.parent.transform.position = (Vector3)currentSetup.Board.WorldAnchor;
 		boardPresenter.Assign(currentSetup.Board);
 
 		Vector3Int anchor = currentSetup.Board.WorldAnchor;
-		Vector3Int size = new(currentSetup.Board.Terrain.SizeX, currentSetup.Board.Terrain.SizeY, currentSetup.Board.Terrain.SizeZ);
-		battlePlayerController.Bind(anchor, size);
+		Vector3Int size = new Vector3Int(
+			currentSetup.Board.Terrain.SizeX,
+			currentSetup.Board.Terrain.SizeY,
+			currentSetup.Board.Terrain.SizeZ);
 
-		LogDebug($"Battle setup assigned. EnemyTeamSize={CountUnits(currentSetup.Team)}.");
+		battlePlayerController.Bind(anchor, size, currentSetup.PlayerWorldPosition);
 	}
 
-	protected override void OnExit(ModeContext context)
+	protected override void OnExit()
 	{
 		battlePlayerController.Unbind();
 		currentSetup = null;
-	}
-
-	private static int CountUnits(EncounterUnit[] team)
-	{
-		if (team == null)
-		{
-			return 0;
-		}
-
-		int count = 0;
-		for (int index = 0; index < team.Length; index++)
-		{
-			if (team[index] != null)
-			{
-				count++;
-			}
-		}
-
-		return count;
 	}
 }

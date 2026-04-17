@@ -87,17 +87,7 @@ public sealed class ActorPathDriver
 			return true;
 		}
 
-		presenter.NotifyCellReached(targetCell);
-		pathIndex++;
-		movementPhase = MovementPhase.MoveToTransitionPoint;
-
-		if (pathIndex >= path.Count)
-		{
-			Stop();
-			return false;
-		}
-
-		return true;
+		return CompleteCellMove(targetCell);
 	}
 
 	private bool TryGetCurrentPhaseTarget(
@@ -121,7 +111,24 @@ public sealed class ActorPathDriver
 				out p_targetWorldPoint);
 		}
 
-		return VoxelTraversalUtility.TryGetTraversalWorldPoint(p_worldData, p_targetCell, CardinalHeightSet.Direction.Stationary, p_voxelRegistry, out p_targetWorldPoint);
+		return VoxelTraversalUtility.TryGetStandingWorldPoint(p_worldData, p_targetCell, p_voxelRegistry, out p_targetWorldPoint);
+	}
+
+	private bool CompleteCellMove(Vector3Int p_targetCell)
+	{
+		// Cell-reached notifications must happen only after the actor snaps to the
+		// target cell's standing point, not when crossing the transition edge.
+		presenter.NotifyCellReached(p_targetCell);
+		pathIndex++;
+		movementPhase = MovementPhase.MoveToTransitionPoint;
+
+		if (pathIndex >= path.Count)
+		{
+			Stop();
+			return false;
+		}
+
+		return true;
 	}
 
 	private static bool TryGetTransitionWorldPoint(

@@ -6,20 +6,20 @@ using UnityEngine;
 public class EncounterResolver
 {
 	[SerializeField] private int seed;
-	[SerializeField, Min(0)] private int minimumStepsBetweenEncounters = 2;
 
 	[NonSerialized] private System.Random random;
-	[NonSerialized] private int stepsSinceLastEncounter;
+	[NonSerialized] private bool hasLastCheckedCell;
+	[NonSerialized] private Vector3Int lastCheckedCell;
 
 	public bool TryResolveEncounter(
 		BiomeDefinition biome,
 		string triggerTag,
 		Vector3Int triggerCell,
-		out BattleSetup selection,
+		out EncounterUnit[] selectedTeam,
 		bool debugLogging = false,
 		UnityEngine.Object logContext = null)
 	{
-		selection = null;
+		selectedTeam = null;
 
 		if (biome == null || !biome.TryGetEncounterRule(triggerTag, out BiomeEncounterRule rule) || rule == null)
 		{
@@ -27,17 +27,19 @@ public class EncounterResolver
 			return false;
 		}
 
-		stepsSinceLastEncounter++;
 		LogDebug(
 			debugLogging,
 			logContext,
-			$"Encounter trigger matched. Biome='{biome.name}', Rule='{triggerTag}', Cell={triggerCell}, StepCounter={stepsSinceLastEncounter}/{minimumStepsBetweenEncounters}.");
+			$"Encounter trigger matched. Biome='{biome.name}', Rule='{triggerTag}', Cell={triggerCell}.");
 
-		if (stepsSinceLastEncounter <= minimumStepsBetweenEncounters)
+		if (hasLastCheckedCell && lastCheckedCell == triggerCell)
 		{
-			LogDebug(debugLogging, logContext, "Encounter blocked by minimum-steps cooldown.");
+			LogDebug(debugLogging, logContext, $"Encounter blocked because the last check was already done at cell {triggerCell}.");
 			return false;
 		}
+
+		lastCheckedCell = triggerCell;
+		hasLastCheckedCell = true;
 
 		float clampedChance = Mathf.Clamp01(rule.BaseChancePerStep);
 		if (clampedChance <= 0f)
@@ -63,8 +65,7 @@ public class EncounterResolver
 			return false;
 		}
 
-		stepsSinceLastEncounter = 0;
-		selection = BattleSetup.FromEntry(selectedEntry, null);
+		selectedTeam = selectedEntry.Team;
 		LogDebug(
 			debugLogging,
 			logContext,

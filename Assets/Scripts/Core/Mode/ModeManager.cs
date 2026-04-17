@@ -26,13 +26,15 @@ public class ModeManager : MonoBehaviour
 
 		if (explorationMode != null)
 		{
-			explorationMode.Exit();
+			explorationMode.gameObject.SetActive(false);
 		}
 
 		if (battleMode != null)
 		{
-			battleMode.Exit();
+			battleMode.gameObject.SetActive(false);
 		}
+
+		EnterExplorationMode();
 	}
 
 	private void OnEnable()
@@ -57,23 +59,24 @@ public class ModeManager : MonoBehaviour
 			currentGameContext = gameContext;
 		}
 
-		SwitchTo(explorationMode, new ModeContext
-		{
-			GameContext = currentGameContext
-		});
-	}
-
-	public void EnterBattleMode(BattleSetup setup)
-	{
-		if (setup == null || setup.Board == null)
+		if (currentGameContext == null || explorationMode == null)
 		{
 			return;
 		}
 
-		SwitchTo(battleMode, new ModeContext
+		SwitchTo(explorationMode);
+		explorationMode.Enter(currentGameContext);
+	}
+
+	public void EnterBattleMode(BattleSetup setup)
+	{
+		if (setup == null || setup.Board == null || battleMode == null)
 		{
-			BattleSetup = setup
-		});
+			return;
+		}
+
+		SwitchTo(battleMode);
+		battleMode.Enter(setup);
 	}
 
 	public void EndBattle()
@@ -86,7 +89,7 @@ public class ModeManager : MonoBehaviour
 		EnterBattleMode(setup);
 	}
 
-	private void SwitchTo(Mode nextMode, ModeContext context)
+	private void SwitchTo(Mode nextMode)
 	{
 		if (nextMode == null)
 		{
@@ -95,15 +98,14 @@ public class ModeManager : MonoBehaviour
 
 		if (currentMode == nextMode)
 		{
-			nextMode.Enter(context);
 			return;
 		}
 
 		if (currentMode != null)
 		{
-			currentMode.Exit(context);
+			currentMode.Exit();
 		}
+
 		currentMode = nextMode;
-		currentMode.Enter(context);
 	}
 }

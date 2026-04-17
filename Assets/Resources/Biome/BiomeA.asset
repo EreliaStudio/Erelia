@@ -16,7 +16,7 @@ MonoBehaviour:
     _serializedList:
     - Key: default
       Value:
-        BaseChancePerStep: 0.1
+        BaseChancePerStep: 1
         EncounterTable:
           NoBadge:
             WeightedTeams:

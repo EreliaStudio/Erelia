@@ -38,31 +38,25 @@ public class EncounterEmitter : MonoBehaviour
 	{
 		if (worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
 		{
-			LogDebug("World data or voxel registry is missing. Encounter evaluation skipped.");
 			return;
 		}
 
 		if (!WorldPathfinder.TryResolveStandingCell(worldPresenter.WorldData, worldPresenter.VoxelRegistry, graphCache, worldPosition, out Vector3Int standingCell))
 		{
-			LogDebug($"Could not resolve a standing cell for player world position {worldPosition}.");
 			return;
 		}
 
 		if (!TryGetBiome(standingCell, out BiomeDefinition biome))
 		{
-			LogDebug($"No biome was found for standing cell {standingCell}.");
 			return;
 		}
 
 		if (!TryFindEncounterRuleTagInActorColumn(standingCell, biome, out string encounterRuleTag, out Vector3Int taggedWorldCell))
 		{
-			LogDebug($"No valid encounter trigger was found in the player column at standing cell {standingCell} for biome '{biome.name}'.");
 			return;
 		}
 
-		LogDebug($"Player moved onto an encounter-trigger voxel at {taggedWorldCell}. Biome='{biome.name}', Rule='{encounterRuleTag}'.");
-
-		if (!encounterResolver.TryResolveEncounter(biome, encounterRuleTag, taggedWorldCell, out BattleSetup battleSetup, debugLogging, this))
+		if (!encounterResolver.TryResolveEncounter(biome, encounterRuleTag, taggedWorldCell, out EncounterUnit[] selectedTeam, debugLogging, this))
 		{
 			return;
 		}
@@ -75,16 +69,18 @@ public class EncounterEmitter : MonoBehaviour
 
 		if (boardBuildResult == null || boardBuildResult.Board == null)
 		{
-			LogDebug($"Board build failed for encounter at {taggedWorldCell}.");
 			return;
 		}
 
-		worldPresenter.ShowBattleAreaBorder(boardBuildResult.BorderWorldCells);
+		BattleSetup battleSetup = new BattleSetup(
+			selectedTeam,
+			boardBuildResult.Board,
+			worldPosition);
 
 		LogDebug(
 			$"Battle board built successfully. Size={boardBuildResult.Board.Terrain.SizeX}x{boardBuildResult.Board.Terrain.SizeY}x{boardBuildResult.Board.Terrain.SizeZ}, BorderCellCount={boardBuildResult.BorderWorldCells?.Count ?? 0}.");
 		LogDebug($"Battle start requested from rule '{encounterRuleTag}' at {taggedWorldCell}.");
-		EventCenter.EmitBattleStartRequested(battleSetup.WithBoard(boardBuildResult.Board));
+		EventCenter.EmitBattleStartRequested(battleSetup);
 	}
 
 	private bool TryGetBiome(Vector3Int standingCell, out BiomeDefinition biome)
@@ -114,7 +110,6 @@ public class EncounterEmitter : MonoBehaviour
 		encounterRuleTag = string.Empty;
 		taggedWorldCell = default;
 		string triggerTag = GameRule.EncounterTriggerTag;
-		bool foundEncounterTrigger = false;
 		List<string> triggerVoxelTags = null;
 
 		int maxHeight = Mathf.Max(1, detectionHeightInCells);
@@ -142,15 +137,14 @@ public class EncounterEmitter : MonoBehaviour
 				continue;
 			}
 
-			foundEncounterTrigger = true;
 			triggerVoxelTags ??= CollectDistinctTags(voxelDefinition);
 
 			for (int tagIndex = 0; tagIndex < voxelDefinition.Data.Tags.Count; tagIndex++)
 			{
 				string candidateTag = BiomeDefinition.CleanTriggerTag(voxelDefinition.Data.Tags[tagIndex]);
 				if (string.IsNullOrEmpty(candidateTag) ||
-				    BiomeDefinition.AreTriggerTagsEquivalent(candidateTag, triggerTag) ||
-				    !biome.TryGetEncounterRule(candidateTag, out _))
+					BiomeDefinition.AreTriggerTagsEquivalent(candidateTag, triggerTag) ||
+					!biome.TryGetEncounterRule(candidateTag, out _))
 				{
 					continue;
 				}
@@ -159,13 +153,6 @@ public class EncounterEmitter : MonoBehaviour
 				taggedWorldCell = candidate;
 				return true;
 			}
-		}
-
-		if (foundEncounterTrigger)
-		{
-			LogDebug(
-				$"Encounter-trigger voxel found near {standingCell}, but none of its tags matched a biome rule in '{biome.name}'. " +
-				$"VoxelTags=[{JoinTags(triggerVoxelTags)}], BiomeRuleTags=[{JoinTags(biome.GetEncounterRuleTags())}]");
 		}
 
 		return false;

@@ -51,11 +51,11 @@
     <Compile Include="Assets\Scripts\Bootstrap\GameBootstrapper.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleSetup.cs" />
     <Compile Include="Assets\Scripts\Statuses\Status.cs" />
+    <Compile Include="Assets\Scripts\Core\Mode\Mode.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterTier.cs" />
     <Compile Include="Assets\Scripts\Data\GameContext.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMaskCell.cs" />
     <Compile Include="Assets\Scripts\World\SimpleDebugChunkGenerator.cs" />
-    <Compile Include="Assets\Scripts\Core\State\ModeKind.cs" />
     <Compile Include="Assets\Scripts\AI\AIRule.cs" />
     <Compile Include="Assets\Scripts\Core\Observables\ObservableList.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMaskLayer.cs" />
@@ -67,6 +67,7 @@
     <Compile Include="Assets\Scripts\Abilities\AbilityCost.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleContext.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelGrid.cs" />
+    <Compile Include="Assets\Scripts\Core\Mode\ExplorationMode.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorView.cs" />
     <Compile Include="Assets\Scripts\World\WorldData.cs" />
     <Compile Include="Assets\Scripts\Creatures\CreatureSpecies.cs" />
@@ -75,11 +76,11 @@
     <Compile Include="Assets\Scripts\World\MetaWorldData.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMesher.Collider.cs" />
     <Compile Include="Assets\Scripts\AI\AIDecision.cs" />
-    <Compile Include="Assets\Scripts\Core\State\Mode.cs" />
     <Compile Include="Assets\Scripts\World\Navigation\WorldPathfinder.cs" />
     <Compile Include="Assets\Scripts\World\ChunkPresenter.cs" />
     <Compile Include="Assets\Scripts\Creatures\CreatureForm.cs" />
     <Compile Include="Assets\Scripts\Board\BoardDataBuilder.cs" />
+    <Compile Include="Assets\Scripts\Core\Mode\ModeManager.cs" />
     <Compile Include="Assets\Scripts\World\WorldLoadResult.cs" />
     <Compile Include="Assets\Scripts\Abilities\Ability.cs" />
     <Compile Include="Assets\Scripts\Board\BoardTerrainLayer.cs" />
@@ -91,13 +92,13 @@
     <Compile Include="Assets\Scripts\BattleCellGraph\VoxelTraversalGraphBuilder.cs" />
     <Compile Include="Assets\Scripts\Core\Math\MathFormula.cs" />
     <Compile Include="Assets\Scripts\World\Navigation\WorldTraversalGraphCache.cs" />
-    <Compile Include="Assets\Scripts\Core\State\ModeManager.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMesher.Geometry.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleSide.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelCubeShape.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelSlopeShape.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelRegistry.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorData.cs" />
+    <Compile Include="Assets\Scripts\Core\Mode\BattleMode.cs" />
     <Compile Include="Assets\Scripts\Core\Observables\ObservableResource.cs" />
     <Compile Include="Assets\Scripts\Board\BoardData.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleAttributes.cs" />
@@ -114,9 +115,7 @@
     <Compile Include="Assets\Scripts\Actors\PlayerPresenter.cs" />
     <Compile Include="Assets\Scripts\Core\Observables\ObservableFloatResource.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelShape.cs" />
-    <Compile Include="Assets\Scripts\Core\State\ExplorationMode.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelData.cs" />
-    <Compile Include="Assets\Scripts\Bootstrap\DebugBattleBootstrapper.cs" />
     <Compile Include="Assets\Scripts\Core\Rules\GameRule.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterResolver.cs" />
     <Compile Include="Assets\Scripts\Core\Time\Duration.cs" />
@@ -127,7 +126,6 @@
     <Compile Include="Assets\Scripts\World\ChunkCoordinates.cs" />
     <Compile Include="Assets\Scripts\World\WorldContext.cs" />
     <Compile Include="Assets\Scripts\Biomes\BiomeEncounterRule.cs" />
-    <Compile Include="Assets\Scripts\Core\State\ModeContext.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleStatuses.cs" />
     <Compile Include="Assets\Scripts\Board\BoardPresenter.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterUnit.cs" />
@@ -148,7 +146,6 @@
     <Compile Include="Assets\Scripts\Board\BoardRuntimeRegistry.cs" />
     <Compile Include="Assets\Scripts\Board\BoardBuildResult.cs" />
     <Compile Include="Assets\Scripts\AI\AICondition.cs" />
-    <Compile Include="Assets\Scripts\Core\State\BattleMode.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatBoardProgress.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelDefinition.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMaskRegistry.cs" />

@@ -166,6 +166,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
   m_ActionId: 8f42d57d-cd02-436e-a6fe-eb1947803772
+--- !u!114 &434303370
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/OrbitRight
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 83b028ae263243f4d8a60b25888d1fe2, type: 3}
+  m_ActionId: d4e5f6a7-b8c9-0123-def0-234567890123
 --- !u!1 &724917472
 GameObject:
   m_ObjectHideFlags: 0
@@ -379,6 +393,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::WorldPresenter
   chunkPrefab: {fileID: 376539866898005260, guid: 8a2761efadc6ed64d845ff4f2435e6fb, type: 3}
   chunkViewRadius: 4
+  defaultBiome: {fileID: 11400000, guid: 20a5d2dd784c4eb4f9ff7bfb2f665317, type: 2}
 --- !u!4 &1034705930
 Transform:
   m_ObjectHideFlags: 0
@@ -540,7 +555,6 @@ MonoBehaviour:
   debugLogging: 1
   encounterResolver:
     seed: 0
-    minimumStepsBetweenEncounters: 2
   boardConfiguration:
     size: {x: 9, y: 16, z: 9}
     anchorOffset: {x: -4, y: 0, z: -4}
@@ -835,6 +849,34 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1162672412}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1605299031
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Pan
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 83b028ae263243f4d8a60b25888d1fe2, type: 3}
+  m_ActionId: b2c3d4e5-f6a7-8901-bcde-f12345678901
+--- !u!114 &1617825055
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/OrbitLeft
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 83b028ae263243f4d8a60b25888d1fe2, type: 3}
+  m_ActionId: c3d4e5f6-a7b8-9012-cdef-123456789012
 --- !u!1 &1670222966
 GameObject:
   m_ObjectHideFlags: 0
@@ -866,6 +908,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1008231887}
+  - {fileID: 1758203224}
   m_Father: {fileID: 191534104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1670222968
@@ -881,6 +924,57 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BattleMode
   boardPresenter: {fileID: 1341780662}
+  battlePlayerController: {fileID: 1758203225}
+--- !u!1 &1758203223
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1758203224}
+  - component: {fileID: 1758203225}
+  m_Layer: 0
+  m_Name: PlayerController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1758203224
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1758203223}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1670222967}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1758203225
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1758203223}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fdbfc5f8b41507948beb57366c651d51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BattlePlayerController
+  cameraPrefab: {fileID: 3540945603934700970, guid: 218e00fbd596f7d4da5c7dcd07e7a2ad, type: 3}
+  cameraLocalOffset: {x: 8, y: 11, z: 8}
+  panSpeed: 8
+  panAction: {fileID: 1605299031}
+  orbitLeftAction: {fileID: 1617825055}
+  orbitRightAction: {fileID: 434303370}
 --- !u!1 &1930480835
 GameObject:
   m_ObjectHideFlags: 0

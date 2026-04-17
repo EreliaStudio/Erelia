@@ -7,14 +7,13 @@ public class BattlePlayerController : MonoBehaviour
 	[SerializeField] private GameObject cameraPrefab;
 	[SerializeField] private Vector3 cameraLocalOffset = new Vector3(8f, 11f, 8f);
 	[SerializeField, Min(0.1f)] private float panSpeed = 8f;
+	[SerializeField, Min(1f)] private float orbitSpeed = 120f;
 	[SerializeField] private InputActionReference panAction;
 	[SerializeField] private InputActionReference orbitLeftAction;
 	[SerializeField] private InputActionReference orbitRightAction;
-	[SerializeField, Min(0f)] private float orbitSpeed = 120f;
 
 	private GameObject cameraHolder;
 	private GameObject spawnedCamera;
-	private OrbitingObject orbitingObject;
 
 	private Vector3Int boardAnchor;
 	private Vector3Int boardSize;
@@ -64,22 +63,32 @@ public class BattlePlayerController : MonoBehaviour
 		DisableAction(resolvedOrbitRightAction);
 	}
 
-	public void Bind(Vector3Int anchor, Vector3Int size)
+	public void Bind(Vector3Int p_boardAnchor, Vector3Int p_boardSize, Vector3 p_playerWorldPosition)
 	{
-		boardAnchor = anchor;
-		boardSize = size;
+		boardAnchor = p_boardAnchor;
+		boardSize = p_boardSize;
 
-		Vector3 center = new Vector3(
-			anchor.x + size.x * 0.5f,
-			anchor.y,
-			anchor.z + size.z * 0.5f);
+		if (cameraHolder == null)
+		{
+			cameraHolder = new GameObject("BattleCameraHolder");
 
-		cameraHolder = new GameObject("BattleCameraHolder");
-		cameraHolder.transform.position = center;
+			Transform parentTransform = transform.parent != null ? transform.parent : transform;
+			cameraHolder.transform.SetParent(parentTransform, true);
+		}
 
-		Vector3 cameraWorldPosition = cameraHolder.transform.TransformPoint(cameraLocalOffset);
-		spawnedCamera = Instantiate(cameraPrefab, cameraWorldPosition, Quaternion.identity, cameraHolder.transform);
-		orbitingObject = spawnedCamera.GetComponent<OrbitingObject>();
+		cameraHolder.transform.position = p_playerWorldPosition;
+		cameraHolder.transform.rotation = Quaternion.identity;
+
+		if (spawnedCamera == null && cameraPrefab != null)
+		{
+			spawnedCamera = Instantiate(cameraPrefab, cameraHolder.transform);
+		}
+		else if (spawnedCamera != null)
+		{
+			spawnedCamera.transform.SetParent(cameraHolder.transform, false);
+		}
+
+		RefreshCameraTransform();
 	}
 
 	public void Unbind()
@@ -91,7 +100,6 @@ public class BattlePlayerController : MonoBehaviour
 		}
 
 		spawnedCamera = null;
-		orbitingObject = null;
 	}
 
 	private void Update()
@@ -103,11 +111,12 @@ public class BattlePlayerController : MonoBehaviour
 
 		HandlePan();
 		HandleOrbit();
+		RefreshCameraTransform();
 	}
 
 	private void HandlePan()
 	{
-		if (resolvedPanAction == null)
+		if (resolvedPanAction == null || cameraHolder == null)
 		{
 			return;
 		}
@@ -118,24 +127,40 @@ public class BattlePlayerController : MonoBehaviour
 			return;
 		}
 
-		Vector3 delta = new Vector3(input.x, 0f, input.y) * (panSpeed * Time.deltaTime);
-		Vector3 newPosition = cameraHolder.transform.position + delta;
+		Transform referenceTransform = ActiveCamera != null ? ActiveCamera.transform : cameraHolder.transform;
+
+		Vector3 flatForward = referenceTransform.forward;
+		Vector3 flatRight = referenceTransform.right;
+
+		flatForward.y = 0f;
+		flatRight.y = 0f;
+
+		if (flatForward.sqrMagnitude <= 0.0001f || flatRight.sqrMagnitude <= 0.0001f)
+		{
+			return;
+		}
+
+		flatForward.Normalize();
+		flatRight.Normalize();
+
+		Vector3 movement = (flatRight * input.x + flatForward * input.y) * (panSpeed * Time.deltaTime);
+		Vector3 newPosition = cameraHolder.transform.position + movement;
 
 		newPosition.x = Mathf.Clamp(newPosition.x, boardAnchor.x, boardAnchor.x + boardSize.x - 1);
 		newPosition.z = Mathf.Clamp(newPosition.z, boardAnchor.z, boardAnchor.z + boardSize.z - 1);
-		newPosition.y = cameraHolder.transform.position.y;
 
 		cameraHolder.transform.position = newPosition;
 	}
 
 	private void HandleOrbit()
 	{
-		if (orbitingObject == null)
+		if (cameraHolder == null)
 		{
 			return;
 		}
 
 		float axis = 0f;
+
 		if (resolvedOrbitLeftAction != null && resolvedOrbitLeftAction.IsPressed())
 		{
 			axis -= 1f;
@@ -146,10 +171,23 @@ public class BattlePlayerController : MonoBehaviour
 			axis += 1f;
 		}
 
-		if (Mathf.Abs(axis) > 0.0001f)
+		if (Mathf.Abs(axis) <= 0.0001f)
 		{
-			orbitingObject.Orbit(axis * orbitSpeed, Time.deltaTime);
+			return;
 		}
+
+		cameraHolder.transform.Rotate(Vector3.up, axis * orbitSpeed * Time.deltaTime, Space.World);
+	}
+
+	private void RefreshCameraTransform()
+	{
+		if (cameraHolder == null || spawnedCamera == null)
+		{
+			return;
+		}
+
+		spawnedCamera.transform.localPosition = cameraLocalOffset;
+		spawnedCamera.transform.LookAt(cameraHolder.transform.position, Vector3.up);
 	}
 
 	private void ResolveActions()
@@ -159,19 +197,19 @@ public class BattlePlayerController : MonoBehaviour
 		resolvedOrbitRightAction = orbitRightAction != null ? orbitRightAction.action : null;
 	}
 
-	private static void EnableAction(InputAction action)
+	private static void EnableAction(InputAction p_action)
 	{
-		if (action != null && !action.enabled)
+		if (p_action != null && !p_action.enabled)
 		{
-			action.Enable();
+			p_action.Enable();
 		}
 	}
 
-	private static void DisableAction(InputAction action)
+	private static void DisableAction(InputAction p_action)
 	{
-		if (action != null && action.enabled)
+		if (p_action != null && p_action.enabled)
 		{
-			action.Disable();
+			p_action.Disable();
 		}
 	}
 }
