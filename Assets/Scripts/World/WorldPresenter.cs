@@ -5,6 +5,7 @@ public class WorldPresenter : MonoBehaviour
 {
 	[SerializeField] private ChunkPresenter chunkPrefab;
 	[SerializeField, Min(0)] private int chunkViewRadius = 2;
+	[SerializeField] private BiomeDefinition defaultBiome;
 
 	private readonly Dictionary<ChunkCoordinates, ChunkPresenter> chunkPresenters = new Dictionary<ChunkCoordinates, ChunkPresenter>();
 	private WorldContext worldContext;
@@ -35,6 +36,7 @@ public class WorldPresenter : MonoBehaviour
 		ClearChunkPresenters();
 		worldContext = targetWorldContext;
 		worldContext?.WorldLoader?.SetVisibilityRange(chunkViewRadius);
+		worldContext?.MetaWorldGenerator?.SetDefaultBiome(defaultBiome);
 		RefreshLoadedChunkPresenters();
 	}
 
@@ -90,11 +92,6 @@ public class WorldPresenter : MonoBehaviour
 			ChunkCoordinates coordinates = loadResult.UnloadedChunks[i];
 			DestroyChunkPresenter(coordinates);
 			worldContext?.MetaWorldData?.SetChunkMeta(coordinates, null);
-		}
-
-		if (chunkPrefab == null)
-		{
-			return;
 		}
 
 		for (int i = 0; i < loadResult.LoadedChunks.Count; i++)
@@ -164,7 +161,7 @@ public class WorldPresenter : MonoBehaviour
 
 	private void RefreshLoadedChunkPresenters()
 	{
-		if (worldContext?.WorldData == null || chunkPrefab == null)
+		if (worldContext?.WorldData == null)
 		{
 			return;
 		}

@@ -105,7 +105,7 @@ public class PlayerController : MonoBehaviour
 
 	private void Update()
 	{
-		if (controlledActor == null || worldPresenter == null || worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
+		if (controlledActor == null || worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
 		{
 			return;
 		}
@@ -215,7 +215,7 @@ public class PlayerController : MonoBehaviour
 
 	private void UpdateExplorationOverlay()
 	{
-		if (worldPresenter == null || worldPresenter.WorldData == null || !HasOverlayStateChanged())
+		if (worldPresenter.WorldData == null || !HasOverlayStateChanged())
 		{
 			return;
 		}
@@ -257,7 +257,7 @@ public class PlayerController : MonoBehaviour
 
 	private void ClearExplorationOverlay()
 	{
-		if (worldPresenter == null || worldPresenter.WorldData == null)
+		if (worldPresenter.WorldData == null)
 		{
 			return;
 		}

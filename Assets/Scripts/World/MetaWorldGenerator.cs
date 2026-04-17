@@ -15,6 +15,11 @@ public class MetaWorldGenerator
 		seed = value;
 	}
 
+	public void SetDefaultBiome(BiomeDefinition value)
+	{
+		defaultBiome = value;
+	}
+
 	public ChunkMetaData GenerateChunkMeta(ChunkCoordinates coordinates)
 	{
 		return new ChunkMetaData

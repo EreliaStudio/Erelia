@@ -31,22 +31,13 @@ public class GameBootstrapper : MonoBehaviour
 
 	public void Bootstrap()
 	{
-		if (modeManager == null)
-		{
-			Logger.LogError("Bootstrap failed because no ModeManager was assigned to GameBootstrapper.", Logger.Severity.Critical, this);
-			return;
-		}
-
 		GameContext gameContext = GameContext.CreateFromSave(gameSaveData);
 
 		modeManager.SetGameContext(gameContext);
 
-		if (worldPresenter != null)
-		{
-			worldPresenter.Bind(gameContext.World);
-			worldPresenter.LoadImmediatelyAroundWorldCell(gameSaveData.PlayerWorldCell);
-			gameContext.EnsurePlayerSpawn(gameSaveData, worldPresenter.WorldData, worldPresenter.VoxelRegistry);
-		}
+		worldPresenter.Bind(gameContext.World);
+		worldPresenter.LoadImmediatelyAroundWorldCell(gameSaveData.PlayerWorldCell);
+		gameContext.EnsurePlayerSpawn(gameSaveData, worldPresenter.WorldData, worldPresenter.VoxelRegistry);
 
 		modeManager.EnterExplorationMode(gameContext);
 	}

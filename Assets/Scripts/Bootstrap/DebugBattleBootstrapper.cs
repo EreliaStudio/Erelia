@@ -36,11 +36,6 @@ public class DebugBattleBootstrapper : MonoBehaviour
 	[ContextMenu("Bootstrap Debug Battle")]
 	public void Bootstrap()
 	{
-		if (modeManager == null || worldPresenter == null || worldPresenter.VoxelRegistry == null)
-		{
-			return;
-		}
-
 		GameContext gameContext = GameContext.CreateFromSave(gameSaveData);
 		modeManager.SetGameContext(gameContext);
 		worldPresenter.Bind(gameContext.World);

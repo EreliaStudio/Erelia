@@ -7,9 +7,9 @@ public class ActorManager : MonoBehaviour
 	[SerializeField] private WorldPresenter worldPresenter;
 	[SerializeField] private GameObject actorPrefab;
 
-	private readonly Dictionary<ActorPresenter, ActorPathDriver> driversByPresenter = new Dictionary<ActorPresenter, ActorPathDriver>();
-	private readonly List<ActorPresenter> completedPresenters = new List<ActorPresenter>();
-	private readonly WorldTraversalGraphCache graphCache = new WorldTraversalGraphCache();
+	private readonly Dictionary<ActorPresenter, ActorPathDriver> driversByPresenter = new();
+	private readonly List<ActorPresenter> completedPresenters = new();
+	private readonly WorldTraversalGraphCache graphCache = new();
 
 	private void Awake()
 	{
@@ -56,7 +56,7 @@ public class ActorManager : MonoBehaviour
 
 	private void Update()
 	{
-		if (worldPresenter == null || worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
+		if (worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
 		{
 			return;
 		}
@@ -81,7 +81,7 @@ public class ActorManager : MonoBehaviour
 
 	private void OnActorMoveRequested(ActorMovementRequest p_request)
 	{
-		if (p_request.Actor == null || worldPresenter == null || worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
+		if (p_request.Actor == null || worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
 		{
 			return;
 		}
@@ -117,7 +117,7 @@ public class ActorManager : MonoBehaviour
 			return existingDriver;
 		}
 
-		ActorPathDriver driver = new ActorPathDriver(p_presenter);
+		ActorPathDriver driver = new(p_presenter);
 		driversByPresenter[p_presenter] = driver;
 		return driver;
 	}

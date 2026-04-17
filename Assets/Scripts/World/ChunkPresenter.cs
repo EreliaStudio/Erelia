@@ -34,7 +34,7 @@ public class ChunkPresenter : MonoBehaviour
 
 	public void RebuildTerrain()
 	{
-		if (terrainView == null || chunkData == null || voxelRegistry == null)
+		if (chunkData == null || voxelRegistry == null)
 		{
 			return;
 		}
@@ -45,11 +45,6 @@ public class ChunkPresenter : MonoBehaviour
 
 	public void RebuildOverlay()
 	{
-		if (overlayView == null)
-		{
-			return;
-		}
-
 		if (chunkData == null || voxelRegistry == null || voxelMaskRegistry == null)
 		{
 			overlayView.SetMaskMesh(null);
@@ -61,18 +56,12 @@ public class ChunkPresenter : MonoBehaviour
 
 	public void SetTerrainVisible(bool visible)
 	{
-		if (terrainView != null)
-		{
-			terrainView.SetVisible(visible);
-		}
+		terrainView.SetVisible(visible);
 	}
 
 	public void SetOverlayVisible(bool visible)
 	{
-		if (overlayView != null)
-		{
-			overlayView.SetVisible(visible);
-		}
+		overlayView.SetVisible(visible);
 	}
 
 	public void SetViewsVisible(bool visible)

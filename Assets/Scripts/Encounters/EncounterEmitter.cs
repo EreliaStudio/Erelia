@@ -36,9 +36,9 @@ public class EncounterEmitter : MonoBehaviour
 
 	private void OnPlayerMoved(Vector3 worldPosition)
 	{
-		if (worldPresenter == null || worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
+		if (worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
 		{
-			LogDebug("World presenter, world data, or voxel registry is missing. Encounter evaluation skipped.");
+			LogDebug("World data or voxel registry is missing. Encounter evaluation skipped.");
 			return;
 		}
 
@@ -91,7 +91,7 @@ public class EncounterEmitter : MonoBehaviour
 	{
 		biome = null;
 
-		if (worldPresenter == null || worldPresenter.MetaWorldData == null)
+		if (worldPresenter.MetaWorldData == null)
 		{
 			return false;
 		}
@@ -175,8 +175,7 @@ public class EncounterEmitter : MonoBehaviour
 	{
 		voxelDefinition = null;
 
-		if (worldPresenter == null ||
-			worldPresenter.WorldData == null ||
+		if (worldPresenter.WorldData == null ||
 			worldPresenter.VoxelRegistry == null ||
 			!worldPresenter.WorldData.TryGetCell(worldCell, out VoxelCell cell) ||
 			cell == null ||

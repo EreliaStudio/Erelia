@@ -26,10 +26,7 @@ public sealed class BattleMode : Mode
 			return;
 		}
 
-		if (boardPresenter != null)
-		{
-			boardPresenter.Assign(currentSetup.Board);
-		}
+		boardPresenter.Assign(currentSetup.Board);
 		LogDebug($"Battle setup assigned. EnemyTeamSize={CountUnits(currentSetup.Team)}.");
 	}
 

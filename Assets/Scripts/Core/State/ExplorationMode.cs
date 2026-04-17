@@ -50,10 +50,7 @@ public sealed class ExplorationMode : Mode
 
 		currentPlayerData = gameContext.Player;
 
-		if (worldPresenter != null)
-		{
-			worldPresenter.Bind(gameContext.World);
-		}
+		worldPresenter.Bind(gameContext.World);
 
 		if (!EnsureActorInstance(out ActorPresenter actor))
 		{
@@ -70,26 +67,16 @@ public sealed class ExplorationMode : Mode
 			return;
 		}
 
-		if (playerController != null)
-		{
-			playerController.Bind(actor, explorationCamera, orbiting);
-		}
+		playerController.Bind(actor, explorationCamera, orbiting);
 
-		if (worldPresenter != null)
-		{
-			worldPresenter.LoadImmediatelyAroundWorldCell(currentPlayerData.WorldCell);
-		}
+		worldPresenter.LoadImmediatelyAroundWorldCell(currentPlayerData.WorldCell);
 
 		EmitInitialPlayerState();
 	}
 
 	protected override void OnExit(ModeContext context)
 	{
-		if (playerController != null)
-		{
-			playerController.Unbind();
-		}
-
+		playerController.Unbind();
 		currentPlayerData = null;
 	}
 
@@ -99,12 +86,6 @@ public sealed class ExplorationMode : Mode
 		{
 			actor = spawnedActor;
 			return true;
-		}
-
-		if (actorManager == null)
-		{
-			actor = null;
-			return false;
 		}
 
 		spawnedActor = actorManager.SpawnActor(currentPlayerData.WorldPosition, currentPlayerData, transform);
