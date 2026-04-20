@@ -66,7 +66,7 @@ public sealed class ResolveActionPhase : BattlePhase
 			return;
 		}
 
-		if (!Context.Board.TryMove(p_action.SourceUnit, p_action.Destination))
+		if (!Context.TryMoveUnit(p_action.SourceUnit, p_action.Destination))
 		{
 			return;
 		}

@@ -23,9 +23,9 @@ public sealed class BattleCoordinator
 		orchestrator = p_orchestrator ?? throw new ArgumentNullException(nameof(p_orchestrator));
 		onBattleEnded = p_onBattleEnded;
 
-		placementPhase = new PlacementPhase(context, p_boardPresenter ?? throw new ArgumentNullException(nameof(p_boardPresenter)));
+		placementPhase = new PlacementPhase(context, p_boardPresenter ?? throw new ArgumentNullException(nameof(p_boardPresenter)), p_playerController ?? throw new ArgumentNullException(nameof(p_playerController)));
 		turnIdlePhase = new TurnIdlePhase(context);
-		playerTurnPhase = new PlayerTurnPhase(context, p_playerController ?? throw new ArgumentNullException(nameof(p_playerController)));
+		playerTurnPhase = new PlayerTurnPhase(context, p_playerController);
 		enemyTurnPhase = new EnemyTurnPhase(context);
 		resolveActionPhase = new ResolveActionPhase(context);
 		resultPhase = new ResultPhase(context);

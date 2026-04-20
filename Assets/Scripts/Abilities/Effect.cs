@@ -176,7 +176,7 @@ public class MoveStatus : Effect
 		for (int index = 0; index < Force; index++)
 		{
 			Vector3Int nextPosition = currentPosition + step;
-			if (!battleContext.Board.Runtime.TryPlaceUnit(targetUnit, nextPosition))
+			if (!battleContext.TryMoveUnit(targetUnit, nextPosition))
 			{
 				break;
 			}
@@ -198,7 +198,7 @@ public class SwapPositionEffect : Effect
 			return;
 		}
 
-		battleContext.Board.Runtime.SwapUnits(casterUnit, targetUnit);
+		battleContext.TrySwapUnits(casterUnit, targetUnit);
 	}
 }
 
@@ -225,7 +225,7 @@ public class TeleportEffect : Effect
 			}
 		}
 
-		battleContext.Board.Runtime.TryPlaceUnit(targetUnit, destination);
+		battleContext.TryPlaceUnit(targetUnit, destination);
 	}
 }
 

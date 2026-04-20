@@ -55,6 +55,7 @@
     <Compile Include="Assets\Scripts\Battle\BattleResult.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleCoordinator.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterTier.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleUnitView.cs" />
     <Compile Include="Assets\Scripts\Voxel\CardinalHeightSet.cs" />
     <Compile Include="Assets\Scripts\Data\GameContext.cs" />
     <Compile Include="Assets\Scripts\Rules\GameRule.cs" />
@@ -70,10 +71,12 @@
     <Compile Include="Assets\Scripts\Mode\BattleMode.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatNodeProgress.cs" />
     <Compile Include="Assets\Scripts\World\WorldPresenter.cs" />
+    <Compile Include="Assets\Scripts\Creatures\CreatureModelRegistry.cs" />
     <Compile Include="Assets\Scripts\Abilities\AbilityCost.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleContext.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorView.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelGrid.cs" />
+    <Compile Include="Assets\Scripts\Board\BoardVoxelRaycaster.cs" />
     <Compile Include="Assets\Scripts\World\WorldData.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\VoxelCrossPlaneShape.cs" />
     <Compile Include="Assets\Scripts\Battle\PlayerTurnPhase.cs" />
@@ -105,6 +108,8 @@
     <Compile Include="Assets\Scripts\Actors\ActorMovementRequest.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleStatus.cs" />
     <Compile Include="Assets\Scripts\BattleCellGraph\VoxelTraversalGraphBuilder.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleUnitManager.cs" />
+    <Compile Include="Assets\Scripts\Board\BoardPathfinder.cs" />
     <Compile Include="Assets\Scripts\World\Navigation\WorldTraversalGraphCache.cs" />
     <Compile Include="Assets\Scripts\Observables\ObservableResource.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleSide.cs" />
@@ -112,6 +117,7 @@
     <Compile Include="Assets\Scripts\Actors\ActorData.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMaskCell.cs" />
     <Compile Include="Assets\Scripts\Board\BoardData.cs" />
+    <Compile Include="Assets\Scripts\Player\BattlePlacementController.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleAttributes.cs" />
     <Compile Include="Assets\Scripts\Math\MathFormula.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatProgressionService.cs" />
@@ -142,6 +148,7 @@
     <Compile Include="Assets\Scripts\Feats\FeatBoard.cs" />
     <Compile Include="Assets\Scripts\Utility\Logger.cs" />
     <Compile Include="Assets\Scripts\Statuses\StatusHookPoint.cs" />
+    <Compile Include="Assets\Scripts\Creatures\CreatureModel.cs" />
     <Compile Include="Assets\Scripts\World\TerrainView.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterTable.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleInteractiveObject.cs" />
@@ -162,6 +169,7 @@
     <Compile Include="Assets\Scripts\World\ChunkData.cs" />
     <Compile Include="Assets\Scripts\Battle\PlacementPhase.cs" />
     <Compile Include="Assets\Scripts\World\WorldLoader.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleUnitPresenter.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorPathDriver.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelData.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatReward.cs" />

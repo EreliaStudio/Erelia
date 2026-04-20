@@ -10,6 +10,8 @@ public sealed class BattleContext
 	private readonly List<BattleUnit> allUnits = new();
 	private readonly List<Vector3Int> playerPlacementCells = new();
 	private readonly List<Vector3Int> enemyPlacementCells = new();
+	public event Action<BattleUnit> UnitRegistered;
+	public event Action<BattleUnit> UnitRemoved;
 
 	public BattleSetup Setup { get; }
 	public BoardData Board { get; }
@@ -43,6 +45,7 @@ public sealed class BattleContext
 		for (int index = 0; index < allUnits.Count; index++)
 		{
 			allUnits[index].BattleAttributes.Setup(allUnits[index].SourceUnit.Attributes);
+			allUnits[index].ClearBoardPosition();
 		}
 
 		playerPlacementCells.Clear();
@@ -176,7 +179,7 @@ public sealed class BattleContext
 			for (int cellIndex = 0; cellIndex < p_cells.Count; cellIndex++)
 			{
 				Vector3Int cell = p_cells[cellIndex];
-				if (!Board.TryPlace(unit, cell))
+				if (!TryPlaceUnit(unit, cell))
 				{
 					continue;
 				}
@@ -187,6 +190,84 @@ public sealed class BattleContext
 		}
 
 		return placedCount > 0;
+	}
+
+	public bool TryRegisterInitialUnits()
+	{
+		bool hasRegisteredAnyUnit = false;
+		for (int index = 0; index < allUnits.Count; index++)
+		{
+			BattleUnit unit = allUnits[index];
+			if (unit == null || !unit.HasBoardPosition)
+			{
+				continue;
+			}
+
+			UnitRegistered?.Invoke(unit);
+			hasRegisteredAnyUnit = true;
+		}
+
+		return hasRegisteredAnyUnit;
+	}
+
+	public bool TryPlaceUnit(BattleUnit p_unit, Vector3Int p_cell)
+	{
+		bool wasAlreadyPlaced = p_unit != null && p_unit.HasBoardPosition;
+		if (p_unit == null || !Board.TryPlace(p_unit, p_cell))
+		{
+			return false;
+		}
+
+		p_unit.SetBoardPosition(p_cell);
+		if (!wasAlreadyPlaced)
+		{
+			UnitRegistered?.Invoke(p_unit);
+		}
+
+		return true;
+	}
+
+	public bool TryMoveUnit(BattleUnit p_unit, Vector3Int p_cell)
+	{
+		if (p_unit == null || !Board.TryMove(p_unit, p_cell))
+		{
+			return false;
+		}
+
+		p_unit.SetBoardPosition(p_cell);
+		return true;
+	}
+
+	public bool TrySwapUnits(BattleUnit p_firstUnit, BattleUnit p_secondUnit)
+	{
+		if (p_firstUnit == null || p_secondUnit == null || !Board.Runtime.SwapUnits(p_firstUnit, p_secondUnit))
+		{
+			return false;
+		}
+
+		if (Board.TryGetPosition(p_firstUnit, out Vector3Int firstPosition))
+		{
+			p_firstUnit.SetBoardPosition(firstPosition);
+		}
+
+		if (Board.TryGetPosition(p_secondUnit, out Vector3Int secondPosition))
+		{
+			p_secondUnit.SetBoardPosition(secondPosition);
+		}
+
+		return true;
+	}
+
+	public void RemoveUnit(BattleUnit p_unit)
+	{
+		if (p_unit == null)
+		{
+			return;
+		}
+
+		Board.Remove(p_unit);
+		p_unit.ClearBoardPosition();
+		UnitRemoved?.Invoke(p_unit);
 	}
 
 	private void InitializeUnits(IReadOnlyList<CreatureUnit> p_sourceUnits, BattleSide p_side, List<BattleUnit> p_targetList)
@@ -241,7 +322,7 @@ public sealed class BattleContext
 					for (int y = 0; y < sizeY && !placed; y++)
 					{
 						Vector3Int position = new Vector3Int(x, y, z);
-						if (!Board.TryPlace(unit, position))
+						if (!TryPlaceUnit(unit, position))
 						{
 							continue;
 						}

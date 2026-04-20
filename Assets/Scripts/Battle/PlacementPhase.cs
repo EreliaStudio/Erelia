@@ -1,16 +1,18 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public sealed class PlacementPhase : BattlePhase
 {
 	private readonly BoardPresenter boardPresenter;
+	private readonly BattlePlayerController playerController;
+	private BattleUnit selectedUnit;
 	private bool hasConfirmedPlacement;
 
-	public PlacementPhase(BattleContext p_context, BoardPresenter p_boardPresenter) : base(p_context)
+	public PlacementPhase(BattleContext p_context, BoardPresenter p_boardPresenter, BattlePlayerController p_playerController) : base(p_context)
 	{
 		boardPresenter = p_boardPresenter ?? throw new ArgumentNullException(nameof(p_boardPresenter));
+		playerController = p_playerController ?? throw new ArgumentNullException(nameof(p_playerController));
 	}
 
 	public override BattlePhaseId PhaseId => BattlePhaseId.Placement;
@@ -23,26 +25,28 @@ public sealed class PlacementPhase : BattlePhase
 		Context.ClearRuntime();
 		ResolvePlacementAreas();
 		Context.TryPlaceUnitsInCells(Context.EnemyUnits, Context.EnemyPlacementCells);
-		Context.TryPlaceUnitsInCells(Context.PlayerUnits, Context.PlayerPlacementCells);
+		Context.TryRegisterInitialUnits();
+		playerController.BindPlacement(boardPresenter, Context);
+		playerController.PlacementController.HoveredCellChanged += OnHoveredCellChanged;
+		playerController.PlacementController.PlacementRequested += OnPlacementRequested;
+		SelectNextCreature();
 		RenderPlayerPlacementMask();
+
+		if (selectedUnit == null)
+		{
+			ConfirmPlacement();
+		}
 	}
 
 	public override void Tick(float p_deltaTime)
 	{
-		if (hasConfirmedPlacement || Keyboard.current == null)
-		{
-			return;
-		}
-
-		if (Keyboard.current.enterKey.wasPressedThisFrame || Keyboard.current.spaceKey.wasPressedThisFrame)
-		{
-			hasConfirmedPlacement = true;
-			PlacementConfirmed?.Invoke();
-		}
 	}
 
 	public override void Exit()
 	{
+		playerController.PlacementController.HoveredCellChanged -= OnHoveredCellChanged;
+		playerController.PlacementController.PlacementRequested -= OnPlacementRequested;
+		playerController.UnbindPlacement();
 		Context.Board.ClearMask();
 		boardPresenter.Rebuild();
 	}
@@ -100,6 +104,87 @@ public sealed class PlacementPhase : BattlePhase
 			Context.Board.Terrain.MaskLayer.TryAddMask(Context.PlayerPlacementCells[index], VoxelMask.Placement);
 		}
 
+		if (playerController.PlacementController.HoveredCell.HasValue)
+		{
+			Context.Board.Terrain.MaskLayer.TryAddMask(playerController.PlacementController.HoveredCell.Value, VoxelMask.Selected);
+		}
+
 		boardPresenter.Rebuild();
+	}
+
+	private void OnHoveredCellChanged(Vector3Int? p_hoveredCell)
+	{
+		RenderPlayerPlacementMask();
+	}
+
+	private void OnPlacementRequested(BattleUnit p_unit, Vector3Int p_cell)
+	{
+		if (hasConfirmedPlacement || p_unit == null || p_unit != selectedUnit || !CanPlaceSelectedUnitAt(p_cell))
+		{
+			return;
+		}
+
+		if (!Context.TryPlaceUnit(p_unit, p_cell))
+		{
+			return;
+		}
+
+		SelectNextCreature();
+		RenderPlayerPlacementMask();
+
+		if (selectedUnit == null)
+		{
+			ConfirmPlacement();
+		}
+	}
+
+	private bool CanPlaceSelectedUnitAt(Vector3Int p_cell)
+	{
+		if (selectedUnit == null)
+		{
+			return false;
+		}
+
+		for (int index = 0; index < Context.PlayerPlacementCells.Count; index++)
+		{
+			if (Context.PlayerPlacementCells[index] != p_cell)
+			{
+				continue;
+			}
+
+			return Context.Board.CanPlace(selectedUnit, p_cell);
+		}
+
+		return false;
+	}
+
+	private void SelectNextCreature()
+	{
+		selectedUnit = null;
+
+		for (int index = 0; index < Context.PlayerUnits.Count; index++)
+		{
+			BattleUnit candidate = Context.PlayerUnits[index];
+			if (candidate == null || Context.Board.TryGetPosition(candidate, out _))
+			{
+				continue;
+			}
+
+			selectedUnit = candidate;
+			break;
+		}
+
+		playerController.PlacementController.SelectCreature(selectedUnit);
+	}
+
+	private void ConfirmPlacement()
+	{
+		if (hasConfirmedPlacement)
+		{
+			return;
+		}
+
+		hasConfirmedPlacement = true;
+		PlacementConfirmed?.Invoke();
 	}
 }

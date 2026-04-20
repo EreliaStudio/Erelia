@@ -23,11 +23,13 @@ public class BattlePlayerController : MonoBehaviour
 	private InputAction resolvedPanAction;
 	private InputAction resolvedOrbitLeftAction;
 	private InputAction resolvedOrbitRightAction;
+	private readonly BattlePlacementController placementController = new();
 	private BattleContext activeBattleContext;
 	private BattleUnit activeTurnUnit;
 	private Action<BattleAction> actionChosenHandler;
 
 	public Camera ActiveCamera => spawnedCamera != null ? spawnedCamera.GetComponentInChildren<Camera>() : null;
+	public BattlePlacementController PlacementController => placementController;
 
 	private void Awake()
 	{
@@ -99,6 +101,7 @@ public class BattlePlayerController : MonoBehaviour
 	public void Unbind()
 	{
 		UnbindTurn();
+		UnbindPlacement();
 
 		if (cameraHolder != null)
 		{
@@ -123,6 +126,16 @@ public class BattlePlayerController : MonoBehaviour
 		actionChosenHandler = null;
 	}
 
+	public void BindPlacement(BoardPresenter p_boardPresenter, BattleContext p_context)
+	{
+		placementController.Bind(p_boardPresenter, p_context);
+	}
+
+	public void UnbindPlacement()
+	{
+		placementController.Unbind();
+	}
+
 	public void SubmitAction(BattleAction p_action)
 	{
 		if (actionChosenHandler == null || p_action == null)
@@ -144,6 +157,7 @@ public class BattlePlayerController : MonoBehaviour
 
 		HandlePan();
 		HandleOrbit();
+		placementController.Tick(ActiveCamera);
 		HandleTurnDebugInput();
 		RefreshCameraTransform();
 	}

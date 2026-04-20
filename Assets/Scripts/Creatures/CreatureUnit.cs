@@ -53,4 +53,20 @@ public class CreatureUnit
 
 		return form;
 	}
+
+	public bool TryGetForm(out CreatureForm p_form)
+	{
+		p_form = null;
+
+		if (Species == null ||
+			string.IsNullOrEmpty(CurrentFormID) ||
+			Species.Forms == null ||
+			!Species.Forms.TryGetValue(CurrentFormID, out CreatureForm form))
+		{
+			return false;
+		}
+
+		p_form = form;
+		return true;
+	}
 }

@@ -4,11 +4,14 @@ public sealed class BattleMode : Mode
 {
 	[SerializeField] private BoardPresenter boardPresenter;
 	[SerializeField] private BattlePlayerController battlePlayerController;
+	[SerializeField] private GameObject battleUnitPrefab;
+	[SerializeField] private CreatureModelRegistry creatureModelRegistry;
 
 	private BattleSetup currentSetup;
 	private BattleContext battleContext;
 	private BattleCoordinator battleCoordinator;
 	private BattleOrchestrator battleOrchestrator;
+	private BattleUnitManager battleUnitManager;
 
 	public BattleSetup CurrentSetup => currentSetup;
 	public BattleContext BattleContext => battleContext;
@@ -25,6 +28,11 @@ public sealed class BattleMode : Mode
 		{
 			Logger.LogError("[BattleMode] BattlePlayerController is not assigned in the inspector. Please assign a BattlePlayerController to the BattleMode component.", Logger.Severity.Critical, this);
 		}
+
+		if (battleUnitPrefab == null)
+		{
+			Logger.LogError("[BattleMode] BattleUnitPrefab is not assigned in the inspector. Please assign a battle unit prefab to the BattleMode component.", Logger.Severity.Critical, this);
+		}
 	}
 
 	public void Enter(BattleSetup setup)
@@ -36,6 +44,7 @@ public sealed class BattleMode : Mode
 
 		currentSetup = setup;
 		battleContext = new BattleContext(currentSetup);
+		battleUnitManager = new BattleUnitManager(transform, battleUnitPrefab, creatureModelRegistry, battleContext);
 		battleOrchestrator = new BattleOrchestrator();
 		battleCoordinator = new BattleCoordinator(battleContext, battleOrchestrator, boardPresenter, battlePlayerController, NotifyBattleEnded);
 
@@ -67,7 +76,9 @@ public sealed class BattleMode : Mode
 	protected override void OnExit()
 	{
 		battleCoordinator?.Stop();
+		battleUnitManager?.Dispose();
 		battlePlayerController.Unbind();
+		battleUnitManager = null;
 		battleCoordinator = null;
 		battleOrchestrator = null;
 		battleContext = null;
