@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p Voxel/Shape Voxel/Editor Mode Observables Event Math Rules Targeting Time Attributes Editor/Utils)",
+      "Bash(mv Core/Voxel/Shape/*.cs Voxel/Shape/)",
+      "Bash(mv Core/Voxel/Shape/*.meta Voxel/Shape/)",
+      "Bash(mv Core/Voxel/Editor/*.cs Voxel/Editor/)",
+      "Bash(mv Core/Voxel/Editor/*.meta Voxel/Editor/)",
+      "Bash(rm -rf Core)",
+      "Bash(rm -f Core.meta)"
+    ]
+  }
+}
