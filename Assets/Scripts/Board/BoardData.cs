@@ -10,6 +10,7 @@ public sealed class BoardData
 	public BoardRuntimeRegistry Runtime { get; }
 	public Vector3Int WorldAnchor { get; private set; }
 	public IReadOnlyList<Vector3Int> BorderLocalCells { get; private set; } = Array.Empty<Vector3Int>();
+	public BoardConfiguration.PlacementStyle PlacementStyle { get; private set; } = BoardConfiguration.PlacementStyle.HalfBoard;
 
 	public BoardData() : this(new BoardTerrainLayer(), new BoardNavigationLayer(), new BoardRuntimeRegistry())
 	{
@@ -32,6 +33,11 @@ public sealed class BoardData
 	public void AssignBorderLocalCells(IReadOnlyList<Vector3Int> p_borderLocalCells)
 	{
 		BorderLocalCells = p_borderLocalCells ?? Array.Empty<Vector3Int>();
+	}
+
+	public void AssignPlacementStyle(BoardConfiguration.PlacementStyle p_placementStyle)
+	{
+		PlacementStyle = p_placementStyle;
 	}
 
 	public void ClearMask()
@@ -58,9 +64,22 @@ public sealed class BoardData
 		return Terrain.IsInside(p_position);
 	}
 
+	public bool IsBorderCell(Vector3Int p_position)
+	{
+		for (int index = 0; index < BorderLocalCells.Count; index++)
+		{
+			if (BorderLocalCells[index] == p_position)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public bool IsStandable(Vector3Int p_position)
 	{
-		return Navigation.IsStandable(p_position);
+		return Navigation.IsStandable(p_position) && !IsBorderCell(p_position);
 	}
 
 	public bool HasUnitAt(Vector3Int p_position)

@@ -3,8 +3,15 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class GameBootstrapper : MonoBehaviour
 {
+	private enum BootstrapMode
+	{
+		NewGame,
+		LoadFromSave
+	}
+
 	[SerializeField] private ModeManager modeManager;
 	[SerializeField] private GameSaveData gameSaveData = new GameSaveData();
+	[SerializeField] private BootstrapMode bootstrapMode = BootstrapMode.NewGame;
 	[SerializeField] private bool bootstrapOnStart = true;
 	[SerializeField] private WorldPresenter worldPresenter;
 
@@ -31,14 +38,22 @@ public class GameBootstrapper : MonoBehaviour
 
 	public void Bootstrap()
 	{
-		GameContext gameContext = GameContext.CreateFromSave(gameSaveData);
+		gameSaveData ??= new GameSaveData();
+		GameContext gameContext = new GameContext();
+		gameContext.LoadFromSave(gameSaveData);
+		worldPresenter.Bind(gameContext.World);
+
+		if (bootstrapMode == BootstrapMode.NewGame)
+		{
+			// New-game setup needs generated terrain available to resolve the initial spawn.
+			worldPresenter.LoadImmediatelyAroundWorldCell(gameSaveData.PlayerWorldCell);
+			if (GameInitializationService.TryInitializeNewGameSave(gameSaveData, worldPresenter.WorldData, worldPresenter.VoxelRegistry))
+			{
+				gameContext.LoadFromSave(gameSaveData);
+			}
+		}
 
 		modeManager.SetGameContext(gameContext);
-
-		worldPresenter.Bind(gameContext.World);
-		worldPresenter.LoadImmediatelyAroundWorldCell(gameSaveData.PlayerWorldCell);
-		gameContext.EnsurePlayerSpawn(gameSaveData, worldPresenter.WorldData, worldPresenter.VoxelRegistry);
-
 		modeManager.EnterExplorationMode(gameContext);
 	}
 }

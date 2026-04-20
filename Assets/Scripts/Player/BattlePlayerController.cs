@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System;
+using System.Collections.Generic;
 
 [DisallowMultipleComponent]
 public class BattlePlayerController : MonoBehaviour
@@ -21,6 +23,9 @@ public class BattlePlayerController : MonoBehaviour
 	private InputAction resolvedPanAction;
 	private InputAction resolvedOrbitLeftAction;
 	private InputAction resolvedOrbitRightAction;
+	private BattleContext activeBattleContext;
+	private BattleUnit activeTurnUnit;
+	private Action<BattleAction> actionChosenHandler;
 
 	public Camera ActiveCamera => spawnedCamera != null ? spawnedCamera.GetComponentInChildren<Camera>() : null;
 
@@ -93,6 +98,8 @@ public class BattlePlayerController : MonoBehaviour
 
 	public void Unbind()
 	{
+		UnbindTurn();
+
 		if (cameraHolder != null)
 		{
 			Destroy(cameraHolder);
@@ -100,6 +107,32 @@ public class BattlePlayerController : MonoBehaviour
 		}
 
 		spawnedCamera = null;
+	}
+
+	public void BindTurn(BattleContext p_context, BattleUnit p_activeUnit, Action<BattleAction> p_actionChosenHandler)
+	{
+		activeBattleContext = p_context;
+		activeTurnUnit = p_activeUnit;
+		actionChosenHandler = p_actionChosenHandler;
+	}
+
+	public void UnbindTurn()
+	{
+		activeBattleContext = null;
+		activeTurnUnit = null;
+		actionChosenHandler = null;
+	}
+
+	public void SubmitAction(BattleAction p_action)
+	{
+		if (actionChosenHandler == null || p_action == null)
+		{
+			return;
+		}
+
+		Action<BattleAction> handler = actionChosenHandler;
+		actionChosenHandler = null;
+		handler.Invoke(p_action);
 	}
 
 	private void Update()
@@ -111,6 +144,7 @@ public class BattlePlayerController : MonoBehaviour
 
 		HandlePan();
 		HandleOrbit();
+		HandleTurnDebugInput();
 		RefreshCameraTransform();
 	}
 
@@ -195,6 +229,63 @@ public class BattlePlayerController : MonoBehaviour
 		resolvedPanAction = panAction != null ? panAction.action : null;
 		resolvedOrbitLeftAction = orbitLeftAction != null ? orbitLeftAction.action : null;
 		resolvedOrbitRightAction = orbitRightAction != null ? orbitRightAction.action : null;
+	}
+
+	private void HandleTurnDebugInput()
+	{
+		if (activeTurnUnit == null || actionChosenHandler == null || Keyboard.current == null)
+		{
+			return;
+		}
+
+		if (Keyboard.current.escapeKey.wasPressedThisFrame || Keyboard.current.backspaceKey.wasPressedThisFrame)
+		{
+			SubmitAction(new EndTurnAction(activeTurnUnit));
+			return;
+		}
+
+		if (!Keyboard.current.enterKey.wasPressedThisFrame && !Keyboard.current.spaceKey.wasPressedThisFrame)
+		{
+			return;
+		}
+
+		if (TryBuildDefaultAbilityAction(out AbilityAction abilityAction))
+		{
+			SubmitAction(abilityAction);
+			return;
+		}
+
+		SubmitAction(new EndTurnAction(activeTurnUnit));
+	}
+
+	private bool TryBuildDefaultAbilityAction(out AbilityAction p_action)
+	{
+		p_action = null;
+		if (activeTurnUnit?.Abilities == null || activeBattleContext == null)
+		{
+			return false;
+		}
+
+		for (int abilityIndex = 0; abilityIndex < activeTurnUnit.Abilities.Count; abilityIndex++)
+		{
+			Ability ability = activeTurnUnit.Abilities[abilityIndex];
+			if (ability == null ||
+				activeTurnUnit.BattleAttributes.ActionPoints.Current < ability.Cost.Ability ||
+				activeTurnUnit.BattleAttributes.MovementPoints.Current < ability.Cost.Movement)
+			{
+				continue;
+			}
+
+			if (!activeBattleContext.TryGetFirstLivingOpponent(activeTurnUnit, out BattleUnit targetUnit))
+			{
+				continue;
+			}
+
+			p_action = new AbilityAction(activeTurnUnit, ability, new List<BattleObject> { targetUnit });
+			return true;
+		}
+
+		return false;
 	}
 
 	private static void EnableAction(InputAction p_action)

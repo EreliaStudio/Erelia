@@ -52,6 +52,8 @@
     <Compile Include="Assets\Scripts\Bootstrap\GameBootstrapper.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleSetup.cs" />
     <Compile Include="Assets\Scripts\Statuses\Status.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleResult.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleCoordinator.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterTier.cs" />
     <Compile Include="Assets\Scripts\Voxel\CardinalHeightSet.cs" />
     <Compile Include="Assets\Scripts\Data\GameContext.cs" />
@@ -63,6 +65,7 @@
     <Compile Include="Assets\Scripts\Voxel\Shape\VoxelSlopeShape.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelCell.cs" />
     <Compile Include="Assets\Scripts\World\Navigation\WorldVoxelRaycaster.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattlePhase.cs" />
     <Compile Include="Assets\Scripts\Mode\ExplorationMode.cs" />
     <Compile Include="Assets\Scripts\Mode\BattleMode.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatNodeProgress.cs" />
@@ -73,8 +76,11 @@
     <Compile Include="Assets\Scripts\Voxel\VoxelGrid.cs" />
     <Compile Include="Assets\Scripts\World\WorldData.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\VoxelCrossPlaneShape.cs" />
+    <Compile Include="Assets\Scripts\Battle\PlayerTurnPhase.cs" />
     <Compile Include="Assets\Scripts\Creatures\CreatureSpecies.cs" />
     <Compile Include="Assets\Scripts\Board\BoardConfiguration.cs" />
+    <Compile Include="Assets\Scripts\Battle\EnemyTurnPhase.cs" />
+    <Compile Include="Assets\Scripts\Battle\ResolveActionPhase.cs" />
     <Compile Include="Assets\Scripts\World\MetaWorldData.cs" />
     <Compile Include="Assets\Scripts\AI\AIDecision.cs" />
     <Compile Include="Assets\Scripts\Observables\ObservableList.cs" />
@@ -114,6 +120,7 @@
     <Compile Include="Assets\Scripts\Player\PlayerData.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorPresenter.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterEmitter.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattlePhaseId.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterResolver.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMask.cs" />
     <Compile Include="Assets\Scripts\InteractiveObject\InteractionObject.cs" />
@@ -140,14 +147,20 @@
     <Compile Include="Assets\Scripts\Battle\BattleInteractiveObject.cs" />
     <Compile Include="Assets\Scripts\Board\BoardNavigationLayer.cs" />
     <Compile Include="Assets\Scripts\Creatures\CreatureUnit.cs" />
+    <Compile Include="Assets\Scripts\Bootstrap\GameInitializationService.cs" />
     <Compile Include="Assets\Scripts\World\ChunkMetaData.cs" />
     <Compile Include="Assets\Scripts\Board\BoardRuntimeRegistry.cs" />
+    <Compile Include="Assets\Scripts\Battle\TurnIdlePhase.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleOrchestrator.cs" />
     <Compile Include="Assets\Scripts\AI\AICondition.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleAction.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatBoardProgress.cs" />
+    <Compile Include="Assets\Scripts\Battle\ResultPhase.cs" />
     <Compile Include="Assets\Scripts\Observables\ObservableFloatResource.cs" />
     <Compile Include="Assets\Scripts\Abilities\Effect.cs" />
     <Compile Include="Assets\Scripts\Player\ExplorationPlayerController.cs" />
     <Compile Include="Assets\Scripts\World\ChunkData.cs" />
+    <Compile Include="Assets\Scripts\Battle\PlacementPhase.cs" />
     <Compile Include="Assets\Scripts\World\WorldLoader.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorPathDriver.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelData.cs" />

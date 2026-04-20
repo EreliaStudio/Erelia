@@ -6,8 +6,13 @@ public sealed class BattleMode : Mode
 	[SerializeField] private BattlePlayerController battlePlayerController;
 
 	private BattleSetup currentSetup;
+	private BattleContext battleContext;
+	private BattleCoordinator battleCoordinator;
+	private BattleOrchestrator battleOrchestrator;
 
 	public BattleSetup CurrentSetup => currentSetup;
+	public BattleContext BattleContext => battleContext;
+	public BattlePhase CurrentPhase => battleCoordinator?.CurrentPhase;
 
 	private void Awake()
 	{
@@ -30,6 +35,9 @@ public sealed class BattleMode : Mode
 		}
 
 		currentSetup = setup;
+		battleContext = new BattleContext(currentSetup);
+		battleOrchestrator = new BattleOrchestrator();
+		battleCoordinator = new BattleCoordinator(battleContext, battleOrchestrator, boardPresenter, battlePlayerController, NotifyBattleEnded);
 
 		base.Enter();
 
@@ -43,11 +51,31 @@ public sealed class BattleMode : Mode
 			currentSetup.Board.Terrain.SizeZ);
 
 		battlePlayerController.Bind(anchor, size, currentSetup.PlayerWorldPosition);
+		battleCoordinator.Start();
+	}
+
+	private void Update()
+	{
+		if (!IsActive || battleCoordinator == null)
+		{
+			return;
+		}
+
+		battleCoordinator.Tick(Time.deltaTime);
 	}
 
 	protected override void OnExit()
 	{
+		battleCoordinator?.Stop();
 		battlePlayerController.Unbind();
+		battleCoordinator = null;
+		battleOrchestrator = null;
+		battleContext = null;
 		currentSetup = null;
+	}
+
+	private void NotifyBattleEnded()
+	{
+		EventCenter.EmitBattleEnded();
 	}
 }

@@ -34,6 +34,7 @@ public static class BoardDataBuilder
 		}
 
 		board.RebuildNavigation();
+		board.AssignPlacementStyle(configuration.UnitPlacementStyle);
 		board.AssignBorderLocalCells(BuildBorder(board, size));
 		return board;
 	}
@@ -58,7 +59,7 @@ public static class BoardDataBuilder
 				for (int y = 0; y < size.y; y++)
 				{
 					Vector3Int localPosition = new Vector3Int(x, y, z);
-					if (!board.IsStandable(localPosition))
+					if (!board.Navigation.IsStandable(localPosition))
 					{
 						continue;
 					}

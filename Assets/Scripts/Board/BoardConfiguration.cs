@@ -11,8 +11,14 @@ public sealed class BoardConfiguration
 		RoundedSquare
 	};
 
+	public enum PlacementStyle
+	{
+		HalfBoard
+	}
+
 	[SerializeField] private Vector2Int size = new Vector2Int(9, 9);
 	[SerializeField] public Shape shape = Shape.Square;
+	[SerializeField] private PlacementStyle placementStyle = PlacementStyle.HalfBoard;
 
 	public BoardConfiguration()
 	{
@@ -28,6 +34,7 @@ public sealed class BoardConfiguration
 	public int SizeY => ChunkData.FixedSizeY;
 	public int SizeZ => Mathf.Max(1, size.y);
 	public Vector3Int AnchorOffset => new Vector3Int(-SizeX / 2, 0, -SizeZ / 2);
+	public PlacementStyle UnitPlacementStyle => placementStyle;
 
 	public Vector3Int GetSize()
 	{

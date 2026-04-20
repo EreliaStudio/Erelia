@@ -134,52 +134,12 @@ public class EncounterTeamEditorWindow : EditorWindow
 	private void DrawUnitTab(Rect rect, int unitIndex)
 	{
 		EncounterUnit unit = EncounterEditorUtility.GetOrCreateUnit(entry, unitIndex);
-		bool isSelected = selectedUnitIndex == unitIndex;
-
-		Color backgroundColor = isSelected
-			? new Color(0.83f, 0.70f, 0.26f, 1f)
-			: (EditorGUIUtility.isProSkin ? new Color(0.20f, 0.20f, 0.20f) : new Color(0.96f, 0.96f, 0.96f));
-
-		EditorGUI.DrawRect(rect, backgroundColor);
-		DrawOutline(rect, new Color(0f, 0f, 0f, 0.55f), isSelected ? 2f : 1f);
-
-		const float padding = 6f;
-		float iconSize = Mathf.Max(16f, rect.height - padding * 2f);
-		Rect iconRect = new Rect(rect.x + padding, rect.y + (rect.height - iconSize) * 0.5f, iconSize, iconSize);
-		Rect labelRect = new Rect(iconRect.xMax + padding, rect.y + padding, rect.xMax - iconRect.xMax - padding * 2f, rect.height - padding * 2f);
-
-		DrawUnitTabIcon(iconRect, unit);
-		GUI.Label(labelRect, EncounterEditorUtility.GetUnitDisplayName(unit), GetTabLabelStyle());
-
-		if (GUI.Button(rect, GUIContent.none, GUIStyle.none))
+		CreatureTeamEditorGui.DrawUnitTab(rect, unit, selectedUnitIndex == unitIndex, () =>
 		{
 			selectedUnitIndex = unitIndex;
 			boardView.ClearSelection();
 			Repaint();
-		}
-	}
-
-	private void DrawUnitTabIcon(Rect rect, EncounterUnit unit)
-	{
-		EditorGUI.DrawRect(rect, new Color(0f, 0f, 0f, 0.18f));
-
-		Sprite sprite = null;
-		try
-		{
-			CreatureForm form = unit?.GetForm();
-			if (form != null)
-			{
-				sprite = form.Icon;
-			}
-		}
-		catch
-		{
-		}
-
-		if (sprite != null)
-		{
-			SpriteGuiUtility.DrawSprite(rect, sprite);
-		}
+		});
 	}
 
 	private void DrawBoard(Rect rect, EncounterUnit selectedUnit)
@@ -198,17 +158,6 @@ public class EncounterTeamEditorWindow : EditorWindow
 	private EncounterUnit GetSelectedUnit()
 	{
 		return EncounterEditorUtility.GetOrCreateUnit(entry, selectedUnitIndex);
-	}
-
-	private GUIStyle GetTabLabelStyle()
-	{
-		return new GUIStyle(EditorStyles.boldLabel)
-		{
-			alignment = TextAnchor.MiddleCenter,
-			fontSize = 12,
-			wordWrap = true,
-			clipping = TextClipping.Clip
-		};
 	}
 
 	private void ApplyChange(string undoLabel, Action mutation)
@@ -231,12 +180,5 @@ public class EncounterTeamEditorWindow : EditorWindow
 		Repaint();
 	}
 
-	private void DrawOutline(Rect rect, Color color, float thickness)
-	{
-		EditorGUI.DrawRect(new Rect(rect.x, rect.y, rect.width, thickness), color);
-		EditorGUI.DrawRect(new Rect(rect.x, rect.yMax - thickness, rect.width, thickness), color);
-		EditorGUI.DrawRect(new Rect(rect.x, rect.y, thickness, rect.height), color);
-		EditorGUI.DrawRect(new Rect(rect.xMax - thickness, rect.y, thickness, rect.height), color);
-	}
 }
 #endif

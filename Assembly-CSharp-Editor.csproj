@@ -51,9 +51,11 @@
     <Compile Include="Assets\Scripts\Abilities\Editor\AbilityEffectDrawer.cs" />
     <Compile Include="Assets\Scripts\Feats\Editor\FeatBoardEditorWindow.cs" />
     <Compile Include="Assets\Scripts\Biomes\Editor\BiomeDefinitionEditor.cs" />
+    <Compile Include="Assets\Scripts\Editor\Utils\CreatureTeamEditorGui.cs" />
     <Compile Include="Assets\Scripts\Feats\Editor\FeatBoardEditorWindow.Model.cs" />
     <Compile Include="Assets\Scripts\Editor\Utils\ManagedReferenceTypePicker.cs" />
     <Compile Include="Assets\Scripts\Voxel\Editor\VoxelDefinitionEditor.cs" />
+    <Compile Include="Assets\Scripts\Player\Editor\PlayerTeamEditorWindow.cs" />
     <Compile Include="Assets\Scripts\Editor\Utils\SpriteGuiUtility.cs" />
     <Compile Include="Assets\Scripts\AI\Editor\AIRuleDrawer.cs" />
     <Compile Include="Assets\Scripts\Abilities\Editor\AbilityCostDrawer.cs" />
@@ -61,10 +63,12 @@
     <Compile Include="Assets\Scripts\Encounters\Editor\EncounterTeamProgressBoardView.cs" />
     <Compile Include="Assets\Scripts\Encounters\Editor\EncounterEditorUtility.cs" />
     <Compile Include="Assets\Scripts\Abilities\Editor\AbilityEditor.cs" />
+    <Compile Include="Assets\Scripts\Player\Editor\PlayerDataDrawer.cs" />
     <Compile Include="Assets\Scripts\Feats\Editor\FeatBoardEditorWindow.Styles.cs" />
     <Compile Include="Assets\Scripts\Encounters\Editor\EncounterTableEditorWindow.cs" />
     <Compile Include="Assets\Scripts\Creatures\Editor\CreatureSpeciesEditor.cs" />
     <Compile Include="Assets\Scripts\Creatures\Editor\CreatureUnitFeatProgressUtility.cs" />
+    <Compile Include="Assets\Scripts\Player\Editor\PlayerTeamUnitInspectorView.cs" />
     <Compile Include="Assets\Scripts\Encounters\Editor\EncounterTeamUnitInspectorView.cs" />
   </ItemGroup>
   <ItemGroup>

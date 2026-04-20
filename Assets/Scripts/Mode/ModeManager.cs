@@ -40,11 +40,13 @@ public class ModeManager : MonoBehaviour
 	private void OnEnable()
 	{
 		EventCenter.BattleStartRequested += OnBattleStartRequested;
+		EventCenter.BattleEnded += OnBattleEnded;
 	}
 
 	private void OnDisable()
 	{
 		EventCenter.BattleStartRequested -= OnBattleStartRequested;
+		EventCenter.BattleEnded -= OnBattleEnded;
 	}
 
 	public void SetGameContext(GameContext gameContext)
@@ -75,6 +77,11 @@ public class ModeManager : MonoBehaviour
 			return;
 		}
 
+		if (currentGameContext?.Player?.Team != null)
+		{
+			setup = setup.WithPlayerTeam(currentGameContext.Player.Team);
+		}
+
 		SwitchTo(battleMode);
 		battleMode.Enter(setup);
 	}
@@ -87,6 +94,11 @@ public class ModeManager : MonoBehaviour
 	private void OnBattleStartRequested(BattleSetup setup)
 	{
 		EnterBattleMode(setup);
+	}
+
+	private void OnBattleEnded()
+	{
+		EndBattle();
 	}
 
 	private void SwitchTo(Mode nextMode)

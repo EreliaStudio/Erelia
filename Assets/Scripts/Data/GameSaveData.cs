@@ -5,16 +5,22 @@ using UnityEngine;
 public sealed class GameSaveData
 {
 	[SerializeField] private int worldSeed = 1;
-	[SerializeField] private Vector3Int playerWorldCell = Vector3Int.zero;
-	[SerializeField] private bool playerSpawnResolved = false;
+	[SerializeField] private PlayerData player = new PlayerData();
+	[SerializeField] private Vector3Int respawnPoint = Vector3Int.zero;
 
 	public int WorldSeed => worldSeed;
-	public Vector3Int PlayerWorldCell => playerWorldCell;
-	public bool PlayerSpawnResolved => playerSpawnResolved;
+	public PlayerData Player => player;
+	public Vector3Int PlayerWorldCell => player != null ? player.WorldCell : Vector3Int.zero;
+	public Vector3Int RespawnPoint => respawnPoint;
 
-	public void SetResolvedSpawn(Vector3Int cell)
+	public void SetPlayerWorldCell(Vector3Int cell)
 	{
-		playerWorldCell = cell;
-		playerSpawnResolved = true;
+		player ??= new PlayerData();
+		player.WorldCell = cell;
+	}
+
+	public void SetRespawnPoint(Vector3Int cell)
+	{
+		respawnPoint = cell;
 	}
 }
