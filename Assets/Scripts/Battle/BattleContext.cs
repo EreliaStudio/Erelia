@@ -10,13 +10,4 @@ public sealed class BattleContext
 		Board = p_board ?? throw new ArgumentNullException(nameof(p_board));
 	}
 
-	public bool CanMove(BattleObject p_object, UnityEngine.Vector3Int p_targetPosition)
-	{
-		return Board.CanPlace(p_object, p_targetPosition);
-	}
-
-	public bool TryMove(BattleObject p_object, UnityEngine.Vector3Int p_targetPosition)
-	{
-		return Board.TryMove(p_object, p_targetPosition);
-	}
 }

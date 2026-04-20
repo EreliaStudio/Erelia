@@ -152,7 +152,7 @@ Transform:
   - {fileID: 1670222967}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &338277610
+--- !u!114 &680902889
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -162,24 +162,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: Player/OrbitLeft
+  m_Name: Player/Cancel
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
-  m_ActionId: 8f42d57d-cd02-436e-a6fe-eb1947803772
---- !u!114 &434303370
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: Player/OrbitRight
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
-  m_Asset: {fileID: -944628639613478452, guid: 83b028ae263243f4d8a60b25888d1fe2, type: 3}
-  m_ActionId: d4e5f6a7-b8c9-0123-def0-234567890123
+  m_ActionId: 4f1750bd-c5bb-49fe-aa32-b4560f593e64
 --- !u!1 &724917472
 GameObject:
   m_ObjectHideFlags: 0
@@ -265,7 +251,7 @@ Transform:
   - {fileID: 1122334823}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &795442146
+--- !u!114 &740380961
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -275,10 +261,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: Player/Cancel
+  m_Name: Player/OrbitLeft
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
-  m_ActionId: 4f1750bd-c5bb-49fe-aa32-b4560f593e64
+  m_ActionId: 8f42d57d-cd02-436e-a6fe-eb1947803772
+--- !u!114 &810826517
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/OrbitRight
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
+  m_ActionId: cb3fb5b4-dbf4-4653-bcac-9520fc576d60
 --- !u!1 &1008231886
 GameObject:
   m_ObjectHideFlags: 0
@@ -554,9 +554,6 @@ MonoBehaviour:
   detectionHeightInCells: 3
   encounterResolver:
     seed: 0
-  boardConfiguration:
-    size: {x: 9, y: 16, z: 9}
-    anchorOffset: {x: 0, y: 0, z: 0}
 --- !u!1 &1162672411
 GameObject:
   m_ObjectHideFlags: 0
@@ -788,7 +785,7 @@ MonoBehaviour:
   overlayView: {fileID: 1310856755}
   voxelRegistry: {fileID: 11400000, guid: 7f2876a8319b8c3458bd5e3d6675e04e, type: 2}
   voxelMaskRegistry: {fileID: 11400000, guid: d1eb0bdd11887f846b9d99abb6e62378, type: 2}
---- !u!114 &1552844765
+--- !u!114 &1369644855
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -798,10 +795,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: Player/OrbitRight
+  m_Name: Player/Validate
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
-  m_ActionId: cb3fb5b4-dbf4-4653-bcac-9520fc576d60
+  m_ActionId: c92b74c7-dab6-4c37-9fe9-180179efba2d
 --- !u!1 &1589046161
 GameObject:
   m_ObjectHideFlags: 0
@@ -848,34 +845,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1162672412}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1605299031
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: Player/Pan
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
-  m_Asset: {fileID: -944628639613478452, guid: 83b028ae263243f4d8a60b25888d1fe2, type: 3}
-  m_ActionId: b2c3d4e5-f6a7-8901-bcde-f12345678901
---- !u!114 &1617825055
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: Player/OrbitLeft
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
-  m_Asset: {fileID: -944628639613478452, guid: 83b028ae263243f4d8a60b25888d1fe2, type: 3}
-  m_ActionId: c3d4e5f6-a7b8-9012-cdef-123456789012
 --- !u!1 &1670222966
 GameObject:
   m_ObjectHideFlags: 0
@@ -972,9 +941,9 @@ MonoBehaviour:
   cameraLocalOffset: {x: 8, y: 11, z: 8}
   panSpeed: 8
   orbitSpeed: 120
-  panAction: {fileID: 1605299031}
-  orbitLeftAction: {fileID: 1617825055}
-  orbitRightAction: {fileID: 434303370}
+  panAction: {fileID: 0}
+  orbitLeftAction: {fileID: 0}
+  orbitRightAction: {fileID: 0}
 --- !u!1 &1930480835
 GameObject:
   m_ObjectHideFlags: 0
@@ -1052,26 +1021,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   worldPresenter: {fileID: 1034705929}
-  validateAction: {fileID: 2095179485}
-  cancelAction: {fileID: 795442146}
-  orbitLeftAction: {fileID: 338277610}
-  orbitRightAction: {fileID: 1552844765}
+  validateAction: {fileID: 1369644855}
+  cancelAction: {fileID: 680902889}
+  orbitLeftAction: {fileID: 740380961}
+  orbitRightAction: {fileID: 810826517}
   selectionMaxDistance: 128
   selectionStepDistance: 0.1
---- !u!114 &2095179485
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: Player/Validate
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
-  m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
-  m_ActionId: c92b74c7-dab6-4c37-9fe9-180179efba2d
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41bf31b6f48dbd04eabe434013955a14, type: 3}
   m_Name: BiomeA
   m_EditorClassIdentifier: Assembly-CSharp::BiomeDefinition
-  BoardConfigurations:
-  - size: {x: 9, y: 9}
-    shape: 0
   WildEncounterRulesByTriggerTag:
     _serializedList:
     - Key: default
       Value:
         BaseChancePerStep: 1
+        BoardConfigurations:
+        - size: {x: 9, y: 9}
+          shape: 0
         EncounterTable:
           NoBadge:
             WeightedTeams:
@@ -209,6 +209,9 @@ MonoBehaviour:
     - Key: normal_custom
       Value:
         BaseChancePerStep: 0.1
+        BoardConfigurations:
+        - size: {x: 9, y: 9}
+          shape: 0
         EncounterTable:
           NoBadge:
             WeightedTeams: []

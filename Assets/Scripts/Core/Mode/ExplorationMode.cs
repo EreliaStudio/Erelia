@@ -72,6 +72,10 @@ public sealed class ExplorationMode : Mode
 	protected override void OnExit()
 	{
 		playerController.Unbind();
+		if (spawnedActor != null)
+		{
+			spawnedActor.gameObject.SetActive(false);
+		}
 		currentPlayerData = null;
 	}
 
@@ -79,11 +83,12 @@ public sealed class ExplorationMode : Mode
 	{
 		if (spawnedActor != null)
 		{
+			spawnedActor.gameObject.SetActive(true);
 			actor = spawnedActor;
 			return true;
 		}
 
-		spawnedActor = actorManager.SpawnActor(currentPlayerData.WorldPosition, currentPlayerData, transform);
+		spawnedActor = actorManager.SpawnActor(currentPlayerData.WorldPosition, currentPlayerData);
 		if (spawnedActor == null)
 		{
 			actor = null;

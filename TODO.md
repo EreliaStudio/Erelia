@@ -1,0 +1,2 @@
+Make manager keep track of all actor instanciated
+Make the actor path driver edit the occupation tree while moving actors. A cell already occuped shouldn't be accessible and the motion should be stopped.

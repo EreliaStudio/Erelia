@@ -18,8 +18,6 @@ public class EncounterTableEditorWindow : EditorWindow
 	private const float BoardConfigurationScrollHeight = 118f;
 
 	private BiomeDefinition biome;
-	private SerializedObject biomeSerializedObject;
-	private SerializedProperty boardConfigurationsProperty;
 	private Vector2 triggerListScroll;
 	private Vector2 boardConfigurationScroll;
 	private Vector2 contentScroll;
@@ -87,7 +85,6 @@ public class EncounterTableEditorWindow : EditorWindow
 	private void SetBiome(BiomeDefinition targetBiome)
 	{
 		biome = targetBiome;
-		RebuildSerializedBiomeState();
 		EnsureSelectedTriggerTag();
 		Repaint();
 	}
@@ -202,7 +199,6 @@ public class EncounterTableEditorWindow : EditorWindow
 			return;
 		}
 
-		UpdateSerializedBiomeState();
 		EnsureSelectedTriggerTag();
 		if (!TryGetSelectedRule(out BiomeEncounterRule rule))
 		{
@@ -319,24 +315,23 @@ public class EncounterTableEditorWindow : EditorWindow
 		EditorGUILayout.LabelField("Board Configurations", EditorStyles.boldLabel);
 		EditorGUILayout.Space(2f);
 
-		if (boardConfigurationsProperty == null)
+		if (!TryGetSelectedRule(out BiomeEncounterRule rule))
 		{
-			EditorGUILayout.HelpBox(
-				"Could not find a biome board-configuration list. Expected a field named 'BoardConfigurations' or 'BoardConfiguration'.",
-				MessageType.Warning);
 			return;
 		}
 
+		rule.BoardConfigurations ??= new List<BoardConfiguration>();
+
 		if (GUILayout.Button("Add Board Configuration", GUILayout.Width(170f)))
 		{
-			AddBoardConfiguration();
+			AddBoardConfiguration(rule);
 		}
 
 		EditorGUILayout.Space(4f);
 
-		if (boardConfigurationsProperty.arraySize == 0)
+		if (rule.BoardConfigurations.Count == 0)
 		{
-			EditorGUILayout.HelpBox("No board configurations defined for this biome.", MessageType.None);
+			EditorGUILayout.HelpBox("No board configurations defined for this encounter rule.", MessageType.None);
 			return;
 		}
 
@@ -347,7 +342,7 @@ public class EncounterTableEditorWindow : EditorWindow
 		Rect contentRect = new Rect(
 			0f,
 			0f,
-			GetBoardConfigurationContentWidth(boardConfigurationsProperty.arraySize),
+			GetBoardConfigurationContentWidth(rule.BoardConfigurations.Count),
 			BoardConfigurationScrollHeight - 18f);
 
 		boardConfigurationScroll = GUI.BeginScrollView(
@@ -358,25 +353,28 @@ public class EncounterTableEditorWindow : EditorWindow
 			false);
 
 		float cardX = 0f;
-		for (int index = 0; index < boardConfigurationsProperty.arraySize; index++)
+		for (int index = 0; index < rule.BoardConfigurations.Count; index++)
 		{
 			Rect cardRect = new Rect(cardX, 0f, BoardConfigurationCardWidth, contentRect.height);
-			DrawBoardConfigurationCard(cardRect, index, boardConfigurationsProperty.GetArrayElementAtIndex(index));
+			DrawBoardConfigurationCard(cardRect, rule, index);
 			cardX += BoardConfigurationCardWidth + BoardConfigurationCardSpacing;
 		}
 
 		GUI.EndScrollView();
 	}
 
-	private void DrawBoardConfigurationCard(Rect rect, int index, SerializedProperty configurationProperty)
+	private void DrawBoardConfigurationCard(Rect rect, BiomeEncounterRule rule, int index)
 	{
-		if (configurationProperty == null)
+		if (rule?.BoardConfigurations == null || index < 0 || index >= rule.BoardConfigurations.Count)
 		{
 			return;
 		}
 
-		SerializedProperty shapeProperty = configurationProperty.FindPropertyRelative("shape");
-		SerializedProperty sizeProperty = configurationProperty.FindPropertyRelative("size");
+		BoardConfiguration configuration = rule.BoardConfigurations[index];
+		if (configuration == null)
+		{
+			return;
+		}
 
 		GUILayout.BeginArea(rect, EditorStyles.helpBox);
 		EditorGUILayout.BeginHorizontal();
@@ -385,41 +383,29 @@ public class EncounterTableEditorWindow : EditorWindow
 
 		if (GUILayout.Button("Remove", GUILayout.Width(70f)))
 		{
-			RemoveBoardConfiguration(index);
+			RemoveBoardConfiguration(rule, index);
 			GUIUtility.ExitGUI();
 		}
 
 		EditorGUILayout.EndHorizontal();
 
-		EditorGUI.BeginChangeCheck();
-
-		if (shapeProperty != null)
+		BoardConfiguration.Shape newShape = (BoardConfiguration.Shape)EditorGUILayout.EnumPopup("Type", configuration.shape);
+		int width;
+		int depth;
+		using (new EditorGUILayout.HorizontalScope())
 		{
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField("Type", GUILayout.Width(34f));
-			EditorGUILayout.PropertyField(shapeProperty, GUIContent.none);
-			EditorGUILayout.EndHorizontal();
-		}
-
-		if (sizeProperty != null)
-		{
-			Vector2Int size = sizeProperty.vector2IntValue;
-			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.LabelField("Size", GUILayout.Width(34f));
-			int width = EditorGUILayout.IntField(Mathf.Max(1, size.x));
+			width = Mathf.Max(1, EditorGUILayout.IntField(configuration.SizeX));
 			GUILayout.Label("x", GUILayout.Width(10f));
-			int depth = EditorGUILayout.IntField(Mathf.Max(1, size.y));
-			EditorGUILayout.EndHorizontal();
-			sizeProperty.vector2IntValue = new Vector2Int(Mathf.Max(1, width), Mathf.Max(1, depth));
-		}
-		else
-		{
-			EditorGUILayout.HelpBox("The board configuration is missing its serialized 'size' field.", MessageType.Warning);
+			depth = Mathf.Max(1, EditorGUILayout.IntField(configuration.SizeZ));
 		}
 
-		if (EditorGUI.EndChangeCheck())
+		if (newShape != configuration.shape || width != configuration.SizeX || depth != configuration.SizeZ)
 		{
-			ApplySerializedBiomeChanges();
+			ApplyBiomeChange("Edit Board Configuration", () =>
+			{
+				rule.BoardConfigurations[index] = new BoardConfiguration(new Vector2Int(width, depth), newShape);
+			});
 		}
 
 		GUILayout.EndArea();
@@ -656,87 +642,28 @@ public class EncounterTableEditorWindow : EditorWindow
 		Repaint();
 	}
 
-	private void RebuildSerializedBiomeState()
+	private void AddBoardConfiguration(BiomeEncounterRule rule)
 	{
-		if (biome == null)
+		if (biome == null || rule == null)
 		{
-			biomeSerializedObject = null;
-			boardConfigurationsProperty = null;
 			return;
 		}
 
-		biomeSerializedObject = new SerializedObject(biome);
-		boardConfigurationsProperty = biomeSerializedObject.FindProperty("BoardConfigurations") ??
-		                              biomeSerializedObject.FindProperty("BoardConfiguration");
+		ApplyBiomeChange("Add Board Configuration", () =>
+		{
+			rule.BoardConfigurations ??= new List<BoardConfiguration>();
+			rule.BoardConfigurations.Add(new BoardConfiguration(new Vector2Int(9, 9), BoardConfiguration.Shape.Square));
+		});
 	}
 
-	private void UpdateSerializedBiomeState()
+	private void RemoveBoardConfiguration(BiomeEncounterRule rule, int index)
 	{
-		if (biome == null)
+		if (biome == null || rule?.BoardConfigurations == null || index < 0 || index >= rule.BoardConfigurations.Count)
 		{
 			return;
 		}
 
-		if (biomeSerializedObject == null || biomeSerializedObject.targetObject != biome)
-		{
-			RebuildSerializedBiomeState();
-		}
-
-		biomeSerializedObject?.Update();
-	}
-
-	private void ApplySerializedBiomeChanges()
-	{
-		if (biomeSerializedObject == null)
-		{
-			return;
-		}
-
-		biomeSerializedObject.ApplyModifiedProperties();
-		EditorUtility.SetDirty(biome);
-		Repaint();
-	}
-
-	private void AddBoardConfiguration()
-	{
-		if (biome == null || boardConfigurationsProperty == null)
-		{
-			return;
-		}
-
-		Undo.RecordObject(biome, "Add Board Configuration");
-		UpdateSerializedBiomeState();
-		int newIndex = boardConfigurationsProperty.arraySize;
-		boardConfigurationsProperty.InsertArrayElementAtIndex(newIndex);
-
-		SerializedProperty newConfiguration = boardConfigurationsProperty.GetArrayElementAtIndex(newIndex);
-		SerializedProperty shapeProperty = newConfiguration.FindPropertyRelative("shape");
-		SerializedProperty sizeProperty = newConfiguration.FindPropertyRelative("size");
-
-		if (shapeProperty != null)
-		{
-			shapeProperty.enumValueIndex = (int)BoardConfiguration.Shape.Square;
-		}
-
-		if (sizeProperty != null)
-		{
-			sizeProperty.vector2IntValue = new Vector2Int(9, 9);
-		}
-
-		ApplySerializedBiomeChanges();
-	}
-
-	private void RemoveBoardConfiguration(int index)
-	{
-		if (biome == null || boardConfigurationsProperty == null || index < 0 || index >= boardConfigurationsProperty.arraySize)
-		{
-			return;
-		}
-
-		Undo.RecordObject(biome, "Remove Board Configuration");
-		UpdateSerializedBiomeState();
-		boardConfigurationsProperty.DeleteArrayElementAtIndex(index);
-		ApplySerializedBiomeChanges();
+		ApplyBiomeChange("Remove Board Configuration", () => rule.BoardConfigurations.RemoveAt(index));
 	}
 }
 #endif

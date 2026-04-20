@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
@@ -8,6 +9,7 @@ public sealed class BoardData
 	public BoardNavigationLayer Navigation { get; }
 	public BoardRuntimeRegistry Runtime { get; }
 	public Vector3Int WorldAnchor { get; private set; }
+	public IReadOnlyList<Vector3Int> BorderLocalCells { get; private set; } = Array.Empty<Vector3Int>();
 
 	public BoardData() : this(new BoardTerrainLayer(), new BoardNavigationLayer(), new BoardRuntimeRegistry())
 	{
@@ -27,6 +29,20 @@ public sealed class BoardData
 		Runtime.AttachNavigationLayer(Navigation);
 	}
 
+	public void AssignBorderLocalCells(IReadOnlyList<Vector3Int> p_borderLocalCells)
+	{
+		BorderLocalCells = p_borderLocalCells ?? Array.Empty<Vector3Int>();
+	}
+
+	public void ClearMask()
+	{
+		Terrain.MaskLayer.Clear();
+		foreach (Vector3Int localCell in BorderLocalCells)
+		{
+			Terrain.MaskLayer.TryAddMask(localCell, VoxelMask.BattleAreaBorder);
+		}
+	}
+
 	public void AssignVoxelRegistry(VoxelRegistry p_voxelRegistry)
 	{
 		Terrain.AssignVoxelRegistry(p_voxelRegistry);
@@ -35,7 +51,6 @@ public sealed class BoardData
 	public void RebuildNavigation()
 	{
 		Navigation.Rebuild(Terrain);
-		Runtime.Revalidate(Navigation);
 	}
 
 	public bool IsInside(Vector3Int p_position)

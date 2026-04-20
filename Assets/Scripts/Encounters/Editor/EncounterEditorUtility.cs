@@ -47,6 +47,7 @@ internal static class EncounterEditorUtility
 			return;
 		}
 
+		rule.BoardConfigurations ??= new System.Collections.Generic.List<BoardConfiguration>();
 		rule.EncounterTable ??= new EncounterTable();
 		for (int tierIndex = 0; tierIndex < TierLabels.Length; tierIndex++)
 		{

@@ -6,43 +6,9 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewBiomeDefinition", menuName = "Game/Biome Definition")]
 public class BiomeDefinition : ScriptableObject
 {
-	public List<BoardConfiguration> BoardConfigurations = new List<BoardConfiguration>();
-
 	[SerializedDictionary("Trigger Tag", "Encounter Rule")]
 	public SerializedDictionary<string, BiomeEncounterRule> WildEncounterRulesByTriggerTag =
 		new SerializedDictionary<string, BiomeEncounterRule>();
-
-	public bool TryPickBoardConfiguration(out BoardConfiguration boardConfiguration, System.Random random = null)
-	{
-		boardConfiguration = null;
-
-		if (BoardConfigurations == null || BoardConfigurations.Count == 0)
-		{
-			return false;
-		}
-
-		List<BoardConfiguration> validConfigurations = new List<BoardConfiguration>();
-		for (int index = 0; index < BoardConfigurations.Count; index++)
-		{
-			BoardConfiguration candidate = BoardConfigurations[index];
-			if (candidate != null)
-			{
-				validConfigurations.Add(candidate);
-			}
-		}
-
-		if (validConfigurations.Count == 0)
-		{
-			return false;
-		}
-
-		int selectedIndex = (random != null) ?
-			random.Next(0, validConfigurations.Count) :
-			UnityEngine.Random.Range(0, validConfigurations.Count);
-
-		boardConfiguration = validConfigurations[selectedIndex];
-		return true;
-	}
 
 	public bool TryGetEncounterRule(string triggerTag, out BiomeEncounterRule rule)
 	{

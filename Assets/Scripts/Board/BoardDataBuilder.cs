@@ -3,12 +3,13 @@ using UnityEngine;
 
 public static class BoardDataBuilder
 {
-	public static BoardBuildResult Build(WorldData worldData, VoxelRegistry voxelRegistry, Vector3Int anchorWorldPosition, BoardConfiguration configuration)
+	public static BoardData Build(WorldData worldData, VoxelRegistry voxelRegistry, Vector3Int anchorWorldPosition, BoardConfiguration configuration)
 	{
 		if (worldData == null || voxelRegistry == null || configuration == null)
 		{
 			return null;
 		}
+
 
 		Vector3Int size = configuration.GetSize();
 		Vector3Int worldOrigin = configuration.GetWorldOrigin(anchorWorldPosition);
@@ -33,16 +34,16 @@ public static class BoardDataBuilder
 		}
 
 		board.RebuildNavigation();
-		List<Vector3Int> borderWorldCells = BuildBorder(board, worldOrigin, size);
-		return new BoardBuildResult(board, borderWorldCells);
+		board.AssignBorderLocalCells(BuildBorder(board, size));
+		return board;
 	}
 
-	private static List<Vector3Int> BuildBorder(BoardData board, Vector3Int worldOrigin, Vector3Int size)
+	private static List<Vector3Int> BuildBorder(BoardData board, Vector3Int size)
 	{
-		var borderWorldCells = new List<Vector3Int>();
+		var borderLocalCells = new List<Vector3Int>();
 		if (board == null)
 		{
-			return borderWorldCells;
+			return borderLocalCells;
 		}
 
 		for (int x = 0; x < size.x; x++)
@@ -63,11 +64,11 @@ public static class BoardDataBuilder
 					}
 
 					board.Terrain.MaskLayer.TryAddMask(localPosition, VoxelMask.BattleAreaBorder);
-					borderWorldCells.Add(worldOrigin + localPosition);
+					borderLocalCells.Add(localPosition);
 				}
 			}
 		}
 
-		return borderWorldCells;
+		return borderLocalCells;
 	}
 }

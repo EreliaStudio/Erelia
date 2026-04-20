@@ -24,14 +24,9 @@ public class ActorManager : MonoBehaviour
 		}
 	}
 
-	public ActorPresenter SpawnActor(Vector3 position, ActorData data, Transform parent = null)
+	public ActorPresenter SpawnActor(Vector3 position, ActorData data)
 	{
-		if (actorPrefab == null)
-		{
-			return null;
-		}
-
-		GameObject instance = Instantiate(actorPrefab, position, Quaternion.identity, parent);
+		GameObject instance = Instantiate(actorPrefab, position, Quaternion.identity, gameObject.transform.parent);
 		if (!instance.TryGetComponent(out ActorPresenter presenter))
 		{
 			return null;

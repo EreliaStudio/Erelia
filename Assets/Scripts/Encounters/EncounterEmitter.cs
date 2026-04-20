@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -59,25 +57,30 @@ public class EncounterEmitter : MonoBehaviour
 			return;
 		}
 
-		if (!biome.TryPickBoardConfiguration(out BoardConfiguration boardConfiguration))
+		if (!biome.TryGetEncounterRule(encounterRuleTag, out BiomeEncounterRule encounterRule) || encounterRule == null)
 		{
 			return;
 		}
 
-		BoardBuildResult boardBuildResult = BoardDataBuilder.Build(
+		if (!encounterRule.TryPickBoardConfiguration(out BoardConfiguration boardConfiguration))
+		{
+			return;
+		}
+
+		BoardData boardData = BoardDataBuilder.Build(
 			worldPresenter.WorldData,
 			worldPresenter.VoxelRegistry,
 			standingCell,
 			boardConfiguration);
 
-		if (boardBuildResult == null || boardBuildResult.Board == null)
+		if (boardData == null)
 		{
 			return;
 		}
 
 		BattleSetup battleSetup = new BattleSetup(
 			selectedTeam,
-			boardBuildResult.Board,
+			boardData,
 			worldPosition);
 
 		EventCenter.EmitBattleStartRequested(battleSetup);
@@ -110,7 +113,6 @@ public class EncounterEmitter : MonoBehaviour
 		encounterRuleTag = string.Empty;
 		taggedWorldCell = default;
 		string triggerTag = GameRule.EncounterTriggerTag;
-		List<string> triggerVoxelTags = null;
 
 		int maxHeight = Mathf.Max(1, detectionHeightInCells);
 		for (int verticalOffset = 0; verticalOffset < maxHeight; verticalOffset++)
@@ -136,8 +138,6 @@ public class EncounterEmitter : MonoBehaviour
 			{
 				continue;
 			}
-
-			triggerVoxelTags ??= CollectDistinctTags(voxelDefinition);
 
 			for (int tagIndex = 0; tagIndex < voxelDefinition.Data.Tags.Count; tagIndex++)
 			{
@@ -174,59 +174,4 @@ public class EncounterEmitter : MonoBehaviour
 		return worldPresenter.VoxelRegistry.TryGetVoxel(cell.Id, out voxelDefinition) && voxelDefinition != null;
 	}
 
-	private static List<string> CollectDistinctTags(VoxelDefinition voxelDefinition)
-	{
-		List<string> tags = new List<string>();
-		if (voxelDefinition?.Data?.Tags == null)
-		{
-			return tags;
-		}
-
-		for (int index = 0; index < voxelDefinition.Data.Tags.Count; index++)
-		{
-			string tag = BiomeDefinition.CleanTriggerTag(voxelDefinition.Data.Tags[index]);
-			if (string.IsNullOrEmpty(tag) || ContainsEquivalentTag(tags, tag))
-			{
-				continue;
-			}
-
-			tags.Add(tag);
-		}
-
-		return tags;
-	}
-
-	private static bool ContainsEquivalentTag(IReadOnlyList<string> tags, string candidate)
-	{
-		for (int index = 0; index < tags.Count; index++)
-		{
-			if (BiomeDefinition.AreTriggerTagsEquivalent(tags[index], candidate))
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	private static string JoinTags(IReadOnlyList<string> tags)
-	{
-		if (tags == null || tags.Count == 0)
-		{
-			return "<none>";
-		}
-
-		StringBuilder builder = new StringBuilder();
-		for (int index = 0; index < tags.Count; index++)
-		{
-			if (index > 0)
-			{
-				builder.Append(", ");
-			}
-
-			builder.Append(tags[index]);
-		}
-
-		return builder.ToString();
-	}
 }

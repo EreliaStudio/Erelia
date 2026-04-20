@@ -62,7 +62,6 @@
     <Compile Include="Assets\Scripts\Core\Voxel\CardinalHeightSet.cs" />
     <Compile Include="Assets\Scripts\World\Navigation\WorldVoxelRaycaster.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatNodeProgress.cs" />
-    <Compile Include="Assets\Scripts\Battle\BattleStartDebugLogger.cs" />
     <Compile Include="Assets\Scripts\World\WorldPresenter.cs" />
     <Compile Include="Assets\Scripts\Abilities\AbilityCost.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleContext.cs" />
@@ -112,7 +111,6 @@
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelMesher.cs" />
     <Compile Include="Assets\Scripts\Core\Attributes\Attributes.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelCell.cs" />
-    <Compile Include="Assets\Scripts\Actors\PlayerPresenter.cs" />
     <Compile Include="Assets\Scripts\Core\Observables\ObservableFloatResource.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelShape.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelData.cs" />
@@ -144,7 +142,6 @@
     <Compile Include="Assets\Scripts\Core\Voxel\Shape\VoxelSlabShape.cs" />
     <Compile Include="Assets\Scripts\World\ChunkMetaData.cs" />
     <Compile Include="Assets\Scripts\Board\BoardRuntimeRegistry.cs" />
-    <Compile Include="Assets\Scripts\Board\BoardBuildResult.cs" />
     <Compile Include="Assets\Scripts\AI\AICondition.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatBoardProgress.cs" />
     <Compile Include="Assets\Scripts\Core\Voxel\VoxelDefinition.cs" />
