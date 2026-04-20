@@ -1,0 +1,151 @@
+@startuml Battle Phase System — Classes
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class BattleContext <<CF diagram 04>> {}
+class BattleSetup <<CF diagram 04>> {}
+class BattlePlayerController <<CF diagram 12>> {}
+class BoardPresenter <<CF diagram 03>> {}
+class BattleUnit <<CF diagram 04>> {}
+class BattleObject <<CF diagram 04>> {}
+class Ability <<CF diagram 04b>> {}
+
+' ── Phase abstraction ──────────────────────────────────────────────
+abstract class BattlePhase {
+  +{abstract} PhaseId : BattlePhaseId
+  +Enter()
+  +Tick(float deltaTime)
+  +Exit()
+}
+
+enum BattlePhaseId {
+  Placement
+  TurnIdle
+  PlayerTurn
+  EnemyTurn
+  ResolveAction
+  Result
+}
+
+' ── Concrete phases ─────────────────────────────────────────────────
+class PlacementPhase {
+  ' Lets player drag units onto the board.
+  ' Fires OnPlacementConfirmed when done.
+}
+
+class TurnIdlePhase {
+  ' Advances turn bars each tick.
+  ' Fires OnUnitReady when a unit reaches threshold.
+}
+
+class PlayerTurnPhase {
+  ' Binds BattlePlayerController on Enter.
+  ' Fires OnActionChosen(BattleAction) on confirm.
+}
+
+class EnemyTurnPhase {
+  ' Runs the AI decision pipeline.
+  ' Fires OnActionChosen(BattleAction) when done.
+}
+
+class ResolveActionPhase {
+  ' Receives a BattleAction before Enter.
+  ' Executes it, fires OnResolved when finished.
+}
+
+class ResultPhase {
+  ' Displays win/loss screen.
+  ' Fires OnResultAcknowledged on player input.
+}
+
+' ── Orchestrator ─────────────────────────────────────────────────────
+class BattleOrchestrator {
+  +CurrentPhase : BattlePhase
+  +Tick(float deltaTime)
+  +TransitionTo(BattlePhase nextPhase)
+}
+
+note right of BattleOrchestrator
+  Pure state machine.
+  Calls Exit() on old phase, Enter() on new one.
+  Never decides which phase comes next.
+end note
+
+' ── Coordinator ──────────────────────────────────────────────────────
+class BattleCoordinator {
+  -context : BattleContext
+  -orchestrator : BattleOrchestrator
+  +Start(BattleSetup)
+  +Stop()
+  -OnPlacementConfirmed()
+  -OnUnitReady(BattleUnit)
+  -OnActionChosen(BattleAction)
+  -OnResolved()
+  -OnResultAcknowledged()
+  -IsPlayerUnit(BattleUnit) : bool
+  -IsBattleOver() : bool
+}
+
+note right of BattleCoordinator
+  Owns all transition decisions.
+  Subscribes to phase events and
+  calls TransitionTo() accordingly.
+end note
+
+' ── Actions ───────────────────────────────────────────────────────────
+abstract class BattleAction {
+  +SourceUnit : BattleUnit
+}
+
+class MoveAction {
+  +Destination : Vector3Int
+}
+
+class AbilityAction {
+  +Ability : Ability
+  +Targets : List<BattleObject>
+}
+
+class EndTurnAction {}
+
+' ── BattleMode entry point ────────────────────────────────────────────
+class BattleMode {
+  +Enter(BattleSetup)
+  +Exit()
+}
+
+' ── Wiring ────────────────────────────────────────────────────────────
+BattlePhase <|-- PlacementPhase
+BattlePhase <|-- TurnIdlePhase
+BattlePhase <|-- PlayerTurnPhase
+BattlePhase <|-- EnemyTurnPhase
+BattlePhase <|-- ResolveActionPhase
+BattlePhase <|-- ResultPhase
+BattlePhase *-- BattlePhaseId
+
+BattleOrchestrator o-- BattlePhase : current
+
+BattleCoordinator *-- BattleOrchestrator
+BattleCoordinator o-- BattleContext
+BattleCoordinator ..> PlacementPhase : creates
+BattleCoordinator ..> TurnIdlePhase : creates
+BattleCoordinator ..> PlayerTurnPhase : creates
+BattleCoordinator ..> EnemyTurnPhase : creates
+BattleCoordinator ..> ResolveActionPhase : creates
+BattleCoordinator ..> ResultPhase : creates
+
+PlayerTurnPhase o-- BattlePlayerController
+ResolveActionPhase o-- BattleAction
+
+BattleAction <|-- MoveAction
+BattleAction <|-- AbilityAction
+BattleAction <|-- EndTurnAction
+
+AbilityAction o-- Ability
+BattleAction o-- BattleUnit
+
+BattleMode *-- BattleCoordinator
+BattleMode o-- BoardPresenter
+
+@enduml
