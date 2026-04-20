@@ -1,0 +1,113 @@
+@startuml Voxel System
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+enum VoxelTraversal {
+	Obstacle
+	Walkable
+}
+
+enum VoxelOrientation {
+	PositiveX
+	PositiveZ
+	NegativeX
+	NegativeZ
+}
+
+enum VoxelFlipOrientation {
+	PositiveY
+	NegativeY
+}
+
+enum VoxelMask {
+	None
+	Placement
+	AttackRange
+	MovementRange
+	AreaOfEffect
+	Selected
+	BattleAreaBorder
+}
+
+class VoxelCell {
+  +Id : int
+  +Orientation : VoxelOrientation
+  +FlipOrientation : VoxelFlipOrientation
+  +IsEmpty : bool
+}
+
+class VoxelData {
+  +Traversal : VoxelTraversal
+  +Tags : List<string>
+  +HasTag(string) : bool
+}
+
+class VoxelDefinition <<ScriptableObject>> {
+  +Data : VoxelData
+  +Shape : VoxelShape
+  +HasTag(string) : bool
+}
+
+abstract class VoxelShape {
+  +Render : FaceSet
+  +Collision : FaceSet
+  +GetMaskFaces(VoxelFlipOrientation) : List<Face>
+  +GetCardinalHeights(VoxelFlipOrientation) : CardinalHeightSet
+}
+
+class VoxelCubeShape
+class VoxelSlabShape
+class VoxelSlopeShape
+class VoxelStairShape
+class VoxelCrossPlaneShape
+
+class VoxelGrid {
+  +Cells : VoxelCell[,,]
+  +SizeX : int
+  +SizeY : int
+  +SizeZ : int
+  +IsWithinBounds(Vector3Int) : bool
+}
+
+class VoxelRegistry <<ScriptableObject>> {
+  +TryGetVoxel(int, out VoxelDefinition) : bool
+}
+
+class VoxelMaskRegistry <<ScriptableObject>> {
+  +TryGetSprite(VoxelMask, out Sprite) : bool
+}
+
+class UnitySprite {}
+
+class VoxelMaskCell {
+  +Masks : List<VoxelMask>
+}
+
+class VoxelMaskLayer {
+  +ActiveCellCount : int
+  +TryAddMask(Vector3Int, VoxelMask) : bool
+  +TryRemoveMask(Vector3Int, VoxelMask) : bool
+  +TryGetMaskCell(Vector3Int, out VoxelMaskCell) : bool
+  +Clear()
+}
+
+VoxelShape <|-- VoxelCubeShape
+VoxelShape <|-- VoxelSlabShape
+VoxelShape <|-- VoxelSlopeShape
+VoxelShape <|-- VoxelStairShape
+VoxelShape <|-- VoxelCrossPlaneShape
+
+VoxelCell *-- VoxelOrientation
+VoxelCell *-- VoxelFlipOrientation
+VoxelData *-- VoxelTraversal
+VoxelDefinition *-- VoxelData
+VoxelDefinition *-- VoxelShape
+VoxelGrid *-- VoxelCell
+VoxelRegistry o-- VoxelDefinition
+VoxelMaskLayer *-- VoxelMaskCell
+VoxelMaskCell *-- VoxelMask
+VoxelMaskRegistry "key" o-- VoxelMask
+VoxelMaskRegistry "value" o-- UnitySprite
+
+@enduml

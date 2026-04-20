@@ -1,0 +1,54 @@
+@startuml Creature System
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class Ability <<CF diagram 04b>> {}
+class Status <<CF diagram 04>> {}
+class FeatBoard <<CF diagram 07>> {}
+class FeatBoardProgress <<CF diagram 07>> {}
+
+class Attributes {
+  +Health : int
+  +ActionPoints : int
+  +MovementPoints : int
+  +Attack : int
+  +Armor : int
+  +Magic : int
+  +Resistance : int
+}
+
+class CreatureForm {
+  +DisplayName : string
+  +Tier : int
+  +Icon : Sprite
+  +ModelPrefab : GameObject
+}
+
+class CreatureSpecies <<ScriptableObject>> {
+  +Attributes : Attributes
+  +FeatBoard : FeatBoard
+  +Forms : Dictionary<string, CreatureForm>
+}
+
+class CreatureUnit {
+  +Species : CreatureSpecies
+  +CurrentFormID : string
+  +Attributes : Attributes
+  +Abilities : List<Ability>
+  +PermanentPassives : List<Status>
+  +FeatBoardProgress : FeatBoardProgress
+  +HasForm(string) : bool
+  +GetForm() : CreatureForm
+}
+
+CreatureSpecies *-- Attributes
+CreatureSpecies *-- CreatureForm
+CreatureSpecies o-- FeatBoard
+CreatureUnit o-- CreatureSpecies
+CreatureUnit *-- Attributes
+CreatureUnit o-- Ability
+CreatureUnit o-- Status
+CreatureUnit *-- FeatBoardProgress
+
+@enduml

@@ -1,0 +1,29 @@
+@startuml AI System
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+abstract class AICondition {
+  +IsMet(BattleUnit caster, BoardData board) : bool
+}
+
+abstract class AIDecision
+
+class AIRule {
+  +Conditions : List<AICondition>
+  +Decision : AIDecision
+}
+
+class AIBehaviour {
+  +ActiveMode : string
+  +RulesByModes : Dictionary<string, List<AIRule>>
+}
+
+AIBehaviour *-- AIRule
+AIRule o-- AICondition
+AIRule o-- AIDecision
+
+note bottom of AICondition : Concrete implementations\nto be added (EnemyIsAtDistance,\nHPThreshold, etc.)
+note bottom of AIDecision : Concrete implementations\nto be added (CastAbility,\nMoveUnit, EndTurn, etc.)
+
+@enduml

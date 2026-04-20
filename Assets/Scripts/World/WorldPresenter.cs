@@ -57,7 +57,7 @@ public class WorldPresenter : MonoBehaviour
 
 	private void OnPlayerChunkChanged(ChunkCoordinates centerChunk)
 	{
-		ApplyLoadResult(SetCenterChunk(centerChunk));
+		ApplyLoadResult(Load(centerChunk));
 	}
 
 	private void Update()
@@ -70,14 +70,14 @@ public class WorldPresenter : MonoBehaviour
 		ApplyLoadResult(worldContext.WorldLoader.ProcessPending(worldContext.WorldData, Time.deltaTime));
 	}
 
-	private WorldLoadResult SetCenterChunk(ChunkCoordinates centerChunk)
+	private WorldLoadResult Load(ChunkCoordinates centerChunk)
 	{
 		if (worldContext == null || worldContext.WorldData == null || worldContext.WorldLoader == null)
 		{
 			return null;
 		}
 
-		return worldContext.WorldLoader.SetCenterChunk(worldContext.WorldData, centerChunk);
+		return worldContext.WorldLoader.Load(worldContext.WorldData, centerChunk);
 	}
 
 	private void ApplyLoadResult(WorldLoadResult loadResult)
@@ -122,7 +122,7 @@ public class WorldPresenter : MonoBehaviour
 			return;
 		}
 
-		ApplyLoadResult(SetCenterChunk(ChunkCoordinates.FromWorldVoxelPosition(worldCell)));
+		ApplyLoadResult(Load(ChunkCoordinates.FromWorldVoxelPosition(worldCell)));
 
 		if (worldContext.WorldLoader == null || worldContext.WorldData == null)
 		{
@@ -139,7 +139,7 @@ public class WorldPresenter : MonoBehaviour
 	[ContextMenu("Load Around Origin")]
 	public void LoadAroundOrigin()
 	{
-		ApplyLoadResult(SetCenterChunk(new ChunkCoordinates(0, 0)));
+		ApplyLoadResult(Load(new ChunkCoordinates(0, 0)));
 	}
 
 	private ChunkPresenter CreateChunkPresenter(ChunkCoordinates coordinates)

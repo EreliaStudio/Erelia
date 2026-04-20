@@ -1,0 +1,65 @@
+@startuml Encounter & Biome System
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class BoardConfiguration <<CF diagram 03>> {}
+class CreatureUnit <<CF diagram 06>> {}
+class AIBehaviour <<CF diagram 08>> {}
+
+class EncounterUnit {
+  +Behaviour : AIBehaviour
+}
+
+class EncounterTier {
+  +WeightedTeams : List<Entry>
+}
+
+class EncounterTierEntry {
+  +DisplayName : string
+  +Team : List<EncounterUnit>
+  +Weight : int
+}
+
+class EncounterTable {
+  +NoBadge : EncounterTier
+  +OneBadge : EncounterTier
+  +TwoBadges : EncounterTier
+  +GetTierForBadgeCount(int) : EncounterTier
+}
+
+class BiomeEncounterRule {
+  +BaseChancePerStep : float
+  +BoardConfigurations : List<BoardConfiguration>
+  +EncounterTable : EncounterTable
+  +TryPickBoardConfiguration(out BoardConfiguration) : bool
+}
+
+class BiomeDefinition <<ScriptableObject>> {
+  +WildEncounterRulesByTriggerTag : Dictionary<string, BiomeEncounterRule>
+  +TryGetEncounterRule(string, out BiomeEncounterRule) : bool
+  +GetEncounterRuleTags() : IReadOnlyList<string>
+}
+
+class EncounterResolver {
+  +TryResolveEncounter(BiomeDefinition, string, Vector3Int, out EncounterUnit[]) : bool
+}
+
+class EncounterEmitter <<MonoBehaviour>> {
+  -detectionHeightInCells : int
+  -encounterResolver : EncounterResolver
+}
+
+EncounterUnit --|> CreatureUnit
+EncounterUnit o-- AIBehaviour
+EncounterTier *-- EncounterTierEntry
+EncounterTierEntry o-- EncounterUnit
+EncounterTable *-- EncounterTier
+BiomeEncounterRule *-- EncounterTable
+BiomeEncounterRule o-- BoardConfiguration
+BiomeDefinition *-- BiomeEncounterRule
+EncounterResolver ..> BiomeDefinition : uses
+EncounterEmitter *-- EncounterResolver
+EncounterEmitter ..> BiomeDefinition : reads
+
+@enduml

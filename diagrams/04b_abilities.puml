@@ -1,0 +1,43 @@
+@startuml Ability & Effect System
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class BattleObject <<CF diagram 04>> {}
+class BattleContext <<CF diagram 04>> {}
+
+enum TargetProfile {
+	Everything 
+	Ally 
+	Enemy
+	Empty
+}
+
+class AbilityCost {
+  +Ability : int
+  +Movement : int
+}
+
+class Ability <<ScriptableObject>> {
+  +Icon : Sprite
+  +Cost : AbilityCost
+  +TargetProfile : TargetProfile
+  +Effects : List<Effect>
+}
+
+abstract class Effect {
+  +Apply(BattleObject source, BattleObject target, BattleContext)
+}
+
+class ConcreteEffect
+
+Effect <|-- ConcreteEffect
+
+Ability *-- AbilityCost
+Ability o-- Effect
+Ability o-- TargetProfile
+
+BattleObject <.. Effect
+BattleContext <.. Effect
+
+@enduml

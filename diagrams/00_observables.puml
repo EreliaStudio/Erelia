@@ -1,0 +1,44 @@
+@startuml Observable System
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class "ObservableValue<T>" {
+  +Value : T
+  +Changed : Action<T>
+  +Set(T, bool) : bool
+  +Increase(T) : bool
+  +Decrease(T) : bool
+  +Notify()
+}
+
+class ObservableResource {
+  +Current : int
+  +Max : int
+  +Ratio : float
+  +Set(int, int, bool) : bool
+  +SetCurrent(int, bool) : bool
+  +Change(int) : bool
+  +Reset() : bool
+}
+
+class ObservableFloatResource {
+  +Current : float
+  +Max : float
+  +Ratio : float
+  +Set(float, float, bool) : bool
+  +SetCurrent(float, bool) : bool
+  +Change(float) : bool
+  +Reset() : bool
+}
+
+class "ObservableList<T>" {
+  +Count : int
+  +Changed : Action<ObservableList<T>>
+  +Add(T) : ObservableValue<T>
+  +SetItems(IEnumerable<T>)
+  +Remove(T)
+  +Clear()
+}
+
+@enduml

@@ -1,0 +1,107 @@
+@startuml Feat System
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class CreatureUnit <<CF diagram 06>> {}
+class Ability <<CF diagram 04b>> {}
+class Status <<CF diagram 04>> {}
+class Attributes <<CF diagram 06>> {}
+
+enum FeatNodeKind {
+	StatsBonus 
+	Ability 
+	Passive 
+	Form
+}
+
+abstract class FeatRequirement {
+  +Register(EventBase) : float
+}
+
+abstract class FeatRequirementEventBase
+
+class DealDamageRequirement
+class HealHealthRequirement
+
+abstract class FeatReward {
+  +Apply(CreatureUnit)
+}
+
+class BonusStatsReward
+class AbilityReward
+class PassiveReward
+class ChangeFormReward
+
+class FeatNode {
+  +Id : string
+  +DisplayName : string
+  +Kind : FeatNodeKind
+  +NeighbourNodeIds : List<string>
+  +NumberOfRepeatTime : int
+  +Requirements : List<FeatRequirement>
+  +Rewards : List<FeatReward>
+}
+
+class FeatBoard {
+  +Nodes : List<FeatNode>
+  +RootNodeId : string
+  +GetNode(string) : FeatNode
+  +GetRootNode() : FeatNode
+  +GetNeighbourNodes(FeatNode) : List<FeatNode>
+}
+
+class FeatRequirementProgress {
+  +Requirement : FeatRequirement
+  +CurrentProgress : float
+  +IsCompleted : bool
+  +Register(FeatRequirementEventBase)
+}
+
+class FeatNodeProgress {
+  +NodeId : string
+  +CompletionCount : int
+  +IsCompleted : bool
+  +IsExhausted(FeatNode) : bool
+  +Complete()
+}
+
+class FeatBoardProgress {
+  +NodeProgress : List<FeatNodeProgress>
+  +FindProgress(string) : FeatNodeProgress
+  +GetOrCreateProgress(FeatNode) : FeatNodeProgress
+}
+
+class FeatProgressionService <<static>> {
+  +InitializeCreatureUnit(CreatureUnit) : FeatBoard
+  +ApplyProgress(CreatureUnit)
+  +GetReachableNodes(CreatureUnit) : List<FeatNode>
+  +CompleteNodeOnce(CreatureUnit, FeatNode) : bool
+  +RegisterEvent(CreatureUnit, FeatRequirementEventBase) : int
+  +ClearAllProgress(CreatureUnit)
+}
+
+FeatRequirement <|-- DealDamageRequirement
+FeatRequirement <|-- HealHealthRequirement
+FeatRequirement o-- FeatRequirementEventBase
+FeatReward <|-- BonusStatsReward
+FeatReward <|-- AbilityReward
+FeatReward <|-- PassiveReward
+FeatReward <|-- ChangeFormReward
+BonusStatsReward o-- Attributes
+AbilityReward o-- Ability
+PassiveReward o-- Status
+
+FeatNode *-- FeatRequirement
+FeatNode *-- FeatReward
+FeatNode o-- FeatNodeKind
+FeatBoard *-- FeatNode
+FeatNodeProgress *-- FeatRequirementProgress
+FeatRequirementProgress o-- FeatRequirement
+FeatRequirementProgress ..> FeatRequirementEventBase : registers
+FeatBoardProgress *-- FeatNodeProgress
+FeatProgressionService ..> CreatureUnit : operates on
+FeatProgressionService ..> FeatBoard : uses
+FeatProgressionService ..> FeatBoardProgress : uses
+
+@enduml

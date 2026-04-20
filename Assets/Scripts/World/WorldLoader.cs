@@ -33,14 +33,14 @@ public class WorldLoader
 		visibilityRange = Mathf.Max(0, value);
 	}
 
-	public WorldLoadResult SetCenterChunk(WorldData worldData, ChunkCoordinates centerChunk)
+	public WorldLoadResult Load(WorldData worldData, ChunkCoordinates centerChunk)
 	{
 		currentCenterChunk = centerChunk;
 		updateTimer = 0f;
 		pendingChunks.Clear();
 		queuedChunks.Clear();
 
-		var result = new WorldLoadResult(centerChunk);
+		var result = new WorldLoadResult();
 		if (worldData == null)
 		{
 			return result;
@@ -86,7 +86,7 @@ public class WorldLoader
 
 	public WorldLoadResult ProcessPending(WorldData worldData, float deltaTime)
 	{
-		var result = new WorldLoadResult(currentCenterChunk);
+		var result = new WorldLoadResult();
 		if (worldData == null || generator == null || pendingChunks.Count <= 0)
 		{
 			return result;

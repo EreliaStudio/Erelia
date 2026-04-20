@@ -1,0 +1,65 @@
+@startuml World Presenter
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class WorldContext <<CF diagram 02>> {}
+class WorldData <<CF diagram 02>> {}
+class ChunkData <<CF diagram 02>> {}
+class ChunkCoordinates <<CF diagram 02>> {}
+class VoxelRegistry <<CF diagram 01>> {}
+class VoxelMask <<CF diagram 01>> {}
+
+class VoxelMesher <<static>> {
+  +BuildRenderMesh(VoxelGrid, VoxelRegistry) : Mesh
+  +BuildColliderMesh(VoxelGrid, VoxelRegistry, VoxelTraversal) : Mesh
+  +BuildMaskMesh(VoxelGrid, VoxelMaskLayer, VoxelRegistry, VoxelMaskRegistry) : Mesh
+}
+
+class TerrainView <<MonoBehaviour>> {
+  +SetRenderMesh(Mesh)
+  +SetCollisionMesh(Mesh)
+  +SetVisible(bool)
+}
+
+class MaskOverlayView <<MonoBehaviour>> {
+  +SetMaskMesh(Mesh)
+  +SetVisible(bool)
+}
+
+class ChunkPresenter <<MonoBehaviour>> {
+  +Assign(ChunkData)
+  +Rebuild()
+  +SetViewsVisible(bool)
+}
+
+class WorldPresenter <<MonoBehaviour>> {
+  +WorldData : WorldData
+  +MetaWorldData : MetaWorldData
+  +VoxelRegistry : VoxelRegistry
+  +Bind(WorldContext)
+  +LoadImmediatelyAroundWorldCell(Vector3Int)
+  +TryAddMask(Vector3Int, VoxelMask) : bool
+  +TryRemoveMask(Vector3Int, VoxelMask) : bool
+  +RebuildChunkOverlay(ChunkCoordinates)
+  +ClearAllChunkMasks()
+}
+
+ChunkPresenter *-- ChunkData
+ChunkPresenter *-- TerrainView
+ChunkPresenter *-- MaskOverlayView
+ChunkPresenter ..> VoxelMesher : uses
+WorldPresenter o-- WorldContext
+WorldPresenter o-- WorldData
+WorldPresenter *-- ChunkPresenter
+WorldPresenter ..> ChunkCoordinates : uses
+WorldPresenter ..> VoxelMask : uses
+WorldPresenter o-- VoxelRegistry
+
+WorldContext -[hidden] WorldData
+WorldData -[hidden] ChunkCoordinates
+ChunkCoordinates -[hidden] ChunkPresenter
+ChunkPresenter -[hidden] VoxelMask
+VoxelMask -[hidden] VoxelRegistry
+
+@enduml

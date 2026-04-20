@@ -1,0 +1,34 @@
+@startuml Exploration Mode
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class WorldPresenter <<CF diagram 02>> {}
+class ActorManager <<CF diagram 09>> {}
+class ActorPresenter <<CF diagram 09>> {}
+class GameContext <<CF diagram 10>> {}
+
+class OrbitingObject <<MonoBehaviour>> {
+  +Orbit(float, float)
+  +LookAtTarget()
+}
+
+class ExplorationPlayerController <<MonoBehaviour>> {
+  +SelectedVoxel : Vector3Int?
+  +Bind(ActorPresenter, Camera, OrbitingObject)
+  +Unbind()
+}
+
+class ExplorationMode {
+  +Enter(GameContext)
+}
+
+GameContext <.. ExplorationMode
+
+ExplorationMode o-- WorldPresenter
+ExplorationMode o-- ActorManager
+ExplorationMode o-- ActorPresenter
+ExplorationMode o-- ExplorationPlayerController
+ExplorationPlayerController o-- OrbitingObject
+
+@enduml

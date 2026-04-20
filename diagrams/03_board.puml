@@ -1,0 +1,88 @@
+@startuml Board System
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class VoxelGrid <<CF diagram 01>> {}
+class VoxelMaskLayer <<CF diagram 01>> {}
+class MaskOverlayView <<CF diagram 02>> {}
+
+class BoardConfiguration {
+  +SizeX : int
+  +SizeY : int
+  +SizeZ : int
+  +AnchorOffset : Vector3Int
+  +GetSize() : Vector3Int
+  +GetWorldOrigin(Vector3Int) : Vector3Int
+}
+
+enum BoardConfigurationShape {
+  Square
+  Circle
+  RoundedSquare
+}
+
+class BoardTerrainLayer {
+  +MaskLayer : VoxelMaskLayer
+  +IsInside(Vector3Int) : bool
+  +TryGetCell(Vector3Int, out VoxelCell) : bool
+  +HasTerrain(Vector3Int) : bool
+}
+
+class BoardNavigationLayer {
+  +Nodes : IReadOnlyList<Node>
+  +Rebuild(BoardTerrainLayer)
+  +IsStandable(Vector3Int) : bool
+  +TryGetNode(Vector3Int, out Node) : bool
+}
+
+class BoardRuntimeRegistry {
+  +AttachNavigationLayer(BoardNavigationLayer)
+  +TryPlaceUnit(BattleUnit, Vector3Int) : bool
+  +TryAddInteractiveObject(BattleInteractiveObject, Vector3Int) : bool
+  +TryRegister(BattleObject, Vector3Int, BoardNavigationLayer) : bool
+  +TryMove(BattleObject, Vector3Int, BoardNavigationLayer) : bool
+  +HasUnitAt(Vector3Int) : bool
+  +TryGetUnitAt(Vector3Int, out BattleUnit) : bool
+  +Remove(BattleObject)
+  +Clear()
+}
+
+class BoardData {
+  +Terrain : BoardTerrainLayer
+  +Navigation : BoardNavigationLayer
+  +Runtime : BoardRuntimeRegistry
+  +WorldAnchor : Vector3Int
+  +BorderLocalCells : IReadOnlyList<Vector3Int>
+  +ClearMask()
+  +RebuildNavigation()
+  +IsInside(Vector3Int) : bool
+  +IsStandable(Vector3Int) : bool
+  +TryPlace(BattleObject, Vector3Int) : bool
+  +TryMove(BattleObject, Vector3Int) : bool
+  +Remove(BattleObject)
+}
+
+class BoardDataBuilder <<static>> {
+  +Build(WorldData, VoxelRegistry, Vector3Int, BoardConfiguration) : BoardData
+}
+
+class BoardPresenter <<MonoBehaviour>> {
+  +BoardData : BoardData
+  +OverlayView : MaskOverlayView
+  +Assign(BoardData)
+  +Rebuild()
+}
+
+BoardTerrainLayer --|> VoxelGrid
+BoardTerrainLayer *-- VoxelMaskLayer
+BoardData *-- BoardTerrainLayer
+BoardData *-- BoardNavigationLayer
+BoardData *-- BoardRuntimeRegistry
+BoardConfiguration *-- BoardConfigurationShape
+BoardDataBuilder ..> BoardData : creates
+BoardDataBuilder ..> BoardConfiguration : uses
+BoardPresenter o-- BoardData
+BoardPresenter o-- MaskOverlayView
+
+@enduml

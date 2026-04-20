@@ -1,0 +1,84 @@
+@startuml World System
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class VoxelGrid <<CF diagram 01>> {}
+class VoxelMaskLayer <<CF diagram 01>> {}
+class BiomeDefinition <<CF diagram 05>> {}
+
+class ChunkCoordinates <<struct>> {
+  +X : int
+  +Z : int
+  +FromWorldPosition(Vector3) : ChunkCoordinates
+  +FromWorldVoxelPosition(Vector3Int) : ChunkCoordinates
+  +ToWorldOrigin() : Vector3Int
+}
+
+class ChunkData {
+  +MaskLayer : VoxelMaskLayer
+  +GetCell(int, int, int) : VoxelCell
+  +SetCell(int, int, int, VoxelCell)
+  +ClearMasks()
+}
+
+class ChunkMetaData {
+  +Biome : BiomeDefinition
+}
+
+class WorldData {
+  +TryGetChunk(ChunkCoordinates, out ChunkData) : bool
+  +TryGetCell(Vector3Int, out VoxelCell) : bool
+  +Clear()
+}
+
+class MetaWorldData {
+  +TryGetChunkMeta(ChunkCoordinates, out ChunkMetaData) : bool
+  +Clear()
+}
+
+class WorldContext {
+  +WorldData : WorldData
+  +MetaWorldData : MetaWorldData
+  +WorldLoader : WorldLoader
+  +MetaWorldGenerator : MetaWorldGenerator
+  +ApplySeed(int)
+  +ClearLoadedData()
+}
+
+class WorldLoader {
+  +HasPendingChunks : bool
+  +Load(WorldData, ChunkCoordinates) : WorldLoadResult
+  +ProcessPending(WorldData, float) : WorldLoadResult
+}
+
+class WorldLoadResult {
+  +LoadedChunks : List<ChunkCoordinates>
+  +UnloadedChunks : List<ChunkCoordinates>
+}
+
+class SimpleDebugChunkGenerator {
+  +GenerateChunk(ChunkCoordinates) : ChunkData
+}
+
+class MetaWorldGenerator {
+  +GenerateChunkMeta(ChunkCoordinates) : ChunkMetaData
+  +SetSeed(int)
+  +SetDefaultBiome(BiomeDefinition)
+}
+
+ChunkData --|> VoxelGrid
+ChunkData *-- VoxelMaskLayer
+ChunkMetaData o-- BiomeDefinition
+WorldData *-- "value" ChunkData
+WorldData *-- "key" ChunkCoordinates
+MetaWorldData *-- ChunkMetaData
+WorldContext *-- WorldData
+WorldContext *-- MetaWorldData
+WorldContext *-- WorldLoader
+WorldContext *-- MetaWorldGenerator
+WorldLoader --> WorldLoadResult
+WorldLoader o-- SimpleDebugChunkGenerator
+MetaWorldGenerator o-- BiomeDefinition
+
+@enduml

@@ -2,5 +2,6 @@ public enum TargetProfile
 {
 	Everything,
 	Ally,
-	Enemy
+	Enemy,
+	Empty
 }

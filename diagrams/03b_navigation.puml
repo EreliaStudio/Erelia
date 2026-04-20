@@ -1,0 +1,84 @@
+@startuml Navigation System
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class VoxelGrid <<CF diagram 01>> {}
+class VoxelRegistry <<CF diagram 01>> {}
+class ChunkData <<CF diagram 02>> {}
+class ChunkCoordinates <<CF diagram 02>> {}
+class WorldData <<CF diagram 02>> {}
+class BoardTerrainLayer <<CF diagram 03>> {}
+
+enum "Node.Direction" {
+  PositiveX
+  NegativeX
+  PositiveZ
+  NegativeZ
+}
+
+class VoxelTraversalGraphNode {
+  +Position : Vector3Int
+  +PositiveX : Node
+  +NegativeX : Node
+  +PositiveZ : Node
+  +NegativeZ : Node
+  +GetNeighbour(Direction) : Node
+  +SetNeighbour(Direction, Node)
+}
+
+class VoxelTraversalGraph {
+  +SizeX : int
+  +SizeY : int
+  +SizeZ : int
+  +AllNodes : IReadOnlyList<Node>
+  +IsInside(Vector3Int) : bool
+  +ContainsNode(Vector3Int) : bool
+  +TryGetNode(Vector3Int, out Node) : bool
+  +CreateNode(Vector3Int) : Node
+}
+
+class VoxelTraversalGraphBuilder <<static>> {
+  +Build(VoxelGrid, VoxelRegistry) : VoxelTraversalGraph
+}
+
+class VoxelTraversalUtility <<static>> {
+  +MaximumVerticalTraversalGap : float
+  +IsReachableCell(VoxelGrid, Vector3Int, VoxelRegistry) : bool
+  +TryGetWorldHeight(VoxelGrid, Vector3Int, Direction, VoxelRegistry, out float) : bool
+}
+
+class WorldTraversalGraphCache {
+  +TryGetGraph(WorldData, VoxelRegistry, ChunkCoordinates, out VoxelTraversalGraph) : bool
+  +TryGetNode(WorldData, VoxelRegistry, Vector3Int, out Node) : bool
+  +HasNode(WorldData, VoxelRegistry, Vector3Int) : bool
+  +Invalidate(ChunkCoordinates)
+  +Clear()
+}
+
+class BoardNavigationLayer {
+  +Graph : VoxelTraversalGraph
+  +Nodes : IReadOnlyList<Node>
+  +Rebuild(BoardTerrainLayer)
+  +IsStandable(Vector3Int) : bool
+  +TryGetNode(Vector3Int, out Node) : bool
+  +Clear()
+}
+
+VoxelTraversalGraph *-- VoxelTraversalGraphNode
+VoxelTraversalGraphNode *-- "Node.Direction"
+VoxelTraversalGraphNode o-- VoxelTraversalGraphNode : neighbours
+VoxelTraversalGraphBuilder ..> VoxelTraversalGraph : creates
+VoxelTraversalGraphBuilder ..> VoxelGrid : reads
+VoxelTraversalGraphBuilder ..> VoxelRegistry : uses
+VoxelTraversalGraphBuilder ..> VoxelTraversalUtility : uses
+WorldTraversalGraphCache *-- VoxelTraversalGraph
+WorldTraversalGraphCache ..> VoxelTraversalGraphBuilder : uses
+WorldTraversalGraphCache ..> WorldData : reads
+WorldTraversalGraphCache ..> ChunkCoordinates : uses
+WorldTraversalGraphCache ..> ChunkData : reads
+BoardNavigationLayer *-- VoxelTraversalGraph
+BoardNavigationLayer ..> VoxelTraversalGraphBuilder : uses
+BoardNavigationLayer ..> BoardTerrainLayer : reads
+
+@enduml

@@ -15,16 +15,17 @@ public static partial class VoxelMesher
 		public int Volume => SX * SY * SZ;
 	}
 
-	private static Mesh BuildColliderMeshInternal(VoxelCell[,,] cells, VoxelRegistry voxelRegistry, VoxelTraversal expectedVoxelTraversal)
+	private static Mesh BuildColliderMeshInternal(VoxelGrid grid, VoxelRegistry voxelRegistry, VoxelTraversal expectedVoxelTraversal)
 	{
-		if (cells == null || voxelRegistry == null)
+		if (grid == null || voxelRegistry == null)
 		{
 			return new Mesh();
 		}
 
-		int sizeX = cells.GetLength(0);
-		int sizeY = cells.GetLength(1);
-		int sizeZ = cells.GetLength(2);
+		VoxelCell[,,] cells = grid.Cells;
+		int sizeX = grid.SizeX;
+		int sizeY = grid.SizeY;
+		int sizeZ = grid.SizeZ;
 
 		BuildSolidAndCubicMaps(cells, voxelRegistry, expectedVoxelTraversal, out bool[,,] solid, out bool[,,] cubic, out int[,,] ids);
 

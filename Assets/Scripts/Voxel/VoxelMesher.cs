@@ -43,20 +43,21 @@ public static partial class VoxelMesher
 			new Vector3(0f, 1f, 0f), new Vector2(0f, 1f))
 	};
 
-	public static Mesh BuildRenderMesh(VoxelCell[,,] cells, VoxelRegistry voxelRegistry)
+	public static Mesh BuildRenderMesh(VoxelGrid grid, VoxelRegistry voxelRegistry)
 	{
 		var vertices = new List<Vector3>();
 		var triangles = new List<int>();
 		var uvs = new List<Vector2>();
 
-		if (cells == null || voxelRegistry == null)
+		if (grid == null || voxelRegistry == null)
 		{
 			return new Mesh();
 		}
 
-		int sizeX = cells.GetLength(0);
-		int sizeY = cells.GetLength(1);
-		int sizeZ = cells.GetLength(2);
+		VoxelCell[,,] cells = grid.Cells;
+		int sizeX = grid.SizeX;
+		int sizeY = grid.SizeY;
+		int sizeZ = grid.SizeZ;
 
 		for (int x = 0; x < sizeX; x++)
 		{
@@ -113,21 +114,23 @@ public static partial class VoxelMesher
 		return BuildMesh(vertices, triangles, uvs);
 	}
 
-	public static Mesh BuildColliderMesh(VoxelCell[,,] cells, VoxelRegistry voxelRegistry, VoxelTraversal expectedVoxelTraversal)
+	public static Mesh BuildColliderMesh(VoxelGrid grid, VoxelRegistry voxelRegistry, VoxelTraversal expectedVoxelTraversal)
 	{
-		return BuildColliderMeshInternal(cells, voxelRegistry, expectedVoxelTraversal);
+		return BuildColliderMeshInternal(grid, voxelRegistry, expectedVoxelTraversal);
 	}
 
-	public static Mesh BuildMaskMesh(VoxelCell[,,] cells, VoxelMaskLayer maskLayer, VoxelRegistry voxelRegistry, VoxelMaskRegistry maskRegistry)
+	public static Mesh BuildMaskMesh(VoxelGrid grid, VoxelMaskLayer maskLayer, VoxelRegistry voxelRegistry, VoxelMaskRegistry maskRegistry)
 	{
 		var vertices = new List<Vector3>();
 		var triangles = new List<int>();
 		var uvs = new List<Vector2>();
 
-		if (cells == null || maskLayer == null || voxelRegistry == null || maskRegistry == null || maskLayer.ActiveCellCount <= 0)
+		if (grid == null || maskLayer == null || voxelRegistry == null || maskRegistry == null || maskLayer.ActiveCellCount <= 0)
 		{
 			return new Mesh();
 		}
+
+		VoxelCell[,,] cells = grid.Cells;
 
 		foreach (KeyValuePair<Vector3Int, VoxelMaskCell> entry in maskLayer.ActiveCells)
 		{
@@ -138,9 +141,9 @@ public static partial class VoxelMesher
 			}
 
 			Vector3Int localPosition = entry.Key;
-			if (localPosition.x < 0 || localPosition.x >= cells.GetLength(0) ||
-				localPosition.y < 0 || localPosition.y >= cells.GetLength(1) ||
-				localPosition.z < 0 || localPosition.z >= cells.GetLength(2))
+			if (localPosition.x < 0 || localPosition.x >= grid.SizeX ||
+				localPosition.y < 0 || localPosition.y >= grid.SizeY ||
+				localPosition.z < 0 || localPosition.z >= grid.SizeZ)
 			{
 				continue;
 			}

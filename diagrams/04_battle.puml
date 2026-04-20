@@ -1,0 +1,114 @@
+@startuml Battle System
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class BoardData <<CF diagram 03>> {}
+class CreatureUnit <<CF diagram 06>> {}
+class Ability <<CF diagram 04b>> {}
+class Effect <<CF diagram 04b>> {}
+class ObservableResource <<CF diagram 00>> {}
+class ObservableFloatResource <<CF diagram 00>> {}
+class ObservableValue <<CF diagram 00>> {}
+class ObservableList <<CF diagram 00>> {}
+class Duration <<CF diagram 07>> {}
+class InteractionObject <<CF diagram 04b>> {}
+
+enum BattleSide {
+	Neutral 
+Player 
+Enemy
+}
+enum StatusHookPoint {
+	TurnStart 
+	TurnEnd 
+	BeforeCastingAnAbility 
+	AfterCastingAnAbility 
+	OnHPLoss 
+	OnAPLoss 
+	OnMPLoss
+}
+
+abstract class BattleObject {
+  +Side : BattleSide
+}
+
+class BattleInteractiveObject {
+  +InteractionObject : InteractionObject
+  +Tags : List<string>
+  +RemainingDuration : Duration
+  +HasAnyTag(HashSet<string>) : bool
+}
+
+class Status <<ScriptableObject>> {
+  +Icon : Sprite
+  +Tags : List<string>
+  +HookPoint : StatusHookPoint
+  +Effects : List<Effect>
+}
+
+class BattleStatus {
+  +Status : Status
+  +Stack : int
+  +RemainingDuration : Duration
+  +IsSourcePassive : bool
+}
+
+class BattleStatuses {
+  +Count : int
+  +Add(Status, int, Duration, bool)
+  +Remove(Status, int, bool) : int
+  +Contains(Status, bool) : bool
+}
+
+class BattleAttributes {
+  +Health : ObservableResource
+  +ActionPoints : ObservableResource
+  +MovementPoints : ObservableResource
+  +TurnBar : ObservableFloatResource
+  +Attack : ObservableValue<int>
+  +Armor : ObservableValue<int>
+  +Setup(Attributes)
+}
+
+class BattleUnit {
+  +SourceUnit : CreatureUnit
+  +BattleAttributes : BattleAttributes
+  +Statuses : BattleStatuses
+  +Abilities : IReadOnlyList<Ability>
+  +IsDefeated : bool
+  +IsTurnReady : bool
+}
+
+class BattleContext {
+  +Board : BoardData
+}
+
+class BattleSetup {
+  +Team : EncounterUnit[]
+  +Board : BoardData
+  +PlayerWorldPosition : Vector3
+}
+
+BattleObject <|-- BattleUnit
+BattleObject <|-- BattleInteractiveObject
+BattleObject *-- BattleSide
+BattleUnit *-- BattleAttributes
+BattleUnit *-- BattleStatuses
+BattleUnit o-- CreatureUnit
+BattleUnit o-- Ability
+BattleStatuses *-- ObservableList
+BattleStatuses o-- BattleStatus
+BattleStatus o-- Status
+BattleStatus *-- Duration
+BattleInteractiveObject *-- Duration
+BattleInteractiveObject o-- InteractionObject
+BattleAttributes *-- ObservableResource
+BattleAttributes *-- ObservableFloatResource
+BattleAttributes o-- ObservableValue
+BattleContext o-- BoardData
+BattleSetup o-- BoardData
+Status o-- Effect
+Status *-- StatusHookPoint
+
+@enduml

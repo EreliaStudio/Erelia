@@ -39,8 +39,8 @@ public class ChunkPresenter : MonoBehaviour
 			return;
 		}
 
-		terrainView.SetRenderMesh(VoxelMesher.BuildRenderMesh(chunkData.Cells, voxelRegistry));
-		terrainView.SetCollisionMesh(VoxelMesher.BuildColliderMesh(chunkData.Cells, voxelRegistry, VoxelTraversal.Obstacle));
+		terrainView.SetRenderMesh(VoxelMesher.BuildRenderMesh(chunkData, voxelRegistry));
+		terrainView.SetCollisionMesh(VoxelMesher.BuildColliderMesh(chunkData, voxelRegistry, VoxelTraversal.Obstacle));
 	}
 
 	public void RebuildOverlay()
@@ -51,7 +51,7 @@ public class ChunkPresenter : MonoBehaviour
 			return;
 		}
 
-		overlayView.SetMaskMesh(VoxelMesher.BuildMaskMesh(chunkData.Cells, chunkData.MaskLayer, voxelRegistry, voxelMaskRegistry));
+		overlayView.SetMaskMesh(VoxelMesher.BuildMaskMesh(chunkData, chunkData.MaskLayer, voxelRegistry, voxelMaskRegistry));
 	}
 
 	public void SetTerrainVisible(bool visible)

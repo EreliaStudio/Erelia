@@ -1,0 +1,46 @@
+@startuml Mode Manager
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class ExplorationMode <<CF diagram 11>> {}
+class BattleMode <<CF diagram 12>> {}
+class BattleSetup <<CF diagram 04>> {}
+
+abstract class Mode {
+  +Enter()
+  +Exit()
+}
+
+class ModeManager <<MonoBehaviour>> {
+  +SetGameContext(GameContext)
+  +EnterExplorationMode(GameContext)
+  +EnterBattleMode(BattleSetup)
+  +EndBattle()
+}
+
+class GameContext {
+  +World : WorldContext
+  +Player : PlayerData
+  +CreateFromSave(GameSaveData) : GameContext
+}
+
+class GameSaveData {
+  +WorldSeed : int
+  +PlayerWorldCell : Vector3Int
+}
+
+class GameBootstrapper <<MonoBehaviour>> {
+  +Bootstrap()
+}
+
+Mode <|-- ExplorationMode
+Mode <|-- BattleMode
+ModeManager *-- ExplorationMode
+ModeManager *-- BattleMode
+ModeManager ..> BattleSetup : routes
+GameContext ..> GameSaveData : reads
+GameBootstrapper o-- ModeManager
+GameBootstrapper ..> GameContext : creates
+
+@enduml

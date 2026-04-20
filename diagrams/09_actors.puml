@@ -1,0 +1,48 @@
+@startuml Actor System
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class WorldPresenter <<CF diagram 02>> {}
+class WorldData <<CF diagram 02>> {}
+class VoxelRegistry <<CF diagram 01>> {}
+
+class ActorData {
+  +MovementSpeed : float
+}
+
+class PlayerData {
+  +WorldCell : Vector3Int
+  +WorldPosition : Vector3
+}
+
+class ActorView <<MonoBehaviour>> {}
+
+class ActorPresenter <<MonoBehaviour>> {
+  +CellReached : Action<ActorPresenter, Vector3Int>
+  +Bind(ActorData)
+  +NotifyCellReached(Vector3Int)
+}
+
+class ActorPathDriver {
+  +IsMoving : bool
+  +SetPath(IReadOnlyList<Vector3Int>)
+  +Stop()
+  +Tick(WorldData, VoxelRegistry, float) : bool
+}
+
+class ActorManager <<MonoBehaviour>> {
+  +SpawnActor(Vector3, ActorData) : ActorPresenter
+}
+
+PlayerData --|> ActorData
+ActorPresenter *-- ActorView
+ActorPresenter o-- ActorData
+ActorPathDriver o-- ActorPresenter
+ActorPathDriver ..> WorldData : uses
+ActorPathDriver ..> VoxelRegistry : uses
+ActorManager *-- ActorPathDriver
+ActorManager ..> ActorPresenter : spawns
+ActorManager o-- WorldPresenter
+
+@enduml

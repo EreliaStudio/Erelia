@@ -1,0 +1,22 @@
+@startuml Battle Mode
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+class BoardPresenter <<CF diagram 03>> {}
+class BattleSetup <<CF diagram 04>> {}
+
+class BattlePlayerController <<MonoBehaviour>> {
+  +Bind(Vector3Int boardOrigin, Vector3Int boardSize, Vector3 anchor)
+  +Unbind()
+}
+
+class BattleMode {
+  +Enter(BattleSetup)
+}
+
+BattleMode o-- BoardPresenter
+BattleMode o-- BattlePlayerController
+BattleMode o-- BattleSetup
+
+@enduml
