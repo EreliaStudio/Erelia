@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -78,12 +80,19 @@ public class EncounterEmitter : MonoBehaviour
 			return;
 		}
 
-		BattleSetup battleSetup = new BattleSetup(
+		IReadOnlyList<CreatureUnit> playerTeam = Array.Empty<CreatureUnit>();
+		if (TryGetPlayerTeam(out IReadOnlyList<CreatureUnit> resolvedPlayerTeam))
+		{
+			playerTeam = resolvedPlayerTeam;
+		}
+
+		var battleContext = new BattleContext(
+			playerTeam,
 			selectedTeam,
 			boardData,
 			worldPosition);
 
-		EventCenter.EmitBattleStartRequested(battleSetup);
+		EventCenter.EmitBattleStartRequested(battleContext);
 	}
 
 	private bool TryGetBiome(Vector3Int standingCell, out BiomeDefinition biome)
@@ -172,6 +181,20 @@ public class EncounterEmitter : MonoBehaviour
 		}
 
 		return worldPresenter.VoxelRegistry.TryGetVoxel(cell.Id, out voxelDefinition) && voxelDefinition != null;
+	}
+
+	private bool TryGetPlayerTeam(out IReadOnlyList<CreatureUnit> playerTeam)
+	{
+		playerTeam = null;
+
+		ModeManager modeManager = FindAnyObjectByType<ModeManager>();
+		if (modeManager?.CurrentGameContext?.Player?.Team == null)
+		{
+			return false;
+		}
+
+		playerTeam = modeManager.CurrentGameContext.Player.Team;
+		return true;
 	}
 
 }

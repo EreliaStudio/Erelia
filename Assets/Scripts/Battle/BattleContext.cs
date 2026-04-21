@@ -12,19 +12,33 @@ public sealed class BattleContext
 	public event Action<BattleUnit> UnitRegistered;
 	public event Action<BattleUnit> UnitRemoved;
 
-	public BattleSetup Setup { get; }
 	public BoardData Board { get; }
+	public Vector3 PlayerWorldPosition { get; }
 	public IReadOnlyList<BattleUnit> PlayerUnits => playerUnits;
 	public IReadOnlyList<BattleUnit> EnemyUnits => enemyUnits;
 	public IReadOnlyList<BattleUnit> AllUnits => allUnits;
 
-	public BattleContext(BattleSetup p_setup)
+	public BattleContext(
+		IReadOnlyList<CreatureUnit> p_playerTeam,
+		IReadOnlyList<EncounterUnit> p_enemyTeam,
+		BoardData p_board,
+		Vector3 p_playerWorldPosition)
 	{
-		Setup = p_setup ?? throw new ArgumentNullException(nameof(p_setup));
-		Board = p_setup.Board ?? throw new ArgumentNullException(nameof(p_setup.Board));
+		if (p_playerTeam == null)
+		{
+			throw new ArgumentNullException(nameof(p_playerTeam));
+		}
 
-		InitializeUnits(p_setup.PlayerTeam, BattleSide.Player, playerUnits);
-		InitializeUnits(p_setup.EnemyTeam, BattleSide.Enemy, enemyUnits);
+		if (p_enemyTeam == null)
+		{
+			throw new ArgumentNullException(nameof(p_enemyTeam));
+		}
+
+		Board = p_board ?? throw new ArgumentNullException(nameof(p_board));
+		PlayerWorldPosition = p_playerWorldPosition;
+
+		InitializeUnits(p_playerTeam, BattleSide.Player, playerUnits);
+		InitializeUnits(p_enemyTeam, BattleSide.Enemy, enemyUnits);
 	}
 
 	public void ClearRuntime()

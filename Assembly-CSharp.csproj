@@ -50,7 +50,6 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Voxel\VoxelMaskLayer.cs" />
     <Compile Include="Assets\Scripts\Bootstrap\GameBootstrapper.cs" />
-    <Compile Include="Assets\Scripts\Battle\BattleSetup.cs" />
     <Compile Include="Assets\Scripts\Statuses\Status.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterTier.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleUnitView.cs" />

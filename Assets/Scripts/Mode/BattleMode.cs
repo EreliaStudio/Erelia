@@ -8,11 +8,9 @@ public sealed class BattleMode : Mode
 	[SerializeField] private Transform playerTeamRoot;
 	[SerializeField] private Transform enemyTeamRoot;
 
-	private BattleSetup currentSetup;
 	private BattleContext battleContext;
 	private BattleUnitManager battleUnitManager;
 
-	public BattleSetup CurrentSetup => currentSetup;
 	public BattleContext BattleContext => battleContext;
 
 	private void Awake()
@@ -43,30 +41,29 @@ public sealed class BattleMode : Mode
 		}
 	}
 
-	public void Enter(BattleSetup setup)
+	public void Enter(BattleContext context)
 	{
-		if (setup == null || setup.Board == null)
+		if (context == null || context.Board == null)
 		{
 			return;
 		}
 
-		currentSetup = setup;
-		battleContext = new BattleContext(currentSetup);
+		battleContext = context;
 		battleContext.ClearRuntime();
 		battleUnitManager = new BattleUnitManager(playerTeamRoot, enemyTeamRoot, battleUnitPrefab, battleContext);
 
 		base.Enter();
 
-		boardPresenter.transform.parent.transform.position = (Vector3)currentSetup.Board.WorldAnchor;
-		boardPresenter.Assign(currentSetup.Board);
+		boardPresenter.transform.parent.transform.position = (Vector3)battleContext.Board.WorldAnchor;
+		boardPresenter.Assign(battleContext.Board);
 
-		Vector3Int anchor = currentSetup.Board.WorldAnchor;
+		Vector3Int anchor = battleContext.Board.WorldAnchor;
 		Vector3Int size = new Vector3Int(
-			currentSetup.Board.Terrain.SizeX,
-			currentSetup.Board.Terrain.SizeY,
-			currentSetup.Board.Terrain.SizeZ);
+			battleContext.Board.Terrain.SizeX,
+			battleContext.Board.Terrain.SizeY,
+			battleContext.Board.Terrain.SizeZ);
 
-		battlePlayerController.Bind(anchor, size, currentSetup.PlayerWorldPosition);
+		battlePlayerController.Bind(anchor, size, battleContext.PlayerWorldPosition);
 	}
 
 	protected override void OnExit()
@@ -75,6 +72,5 @@ public sealed class BattleMode : Mode
 		battlePlayerController.Unbind();
 		battleUnitManager = null;
 		battleContext = null;
-		currentSetup = null;
 	}
 }

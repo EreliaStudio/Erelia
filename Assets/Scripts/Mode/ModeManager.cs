@@ -70,20 +70,15 @@ public class ModeManager : MonoBehaviour
 		explorationMode.Enter(currentGameContext);
 	}
 
-	public void EnterBattleMode(BattleSetup setup)
+	public void EnterBattleMode(BattleContext context)
 	{
-		if (setup == null || setup.Board == null || battleMode == null)
+		if (context == null || context.Board == null || battleMode == null)
 		{
 			return;
 		}
 
-		if (currentGameContext?.Player?.Team != null)
-		{
-			setup = setup.WithPlayerTeam(currentGameContext.Player.Team);
-		}
-
 		SwitchTo(battleMode);
-		battleMode.Enter(setup);
+		battleMode.Enter(context);
 	}
 
 	public void EndBattle()
@@ -91,9 +86,9 @@ public class ModeManager : MonoBehaviour
 		EnterExplorationMode(currentGameContext);
 	}
 
-	private void OnBattleStartRequested(BattleSetup setup)
+	private void OnBattleStartRequested(BattleContext context)
 	{
-		EnterBattleMode(setup);
+		EnterBattleMode(context);
 	}
 
 	private void OnBattleEnded()
