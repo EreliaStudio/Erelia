@@ -17,10 +17,6 @@ public sealed class BattleContext
 	public IReadOnlyList<BattleUnit> PlayerUnits => playerUnits;
 	public IReadOnlyList<BattleUnit> EnemyUnits => enemyUnits;
 	public IReadOnlyList<BattleUnit> AllUnits => allUnits;
-	public BattleUnit ActiveUnit { get; set; }
-	public BattleAction PendingAction { get; set; }
-	public BattleSide Winner { get; private set; } = BattleSide.Neutral;
-	public BattleResult Result { get; private set; } = BattleResult.None;
 
 	public BattleContext(BattleSetup p_setup)
 	{
@@ -34,10 +30,6 @@ public sealed class BattleContext
 	public void ClearRuntime()
 	{
 		Board.Runtime.Clear();
-		ActiveUnit = null;
-		PendingAction = null;
-		Winner = BattleSide.Neutral;
-		Result = BattleResult.None;
 
 		for (int index = 0; index < allUnits.Count; index++)
 		{
@@ -92,41 +84,6 @@ public sealed class BattleContext
 
 		p_targetUnit = null;
 		return false;
-	}
-
-	public void RefillTurnResources(BattleUnit p_unit)
-	{
-		if (p_unit == null)
-		{
-			return;
-		}
-
-		p_unit.BattleAttributes.ActionPoints.Reset();
-		p_unit.BattleAttributes.MovementPoints.Reset();
-	}
-
-	public bool TryResolveBattleResult()
-	{
-		bool hasPlayerUnits = HasLivingUnits(BattleSide.Player);
-		bool hasEnemyUnits = HasLivingUnits(BattleSide.Enemy);
-
-		if (hasPlayerUnits && hasEnemyUnits)
-		{
-			Winner = BattleSide.Neutral;
-			Result = BattleResult.None;
-			return false;
-		}
-
-		if (hasPlayerUnits == hasEnemyUnits)
-		{
-			Winner = BattleSide.Neutral;
-			Result = BattleResult.Draw;
-			return true;
-		}
-
-		Winner = hasPlayerUnits ? BattleSide.Player : BattleSide.Enemy;
-		Result = hasPlayerUnits ? BattleResult.PlayerVictory : BattleResult.EnemyVictory;
-		return true;
 	}
 
 	public bool TryPlaceUnit(BattleUnit p_unit, Vector3Int p_cell)

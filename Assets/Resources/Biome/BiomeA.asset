@@ -20,13 +20,14 @@ MonoBehaviour:
         BoardConfigurations:
         - size: {x: 9, y: 9}
           shape: 0
+          placementStyle: 0
         EncounterTable:
           NoBadge:
             WeightedTeams:
             - DisplayName: BaseForm
               Team:
               - Species: {fileID: 11400000, guid: f5a248bd686323248b57fc2852fb4709, type: 2}
-                CurrentFormID: Default
+                CurrentFormID: DPS
                 Attributes:
                   Health: 10
                   ActionPoints: 6
@@ -67,8 +68,8 @@ MonoBehaviour:
                     RequirementProgress: []
                 Behaviour:
                   rid: 7055333366454288464
-              - Species: {fileID: 0}
-                CurrentFormID: 
+              - Species: {fileID: 11400000, guid: f5a248bd686323248b57fc2852fb4709, type: 2}
+                CurrentFormID: Default
                 Attributes:
                   Health: 10
                   ActionPoints: 6
@@ -88,11 +89,20 @@ MonoBehaviour:
                 Abilities: []
                 PermanentPassives: []
                 FeatBoardProgress:
-                  NodeProgress: []
+                  NodeProgress:
+                  - NodeId: 1af93324228d4cb2bcd6dfcad0451cac
+                    CompletionCount: 1
+                    RequirementProgress: []
+                  - NodeId: 8ab40fa26eef4a2ca25a6512775c0402
+                    CompletionCount: 1
+                    RequirementProgress: []
+                  - NodeId: df1f2570fcd74327b84c7d13efece65a
+                    CompletionCount: 1
+                    RequirementProgress: []
                 Behaviour:
                   rid: 7055333366454288465
-              - Species: {fileID: 0}
-                CurrentFormID: 
+              - Species: {fileID: 11400000, guid: f5a248bd686323248b57fc2852fb4709, type: 2}
+                CurrentFormID: Default
                 Attributes:
                   Health: 10
                   ActionPoints: 6
@@ -112,7 +122,19 @@ MonoBehaviour:
                 Abilities: []
                 PermanentPassives: []
                 FeatBoardProgress:
-                  NodeProgress: []
+                  NodeProgress:
+                  - NodeId: 1af93324228d4cb2bcd6dfcad0451cac
+                    CompletionCount: 1
+                    RequirementProgress: []
+                  - NodeId: df1f2570fcd74327b84c7d13efece65a
+                    CompletionCount: 1
+                    RequirementProgress: []
+                  - NodeId: 8ab40fa26eef4a2ca25a6512775c0402
+                    CompletionCount: 1
+                    RequirementProgress: []
+                  - NodeId: 402c9d5f4e0c4a6db6003f4f36bb0aa3
+                    CompletionCount: 1
+                    RequirementProgress: []
                 Behaviour:
                   rid: 7055333366454288466
               - Species: {fileID: 0}
@@ -212,6 +234,7 @@ MonoBehaviour:
         BoardConfigurations:
         - size: {x: 9, y: 9}
           shape: 0
+          placementStyle: 0
         EncounterTable:
           NoBadge:
             WeightedTeams: []
