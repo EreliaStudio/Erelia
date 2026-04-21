@@ -7,11 +7,16 @@ public sealed class BattleMode : Mode
 	[SerializeField] private GameObject battleUnitPrefab;
 	[SerializeField] private Transform playerTeamRoot;
 	[SerializeField] private Transform enemyTeamRoot;
+	[SerializeField] private BattleOrchestrator battleOrchestrator = new();
 
 	private BattleContext battleContext;
 	private BattleUnitManager battleUnitManager;
 
 	public BattleContext BattleContext => battleContext;
+	public BattleOrchestrator BattleOrchestrator => battleOrchestrator;
+	public BattlePhaseType? CurrentPhaseType => battleOrchestrator != null && battleOrchestrator.Coordinator.HasActivePhase
+		? battleOrchestrator.Coordinator.CurrentPhaseType
+		: null;
 
 	private void Awake()
 	{
@@ -64,10 +69,17 @@ public sealed class BattleMode : Mode
 			battleContext.Board.Terrain.SizeZ);
 
 		battlePlayerController.Bind(anchor, size, battleContext.PlayerWorldPosition);
+		battleOrchestrator.Initialize(this, battleContext);
+	}
+
+	public void TransitionToPhase(BattlePhaseType phaseType)
+	{
+		battleOrchestrator?.TransitionTo(phaseType);
 	}
 
 	protected override void OnExit()
 	{
+		battleOrchestrator?.Dispose();
 		battleUnitManager?.Dispose();
 		battlePlayerController.Unbind();
 		battleUnitManager = null;
