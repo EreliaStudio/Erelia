@@ -71,7 +71,6 @@
     <Compile Include="Assets\Scripts\Mode\BattleMode.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatNodeProgress.cs" />
     <Compile Include="Assets\Scripts\World\WorldPresenter.cs" />
-    <Compile Include="Assets\Scripts\Creatures\CreatureModelRegistry.cs" />
     <Compile Include="Assets\Scripts\Abilities\AbilityCost.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleContext.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorView.cs" />
@@ -131,11 +130,12 @@
     <Compile Include="Assets\Scripts\Voxel\VoxelMask.cs" />
     <Compile Include="Assets\Scripts\InteractiveObject\InteractionObject.cs" />
     <Compile Include="Assets\Scripts\AI\AIBehaviour.cs" />
+    <Compile Include="Assets\Scripts\Battle\PlacementAreas.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatRequirement.cs" />
     <Compile Include="Assets\Scripts\World\ChunkCoordinates.cs" />
+    <Compile Include="Assets\Scripts\Voxel\Shape\VoxelSlabShape.cs" />
     <Compile Include="Assets\Scripts\World\WorldContext.cs" />
     <Compile Include="Assets\Scripts\Biomes\BiomeEncounterRule.cs" />
-    <Compile Include="Assets\Scripts\Voxel\Shape\VoxelSlabShape.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleStatuses.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMaskRegistry.cs" />
     <Compile Include="Assets\Scripts\Board\BoardPresenter.cs" />
@@ -148,7 +148,6 @@
     <Compile Include="Assets\Scripts\Feats\FeatBoard.cs" />
     <Compile Include="Assets\Scripts\Utility\Logger.cs" />
     <Compile Include="Assets\Scripts\Statuses\StatusHookPoint.cs" />
-    <Compile Include="Assets\Scripts\Creatures\CreatureModel.cs" />
     <Compile Include="Assets\Scripts\World\TerrainView.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterTable.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleInteractiveObject.cs" />
@@ -160,6 +159,7 @@
     <Compile Include="Assets\Scripts\Battle\TurnIdlePhase.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleOrchestrator.cs" />
     <Compile Include="Assets\Scripts\AI\AICondition.cs" />
+    <Compile Include="Assets\Scripts\Battle\PlacementUnitPreview.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleAction.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatBoardProgress.cs" />
     <Compile Include="Assets\Scripts\Battle\ResultPhase.cs" />
@@ -167,6 +167,7 @@
     <Compile Include="Assets\Scripts\Abilities\Effect.cs" />
     <Compile Include="Assets\Scripts\Player\ExplorationPlayerController.cs" />
     <Compile Include="Assets\Scripts\World\ChunkData.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattlePlacementInitializer.cs" />
     <Compile Include="Assets\Scripts\Battle\PlacementPhase.cs" />
     <Compile Include="Assets\Scripts\World\WorldLoader.cs" />
     <Compile Include="Assets\Scripts\Battle\BattleUnitPresenter.cs" />

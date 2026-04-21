@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aae4753f3181e5f42a13212490c4ea7b, type: 3}
-  m_Name: CreatureA
+  m_Name: CreatureASpecies
   m_EditorClassIdentifier: Assembly-CSharp::CreatureSpecies
   Attributes:
     Health: 10
@@ -59,8 +59,14 @@ MonoBehaviour:
       Value:
         DisplayName: BaseForm
         Tier: 0
-        Icon: {fileID: 0}
-        ModelPrefab: {fileID: 0}
+        Avatar: {fileID: -1903576479, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        ModelPrefab: {fileID: 1320495866081010126, guid: be2315bfb84c2dd4db67065342c361a5, type: 3}
+    - Key: DPS
+      Value:
+        DisplayName: DPSForm
+        Tier: 1
+        Avatar: {fileID: -2094776005, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        ModelPrefab: {fileID: 8524976429635346462, guid: 6b5f61f436283de4da211c878ea0935f, type: 3}
   references:
     version: 2
     RefIds:
@@ -360,7 +366,8 @@ MonoBehaviour:
         - 2ce09f27a6c745ea930525cfc2499e44
         NumberOfRepeatTime: 0
         Requirements: []
-        Rewards: []
+        Rewards:
+        - rid: 7055333479356563495
     - rid: 7055333366454288462
       type: {class: FeatNode, ns: , asm: Assembly-CSharp}
       data:
@@ -374,3 +381,7 @@ MonoBehaviour:
         NumberOfRepeatTime: 0
         Requirements: []
         Rewards: []
+    - rid: 7055333479356563495
+      type: {class: ChangeFormReward, ns: , asm: Assembly-CSharp}
+      data:
+        FormKey: DPS

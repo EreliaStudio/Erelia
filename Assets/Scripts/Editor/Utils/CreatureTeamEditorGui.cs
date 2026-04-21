@@ -5,6 +5,16 @@ using UnityEngine;
 
 public static class CreatureTeamEditorGui
 {
+	private static Sprite GetModelAvatar(CreatureUnit unit)
+	{
+		if (unit == null || !unit.TryGetForm(out CreatureForm form))
+		{
+			return null;
+		}
+
+		return form.Avatar;
+	}
+
 	public static void DrawUnitTab(Rect rect, CreatureUnit unit, bool isSelected, System.Action onClick)
 	{
 		Color backgroundColor = isSelected
@@ -38,7 +48,7 @@ public static class CreatureTeamEditorGui
 			CreatureForm form = unit?.GetForm();
 			if (form != null)
 			{
-				sprite = form.Icon;
+				sprite = form.Avatar;
 			}
 		}
 		catch
@@ -63,6 +73,15 @@ public static class CreatureTeamEditorGui
 		EditorGUILayout.LabelField(EncounterEditorUtility.GetUnitDisplayName(unit), EditorStyles.boldLabel);
 		EditorGUILayout.LabelField("Current Form", string.IsNullOrEmpty(unit?.CurrentFormID) ? "None" : unit.CurrentFormID);
 		GUILayout.EndVertical();
+
+		Sprite avatar = GetModelAvatar(unit);
+		if (avatar != null)
+		{
+			const float avatarSize = 56f;
+			Rect avatarRect = GUILayoutUtility.GetRect(avatarSize, avatarSize, GUILayout.Width(avatarSize), GUILayout.Height(avatarSize));
+			EditorGUI.DrawRect(avatarRect, new Color(0f, 0f, 0f, 0.18f));
+			SpriteGuiUtility.DrawSprite(avatarRect, avatar);
+		}
 
 		GUILayout.EndHorizontal();
 	}

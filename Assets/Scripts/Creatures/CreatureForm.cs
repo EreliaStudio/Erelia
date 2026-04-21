@@ -5,7 +5,7 @@ using System;
 public class CreatureForm
 {
 	public string DisplayName = "New Form";
-	public string BattleModelId = string.Empty;
 	public int Tier = 0;
-	public Sprite Icon;
+	public Sprite Avatar;
+	public GameObject ModelPrefab;
 };

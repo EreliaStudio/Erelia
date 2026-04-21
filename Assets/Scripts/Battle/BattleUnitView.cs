@@ -3,30 +3,23 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class BattleUnitView : MonoBehaviour
 {
-	[SerializeField] private Transform modelRoot;
-
 	private GameObject currentModelInstance;
-
-	public Transform ModelRoot => modelRoot != null ? modelRoot : transform;
 
 	private void Awake()
 	{
-		if (modelRoot == null)
-		{
-			modelRoot = transform;
-		}
+		
 	}
 
-	public void SetModel(CreatureModel p_creatureModel)
+	public void SetModel(GameObject p_modelPrefab)
 	{
 		ClearModel();
 
-		if (p_creatureModel == null || p_creatureModel.ModelPrefab == null)
+		if (p_modelPrefab == null)
 		{
 			return;
 		}
 
-		currentModelInstance = Instantiate(p_creatureModel.ModelPrefab, ModelRoot, false);
+		currentModelInstance = Instantiate(p_modelPrefab, transform, false);
 		currentModelInstance.transform.localPosition = Vector3.zero;
 		currentModelInstance.transform.localRotation = Quaternion.identity;
 		currentModelInstance.transform.localScale = Vector3.one;

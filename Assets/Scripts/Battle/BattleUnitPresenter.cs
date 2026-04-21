@@ -6,7 +6,6 @@ public class BattleUnitPresenter : MonoBehaviour
 	[SerializeField] private BattleUnitView battleUnitView;
 
 	private BattleUnit battleUnit;
-	private CreatureModelRegistry creatureModelRegistry;
 	private BoardData boardData;
 
 	public BattleUnit BattleUnit => battleUnit;
@@ -20,7 +19,7 @@ public class BattleUnitPresenter : MonoBehaviour
 		}
 	}
 
-	public void Bind(BattleUnit p_battleUnit, CreatureModelRegistry p_creatureModelRegistry, BoardData p_boardData)
+	public void Bind(BattleUnit p_battleUnit, BoardData p_boardData)
 	{
 		if (battleUnit != null)
 		{
@@ -28,7 +27,6 @@ public class BattleUnitPresenter : MonoBehaviour
 		}
 
 		battleUnit = p_battleUnit;
-		creatureModelRegistry = p_creatureModelRegistry;
 		boardData = p_boardData;
 
 		if (battleUnit != null)
@@ -47,21 +45,22 @@ public class BattleUnitPresenter : MonoBehaviour
 			return;
 		}
 
-		string battleModelId = string.Empty;
+		GameObject modelPrefab = null;
 		if (battleUnit?.SourceUnit != null &&
 			battleUnit.SourceUnit.TryGetForm(out CreatureForm form) &&
 			form != null)
 		{
-			battleModelId = form.BattleModelId;
+			modelPrefab = form.ModelPrefab;
 		}
 
-		if (creatureModelRegistry != null && creatureModelRegistry.TryGetModel(battleModelId, out CreatureModel creatureModel))
+		if (modelPrefab != null)
 		{
-			battleUnitView.SetModel(creatureModel);
-			return;
+			battleUnitView.SetModel(modelPrefab);
 		}
-
-		battleUnitView.ClearModel();
+		else
+		{
+			battleUnitView.ClearModel();
+		}
 	}
 
 	private void OnDestroy()

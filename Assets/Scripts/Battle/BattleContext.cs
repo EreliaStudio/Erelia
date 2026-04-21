@@ -8,8 +8,7 @@ public sealed class BattleContext
 	private readonly List<BattleUnit> playerUnits = new();
 	private readonly List<BattleUnit> enemyUnits = new();
 	private readonly List<BattleUnit> allUnits = new();
-	private readonly List<Vector3Int> playerPlacementCells = new();
-	private readonly List<Vector3Int> enemyPlacementCells = new();
+
 	public event Action<BattleUnit> UnitRegistered;
 	public event Action<BattleUnit> UnitRemoved;
 
@@ -18,8 +17,6 @@ public sealed class BattleContext
 	public IReadOnlyList<BattleUnit> PlayerUnits => playerUnits;
 	public IReadOnlyList<BattleUnit> EnemyUnits => enemyUnits;
 	public IReadOnlyList<BattleUnit> AllUnits => allUnits;
-	public IReadOnlyList<Vector3Int> PlayerPlacementCells => playerPlacementCells;
-	public IReadOnlyList<Vector3Int> EnemyPlacementCells => enemyPlacementCells;
 	public BattleUnit ActiveUnit { get; set; }
 	public BattleAction PendingAction { get; set; }
 	public BattleSide Winner { get; private set; } = BattleSide.Neutral;
@@ -47,9 +44,6 @@ public sealed class BattleContext
 			allUnits[index].BattleAttributes.Setup(allUnits[index].SourceUnit.Attributes);
 			allUnits[index].ClearBoardPosition();
 		}
-
-		playerPlacementCells.Clear();
-		enemyPlacementCells.Clear();
 	}
 
 	public IEnumerable<BattleUnit> GetUnits(BattleSide p_side)
@@ -135,81 +129,6 @@ public sealed class BattleContext
 		return true;
 	}
 
-	public bool TryAutoPlaceTeams()
-	{
-		ClearRuntime();
-
-		bool playerPlaced = TryPlaceLine(playerUnits, true);
-		bool enemyPlaced = TryPlaceLine(enemyUnits, false);
-		return playerPlaced || enemyPlaced;
-	}
-
-	public void AssignPlacementAreas(IReadOnlyList<Vector3Int> p_playerCells, IReadOnlyList<Vector3Int> p_enemyCells)
-	{
-		playerPlacementCells.Clear();
-		enemyPlacementCells.Clear();
-
-		if (p_playerCells != null)
-		{
-			playerPlacementCells.AddRange(p_playerCells);
-		}
-
-		if (p_enemyCells != null)
-		{
-			enemyPlacementCells.AddRange(p_enemyCells);
-		}
-	}
-
-	public bool TryPlaceUnitsInCells(IReadOnlyList<BattleUnit> p_units, IReadOnlyList<Vector3Int> p_cells)
-	{
-		if (p_units == null || p_cells == null || p_units.Count == 0 || p_cells.Count == 0)
-		{
-			return false;
-		}
-
-		int placedCount = 0;
-		for (int unitIndex = 0; unitIndex < p_units.Count; unitIndex++)
-		{
-			BattleUnit unit = p_units[unitIndex];
-			if (unit == null)
-			{
-				continue;
-			}
-
-			for (int cellIndex = 0; cellIndex < p_cells.Count; cellIndex++)
-			{
-				Vector3Int cell = p_cells[cellIndex];
-				if (!TryPlaceUnit(unit, cell))
-				{
-					continue;
-				}
-
-				placedCount++;
-				break;
-			}
-		}
-
-		return placedCount > 0;
-	}
-
-	public bool TryRegisterInitialUnits()
-	{
-		bool hasRegisteredAnyUnit = false;
-		for (int index = 0; index < allUnits.Count; index++)
-		{
-			BattleUnit unit = allUnits[index];
-			if (unit == null || !unit.HasBoardPosition)
-			{
-				continue;
-			}
-
-			UnitRegistered?.Invoke(unit);
-			hasRegisteredAnyUnit = true;
-		}
-
-		return hasRegisteredAnyUnit;
-	}
-
 	public bool TryPlaceUnit(BattleUnit p_unit, Vector3Int p_cell)
 	{
 		bool wasAlreadyPlaced = p_unit != null && p_unit.HasBoardPosition;
@@ -280,7 +199,7 @@ public sealed class BattleContext
 		for (int index = 0; index < p_sourceUnits.Count; index++)
 		{
 			CreatureUnit sourceUnit = p_sourceUnits[index];
-			if (sourceUnit == null)
+			if (sourceUnit == null || sourceUnit.Species == null)
 			{
 				continue;
 			}
@@ -289,51 +208,5 @@ public sealed class BattleContext
 			p_targetList.Add(battleUnit);
 			allUnits.Add(battleUnit);
 		}
-	}
-
-	private bool TryPlaceLine(IReadOnlyList<BattleUnit> p_units, bool p_fromLeftToRight)
-	{
-		if (p_units == null || p_units.Count == 0)
-		{
-			return false;
-		}
-
-		int sizeX = Board.Terrain.SizeX;
-		int sizeY = Board.Terrain.SizeY;
-		int sizeZ = Board.Terrain.SizeZ;
-		int startX = p_fromLeftToRight ? 0 : sizeX - 1;
-		int endX = p_fromLeftToRight ? sizeX : -1;
-		int stepX = p_fromLeftToRight ? 1 : -1;
-		int placedCount = 0;
-
-		for (int unitIndex = 0; unitIndex < p_units.Count; unitIndex++)
-		{
-			BattleUnit unit = p_units[unitIndex];
-			if (unit == null)
-			{
-				continue;
-			}
-
-			bool placed = false;
-			for (int x = startX; x != endX && !placed; x += stepX)
-			{
-				for (int z = 0; z < sizeZ && !placed; z++)
-				{
-					for (int y = 0; y < sizeY && !placed; y++)
-					{
-						Vector3Int position = new Vector3Int(x, y, z);
-						if (!TryPlaceUnit(unit, position))
-						{
-							continue;
-						}
-
-						placed = true;
-						placedCount++;
-					}
-				}
-			}
-		}
-
-		return placedCount > 0;
 	}
 }

@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4995193376233844581}
   - component: {fileID: 2001916760848391831}
   - component: {fileID: 3327950438736901549}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Terrain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -139,7 +139,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9025320957008316016}
   - component: {fileID: 376539866898005260}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: ChunkPrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -191,7 +191,7 @@ GameObject:
   - component: {fileID: 8952136259171437219}
   - component: {fileID: 2917860803436060349}
   - component: {fileID: 6760283360251374594}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Mask
   m_TagString: Untagged
   m_Icon: {fileID: 0}

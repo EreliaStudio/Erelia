@@ -4,16 +4,16 @@ using UnityEngine;
 public sealed class BattleUnitManager
 {
 	private readonly Dictionary<BattleUnit, BattleUnitPresenter> presentersByUnit = new();
-	private readonly Transform parentTransform;
+	private readonly Transform playerTeamRoot;
+	private readonly Transform enemyTeamRoot;
 	private readonly GameObject battleUnitPrefab;
-	private readonly CreatureModelRegistry creatureModelRegistry;
 	private readonly BattleContext battleContext;
 
-	public BattleUnitManager(Transform p_parentTransform, GameObject p_battleUnitPrefab, CreatureModelRegistry p_creatureModelRegistry, BattleContext p_battleContext)
+	public BattleUnitManager(Transform p_playerTeamRoot, Transform p_enemyTeamRoot, GameObject p_battleUnitPrefab, BattleContext p_battleContext)
 	{
-		parentTransform = p_parentTransform;
+		playerTeamRoot = p_playerTeamRoot;
+		enemyTeamRoot = p_enemyTeamRoot;
 		battleUnitPrefab = p_battleUnitPrefab;
-		creatureModelRegistry = p_creatureModelRegistry;
 		battleContext = p_battleContext;
 
 		if (battleContext != null)
@@ -69,19 +69,32 @@ public sealed class BattleUnitManager
 
 		if (battleUnitPrefab == null)
 		{
+			Logger.LogError("[BattleUnitManager] Cannot create presenter: battleUnitPrefab is null.", Logger.Severity.Critical);
 			return null;
 		}
 
-		GameObject instance = Object.Instantiate(battleUnitPrefab, parentTransform);
+		Transform parent = p_unit.Side == BattleSide.Player ? playerTeamRoot : enemyTeamRoot;
+		GameObject instance = Object.Instantiate(battleUnitPrefab, parent);
+		instance.name = ResolveUnitName(p_unit);
 		if (!instance.TryGetComponent(out BattleUnitPresenter presenter))
 		{
 			Object.Destroy(instance);
 			return null;
 		}
 
-		presenter.Bind(p_unit, creatureModelRegistry, battleContext?.Board);
+		presenter.Bind(p_unit, battleContext?.Board);
 		presentersByUnit[p_unit] = presenter;
 		return presenter;
+	}
+
+	private static string ResolveUnitName(BattleUnit p_unit)
+	{
+		if (p_unit.SourceUnit.TryGetForm(out CreatureForm form) && !string.IsNullOrEmpty(form.DisplayName))
+		{
+			return form.DisplayName;
+		}
+
+		return p_unit.SourceUnit.Species != null ? p_unit.SourceUnit.Species.name : "Unit";
 	}
 
 	private static void DestroyPresenter(BattleUnitPresenter p_presenter)

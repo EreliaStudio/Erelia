@@ -158,7 +158,9 @@ public class BattlePlayerController : MonoBehaviour
 		HandlePan();
 		HandleOrbit();
 		placementController.Tick(ActiveCamera);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 		HandleTurnDebugInput();
+#endif
 		RefreshCameraTransform();
 	}
 
@@ -245,6 +247,7 @@ public class BattlePlayerController : MonoBehaviour
 		resolvedOrbitRightAction = orbitRightAction != null ? orbitRightAction.action : null;
 	}
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 	private void HandleTurnDebugInput()
 	{
 		if (activeTurnUnit == null || actionChosenHandler == null || Keyboard.current == null)
@@ -271,6 +274,7 @@ public class BattlePlayerController : MonoBehaviour
 
 		SubmitAction(new EndTurnAction(activeTurnUnit));
 	}
+#endif
 
 	private bool TryBuildDefaultAbilityAction(out AbilityAction p_action)
 	{

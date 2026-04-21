@@ -18,6 +18,7 @@ public sealed class BattlePlacementController
 	private Vector2 lastPointerPosition;
 	private bool hasLastPointerPosition;
 	private bool hoverDirty = true;
+	private Vector3Int? lastValidHoveredCell;
 
 	public BattleUnit SelectedUnit => selectedUnit;
 	public Vector3Int? HoveredCell { get; private set; }
@@ -25,6 +26,8 @@ public sealed class BattlePlacementController
 	public event Action<BattleUnit> SelectedUnitChanged;
 	public event Action<Vector3Int?> HoveredCellChanged;
 	public event Action<BattleUnit, Vector3Int> PlacementRequested;
+	public event Action<Vector3Int> UnplaceRequested;
+	public event Action ConfirmRequested;
 
 	public void Bind(BoardPresenter p_boardPresenter, BattleContext p_battleContext)
 	{
@@ -33,6 +36,7 @@ public sealed class BattlePlacementController
 		hoverDirty = true;
 		hasLastCameraTransform = false;
 		hasLastPointerPosition = false;
+		lastValidHoveredCell = null;
 		SetHoveredCell(null);
 	}
 
@@ -44,6 +48,7 @@ public sealed class BattlePlacementController
 		hoverDirty = true;
 		hasLastCameraTransform = false;
 		hasLastPointerPosition = false;
+		lastValidHoveredCell = null;
 		SetHoveredCell(null);
 	}
 
@@ -61,7 +66,7 @@ public sealed class BattlePlacementController
 
 	public void Tick(Camera p_camera)
 	{
-		if (boardPresenter == null || battleContext == null || p_camera == null || selectedUnit == null)
+		if (boardPresenter == null || battleContext == null || p_camera == null)
 		{
 			SetHoveredCell(null);
 			return;
@@ -69,9 +74,28 @@ public sealed class BattlePlacementController
 
 		UpdateHoveredCell(p_camera);
 
-		if (HoveredCell.HasValue && WasValidateRequested())
+		if (HoveredCell.HasValue)
 		{
-			PlacementRequested?.Invoke(selectedUnit, HoveredCell.Value);
+			lastValidHoveredCell = HoveredCell;
+		}
+
+		Vector3Int? clickTarget = lastValidHoveredCell;
+		if (clickTarget.HasValue)
+		{
+			if (selectedUnit != null && WasLeftClickRequested())
+			{
+				PlacementRequested?.Invoke(selectedUnit, clickTarget.Value);
+			}
+
+			if (WasRightClickRequested())
+			{
+				UnplaceRequested?.Invoke(clickTarget.Value);
+			}
+		}
+
+		if (WasConfirmRequested())
+		{
+			ConfirmRequested?.Invoke();
 		}
 	}
 
@@ -140,25 +164,31 @@ public sealed class BattlePlacementController
 		HoveredCellChanged?.Invoke(HoveredCell);
 	}
 
-	private static bool WasValidateRequested()
+	private static bool WasLeftClickRequested()
 	{
-		if (Mouse.current != null)
-		{
-			return Mouse.current.leftButton.wasPressedThisFrame;
-		}
+		return Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+	}
 
-		return Input.GetMouseButtonDown(0);
+	private static bool WasRightClickRequested()
+	{
+		return Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame;
+	}
+
+	private static bool WasConfirmRequested()
+	{
+		return Keyboard.current != null &&
+		       (Keyboard.current.enterKey.wasPressedThisFrame || Keyboard.current.spaceKey.wasPressedThisFrame);
 	}
 
 	private static bool TryGetPointerPosition(out Vector2 p_pointerPosition)
 	{
-		if (Mouse.current != null)
+		if (Mouse.current == null)
 		{
-			p_pointerPosition = Mouse.current.position.ReadValue();
-			return true;
+			p_pointerPosition = default;
+			return false;
 		}
 
-		p_pointerPosition = Input.mousePosition;
+		p_pointerPosition = Mouse.current.position.ReadValue();
 		return true;
 	}
 }

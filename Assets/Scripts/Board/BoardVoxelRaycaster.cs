@@ -3,6 +3,7 @@ using UnityEngine;
 public static class BoardVoxelRaycaster
 {
 	private const float SurfaceResolveEpsilon = 0.01f;
+	private static readonly int WorldLayerMask = LayerMask.GetMask("World");
 
 	public readonly struct Hit
 	{
@@ -20,15 +21,15 @@ public static class BoardVoxelRaycaster
 
 	public static bool TryRaycast(BoardPresenter p_boardPresenter, Ray p_ray, float p_maxDistance, out Hit p_hit)
 	{
-		p_hit = default;
-
-		if (p_boardPresenter?.BoardData == null || p_maxDistance <= 0f)
+		if (p_boardPresenter == null || p_boardPresenter.BoardData == null || p_maxDistance <= 0f)
 		{
+			p_hit = default;
 			return false;
 		}
 
-		if (!Physics.Raycast(p_ray, out RaycastHit physicsHit, p_maxDistance))
+		if (!Physics.Raycast(p_ray, out RaycastHit physicsHit, p_maxDistance, WorldLayerMask))
 		{
+			p_hit = default;
 			return false;
 		}
 

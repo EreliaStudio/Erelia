@@ -152,6 +152,37 @@ Transform:
   - {fileID: 1670222967}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &255625478
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 255625479}
+  m_Layer: 0
+  m_Name: EnemyTeam
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &255625479
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 255625478}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.55339, y: 0, z: 0.8562}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1670222967}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &680902889
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -166,6 +197,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
   m_ActionId: 4f1750bd-c5bb-49fe-aa32-b4560f593e64
+--- !u!1 &710076647
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 710076648}
+  m_Layer: 0
+  m_Name: PlayerTeam
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &710076648
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 710076647}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1670222967}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &724917472
 GameObject:
   m_ObjectHideFlags: 0
@@ -213,10 +275,206 @@ MonoBehaviour:
   modeManager: {fileID: 1589046162}
   gameSaveData:
     worldSeed: 1
-    playerWorldCell: {x: 0, y: 0, z: 0}
-    playerSpawnResolved: 0
+    player:
+      movementSpeed: 4
+      worldCell: {x: 0, y: 0, z: 0}
+      team:
+      - rid: 7055333479356563489
+      - rid: 7055333479356563490
+      - rid: 7055333479356563491
+      - rid: 7055333479356563492
+      - rid: 7055333479356563493
+      - rid: 7055333479356563494
+    respawnPoint: {x: 0, y: 0, z: 0}
+  bootstrapMode: 0
   bootstrapOnStart: 1
   worldPresenter: {fileID: 1034705929}
+  references:
+    version: 2
+    RefIds:
+    - rid: 7055333479356563489
+      type: {class: CreatureUnit, ns: , asm: Assembly-CSharp}
+      data:
+        Species: {fileID: 11400000, guid: f5a248bd686323248b57fc2852fb4709, type: 2}
+        CurrentFormID: Default
+        Attributes:
+          Health: 10
+          ActionPoints: 6
+          Movement: 3
+          Attack: 0
+          Armor: 0
+          ArmorPenetration: 0
+          Magic: 0
+          Resistance: 0
+          ResistancePenetration: 0
+          BonusRange: 0
+          Recovery: 4
+          BonusHealing: 0
+          LifeSteal: 0
+          Omnivamprism: 0
+          TimeEffectResistance: 0
+        Abilities: []
+        PermanentPassives: []
+        FeatBoardProgress:
+          NodeProgress:
+          - NodeId: 1af93324228d4cb2bcd6dfcad0451cac
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: 8ab40fa26eef4a2ca25a6512775c0402
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: 402c9d5f4e0c4a6db6003f4f36bb0aa3
+            CompletionCount: 1
+            RequirementProgress: []
+    - rid: 7055333479356563490
+      type: {class: CreatureUnit, ns: , asm: Assembly-CSharp}
+      data:
+        Species: {fileID: 11400000, guid: f5a248bd686323248b57fc2852fb4709, type: 2}
+        CurrentFormID: Default
+        Attributes:
+          Health: 10
+          ActionPoints: 6
+          Movement: 3
+          Attack: 0
+          Armor: 0
+          ArmorPenetration: 0
+          Magic: 0
+          Resistance: 0
+          ResistancePenetration: 0
+          BonusRange: 0
+          Recovery: 4
+          BonusHealing: 0
+          LifeSteal: 0
+          Omnivamprism: 0
+          TimeEffectResistance: 0
+        Abilities: []
+        PermanentPassives: []
+        FeatBoardProgress:
+          NodeProgress:
+          - NodeId: 1af93324228d4cb2bcd6dfcad0451cac
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: df1f2570fcd74327b84c7d13efece65a
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: 10f233495c7a46808a7f80a419374618
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: 05bf2c51397046329e6029b70b79a7a5
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: 8ab40fa26eef4a2ca25a6512775c0402
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: 402c9d5f4e0c4a6db6003f4f36bb0aa3
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: 0f8b128dc6b94fff8832ae2abd097836
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: 2ce09f27a6c745ea930525cfc2499e44
+            CompletionCount: 1
+            RequirementProgress: []
+    - rid: 7055333479356563491
+      type: {class: CreatureUnit, ns: , asm: Assembly-CSharp}
+      data:
+        Species: {fileID: 0}
+        CurrentFormID: 
+        Attributes:
+          Health: 10
+          ActionPoints: 6
+          Movement: 3
+          Attack: 0
+          Armor: 0
+          ArmorPenetration: 0
+          Magic: 0
+          Resistance: 0
+          ResistancePenetration: 0
+          BonusRange: 0
+          Recovery: 4
+          BonusHealing: 0
+          LifeSteal: 0
+          Omnivamprism: 0
+          TimeEffectResistance: 0
+        Abilities: []
+        PermanentPassives: []
+        FeatBoardProgress:
+          NodeProgress: []
+    - rid: 7055333479356563492
+      type: {class: CreatureUnit, ns: , asm: Assembly-CSharp}
+      data:
+        Species: {fileID: 0}
+        CurrentFormID: 
+        Attributes:
+          Health: 10
+          ActionPoints: 6
+          Movement: 3
+          Attack: 0
+          Armor: 0
+          ArmorPenetration: 0
+          Magic: 0
+          Resistance: 0
+          ResistancePenetration: 0
+          BonusRange: 0
+          Recovery: 4
+          BonusHealing: 0
+          LifeSteal: 0
+          Omnivamprism: 0
+          TimeEffectResistance: 0
+        Abilities: []
+        PermanentPassives: []
+        FeatBoardProgress:
+          NodeProgress: []
+    - rid: 7055333479356563493
+      type: {class: CreatureUnit, ns: , asm: Assembly-CSharp}
+      data:
+        Species: {fileID: 0}
+        CurrentFormID: 
+        Attributes:
+          Health: 10
+          ActionPoints: 6
+          Movement: 3
+          Attack: 0
+          Armor: 0
+          ArmorPenetration: 0
+          Magic: 0
+          Resistance: 0
+          ResistancePenetration: 0
+          BonusRange: 0
+          Recovery: 4
+          BonusHealing: 0
+          LifeSteal: 0
+          Omnivamprism: 0
+          TimeEffectResistance: 0
+        Abilities: []
+        PermanentPassives: []
+        FeatBoardProgress:
+          NodeProgress: []
+    - rid: 7055333479356563494
+      type: {class: CreatureUnit, ns: , asm: Assembly-CSharp}
+      data:
+        Species: {fileID: 0}
+        CurrentFormID: 
+        Attributes:
+          Health: 10
+          ActionPoints: 6
+          Movement: 3
+          Attack: 0
+          Armor: 0
+          ArmorPenetration: 0
+          Magic: 0
+          Resistance: 0
+          ResistancePenetration: 0
+          BonusRange: 0
+          Recovery: 4
+          BonusHealing: 0
+          LifeSteal: 0
+          Omnivamprism: 0
+          TimeEffectResistance: 0
+        Abilities: []
+        PermanentPassives: []
+        FeatBoardProgress:
+          NodeProgress: []
 --- !u!1 &738431669
 GameObject:
   m_ObjectHideFlags: 0
@@ -265,6 +523,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
   m_ActionId: 8f42d57d-cd02-436e-a6fe-eb1947803772
+--- !u!114 &752658754
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/OrbitRight
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 83b028ae263243f4d8a60b25888d1fe2, type: 3}
+  m_ActionId: d4e5f6a7-b8c9-0123-def0-234567890123
 --- !u!114 &810826517
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -279,6 +551,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
   m_ActionId: cb3fb5b4-dbf4-4653-bcac-9520fc576d60
+--- !u!114 &955923260
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/OrbitLeft
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 83b028ae263243f4d8a60b25888d1fe2, type: 3}
+  m_ActionId: c3d4e5f6-a7b8-9012-cdef-123456789012
 --- !u!1 &1008231886
 GameObject:
   m_ObjectHideFlags: 0
@@ -587,6 +873,20 @@ Transform:
   - {fileID: 724917473}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1223703576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Pan
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 83b028ae263243f4d8a60b25888d1fe2, type: 3}
+  m_ActionId: b2c3d4e5-f6a7-8901-bcde-f12345678901
 --- !u!1 &1296333416
 GameObject:
   m_ObjectHideFlags: 0
@@ -877,6 +1177,8 @@ Transform:
   m_Children:
   - {fileID: 1008231887}
   - {fileID: 1758203224}
+  - {fileID: 710076648}
+  - {fileID: 255625479}
   m_Father: {fileID: 191534104}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1670222968
@@ -893,6 +1195,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BattleMode
   boardPresenter: {fileID: 1341780662}
   battlePlayerController: {fileID: 1758203225}
+  battleUnitPrefab: {fileID: 7923252372068443988, guid: 1860a6894f0e33240a43db05180e243c, type: 3}
+  playerTeamRoot: {fileID: 710076648}
+  enemyTeamRoot: {fileID: 255625479}
 --- !u!1 &1758203223
 GameObject:
   m_ObjectHideFlags: 0
@@ -941,9 +1246,9 @@ MonoBehaviour:
   cameraLocalOffset: {x: 8, y: 11, z: 8}
   panSpeed: 8
   orbitSpeed: 120
-  panAction: {fileID: 0}
-  orbitLeftAction: {fileID: 0}
-  orbitRightAction: {fileID: 0}
+  panAction: {fileID: 1223703576}
+  orbitLeftAction: {fileID: 955923260}
+  orbitRightAction: {fileID: 752658754}
 --- !u!1 &1930480835
 GameObject:
   m_ObjectHideFlags: 0
