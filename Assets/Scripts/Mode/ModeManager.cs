@@ -91,7 +91,7 @@ public class ModeManager : MonoBehaviour
 		EnterBattleMode(context);
 	}
 
-	private void OnBattleEnded()
+	private void OnBattleEnded(BattleOutcome outcome)
 	{
 		EndBattle();
 	}

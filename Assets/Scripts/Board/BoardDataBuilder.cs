@@ -34,7 +34,6 @@ public static class BoardDataBuilder
 		}
 
 		board.RebuildNavigation();
-		board.AssignPlacementStyle(configuration.UnitPlacementStyle);
 		board.AssignBorderLocalCells(BuildBorder(board, size));
 		return board;
 	}

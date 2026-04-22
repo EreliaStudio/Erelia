@@ -24,14 +24,14 @@ public sealed class MoveAction : BattleAction
 
 public sealed class AbilityAction : BattleAction
 {
-	public AbilityAction(BattleUnit p_sourceUnit, Ability p_ability, IReadOnlyList<BattleObject> p_targets) : base(p_sourceUnit)
+	public AbilityAction(BattleUnit p_sourceUnit, Ability p_ability, IReadOnlyList<Vector3Int> p_targetCells) : base(p_sourceUnit)
 	{
 		Ability = p_ability ?? throw new ArgumentNullException(nameof(p_ability));
-		Targets = p_targets ?? Array.Empty<BattleObject>();
+		TargetCells = p_targetCells ?? Array.Empty<Vector3Int>();
 	}
 
 	public Ability Ability { get; }
-	public IReadOnlyList<BattleObject> Targets { get; }
+	public IReadOnlyList<Vector3Int> TargetCells { get; }
 }
 
 public sealed class EndTurnAction : BattleAction

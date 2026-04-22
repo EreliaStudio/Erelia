@@ -7,6 +7,7 @@ public class BiomeEncounterRule
 {
 	[Range(0f, 1f)] public float BaseChancePerStep = 0.1f;
 	public List<BoardConfiguration> BoardConfigurations = new List<BoardConfiguration>();
+	public PlacementStyle PlacementStyle = PlacementStyle.HalfBoard;
 	public EncounterTable EncounterTable;
 
 	public bool TryPickBoardConfiguration(out BoardConfiguration boardConfiguration, System.Random random = null)

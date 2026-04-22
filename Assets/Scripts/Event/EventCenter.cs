@@ -7,7 +7,7 @@ public static class EventCenter
 	public static event Action<ChunkCoordinates> PlayerChunkChanged;
 	public static event Action<ActorMovementRequest> ActorMoveRequested;
 	public static event Action<BattleContext> BattleStartRequested;
-	public static event Action BattleEnded;
+	public static event Action<BattleOutcome> BattleEnded;
 
 	public static void EmitPlayerMoved(Vector3 worldPosition)
 	{
@@ -29,8 +29,8 @@ public static class EventCenter
 		BattleStartRequested?.Invoke(context);
 	}
 
-	public static void EmitBattleEnded()
+	public static void EmitBattleEnded(BattleOutcome outcome)
 	{
-		BattleEnded?.Invoke();
+		BattleEnded?.Invoke(outcome);
 	}
 }

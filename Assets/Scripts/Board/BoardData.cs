@@ -10,7 +10,6 @@ public sealed class BoardData
 	public BoardRuntimeRegistry Runtime { get; }
 	public Vector3Int WorldAnchor { get; private set; }
 	public IReadOnlyList<Vector3Int> BorderLocalCells { get; private set; } = Array.Empty<Vector3Int>();
-	public BoardConfiguration.PlacementStyle PlacementStyle { get; private set; } = BoardConfiguration.PlacementStyle.HalfBoard;
 
 	public BoardData() : this(new BoardTerrainLayer(), new BoardNavigationLayer(), new BoardRuntimeRegistry())
 	{
@@ -33,11 +32,6 @@ public sealed class BoardData
 	public void AssignBorderLocalCells(IReadOnlyList<Vector3Int> p_borderLocalCells)
 	{
 		BorderLocalCells = p_borderLocalCells ?? Array.Empty<Vector3Int>();
-	}
-
-	public void AssignPlacementStyle(BoardConfiguration.PlacementStyle p_placementStyle)
-	{
-		PlacementStyle = p_placementStyle;
 	}
 
 	public void ClearMask()

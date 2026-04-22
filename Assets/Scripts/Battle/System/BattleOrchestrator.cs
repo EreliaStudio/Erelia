@@ -26,6 +26,7 @@ public sealed class BattleOrchestrator : IDisposable
 	public BattleMode BattleMode { get; private set; }
 	public BattleContext BattleContext { get; private set; }
 	public BattleCoordinator Coordinator { get; private set; }
+	public TurnContext TurnContext => BattleContext?.CurrentTurn;
 
 	public void Initialize(BattleMode battleMode, BattleContext battleContext)
 	{
@@ -69,6 +70,57 @@ public sealed class BattleOrchestrator : IDisposable
 	public void TransitionTo(BattlePhaseType phaseType)
 	{
 		Coordinator.TransitionTo(phaseType);
+	}
+
+	public bool TrySubmitPendingAction(BattleAction action)
+	{
+		if (TurnContext == null || !TurnContext.TrySetPendingAction(action))
+		{
+			return false;
+		}
+
+		TransitionTo(BattlePhaseType.Resolution);
+		return true;
+	}
+
+	public BattleAction ConsumePendingAction()
+	{
+		return TurnContext?.ConsumePendingAction();
+	}
+
+	public bool TryBeginTurn(BattleUnit activeUnit, out BattlePhaseType phaseType)
+	{
+		phaseType = BattlePhaseType.Idle;
+		if (TurnContext == null || activeUnit == null || activeUnit.IsDefeated)
+		{
+			return false;
+		}
+
+		BattleTurnRules.BeginTurn(BattleContext, activeUnit);
+		phaseType = GetTurnPhaseType(activeUnit.Side);
+		return true;
+	}
+
+	public bool TryBeginNextTurn(out BattlePhaseType phaseType)
+	{
+		phaseType = BattlePhaseType.Idle;
+		if (BattleTurnRules.TryFindNextActiveUnit(BattleContext, out BattleUnit activeUnit) &&
+			TryBeginTurn(activeUnit, out phaseType))
+		{
+			return true;
+		}
+
+		return false;
+	}
+
+	public bool CanContinueActiveTurn()
+	{
+		return BattleTurnRules.CanContinueTurn(BattleContext, TurnContext);
+	}
+
+	public BattlePhaseType GetCurrentTurnPhaseType()
+	{
+		return GetTurnPhaseType(TurnContext?.ActiveSide ?? BattleSide.Neutral);
 	}
 
 	public bool TryGetPhase(BattlePhaseType phaseType, out IBattlePhase phase)
@@ -162,6 +214,16 @@ public sealed class BattleOrchestrator : IDisposable
 			BattlePhaseType.Resolution => resolutionPhaseController,
 			BattlePhaseType.End => endPhaseController,
 			_ => null
+		};
+	}
+
+	private static BattlePhaseType GetTurnPhaseType(BattleSide side)
+	{
+		return side switch
+		{
+			BattleSide.Player => BattlePhaseType.PlayerTurn,
+			BattleSide.Enemy => BattlePhaseType.EnemyTurn,
+			_ => BattlePhaseType.Idle
 		};
 	}
 }

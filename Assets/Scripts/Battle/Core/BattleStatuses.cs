@@ -124,6 +124,28 @@ public sealed class BattleStatuses : IReadOnlyList<ObservableValue<BattleStatus>
 		return false;
 	}
 
+	public void AdvanceTurnDurations()
+	{
+		for (int index = Count - 1; index >= 0; index--)
+		{
+			BattleStatus battleStatus = values[index]?.Value;
+			if (battleStatus?.RemainingDuration == null ||
+				battleStatus.RemainingDuration.Type != Duration.Kind.TurnBased)
+			{
+				continue;
+			}
+
+			battleStatus.RemainingDuration.Turns--;
+			if (battleStatus.RemainingDuration.Turns <= 0)
+			{
+				values.RemoveAt(index);
+				continue;
+			}
+
+			values.NotifyItemChangedAt(index);
+		}
+	}
+
 	public IEnumerator<ObservableValue<BattleStatus>> GetEnumerator()
 	{
 		return values.GetEnumerator();

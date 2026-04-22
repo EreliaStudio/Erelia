@@ -11,8 +11,12 @@ public sealed class BattleContext
 
 	public event Action<BattleUnit> UnitRegistered;
 	public event Action<BattleUnit> UnitRemoved;
+	public event Action<BattleUnit> UnitDefeated;
 
 	public BoardData Board { get; }
+	public PlacementStyle PlacementStyle { get; }
+	public BattleStats Stats { get; } = new BattleStats();
+	public TurnContext CurrentTurn { get; } = new();
 	public Vector3 PlayerWorldPosition { get; }
 	public IReadOnlyList<BattleUnit> PlayerUnits => playerUnits;
 	public IReadOnlyList<BattleUnit> EnemyUnits => enemyUnits;
@@ -22,6 +26,7 @@ public sealed class BattleContext
 		IReadOnlyList<CreatureUnit> p_playerTeam,
 		IReadOnlyList<EncounterUnit> p_enemyTeam,
 		BoardData p_board,
+		PlacementStyle p_placementStyle,
 		Vector3 p_playerWorldPosition)
 	{
 		if (p_playerTeam == null)
@@ -35,6 +40,7 @@ public sealed class BattleContext
 		}
 
 		Board = p_board ?? throw new ArgumentNullException(nameof(p_board));
+		PlacementStyle = p_placementStyle;
 		PlayerWorldPosition = p_playerWorldPosition;
 
 		InitializeUnits(p_playerTeam, BattleSide.Player, playerUnits);
@@ -44,6 +50,8 @@ public sealed class BattleContext
 	public void ClearRuntime()
 	{
 		Board.Runtime.Clear();
+		Stats.Reset();
+		CurrentTurn.End();
 
 		for (int index = 0; index < allUnits.Count; index++)
 		{
@@ -98,6 +106,28 @@ public sealed class BattleContext
 
 		p_targetUnit = null;
 		return false;
+	}
+
+	public IReadOnlyList<BattleObject> GetObjectsAt(Vector3Int p_cell)
+	{
+		List<BattleObject> objects = new List<BattleObject>();
+
+		if (Board.TryGetUnitAt(p_cell, out BattleUnit unit) && unit != null)
+		{
+			objects.Add(unit);
+		}
+
+		IReadOnlyList<BattleInteractiveObject> interactiveObjects = Board.Runtime.GetInteractiveObjects(p_cell);
+		for (int index = 0; index < interactiveObjects.Count; index++)
+		{
+			BattleInteractiveObject interactiveObject = interactiveObjects[index];
+			if (interactiveObject != null)
+			{
+				objects.Add(interactiveObject);
+			}
+		}
+
+		return objects;
 	}
 
 	public bool TryPlaceUnit(BattleUnit p_unit, Vector3Int p_cell)
@@ -158,6 +188,23 @@ public sealed class BattleContext
 		Board.Remove(p_unit);
 		p_unit.ClearBoardPosition();
 		UnitRemoved?.Invoke(p_unit);
+	}
+
+	public void DefeatUnit(BattleUnit p_unit)
+	{
+		if (p_unit == null || !p_unit.IsDefeated)
+		{
+			return;
+		}
+
+		if (p_unit.HasBoardPosition)
+		{
+			Board.Remove(p_unit);
+			p_unit.ClearBoardPosition();
+			UnitRemoved?.Invoke(p_unit);
+		}
+
+		UnitDefeated?.Invoke(p_unit);
 	}
 
 	private void InitializeUnits(IReadOnlyList<CreatureUnit> p_sourceUnits, BattleSide p_side, List<BattleUnit> p_targetList)

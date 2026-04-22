@@ -281,4 +281,38 @@ public sealed class BoardRuntimeRegistry
 		RemoveObject(p_object);
 	}
 
+	public void AdvanceObjectDurations()
+	{
+		List<Vector3Int> positions = new List<Vector3Int>(_interactiveObjectsByPosition.Keys);
+		for (int posIndex = 0; posIndex < positions.Count; posIndex++)
+		{
+			Vector3Int position = positions[posIndex];
+			if (!_interactiveObjectsByPosition.TryGetValue(position, out List<BattleInteractiveObject> objects) || objects == null)
+			{
+				continue;
+			}
+
+			for (int objectIndex = objects.Count - 1; objectIndex >= 0; objectIndex--)
+			{
+				BattleInteractiveObject obj = objects[objectIndex];
+				if (obj?.RemainingDuration == null || obj.RemainingDuration.Type != Duration.Kind.TurnBased)
+				{
+					continue;
+				}
+
+				obj.RemainingDuration.Turns--;
+				if (obj.RemainingDuration.Turns <= 0)
+				{
+					objects.RemoveAt(objectIndex);
+					_positionsByObject.Remove(obj);
+				}
+			}
+
+			if (objects.Count == 0)
+			{
+				_interactiveObjectsByPosition.Remove(position);
+			}
+		}
+	}
+
 }

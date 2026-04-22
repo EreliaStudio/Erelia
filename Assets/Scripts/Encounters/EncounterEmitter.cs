@@ -90,6 +90,7 @@ public class EncounterEmitter : MonoBehaviour
 			playerTeam,
 			selectedTeam,
 			boardData,
+			encounterRule.PlacementStyle,
 			worldPosition);
 
 		EventCenter.EmitBattleStartRequested(battleContext);
