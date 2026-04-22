@@ -1,0 +1,70 @@
+@startuml Erelia_Battle_Presentation
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+
+title Battle Architecture - Presentation Layer
+
+abstract class MonoBehaviour
+class GameObject
+class Transform
+class Camera
+class Vector3
+class Vector3Int
+
+class BattleMode
+class BattleContext
+class BattleUnit
+class BoardData
+
+class BoardPresenter {
+  +BoardData : BoardData
+  +Assign(targetBoardData : BoardData)
+  +Rebuild()
+}
+
+class BattlePlayerController {
+  +ActiveCamera : Camera
+  +Bind(boardAnchor : Vector3Int, boardSize : Vector3Int, playerWorldPosition : Vector3)
+  +Unbind()
+}
+
+class BattleUnitView {
+  +SetModel(modelPrefab : GameObject)
+  +ClearModel()
+}
+
+class BattleUnitPresenter {
+  +BattleUnit : BattleUnit
+  +BattleUnitView : BattleUnitView
+  +Bind(battleUnit : BattleUnit, boardData : BoardData)
+  +RefreshVisual()
+}
+
+class BattleUnitManager {
+  +BattleUnitManager(playerTeamRoot : Transform, enemyTeamRoot : Transform, battleUnitPrefab : GameObject, battleContext : BattleContext)
+  +Dispose()
+}
+
+MonoBehaviour <|-- BoardPresenter
+MonoBehaviour <|-- BattlePlayerController
+MonoBehaviour <|-- BattleUnitView
+MonoBehaviour <|-- BattleUnitPresenter
+
+BattleMode *-- BoardPresenter
+BattleMode *-- BattlePlayerController
+BattleMode o-- BattleUnitManager
+
+BattleUnitManager --> BattleContext
+BattleUnitManager --> BattleUnit
+BattleUnitManager --> BattleUnitPresenter
+BattleUnitManager --> Transform
+BattleUnitManager --> GameObject
+
+BattleUnitPresenter *-- BattleUnitView
+BattleUnitPresenter --> BattleUnit
+BattleUnitPresenter --> BoardData
+
+BoardPresenter --> BoardData
+
+@enduml

@@ -1,0 +1,83 @@
+@startuml Erelia_Battle_Overview
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+
+title Battle Architecture - Overview
+
+abstract class MonoBehaviour
+abstract class Mode {
+  +Enter()
+  +Exit()
+}
+
+class BattleMode {
+  +BattleContext : BattleContext
+  +BattleOrchestrator : BattleOrchestrator
+  +CurrentPhaseType : BattlePhaseType?
+  +Enter(context : BattleContext)
+  +TransitionToPhase(phaseType : BattlePhaseType)
+}
+
+class BattleOrchestrator {
+  +BattleMode : BattleMode
+  +BattleContext : BattleContext
+  +Coordinator : BattleCoordinator
+  +Initialize(battleMode : BattleMode, battleContext : BattleContext)
+  +Dispose()
+  +TransitionTo(phaseType : BattlePhaseType)
+  +TrySubmitPendingAction(action : BattleAction) : bool
+  +ConsumePendingAction() : BattleAction
+}
+
+class BattleCoordinator {
+  +CurrentPhaseType : BattlePhaseType
+  +HasActivePhase : bool
+  +TransitionTo(phaseType : BattlePhaseType)
+}
+
+class BattleContext {
+  +Board : BoardData
+  +CurrentTurn : TurnContext
+  +PlayerUnits : IReadOnlyList<BattleUnit>
+  +EnemyUnits : IReadOnlyList<BattleUnit>
+  +AllUnits : IReadOnlyList<BattleUnit>
+}
+
+class TurnContext {
+  +ActiveUnit : BattleUnit
+  +ActiveSide : BattleSide
+  +PendingAction : BattleAction
+  +ResolvedActionCount : int
+}
+
+class BattleUnitManager
+class BoardPresenter
+class BattlePlayerController
+class BoardData
+class BattleUnit
+class BattleAction
+enum BattleSide
+enum BattlePhaseType
+
+Mode <|-- BattleMode
+BattleMode *-- BattleOrchestrator
+BattleMode o-- BattleContext
+BattleMode o-- BattleUnitManager
+BattleMode *-- BoardPresenter
+BattleMode *-- BattlePlayerController
+
+BattleOrchestrator o-- BattleCoordinator
+BattleOrchestrator --> BattleMode
+BattleOrchestrator --> BattleContext
+BattleOrchestrator ..> BattleAction
+BattleCoordinator ..> BattlePhaseType
+
+BattleContext --> BoardData
+BattleContext --> BattleUnit
+BattleContext *-- TurnContext
+TurnContext --> BattleUnit
+TurnContext --> BattleAction
+TurnContext ..> BattleSide
+
+@enduml

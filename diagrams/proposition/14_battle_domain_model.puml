@@ -1,0 +1,190 @@
+@startuml Erelia_Battle_Domain_Model
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+
+title Battle Architecture - Domain Model
+
+class Vector3
+class Vector3Int
+class BoardData
+class CreatureUnit
+class EncounterUnit
+class Ability
+class Attributes
+class Status
+class Duration
+class CreatureForm
+class InteractionObject
+
+class "ObservableValue<T>" as ObservableValueT
+class ObservableResource
+class ObservableFloatResource
+class "ObservableValue<int>" as ObservableValueInt
+class "ObservableValue<float>" as ObservableValueFloat
+class "ObservableValue<BattleStatus>" as ObservableValueBattleStatus
+
+enum BattleSide {
+  Neutral
+  Player
+  Enemy
+}
+
+abstract class BattleObject {
+  +Side : BattleSide
+}
+
+class BattleInteractiveObject {
+  +InteractionObject : InteractionObject
+  +Tags : List<string>
+  +RemainingDuration : Duration
+  +HasAnyTag(tags : HashSet<string>) : bool
+}
+
+class BattleStatus {
+  +Status : Status
+  +Stack : int
+  +RemainingDuration : Duration
+  +IsSourcePassive : bool
+}
+
+class BattleStatuses {
+  +Count : int
+  +Add(status : Status, stackCount : int = 1, duration : Duration = null, isSourcePassive : bool = false)
+  +Remove(status : Status, nbStackToRemove : int = -1, includeSourcePassives : bool = false) : int
+  +Contains(status : Status, includeSourcePassives : bool = true) : bool
+}
+
+class BattleAttributes {
+  +Health : ObservableResource
+  +ActionPoints : ObservableResource
+  +MovementPoints : ObservableResource
+  +TurnBar : ObservableFloatResource
+  +BonusRange : ObservableValue<int>
+  +Attack : ObservableValue<int>
+  +Armor : ObservableValue<int>
+  +ArmorPenetration : ObservableValue<int>
+  +Magic : ObservableValue<int>
+  +Resistance : ObservableValue<int>
+  +ResistancePenetration : ObservableValue<int>
+  +LifeSteal : ObservableValue<float>
+  +Omnivamprism : ObservableValue<float>
+  +Setup(attributes : Attributes)
+}
+
+class BattleUnit {
+  +SourceUnit : CreatureUnit
+  +BattleAttributes : BattleAttributes
+  +Statuses : BattleStatuses
+  +Abilities : IReadOnlyList<Ability>
+  +HasBoardPosition : bool
+  +BoardPosition : Vector3Int
+  +IsDefeated : bool
+  +IsTurnReady : bool
+  +SetBoardPosition(position : Vector3Int)
+  +ClearBoardPosition()
+}
+
+class TurnContext {
+  +ActiveUnit : BattleUnit
+  +ActiveSide : BattleSide
+  +PendingAction : BattleAction
+  +ResolvedActionCount : int
+  +HasActiveUnit : bool
+  +HasPendingAction : bool
+  +Begin(activeUnit : BattleUnit)
+  +TrySetPendingAction(action : BattleAction) : bool
+  +ConsumePendingAction() : BattleAction
+  +End()
+}
+
+class BattleContext {
+  +Board : BoardData
+  +CurrentTurn : TurnContext
+  +PlayerWorldPosition : Vector3
+  +PlayerUnits : IReadOnlyList<BattleUnit>
+  +EnemyUnits : IReadOnlyList<BattleUnit>
+  +AllUnits : IReadOnlyList<BattleUnit>
+  +ClearRuntime()
+  +GetUnits(side : BattleSide) : IEnumerable<BattleUnit>
+  +GetOpponents(unit : BattleUnit) : IEnumerable<BattleUnit>
+  +HasLivingUnits(side : BattleSide) : bool
+  +TryGetFirstLivingOpponent(sourceUnit : BattleUnit, out targetUnit : BattleUnit) : bool
+  +TryPlaceUnit(unit : BattleUnit, cell : Vector3Int) : bool
+  +TryMoveUnit(unit : BattleUnit, cell : Vector3Int) : bool
+  +TrySwapUnits(firstUnit : BattleUnit, secondUnit : BattleUnit) : bool
+  +RemoveUnit(unit : BattleUnit)
+}
+
+abstract class BattleAction {
+  +SourceUnit : BattleUnit
+}
+
+class MoveAction {
+  +Destination : Vector3Int
+}
+
+class AbilityAction {
+  +Ability : Ability
+  +Targets : IReadOnlyList<BattleObject>
+}
+
+class EndTurnAction
+
+BattleObject <|-- BattleUnit
+BattleObject <|-- BattleInteractiveObject
+
+BattleAction <|-- MoveAction
+BattleAction <|-- AbilityAction
+BattleAction <|-- EndTurnAction
+
+EncounterUnit --|> CreatureUnit
+
+BattleObject --> BattleSide
+BattleInteractiveObject --> InteractionObject
+BattleInteractiveObject --> Duration
+
+BattleStatus --> Status
+BattleStatus --> Duration
+BattleStatuses *-- BattleStatus
+BattleStatuses ..> ObservableValueBattleStatus
+
+BattleAttributes *-- ObservableResource : Health
+BattleAttributes *-- ObservableResource : ActionPoints
+BattleAttributes *-- ObservableResource : MovementPoints
+BattleAttributes *-- ObservableFloatResource : TurnBar
+BattleAttributes ..> ObservableValueInt
+BattleAttributes ..> ObservableValueFloat
+BattleAttributes --> Attributes
+
+BattleUnit *-- BattleAttributes
+BattleUnit *-- BattleStatuses
+BattleUnit --> CreatureUnit
+BattleUnit ..> Ability
+BattleUnit ..> CreatureForm
+
+BattleContext --> BoardData
+BattleContext *-- TurnContext
+BattleContext *-- BattleUnit : playerUnits
+BattleContext *-- BattleUnit : enemyUnits
+BattleContext *-- BattleUnit : allUnits
+BattleContext ..> CreatureUnit
+BattleContext ..> EncounterUnit
+
+TurnContext --> BattleUnit : activeUnit
+TurnContext --> BattleAction : pendingAction
+TurnContext ..> BattleSide
+
+MoveAction --> BattleUnit
+AbilityAction --> BattleUnit
+AbilityAction --> Ability
+AbilityAction --> BattleObject
+EndTurnAction --> BattleUnit
+
+ObservableResource ..> ObservableValueT
+ObservableFloatResource ..> ObservableValueT
+ObservableValueInt ..> ObservableValueT
+ObservableValueFloat ..> ObservableValueT
+ObservableValueBattleStatus ..> ObservableValueT
+
+@enduml

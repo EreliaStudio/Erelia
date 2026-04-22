@@ -1,0 +1,118 @@
+@startuml Erelia_Battle_Phase_System
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+
+title Battle Architecture - Phase System
+
+abstract class MonoBehaviour
+
+class BattleMode
+class BattleContext
+class TurnContext
+class BattleAction
+
+enum BattlePhaseType {
+  Setup
+  Placement
+  Idle
+  PlayerTurn
+  EnemyTurn
+  Resolution
+  End
+}
+
+interface IBattlePhase {
+  +PhaseType : BattlePhaseType
+  +Bind(orchestrator : BattleOrchestrator)
+  +Enter()
+  +Exit()
+}
+
+abstract class BattlePhase {
+  #Orchestrator : BattleOrchestrator
+  #BattleMode : BattleMode
+  #BattleContext : BattleContext
+  #TurnContext : TurnContext
+  #Coordinator : BattleCoordinator
+  +PhaseType : BattlePhaseType
+  +Bind(orchestrator : BattleOrchestrator)
+  +Enter()
+  +Exit()
+  #OnBind()
+}
+
+abstract class BattlePhaseController {
+  #Orchestrator : BattleOrchestrator
+  #BattleMode : BattleMode
+  #BattleContext : BattleContext
+  #TurnContext : TurnContext
+  #Coordinator : BattleCoordinator
+  +PhaseType : BattlePhaseType
+  +Bind(orchestrator : BattleOrchestrator)
+  +SetActive(isActive : bool)
+  #OnBind()
+}
+
+class BattleCoordinator {
+  +CurrentPhaseType : BattlePhaseType
+  +HasActivePhase : bool
+  +TransitionTo(phaseType : BattlePhaseType)
+}
+
+class BattleOrchestrator {
+  +BattleMode : BattleMode
+  +BattleContext : BattleContext
+  +Coordinator : BattleCoordinator
+  +Initialize(battleMode : BattleMode, battleContext : BattleContext)
+  +Dispose()
+  +TransitionTo(phaseType : BattlePhaseType)
+  +TrySubmitPendingAction(action : BattleAction) : bool
+  +ConsumePendingAction() : BattleAction
+  +TryGetPhase(phaseType : BattlePhaseType, out phase : IBattlePhase) : bool
+  +TryGetController(phaseType : BattlePhaseType, out controller : BattlePhaseController) : bool
+}
+
+class ConcretePhase
+class ConcretePhaseController
+
+IBattlePhase <|.. BattlePhase
+BattlePhase <|-- ConcretePhase
+
+MonoBehaviour <|-- BattlePhaseController
+BattlePhaseController <|-- ConcretePhaseController
+
+BattleOrchestrator o-- BattleCoordinator
+BattleOrchestrator --> BattleContext
+BattleOrchestrator ..> BattleAction
+BattleOrchestrator o-- IBattlePhase : activePhase
+BattleOrchestrator o-- BattlePhaseController : activeController
+
+BattleOrchestrator *-- ConcretePhase : phase instances
+BattleOrchestrator o-- ConcretePhaseController : controller instances
+
+BattlePhase --> BattleOrchestrator
+BattlePhase --> BattleMode
+BattlePhase --> BattleContext
+BattlePhase --> TurnContext
+BattlePhase --> BattleCoordinator
+
+BattlePhaseController --> BattleOrchestrator
+BattlePhaseController --> BattleMode
+BattlePhaseController --> BattleContext
+BattlePhaseController --> TurnContext
+BattlePhaseController --> BattleCoordinator
+
+BattleContext *-- TurnContext
+
+ConcretePhase ..> BattlePhaseType
+ConcretePhaseController ..> BattlePhaseType
+
+note bottom of BattleOrchestrator
+Turn phases submit one pending action at a time.
+ResolutionPhase consumes it from TurnContext,
+resolves it, clears it, then returns to the
+next desired phase.
+end note
+
+@enduml
