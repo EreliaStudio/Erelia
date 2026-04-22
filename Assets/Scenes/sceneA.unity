@@ -227,20 +227,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1670222967}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &680902889
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: Player/Cancel
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
-  m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
-  m_ActionId: 4f1750bd-c5bb-49fe-aa32-b4560f593e64
 --- !u!1 &710076647
 GameObject:
   m_ObjectHideFlags: 0
@@ -323,12 +309,12 @@ MonoBehaviour:
       movementSpeed: 4
       worldCell: {x: 0, y: 0, z: 0}
       team:
-      - rid: 7055333479356563489
-      - rid: 7055333479356563490
-      - rid: 7055333479356563491
-      - rid: 7055333479356563492
-      - rid: 7055333479356563493
-      - rid: 7055333479356563494
+      - rid: 7055333531646951486
+      - rid: 7055333531646951487
+      - rid: 7055333531646951488
+      - rid: 7055333531646951489
+      - rid: 7055333531646951490
+      - rid: 7055333531646951491
     respawnPoint: {x: 0, y: 0, z: 0}
   bootstrapMode: 0
   bootstrapOnStart: 1
@@ -336,10 +322,56 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 7055333479356563489
-      type: {class: CreatureUnit, ns: , asm: Assembly-CSharp}
+    - rid: 7055333531646951486
+      type: {class: CreatureUnit, ns: , asm: Erelia.Runtime}
       data:
-        Species: {fileID: 11400000, guid: f5a248bd686323248b57fc2852fb4709, type: 2}
+        Species: {fileID: 11400000, guid: 7b1c734936928f643bb8669259644588, type: 2}
+        CurrentFormID: DPS
+        Attributes:
+          Health: 10
+          ActionPoints: 6
+          Movement: 3
+          Attack: 0
+          Armor: 0
+          ArmorPenetration: 0
+          Magic: 0
+          Resistance: 0
+          ResistancePenetration: 0
+          BonusRange: 0
+          Recovery: 4
+          BonusHealing: 0
+          LifeSteal: 0
+          Omnivamprism: 0
+          TimeEffectResistance: 0
+        Abilities: []
+        PermanentPassives: []
+        FeatBoardProgress:
+          NodeProgress:
+          - NodeId: f52d7aba9d2e4684b801ff1f5c80d7a0
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: fbbb59aa5d9546cf9be1ec8ebe92dd8f
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: c69dd5f5a934458499bb830bfbff6015
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: 1bce35fc5a8a490eacb2eb7458b50a03
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: dffd36e3cf144bc5a3961517575674f5
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: 008d92789b994496bac6b11b8d2f7818
+            CompletionCount: 1
+            RequirementProgress: []
+          - NodeId: 0adb5cac9f7540c7b493ecc022a265e5
+            CompletionCount: 1
+            RequirementProgress: []
+    - rid: 7055333531646951487
+      type: {class: CreatureUnit, ns: , asm: Erelia.Runtime}
+      data:
+        Species: {fileID: 11400000, guid: 7b1c734936928f643bb8669259644588, type: 2}
         CurrentFormID: Default
         Attributes:
           Health: 10
@@ -361,19 +393,19 @@ MonoBehaviour:
         PermanentPassives: []
         FeatBoardProgress:
           NodeProgress:
-          - NodeId: 1af93324228d4cb2bcd6dfcad0451cac
+          - NodeId: f52d7aba9d2e4684b801ff1f5c80d7a0
             CompletionCount: 1
             RequirementProgress: []
-          - NodeId: 8ab40fa26eef4a2ca25a6512775c0402
+          - NodeId: fbbb59aa5d9546cf9be1ec8ebe92dd8f
             CompletionCount: 1
             RequirementProgress: []
-          - NodeId: 402c9d5f4e0c4a6db6003f4f36bb0aa3
+          - NodeId: c69dd5f5a934458499bb830bfbff6015
             CompletionCount: 1
             RequirementProgress: []
-    - rid: 7055333479356563490
-      type: {class: CreatureUnit, ns: , asm: Assembly-CSharp}
+    - rid: 7055333531646951488
+      type: {class: CreatureUnit, ns: , asm: Erelia.Runtime}
       data:
-        Species: {fileID: 11400000, guid: f5a248bd686323248b57fc2852fb4709, type: 2}
+        Species: {fileID: 11400000, guid: 7b1c734936928f643bb8669259644588, type: 2}
         CurrentFormID: Default
         Attributes:
           Health: 10
@@ -395,32 +427,20 @@ MonoBehaviour:
         PermanentPassives: []
         FeatBoardProgress:
           NodeProgress:
-          - NodeId: 1af93324228d4cb2bcd6dfcad0451cac
+          - NodeId: f52d7aba9d2e4684b801ff1f5c80d7a0
             CompletionCount: 1
             RequirementProgress: []
-          - NodeId: df1f2570fcd74327b84c7d13efece65a
+          - NodeId: 1bce35fc5a8a490eacb2eb7458b50a03
             CompletionCount: 1
             RequirementProgress: []
-          - NodeId: 10f233495c7a46808a7f80a419374618
+          - NodeId: fbbb59aa5d9546cf9be1ec8ebe92dd8f
             CompletionCount: 1
             RequirementProgress: []
-          - NodeId: 05bf2c51397046329e6029b70b79a7a5
+          - NodeId: dffd36e3cf144bc5a3961517575674f5
             CompletionCount: 1
             RequirementProgress: []
-          - NodeId: 8ab40fa26eef4a2ca25a6512775c0402
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 402c9d5f4e0c4a6db6003f4f36bb0aa3
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 0f8b128dc6b94fff8832ae2abd097836
-            CompletionCount: 1
-            RequirementProgress: []
-          - NodeId: 2ce09f27a6c745ea930525cfc2499e44
-            CompletionCount: 1
-            RequirementProgress: []
-    - rid: 7055333479356563491
-      type: {class: CreatureUnit, ns: , asm: Assembly-CSharp}
+    - rid: 7055333531646951489
+      type: {class: CreatureUnit, ns: , asm: Erelia.Runtime}
       data:
         Species: {fileID: 0}
         CurrentFormID: 
@@ -444,8 +464,8 @@ MonoBehaviour:
         PermanentPassives: []
         FeatBoardProgress:
           NodeProgress: []
-    - rid: 7055333479356563492
-      type: {class: CreatureUnit, ns: , asm: Assembly-CSharp}
+    - rid: 7055333531646951490
+      type: {class: CreatureUnit, ns: , asm: Erelia.Runtime}
       data:
         Species: {fileID: 0}
         CurrentFormID: 
@@ -469,33 +489,8 @@ MonoBehaviour:
         PermanentPassives: []
         FeatBoardProgress:
           NodeProgress: []
-    - rid: 7055333479356563493
-      type: {class: CreatureUnit, ns: , asm: Assembly-CSharp}
-      data:
-        Species: {fileID: 0}
-        CurrentFormID: 
-        Attributes:
-          Health: 10
-          ActionPoints: 6
-          Movement: 3
-          Attack: 0
-          Armor: 0
-          ArmorPenetration: 0
-          Magic: 0
-          Resistance: 0
-          ResistancePenetration: 0
-          BonusRange: 0
-          Recovery: 4
-          BonusHealing: 0
-          LifeSteal: 0
-          Omnivamprism: 0
-          TimeEffectResistance: 0
-        Abilities: []
-        PermanentPassives: []
-        FeatBoardProgress:
-          NodeProgress: []
-    - rid: 7055333479356563494
-      type: {class: CreatureUnit, ns: , asm: Assembly-CSharp}
+    - rid: 7055333531646951491
+      type: {class: CreatureUnit, ns: , asm: Erelia.Runtime}
       data:
         Species: {fileID: 0}
         CurrentFormID: 
@@ -553,35 +548,7 @@ Transform:
   - {fileID: 1122334823}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &740380961
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: Player/OrbitLeft
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
-  m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
-  m_ActionId: 8f42d57d-cd02-436e-a6fe-eb1947803772
---- !u!114 &752658754
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: Player/OrbitRight
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
-  m_Asset: {fileID: -944628639613478452, guid: 83b028ae263243f4d8a60b25888d1fe2, type: 3}
-  m_ActionId: d4e5f6a7-b8c9-0123-def0-234567890123
---- !u!114 &810826517
+--- !u!114 &914499221
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -595,7 +562,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
   m_ActionId: cb3fb5b4-dbf4-4653-bcac-9520fc576d60
---- !u!114 &955923260
+--- !u!114 &926205100
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -972,6 +939,20 @@ MonoBehaviour:
   detectionHeightInCells: 3
   encounterResolver:
     seed: 0
+--- !u!114 &1131221240
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/OrbitRight
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 83b028ae263243f4d8a60b25888d1fe2, type: 3}
+  m_ActionId: d4e5f6a7-b8c9-0123-def0-234567890123
 --- !u!1 &1162672411
 GameObject:
   m_ObjectHideFlags: 0
@@ -1005,20 +986,6 @@ Transform:
   - {fileID: 724917473}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1223703576
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: Player/Pan
-  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
-  m_Asset: {fileID: -944628639613478452, guid: 83b028ae263243f4d8a60b25888d1fe2, type: 3}
-  m_ActionId: b2c3d4e5-f6a7-8901-bcde-f12345678901
 --- !u!1 &1296333416
 GameObject:
   m_ObjectHideFlags: 0
@@ -1261,7 +1228,7 @@ MonoBehaviour:
   overlayView: {fileID: 1310856755}
   voxelRegistry: {fileID: 11400000, guid: 7f2876a8319b8c3458bd5e3d6675e04e, type: 2}
   voxelMaskRegistry: {fileID: 11400000, guid: d1eb0bdd11887f846b9d99abb6e62378, type: 2}
---- !u!114 &1369644855
+--- !u!114 &1487575369
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1271,10 +1238,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
-  m_Name: Player/Validate
+  m_Name: Player/Pan
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
-  m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
-  m_ActionId: c92b74c7-dab6-4c37-9fe9-180179efba2d
+  m_Asset: {fileID: -944628639613478452, guid: 83b028ae263243f4d8a60b25888d1fe2, type: 3}
+  m_ActionId: b2c3d4e5-f6a7-8901-bcde-f12345678901
 --- !u!1 &1589046161
 GameObject:
   m_ObjectHideFlags: 0
@@ -1321,6 +1288,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1162672412}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1596041818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Validate
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
+  m_ActionId: c92b74c7-dab6-4c37-9fe9-180179efba2d
 --- !u!1 &1670222966
 GameObject:
   m_ObjectHideFlags: 0
@@ -1481,9 +1462,9 @@ MonoBehaviour:
   cameraLocalOffset: {x: 8, y: 11, z: 8}
   panSpeed: 8
   orbitSpeed: 120
-  panAction: {fileID: 1223703576}
-  orbitLeftAction: {fileID: 955923260}
-  orbitRightAction: {fileID: 752658754}
+  panAction: {fileID: 1487575369}
+  orbitLeftAction: {fileID: 926205100}
+  orbitRightAction: {fileID: 1131221240}
 --- !u!1 &1793378231
 GameObject:
   m_ObjectHideFlags: 0
@@ -1605,12 +1586,40 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   worldPresenter: {fileID: 1034705929}
-  validateAction: {fileID: 1369644855}
-  cancelAction: {fileID: 680902889}
-  orbitLeftAction: {fileID: 740380961}
-  orbitRightAction: {fileID: 810826517}
+  validateAction: {fileID: 1596041818}
+  cancelAction: {fileID: 2071272210}
+  orbitLeftAction: {fileID: 2122409241}
+  orbitRightAction: {fileID: 914499221}
   selectionMaxDistance: 128
   selectionStepDistance: 0.1
+--- !u!114 &2071272210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/Cancel
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
+  m_ActionId: 4f1750bd-c5bb-49fe-aa32-b4560f593e64
+--- !u!114 &2122409241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc1515ab76e54f068e2f2207940fab32, type: 3}
+  m_Name: Player/OrbitLeft
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
+  m_Asset: {fileID: -944628639613478452, guid: 35e81605e6285914a807f98cf838f284, type: 3}
+  m_ActionId: 8f42d57d-cd02-436e-a6fe-eb1947803772
 --- !u!1 &2134771804
 GameObject:
   m_ObjectHideFlags: 0

@@ -53,6 +53,7 @@
     <Compile Include="Assets\Scripts\Biomes\Editor\BiomeDefinitionEditor.cs" />
     <Compile Include="Assets\Scripts\Editor\Utils\CreatureTeamEditorGui.cs" />
     <Compile Include="Assets\Scripts\Feats\Editor\FeatBoardEditorWindow.Model.cs" />
+    <Compile Include="Assets\Scripts\Editor\BattleBackendTestRunnerWindow.cs" />
     <Compile Include="Assets\Scripts\Editor\Utils\ManagedReferenceTypePicker.cs" />
     <Compile Include="Assets\Scripts\Voxel\Editor\VoxelDefinitionEditor.cs" />
     <Compile Include="Assets\Scripts\Player\Editor\PlayerTeamEditorWindow.cs" />

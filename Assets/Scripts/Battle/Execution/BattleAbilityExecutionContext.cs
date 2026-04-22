@@ -4,12 +4,12 @@ using UnityEngine;
 [Serializable]
 public sealed class BattleAbilityExecutionContext
 {
-	public BattleContext BattleContext { get; init; }
-	public Ability Ability { get; init; }
-	public BattleObject SourceObject { get; init; }
-	public BattleObject TargetObject { get; init; }
-	public Vector3Int AnchorCell { get; init; }
-	public Vector3Int AffectedCell { get; init; }
+	public BattleContext BattleContext { get; set; }
+ 	public Ability Ability { get; set; }
+	public BattleObject SourceObject { get; set; }
+	public BattleObject TargetObject { get; set; }
+	public Vector3Int AnchorCell { get; set; }
+	public Vector3Int AffectedCell { get; set; }
 
 	public BattleUnit SourceUnit => SourceObject as BattleUnit;
 	public BattleUnit TargetUnit => TargetObject as BattleUnit;

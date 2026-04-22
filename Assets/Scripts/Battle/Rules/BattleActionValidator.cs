@@ -345,29 +345,45 @@ public static class BattleActionValidator
 				continue;
 			}
 
-			TryVisitNeighbour(node.PositiveX, current, currentCost + 1);
-			TryVisitNeighbour(node.NegativeX, current, currentCost + 1);
-			TryVisitNeighbour(node.PositiveZ, current, currentCost + 1);
-			TryVisitNeighbour(node.NegativeZ, current, currentCost + 1);
+			TryVisitNeighbour(battleContext, activeUnit, frontier, costs, predecessors, node.PositiveX, current, currentCost + 1, maxCost);
+			TryVisitNeighbour(battleContext, activeUnit, frontier, costs, predecessors, node.NegativeX, current, currentCost + 1, maxCost);
+			TryVisitNeighbour(battleContext, activeUnit, frontier, costs, predecessors, node.PositiveZ, current, currentCost + 1, maxCost);
+			TryVisitNeighbour(battleContext, activeUnit, frontier, costs, predecessors, node.NegativeZ, current, currentCost + 1, maxCost);
 		}
+	}
 
-		void TryVisitNeighbour(VoxelTraversalGraph.Node neighbour, Vector3Int from, int nextCost)
+	private static void TryVisitNeighbour(
+		BattleContext battleContext,
+		BattleUnit activeUnit,
+		Queue<Vector3Int> frontier,
+		Dictionary<Vector3Int, int> costs,
+		Dictionary<Vector3Int, Vector3Int?> predecessors,
+		VoxelTraversalGraph.Node neighbour,
+		Vector3Int from,
+		int nextCost,
+		int maxCost)
+	{
+		if (battleContext == null ||
+			activeUnit == null ||
+			frontier == null ||
+			costs == null ||
+			predecessors == null ||
+			neighbour == null ||
+			nextCost > maxCost ||
+			costs.ContainsKey(neighbour.Position))
 		{
-			if (neighbour == null || nextCost > maxCost || costs.ContainsKey(neighbour.Position))
-			{
-				return;
-			}
-
-			if (battleContext.Board.HasUnitAt(neighbour.Position) &&
-				(!battleContext.Board.TryGetUnitAt(neighbour.Position, out BattleUnit occupyingUnit) || occupyingUnit != activeUnit))
-			{
-				return;
-			}
-
-			costs[neighbour.Position] = nextCost;
-			predecessors[neighbour.Position] = from;
-			frontier.Enqueue(neighbour.Position);
+			return;
 		}
+
+		if (battleContext.Board.HasUnitAt(neighbour.Position) &&
+			(!battleContext.Board.TryGetUnitAt(neighbour.Position, out BattleUnit occupyingUnit) || occupyingUnit != activeUnit))
+		{
+			return;
+		}
+
+		costs[neighbour.Position] = nextCost;
+		predecessors[neighbour.Position] = from;
+		frontier.Enqueue(neighbour.Position);
 	}
 
 	private static bool IsCellInAbilityRange(BattleUnit source, Vector3Int cell, Ability ability)

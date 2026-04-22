@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 
-internal static class ManagedReferenceTypePicker
+public static class ManagedReferenceTypePicker
 {
 	private static readonly Dictionary<Type, Type[]> ConcreteTypesCache = new Dictionary<Type, Type[]>();
 

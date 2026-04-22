@@ -30,7 +30,7 @@ public static class CreatureTeamEditorGui
 		Rect labelRect = new Rect(iconRect.xMax + padding, rect.y + padding, rect.xMax - iconRect.xMax - padding * 2f, rect.height - padding * 2f);
 
 		DrawUnitIcon(iconRect, unit);
-		GUI.Label(labelRect, EncounterEditorUtility.GetUnitDisplayName(unit), GetTabLabelStyle());
+		GUI.Label(labelRect, GetUnitDisplayName(unit), GetTabLabelStyle());
 
 		if (GUI.Button(rect, GUIContent.none, GUIStyle.none))
 		{
@@ -70,7 +70,7 @@ public static class CreatureTeamEditorGui
 
 		GUILayout.BeginVertical();
 		EditorGUILayout.LabelField($"Slot {unitIndex + 1}", EditorStyles.miniLabel);
-		EditorGUILayout.LabelField(EncounterEditorUtility.GetUnitDisplayName(unit), EditorStyles.boldLabel);
+		EditorGUILayout.LabelField(GetUnitDisplayName(unit), EditorStyles.boldLabel);
 		EditorGUILayout.LabelField("Current Form", string.IsNullOrEmpty(unit?.CurrentFormID) ? "None" : unit.CurrentFormID);
 		GUILayout.EndVertical();
 
@@ -193,6 +193,28 @@ public static class CreatureTeamEditorGui
 			wordWrap = true,
 			clipping = TextClipping.Clip
 		};
+	}
+
+	private static string GetUnitDisplayName(CreatureUnit unit)
+	{
+		if (unit == null || unit.Species == null)
+		{
+			return "-----";
+		}
+
+		try
+		{
+			CreatureForm form = unit.GetForm();
+			if (form != null && !string.IsNullOrWhiteSpace(form.DisplayName))
+			{
+				return form.DisplayName;
+			}
+		}
+		catch
+		{
+		}
+
+		return unit.Species.name;
 	}
 }
 #endif

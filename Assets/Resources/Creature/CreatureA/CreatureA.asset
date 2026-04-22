@@ -1,0 +1,162 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aae4753f3181e5f42a13212490c4ea7b, type: 3}
+  m_Name: CreatureA
+  m_EditorClassIdentifier: Erelia.Runtime::CreatureSpecies
+  Attributes:
+    Health: 10
+    ActionPoints: 6
+    Movement: 3
+    Attack: 0
+    Armor: 0
+    ArmorPenetration: 0
+    Magic: 0
+    Resistance: 0
+    ResistancePenetration: 0
+    BonusRange: 0
+    Recovery: 4
+    BonusHealing: 0
+    LifeSteal: 0
+    Omnivamprism: 0
+    TimeEffectResistance: 0
+  FeatBoard:
+    Nodes:
+    - rid: 7055333531646951492
+    - rid: 7055333531646951493
+    - rid: 7055333531646951494
+    - rid: 7055333531646951495
+    - rid: 7055333531646951496
+    - rid: 7055333531646951497
+    - rid: 7055333531646951498
+    RootNodeId: f52d7aba9d2e4684b801ff1f5c80d7a0
+  Forms:
+    _serializedList:
+    - Key: Default
+      Value:
+        DisplayName: Default
+        Tier: 0
+        Avatar: {fileID: -1903576479, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        ModelPrefab: {fileID: 1320495866081010126, guid: be2315bfb84c2dd4db67065342c361a5, type: 3}
+    - Key: DPS
+      Value:
+        DisplayName: DPS
+        Tier: 1
+        Avatar: {fileID: -2094776005, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        ModelPrefab: {fileID: 8524976429635346462, guid: 6b5f61f436283de4da211c878ea0935f, type: 3}
+  references:
+    version: 2
+    RefIds:
+    - rid: 7055333531646951492
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: f52d7aba9d2e4684b801ff1f5c80d7a0
+        DisplayName: New Feat
+        Position: {x: 9, y: 4}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - c69dd5f5a934458499bb830bfbff6015
+        - fbbb59aa5d9546cf9be1ec8ebe92dd8f
+        - 1bce35fc5a8a490eacb2eb7458b50a03
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333531646951493
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: fbbb59aa5d9546cf9be1ec8ebe92dd8f
+        DisplayName: New Feat
+        Position: {x: 3, y: -1}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - f52d7aba9d2e4684b801ff1f5c80d7a0
+        - 0adb5cac9f7540c7b493ecc022a265e5
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333531646951494
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: c69dd5f5a934458499bb830bfbff6015
+        DisplayName: New Feat
+        Position: {x: 9, y: -1}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - f52d7aba9d2e4684b801ff1f5c80d7a0
+        - 008d92789b994496bac6b11b8d2f7818
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333531646951495
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 1bce35fc5a8a490eacb2eb7458b50a03
+        DisplayName: New Feat
+        Position: {x: 15, y: -1}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - f52d7aba9d2e4684b801ff1f5c80d7a0
+        - dffd36e3cf144bc5a3961517575674f5
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333531646951496
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 008d92789b994496bac6b11b8d2f7818
+        DisplayName: New Feat
+        Position: {x: 9, y: -11}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - c69dd5f5a934458499bb830bfbff6015
+        - 0adb5cac9f7540c7b493ecc022a265e5
+        - dffd36e3cf144bc5a3961517575674f5
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards:
+        - rid: 7055333531646951499
+    - rid: 7055333531646951497
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 0adb5cac9f7540c7b493ecc022a265e5
+        DisplayName: New Feat
+        Position: {x: 3, y: -6}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - fbbb59aa5d9546cf9be1ec8ebe92dd8f
+        - 008d92789b994496bac6b11b8d2f7818
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333531646951498
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: dffd36e3cf144bc5a3961517575674f5
+        DisplayName: New Feat
+        Position: {x: 15, y: -6}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 1bce35fc5a8a490eacb2eb7458b50a03
+        - 008d92789b994496bac6b11b8d2f7818
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards: []
+    - rid: 7055333531646951499
+      type: {class: ChangeFormReward, ns: , asm: Erelia.Runtime}
+      data:
+        FormKey: DPS

@@ -18,12 +18,12 @@ MonoBehaviour:
     - encounterTrigger
     - default
   shape:
-    rid: 7055333324432343044
+    rid: 7055333531646951465
   references:
     version: 2
     RefIds:
-    - rid: 7055333324432343044
-      type: {class: VoxelCrossPlaneShape, ns: , asm: Assembly-CSharp}
+    - rid: 7055333531646951465
+      type: {class: VoxelCrossPlaneShape, ns: , asm: Erelia.Runtime}
       data:
         render:
           InnerFaces:

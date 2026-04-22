@@ -1,0 +1,20 @@
+{
+    "name": "Erelia.Creatures.Editor",
+    "references": [
+        "Erelia.Runtime",
+        "Erelia.Feats.Editor",
+        "AYellowpaper.SerializedCollections",
+        "AYellowpaper.SerializedCollections.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

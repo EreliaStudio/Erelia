@@ -14,13 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VoxelDefinition
   data:
     Traversal: 0
+    Tags: []
   shape:
-    rid: 7055333324432343048
+    rid: 7055333531646951473
   references:
     version: 2
     RefIds:
-    - rid: 7055333324432343048
-      type: {class: VoxelStairShape, ns: , asm: Assembly-CSharp}
+    - rid: 7055333531646951473
+      type: {class: VoxelStairShape, ns: , asm: Erelia.Runtime}
       data:
         render:
           InnerFaces:
@@ -241,23 +242,23 @@ MonoBehaviour:
           - Polygons:
             - Vertices:
               - Position: {x: 0, y: 1.01, z: 0.5}
-                UV: {x: 0, y: 1}
+                UV: {x: 0, y: 0.6666667}
               - Position: {x: 1, y: 1.01, z: 0.5}
-                UV: {x: 1, y: 1}
+                UV: {x: 1, y: 0.6666667}
               - Position: {x: 1, y: 1.01, z: 1}
                 UV: {x: 1, y: 1}
               - Position: {x: 0, y: 1.01, z: 1}
                 UV: {x: 0, y: 1}
           - Polygons:
             - Vertices:
-              - Position: {x: 0, y: 0.51, z: 0.5}
-                UV: {x: 0, y: 0.5}
-              - Position: {x: 1, y: 0.51, z: 0.5}
-                UV: {x: 1, y: 0.5}
-              - Position: {x: 1, y: 1.01, z: 0.5}
-                UV: {x: 1, y: 1}
-              - Position: {x: 0, y: 1.01, z: 0.5}
-                UV: {x: 0, y: 1}
+              - Position: {x: 0, y: 0.51, z: 0.49}
+                UV: {x: 0, y: 0.33333334}
+              - Position: {x: 1, y: 0.51, z: 0.49}
+                UV: {x: 1, y: 0.33333334}
+              - Position: {x: 1, y: 1.01, z: 0.49}
+                UV: {x: 1, y: 0.6666667}
+              - Position: {x: 0, y: 1.01, z: 0.49}
+                UV: {x: 0, y: 0.6666667}
           - Polygons:
             - Vertices:
               - Position: {x: 0, y: 0.51, z: 0}
@@ -265,9 +266,9 @@ MonoBehaviour:
               - Position: {x: 1, y: 0.51, z: 0}
                 UV: {x: 1, y: 0}
               - Position: {x: 1, y: 0.51, z: 0.5}
-                UV: {x: 1, y: 0.5}
+                UV: {x: 1, y: 0.33333334}
               - Position: {x: 0, y: 0.51, z: 0.5}
-                UV: {x: 0, y: 0.5}
+                UV: {x: 0, y: 0.33333334}
           NegativeYFaces:
           - Polygons:
             - Vertices:

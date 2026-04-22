@@ -37,6 +37,7 @@ public static class BattleStatusRules
 				continue;
 			}
 
+			bool anchorSet = false;
 			Vector3Int anchorCell = default;
 			Vector3Int affectedCell = default;
 			if (battleContext?.Board?.Runtime != null)
@@ -44,12 +45,13 @@ public static class BattleStatusRules
 				if (caster != null && battleContext.Board.Runtime.TryGetPosition(caster, out Vector3Int casterPosition))
 				{
 					anchorCell = casterPosition;
+					anchorSet = true;
 				}
 
 				if (battleContext.Board.Runtime.TryGetPosition(unit, out Vector3Int unitPosition))
 				{
 					affectedCell = unitPosition;
-					if (anchorCell == default)
+					if (!anchorSet)
 					{
 						anchorCell = unitPosition;
 					}

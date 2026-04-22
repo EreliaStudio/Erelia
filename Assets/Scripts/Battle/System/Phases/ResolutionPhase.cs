@@ -11,7 +11,13 @@ public sealed class ResolutionPhase : BattlePhase
 			return;
 		}
 
-		BattleActionResolver.Resolve(BattleContext, TurnContext, action);
+		bool resolved = BattleActionResolver.Resolve(BattleContext, TurnContext, action);
+		if (!resolved)
+		{
+			Coordinator.TransitionTo(Orchestrator.GetCurrentTurnPhaseType());
+			return;
+		}
+
 		TransitionAfterResolution(action);
 	}
 

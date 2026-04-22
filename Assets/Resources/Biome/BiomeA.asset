@@ -20,13 +20,13 @@ MonoBehaviour:
         BoardConfigurations:
         - size: {x: 9, y: 9}
           shape: 0
-          placementStyle: 0
+        PlacementStyle: 0
         EncounterTable:
           NoBadge:
             WeightedTeams:
-            - DisplayName: BaseForm
+            - DisplayName: Default
               Team:
-              - Species: {fileID: 11400000, guid: f5a248bd686323248b57fc2852fb4709, type: 2}
+              - Species: {fileID: 11400000, guid: 7b1c734936928f643bb8669259644588, type: 2}
                 CurrentFormID: DPS
                 Attributes:
                   Health: 10
@@ -48,27 +48,21 @@ MonoBehaviour:
                 PermanentPassives: []
                 FeatBoardProgress:
                   NodeProgress:
-                  - NodeId: 1af93324228d4cb2bcd6dfcad0451cac
+                  - NodeId: f52d7aba9d2e4684b801ff1f5c80d7a0
                     CompletionCount: 1
                     RequirementProgress: []
-                  - NodeId: 8ab40fa26eef4a2ca25a6512775c0402
+                  - NodeId: c69dd5f5a934458499bb830bfbff6015
                     CompletionCount: 1
                     RequirementProgress: []
-                  - NodeId: df1f2570fcd74327b84c7d13efece65a
+                  - NodeId: 008d92789b994496bac6b11b8d2f7818
                     CompletionCount: 1
                     RequirementProgress: []
-                  - NodeId: 402c9d5f4e0c4a6db6003f4f36bb0aa3
-                    CompletionCount: 1
-                    RequirementProgress: []
-                  - NodeId: 0f8b128dc6b94fff8832ae2abd097836
-                    CompletionCount: 1
-                    RequirementProgress: []
-                  - NodeId: c0d4f233b053477bb7e1209a384dee4f
+                  - NodeId: fbbb59aa5d9546cf9be1ec8ebe92dd8f
                     CompletionCount: 1
                     RequirementProgress: []
                 Behaviour:
-                  rid: 7055333366454288464
-              - Species: {fileID: 11400000, guid: f5a248bd686323248b57fc2852fb4709, type: 2}
+                  rid: 7055333531646951500
+              - Species: {fileID: 11400000, guid: 7b1c734936928f643bb8669259644588, type: 2}
                 CurrentFormID: Default
                 Attributes:
                   Health: 10
@@ -90,53 +84,26 @@ MonoBehaviour:
                 PermanentPassives: []
                 FeatBoardProgress:
                   NodeProgress:
-                  - NodeId: 1af93324228d4cb2bcd6dfcad0451cac
+                  - NodeId: f52d7aba9d2e4684b801ff1f5c80d7a0
                     CompletionCount: 1
                     RequirementProgress: []
-                  - NodeId: 8ab40fa26eef4a2ca25a6512775c0402
+                  - NodeId: fbbb59aa5d9546cf9be1ec8ebe92dd8f
                     CompletionCount: 1
                     RequirementProgress: []
-                  - NodeId: df1f2570fcd74327b84c7d13efece65a
+                  - NodeId: 0adb5cac9f7540c7b493ecc022a265e5
                     CompletionCount: 1
                     RequirementProgress: []
-                Behaviour:
-                  rid: 7055333366454288465
-              - Species: {fileID: 11400000, guid: f5a248bd686323248b57fc2852fb4709, type: 2}
-                CurrentFormID: Default
-                Attributes:
-                  Health: 10
-                  ActionPoints: 6
-                  Movement: 3
-                  Attack: 0
-                  Armor: 0
-                  ArmorPenetration: 0
-                  Magic: 0
-                  Resistance: 0
-                  ResistancePenetration: 0
-                  BonusRange: 0
-                  Recovery: 4
-                  BonusHealing: 0
-                  LifeSteal: 0
-                  Omnivamprism: 0
-                  TimeEffectResistance: 0
-                Abilities: []
-                PermanentPassives: []
-                FeatBoardProgress:
-                  NodeProgress:
-                  - NodeId: 1af93324228d4cb2bcd6dfcad0451cac
+                  - NodeId: c69dd5f5a934458499bb830bfbff6015
                     CompletionCount: 1
                     RequirementProgress: []
-                  - NodeId: df1f2570fcd74327b84c7d13efece65a
+                  - NodeId: 1bce35fc5a8a490eacb2eb7458b50a03
                     CompletionCount: 1
                     RequirementProgress: []
-                  - NodeId: 8ab40fa26eef4a2ca25a6512775c0402
-                    CompletionCount: 1
-                    RequirementProgress: []
-                  - NodeId: 402c9d5f4e0c4a6db6003f4f36bb0aa3
+                  - NodeId: dffd36e3cf144bc5a3961517575674f5
                     CompletionCount: 1
                     RequirementProgress: []
                 Behaviour:
-                  rid: 7055333366454288466
+                  rid: 7055333531646951501
               - Species: {fileID: 0}
                 CurrentFormID: 
                 Attributes:
@@ -160,7 +127,7 @@ MonoBehaviour:
                 FeatBoardProgress:
                   NodeProgress: []
                 Behaviour:
-                  rid: 7055333366454288467
+                  rid: 7055333531646951502
               - Species: {fileID: 0}
                 CurrentFormID: 
                 Attributes:
@@ -184,7 +151,7 @@ MonoBehaviour:
                 FeatBoardProgress:
                   NodeProgress: []
                 Behaviour:
-                  rid: 7055333366454288468
+                  rid: 7055333531646951503
               - Species: {fileID: 0}
                 CurrentFormID: 
                 Attributes:
@@ -208,7 +175,31 @@ MonoBehaviour:
                 FeatBoardProgress:
                   NodeProgress: []
                 Behaviour:
-                  rid: 7055333366454288469
+                  rid: 7055333531646951504
+              - Species: {fileID: 0}
+                CurrentFormID: 
+                Attributes:
+                  Health: 10
+                  ActionPoints: 6
+                  Movement: 3
+                  Attack: 0
+                  Armor: 0
+                  ArmorPenetration: 0
+                  Magic: 0
+                  Resistance: 0
+                  ResistancePenetration: 0
+                  BonusRange: 0
+                  Recovery: 4
+                  BonusHealing: 0
+                  LifeSteal: 0
+                  Omnivamprism: 0
+                  TimeEffectResistance: 0
+                Abilities: []
+                PermanentPassives: []
+                FeatBoardProgress:
+                  NodeProgress: []
+                Behaviour:
+                  rid: 7055333531646951505
               Weight: 1
           OneBadge:
             WeightedTeams: []
@@ -234,7 +225,7 @@ MonoBehaviour:
         BoardConfigurations:
         - size: {x: 9, y: 9}
           shape: 0
-          placementStyle: 0
+        PlacementStyle: 0
         EncounterTable:
           NoBadge:
             WeightedTeams: []
@@ -259,38 +250,38 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 7055333366454288464
-      type: {class: AIBehaviour, ns: , asm: Assembly-CSharp}
+    - rid: 7055333531646951500
+      type: {class: AIBehaviour, ns: , asm: Erelia.Runtime}
       data:
         ActiveMode: 
         RulesByModes:
           _serializedList: []
-    - rid: 7055333366454288465
-      type: {class: AIBehaviour, ns: , asm: Assembly-CSharp}
+    - rid: 7055333531646951501
+      type: {class: AIBehaviour, ns: , asm: Erelia.Runtime}
       data:
         ActiveMode: 
         RulesByModes:
           _serializedList: []
-    - rid: 7055333366454288466
-      type: {class: AIBehaviour, ns: , asm: Assembly-CSharp}
+    - rid: 7055333531646951502
+      type: {class: AIBehaviour, ns: , asm: Erelia.Runtime}
       data:
         ActiveMode: 
         RulesByModes:
           _serializedList: []
-    - rid: 7055333366454288467
-      type: {class: AIBehaviour, ns: , asm: Assembly-CSharp}
+    - rid: 7055333531646951503
+      type: {class: AIBehaviour, ns: , asm: Erelia.Runtime}
       data:
         ActiveMode: 
         RulesByModes:
           _serializedList: []
-    - rid: 7055333366454288468
-      type: {class: AIBehaviour, ns: , asm: Assembly-CSharp}
+    - rid: 7055333531646951504
+      type: {class: AIBehaviour, ns: , asm: Erelia.Runtime}
       data:
         ActiveMode: 
         RulesByModes:
           _serializedList: []
-    - rid: 7055333366454288469
-      type: {class: AIBehaviour, ns: , asm: Assembly-CSharp}
+    - rid: 7055333531646951505
+      type: {class: AIBehaviour, ns: , asm: Erelia.Runtime}
       data:
         ActiveMode: 
         RulesByModes:
