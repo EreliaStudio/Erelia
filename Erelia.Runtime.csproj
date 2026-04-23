@@ -122,6 +122,8 @@
     <Compile Include="Assets\Scripts\Battle\Rules\BattleStatusRules.cs" />
     <Compile Include="Assets\Scripts\Observables\ObservableResource.cs" />
     <Compile Include="Assets\Scripts\Mode\ModeManager.cs" />
+    <Compile Include="Assets\Scripts\Battle\Rules\BattleMaskRules.cs" />
+    <Compile Include="Assets\Scripts\Battle\Rules\BattleRangeRules.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorData.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMaskCell.cs" />
     <Compile Include="Assets\Scripts\Board\BoardData.cs" />

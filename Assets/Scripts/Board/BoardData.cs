@@ -43,6 +43,24 @@ public sealed class BoardData
 		}
 	}
 
+	public void ClearMask(VoxelMask mask)
+	{
+		Terrain.MaskLayer.Clear(mask);
+	}
+
+	public void ApplyMask(IReadOnlyList<Vector3Int> cells, VoxelMask mask)
+	{
+		if (Terrain?.MaskLayer == null || cells == null || mask == VoxelMask.None)
+		{
+			return;
+		}
+
+		for (int index = 0; index < cells.Count; index++)
+		{
+			Terrain.MaskLayer.TryAddMask(cells[index], mask);
+		}
+	}
+
 	public void AssignVoxelRegistry(VoxelRegistry p_voxelRegistry)
 	{
 		Terrain.AssignVoxelRegistry(p_voxelRegistry);

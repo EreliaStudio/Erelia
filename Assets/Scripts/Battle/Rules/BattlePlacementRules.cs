@@ -150,15 +150,7 @@ public static class BattlePlacementRules
 
 	public static void ApplyPlacementMask(BoardData board, IReadOnlyList<Vector3Int> cells)
 	{
-		if (board?.Terrain?.MaskLayer == null || cells == null)
-		{
-			return;
-		}
-
-		for (int index = 0; index < cells.Count; index++)
-		{
-			board.Terrain.MaskLayer.TryAddMask(cells[index], VoxelMask.Placement);
-		}
+		BattleMaskRules.ApplyPlacementMask(board, cells);
 	}
 
 	private static bool TryBuildHalfBoardZones(BoardData board, out PlacementZones zones)

@@ -170,7 +170,7 @@ public sealed class PlacementPhase : BattlePhase
 
 	private void ClearPlacementMask()
 	{
-		BattleContext?.Board?.ClearMask();
+		BattleContext?.Board?.ClearMask(VoxelMask.Placement);
 	}
 
 	private static bool ContainsCell(IReadOnlyList<Vector3Int> cells, Vector3Int targetCell)

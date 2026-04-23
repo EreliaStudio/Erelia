@@ -138,6 +138,75 @@ public sealed class PlayerTurnPhaseQueryTests
 		orchestrator.Dispose();
 	}
 
+	[Test]
+	public void RefreshMovementRangeMask_AppliesMovementRangeToReachableCells()
+	{
+		using BattlePhaseTestFixture fixture = CreatePlayerTurnFixture(out BattleOrchestrator orchestrator, out PlayerTurnPhase playerTurnPhase, out _, out _);
+
+		IReadOnlyList<Vector3Int> reachableCells = playerTurnPhase.RefreshMovementRangeMask();
+
+		Assert.That(reachableCells.Count, Is.GreaterThan(0));
+		for (int index = 0; index < reachableCells.Count; index++)
+		{
+			Assert.That(fixture.HasMask(reachableCells[index], VoxelMask.MovementRange), Is.True);
+		}
+
+		orchestrator.Dispose();
+	}
+
+	[Test]
+	public void RefreshAttackRangeMask_AppliesAttackRangeWithoutTargetProfileFiltering()
+	{
+		using BattlePhaseTestFixture fixture = CreatePlayerTurnFixture(out BattleOrchestrator orchestrator, out PlayerTurnPhase playerTurnPhase, out Ability ability, out Vector3Int enemyCell);
+
+		IReadOnlyList<Vector3Int> attackRangeCells = playerTurnPhase.RefreshAttackRangeMask(ability);
+
+		Assert.That(attackRangeCells.Count, Is.GreaterThan(0));
+		CollectionAssert.Contains(attackRangeCells, enemyCell);
+		Assert.That(fixture.HasMask(enemyCell, VoxelMask.AttackRange), Is.True);
+
+		orchestrator.Dispose();
+	}
+
+	[Test]
+	public void RefreshAreaOfEffectMask_AppliesAreaOfEffectToAffectedCells()
+	{
+		using BattlePhaseTestFixture fixture = CreatePlayerTurnFixture(out BattleOrchestrator orchestrator, out PlayerTurnPhase playerTurnPhase, out Ability ability, out Vector3Int enemyCell);
+		ability.AreaOfEffect = new Ability.AreaOfEffectDefinition
+		{
+			Type = Ability.AreaOfEffectDefinition.Shape.Circle,
+			Value = 1
+		};
+
+		IReadOnlyList<Vector3Int> affectedCells = playerTurnPhase.RefreshAreaOfEffectMask(ability, enemyCell);
+
+		Assert.That(affectedCells.Count, Is.GreaterThan(1));
+		for (int index = 0; index < affectedCells.Count; index++)
+		{
+			Assert.That(fixture.HasMask(affectedCells[index], VoxelMask.AreaOfEffect), Is.True);
+		}
+
+		orchestrator.Dispose();
+	}
+
+	[Test]
+	public void ClearPreviewMasks_RemovesMovementAttackAndAreaMasks()
+	{
+		using BattlePhaseTestFixture fixture = CreatePlayerTurnFixture(out BattleOrchestrator orchestrator, out PlayerTurnPhase playerTurnPhase, out Ability ability, out Vector3Int enemyCell);
+
+		IReadOnlyList<Vector3Int> movementCells = playerTurnPhase.RefreshMovementRangeMask();
+		IReadOnlyList<Vector3Int> attackCells = playerTurnPhase.RefreshAttackRangeMask(ability);
+		IReadOnlyList<Vector3Int> areaCells = playerTurnPhase.RefreshAreaOfEffectMask(ability, enemyCell);
+
+		playerTurnPhase.ClearPreviewMasks();
+
+		Assert.That(fixture.HasMask(movementCells[0], VoxelMask.MovementRange), Is.False);
+		Assert.That(fixture.HasMask(attackCells[0], VoxelMask.AttackRange), Is.False);
+		Assert.That(fixture.HasMask(areaCells[0], VoxelMask.AreaOfEffect), Is.False);
+
+		orchestrator.Dispose();
+	}
+
 	private static BattlePhaseTestFixture CreatePlayerTurnFixture(
 		out BattleOrchestrator orchestrator,
 		out PlayerTurnPhase playerTurnPhase,

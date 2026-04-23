@@ -80,6 +80,36 @@ public sealed class VoxelMaskLayer
 		activeCells.Clear();
 	}
 
+	public void Clear(VoxelMask p_mask)
+	{
+		if (p_mask == VoxelMask.None || activeCells.Count == 0)
+		{
+			return;
+		}
+
+		List<Vector3Int> emptyCells = new List<Vector3Int>();
+		foreach (KeyValuePair<Vector3Int, VoxelMaskCell> entry in activeCells)
+		{
+			VoxelMaskCell maskCell = entry.Value;
+			if (maskCell == null)
+			{
+				emptyCells.Add(entry.Key);
+				continue;
+			}
+
+			maskCell.Masks.Remove(p_mask);
+			if (maskCell.Masks.Count == 0)
+			{
+				emptyCells.Add(entry.Key);
+			}
+		}
+
+		for (int index = 0; index < emptyCells.Count; index++)
+		{
+			activeCells.Remove(emptyCells[index]);
+		}
+	}
+
 	private bool IsInside(Vector3Int p_localPosition)
 	{
 		return p_localPosition.x >= 0 && p_localPosition.x < sizeX &&

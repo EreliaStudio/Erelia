@@ -49,6 +49,33 @@ public sealed class PlayerTurnPhase : BattlePhase
 			: BattleTargetingRules.GetAffectedObjects(BattleContext, ability, targetCell);
 	}
 
+	public IReadOnlyList<Vector3Int> RefreshMovementRangeMask()
+	{
+		return BattleMaskRules.ApplyMovementRangeMask(BattleContext, TurnContext);
+	}
+
+	public IReadOnlyList<Vector3Int> RefreshAttackRangeMask(Ability ability)
+	{
+		return BattleMaskRules.ApplyAttackRangeMask(BattleContext, TurnContext?.ActiveUnit, ability);
+	}
+
+	public IReadOnlyList<Vector3Int> RefreshAttackRangeMask(Vector3Int sourceCell, Ability.RangeDefinition range, int bonusRange = 0)
+	{
+		return BattleMaskRules.ApplyAttackRangeMask(BattleContext, sourceCell, range, bonusRange);
+	}
+
+	public IReadOnlyList<Vector3Int> RefreshAreaOfEffectMask(Ability ability, Vector3Int targetCell)
+	{
+		return !CanCastAtCell(ability, targetCell)
+			? System.Array.Empty<Vector3Int>()
+			: BattleMaskRules.ApplyAreaOfEffectMask(BattleContext, ability, targetCell);
+	}
+
+	public void ClearPreviewMasks()
+	{
+		BattleMaskRules.ClearPreviewMasks(BattleContext);
+	}
+
 	public bool CanTarget(Ability ability, BattleObject target)
 	{
 		return BattleActionValidator.CanTarget(BattleContext, TurnContext, ability, target);

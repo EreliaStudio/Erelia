@@ -144,9 +144,14 @@ internal sealed class BattlePhaseTestFixture : IDisposable
 
 	public bool HasPlacementMask(Vector3Int cell)
 	{
+		return HasMask(cell, VoxelMask.Placement);
+	}
+
+	public bool HasMask(Vector3Int cell, VoxelMask mask)
+	{
 		return BattleContext.Board.Terrain.MaskLayer.TryGetMaskCell(cell, out VoxelMaskCell maskCell) &&
 			maskCell != null &&
-			maskCell.Masks.Contains(VoxelMask.Placement);
+			maskCell.Masks.Contains(mask);
 	}
 
 	public void Dispose()

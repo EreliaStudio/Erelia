@@ -41,6 +41,7 @@ The goal remains the same: thin controllers, explicit legality APIs, and battle 
 - `BattleStatusRules.ApplyHook()` uses an explicit `anchorSet` bool so a caster at `(0,0,0)` is handled correctly.
 - Recent TU cleanup aligned tests with current backend semantics:
   defeated units free their board cell without requiring battle end, lower `Recovery` means faster turn-bar readiness, raised obstacle voxels can be standable elevated floors when there is clearance above, and line / diagonal targeting tests now use deterministic target placement.
+- `BattleMaskRules` owns backend mask application for `MovementRange`, `AttackRange`, `AreaOfEffect`, and `Placement`; `PlayerTurnPhase` exposes refresh / clear APIs for combat preview masks.
 
 ## Current Verification Status
 
@@ -58,7 +59,7 @@ The EditMode suite now covers the main backend rules, but coverage is still ligh
 
 - Add tests for battle-end stats immutability once `BattleOutcome` snapshots are implemented.
 - Add tests for enemy placement strategy once auto-placement grows beyond random valid-cell selection.
-- Add controller/view tests only after runtime controllers start binding to the backend APIs.
+- Add controller/view tests only after runtime controllers start binding to the backend APIs and board mask refresh hooks.
 
 ## Backend Refinements Still Worth Doing
 
@@ -90,6 +91,23 @@ Future need:
 Possible fix:
 - Introduce a placement strategy helper that scores valid cells per enemy unit.
 
+### Move preview masks out of board state
+
+Priority: medium
+
+Problem:
+- `VoxelMaskLayer` currently lives on `BoardTerrainLayer`, which makes transient UI overlays look like authoritative board state.
+- Masks such as `Placement`, `MovementRange`, `AttackRange`, `AreaOfEffect`, and `Selected` are presentation overlays derived from battle rules, not gameplay state.
+
+Risk:
+- Controllers may start depending on board-owned masks as if they were rules data.
+- Legality must remain computed from battle state and rule helpers, not from mutable overlay/cache state.
+
+Possible fix:
+- Move preview mask ownership into a presentation-side overlay state such as `BoardOverlayState`, `BattleBoardOverlay`, or `BoardMaskState`.
+- Keep rule APIs returning pure cell lists, then let controllers or presenters apply those cells to the overlay state.
+- Let `BoardPresenter` consume both `BoardData` and overlay state when building the visual mask mesh.
+
 ## Controller / View Backlog
 
 These remain intentionally after backend stabilization.
@@ -114,11 +132,12 @@ Still missing:
 - active unit panel binding
 - ability list binding
 - turn order display
-- reachable-cell overlay
-- valid-target-cell overlay
-- AoE preview overlay
-- line-of-sight preview overlay
-- placement-zone overlay
+- board mask mesh refresh after backend mask changes
+- controller calls into `RefreshMovementRangeMask()`
+- controller calls into `RefreshAttackRangeMask(...)`
+- controller calls into `RefreshAreaOfEffectMask(...)`
+- placement controller/view refresh from `Placement` masks
+- longer term: use presentation-owned overlay state instead of board-owned `VoxelMaskLayer`
 - damage / healing / status feedback visuals
 
 These should continue to consume backend APIs only, with no legality or battle rules in controllers.

@@ -89,7 +89,7 @@ public static class BattleActionValidator
 			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.OutOfBoard, targetCell);
 		}
 
-		if (!IsCellInAbilityRange(activeUnit, targetCell, ability))
+		if (!BattleRangeRules.IsCellInRange(activeUnit, targetCell, ability))
 		{
 			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.OutOfRange, targetCell);
 		}
@@ -384,26 +384,5 @@ public static class BattleActionValidator
 		costs[neighbour.Position] = nextCost;
 		predecessors[neighbour.Position] = from;
 		frontier.Enqueue(neighbour.Position);
-	}
-
-	private static bool IsCellInAbilityRange(BattleUnit source, Vector3Int cell, Ability ability)
-	{
-		if (source == null || ability == null || !source.HasBoardPosition)
-		{
-			return false;
-		}
-
-		Vector3Int delta = cell - source.BoardPosition;
-		int distanceX = Math.Abs(delta.x);
-		int distanceZ = Math.Abs(delta.z);
-		int rangeValue = Math.Max(0, ability.Range?.Value ?? 0) + Math.Max(0, source.BattleAttributes.BonusRange.Value);
-
-		return (ability.Range?.Type ?? Ability.RangeDefinition.Shape.Circle) switch
-		{
-			Ability.RangeDefinition.Shape.Circle => distanceX + distanceZ <= rangeValue,
-			Ability.RangeDefinition.Shape.Line => (distanceX == 0 || distanceZ == 0) && distanceX + distanceZ <= rangeValue,
-			Ability.RangeDefinition.Shape.Diagonal => distanceX == distanceZ && distanceX <= rangeValue,
-			_ => false
-		};
 	}
 }
