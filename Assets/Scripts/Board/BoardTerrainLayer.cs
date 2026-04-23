@@ -4,8 +4,6 @@ using UnityEngine;
 [Serializable]
 public sealed class BoardTerrainLayer : VoxelGrid
 {
-	public readonly VoxelMaskLayer MaskLayer;
-
 	[NonSerialized]
 	private VoxelRegistry _voxelRegistry;
 
@@ -17,7 +15,6 @@ public sealed class BoardTerrainLayer : VoxelGrid
 
 	public BoardTerrainLayer(int p_sizeX, int p_sizeY, int p_sizeZ) : base(p_sizeX, p_sizeY, p_sizeZ)
 	{
-		MaskLayer = new VoxelMaskLayer(p_sizeX, p_sizeY, p_sizeZ);
 	}
 
 	public void AssignVoxelRegistry(VoxelRegistry p_voxelRegistry)

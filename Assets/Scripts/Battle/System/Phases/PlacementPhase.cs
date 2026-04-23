@@ -35,8 +35,6 @@ public sealed class PlacementPhase : BattlePhase
 			return;
 		}
 
-		RefreshPlacementMask();
-
 		if (CanCompletePlacement())
 		{
 			TryCompletePlacement();
@@ -45,7 +43,6 @@ public sealed class PlacementPhase : BattlePhase
 
 	public override void Exit()
 	{
-		ClearPlacementMask();
 	}
 
 	public IReadOnlyList<Vector3Int> GetPlayerPlacementCells()
@@ -107,11 +104,6 @@ public sealed class PlacementPhase : BattlePhase
 		}
 
 		bool placed = BattleContext.TryPlaceUnit(unit, cell);
-		if (placed)
-		{
-			RefreshPlacementMask();
-		}
-
 		return placed;
 	}
 
@@ -151,7 +143,6 @@ public sealed class PlacementPhase : BattlePhase
 			return false;
 		}
 
-		ClearPlacementMask();
 		if (Orchestrator.TryBeginNextTurn(out BattlePhaseType nextPhase))
 		{
 			Coordinator.TransitionTo(nextPhase);
@@ -162,15 +153,9 @@ public sealed class PlacementPhase : BattlePhase
 		return false;
 	}
 
-	private void RefreshPlacementMask()
+	public IReadOnlyList<Vector3Int> GetPlacementMaskCells()
 	{
-		ClearPlacementMask();
-		BattlePlacementRules.ApplyPlacementMask(BattleContext?.Board, playerPlacementCells);
-	}
-
-	private void ClearPlacementMask()
-	{
-		BattleContext?.Board?.ClearMask(VoxelMask.Placement);
+		return playerPlacementCells;
 	}
 
 	private static bool ContainsCell(IReadOnlyList<Vector3Int> cells, Vector3Int targetCell)

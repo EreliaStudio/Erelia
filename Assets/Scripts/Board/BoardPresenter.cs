@@ -7,13 +7,21 @@ public class BoardPresenter : MonoBehaviour
 	[SerializeField] private VoxelMaskRegistry voxelMaskRegistry;
 
 	[SerializeField] private BoardData boardData = new BoardData();
+	private BoardOverlayState overlayState = new BoardOverlayState();
 
 	public BoardData BoardData => boardData;
+	public BoardOverlayState OverlayState => overlayState;
 	public MaskOverlayView OverlayView => overlayView;
 
 	public void Assign(BoardData targetBoardData)
 	{
 		boardData = targetBoardData;
+		overlayState.Initialize(boardData);
+		Rebuild();
+	}
+
+	public void RefreshOverlay()
+	{
 		Rebuild();
 	}
 
@@ -32,7 +40,7 @@ public class BoardPresenter : MonoBehaviour
 		overlayView.SetMaskMesh(
 			VoxelMesher.BuildMaskMesh(
 				boardData.Terrain,
-				boardData.Terrain.MaskLayer,
+				overlayState?.MaskLayer,
 				voxelRegistry,
 				voxelMaskRegistry));
 	}
@@ -57,6 +65,7 @@ public class BoardPresenter : MonoBehaviour
 		if (boardData != null)
 		{
 			boardData.AssignVoxelRegistry(voxelRegistry);
+			overlayState.Initialize(boardData);
 		}
 
 		Rebuild();

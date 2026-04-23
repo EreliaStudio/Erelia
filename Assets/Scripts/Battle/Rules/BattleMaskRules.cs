@@ -3,72 +3,60 @@ using UnityEngine;
 
 public static class BattleMaskRules
 {
-	public static IReadOnlyList<Vector3Int> ApplyMovementRangeMask(BattleContext battleContext, TurnContext turnContext)
+	public static IReadOnlyList<Vector3Int> GetMovementRangeCells(BattleContext battleContext, TurnContext turnContext)
 	{
-		ClearMask(battleContext, VoxelMask.MovementRange);
-		IReadOnlyList<Vector3Int> cells = BattleActionValidator.GetReachableCells(battleContext, turnContext);
-		ApplyMask(battleContext, cells, VoxelMask.MovementRange);
-		return cells;
+		return BattleActionValidator.GetReachableCells(battleContext, turnContext);
 	}
 
-	public static IReadOnlyList<Vector3Int> ApplyAttackRangeMask(BattleContext battleContext, BattleUnit sourceUnit, Ability ability)
+	public static IReadOnlyList<Vector3Int> GetAttackRangeCells(BattleContext battleContext, BattleUnit sourceUnit, Ability ability)
 	{
 		if (sourceUnit == null || ability == null)
 		{
-			ClearMask(battleContext, VoxelMask.AttackRange);
 			return System.Array.Empty<Vector3Int>();
 		}
 
 		int bonusRange = System.Math.Max(0, sourceUnit.BattleAttributes?.BonusRange.Value ?? 0);
-		return ApplyAttackRangeMask(battleContext, sourceUnit.BoardPosition, ability.Range, bonusRange);
+		return GetAttackRangeCells(battleContext, sourceUnit.BoardPosition, ability.Range, bonusRange);
 	}
 
-	public static IReadOnlyList<Vector3Int> ApplyAttackRangeMask(
+	public static IReadOnlyList<Vector3Int> GetAttackRangeCells(
 		BattleContext battleContext,
 		Vector3Int sourceCell,
 		Ability.RangeDefinition range,
 		int bonusRange = 0)
 	{
-		ClearMask(battleContext, VoxelMask.AttackRange);
-		IReadOnlyList<Vector3Int> cells = BattleRangeRules.GetCellsInRange(battleContext, sourceCell, range, bonusRange);
-		ApplyMask(battleContext, cells, VoxelMask.AttackRange);
-		return cells;
+		return BattleRangeRules.GetCellsInRange(battleContext, sourceCell, range, bonusRange);
 	}
 
-	public static IReadOnlyList<Vector3Int> ApplyAreaOfEffectMask(BattleContext battleContext, Ability ability, Vector3Int anchorCell)
+	public static IReadOnlyList<Vector3Int> GetAreaOfEffectCells(BattleContext battleContext, Ability ability, Vector3Int anchorCell)
 	{
-		ClearMask(battleContext, VoxelMask.AreaOfEffect);
-		IReadOnlyList<Vector3Int> cells = BattleTargetingRules.GetAffectedCells(battleContext, ability, anchorCell);
-		ApplyMask(battleContext, cells, VoxelMask.AreaOfEffect);
-		return cells;
+		return BattleTargetingRules.GetAffectedCells(battleContext, ability, anchorCell);
 	}
 
-	public static IReadOnlyList<Vector3Int> ApplyPlacementMask(BoardData board, IReadOnlyList<Vector3Int> cells)
+	public static void ApplyMask(BoardOverlayState overlayState, IReadOnlyList<Vector3Int> cells, VoxelMask mask, bool clearExisting = true)
 	{
-		if (board == null)
+		if (overlayState == null)
 		{
-			return System.Array.Empty<Vector3Int>();
+			return;
 		}
 
-		board.ClearMask(VoxelMask.Placement);
-		board.ApplyMask(cells, VoxelMask.Placement);
-		return cells ?? System.Array.Empty<Vector3Int>();
+		if (clearExisting)
+		{
+			overlayState.Clear(mask);
+		}
+
+		overlayState.ApplyMask(cells, mask);
 	}
 
-	public static void ClearPreviewMasks(BattleContext battleContext)
+	public static void ClearPreviewMasks(BoardOverlayState overlayState)
 	{
-		ClearMask(battleContext, VoxelMask.AttackRange);
-		ClearMask(battleContext, VoxelMask.MovementRange);
-		ClearMask(battleContext, VoxelMask.AreaOfEffect);
+		ClearMask(overlayState, VoxelMask.AttackRange);
+		ClearMask(overlayState, VoxelMask.MovementRange);
+		ClearMask(overlayState, VoxelMask.AreaOfEffect);
 	}
 
-	public static void ClearMask(BattleContext battleContext, VoxelMask mask)
+	public static void ClearMask(BoardOverlayState overlayState, VoxelMask mask)
 	{
-		battleContext?.Board?.ClearMask(mask);
-	}
-
-	private static void ApplyMask(BattleContext battleContext, IReadOnlyList<Vector3Int> cells, VoxelMask mask)
-	{
-		battleContext?.Board?.ApplyMask(cells, mask);
+		overlayState?.Clear(mask);
 	}
 }

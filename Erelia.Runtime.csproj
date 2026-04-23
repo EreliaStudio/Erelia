@@ -123,7 +123,6 @@
     <Compile Include="Assets\Scripts\Observables\ObservableResource.cs" />
     <Compile Include="Assets\Scripts\Mode\ModeManager.cs" />
     <Compile Include="Assets\Scripts\Battle\Rules\BattleMaskRules.cs" />
-    <Compile Include="Assets\Scripts\Battle\Rules\BattleRangeRules.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorData.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMaskCell.cs" />
     <Compile Include="Assets\Scripts\Board\BoardData.cs" />
@@ -150,6 +149,7 @@
     <Compile Include="Assets\Scripts\Voxel\VoxelMask.cs" />
     <Compile Include="Assets\Scripts\InteractiveObject\InteractionObject.cs" />
     <Compile Include="Assets\Scripts\AI\AIBehaviour.cs" />
+    <Compile Include="Assets\Scripts\Board\BoardOverlayState.cs" />
     <Compile Include="Assets\Scripts\Battle\System\PhaseControllers\PlayerTurnPhaseController.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatRequirement.cs" />
     <Compile Include="Assets\Scripts\World\ChunkCoordinates.cs" />
@@ -161,6 +161,7 @@
     <Compile Include="Assets\Scripts\Board\BoardPresenter.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMesher.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterUnit.cs" />
+    <Compile Include="Assets\Scripts\Battle\Rules\BattleRangeRules.cs" />
     <Compile Include="Assets\Scripts\World\MetaWorldGenerator.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelRegistry.cs" />
     <Compile Include="Assets\Scripts\Biomes\BiomeDefinition.cs" />

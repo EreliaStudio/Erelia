@@ -148,11 +148,6 @@ public static class BattlePlacementRules
 		return true;
 	}
 
-	public static void ApplyPlacementMask(BoardData board, IReadOnlyList<Vector3Int> cells)
-	{
-		BattleMaskRules.ApplyPlacementMask(board, cells);
-	}
-
 	private static bool TryBuildHalfBoardZones(BoardData board, out PlacementZones zones)
 	{
 		zones = default;

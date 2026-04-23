@@ -7,6 +7,7 @@ using UnityEngine;
 internal sealed class BattlePhaseTestFixture : IDisposable
 {
 	public BattleContext BattleContext { get; private set; }
+	public BoardOverlayState OverlayState { get; private set; } = new BoardOverlayState();
 	public CreatureUnit[] PlayerSources { get; private set; }
 	public EncounterUnit[] EnemySources { get; private set; }
 	public BattleUnit[] PlayerUnits => ToArray(BattleContext?.PlayerUnits);
@@ -149,7 +150,7 @@ internal sealed class BattlePhaseTestFixture : IDisposable
 
 	public bool HasMask(Vector3Int cell, VoxelMask mask)
 	{
-		return BattleContext.Board.Terrain.MaskLayer.TryGetMaskCell(cell, out VoxelMaskCell maskCell) &&
+		return OverlayState.TryGetMaskCell(cell, out VoxelMaskCell maskCell) &&
 			maskCell != null &&
 			maskCell.Masks.Contains(mask);
 	}
@@ -201,6 +202,7 @@ internal sealed class BattlePhaseTestFixture : IDisposable
 			board,
 			PlacementStyle.HalfBoard,
 			Vector3.zero);
+		OverlayState.Initialize(board);
 	}
 
 	private BoardData CreateBoard(VoxelRegistry voxelRegistry, int sizeX, int sizeY, int sizeZ)

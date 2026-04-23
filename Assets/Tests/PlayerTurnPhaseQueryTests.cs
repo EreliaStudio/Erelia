@@ -139,37 +139,32 @@ public sealed class PlayerTurnPhaseQueryTests
 	}
 
 	[Test]
-	public void RefreshMovementRangeMask_AppliesMovementRangeToReachableCells()
+	public void GetMovementRangeMaskCells_ReturnsReachableCells()
 	{
 		using BattlePhaseTestFixture fixture = CreatePlayerTurnFixture(out BattleOrchestrator orchestrator, out PlayerTurnPhase playerTurnPhase, out _, out _);
 
-		IReadOnlyList<Vector3Int> reachableCells = playerTurnPhase.RefreshMovementRangeMask();
+		IReadOnlyList<Vector3Int> reachableCells = playerTurnPhase.GetMovementRangeMaskCells();
 
 		Assert.That(reachableCells.Count, Is.GreaterThan(0));
-		for (int index = 0; index < reachableCells.Count; index++)
-		{
-			Assert.That(fixture.HasMask(reachableCells[index], VoxelMask.MovementRange), Is.True);
-		}
 
 		orchestrator.Dispose();
 	}
 
 	[Test]
-	public void RefreshAttackRangeMask_AppliesAttackRangeWithoutTargetProfileFiltering()
+	public void GetAttackRangeMaskCells_ReturnsAttackRangeWithoutTargetProfileFiltering()
 	{
 		using BattlePhaseTestFixture fixture = CreatePlayerTurnFixture(out BattleOrchestrator orchestrator, out PlayerTurnPhase playerTurnPhase, out Ability ability, out Vector3Int enemyCell);
 
-		IReadOnlyList<Vector3Int> attackRangeCells = playerTurnPhase.RefreshAttackRangeMask(ability);
+		IReadOnlyList<Vector3Int> attackRangeCells = playerTurnPhase.GetAttackRangeMaskCells(ability);
 
 		Assert.That(attackRangeCells.Count, Is.GreaterThan(0));
 		CollectionAssert.Contains(attackRangeCells, enemyCell);
-		Assert.That(fixture.HasMask(enemyCell, VoxelMask.AttackRange), Is.True);
 
 		orchestrator.Dispose();
 	}
 
 	[Test]
-	public void RefreshAreaOfEffectMask_AppliesAreaOfEffectToAffectedCells()
+	public void GetAreaOfEffectMaskCells_ReturnsAffectedCells()
 	{
 		using BattlePhaseTestFixture fixture = CreatePlayerTurnFixture(out BattleOrchestrator orchestrator, out PlayerTurnPhase playerTurnPhase, out Ability ability, out Vector3Int enemyCell);
 		ability.AreaOfEffect = new Ability.AreaOfEffectDefinition
@@ -178,31 +173,23 @@ public sealed class PlayerTurnPhaseQueryTests
 			Value = 1
 		};
 
-		IReadOnlyList<Vector3Int> affectedCells = playerTurnPhase.RefreshAreaOfEffectMask(ability, enemyCell);
+		IReadOnlyList<Vector3Int> affectedCells = playerTurnPhase.GetAreaOfEffectMaskCells(ability, enemyCell);
 
 		Assert.That(affectedCells.Count, Is.GreaterThan(1));
-		for (int index = 0; index < affectedCells.Count; index++)
-		{
-			Assert.That(fixture.HasMask(affectedCells[index], VoxelMask.AreaOfEffect), Is.True);
-		}
 
 		orchestrator.Dispose();
 	}
 
 	[Test]
-	public void ClearPreviewMasks_RemovesMovementAttackAndAreaMasks()
+	public void BattleMaskRules_ApplyMask_UpdatesOverlayState()
 	{
 		using BattlePhaseTestFixture fixture = CreatePlayerTurnFixture(out BattleOrchestrator orchestrator, out PlayerTurnPhase playerTurnPhase, out Ability ability, out Vector3Int enemyCell);
 
-		IReadOnlyList<Vector3Int> movementCells = playerTurnPhase.RefreshMovementRangeMask();
-		IReadOnlyList<Vector3Int> attackCells = playerTurnPhase.RefreshAttackRangeMask(ability);
-		IReadOnlyList<Vector3Int> areaCells = playerTurnPhase.RefreshAreaOfEffectMask(ability, enemyCell);
+		IReadOnlyList<Vector3Int> attackCells = playerTurnPhase.GetAttackRangeMaskCells(ability);
 
-		playerTurnPhase.ClearPreviewMasks();
+		BattleMaskRules.ApplyMask(fixture.OverlayState, attackCells, VoxelMask.AttackRange);
 
-		Assert.That(fixture.HasMask(movementCells[0], VoxelMask.MovementRange), Is.False);
-		Assert.That(fixture.HasMask(attackCells[0], VoxelMask.AttackRange), Is.False);
-		Assert.That(fixture.HasMask(areaCells[0], VoxelMask.AreaOfEffect), Is.False);
+		Assert.That(fixture.HasMask(attackCells[0], VoxelMask.AttackRange), Is.True);
 
 		orchestrator.Dispose();
 	}

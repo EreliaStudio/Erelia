@@ -49,31 +49,26 @@ public sealed class PlayerTurnPhase : BattlePhase
 			: BattleTargetingRules.GetAffectedObjects(BattleContext, ability, targetCell);
 	}
 
-	public IReadOnlyList<Vector3Int> RefreshMovementRangeMask()
+	public IReadOnlyList<Vector3Int> GetMovementRangeMaskCells()
 	{
-		return BattleMaskRules.ApplyMovementRangeMask(BattleContext, TurnContext);
+		return BattleMaskRules.GetMovementRangeCells(BattleContext, TurnContext);
 	}
 
-	public IReadOnlyList<Vector3Int> RefreshAttackRangeMask(Ability ability)
+	public IReadOnlyList<Vector3Int> GetAttackRangeMaskCells(Ability ability)
 	{
-		return BattleMaskRules.ApplyAttackRangeMask(BattleContext, TurnContext?.ActiveUnit, ability);
+		return BattleMaskRules.GetAttackRangeCells(BattleContext, TurnContext?.ActiveUnit, ability);
 	}
 
-	public IReadOnlyList<Vector3Int> RefreshAttackRangeMask(Vector3Int sourceCell, Ability.RangeDefinition range, int bonusRange = 0)
+	public IReadOnlyList<Vector3Int> GetAttackRangeMaskCells(Vector3Int sourceCell, Ability.RangeDefinition range, int bonusRange = 0)
 	{
-		return BattleMaskRules.ApplyAttackRangeMask(BattleContext, sourceCell, range, bonusRange);
+		return BattleMaskRules.GetAttackRangeCells(BattleContext, sourceCell, range, bonusRange);
 	}
 
-	public IReadOnlyList<Vector3Int> RefreshAreaOfEffectMask(Ability ability, Vector3Int targetCell)
+	public IReadOnlyList<Vector3Int> GetAreaOfEffectMaskCells(Ability ability, Vector3Int targetCell)
 	{
 		return !CanCastAtCell(ability, targetCell)
 			? System.Array.Empty<Vector3Int>()
-			: BattleMaskRules.ApplyAreaOfEffectMask(BattleContext, ability, targetCell);
-	}
-
-	public void ClearPreviewMasks()
-	{
-		BattleMaskRules.ClearPreviewMasks(BattleContext);
+			: BattleMaskRules.GetAreaOfEffectCells(BattleContext, ability, targetCell);
 	}
 
 	public bool CanTarget(Ability ability, BattleObject target)

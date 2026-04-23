@@ -20,33 +20,30 @@ public sealed class PlacementPhaseTests
 	}
 
 	[Test]
-	public void Enter_AppliesPlacementMaskOnPlayerCells()
+	public void GetPlacementMaskCells_ReturnsPlayerCellsForOverlay()
 	{
 		using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create();
 		BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 		PlacementPhase placementPhase = fixture.GetPlacementPhase(orchestrator);
 
-		IReadOnlyList<Vector3Int> playerCells = placementPhase.GetPlayerPlacementCells();
+		IReadOnlyList<Vector3Int> playerCells = placementPhase.GetPlacementMaskCells();
+
 		Assert.That(playerCells.Count, Is.GreaterThan(0));
-		for (int index = 0; index < playerCells.Count; index++)
-		{
-			Assert.That(fixture.HasPlacementMask(playerCells[index]), Is.True);
-		}
+		CollectionAssert.AreEquivalent(placementPhase.GetPlayerPlacementCells(), playerCells);
 	}
 
 	[Test]
-	public void Exit_ClearsPlacementMasks()
+	public void BattleMaskRules_ApplyMask_CanRenderPlacementCellsInOverlay()
 	{
 		using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create();
 		BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 		PlacementPhase placementPhase = fixture.GetPlacementPhase(orchestrator);
-		IReadOnlyList<Vector3Int> playerCells = placementPhase.GetPlayerPlacementCells();
-
-		orchestrator.TransitionTo(BattlePhaseType.End);
+		IReadOnlyList<Vector3Int> playerCells = placementPhase.GetPlacementMaskCells();
+		BattleMaskRules.ApplyMask(fixture.OverlayState, playerCells, VoxelMask.Placement);
 
 		for (int index = 0; index < playerCells.Count; index++)
 		{
-			Assert.That(fixture.HasPlacementMask(playerCells[index]), Is.False);
+			Assert.That(fixture.HasPlacementMask(playerCells[index]), Is.True);
 		}
 	}
 
@@ -184,7 +181,7 @@ public sealed class PlacementPhaseTests
 	}
 
 	[Test]
-	public void TryCompletePlacement_StartsCombatAndClearsPlacementMasks()
+	public void TryCompletePlacement_StartsCombatWithoutDependingOnOverlayMasks()
 	{
 		using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 2, enemyCount: 1);
 		BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
@@ -197,11 +194,5 @@ public sealed class PlacementPhaseTests
 
 		Assert.That(placementPhase.TryCompletePlacement(), Is.True);
 		Assert.That(orchestrator.Coordinator.CurrentPhaseType, Is.EqualTo(BattlePhaseType.PlayerTurn));
-
-		IReadOnlyList<Vector3Int> playerCells = placementPhase.GetPlayerPlacementCells();
-		for (int index = 0; index < playerCells.Count; index++)
-		{
-			Assert.That(fixture.HasPlacementMask(playerCells[index]), Is.False);
-		}
 	}
 }

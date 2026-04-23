@@ -63,7 +63,6 @@ public static class BoardDataBuilder
 						continue;
 					}
 
-					board.Terrain.MaskLayer.TryAddMask(localPosition, VoxelMask.BattleAreaBorder);
 					borderLocalCells.Add(localPosition);
 				}
 			}
