@@ -1,5 +1,7 @@
+using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -7,14 +9,21 @@ using UnityEditor;
 
 [DisallowMultipleComponent]
 [ExecuteAlways]
-public sealed class CreatureCardView : MonoBehaviour
+public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 {
+	private enum PortraitSide
+	{
+		Left,
+		Right
+	}
+
 	private static Sprite defaultSprite;
 
 	private const string StaminaLabelFormat = "{1} sec";
 	private static readonly Vector2 PortraitWidth = new Vector2(72f, 0f);
 	private static readonly Vector2 FramePadding = new Vector2(2f, 2f);
 
+	[SerializeField] private PortraitSide portraitSide = PortraitSide.Left;
 	[SerializeField] private bool showStaminaBar = true;
 	[SerializeField] private string defaultName = "Empty Slot";
 	[SerializeField] private Color backgroundColor = new Color(0f, 0f, 0f, 0.45f);
@@ -35,6 +44,9 @@ public sealed class CreatureCardView : MonoBehaviour
 #if UNITY_EDITOR
 	private bool editorRefreshQueued;
 #endif
+
+	public event Action<BattleUnit> LeftClicked;
+	public event Action<BattleUnit> RightClicked;
 
 	private void Reset()
 	{
@@ -88,6 +100,50 @@ public sealed class CreatureCardView : MonoBehaviour
 		boundUnit = unit;
 		SubscribeToTurnBar();
 		RefreshBoundState();
+	}
+
+	public void AddLeftClickListener(Action<BattleUnit> callback)
+	{
+		LeftClicked += callback;
+	}
+
+	public void RemoveLeftClickListener(Action<BattleUnit> callback)
+	{
+		LeftClicked -= callback;
+	}
+
+	public void AddRightClickListener(Action<BattleUnit> callback)
+	{
+		RightClicked += callback;
+	}
+
+	public void RemoveRightClickListener(Action<BattleUnit> callback)
+	{
+		RightClicked -= callback;
+	}
+
+	public void ClearClickListeners()
+	{
+		LeftClicked = null;
+		RightClicked = null;
+	}
+
+	public void OnPointerClick(PointerEventData eventData)
+	{
+		if (eventData == null)
+		{
+			return;
+		}
+
+		switch (eventData.button)
+		{
+			case PointerEventData.InputButton.Left:
+				LeftClicked?.Invoke(boundUnit);
+				break;
+			case PointerEventData.InputButton.Right:
+				RightClicked?.Invoke(boundUnit);
+				break;
+		}
 	}
 
 	private void EnsureHierarchy(bool allowCreate)
@@ -295,6 +351,7 @@ public sealed class CreatureCardView : MonoBehaviour
 		{
 			nameLabel.color = labelColor;
 			ApplyNameLabelLayout(nameLabel.rectTransform);
+			ApplyNameLabelAlignment(nameLabel);
 		}
 
 		if (staminaBar != null)
@@ -449,11 +506,21 @@ public sealed class CreatureCardView : MonoBehaviour
 		}
 	}
 
-	private static void ApplyPortraitBackgroundLayout(RectTransform rect)
+	private void ApplyPortraitBackgroundLayout(RectTransform rect)
 	{
-		rect.anchorMin = new Vector2(0f, 0f);
-		rect.anchorMax = new Vector2(0f, 1f);
-		rect.pivot = new Vector2(0f, 0.5f);
+		if (portraitSide == PortraitSide.Left)
+		{
+			rect.anchorMin = new Vector2(0f, 0f);
+			rect.anchorMax = new Vector2(0f, 1f);
+			rect.pivot = new Vector2(0f, 0.5f);
+		}
+		else
+		{
+			rect.anchorMin = new Vector2(1f, 0f);
+			rect.anchorMax = new Vector2(1f, 1f);
+			rect.pivot = new Vector2(1f, 0.5f);
+		}
+
 		rect.anchoredPosition = Vector2.zero;
 		rect.sizeDelta = PortraitWidth;
 	}
@@ -463,17 +530,43 @@ public sealed class CreatureCardView : MonoBehaviour
 		rect.anchorMin = new Vector2(0f, 0f);
 		rect.anchorMax = new Vector2(1f, 1f);
 		rect.pivot = new Vector2(0.5f, 0.5f);
-		rect.offsetMin = new Vector2(82f, showStaminaBar ? 32f : 8f);
-		rect.offsetMax = new Vector2(-8f, -8f);
+
+		float bottomInset = showStaminaBar ? 32f : 8f;
+		if (portraitSide == PortraitSide.Left)
+		{
+			rect.offsetMin = new Vector2(82f, bottomInset);
+			rect.offsetMax = new Vector2(-8f, -8f);
+		}
+		else
+		{
+			rect.offsetMin = new Vector2(8f, bottomInset);
+			rect.offsetMax = new Vector2(-82f, -8f);
+		}
 	}
 
-	private static void ApplyStaminaBarLayout(RectTransform rect)
+	private void ApplyNameLabelAlignment(TextMeshProUGUI text)
+	{
+		text.alignment = portraitSide == PortraitSide.Left
+			? TextAlignmentOptions.MidlineLeft
+			: TextAlignmentOptions.MidlineRight;
+	}
+
+	private void ApplyStaminaBarLayout(RectTransform rect)
 	{
 		rect.anchorMin = new Vector2(0f, 0f);
 		rect.anchorMax = new Vector2(1f, 0f);
 		rect.pivot = new Vector2(0.5f, 0f);
-		rect.offsetMin = new Vector2(82f, 8f);
-		rect.offsetMax = new Vector2(-8f, 28f);
+
+		if (portraitSide == PortraitSide.Left)
+		{
+			rect.offsetMin = new Vector2(82f, 8f);
+			rect.offsetMax = new Vector2(-8f, 28f);
+		}
+		else
+		{
+			rect.offsetMin = new Vector2(8f, 8f);
+			rect.offsetMax = new Vector2(-82f, 28f);
+		}
 	}
 
 	private static GameObject CreateChild(string childName, Transform parent)
@@ -494,7 +587,7 @@ public sealed class CreatureCardView : MonoBehaviour
 
 	private static void ApplyImageDefaults(Image image)
 	{
-		image.raycastTarget = false;
+		image.raycastTarget = true;
 		image.type = Image.Type.Simple;
 		image.sprite = image.sprite != null ? image.sprite : GetDefaultSprite();
 	}

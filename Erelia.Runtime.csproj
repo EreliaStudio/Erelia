@@ -178,6 +178,7 @@
     <Compile Include="Assets\Scripts\Board\BoardRuntimeRegistry.cs" />
     <Compile Include="Assets\Scripts\Battle\System\Phases\IdlePhase.cs" />
     <Compile Include="Assets\Scripts\AI\AICondition.cs" />
+    <Compile Include="Assets\Scripts\UI\CreatureTeamView.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatBoardProgress.cs" />
     <Compile Include="Assets\Scripts\Observables\ObservableFloatResource.cs" />
     <Compile Include="Assets\Scripts\Abilities\Effect.cs" />
