@@ -42,15 +42,9 @@ public sealed class ResolutionPhase : BattlePhase
 		{
 			BattleTurnRules.EndTurn(BattleContext, action.SourceUnit);
 		}
-
+ 
 		TurnContext?.End();
 
-		if (Orchestrator.TryBeginNextTurn(out BattlePhaseType nextPhase))
-		{
-			Coordinator.TransitionTo(nextPhase);
-			return;
-		}
-
-		Coordinator.TransitionTo(BattlePhaseType.End);
+		Coordinator.TransitionTo(BattlePhaseType.Idle);
 	}
 }

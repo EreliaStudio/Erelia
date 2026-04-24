@@ -206,14 +206,8 @@ public sealed class PlacementPhase : BattlePhase
 			return false;
 		}
 
-		if (Orchestrator.TryBeginNextTurn(out BattlePhaseType nextPhase))
-		{
-			Coordinator.TransitionTo(nextPhase);
-			return true;
-		}
-
-		Coordinator.TransitionTo(BattlePhaseType.End);
-		return false;
+		Coordinator.TransitionTo(BattlePhaseType.Idle);
+		return true;
 	}
 
 	public IReadOnlyList<Vector3Int> GetPlacementMaskCells()

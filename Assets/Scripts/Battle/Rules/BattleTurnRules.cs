@@ -73,6 +73,27 @@ public static class BattleTurnRules
 		return false;
 	}
 
+	public static void AdvanceTurnBars(BattleContext battleContext, float deltaTime)
+	{
+		if (battleContext == null || deltaTime <= 0f)
+		{
+			return;
+		}
+
+		AdvanceTurnBars(GetLivingUnits(battleContext), deltaTime);
+	}
+
+	public static bool TrySelectNextReadyUnit(BattleContext battleContext, out BattleUnit unit)
+	{
+		unit = null;
+		if (battleContext == null)
+		{
+			return false;
+		}
+
+		return TrySelectReadyUnit(battleContext, GetLivingUnits(battleContext), out unit);
+	}
+
 	public static bool TryFindNextActiveUnit(BattleContext battleContext, out BattleUnit unit)
 	{
 		unit = null;
