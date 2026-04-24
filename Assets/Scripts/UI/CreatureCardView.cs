@@ -392,10 +392,11 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 
 		if (staminaBar != null)
 		{
-			staminaBar.gameObject.SetActive(showStaminaBar);
+			bool shouldShowStaminaBar = ShouldShowStaminaBar();
+			staminaBar.gameObject.SetActive(shouldShowStaminaBar);
 			staminaBar.SetLabelFormat(staminaLabelFormat);
 
-			if (showStaminaBar)
+			if (shouldShowStaminaBar)
 			{
 				ApplyStaminaBarLayout(staminaBar.GetComponent<RectTransform>());
 			}
@@ -460,7 +461,7 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 			return;
 		}
 
-		bool shouldShowBar = showStaminaBar && boundUnit != null;
+		bool shouldShowBar = ShouldShowStaminaBar();
 		staminaBar.gameObject.SetActive(shouldShowBar);
 
 		if (!shouldShowBar)
@@ -476,8 +477,13 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 		}
 
 		float max = turnBar.Max;
-		float remainingTime = Mathf.Max(0f, max - turnBar.Current);
+		float remainingTime = Mathf.Max(0f, turnBar.Current);
 		staminaBar.SetValues(remainingTime, max);
+	}
+
+	private bool ShouldShowStaminaBar()
+	{
+		return showStaminaBar && boundUnit != null;
 	}
 
 	private Transform FindContentTransform(string childName)
@@ -575,7 +581,7 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 		rect.anchorMax = new Vector2(1f, 1f);
 		rect.pivot = new Vector2(0.5f, 0.5f);
 
-		float bottomInset = showStaminaBar ? ContentPadding + StaminaBarHeight + 4f : ContentPadding;
+		float bottomInset = ShouldShowStaminaBar() ? ContentPadding + StaminaBarHeight + 4f : ContentPadding;
 		if (portraitSide == PortraitSide.Left)
 		{
 			rect.offsetMin = new Vector2(portraitSpan, bottomInset);
