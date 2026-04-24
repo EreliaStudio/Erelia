@@ -8,9 +8,12 @@ public sealed class PlacementPhase : BattlePhase
 
 	private IReadOnlyList<Vector3Int> playerPlacementCells = Array.Empty<Vector3Int>();
 	private IReadOnlyList<Vector3Int> enemyPlacementCells = Array.Empty<Vector3Int>();
+	private BattleUnit selectedPlayerUnit;
 
 	public override void Enter()
 	{
+		selectedPlayerUnit = null;
+
 		if (BattleContext?.Board == null)
 		{
 			Coordinator.TransitionTo(BattlePhaseType.End);
@@ -48,6 +51,32 @@ public sealed class PlacementPhase : BattlePhase
 	public IReadOnlyList<Vector3Int> GetPlayerPlacementCells()
 	{
 		return playerPlacementCells;
+	}
+
+	public BattleUnit GetSelectedPlayerUnit()
+	{
+		return selectedPlayerUnit;
+	}
+
+	public bool TrySelectPlayerUnit(BattleUnit unit)
+	{
+		if (!CanPlaceUnit(unit))
+		{
+			return false;
+		}
+
+		selectedPlayerUnit = unit;
+		return true;
+	}
+
+	public bool TrySelectPlayerUnit(CreatureUnit creature)
+	{
+		return TryGetPlayerBattleUnit(creature, out BattleUnit unit) && TrySelectPlayerUnit(unit);
+	}
+
+	public void ClearSelectedPlayerUnit()
+	{
+		selectedPlayerUnit = null;
 	}
 
 	public IReadOnlyList<Vector3Int> GetEnemyPlacementCells()
@@ -104,6 +133,11 @@ public sealed class PlacementPhase : BattlePhase
 		}
 
 		bool placed = BattleContext.TryPlaceUnit(unit, cell);
+		if (placed && ReferenceEquals(selectedPlayerUnit, unit))
+		{
+			selectedPlayerUnit = null;
+		}
+
 		return placed;
 	}
 

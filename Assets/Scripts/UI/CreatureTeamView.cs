@@ -56,6 +56,24 @@ public sealed class CreatureTeamView : MonoBehaviour
 		RefreshBindings();
 	}
 
+	public int GetCardCount()
+	{
+		EnsureCards();
+		return cardInstances.Count;
+	}
+
+	public CreatureCardView GetCard(int index)
+	{
+		EnsureCards();
+
+		if (index < 0 || index >= cardInstances.Count)
+		{
+			return null;
+		}
+
+		return cardInstances[index];
+	}
+
 	private void EnsureCards()
 	{
 		CollectCards();

@@ -19,13 +19,15 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 
 	private static Sprite defaultSprite;
 
-	private const string StaminaLabelFormat = "{1} sec";
-	private static readonly Vector2 PortraitWidth = new Vector2(72f, 0f);
+	private const string DefaultStaminaLabelFormat = "{1:0.##} sec";
 	private static readonly Vector2 FramePadding = new Vector2(2f, 2f);
+	private const float ContentPadding = 8f;
+	private const float StaminaBarHeight = 20f;
 
 	[SerializeField] private PortraitSide portraitSide = PortraitSide.Left;
 	[SerializeField] private bool showStaminaBar = true;
 	[SerializeField] private string defaultName = "Empty Slot";
+	[SerializeField] private string staminaLabelFormat = DefaultStaminaLabelFormat;
 	[SerializeField] private Color backgroundColor = new Color(0f, 0f, 0f, 0.45f);
 	[SerializeField] private Color frameColor = new Color(1f, 1f, 1f, 0.08f);
 	[SerializeField] private Color portraitBackgroundColor = new Color(0f, 0f, 0f, 0.25f);
@@ -88,6 +90,11 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 #endif
 	}
 
+	private void OnRectTransformDimensionsChange()
+	{
+		ApplySerializedState();
+	}
+
 	public void Bind(BattleUnit unit)
 	{
 		if (ReferenceEquals(boundUnit, unit))
@@ -105,6 +112,16 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 	public void AddLeftClickListener(Action<BattleUnit> callback)
 	{
 		LeftClicked += callback;
+	}
+
+	public void SetFormat(string format)
+	{
+		staminaLabelFormat = string.IsNullOrWhiteSpace(format) ? DefaultStaminaLabelFormat : format;
+
+		if (staminaBar != null)
+		{
+			staminaBar.SetLabelFormat(staminaLabelFormat);
+		}
 	}
 
 	public void RemoveLeftClickListener(Action<BattleUnit> callback)
@@ -267,8 +284,8 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 		RectTransform rect = childObject.GetComponent<RectTransform>();
 		rect.anchorMin = new Vector2(0f, 0f);
 		rect.anchorMax = new Vector2(1f, 1f);
-		rect.offsetMin = new Vector2(6f, 6f);
-		rect.offsetMax = new Vector2(-6f, -6f);
+		rect.offsetMin = Vector2.zero;
+		rect.offsetMax = Vector2.zero;
 		rect.pivot = new Vector2(0.5f, 0.5f);
 		Image image = childObject.AddComponent<Image>();
 		ApplyPortraitDefaults(image);
@@ -357,7 +374,7 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 		if (staminaBar != null)
 		{
 			staminaBar.gameObject.SetActive(showStaminaBar);
-			staminaBar.SetLabelFormat(StaminaLabelFormat);
+			staminaBar.SetLabelFormat(staminaLabelFormat);
 
 			if (showStaminaBar)
 			{
@@ -508,39 +525,44 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 
 	private void ApplyPortraitBackgroundLayout(RectTransform rect)
 	{
+		float portraitSize = GetPortraitSize();
+
 		if (portraitSide == PortraitSide.Left)
 		{
-			rect.anchorMin = new Vector2(0f, 0f);
-			rect.anchorMax = new Vector2(0f, 1f);
+			rect.anchorMin = new Vector2(0f, 0.5f);
+			rect.anchorMax = new Vector2(0f, 0.5f);
 			rect.pivot = new Vector2(0f, 0.5f);
+			rect.anchoredPosition = new Vector2(ContentPadding, 0f);
 		}
 		else
 		{
-			rect.anchorMin = new Vector2(1f, 0f);
-			rect.anchorMax = new Vector2(1f, 1f);
+			rect.anchorMin = new Vector2(1f, 0.5f);
+			rect.anchorMax = new Vector2(1f, 0.5f);
 			rect.pivot = new Vector2(1f, 0.5f);
+			rect.anchoredPosition = new Vector2(-ContentPadding, 0f);
 		}
 
-		rect.anchoredPosition = Vector2.zero;
-		rect.sizeDelta = PortraitWidth;
+		rect.sizeDelta = new Vector2(portraitSize, portraitSize);
 	}
 
 	private void ApplyNameLabelLayout(RectTransform rect)
 	{
+		float portraitSize = GetPortraitSize();
+		float portraitSpan = portraitSize + (ContentPadding * 2f);
 		rect.anchorMin = new Vector2(0f, 0f);
 		rect.anchorMax = new Vector2(1f, 1f);
 		rect.pivot = new Vector2(0.5f, 0.5f);
 
-		float bottomInset = showStaminaBar ? 32f : 8f;
+		float bottomInset = showStaminaBar ? ContentPadding + StaminaBarHeight + 4f : ContentPadding;
 		if (portraitSide == PortraitSide.Left)
 		{
-			rect.offsetMin = new Vector2(82f, bottomInset);
-			rect.offsetMax = new Vector2(-8f, -8f);
+			rect.offsetMin = new Vector2(portraitSpan, bottomInset);
+			rect.offsetMax = new Vector2(-ContentPadding, -ContentPadding);
 		}
 		else
 		{
-			rect.offsetMin = new Vector2(8f, bottomInset);
-			rect.offsetMax = new Vector2(-82f, -8f);
+			rect.offsetMin = new Vector2(ContentPadding, bottomInset);
+			rect.offsetMax = new Vector2(-portraitSpan, -ContentPadding);
 		}
 	}
 
@@ -553,20 +575,32 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 
 	private void ApplyStaminaBarLayout(RectTransform rect)
 	{
+		float portraitSize = GetPortraitSize();
+		float portraitSpan = portraitSize + (ContentPadding * 2f);
 		rect.anchorMin = new Vector2(0f, 0f);
 		rect.anchorMax = new Vector2(1f, 0f);
 		rect.pivot = new Vector2(0.5f, 0f);
 
 		if (portraitSide == PortraitSide.Left)
 		{
-			rect.offsetMin = new Vector2(82f, 8f);
-			rect.offsetMax = new Vector2(-8f, 28f);
+			rect.offsetMin = new Vector2(portraitSpan, ContentPadding);
+			rect.offsetMax = new Vector2(-ContentPadding, ContentPadding + StaminaBarHeight);
 		}
 		else
 		{
-			rect.offsetMin = new Vector2(8f, 8f);
-			rect.offsetMax = new Vector2(-82f, 28f);
+			rect.offsetMin = new Vector2(ContentPadding, ContentPadding);
+			rect.offsetMax = new Vector2(-portraitSpan, ContentPadding + StaminaBarHeight);
 		}
+	}
+
+	private float GetPortraitSize()
+	{
+		if (!TryGetComponent(out RectTransform rectTransform))
+		{
+			return 0f;
+		}
+
+		return Mathf.Max(0f, rectTransform.rect.height - (ContentPadding * 2f));
 	}
 
 	private static GameObject CreateChild(string childName, Transform parent)

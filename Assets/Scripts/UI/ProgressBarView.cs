@@ -15,7 +15,6 @@ public sealed class ProgressBarView : MonoBehaviour
 	[SerializeField] private string labelFormat = "Ratio {0:0.##} / Value {1:0.##} / MaxValue {2:0.##}";
 	[SerializeField] private Color backgroundColor = new Color(0f, 0f, 0f, 0.45f);
 	[SerializeField] private Color fillColor = new Color(0.85f, 0.85f, 0.85f, 1f);
-	[SerializeField] private Color labelColor = Color.white;
 	[SerializeField] private Vector2 padding = new Vector2(2f, 2f);
 	[SerializeField, Min(0f)] private float maxValue = 1f;
 	[SerializeField, Min(0f)] private float currentValue = 1f;
@@ -222,7 +221,7 @@ public sealed class ProgressBarView : MonoBehaviour
 		Transform child = transform.Find("Label");
 		if (child != null && child.TryGetComponent(out TextMeshProUGUI existing))
 		{
-			ApplyLabelDefaults(existing);
+			EnsureLabelFont(existing);
 			return existing;
 		}
 
@@ -275,11 +274,6 @@ public sealed class ProgressBarView : MonoBehaviour
 		if (fillImage != null)
 		{
 			fillImage.color = fillColor;
-		}
-
-		if (label != null)
-		{
-			label.color = labelColor;
 		}
 	}
 
@@ -388,6 +382,7 @@ public sealed class ProgressBarView : MonoBehaviour
 
 	private static void ApplyLabelDefaults(TextMeshProUGUI text)
 	{
+		EnsureLabelFont(text);
 		text.raycastTarget = false;
 		text.alignment = TextAlignmentOptions.Center;
 		text.enableAutoSizing = true;
@@ -396,6 +391,10 @@ public sealed class ProgressBarView : MonoBehaviour
 		text.fontSize = 14f;
 		text.margin = Vector4.zero;
 
+	}
+
+	private static void EnsureLabelFont(TextMeshProUGUI text)
+	{
 		if (text.font == null)
 		{
 			text.font = TMP_Settings.defaultFontAsset;

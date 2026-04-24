@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public sealed class SetupPhase : BattlePhase
 {
 	public override BattlePhaseType PhaseType => BattlePhaseType.Setup;
@@ -31,9 +29,7 @@ public sealed class SetupPhase : BattlePhase
 				continue;
 			}
 
-			float max = unit.BattleAttributes.TurnBar.Max;
-			float initial = Random.Range(0f, max);
-			unit.BattleAttributes.TurnBar.SetCurrent(initial);
+			unit.BattleAttributes.TurnBar.SetCurrent(0f);
 		}
 	}
 }
