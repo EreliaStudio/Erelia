@@ -156,6 +156,7 @@
     <Compile Include="Assets\Scripts\Voxel\Shape\VoxelSlabShape.cs" />
     <Compile Include="Assets\Scripts\World\WorldContext.cs" />
     <Compile Include="Assets\Scripts\Biomes\BiomeEncounterRule.cs" />
+    <Compile Include="Assets\Scripts\UI\CreatureCardView.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMaskRegistry.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleInteractiveObject.cs" />
     <Compile Include="Assets\Scripts\Board\BoardPresenter.cs" />
