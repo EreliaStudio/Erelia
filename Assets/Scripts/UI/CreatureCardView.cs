@@ -155,11 +155,9 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 		switch (eventData.button)
 		{
 			case PointerEventData.InputButton.Left:
-				Debug.Log($"[CreatureCardView] I'm clicked on '{name}'.", this);
 				LeftClicked?.Invoke(boundUnit);
 				break;
 			case PointerEventData.InputButton.Right:
-				Debug.Log($"[CreatureCardView] Right click received on '{name}'.", this);
 				RightClicked?.Invoke(boundUnit);
 				break;
 		}
@@ -443,7 +441,10 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 			return;
 		}
 
-		if (!showStaminaBar)
+		bool shouldShowBar = showStaminaBar && boundUnit != null;
+		staminaBar.gameObject.SetActive(shouldShowBar);
+
+		if (!shouldShowBar)
 		{
 			staminaBar.SetValues(0f, 0f);
 			return;

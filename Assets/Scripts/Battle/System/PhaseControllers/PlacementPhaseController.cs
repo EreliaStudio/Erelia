@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public sealed class PlacementPhaseController : BattlePhaseController
 {
@@ -33,6 +34,21 @@ public sealed class PlacementPhaseController : BattlePhaseController
 	{
 		ResolvePlacementPhase();
 		BindTeams();
+	}
+
+	protected override void OnConfirmAction(InputAction.CallbackContext context)
+	{
+		ResolvePlacementPhase();
+		if (placementPhase != null && placementPhase.CanCompletePlacement())
+		{
+			placementPhase.TryCompletePlacement();
+		}
+	}
+
+	protected override void OnCancelAction(InputAction.CallbackContext context)
+	{
+		ResolvePlacementPhase();
+		placementPhase?.ClearSelectedPlayerUnit();
 	}
 
 	private void BindTeams()

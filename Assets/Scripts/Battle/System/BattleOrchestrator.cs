@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 [Serializable]
 public sealed class BattleOrchestrator : IDisposable
@@ -22,6 +23,8 @@ public sealed class BattleOrchestrator : IDisposable
 
 	private IBattlePhase activePhase;
 	private BattlePhaseController activeController;
+	private InputAction sharedConfirmAction;
+	private InputAction sharedCancelAction;
 
 	public BattleMode BattleMode { get; private set; }
 	public BattleContext BattleContext { get; private set; }
@@ -70,6 +73,20 @@ public sealed class BattleOrchestrator : IDisposable
 	public void TransitionTo(BattlePhaseType phaseType)
 	{
 		Coordinator.TransitionTo(phaseType);
+	}
+
+	public void ConfigurePhaseInput(InputAction confirmAction, InputAction cancelAction)
+	{
+		sharedConfirmAction = confirmAction;
+		sharedCancelAction = cancelAction;
+
+		ConfigureControllerInput(setupPhaseController);
+		ConfigureControllerInput(placementPhaseController);
+		ConfigureControllerInput(idlePhaseController);
+		ConfigureControllerInput(playerTurnPhaseController);
+		ConfigureControllerInput(enemyTurnPhaseController);
+		ConfigureControllerInput(resolutionPhaseController);
+		ConfigureControllerInput(endPhaseController);
 	}
 
 	public bool TrySubmitPendingAction(BattleAction action)
@@ -184,7 +201,18 @@ public sealed class BattleOrchestrator : IDisposable
 		}
 
 		controller.Bind(this);
+		controller.ConfigureInput(sharedConfirmAction, sharedCancelAction);
 		controller.SetActive(false);
+	}
+
+	private void ConfigureControllerInput(BattlePhaseController controller)
+	{
+		if (controller == null)
+		{
+			return;
+		}
+
+		controller.ConfigureInput(sharedConfirmAction, sharedCancelAction);
 	}
 
 	private IBattlePhase GetPhase(BattlePhaseType phaseType)

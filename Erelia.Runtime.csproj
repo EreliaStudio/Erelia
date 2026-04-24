@@ -56,6 +56,7 @@
     <Compile Include="Assets\Scripts\Encounters\EncounterTier.cs" />
     <Compile Include="Assets\Scripts\Voxel\CardinalHeightSet.cs" />
     <Compile Include="Assets\Scripts\Data\GameContext.cs" />
+    <Compile Include="Assets\Scripts\Input\GameplayInputBlocker.cs" />
     <Compile Include="Assets\Scripts\Rules\GameRule.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelShape.cs" />
     <Compile Include="Assets\Scripts\World\SimpleDebugChunkGenerator.cs" />

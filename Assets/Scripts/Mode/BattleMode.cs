@@ -1,9 +1,12 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public sealed class BattleMode : Mode
 {
 	[SerializeField] private BoardPresenter boardPresenter;
 	[SerializeField] private BattlePlayerController battlePlayerController;
+	[SerializeField] private InputActionReference confirmAction;
+	[SerializeField] private InputActionReference cancelAction;
 	[SerializeField] private GameObject battleUnitPrefab;
 	[SerializeField] private Transform playerTeamRoot;
 	[SerializeField] private Transform enemyTeamRoot;
@@ -11,6 +14,8 @@ public sealed class BattleMode : Mode
 
 	private BattleContext battleContext;
 	private BattleUnitManager battleUnitManager;
+	private InputAction resolvedConfirmAction;
+	private InputAction resolvedCancelAction;
 
 	public BattleContext BattleContext => battleContext;
 	public BattleOrchestrator BattleOrchestrator => battleOrchestrator;
@@ -44,6 +49,8 @@ public sealed class BattleMode : Mode
 		{
 			Logger.LogError("[BattleMode] EnemyTeamRoot is not assigned in the inspector.", Logger.Severity.Critical, this);
 		}
+
+		ResolveActions();
 	}
 
 	public void Enter(BattleContext context)
@@ -70,6 +77,7 @@ public sealed class BattleMode : Mode
 
 		battlePlayerController.Bind(anchor, size, battleContext.PlayerWorldPosition);
 		battleOrchestrator.Initialize(this, battleContext);
+		battleOrchestrator.ConfigurePhaseInput(resolvedConfirmAction, resolvedCancelAction);
 	}
 
 	public void TransitionToPhase(BattlePhaseType phaseType)
@@ -84,5 +92,34 @@ public sealed class BattleMode : Mode
 		battlePlayerController.Unbind();
 		battleUnitManager = null;
 		battleContext = null;
+	}
+
+	private void ResolveActions()
+	{
+		resolvedConfirmAction = ResolveAction(confirmAction, "Confirm");
+		resolvedCancelAction = ResolveAction(cancelAction, "Cancel");
+	}
+
+	private InputAction ResolveAction(InputActionReference actionReference, string actionName)
+	{
+		if (actionReference != null)
+		{
+			return actionReference.action;
+		}
+
+		InputActionAsset inputAsset = Resources.Load<InputActionAsset>("Input/BattlePlayer");
+		if (inputAsset == null)
+		{
+			Logger.LogError($"[BattleMode] Could not resolve battle input asset while looking for '{actionName}'.", Logger.Severity.Warning, this);
+			return null;
+		}
+
+		InputAction action = inputAsset.FindAction($"Player/{actionName}") ?? inputAsset.FindAction(actionName);
+		if (action == null)
+		{
+			Logger.LogError($"[BattleMode] Could not resolve battle action '{actionName}'.", Logger.Severity.Warning, this);
+		}
+
+		return action;
 	}
 }

@@ -1,13 +1,9 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.EventSystems;
-using System.Collections.Generic;
 
 [DisallowMultipleComponent]
 public class ExplorationPlayerController : MonoBehaviour
 {
-	private static readonly List<RaycastResult> UiRaycastResults = new();
-
 	[SerializeField] private WorldPresenter worldPresenter;
 	[SerializeField] private InputActionReference pointAction;
 	[SerializeField] private InputActionReference validateAction;
@@ -217,7 +213,7 @@ public class ExplorationPlayerController : MonoBehaviour
 	private void OnPointPerformed(InputAction.CallbackContext context)
 	{
 		Vector2 pointerPosition = context.ReadValue<Vector2>();
-		if (IsPointerOverUi(pointerPosition))
+		if (GameplayInputBlocker.IsPointerBlockedByUi(pointerPosition))
 		{
 			OnPointCanceled(context);
 			return;
@@ -280,9 +276,7 @@ public class ExplorationPlayerController : MonoBehaviour
 
 	private void OnValidateRequested()
 	{
-		Debug.Log("[ExplorationPlayerController] Validate click managed by exploration controller.", this);
-
-		if (TryGetCurrentPointerPosition(out Vector2 pointerPosition) && IsPointerOverUi(pointerPosition))
+		if (GameplayInputBlocker.ShouldBlockPointerAction())
 		{
 			return;
 		}
@@ -299,7 +293,7 @@ public class ExplorationPlayerController : MonoBehaviour
 
 	private void OnCancelRequested()
 	{
-		if (TryGetCurrentPointerPosition(out Vector2 pointerPosition) && IsPointerOverUi(pointerPosition))
+		if (GameplayInputBlocker.ShouldBlockPointerAction())
 		{
 			return;
 		}
@@ -427,35 +421,6 @@ public class ExplorationPlayerController : MonoBehaviour
 		}
 
 		return null;
-	}
-
-	private static bool IsPointerOverUi(Vector2 pointerPosition)
-	{
-		if (EventSystem.current == null)
-		{
-			return false;
-		}
-
-		PointerEventData pointerEventData = new(EventSystem.current)
-		{
-			position = pointerPosition
-		};
-
-		UiRaycastResults.Clear();
-		EventSystem.current.RaycastAll(pointerEventData, UiRaycastResults);
-		return UiRaycastResults.Count > 0;
-	}
-
-	private static bool TryGetCurrentPointerPosition(out Vector2 pointerPosition)
-	{
-		if (Pointer.current != null)
-		{
-			pointerPosition = Pointer.current.position.ReadValue();
-			return true;
-		}
-
-		pointerPosition = default;
-		return false;
 	}
 
 	private static void EnableAction(InputAction action)
