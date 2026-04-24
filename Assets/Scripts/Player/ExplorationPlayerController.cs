@@ -1,10 +1,15 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 [DisallowMultipleComponent]
 public class ExplorationPlayerController : MonoBehaviour
 {
+	private static readonly List<RaycastResult> UiRaycastResults = new();
+
 	[SerializeField] private WorldPresenter worldPresenter;
+	[SerializeField] private InputActionReference pointAction;
 	[SerializeField] private InputActionReference validateAction;
 	[SerializeField] private InputActionReference cancelAction;
 	[SerializeField] private InputActionReference orbitLeftAction;
@@ -17,6 +22,7 @@ public class ExplorationPlayerController : MonoBehaviour
 	private OrbitingObject orbitingObject;
 
 	private readonly WorldTraversalGraphCache graphCache = new();
+	private InputAction resolvedPointAction;
 	private InputAction resolvedValidateAction;
 	private InputAction resolvedCancelAction;
 	private InputAction resolvedOrbitLeftAction;
@@ -24,10 +30,12 @@ public class ExplorationPlayerController : MonoBehaviour
 	private Vector3 lastCameraPosition;
 	private Quaternion lastCameraRotation;
 	private bool hasLastCameraTransform;
-	private Vector2 lastPointerPosition;
-	private bool hasLastPointerPosition;
+	private Vector2 currentPointerPosition;
+	private bool hasPointerPosition;
 	private bool selectionDirty = true;
 	private Vector3Int? selectedVoxel;
+	private bool orbitLeftHeld;
+	private bool orbitRightHeld;
 
 	public Vector3Int? SelectedVoxel => selectedVoxel;
 
@@ -37,6 +45,10 @@ public class ExplorationPlayerController : MonoBehaviour
 		inputCamera = camera;
 		orbitingObject = orbiting;
 		selectionDirty = true;
+		if (hasPointerPosition)
+		{
+			RefreshSelectedVoxel(currentPointerPosition);
+		}
 	}
 
 	public void Unbind()
@@ -45,6 +57,9 @@ public class ExplorationPlayerController : MonoBehaviour
 		inputCamera = null;
 		orbitingObject = null;
 		ClearSelectionMask();
+		selectedVoxel = null;
+		hasLastCameraTransform = false;
+		hasPointerPosition = false;
 		selectionDirty = true;
 	}
 
@@ -53,6 +68,11 @@ public class ExplorationPlayerController : MonoBehaviour
 		if (worldPresenter == null)
 		{
 			Logger.LogError("[ExplorationPlayerController] WorldPresenter is not assigned in the inspector.", Logger.Severity.Critical, this);
+		}
+
+		if (pointAction == null)
+		{
+			Logger.LogError("[ExplorationPlayerController] PointAction is not assigned in the inspector.", Logger.Severity.Critical, this);
 		}
 
 		if (validateAction == null)
@@ -80,6 +100,8 @@ public class ExplorationPlayerController : MonoBehaviour
 
 	private void OnEnable()
 	{
+		SubscribeActionCallbacks();
+		EnableAction(resolvedPointAction);
 		EnableAction(resolvedValidateAction);
 		EnableAction(resolvedCancelAction);
 		EnableAction(resolvedOrbitLeftAction);
@@ -88,6 +110,8 @@ public class ExplorationPlayerController : MonoBehaviour
 
 	private void OnDisable()
 	{
+		UnsubscribeActionCallbacks();
+		DisableAction(resolvedPointAction);
 		DisableAction(resolvedValidateAction);
 		DisableAction(resolvedCancelAction);
 		DisableAction(resolvedOrbitLeftAction);
@@ -95,38 +119,32 @@ public class ExplorationPlayerController : MonoBehaviour
 		ClearSelectionMask();
 		selectedVoxel = null;
 		hasLastCameraTransform = false;
-		hasLastPointerPosition = false;
+		hasPointerPosition = false;
 		selectionDirty = true;
+		orbitLeftHeld = false;
+		orbitRightHeld = false;
 		graphCache.Clear();
 	}
 
 	private void Update()
 	{
-		if (controlledActor == null || worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
-		{
-			return;
-		}
-
-		HandleOrbitRequest();
-		UpdateSelectedVoxel();
-		HandleCancelRequest();
-		HandleMoveRequest();
+		HandleOrbitMotion();
 	}
 
-	private void HandleOrbitRequest()
+	private void HandleOrbitMotion()
 	{
-		if (orbitingObject == null)
+		if (controlledActor == null || worldPresenter == null || worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null || orbitingObject == null)
 		{
 			return;
 		}
 
 		float axis = 0f;
-		if (resolvedOrbitLeftAction != null && resolvedOrbitLeftAction.IsPressed())
+		if (orbitLeftHeld)
 		{
 			axis -= 1f;
 		}
 
-		if (resolvedOrbitRightAction != null && resolvedOrbitRightAction.IsPressed())
+		if (orbitRightHeld)
 		{
 			axis += 1f;
 		}
@@ -135,16 +153,25 @@ public class ExplorationPlayerController : MonoBehaviour
 		{
 			orbitingObject.Orbit(axis, Time.deltaTime);
 			selectionDirty = true;
+			if (hasPointerPosition)
+			{
+				RefreshSelectedVoxel(currentPointerPosition);
+			}
 		}
 	}
 
-	private void UpdateSelectedVoxel()
+	private void RefreshSelectedVoxel(Vector2 pointerPosition)
 	{
-		if (inputCamera == null || !TryGetPointerPosition(out Vector2 pointerPosition))
+		if (controlledActor == null || worldPresenter == null || worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
+		{
+			return;
+		}
+
+		if (inputCamera == null)
 		{
 			SetSelectedVoxel(null);
 			hasLastCameraTransform = false;
-			hasLastPointerPosition = false;
+			hasPointerPosition = false;
 			selectionDirty = true;
 			return;
 		}
@@ -152,15 +179,12 @@ public class ExplorationPlayerController : MonoBehaviour
 		bool cameraChanged = !hasLastCameraTransform ||
 		                     (inputCamera.transform.position - lastCameraPosition).sqrMagnitude > 0.000001f ||
 		                     Quaternion.Angle(inputCamera.transform.rotation, lastCameraRotation) > 0.01f;
-		bool pointerChanged = !hasLastPointerPosition || (pointerPosition - lastPointerPosition).sqrMagnitude > 0.0001f;
 
-		if (!selectionDirty && !pointerChanged && !cameraChanged)
+		if (!selectionDirty && !cameraChanged)
 		{
 			return;
 		}
 
-		lastPointerPosition = pointerPosition;
-		hasLastPointerPosition = true;
 		lastCameraPosition = inputCamera.transform.position;
 		lastCameraRotation = inputCamera.transform.rotation;
 		hasLastCameraTransform = true;
@@ -188,6 +212,39 @@ public class ExplorationPlayerController : MonoBehaviour
 		{
 			SetSelectedVoxel(null);
 		}
+	}
+
+	private void OnPointPerformed(InputAction.CallbackContext context)
+	{
+		Vector2 pointerPosition = context.ReadValue<Vector2>();
+		if (IsPointerOverUi(pointerPosition))
+		{
+			OnPointCanceled(context);
+			return;
+		}
+
+		OnPointerMoved(pointerPosition);
+	}
+
+	private void OnPointCanceled(InputAction.CallbackContext _)
+	{
+		hasPointerPosition = false;
+		if (controlledActor == null || worldPresenter == null || worldPresenter.WorldData == null)
+		{
+			return;
+		}
+
+		SetSelectedVoxel(null);
+		hasLastCameraTransform = false;
+		selectionDirty = true;
+	}
+
+	private void OnPointerMoved(Vector2 pointerPosition)
+	{
+		hasPointerPosition = true;
+		currentPointerPosition = pointerPosition;
+		selectionDirty = true;
+		RefreshSelectedVoxel(pointerPosition);
 	}
 
 	private void SetSelectedVoxel(Vector3Int? newVoxel)
@@ -221,9 +278,16 @@ public class ExplorationPlayerController : MonoBehaviour
 		}
 	}
 
-	private void HandleMoveRequest()
+	private void OnValidateRequested()
 	{
-		if (!selectedVoxel.HasValue || !WasValidateRequested())
+		Debug.Log("[ExplorationPlayerController] Validate click managed by exploration controller.", this);
+
+		if (TryGetCurrentPointerPosition(out Vector2 pointerPosition) && IsPointerOverUi(pointerPosition))
+		{
+			return;
+		}
+
+		if (controlledActor == null || worldPresenter == null || worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null || !selectedVoxel.HasValue)
 		{
 			return;
 		}
@@ -233,9 +297,9 @@ public class ExplorationPlayerController : MonoBehaviour
 		selectionDirty = true;
 	}
 
-	private void HandleCancelRequest()
+	private void OnCancelRequested()
 	{
-		if (!WasCancelRequested())
+		if (TryGetCurrentPointerPosition(out Vector2 pointerPosition) && IsPointerOverUi(pointerPosition))
 		{
 			return;
 		}
@@ -244,44 +308,154 @@ public class ExplorationPlayerController : MonoBehaviour
 		selectionDirty = true;
 	}
 
-	private bool WasValidateRequested()
+	private void OnValidateActionPerformed(InputAction.CallbackContext _)
 	{
-		if (resolvedValidateAction != null)
-		{
-			return resolvedValidateAction.WasPressedThisFrame();
-		}
-
-		return Mouse.current != null ? Mouse.current.leftButton.wasPressedThisFrame : Input.GetMouseButtonDown(0);
+		OnValidateRequested();
 	}
 
-	private bool WasCancelRequested()
+	private void OnCancelActionPerformed(InputAction.CallbackContext _)
 	{
-		if (resolvedCancelAction != null)
-		{
-			return resolvedCancelAction.WasPressedThisFrame();
-		}
-
-		return Mouse.current != null ? Mouse.current.rightButton.wasPressedThisFrame : Input.GetMouseButtonDown(1);
+		OnCancelRequested();
 	}
 
-	private static bool TryGetPointerPosition(out Vector2 pointerPosition)
+	private void OnOrbitLeftStarted(InputAction.CallbackContext _)
 	{
-		if (Mouse.current != null)
-		{
-			pointerPosition = Mouse.current.position.ReadValue();
-			return true;
-		}
+		orbitLeftHeld = true;
+	}
 
-		pointerPosition = Input.mousePosition;
-		return true;
+	private void OnOrbitLeftCanceled(InputAction.CallbackContext _)
+	{
+		orbitLeftHeld = false;
+	}
+
+	private void OnOrbitRightStarted(InputAction.CallbackContext _)
+	{
+		orbitRightHeld = true;
+	}
+
+	private void OnOrbitRightCanceled(InputAction.CallbackContext _)
+	{
+		orbitRightHeld = false;
 	}
 
 	private void ResolveActions()
 	{
+		resolvedPointAction = ResolvePointAction();
 		resolvedValidateAction = validateAction != null ? validateAction.action : null;
 		resolvedCancelAction = cancelAction != null ? cancelAction.action : null;
 		resolvedOrbitLeftAction = orbitLeftAction != null ? orbitLeftAction.action : null;
 		resolvedOrbitRightAction = orbitRightAction != null ? orbitRightAction.action : null;
+	}
+
+	private void SubscribeActionCallbacks()
+	{
+		if (resolvedPointAction != null)
+		{
+			resolvedPointAction.performed += OnPointPerformed;
+			resolvedPointAction.canceled += OnPointCanceled;
+		}
+
+		if (resolvedValidateAction != null)
+		{
+			resolvedValidateAction.performed += OnValidateActionPerformed;
+		}
+
+		if (resolvedCancelAction != null)
+		{
+			resolvedCancelAction.performed += OnCancelActionPerformed;
+		}
+
+		if (resolvedOrbitLeftAction != null)
+		{
+			resolvedOrbitLeftAction.started += OnOrbitLeftStarted;
+			resolvedOrbitLeftAction.canceled += OnOrbitLeftCanceled;
+		}
+
+		if (resolvedOrbitRightAction != null)
+		{
+			resolvedOrbitRightAction.started += OnOrbitRightStarted;
+			resolvedOrbitRightAction.canceled += OnOrbitRightCanceled;
+		}
+	}
+
+	private void UnsubscribeActionCallbacks()
+	{
+		if (resolvedPointAction != null)
+		{
+			resolvedPointAction.performed -= OnPointPerformed;
+			resolvedPointAction.canceled -= OnPointCanceled;
+		}
+
+		if (resolvedValidateAction != null)
+		{
+			resolvedValidateAction.performed -= OnValidateActionPerformed;
+		}
+
+		if (resolvedCancelAction != null)
+		{
+			resolvedCancelAction.performed -= OnCancelActionPerformed;
+		}
+
+		if (resolvedOrbitLeftAction != null)
+		{
+			resolvedOrbitLeftAction.started -= OnOrbitLeftStarted;
+			resolvedOrbitLeftAction.canceled -= OnOrbitLeftCanceled;
+		}
+
+		if (resolvedOrbitRightAction != null)
+		{
+			resolvedOrbitRightAction.started -= OnOrbitRightStarted;
+			resolvedOrbitRightAction.canceled -= OnOrbitRightCanceled;
+		}
+	}
+
+	private InputAction ResolvePointAction()
+	{
+		if (pointAction != null)
+		{
+			return pointAction.action;
+		}
+
+		if (validateAction != null && validateAction.action != null && validateAction.action.actionMap != null)
+		{
+			return validateAction.action.actionMap.FindAction("Point");
+		}
+
+		if (cancelAction != null && cancelAction.action != null && cancelAction.action.actionMap != null)
+		{
+			return cancelAction.action.actionMap.FindAction("Point");
+		}
+
+		return null;
+	}
+
+	private static bool IsPointerOverUi(Vector2 pointerPosition)
+	{
+		if (EventSystem.current == null)
+		{
+			return false;
+		}
+
+		PointerEventData pointerEventData = new(EventSystem.current)
+		{
+			position = pointerPosition
+		};
+
+		UiRaycastResults.Clear();
+		EventSystem.current.RaycastAll(pointerEventData, UiRaycastResults);
+		return UiRaycastResults.Count > 0;
+	}
+
+	private static bool TryGetCurrentPointerPosition(out Vector2 pointerPosition)
+	{
+		if (Pointer.current != null)
+		{
+			pointerPosition = Pointer.current.position.ReadValue();
+			return true;
+		}
+
+		pointerPosition = default;
+		return false;
 	}
 
 	private static void EnableAction(InputAction action)

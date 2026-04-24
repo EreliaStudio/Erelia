@@ -17,6 +17,10 @@ public class BattlePlayerController : MonoBehaviour
 	private Vector3Int boardAnchor;
 	private Vector3Int boardSize;
 
+	private Vector2 currentPanInput;
+	private bool orbitLeftHeld;
+	private bool orbitRightHeld;
+
 	private InputAction resolvedPanAction;
 	private InputAction resolvedOrbitLeftAction;
 	private InputAction resolvedOrbitRightAction;
@@ -50,6 +54,7 @@ public class BattlePlayerController : MonoBehaviour
 
 	private void OnEnable()
 	{
+		SubscribeActionCallbacks();
 		EnableAction(resolvedPanAction);
 		EnableAction(resolvedOrbitLeftAction);
 		EnableAction(resolvedOrbitRightAction);
@@ -57,9 +62,13 @@ public class BattlePlayerController : MonoBehaviour
 
 	private void OnDisable()
 	{
+		UnsubscribeActionCallbacks();
 		DisableAction(resolvedPanAction);
 		DisableAction(resolvedOrbitLeftAction);
 		DisableAction(resolvedOrbitRightAction);
+		currentPanInput = Vector2.zero;
+		orbitLeftHeld = false;
+		orbitRightHeld = false;
 	}
 
 	public void Bind(Vector3Int p_boardAnchor, Vector3Int p_boardSize, Vector3 p_playerWorldPosition)
@@ -115,13 +124,12 @@ public class BattlePlayerController : MonoBehaviour
 
 	private void HandlePan()
 	{
-		if (resolvedPanAction == null || cameraHolder == null)
+		if (cameraHolder == null)
 		{
 			return;
 		}
 
-		Vector2 input = resolvedPanAction.ReadValue<Vector2>();
-		if (input.sqrMagnitude <= 0.0001f)
+		if (currentPanInput.sqrMagnitude <= 0.0001f)
 		{
 			return;
 		}
@@ -142,7 +150,7 @@ public class BattlePlayerController : MonoBehaviour
 		flatForward.Normalize();
 		flatRight.Normalize();
 
-		Vector3 movement = (flatRight * input.x + flatForward * input.y) * (panSpeed * Time.deltaTime);
+		Vector3 movement = (flatRight * currentPanInput.x + flatForward * currentPanInput.y) * (panSpeed * Time.deltaTime);
 		Vector3 newPosition = cameraHolder.transform.position + movement;
 
 		newPosition.x = Mathf.Clamp(newPosition.x, boardAnchor.x, boardAnchor.x + boardSize.x);
@@ -160,12 +168,12 @@ public class BattlePlayerController : MonoBehaviour
 
 		float axis = 0f;
 
-		if (resolvedOrbitLeftAction != null && resolvedOrbitLeftAction.IsPressed())
+		if (orbitLeftHeld)
 		{
 			axis -= 1f;
 		}
 
-		if (resolvedOrbitRightAction != null && resolvedOrbitRightAction.IsPressed())
+		if (orbitRightHeld)
 		{
 			axis += 1f;
 		}
@@ -194,6 +202,78 @@ public class BattlePlayerController : MonoBehaviour
 		resolvedPanAction = panAction != null ? panAction.action : null;
 		resolvedOrbitLeftAction = orbitLeftAction != null ? orbitLeftAction.action : null;
 		resolvedOrbitRightAction = orbitRightAction != null ? orbitRightAction.action : null;
+	}
+
+	private void SubscribeActionCallbacks()
+	{
+		if (resolvedPanAction != null)
+		{
+			resolvedPanAction.performed += OnPanPerformed;
+			resolvedPanAction.canceled += OnPanCanceled;
+		}
+
+		if (resolvedOrbitLeftAction != null)
+		{
+			resolvedOrbitLeftAction.started += OnOrbitLeftStarted;
+			resolvedOrbitLeftAction.canceled += OnOrbitLeftCanceled;
+		}
+
+		if (resolvedOrbitRightAction != null)
+		{
+			resolvedOrbitRightAction.started += OnOrbitRightStarted;
+			resolvedOrbitRightAction.canceled += OnOrbitRightCanceled;
+		}
+	}
+
+	private void UnsubscribeActionCallbacks()
+	{
+		if (resolvedPanAction != null)
+		{
+			resolvedPanAction.performed -= OnPanPerformed;
+			resolvedPanAction.canceled -= OnPanCanceled;
+		}
+
+		if (resolvedOrbitLeftAction != null)
+		{
+			resolvedOrbitLeftAction.started -= OnOrbitLeftStarted;
+			resolvedOrbitLeftAction.canceled -= OnOrbitLeftCanceled;
+		}
+
+		if (resolvedOrbitRightAction != null)
+		{
+			resolvedOrbitRightAction.started -= OnOrbitRightStarted;
+			resolvedOrbitRightAction.canceled -= OnOrbitRightCanceled;
+		}
+	}
+
+	private void OnPanPerformed(InputAction.CallbackContext context)
+	{
+		currentPanInput = context.ReadValue<Vector2>();
+	}
+
+	private void OnPanCanceled(InputAction.CallbackContext _)
+	{
+		currentPanInput = Vector2.zero;
+	}
+
+	private void OnOrbitLeftStarted(InputAction.CallbackContext _)
+	{
+		orbitLeftHeld = true;
+	}
+
+	private void OnOrbitLeftCanceled(InputAction.CallbackContext _)
+	{
+		orbitLeftHeld = false;
+	}
+
+	private void OnOrbitRightStarted(InputAction.CallbackContext _)
+	{
+		orbitRightHeld = true;
+	}
+
+	private void OnOrbitRightCanceled(InputAction.CallbackContext _)
+	{
+		orbitRightHeld = false;
 	}
 
 	private static void EnableAction(InputAction p_action)

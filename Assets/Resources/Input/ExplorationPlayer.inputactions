@@ -7,6 +7,15 @@
             "id": "0f68f8d4-839d-4db1-97bc-7f4bd6dd590a",
             "actions": [
                 {
+                    "name": "Point",
+                    "type": "Value",
+                    "id": "55d8b5ad-bd41-4c6d-9d79-4600f4a0a9fb",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
                     "name": "Validate",
                     "type": "Button",
                     "id": "c92b74c7-dab6-4c37-9fe9-180179efba2d",
@@ -44,6 +53,28 @@
                 }
             ],
             "bindings": [
+                {
+                    "name": "",
+                    "id": "2da16573-c8c8-4fa7-88a7-c6de5646480d",
+                    "path": "<Mouse>/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "Point",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "71663fc4-2c52-49d9-8f1d-3f2ed72cf903",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "Point",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
                 {
                     "name": "",
                     "id": "25bc6528-ab8b-403d-a95a-3735f5725030",
