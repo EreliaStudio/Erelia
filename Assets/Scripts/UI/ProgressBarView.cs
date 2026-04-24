@@ -1,0 +1,443 @@
+using System.Globalization;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
+[DisallowMultipleComponent] 
+[ExecuteAlways]
+public sealed class ProgressBarView : MonoBehaviour
+{
+	private static Sprite defaultSprite;
+
+	[SerializeField] private string labelFormat = "Ratio {0:0.##} / Value {1:0.##} / MaxValue {2:0.##}";
+	[SerializeField] private Color backgroundColor = new Color(0f, 0f, 0f, 0.45f);
+	[SerializeField] private Color fillColor = new Color(0.85f, 0.85f, 0.85f, 1f);
+	[SerializeField] private Color labelColor = Color.white;
+	[SerializeField] private Vector2 padding = new Vector2(2f, 2f);
+	[SerializeField, Min(0f)] private float maxValue = 1f;
+	[SerializeField, Min(0f)] private float currentValue = 1f;
+
+	[SerializeField] private Image backgroundImage;
+	[SerializeField] private RectTransform fillArea;
+	[SerializeField] private Image fillImage;
+	[SerializeField] private TextMeshProUGUI label;
+
+	private bool isRefreshing;
+#if UNITY_EDITOR
+	private bool editorRefreshQueued;
+#endif
+
+	public float CurrentValue => currentValue;
+	public float MaxValue => maxValue;
+	public float Ratio => ComputeRatio();
+
+	private void Reset()
+	{
+		EnsureHierarchy(true);
+		ApplySerializedState();
+	}
+
+	private void Awake()
+	{
+		EnsureHierarchy(true);
+		ApplySerializedState();
+	}
+
+	private void OnEnable()
+	{
+		EnsureHierarchy(true);
+		ApplySerializedState();
+	}
+
+	private void OnValidate()
+	{
+#if UNITY_EDITOR
+		QueueEditorRefresh();
+#else
+		EnsureHierarchy(true);
+		ApplySerializedState();
+#endif
+	}
+
+	private void OnRectTransformDimensionsChange()
+	{
+		ApplyFill();
+	}
+
+	public void SetMaxValue(float value)
+	{
+		maxValue = Mathf.Max(0f, value);
+		currentValue = Mathf.Clamp(currentValue, 0f, maxValue);
+		ApplySerializedState();
+	}
+
+	public void SetCurrentValue(float value)
+	{
+		currentValue = Mathf.Clamp(value, 0f, Mathf.Max(0f, maxValue));
+		ApplySerializedState();
+	}
+
+	public void SetValues(float value, float maximum)
+	{
+		maxValue = Mathf.Max(0f, maximum);
+		currentValue = Mathf.Clamp(value, 0f, maxValue);
+		ApplySerializedState();
+	}
+
+	public void SetLabelFormat(string format)
+	{
+		labelFormat = string.IsNullOrWhiteSpace(format) ? "{0:0.##}" : format;
+		ApplyLabel();
+	}
+
+	public void SetColors(Color background, Color fill)
+	{
+		backgroundColor = background;
+		fillColor = fill;
+		ApplyColors();
+	}
+
+	public void SetPadding(Vector2 value)
+	{
+		padding = new Vector2(Mathf.Max(0f, value.x), Mathf.Max(0f, value.y));
+		ApplyPadding();
+		ApplyFill();
+	}
+
+	[ContextMenu("Refresh")]
+	public void RefreshNow()
+	{
+		EnsureHierarchy(true);
+		ApplySerializedState();
+	}
+
+	private void EnsureHierarchy(bool allowCreate)
+	{
+		if (isRefreshing)
+		{
+			return;
+		}
+
+		backgroundImage = ResolveBackgroundImage(allowCreate);
+		fillArea = ResolveFillArea(allowCreate);
+		fillImage = ResolveFillImage(allowCreate);
+		label = ResolveLabel(allowCreate);
+	}
+
+	private Image ResolveBackgroundImage(bool allowCreate)
+	{
+		if (backgroundImage != null)
+		{
+			return backgroundImage;
+		}
+
+		Transform child = transform.Find("Background");
+		if (child != null && child.TryGetComponent(out Image existing))
+		{
+			ApplyBackgroundDefaults(existing);
+			return existing;
+		}
+
+		if (!allowCreate)
+		{
+			return null;
+		}
+
+		GameObject childObject = CreateChild("Background", transform);
+		RectTransform rect = childObject.GetComponent<RectTransform>();
+		Stretch(rect);
+		Image image = childObject.AddComponent<Image>();
+		ApplyBackgroundDefaults(image);
+		return image;
+	}
+
+	private RectTransform ResolveFillArea(bool allowCreate)
+	{
+		if (fillArea != null)
+		{
+			return fillArea;
+		}
+
+		Transform child = transform.Find("FillArea");
+		if (child != null && child is RectTransform existing)
+		{
+			return existing;
+		}
+
+		if (!allowCreate)
+		{
+			return null;
+		}
+
+		GameObject childObject = CreateChild("FillArea", transform);
+		RectTransform rect = childObject.GetComponent<RectTransform>();
+		Stretch(rect);
+		return rect;
+	}
+
+	private Image ResolveFillImage(bool allowCreate)
+	{
+		if (fillImage != null)
+		{
+			return fillImage;
+		}
+
+		if (fillArea != null)
+		{
+			Transform child = fillArea.Find("Fill");
+			if (child != null && child.TryGetComponent(out Image existing))
+			{
+				ApplyFillDefaults(existing);
+				return existing;
+			}
+		}
+
+		if (!allowCreate || fillArea == null)
+		{
+			return null;
+		}
+
+		GameObject childObject = CreateChild("Fill", fillArea);
+		RectTransform rect = childObject.GetComponent<RectTransform>();
+		rect.anchorMin = new Vector2(0f, 0f);
+		rect.anchorMax = new Vector2(1f, 1f);
+		rect.offsetMin = Vector2.zero;
+		rect.offsetMax = Vector2.zero;
+		rect.pivot = new Vector2(0f, 0.5f);
+		Image image = childObject.AddComponent<Image>();
+		ApplyFillDefaults(image);
+		return image;
+	}
+
+	private TextMeshProUGUI ResolveLabel(bool allowCreate)
+	{
+		if (label != null)
+		{
+			return label;
+		}
+
+		Transform child = transform.Find("Label");
+		if (child != null && child.TryGetComponent(out TextMeshProUGUI existing))
+		{
+			ApplyLabelDefaults(existing);
+			return existing;
+		}
+
+		if (!allowCreate)
+		{
+			return null;
+		}
+
+		GameObject childObject = CreateChild("Label", transform);
+		RectTransform rect = childObject.GetComponent<RectTransform>();
+		Stretch(rect);
+		TextMeshProUGUI text = childObject.AddComponent<TextMeshProUGUI>();
+		ApplyLabelDefaults(text);
+		return text;
+	}
+
+	private void ApplySerializedState()
+	{
+		if (isRefreshing)
+		{
+			return;
+		}
+
+		isRefreshing = true;
+		try
+		{
+			padding.x = Mathf.Max(0f, padding.x);
+			padding.y = Mathf.Max(0f, padding.y);
+			maxValue = Mathf.Max(0f, maxValue);
+			currentValue = Mathf.Clamp(currentValue, 0f, maxValue);
+
+			ApplyColors();
+			ApplyPadding();
+			ApplyFill();
+			ApplyLabel();
+		}
+		finally
+		{
+			isRefreshing = false;
+		}
+	}
+
+	private void ApplyColors()
+	{
+		if (backgroundImage != null)
+		{
+			backgroundImage.color = backgroundColor;
+		}
+
+		if (fillImage != null)
+		{
+			fillImage.color = fillColor;
+		}
+
+		if (label != null)
+		{
+			label.color = labelColor;
+		}
+	}
+
+	private void ApplyPadding()
+	{
+		if (fillArea == null)
+		{
+			return;
+		}
+
+		fillArea.offsetMin = padding;
+		fillArea.offsetMax = -padding;
+	}
+
+	private void ApplyFill()
+	{
+		if (fillImage == null)
+		{
+			return;
+		}
+
+		RectTransform fillRect = fillImage.rectTransform;
+		float ratio = ComputeRatio();
+
+		fillRect.anchorMin = new Vector2(0f, 0f);
+		fillRect.anchorMax = new Vector2(ratio, 1f);
+		fillRect.offsetMin = Vector2.zero;
+		fillRect.offsetMax = Vector2.zero;
+		fillRect.pivot = new Vector2(0f, 0.5f);
+		fillImage.enabled = ratio > 0f;
+	}
+
+	private void ApplyLabel()
+	{
+		if (label == null)
+		{
+			return;
+		}
+
+		label.text = BuildLabel();
+	}
+
+	private float ComputeRatio()
+	{
+		if (maxValue <= 0f)
+		{
+			return 0f;
+		}
+
+		return Mathf.Clamp01(currentValue / maxValue);
+	}
+
+	private string BuildLabel()
+	{
+		string format = string.IsNullOrWhiteSpace(labelFormat) ? "{0:0.##}" : labelFormat;
+
+		try
+		{
+			return string.Format(
+				CultureInfo.InvariantCulture,
+				format,
+				ComputeRatio(),
+				currentValue,
+				maxValue);
+		}
+		catch (System.FormatException)
+		{
+			return string.Format(
+				CultureInfo.InvariantCulture,
+				"Ratio {0:0.##} / Value {1:0.##} / MaxValue {2:0.##}",
+				ComputeRatio(),
+				currentValue,
+				maxValue);
+		}
+	}
+
+	private static GameObject CreateChild(string childName, Transform parent)
+	{
+		GameObject child = new GameObject(childName, typeof(RectTransform), typeof(CanvasRenderer));
+		child.transform.SetParent(parent, false);
+		return child;
+	}
+
+	private static void Stretch(RectTransform rectTransform)
+	{
+		rectTransform.anchorMin = Vector2.zero;
+		rectTransform.anchorMax = Vector2.one;
+		rectTransform.offsetMin = Vector2.zero;
+		rectTransform.offsetMax = Vector2.zero;
+		rectTransform.pivot = new Vector2(0.5f, 0.5f);
+	}
+
+	private static void ApplyBackgroundDefaults(Image image)
+	{
+		image.raycastTarget = false;
+		image.type = Image.Type.Simple;
+		image.sprite = image.sprite != null ? image.sprite : GetDefaultSprite();
+	}
+
+	private static void ApplyFillDefaults(Image image)
+	{
+		image.raycastTarget = false;
+		image.type = Image.Type.Simple;
+		image.sprite = image.sprite != null ? image.sprite : GetDefaultSprite();
+	}
+
+	private static void ApplyLabelDefaults(TextMeshProUGUI text)
+	{
+		text.raycastTarget = false;
+		text.alignment = TextAlignmentOptions.Center;
+		text.enableAutoSizing = true;
+		text.fontSizeMin = 8f;
+		text.fontSizeMax = 24f;
+		text.fontSize = 14f;
+		text.margin = Vector4.zero;
+
+		if (text.font == null)
+		{
+			text.font = TMP_Settings.defaultFontAsset;
+		}
+	}
+
+	private static Sprite GetDefaultSprite()
+	{
+		if (defaultSprite != null)
+		{
+			return defaultSprite;
+		}
+
+		defaultSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0f, 0f, 1f, 1f), new Vector2(0.5f, 0.5f));
+		defaultSprite.name = "ProgressBarDefaultSprite";
+		defaultSprite.hideFlags = HideFlags.HideAndDontSave;
+		return defaultSprite;
+	}
+
+#if UNITY_EDITOR
+	private void QueueEditorRefresh()
+	{
+		if (editorRefreshQueued)
+		{
+			return;
+		}
+
+		editorRefreshQueued = true;
+		EditorApplication.delayCall += ApplyEditorRefresh;
+	}
+
+	private void ApplyEditorRefresh()
+	{
+		editorRefreshQueued = false;
+
+		if (this == null)
+		{
+			return;
+		}
+
+		EnsureHierarchy(true);
+		ApplySerializedState();
+	}
+#endif
+}

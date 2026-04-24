@@ -3,7 +3,8 @@
     "references": [
         "Erelia.Runtime",
         "AYellowpaper.SerializedCollections",
-        "AYellowpaper.SerializedCollections.Editor"
+        "AYellowpaper.SerializedCollections.Editor",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [
         "Editor"
