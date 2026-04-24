@@ -1,11 +1,21 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public sealed class PlacementPhaseController : BattlePhaseController
 {
 	[SerializeField] private GameObject placementHudRoot;
 	[SerializeField] private CreatureTeamView playerTeamView;
 	[SerializeField] private CreatureTeamView enemyTeamView;
+
+	[SerializeField] private Button confirmButton;
+
+	[Header("Card Colors")]
+	[SerializeField] private Color emptySlotColor = new Color(0.12f, 0.12f, 0.12f, 0.90f);
+	[SerializeField] private Color unplacedColor = new Color(0.30f, 0.30f, 0.30f, 0.90f);
+	[SerializeField] private Color placedColor = new Color(0.50f, 0.50f, 0.50f, 0.90f);
+	[SerializeField] private Color selectedColor = new Color(0.80f, 0.50f, 0.10f, 0.90f);
 
 	private PlacementPhase placementPhase;
 
@@ -43,11 +53,15 @@ public sealed class PlacementPhaseController : BattlePhaseController
 			ResolvePlacementPhase();
 			BindTeams();
 			SubscribePlayerCardClicks();
+			SubscribeConfirmButton();
+			RefreshCardColors();
+			RefreshConfirmButton();
 			RefreshPlacementOverlay();
 			return;
 		}
 
 		UnsubscribePlayerCardClicks();
+		UnsubscribeConfirmButton();
 		ClearPlacementOverlay();
 	}
 
@@ -215,6 +229,47 @@ public sealed class PlacementPhaseController : BattlePhaseController
 		return true;
 	}
 
+	private void RefreshCardColors()
+	{
+		if (BattleContext == null)
+		{
+			return;
+		}
+
+		BattleUnit selectedUnit = placementPhase?.GetSelectedPlayerUnit();
+		RefreshTeamCardColors(playerTeamView, BattleContext.PlayerUnits, selectedUnit);
+		RefreshTeamCardColors(enemyTeamView, BattleContext.EnemyUnits, null);
+	}
+
+	private void RefreshTeamCardColors(CreatureTeamView teamView, IReadOnlyList<BattleUnit> units, BattleUnit selectedUnit)
+	{
+		if (teamView == null)
+		{
+			return;
+		}
+
+		int cardCount = teamView.GetCardCount();
+		for (int index = 0; index < cardCount; index++)
+		{
+			CreatureCardView card = teamView.GetCard(index);
+			if (card == null)
+			{
+				continue;
+			}
+
+			BattleUnit unit = units != null && index < units.Count ? units[index] : null;
+			card.SetBackgroundColor(GetCardBackgroundColor(unit, selectedUnit));
+		}
+	}
+
+	private Color GetCardBackgroundColor(BattleUnit unit, BattleUnit selectedUnit)
+	{
+		if (unit == null) return emptySlotColor;
+		if (ReferenceEquals(unit, selectedUnit)) return selectedColor;
+		if (unit.HasBoardPosition) return placedColor;
+		return unplacedColor;
+	}
+
 	private void RefreshPlacementOverlay()
 	{
 		if (BattleMode?.BoardPresenter == null)
@@ -238,6 +293,45 @@ public sealed class PlacementPhaseController : BattlePhaseController
 		}
 
 		BattleMode.BoardPresenter.RefreshOverlay();
+		RefreshCardColors();
+		RefreshConfirmButton();
+	}
+
+	private void RefreshConfirmButton()
+	{
+		if (confirmButton == null)
+		{
+			return;
+		}
+
+		confirmButton.interactable = placementPhase != null && placementPhase.CanCompletePlacement();
+	}
+
+	private void SubscribeConfirmButton()
+	{
+		if (confirmButton == null)
+		{
+			return;
+		}
+
+		confirmButton.onClick.RemoveListener(HandleConfirmButtonClicked);
+		confirmButton.onClick.AddListener(HandleConfirmButtonClicked);
+	}
+
+	private void UnsubscribeConfirmButton()
+	{
+		if (confirmButton == null)
+		{
+			return;
+		}
+
+		confirmButton.onClick.RemoveListener(HandleConfirmButtonClicked);
+	}
+
+	private void HandleConfirmButtonClicked()
+	{
+		ResolvePlacementPhase();
+		placementPhase?.TryCompletePlacement();
 	}
 
 	private void ClearPlacementOverlay()

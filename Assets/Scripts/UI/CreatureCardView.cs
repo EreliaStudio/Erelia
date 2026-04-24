@@ -43,6 +43,7 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 
 	private BattleUnit boundUnit;
 	private ObservableFloatResource subscribedTurnBar;
+	private Color? backgroundColorOverride;
 #if UNITY_EDITOR
 	private bool editorRefreshQueued;
 #endif
@@ -137,6 +138,24 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 	public void RemoveRightClickListener(Action<BattleUnit> callback)
 	{
 		RightClicked -= callback;
+	}
+
+	public void SetBackgroundColor(Color color)
+	{
+		backgroundColorOverride = color;
+		if (backgroundImage != null)
+		{
+			backgroundImage.color = color;
+		}
+	}
+
+	public void ClearBackgroundColorOverride()
+	{
+		backgroundColorOverride = null;
+		if (backgroundImage != null)
+		{
+			backgroundImage.color = backgroundColor;
+		}
 	}
 
 	public void ClearClickListeners()
@@ -348,7 +367,7 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 	{
 		if (backgroundImage != null)
 		{
-			backgroundImage.color = backgroundColor;
+			backgroundImage.color = backgroundColorOverride ?? backgroundColor;
 		}
 
 		if (frameImage != null)
