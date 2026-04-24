@@ -168,6 +168,47 @@ public sealed class PlacementPhaseTests
 	}
 
 	[Test]
+	public void GetPlacementMaskCells_WithSelectedUnit_ReturnsOnlyThatUnitsValidCells()
+	{
+		using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 2, enemyCount: 1);
+		PlacementPhase placementPhase = fixture.GetPlacementPhase(fixture.CreateInitializedOrchestrator());
+
+		Assert.That(placementPhase.TryPlaceUnit(fixture.PlayerUnits[0], placementPhase.GetValidPlacementCells(fixture.PlayerUnits[0])[0]), Is.True);
+		Assert.That(placementPhase.TrySelectPlayerUnit(fixture.PlayerUnits[1]), Is.True);
+
+		CollectionAssert.AreEquivalent(
+			placementPhase.GetValidPlacementCells(fixture.PlayerUnits[1]),
+			placementPhase.GetPlacementMaskCells());
+	}
+
+	[Test]
+	public void TryRemovePlayerUnit_RemovesPlacedUnitAndReselectsIt()
+	{
+		using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1);
+		PlacementPhase placementPhase = fixture.GetPlacementPhase(fixture.CreateInitializedOrchestrator());
+		Vector3Int cell = placementPhase.GetValidPlacementCells(fixture.PlayerUnits[0])[0];
+
+		Assert.That(placementPhase.TryPlaceUnit(fixture.PlayerUnits[0], cell), Is.True);
+		Assert.That(placementPhase.TryRemovePlayerUnit(fixture.PlayerUnits[0]), Is.True);
+
+		Assert.That(fixture.PlayerUnits[0].HasBoardPosition, Is.False);
+		Assert.That(placementPhase.GetSelectedPlayerUnit(), Is.SameAs(fixture.PlayerUnits[0]));
+	}
+
+	[Test]
+	public void TryRemovePlayerUnitAt_RemovesPlayerUnitOccupyingCell()
+	{
+		using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1);
+		PlacementPhase placementPhase = fixture.GetPlacementPhase(fixture.CreateInitializedOrchestrator());
+		Vector3Int cell = placementPhase.GetValidPlacementCells(fixture.PlayerUnits[0])[0];
+
+		Assert.That(placementPhase.TryPlaceUnit(fixture.PlayerUnits[0], cell), Is.True);
+		Assert.That(placementPhase.TryRemovePlayerUnitAt(cell), Is.True);
+
+		Assert.That(fixture.PlayerUnits[0].HasBoardPosition, Is.False);
+	}
+
+	[Test]
 	public void CanCompletePlacement_ReturnsFalseUntilAllPlayerUnitsArePlaced()
 	{
 		using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 2, enemyCount: 1);

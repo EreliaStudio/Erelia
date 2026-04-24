@@ -11,6 +11,8 @@ public class BattlePlayerController : MonoBehaviour
 	[SerializeField] private InputActionReference panAction;
 	[SerializeField] private InputActionReference orbitLeftAction;
 	[SerializeField] private InputActionReference orbitRightAction;
+	[SerializeField] private InputActionReference confirmAction;
+	[SerializeField] private InputActionReference cancelAction;
 	private GameObject cameraHolder;
 	private GameObject spawnedCamera;
 
@@ -24,6 +26,8 @@ public class BattlePlayerController : MonoBehaviour
 	private InputAction resolvedPanAction;
 	private InputAction resolvedOrbitLeftAction;
 	private InputAction resolvedOrbitRightAction;
+	private InputAction resolvedConfirmAction;
+	private InputAction resolvedCancelAction;
 
 	public Camera ActiveCamera => spawnedCamera != null ? spawnedCamera.GetComponentInChildren<Camera>() : null;
 
@@ -197,11 +201,18 @@ public class BattlePlayerController : MonoBehaviour
 		spawnedCamera.transform.LookAt(cameraHolder.transform.position, Vector3.up);
 	}
 
+	public void ConfigurePhaseInput(BattleOrchestrator orchestrator)
+	{
+		orchestrator.ConfigurePhaseInput(resolvedConfirmAction, resolvedCancelAction);
+	}
+
 	private void ResolveActions()
 	{
 		resolvedPanAction = panAction != null ? panAction.action : null;
 		resolvedOrbitLeftAction = orbitLeftAction != null ? orbitLeftAction.action : null;
 		resolvedOrbitRightAction = orbitRightAction != null ? orbitRightAction.action : null;
+		resolvedConfirmAction = confirmAction != null ? confirmAction.action : null;
+		resolvedCancelAction = cancelAction != null ? cancelAction.action : null;
 	}
 
 	private void SubscribeActionCallbacks()

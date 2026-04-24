@@ -146,6 +146,35 @@ public sealed class PlacementPhase : BattlePhase
 		return TryGetPlayerBattleUnit(creature, out BattleUnit unit) && TryPlaceUnit(unit, cell);
 	}
 
+	public bool TryRemovePlayerUnit(BattleUnit unit)
+	{
+		if (!CanPlaceUnit(unit) || !unit.HasBoardPosition)
+		{
+			return false;
+		}
+
+		BattleContext.RemoveUnit(unit);
+		selectedPlayerUnit = unit;
+		return true;
+	}
+
+	public bool TryRemovePlayerUnit(CreatureUnit creature)
+	{
+		return TryGetPlayerBattleUnit(creature, out BattleUnit unit) && TryRemovePlayerUnit(unit);
+	}
+
+	public bool TryRemovePlayerUnitAt(Vector3Int cell)
+	{
+		if (BattleContext?.Board == null ||
+			!BattleContext.Board.TryGetUnitAt(cell, out BattleUnit unit) ||
+			unit == null)
+		{
+			return false;
+		}
+
+		return TryRemovePlayerUnit(unit);
+	}
+
 	public bool CanCompletePlacement()
 	{
 		if (BattleContext == null)
@@ -189,7 +218,39 @@ public sealed class PlacementPhase : BattlePhase
 
 	public IReadOnlyList<Vector3Int> GetPlacementMaskCells()
 	{
-		return playerPlacementCells;
+		if (selectedPlayerUnit != null)
+		{
+			return GetValidPlacementCells(selectedPlayerUnit);
+		}
+
+		HashSet<Vector3Int> uniqueCells = new HashSet<Vector3Int>();
+		List<Vector3Int> maskCells = new List<Vector3Int>();
+
+		if (BattleContext?.PlayerUnits == null)
+		{
+			return maskCells;
+		}
+
+		for (int unitIndex = 0; unitIndex < BattleContext.PlayerUnits.Count; unitIndex++)
+		{
+			BattleUnit unit = BattleContext.PlayerUnits[unitIndex];
+			if (!CanPlaceUnit(unit))
+			{
+				continue;
+			}
+
+			IReadOnlyList<Vector3Int> validCells = GetValidPlacementCells(unit);
+			for (int cellIndex = 0; cellIndex < validCells.Count; cellIndex++)
+			{
+				Vector3Int cell = validCells[cellIndex];
+				if (uniqueCells.Add(cell))
+				{
+					maskCells.Add(cell);
+				}
+			}
+		}
+
+		return maskCells;
 	}
 
 	private static bool ContainsCell(IReadOnlyList<Vector3Int> cells, Vector3Int targetCell)
