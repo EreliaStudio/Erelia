@@ -39,9 +39,9 @@ public sealed class BoardData
 		Terrain.AssignVoxelRegistry(p_voxelRegistry);
 	}
 
-	public void RebuildNavigation()
+	public void RebuildNavigation(HashSet<Vector2Int> p_excludedColumns = null)
 	{
-		Navigation.Rebuild(Terrain);
+		Navigation.Rebuild(Terrain, p_excludedColumns);
 	}
 
 	public bool IsInside(Vector3Int p_position)
@@ -64,7 +64,7 @@ public sealed class BoardData
 
 	public bool IsStandable(Vector3Int p_position)
 	{
-		return Navigation.IsStandable(p_position) && !IsBorderCell(p_position);
+		return Navigation.IsStandable(p_position);
 	}
 
 	public bool HasUnitAt(Vector3Int p_position)

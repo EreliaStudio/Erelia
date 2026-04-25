@@ -18,7 +18,7 @@ public static class VoxelTraversalGraphBuilder
 		}
 	}
 
-	public static VoxelTraversalGraph Build(VoxelGrid p_grid, VoxelRegistry p_voxelRegistry)
+	public static VoxelTraversalGraph Build(VoxelGrid p_grid, VoxelRegistry p_voxelRegistry, HashSet<Vector2Int> p_excludedColumns = null)
 	{
 		if (p_grid == null)
 		{
@@ -41,6 +41,11 @@ public static class VoxelTraversalGraphBuilder
 				for (int z = 0; z < p_grid.SizeZ; z++)
 				{
 					Vector3Int position = new Vector3Int(x, y, z);
+					if (p_excludedColumns != null && p_excludedColumns.Contains(new Vector2Int(x, z)))
+					{
+						continue;
+					}
+
 					if (!VoxelTraversalUtility.IsReachableCell(p_grid, position, p_voxelRegistry))
 					{
 						continue;

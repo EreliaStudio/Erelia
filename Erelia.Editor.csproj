@@ -53,6 +53,7 @@
     <Compile Include="Assets\Scripts\Editor\Utils\CreatureTeamEditorGui.cs" />
     <Compile Include="Assets\Scripts\Editor\BattleBackendTestRunnerWindow.cs" />
     <Compile Include="Assets\Scripts\Editor\Utils\ManagedReferenceTypePicker.cs" />
+    <Compile Include="Assets\Scripts\Editor\ActiveUnitHudViewFactory.cs" />
     <Compile Include="Assets\Scripts\Editor\Utils\SpriteGuiUtility.cs" />
     <Compile Include="Assets\Scripts\Editor\CreatureTeamViewFactory.cs" />
     <Compile Include="Assets\Scripts\Editor\Utils\EditorUiFactoryUtility.cs" />

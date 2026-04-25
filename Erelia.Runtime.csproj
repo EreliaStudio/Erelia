@@ -120,6 +120,7 @@
     <Compile Include="Assets\Scripts\Actors\ActorMovementRequest.cs" />
     <Compile Include="Assets\Scripts\BattleCellGraph\VoxelTraversalGraphBuilder.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleStatus.cs" />
+    <Compile Include="Assets\Scripts\UI\ActiveUnitHudView.cs" />
     <Compile Include="Assets\Scripts\Battle\System\BattlePhaseType.cs" />
     <Compile Include="Assets\Scripts\Battle\System\IBattlePhaseInputHandler.cs" />
     <Compile Include="Assets\Scripts\Board\BoardPathfinder.cs" />

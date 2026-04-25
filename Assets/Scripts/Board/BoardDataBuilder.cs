@@ -33,36 +33,39 @@ public static class BoardDataBuilder
 			}
 		}
 
-		board.RebuildNavigation();
-		board.AssignBorderLocalCells(BuildBorder(board, size));
+		HashSet<Vector2Int> borderColumns = BuildBorderColumns(size);
+		board.RebuildNavigation(borderColumns);
+		board.AssignBorderLocalCells(BuildBorder(terrain, size, voxelRegistry, borderColumns));
 		return board;
 	}
 
-	private static List<Vector3Int> BuildBorder(BoardData board, Vector3Int size)
+	private static HashSet<Vector2Int> BuildBorderColumns(Vector3Int size)
 	{
-		var borderLocalCells = new List<Vector3Int>();
-		if (board == null)
-		{
-			return borderLocalCells;
-		}
-
+		var columns = new HashSet<Vector2Int>();
 		for (int x = 0; x < size.x; x++)
 		{
 			for (int z = 0; z < size.z; z++)
 			{
-				if (x != 0 && x != size.x - 1 && z != 0 && z != size.z - 1)
+				if (x == 0 || x == size.x - 1 || z == 0 || z == size.z - 1)
 				{
-					continue;
+					columns.Add(new Vector2Int(x, z));
 				}
+			}
+		}
 
-				for (int y = 0; y < size.y; y++)
+		return columns;
+	}
+
+	private static List<Vector3Int> BuildBorder(BoardTerrainLayer terrain, Vector3Int size, VoxelRegistry voxelRegistry, HashSet<Vector2Int> borderColumns)
+	{
+		var borderLocalCells = new List<Vector3Int>();
+		foreach (Vector2Int column in borderColumns)
+		{
+			for (int y = 0; y < size.y - 2; y++)
+			{
+				Vector3Int localPosition = new Vector3Int(column.x, y, column.y);
+				if (VoxelTraversalUtility.IsReachableCell(terrain, localPosition, voxelRegistry))
 				{
-					Vector3Int localPosition = new Vector3Int(x, y, z);
-					if (!board.Navigation.IsStandable(localPosition))
-					{
-						continue;
-					}
-
 					borderLocalCells.Add(localPosition);
 				}
 			}

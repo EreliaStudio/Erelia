@@ -18,7 +18,7 @@ public sealed class BoardNavigationLayer
 		_graph = null;
 	}
 
-	public void Rebuild(BoardTerrainLayer p_terrainLayer)
+	public void Rebuild(BoardTerrainLayer p_terrainLayer, HashSet<Vector2Int> p_excludedColumns = null)
 	{
 		if (p_terrainLayer == null || p_terrainLayer.VoxelRegistry == null)
 		{
@@ -26,7 +26,7 @@ public sealed class BoardNavigationLayer
 			return;
 		}
 
-		_graph = VoxelTraversalGraphBuilder.Build(p_terrainLayer, p_terrainLayer.VoxelRegistry);
+		_graph = VoxelTraversalGraphBuilder.Build(p_terrainLayer, p_terrainLayer.VoxelRegistry, p_excludedColumns);
 	}
 
 	public bool HasNode(Vector3Int p_position)

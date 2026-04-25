@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePhaseInputHandler, IBattlePhaseAbilityShortcutHandler
 {
 	[SerializeField] private ActionShortcutBarView actionShortcutBar;
+	[SerializeField] private ActiveUnitHudView activeUnitHud;
 
 	private PlayerTurnPhase playerTurnPhase;
 	private Ability selectedAbility;
@@ -13,6 +14,7 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 	protected override void OnStart()
 	{
 		SubscribeActionShortcutBar();
+		SubscribeActiveUnitHud();
 	}
 
 	protected override void OnBind()
@@ -26,6 +28,7 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 	protected override void OnActivate()
 	{
 		actionShortcutBar?.Bind(TurnContext?.ActiveUnit);
+		activeUnitHud?.Bind(TurnContext?.ActiveUnit);
 		RefreshPreviewOverlay();
 	}
 
@@ -34,6 +37,7 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 		selectedAbility = null;
 		ClearPreviewOverlay();
 		actionShortcutBar?.Bind(null);
+		activeUnitHud?.Bind(null);
 	}
 
 	public void Confirm() { }
@@ -67,6 +71,18 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 	{
 		if (actionShortcutBar == null) return;
 		actionShortcutBar.AbilityClicked += HandleAbilityClicked;
+	}
+
+	private void SubscribeActiveUnitHud()
+	{
+		if (activeUnitHud == null) return;
+		activeUnitHud.EndTurnClicked += HandleEndTurnClicked;
+	}
+
+	private void HandleEndTurnClicked()
+	{
+		if (!IsPhaseActive || playerTurnPhase == null) return;
+		playerTurnPhase.TrySubmitEndTurn();
 	}
 
 	private void HandleAbilityClicked(int abilityIndex, Ability ability)
