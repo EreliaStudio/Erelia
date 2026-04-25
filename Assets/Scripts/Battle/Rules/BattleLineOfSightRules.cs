@@ -15,8 +15,15 @@ public static class BattleLineOfSightRules
 			return true;
 		}
 
-		Vector3 start = GetCellCenter(sourceCell);
-		Vector3 end = GetCellCenter(targetCell);
+		// Cast ray one cell above the floor node positions (the standing/passable space).
+		// Navigation nodes sit at the solid floor voxel (Y), which is an obstacle. Tracing
+		// through Y would hit those floor voxels and always block LOS. Y+1 is the open
+		// walkable cell where creatures actually stand.
+		Vector3Int losSource = new Vector3Int(sourceCell.x, sourceCell.y + 1, sourceCell.z);
+		Vector3Int losTarget = new Vector3Int(targetCell.x, targetCell.y + 1, targetCell.z);
+
+		Vector3 start = GetCellCenter(losSource) + new Vector3(0.0f, 0.5f, 0.0f);
+		Vector3 end = GetCellCenter(losTarget) + new Vector3(0.0f, 0.5f, 0.0f);
 		Vector3 direction = end - start;
 		float length = direction.magnitude;
 		if (length <= Mathf.Epsilon)
@@ -26,7 +33,7 @@ public static class BattleLineOfSightRules
 
 		direction /= length;
 
-		Vector3Int currentCell = sourceCell;
+		Vector3Int currentCell = losSource;
 		Vector3Int step = new Vector3Int(
 			Math.Sign(direction.x),
 			Math.Sign(direction.y),
@@ -40,7 +47,7 @@ public static class BattleLineOfSightRules
 		float tDeltaY = GetTDelta(direction.y);
 		float tDeltaZ = GetTDelta(direction.z);
 
-		while (currentCell != targetCell)
+		while (currentCell != losTarget)
 		{
 			if (tMaxX <= tMaxY && tMaxX <= tMaxZ)
 			{
@@ -58,7 +65,7 @@ public static class BattleLineOfSightRules
 				tMaxZ += tDeltaZ;
 			}
 
-			if (currentCell == sourceCell || currentCell == targetCell)
+			if (currentCell == losSource || currentCell == losTarget)
 			{
 				continue;
 			}

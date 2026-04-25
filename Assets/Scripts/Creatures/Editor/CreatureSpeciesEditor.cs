@@ -14,6 +14,8 @@ public class CreatureSpeciesEditor : Editor
 		EditorGUILayout.Space(4f);
 		DrawAttributesSection(serializedObject.FindProperty("Attributes"));
 		EditorGUILayout.Space(6f);
+		EditorGUILayout.PropertyField(serializedObject.FindProperty("DefaultAbilities"), true);
+		EditorGUILayout.Space(6f);
 		EditorGUILayout.PropertyField(serializedObject.FindProperty("Forms"), true);
 		EditorGUILayout.Space(8f);
 

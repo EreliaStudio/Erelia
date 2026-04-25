@@ -231,7 +231,7 @@ public sealed class ActionShortcutBarView : ExecuteAlwaysView
 
 	private IReadOnlyList<Ability> GetBoundAbilities()
 	{
-		return boundUnit?.SourceUnit?.Abilities;
+		return boundUnit?.Abilities;
 	}
 
 #if UNITY_EDITOR

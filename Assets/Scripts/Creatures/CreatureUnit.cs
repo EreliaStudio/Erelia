@@ -69,4 +69,29 @@ public class CreatureUnit
 		p_form = form;
 		return true;
 	}
+
+	public IReadOnlyList<Ability> GetAbilities()
+	{
+		List<Ability> combinedAbilities = new List<Ability>();
+		AddUniqueAbilities(combinedAbilities, Species?.DefaultAbilities);
+		AddUniqueAbilities(combinedAbilities, Abilities);
+		return combinedAbilities;
+	}
+
+	private static void AddUniqueAbilities(List<Ability> target, IReadOnlyList<Ability> source)
+	{
+		if (target == null || source == null)
+		{
+			return;
+		}
+
+		for (int index = 0; index < source.Count; index++)
+		{
+			Ability ability = source[index];
+			if (ability != null && !target.Contains(ability))
+			{
+				target.Add(ability);
+			}
+		}
+	}
 }

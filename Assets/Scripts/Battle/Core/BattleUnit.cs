@@ -30,7 +30,7 @@ public class BattleUnit : BattleObject
 	public BattleAttributes BattleAttributes { get; }
 	public BattleStatuses Statuses { get; } = new();
 
-	public IReadOnlyList<Ability> Abilities => SourceUnit.Abilities;
+	public IReadOnlyList<Ability> Abilities => SourceUnit.GetAbilities();
 	public bool HasBoardPosition => hasBoardPosition;
 	public Vector3Int BoardPosition => boardPosition;
 	public bool IsDefeated => BattleAttributes.Health.Current <= 0;

@@ -28,6 +28,8 @@ MonoBehaviour:
     LifeSteal: 0
     Omnivamprism: 0
     TimeEffectResistance: 0
+  DefaultAbilities:
+  - {fileID: 11400000, guid: e3f6dee464301b84caa32b6aec30a4eb, type: 2}
   FeatBoard:
     Nodes:
     - rid: 7055333531646951492

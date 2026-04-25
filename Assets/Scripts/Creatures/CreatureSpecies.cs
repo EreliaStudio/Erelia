@@ -6,6 +6,7 @@ using System.Collections.Generic;
 public class CreatureSpecies : ScriptableObject
 {
 	public Attributes Attributes = new Attributes();
+	public List<Ability> DefaultAbilities = new List<Ability>();
 
 	[HideInInspector]
 	public FeatBoard FeatBoard = new FeatBoard();
