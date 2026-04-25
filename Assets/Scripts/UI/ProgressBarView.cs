@@ -2,16 +2,11 @@ using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
-[DisallowMultipleComponent] 
+[DisallowMultipleComponent]
 [ExecuteAlways]
-public sealed class ProgressBarView : MonoBehaviour
+public sealed class ProgressBarView : ExecuteAlwaysView
 {
-	private static Sprite defaultSprite;
-
 	[SerializeField] private string labelFormat = "Ratio {0:0.##} / Value {1:0.##} / MaxValue {2:0.##}";
 	[SerializeField] private Color backgroundColor = new Color(0f, 0f, 0f, 0.45f);
 	[SerializeField] private Color fillColor = new Color(0.85f, 0.85f, 0.85f, 1f);
@@ -25,9 +20,6 @@ public sealed class ProgressBarView : MonoBehaviour
 	[SerializeField] private TextMeshProUGUI label;
 
 	private bool isRefreshing;
-#if UNITY_EDITOR
-	private bool editorRefreshQueued;
-#endif
 
 	public float CurrentValue => currentValue;
 	public float MaxValue => maxValue;
@@ -136,7 +128,7 @@ public sealed class ProgressBarView : MonoBehaviour
 		Transform child = transform.Find("Background");
 		if (child != null && child.TryGetComponent(out Image existing))
 		{
-			ApplyBackgroundDefaults(existing);
+			ApplyFillableImageDefaults(existing);
 			return existing;
 		}
 
@@ -145,11 +137,10 @@ public sealed class ProgressBarView : MonoBehaviour
 			return null;
 		}
 
-		GameObject childObject = CreateChild("Background", transform);
-		RectTransform rect = childObject.GetComponent<RectTransform>();
-		Stretch(rect);
+		GameObject childObject = UiViewUtility.CreateChild("Background", transform);
+		UiViewUtility.Stretch(childObject.GetComponent<RectTransform>());
 		Image image = childObject.AddComponent<Image>();
-		ApplyBackgroundDefaults(image);
+		ApplyFillableImageDefaults(image);
 		return image;
 	}
 
@@ -171,9 +162,9 @@ public sealed class ProgressBarView : MonoBehaviour
 			return null;
 		}
 
-		GameObject childObject = CreateChild("FillArea", transform);
+		GameObject childObject = UiViewUtility.CreateChild("FillArea", transform);
 		RectTransform rect = childObject.GetComponent<RectTransform>();
-		Stretch(rect);
+		UiViewUtility.Stretch(rect);
 		return rect;
 	}
 
@@ -189,7 +180,7 @@ public sealed class ProgressBarView : MonoBehaviour
 			Transform child = fillArea.Find("Fill");
 			if (child != null && child.TryGetComponent(out Image existing))
 			{
-				ApplyFillDefaults(existing);
+				ApplyFillableImageDefaults(existing);
 				return existing;
 			}
 		}
@@ -199,7 +190,7 @@ public sealed class ProgressBarView : MonoBehaviour
 			return null;
 		}
 
-		GameObject childObject = CreateChild("Fill", fillArea);
+		GameObject childObject = UiViewUtility.CreateChild("Fill", fillArea);
 		RectTransform rect = childObject.GetComponent<RectTransform>();
 		rect.anchorMin = new Vector2(0f, 0f);
 		rect.anchorMax = new Vector2(1f, 1f);
@@ -207,7 +198,7 @@ public sealed class ProgressBarView : MonoBehaviour
 		rect.offsetMax = Vector2.zero;
 		rect.pivot = new Vector2(0f, 0.5f);
 		Image image = childObject.AddComponent<Image>();
-		ApplyFillDefaults(image);
+		ApplyFillableImageDefaults(image);
 		return image;
 	}
 
@@ -230,9 +221,8 @@ public sealed class ProgressBarView : MonoBehaviour
 			return null;
 		}
 
-		GameObject childObject = CreateChild("Label", transform);
-		RectTransform rect = childObject.GetComponent<RectTransform>();
-		Stretch(rect);
+		GameObject childObject = UiViewUtility.CreateChild("Label", transform);
+		UiViewUtility.Stretch(childObject.GetComponent<RectTransform>());
 		TextMeshProUGUI text = childObject.AddComponent<TextMeshProUGUI>();
 		ApplyLabelDefaults(text);
 		return text;
@@ -295,9 +285,8 @@ public sealed class ProgressBarView : MonoBehaviour
 			return;
 		}
 
-		RectTransform fillRect = fillImage.rectTransform;
 		float ratio = ComputeRatio();
-
+		RectTransform fillRect = fillImage.rectTransform;
 		fillRect.anchorMin = new Vector2(0f, 0f);
 		fillRect.anchorMax = new Vector2(ratio, 1f);
 		fillRect.offsetMin = Vector2.zero;
@@ -332,52 +321,22 @@ public sealed class ProgressBarView : MonoBehaviour
 
 		try
 		{
-			return string.Format(
-				CultureInfo.InvariantCulture,
-				format,
-				ComputeRatio(),
-				currentValue,
-				maxValue);
+			return string.Format(CultureInfo.InvariantCulture, format, ComputeRatio(), currentValue, maxValue);
 		}
 		catch (System.FormatException)
 		{
 			return string.Format(
 				CultureInfo.InvariantCulture,
 				"Ratio {0:0.##} / Value {1:0.##} / MaxValue {2:0.##}",
-				ComputeRatio(),
-				currentValue,
-				maxValue);
+				ComputeRatio(), currentValue, maxValue);
 		}
 	}
 
-	private static GameObject CreateChild(string childName, Transform parent)
-	{
-		GameObject child = new GameObject(childName, typeof(RectTransform), typeof(CanvasRenderer));
-		child.transform.SetParent(parent, false);
-		return child;
-	}
-
-	private static void Stretch(RectTransform rectTransform)
-	{
-		rectTransform.anchorMin = Vector2.zero;
-		rectTransform.anchorMax = Vector2.one;
-		rectTransform.offsetMin = Vector2.zero;
-		rectTransform.offsetMax = Vector2.zero;
-		rectTransform.pivot = new Vector2(0.5f, 0.5f);
-	}
-
-	private static void ApplyBackgroundDefaults(Image image)
+	private static void ApplyFillableImageDefaults(Image image)
 	{
 		image.raycastTarget = false;
 		image.type = Image.Type.Simple;
-		image.sprite = image.sprite != null ? image.sprite : GetDefaultSprite();
-	}
-
-	private static void ApplyFillDefaults(Image image)
-	{
-		image.raycastTarget = false;
-		image.type = Image.Type.Simple;
-		image.sprite = image.sprite != null ? image.sprite : GetDefaultSprite();
+		image.sprite = image.sprite != null ? image.sprite : UiViewUtility.GetDefaultSprite();
 	}
 
 	private static void ApplyLabelDefaults(TextMeshProUGUI text)
@@ -390,7 +349,6 @@ public sealed class ProgressBarView : MonoBehaviour
 		text.fontSizeMax = 24f;
 		text.fontSize = 14f;
 		text.margin = Vector4.zero;
-
 	}
 
 	private static void EnsureLabelFont(TextMeshProUGUI text)
@@ -401,40 +359,9 @@ public sealed class ProgressBarView : MonoBehaviour
 		}
 	}
 
-	private static Sprite GetDefaultSprite()
-	{
-		if (defaultSprite != null)
-		{
-			return defaultSprite;
-		}
-
-		defaultSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0f, 0f, 1f, 1f), new Vector2(0.5f, 0.5f));
-		defaultSprite.name = "ProgressBarDefaultSprite";
-		defaultSprite.hideFlags = HideFlags.HideAndDontSave;
-		return defaultSprite;
-	}
-
 #if UNITY_EDITOR
-	private void QueueEditorRefresh()
+	protected override void OnEditorRefresh()
 	{
-		if (editorRefreshQueued)
-		{
-			return;
-		}
-
-		editorRefreshQueued = true;
-		EditorApplication.delayCall += ApplyEditorRefresh;
-	}
-
-	private void ApplyEditorRefresh()
-	{
-		editorRefreshQueued = false;
-
-		if (this == null)
-		{
-			return;
-		}
-
 		EnsureHierarchy(true);
 		ApplySerializedState();
 	}

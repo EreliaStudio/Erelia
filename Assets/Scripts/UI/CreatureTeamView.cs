@@ -1,39 +1,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(VerticalLayoutGroup))]
 [ExecuteAlways]
-public sealed class CreatureTeamView : MonoBehaviour
+public sealed class CreatureTeamView : ExecuteAlwaysView
 {
 	[SerializeField] private CreatureCardView cardPrefab;
 
 	private readonly List<CreatureCardView> cardInstances = new();
 	private IReadOnlyList<BattleUnit> boundTeam;
 	private Object lastPrefabReference;
-#if UNITY_EDITOR
-	private bool editorRefreshQueued;
-#endif
 
 	private void Reset()
 	{
-		EnsureLayout();
 		EnsureCards();
 	}
 
 	private void Awake()
 	{
-		EnsureLayout();
 		EnsureCards();
 	}
 
 	private void OnEnable()
 	{
-		EnsureLayout();
 		EnsureCards();
 		RefreshBindings();
 	}
@@ -43,7 +34,6 @@ public sealed class CreatureTeamView : MonoBehaviour
 #if UNITY_EDITOR
 		QueueEditorRefresh();
 #else
-		EnsureLayout();
 		EnsureCards();
 		RefreshBindings();
 #endif
@@ -52,6 +42,13 @@ public sealed class CreatureTeamView : MonoBehaviour
 	public void Bind(IReadOnlyList<BattleUnit> team)
 	{
 		boundTeam = team;
+		EnsureCards();
+		RefreshBindings();
+	}
+
+	public void Clear()
+	{
+		boundTeam = null;
 		EnsureCards();
 		RefreshBindings();
 	}
@@ -74,8 +71,46 @@ public sealed class CreatureTeamView : MonoBehaviour
 		return cardInstances[index];
 	}
 
+	public static bool TryResolveSceneTeamViews(out CreatureTeamView playerTeamView, out CreatureTeamView enemyTeamView)
+	{
+		playerTeamView = null;
+		enemyTeamView = null;
+
+		CreatureTeamView[] views = FindObjectsByType<CreatureTeamView>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+		if (views == null || views.Length < 2)
+		{
+			return false;
+		}
+
+		for (int index = 0; index < views.Length; index++)
+		{
+			CreatureTeamView view = views[index];
+			if (view == null)
+			{
+				continue;
+			}
+
+			if (playerTeamView == null || view.transform.position.x < playerTeamView.transform.position.x)
+			{
+				playerTeamView = view;
+			}
+
+			if (enemyTeamView == null || view.transform.position.x > enemyTeamView.transform.position.x)
+			{
+				enemyTeamView = view;
+			}
+		}
+
+		return playerTeamView != null && enemyTeamView != null && playerTeamView != enemyTeamView;
+	}
+
 	private void EnsureCards()
 	{
+		if (UiViewUtility.IsPersistentAssetContext(this))
+		{
+			return;
+		}
+
 		CollectCards();
 
 		if (!NeedsRebuild())
@@ -112,12 +147,7 @@ public sealed class CreatureTeamView : MonoBehaviour
 			return true;
 		}
 
-		if (cardInstances.Count != GameRule.TeamMemberCount)
-		{
-			return true;
-		}
-
-		if (transform.childCount != cardInstances.Count)
+		if (cardInstances.Count != GameRule.TeamMemberCount || transform.childCount != cardInstances.Count)
 		{
 			return true;
 		}
@@ -147,37 +177,23 @@ public sealed class CreatureTeamView : MonoBehaviour
 		for (int index = 0; index < GameRule.TeamMemberCount; index++)
 		{
 			CreatureCardView instance = CreateCardInstance(index);
-			if (instance == null)
+			if (instance != null)
 			{
-				continue;
+				cardInstances.Add(instance);
 			}
-
-			cardInstances.Add(instance);
 		}
 
 		lastPrefabReference = cardPrefab;
 		RefreshBindings();
 	}
 
-	private void EnsureLayout()
-	{
-		if (!TryGetComponent(out VerticalLayoutGroup layoutGroup))
-		{
-			return;
-		}
-
-		layoutGroup.childAlignment = TextAnchor.UpperCenter;
-		layoutGroup.spacing = 8f;
-		layoutGroup.childControlWidth = true;
-		layoutGroup.childControlHeight = false;
-		layoutGroup.childScaleWidth = false;
-		layoutGroup.childScaleHeight = false;
-		layoutGroup.childForceExpandWidth = true;
-		layoutGroup.childForceExpandHeight = false;
-	}
-
 	private CreatureCardView CreateCardInstance(int index)
 	{
+		if (UiViewUtility.IsPersistentAssetContext(this))
+		{
+			return null;
+		}
+
 		GameObject instanceObject = InstantiateCardPrefab();
 		if (instanceObject == null)
 		{
@@ -185,11 +201,14 @@ public sealed class CreatureTeamView : MonoBehaviour
 		}
 
 		instanceObject.name = $"{cardPrefab.name} {index + 1}";
-		instanceObject.transform.SetParent(transform, false);
+		if (instanceObject.transform.parent != transform)
+		{
+			instanceObject.transform.SetParent(transform, false);
+		}
 
 		if (!instanceObject.TryGetComponent(out CreatureCardView card))
 		{
-			DestroyObject(instanceObject);
+			UiViewUtility.DestroyGeneratedObject(instanceObject);
 			return null;
 		}
 
@@ -204,11 +223,16 @@ public sealed class CreatureTeamView : MonoBehaviour
 		}
 
 #if UNITY_EDITOR
+		if (UiViewUtility.IsPersistentAssetContext(this))
+		{
+			return null;
+		}
+
 		if (!Application.isPlaying)
 		{
-			Object prefabSource = PrefabUtility.GetCorrespondingObjectFromSource(cardPrefab.gameObject);
+			Object prefabSource = UnityEditor.PrefabUtility.GetCorrespondingObjectFromSource(cardPrefab.gameObject);
 			Object prefabObject = prefabSource != null ? prefabSource : cardPrefab.gameObject;
-			return PrefabUtility.InstantiatePrefab(prefabObject, transform) as GameObject;
+			return UnityEditor.PrefabUtility.InstantiatePrefab(prefabObject, transform) as GameObject;
 		}
 #endif
 
@@ -234,49 +258,13 @@ public sealed class CreatureTeamView : MonoBehaviour
 	{
 		for (int index = transform.childCount - 1; index >= 0; index--)
 		{
-			DestroyObject(transform.GetChild(index).gameObject);
-		}
-	}
-
-	private static void DestroyObject(Object target)
-	{
-		if (target == null)
-		{
-			return;
-		}
-
-		if (Application.isPlaying)
-		{
-			Destroy(target);
-		}
-		else
-		{
-			DestroyImmediate(target);
+			UiViewUtility.DestroyGeneratedObject(transform.GetChild(index).gameObject);
 		}
 	}
 
 #if UNITY_EDITOR
-	private void QueueEditorRefresh()
+	protected override void OnEditorRefresh()
 	{
-		if (editorRefreshQueued)
-		{
-			return;
-		}
-
-		editorRefreshQueued = true;
-		EditorApplication.delayCall += ApplyEditorRefresh;
-	}
-
-	private void ApplyEditorRefresh()
-	{
-		editorRefreshQueued = false;
-
-		if (this == null)
-		{
-			return;
-		}
-
-		EnsureLayout();
 		EnsureCards();
 		RefreshBindings();
 	}

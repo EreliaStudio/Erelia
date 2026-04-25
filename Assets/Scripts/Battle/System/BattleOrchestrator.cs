@@ -1,10 +1,12 @@
 using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [Serializable]
 public sealed class BattleOrchestrator : IDisposable
 {
+	[SerializeField] private CreatureTeamView playerTeamView;
+	[SerializeField] private CreatureTeamView enemyTeamView;
+
 	[SerializeField] private SetupPhaseController setupPhaseController;
 	[SerializeField] private PlacementPhaseController placementPhaseController;
 	[SerializeField] private IdlePhaseController idlePhaseController;
@@ -19,17 +21,18 @@ public sealed class BattleOrchestrator : IDisposable
 	private readonly PlayerTurnPhase playerTurnPhase = new();
 	private readonly EnemyTurnPhase enemyTurnPhase = new();
 	private readonly ResolutionPhase resolutionPhase = new();
-	private readonly EndPhase endPhase = new();
+	private readonly EndPhase endPhase = new(); 
+	[SerializeField] private BattlePhaseInputRouter inputRouter = new();
 
 	private IBattlePhase activePhase;
 	private BattlePhaseController activeController;
-	private InputAction sharedConfirmAction;
-	private InputAction sharedCancelAction;
 
 	public BattleMode BattleMode { get; private set; }
 	public BattleContext BattleContext { get; private set; }
 	public BattleCoordinator Coordinator { get; private set; }
 	public TurnContext TurnContext => BattleContext?.CurrentTurn;
+	public CreatureTeamView PlayerTeamView => playerTeamView;
+	public CreatureTeamView EnemyTeamView => enemyTeamView;
 
 	public void Initialize(BattleMode battleMode, BattleContext battleContext)
 	{
@@ -55,7 +58,7 @@ public sealed class BattleOrchestrator : IDisposable
 
 		if (activeController != null)
 		{
-			activeController.SetActive(false);
+			activeController.Deactivate();
 			activeController = null;
 		}
 
@@ -65,6 +68,7 @@ public sealed class BattleOrchestrator : IDisposable
 			activePhase = null;
 		}
 
+		inputRouter.Dispose();
 		Coordinator = null;
 		BattleContext = null;
 		BattleMode = null;
@@ -75,18 +79,34 @@ public sealed class BattleOrchestrator : IDisposable
 		Coordinator.TransitionTo(phaseType);
 	}
 
-	public void ConfigurePhaseInput(InputAction confirmAction, InputAction cancelAction)
+	public void Validate(UnityEngine.Object context)
 	{
-		sharedConfirmAction = confirmAction;
-		sharedCancelAction = cancelAction;
+		ResolveTeamViews();
+		inputRouter.Validate(context);
 
-		ConfigureControllerInput(setupPhaseController);
-		ConfigureControllerInput(placementPhaseController);
-		ConfigureControllerInput(idlePhaseController);
-		ConfigureControllerInput(playerTurnPhaseController);
-		ConfigureControllerInput(enemyTurnPhaseController);
-		ConfigureControllerInput(resolutionPhaseController);
-		ConfigureControllerInput(endPhaseController);
+		if (playerTeamView == null)
+			Logger.LogError("[BattleOrchestrator] playerTeamView is not assigned.", Logger.Severity.Critical, context);
+		if (enemyTeamView == null)
+			Logger.LogError("[BattleOrchestrator] enemyTeamView is not assigned.", Logger.Severity.Critical, context);
+	}
+
+	private void ResolveTeamViews()
+	{
+		if (playerTeamView != null && enemyTeamView != null)
+		{
+			return;
+		}
+
+		if (CreatureTeamView.TryResolveSceneTeamViews(out CreatureTeamView resolvedPlayer, out CreatureTeamView resolvedEnemy))
+		{
+			if (playerTeamView == null) playerTeamView = resolvedPlayer;
+			if (enemyTeamView == null) enemyTeamView = resolvedEnemy;
+		}
+	}
+
+	public void ConfigurePhaseInput()
+	{
+		inputRouter.Configure(this);
 	}
 
 	public bool TrySubmitPendingAction(BattleAction action)
@@ -152,6 +172,12 @@ public sealed class BattleOrchestrator : IDisposable
 		return controller != null;
 	}
 
+	public bool TryGetActiveController(out BattlePhaseController controller)
+	{
+		controller = activeController;
+		return controller != null;
+	}
+
 	private void BindPhases()
 	{
 		setupPhase.Bind(this);
@@ -183,14 +209,14 @@ public sealed class BattleOrchestrator : IDisposable
 
 		if (activeController != null)
 		{
-			activeController.SetActive(false);
+			activeController.Deactivate();
 		}
 
 		activePhase = GetPhase(phaseType);
 		activeController = GetController(phaseType);
 
 		activePhase?.Enter();
-		activeController?.SetActive(true);
+		activeController?.Activate();
 	}
 
 	private void BindController(BattlePhaseController controller)
@@ -201,18 +227,7 @@ public sealed class BattleOrchestrator : IDisposable
 		}
 
 		controller.Bind(this);
-		controller.ConfigureInput(sharedConfirmAction, sharedCancelAction);
-		controller.SetActive(false);
-	}
-
-	private void ConfigureControllerInput(BattlePhaseController controller)
-	{
-		if (controller == null)
-		{
-			return;
-		}
-
-		controller.ConfigureInput(sharedConfirmAction, sharedCancelAction);
+		controller.Deactivate();
 	}
 
 	private IBattlePhase GetPhase(BattlePhaseType phaseType)

@@ -5,16 +5,6 @@ using UnityEngine;
 
 public static class CreatureTeamEditorGui
 {
-	private static Sprite GetModelAvatar(CreatureUnit unit)
-	{
-		if (unit == null || !unit.TryGetForm(out CreatureForm form))
-		{
-			return null;
-		}
-
-		return form.Avatar;
-	}
-
 	public static void DrawUnitTab(Rect rect, CreatureUnit unit, bool isSelected, System.Action onClick)
 	{
 		Color backgroundColor = isSelected
@@ -42,19 +32,7 @@ public static class CreatureTeamEditorGui
 	{
 		EditorGUI.DrawRect(rect, new Color(0f, 0f, 0f, 0.18f));
 
-		Sprite sprite = null;
-		try
-		{
-			CreatureForm form = unit?.GetForm();
-			if (form != null)
-			{
-				sprite = form.Avatar;
-			}
-		}
-		catch
-		{
-		}
-
+		Sprite sprite = unit != null && unit.TryGetForm(out CreatureForm form) ? form.Avatar : null;
 		if (sprite != null)
 		{
 			SpriteGuiUtility.DrawSprite(rect, sprite);
@@ -74,7 +52,7 @@ public static class CreatureTeamEditorGui
 		EditorGUILayout.LabelField("Current Form", string.IsNullOrEmpty(unit?.CurrentFormID) ? "None" : unit.CurrentFormID);
 		GUILayout.EndVertical();
 
-		Sprite avatar = GetModelAvatar(unit);
+		Sprite avatar = unit != null && unit.TryGetForm(out CreatureForm form) ? form.Avatar : null;
 		if (avatar != null)
 		{
 			const float avatarSize = 56f;
@@ -164,11 +142,7 @@ public static class CreatureTeamEditorGui
 
 	private static void DrawStatCell(Rect rect, string label, string value)
 	{
-		GUIStyle labelStyle = new GUIStyle(EditorStyles.label)
-		{
-			clipping = TextClipping.Clip
-		};
-
+		GUIStyle labelStyle = new GUIStyle(EditorStyles.label) { clipping = TextClipping.Clip };
 		GUIStyle valueStyle = new GUIStyle(EditorStyles.miniBoldLabel)
 		{
 			alignment = TextAnchor.MiddleRight,
@@ -202,16 +176,9 @@ public static class CreatureTeamEditorGui
 			return "-----";
 		}
 
-		try
+		if (unit.TryGetForm(out CreatureForm form) && !string.IsNullOrWhiteSpace(form.DisplayName))
 		{
-			CreatureForm form = unit.GetForm();
-			if (form != null && !string.IsNullOrWhiteSpace(form.DisplayName))
-			{
-				return form.DisplayName;
-			}
-		}
-		catch
-		{
+			return form.DisplayName;
 		}
 
 		return unit.Species.name;

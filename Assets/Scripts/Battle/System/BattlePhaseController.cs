@@ -1,19 +1,29 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public abstract class BattlePhaseController : MonoBehaviour
 {
+	[SerializeField] private GameObject phaseHud;
+
 	protected BattleOrchestrator Orchestrator { get; private set; }
 	protected BattleMode BattleMode => Orchestrator?.BattleMode;
 	protected BattleContext BattleContext => Orchestrator?.BattleContext;
 	protected TurnContext TurnContext => BattleContext?.CurrentTurn;
 	protected BattleCoordinator Coordinator => Orchestrator?.Coordinator;
-
-	private InputAction confirmAction;
-	private InputAction cancelAction;
-	private bool isActive;
+	protected CreatureTeamView PlayerTeamView => Orchestrator?.PlayerTeamView;
+	protected CreatureTeamView EnemyTeamView => Orchestrator?.EnemyTeamView;
+	protected bool IsPhaseActive { get; private set; }
 
 	public abstract BattlePhaseType PhaseType { get; }
+
+	protected virtual void Awake()
+	{
+		OnAwake();
+	}
+
+	protected virtual void Start()
+	{
+		OnStart();
+	}
 
 	public void Bind(BattleOrchestrator orchestrator)
 	{
@@ -21,121 +31,46 @@ public abstract class BattlePhaseController : MonoBehaviour
 		OnBind();
 	}
 
-	public void ConfigureInput(InputAction confirm, InputAction cancel)
+	public void Activate()
 	{
-		UnsubscribeInputCallbacks();
-		confirmAction = confirm;
-		cancelAction = cancel;
+		IsPhaseActive = true;
+		gameObject.SetActive(true);
+		if (phaseHud != null) phaseHud.SetActive(true);
+		BindTeams();
+		OnActivate();
+	}
 
-		if (isActive)
+	public void Deactivate()
+	{
+		if (!IsPhaseActive && !gameObject.activeSelf)
 		{
-			SubscribeInputCallbacks();
-		}
-	}
-
-	public virtual void SetActive(bool isActive)
-	{
-		this.isActive = isActive;
-
-		if (isActive)
-		{
-			SubscribeInputCallbacks();
-		}
-		else
-		{
-			UnsubscribeInputCallbacks();
-		}
-
-		gameObject.SetActive(isActive);
-	}
-
-	protected virtual void OnBind()
-	{
-	}
-
-	protected virtual void OnConfirmAction(InputAction.CallbackContext context)
-	{
-	}
-
-	protected virtual void OnCancelAction(InputAction.CallbackContext context)
-	{
-	}
-
-	protected virtual void OnConfirmCanceled(InputAction.CallbackContext context)
-	{
-	}
-
-	protected virtual void OnCancelCanceled(InputAction.CallbackContext context)
-	{
-	}
-
-	private void HandleConfirmPerformed(InputAction.CallbackContext context)
-	{
-		if (GameplayInputBlocker.ShouldBlockPointerAction(context))
-		{
-			OnConfirmCanceled(context);
 			return;
 		}
 
-		OnConfirmAction(context);
+		IsPhaseActive = false;
+		OnDeactivate();
+		if (phaseHud != null) phaseHud.SetActive(false);
+		gameObject.SetActive(false);
 	}
 
-	private void HandleCancelPerformed(InputAction.CallbackContext context)
+	protected virtual void OnAwake() { }
+	protected virtual void OnStart() { }
+	protected virtual void OnBind() { }
+	protected virtual void OnActivate() { }
+	protected virtual void OnDeactivate() { }
+
+	private void BindTeams()
 	{
-		if (GameplayInputBlocker.ShouldBlockPointerAction(context))
+		BattleContext context = BattleContext;
+
+		if (PlayerTeamView != null)
 		{
-			OnCancelCanceled(context);
-			return;
+			PlayerTeamView.Bind(context?.PlayerUnits);
 		}
 
-		OnCancelAction(context);
-	}
-
-	private void SubscribeInputCallbacks()
-	{
-		if (confirmAction != null)
+		if (EnemyTeamView != null)
 		{
-			confirmAction.performed -= HandleConfirmPerformed;
-			confirmAction.performed += HandleConfirmPerformed;
-			EnableAction(confirmAction);
-		}
-
-		if (cancelAction != null)
-		{
-			cancelAction.performed -= HandleCancelPerformed;
-			cancelAction.performed += HandleCancelPerformed;
-			EnableAction(cancelAction);
-		}
-	}
-
-	private void UnsubscribeInputCallbacks()
-	{
-		if (confirmAction != null)
-		{
-			confirmAction.performed -= HandleConfirmPerformed;
-			DisableAction(confirmAction);
-		}
-
-		if (cancelAction != null)
-		{
-			cancelAction.performed -= HandleCancelPerformed;
-			DisableAction(cancelAction);
-		}
-	}
-
-	private static void EnableAction(InputAction action)
-	{
-		if (action != null && !action.enabled)
-		{
-			action.Enable();
-		}
-	}
-
-	private static void DisableAction(InputAction action)
-	{
-		if (action != null && action.enabled)
-		{
-			action.Disable();
+			EnemyTeamView.Bind(context?.EnemyUnits);
 		}
 	}
 }

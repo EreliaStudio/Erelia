@@ -59,6 +59,7 @@
     <Compile Include="Assets\Scripts\Input\GameplayInputBlocker.cs" />
     <Compile Include="Assets\Scripts\Rules\GameRule.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelShape.cs" />
+    <Compile Include="Assets\Scripts\UI\UiViewUtility.cs" />
     <Compile Include="Assets\Scripts\World\SimpleDebugChunkGenerator.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\VoxelStairShape.cs" />
     <Compile Include="Assets\Scripts\Battle\System\BattleCoordinator.cs" />
@@ -66,6 +67,7 @@
     <Compile Include="Assets\Scripts\Battle\System\Phases\PlayerTurnPhase.cs" />
     <Compile Include="Assets\Scripts\AI\AIRule.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\VoxelSlopeShape.cs" />
+    <Compile Include="Assets\Scripts\UI\AbilityShortcutView.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelCell.cs" />
     <Compile Include="Assets\Scripts\World\Navigation\WorldVoxelRaycaster.cs" />
     <Compile Include="Assets\Scripts\Mode\ExplorationMode.cs" />
@@ -98,6 +100,7 @@
     <Compile Include="Assets\Scripts\World\ChunkPresenter.cs" />
     <Compile Include="Assets\Scripts\Creatures\CreatureForm.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelEnums.cs" />
+    <Compile Include="Assets\Scripts\UI\ActionShortcutBarView.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleStats.cs" />
     <Compile Include="Assets\Scripts\Board\BoardDataBuilder.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMesher.Collider.cs" />
@@ -118,6 +121,7 @@
     <Compile Include="Assets\Scripts\BattleCellGraph\VoxelTraversalGraphBuilder.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleStatus.cs" />
     <Compile Include="Assets\Scripts\Battle\System\BattlePhaseType.cs" />
+    <Compile Include="Assets\Scripts\Battle\System\IBattlePhaseInputHandler.cs" />
     <Compile Include="Assets\Scripts\Board\BoardPathfinder.cs" />
     <Compile Include="Assets\Scripts\World\Navigation\WorldTraversalGraphCache.cs" />
     <Compile Include="Assets\Scripts\Battle\Rules\BattleStatusRules.cs" />
@@ -128,6 +132,7 @@
     <Compile Include="Assets\Scripts\Voxel\VoxelMaskCell.cs" />
     <Compile Include="Assets\Scripts\Board\BoardData.cs" />
     <Compile Include="Assets\Scripts\Battle\System\PhaseControllers\EnemyTurnPhaseController.cs" />
+    <Compile Include="Assets\Scripts\Battle\System\BattlePhaseInputRouter.cs" />
     <Compile Include="Assets\Scripts\Math\MathFormula.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatProgressionService.cs" />
     <Compile Include="Assets\Scripts\Battle\Rules\BattleActionValidator.cs" />
@@ -135,6 +140,7 @@
     <Compile Include="Assets\Scripts\Data\GameSaveData.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\PlacementStyle.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerData.cs" />
+    <Compile Include="Assets\Scripts\UI\ShortcutBarPageSelectorView.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorPresenter.cs" />
     <Compile Include="Assets\Scripts\Battle\System\Phases\PlacementPhase.cs" />
     <Compile Include="Assets\Scripts\Battle\Rules\BattlePlacementRules.cs" />
@@ -152,6 +158,7 @@
     <Compile Include="Assets\Scripts\AI\AIBehaviour.cs" />
     <Compile Include="Assets\Scripts\Board\BoardOverlayState.cs" />
     <Compile Include="Assets\Scripts\Battle\System\PhaseControllers\PlayerTurnPhaseController.cs" />
+    <Compile Include="Assets\Scripts\Battle\System\IBattlePhaseAbilityShortcutHandler.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatRequirement.cs" />
     <Compile Include="Assets\Scripts\World\ChunkCoordinates.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\VoxelSlabShape.cs" />
@@ -180,8 +187,10 @@
     <Compile Include="Assets\Scripts\Battle\System\Phases\IdlePhase.cs" />
     <Compile Include="Assets\Scripts\AI\AICondition.cs" />
     <Compile Include="Assets\Scripts\UI\CreatureTeamView.cs" />
+    <Compile Include="Assets\Scripts\UI\ExecuteAlwaysView.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatBoardProgress.cs" />
     <Compile Include="Assets\Scripts\Observables\ObservableFloatResource.cs" />
+    <Compile Include="Assets\Scripts\UI\AbilityShortcutBarView.cs" />
     <Compile Include="Assets\Scripts\Abilities\Effect.cs" />
     <Compile Include="Assets\Scripts\Player\ExplorationPlayerController.cs" />
     <Compile Include="Assets\Scripts\World\ChunkData.cs" />

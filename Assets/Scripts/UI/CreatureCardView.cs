@@ -3,21 +3,16 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 [DisallowMultipleComponent]
 [ExecuteAlways]
-public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
+public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 {
 	private enum PortraitSide
 	{
 		Left,
 		Right
 	}
-
-	private static Sprite defaultSprite;
 
 	private const string DefaultStaminaLabelFormat = "{1:0.##} sec";
 	private static readonly Vector2 FramePadding = new Vector2(2f, 2f);
@@ -44,9 +39,6 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 	private BattleUnit boundUnit;
 	private ObservableFloatResource subscribedTurnBar;
 	private Color? backgroundColorOverride;
-#if UNITY_EDITOR
-	private bool editorRefreshQueued;
-#endif
 
 	public event Action<BattleUnit> LeftClicked;
 	public event Action<BattleUnit> RightClicked;
@@ -110,11 +102,6 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 		RefreshBoundState();
 	}
 
-	public void AddLeftClickListener(Action<BattleUnit> callback)
-	{
-		LeftClicked += callback;
-	}
-
 	public void SetFormat(string format)
 	{
 		staminaLabelFormat = string.IsNullOrWhiteSpace(format) ? DefaultStaminaLabelFormat : format;
@@ -123,21 +110,6 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 		{
 			staminaBar.SetLabelFormat(staminaLabelFormat);
 		}
-	}
-
-	public void RemoveLeftClickListener(Action<BattleUnit> callback)
-	{
-		LeftClicked -= callback;
-	}
-
-	public void AddRightClickListener(Action<BattleUnit> callback)
-	{
-		RightClicked += callback;
-	}
-
-	public void RemoveRightClickListener(Action<BattleUnit> callback)
-	{
-		RightClicked -= callback;
 	}
 
 	public void SetBackgroundColor(Color color)
@@ -211,9 +183,8 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 			return null;
 		}
 
-		GameObject childObject = CreateChild("Background", transform);
-		RectTransform rect = childObject.GetComponent<RectTransform>();
-		Stretch(rect);
+		GameObject childObject = UiViewUtility.CreateChild("Background", transform);
+		UiViewUtility.Stretch(childObject.GetComponent<RectTransform>());
 		Image image = childObject.AddComponent<Image>();
 		ApplyImageDefaults(image);
 		return image;
@@ -238,9 +209,9 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 			return null;
 		}
 
-		GameObject childObject = CreateChild("Frame", transform);
+		GameObject childObject = UiViewUtility.CreateChild("Frame", transform);
 		RectTransform rect = childObject.GetComponent<RectTransform>();
-		Stretch(rect);
+		UiViewUtility.Stretch(rect);
 		rect.offsetMin = FramePadding;
 		rect.offsetMax = -FramePadding;
 		Image image = childObject.AddComponent<Image>();
@@ -268,9 +239,8 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 			return null;
 		}
 
-		GameObject childObject = CreateChild("PortraitBackground", frameImage.transform);
-		RectTransform rect = childObject.GetComponent<RectTransform>();
-		ApplyPortraitBackgroundLayout(rect);
+		GameObject childObject = UiViewUtility.CreateChild("PortraitBackground", frameImage.transform);
+		ApplyPortraitBackgroundLayout(childObject.GetComponent<RectTransform>());
 		Image image = childObject.AddComponent<Image>();
 		ApplyImageDefaults(image);
 		return image;
@@ -299,10 +269,10 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 			return null;
 		}
 
-		GameObject childObject = CreateChild("Portrait", portraitBackgroundImage.transform);
+		GameObject childObject = UiViewUtility.CreateChild("Portrait", portraitBackgroundImage.transform);
 		RectTransform rect = childObject.GetComponent<RectTransform>();
-		rect.anchorMin = new Vector2(0f, 0f);
-		rect.anchorMax = new Vector2(1f, 1f);
+		rect.anchorMin = Vector2.zero;
+		rect.anchorMax = Vector2.one;
 		rect.offsetMin = Vector2.zero;
 		rect.offsetMax = Vector2.zero;
 		rect.pivot = new Vector2(0.5f, 0.5f);
@@ -331,7 +301,7 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 			return null;
 		}
 
-		GameObject childObject = CreateChild("NameLabel", frameImage.transform);
+		GameObject childObject = UiViewUtility.CreateChild("NameLabel", frameImage.transform);
 		TextMeshProUGUI text = childObject.AddComponent<TextMeshProUGUI>();
 		ApplyLabelDefaults(text);
 		return text;
@@ -357,7 +327,7 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 			return null;
 		}
 
-		GameObject childObject = CreateChild("StaminaBar", frameImage.transform);
+		GameObject childObject = UiViewUtility.CreateChild("StaminaBar", frameImage.transform);
 		ProgressBarView view = childObject.AddComponent<ProgressBarView>();
 		view.RefreshNow();
 		return view;
@@ -464,21 +434,13 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 		bool shouldShowBar = ShouldShowStaminaBar();
 		staminaBar.gameObject.SetActive(shouldShowBar);
 
-		if (!shouldShowBar)
+		if (!shouldShowBar || turnBar == null)
 		{
 			staminaBar.SetValues(0f, 0f);
 			return;
 		}
 
-		if (turnBar == null)
-		{
-			staminaBar.SetValues(0f, 0f);
-			return;
-		}
-
-		float max = turnBar.Max;
-		float remainingTime = Mathf.Max(0f, turnBar.Current);
-		staminaBar.SetValues(remainingTime, max);
+		staminaBar.SetValues(Mathf.Max(0f, turnBar.Current), turnBar.Max);
 	}
 
 	private bool ShouldShowStaminaBar()
@@ -497,8 +459,7 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 			}
 		}
 
-		Transform rootChild = transform.Find(childName);
-		return rootChild;
+		return transform.Find(childName);
 	}
 
 	private void MoveToFrame(Transform child)
@@ -518,16 +479,9 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 			return null;
 		}
 
-		try
+		if (unit.SourceUnit.TryGetForm(out CreatureForm form) && !string.IsNullOrWhiteSpace(form.DisplayName))
 		{
-			CreatureForm form = unit.SourceUnit.GetForm();
-			if (form != null && !string.IsNullOrWhiteSpace(form.DisplayName))
-			{
-				return form.DisplayName;
-			}
-		}
-		catch
-		{
+			return form.DisplayName;
 		}
 
 		return unit.SourceUnit.Species != null ? unit.SourceUnit.Species.name : null;
@@ -540,15 +494,7 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 			return null;
 		}
 
-		try
-		{
-			CreatureForm form = unit.SourceUnit.GetForm();
-			return form?.Avatar;
-		}
-		catch
-		{
-			return null;
-		}
+		return unit.SourceUnit.TryGetForm(out CreatureForm form) ? form.Avatar : null;
 	}
 
 	private void ApplyPortraitBackgroundLayout(RectTransform rect)
@@ -631,27 +577,11 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 		return Mathf.Max(0f, rectTransform.rect.height - (ContentPadding * 2f));
 	}
 
-	private static GameObject CreateChild(string childName, Transform parent)
-	{
-		GameObject child = new GameObject(childName, typeof(RectTransform), typeof(CanvasRenderer));
-		child.transform.SetParent(parent, false);
-		return child;
-	}
-
-	private static void Stretch(RectTransform rectTransform)
-	{
-		rectTransform.anchorMin = Vector2.zero;
-		rectTransform.anchorMax = Vector2.one;
-		rectTransform.offsetMin = Vector2.zero;
-		rectTransform.offsetMax = Vector2.zero;
-		rectTransform.pivot = new Vector2(0.5f, 0.5f);
-	}
-
 	private static void ApplyImageDefaults(Image image)
 	{
 		image.raycastTarget = true;
 		image.type = Image.Type.Simple;
-		image.sprite = image.sprite != null ? image.sprite : GetDefaultSprite();
+		image.sprite = image.sprite != null ? image.sprite : UiViewUtility.GetDefaultSprite();
 	}
 
 	private static void ApplyPortraitDefaults(Image image)
@@ -676,40 +606,9 @@ public sealed class CreatureCardView : MonoBehaviour, IPointerClickHandler
 		}
 	}
 
-	private static Sprite GetDefaultSprite()
-	{
-		if (defaultSprite != null)
-		{
-			return defaultSprite;
-		}
-
-		defaultSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0f, 0f, 1f, 1f), new Vector2(0.5f, 0.5f));
-		defaultSprite.name = "CreatureCardDefaultSprite";
-		defaultSprite.hideFlags = HideFlags.HideAndDontSave;
-		return defaultSprite;
-	}
-
 #if UNITY_EDITOR
-	private void QueueEditorRefresh()
+	protected override void OnEditorRefresh()
 	{
-		if (editorRefreshQueued)
-		{
-			return;
-		}
-
-		editorRefreshQueued = true;
-		EditorApplication.delayCall += ApplyEditorRefresh;
-	}
-
-	private void ApplyEditorRefresh()
-	{
-		editorRefreshQueued = false;
-
-		if (this == null)
-		{
-			return;
-		}
-
 		EnsureHierarchy(true);
 		ApplySerializedState();
 		UnsubscribeFromTurnBar();

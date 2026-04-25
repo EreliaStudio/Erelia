@@ -2,6 +2,7 @@ using UnityEngine;
 
 public sealed class BattleMode : Mode
 {
+	[SerializeField] private GameObject battleHud;
 	[SerializeField] private BoardPresenter boardPresenter;
 	[SerializeField] private BattlePlayerController battlePlayerController;
 	[SerializeField] private GameObject battleUnitPrefab;
@@ -18,6 +19,11 @@ public sealed class BattleMode : Mode
 	public BattlePhaseType? CurrentPhaseType => battleOrchestrator != null && battleOrchestrator.Coordinator.HasActivePhase
 		? battleOrchestrator.Coordinator.CurrentPhaseType
 		: null;
+
+	private void Start()
+	{
+		battleOrchestrator.Validate(this);
+	}
 
 	private void Awake()
 	{
@@ -45,6 +51,11 @@ public sealed class BattleMode : Mode
 		{
 			Logger.LogError("[BattleMode] EnemyTeamRoot is not assigned in the inspector.", Logger.Severity.Critical, this);
 		}
+
+		if (battleHud == null)
+		{
+			Logger.LogError("[BattleMode] BattleHud is not assigned in the inspector.", Logger.Severity.Critical, this);
+		}
 	}
 
 	public void Enter(BattleContext context)
@@ -71,7 +82,7 @@ public sealed class BattleMode : Mode
 
 		battlePlayerController.Bind(anchor, size, battleContext.PlayerWorldPosition);
 		battleOrchestrator.Initialize(this, battleContext);
-		battlePlayerController.ConfigurePhaseInput(battleOrchestrator);
+		battleOrchestrator.ConfigurePhaseInput();
 	}
 
 	public void TransitionToPhase(BattlePhaseType phaseType)
@@ -79,8 +90,14 @@ public sealed class BattleMode : Mode
 		battleOrchestrator?.TransitionTo(phaseType);
 	}
 
+	protected override void OnEnter()
+	{
+		battleHud.SetActive(true);
+	}
+
 	protected override void OnExit()
 	{
+		battleHud.SetActive(false);
 		battleOrchestrator?.Dispose();
 		battleUnitManager?.Dispose();
 		battlePlayerController.Unbind();

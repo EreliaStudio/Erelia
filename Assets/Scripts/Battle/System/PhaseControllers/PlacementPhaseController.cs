@@ -1,14 +1,9 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-public sealed class PlacementPhaseController : BattlePhaseController
+public sealed class PlacementPhaseController : BattlePhaseController, IBattlePhaseInputHandler
 {
-	[SerializeField] private GameObject placementHudRoot;
-	[SerializeField] private CreatureTeamView playerTeamView;
-	[SerializeField] private CreatureTeamView enemyTeamView;
-
 	[SerializeField] private Button confirmButton;
 
 	[Header("Card Colors")]
@@ -21,9 +16,50 @@ public sealed class PlacementPhaseController : BattlePhaseController
 
 	public override BattlePhaseType PhaseType => BattlePhaseType.Placement;
 
+	protected override void OnStart()
+	{
+		SubscribeConfirmButton();
+	}
+
+	protected override void OnBind()
+	{
+		if (Orchestrator.TryGetPhase(BattlePhaseType.Placement, out IBattlePhase phase))
+		{
+			placementPhase = phase as PlacementPhase;
+		}
+	}
+
+	protected override void OnActivate()
+	{
+		SubscribePlayerCardClicks();
+		RefreshCardColors();
+		RefreshConfirmButton();
+		RefreshPlacementOverlay();
+	}
+
+	protected override void OnDeactivate()
+	{
+		UnsubscribePlayerCardClicks();
+		ClearPlacementOverlay();
+	}
+
+	public void Confirm()
+	{
+		if (placementPhase != null && placementPhase.CanCompletePlacement())
+		{
+			placementPhase.TryCompletePlacement();
+		}
+	}
+
+	public void Cancel()
+	{
+		placementPhase?.ClearSelectedPlayerUnit();
+		RefreshPlacementOverlay();
+	}
+
 	private void Update()
 	{
-		if (Mouse.current == null || GameplayInputBlocker.ShouldBlockPointerAction())
+		if (Mouse.current == null || !IsPhaseActive || GameplayInputBlocker.ShouldBlockPointerAction())
 		{
 			return;
 		}
@@ -39,123 +75,44 @@ public sealed class PlacementPhaseController : BattlePhaseController
 		}
 	}
 
-	public override void SetActive(bool isActive)
-	{
-		if (placementHudRoot != null)
-		{
-			placementHudRoot.SetActive(isActive);
-		}
-
-		base.SetActive(isActive);
-
-		if (isActive)
-		{
-			ResolvePlacementPhase();
-			BindTeams();
-			SubscribePlayerCardClicks();
-			SubscribeConfirmButton();
-			RefreshCardColors();
-			RefreshConfirmButton();
-			RefreshPlacementOverlay();
-			return;
-		}
-
-		UnsubscribePlayerCardClicks();
-		UnsubscribeConfirmButton();
-		ClearPlacementOverlay();
-	}
-
-	protected override void OnBind()
-	{
-		ResolvePlacementPhase();
-		BindTeams();
-	}
-
-	protected override void OnConfirmAction(InputAction.CallbackContext context)
-	{
-		ResolvePlacementPhase();
-		if (placementPhase != null && placementPhase.CanCompletePlacement())
-		{
-			placementPhase.TryCompletePlacement();
-		}
-	}
-
-	protected override void OnCancelAction(InputAction.CallbackContext context)
-	{
-		ResolvePlacementPhase();
-		placementPhase?.ClearSelectedPlayerUnit();
-		RefreshPlacementOverlay();
-	}
-
-	private void BindTeams()
-	{
-		if (BattleContext == null)
-		{
-			if (playerTeamView != null)
-			{
-				playerTeamView.Bind(null);
-			}
-
-			if (enemyTeamView != null)
-			{
-				enemyTeamView.Bind(null);
-			}
-
-			return;
-		}
-
-		playerTeamView?.Bind(BattleContext.PlayerUnits);
-		enemyTeamView?.Bind(BattleContext.EnemyUnits);
-	}
-
 	private void SubscribePlayerCardClicks()
 	{
-		if (playerTeamView == null)
+		if (PlayerTeamView == null) return;
+		int cardCount = PlayerTeamView.GetCardCount();
+		for (int i = 0; i < cardCount; i++)
 		{
-			return;
-		}
-
-		UnsubscribePlayerCardClicks();
-
-		int cardCount = playerTeamView.GetCardCount();
-		for (int index = 0; index < cardCount; index++)
-		{
-			CreatureCardView card = playerTeamView.GetCard(index);
-			card?.AddLeftClickListener(HandlePlayerCardLeftClicked);
-			card?.AddRightClickListener(HandlePlayerCardRightClicked);
+			CreatureCardView card = PlayerTeamView.GetCard(i);
+			if (card == null) continue;
+			card.LeftClicked -= HandlePlayerCardLeftClicked;
+			card.RightClicked -= HandlePlayerCardRightClicked;
+			card.LeftClicked += HandlePlayerCardLeftClicked;
+			card.RightClicked += HandlePlayerCardRightClicked;
 		}
 	}
 
 	private void UnsubscribePlayerCardClicks()
 	{
-		if (playerTeamView == null)
+		if (PlayerTeamView == null) return;
+		int cardCount = PlayerTeamView.GetCardCount();
+		for (int i = 0; i < cardCount; i++)
 		{
-			return;
-		}
-
-		int cardCount = playerTeamView.GetCardCount();
-		for (int index = 0; index < cardCount; index++)
-		{
-			CreatureCardView card = playerTeamView.GetCard(index);
-			card?.RemoveLeftClickListener(HandlePlayerCardLeftClicked);
-			card?.RemoveRightClickListener(HandlePlayerCardRightClicked);
+			CreatureCardView card = PlayerTeamView.GetCard(i);
+			if (card == null) continue;
+			card.LeftClicked -= HandlePlayerCardLeftClicked;
+			card.RightClicked -= HandlePlayerCardRightClicked;
 		}
 	}
 
 	private void HandlePlayerCardLeftClicked(BattleUnit unit)
 	{
-		ResolvePlacementPhase();
+		if (!IsPhaseActive) return;
 		placementPhase?.TrySelectPlayerUnit(unit);
 		RefreshPlacementOverlay();
 	}
 
 	private void HandlePlayerCardRightClicked(BattleUnit unit)
 	{
-		ResolvePlacementPhase();
-		if (placementPhase == null || unit == null)
-		{
-			return;
-		}
+		if (!IsPhaseActive || placementPhase == null || unit == null) return;
 
 		if (!placementPhase.TryRemovePlayerUnit(unit))
 		{
@@ -165,23 +122,8 @@ public sealed class PlacementPhaseController : BattlePhaseController
 		RefreshPlacementOverlay();
 	}
 
-	private void ResolvePlacementPhase()
-	{
-		if (placementPhase != null)
-		{
-			return;
-		}
-
-		if (Orchestrator != null &&
-			Orchestrator.TryGetPhase(BattlePhaseType.Placement, out IBattlePhase phase))
-		{
-			placementPhase = phase as PlacementPhase;
-		}
-	}
-
 	private void TryHandleBoardLeftClick()
 	{
-		ResolvePlacementPhase();
 		if (placementPhase == null ||
 			placementPhase.GetSelectedPlayerUnit() == null ||
 			!TryGetHoveredBoardCell(out Vector3Int cell))
@@ -197,11 +139,7 @@ public sealed class PlacementPhaseController : BattlePhaseController
 
 	private void TryHandleBoardRightClick()
 	{
-		ResolvePlacementPhase();
-		if (placementPhase == null || !TryGetHoveredBoardCell(out Vector3Int cell))
-		{
-			return;
-		}
+		if (placementPhase == null || !TryGetHoveredBoardCell(out Vector3Int cell)) return;
 
 		if (placementPhase.TryRemovePlayerUnitAt(cell))
 		{
@@ -231,38 +169,27 @@ public sealed class PlacementPhaseController : BattlePhaseController
 
 	private void RefreshCardColors()
 	{
-		if (BattleContext == null)
-		{
-			return;
-		}
+		if (BattleContext == null) return;
 
 		BattleUnit selectedUnit = placementPhase?.GetSelectedPlayerUnit();
-		RefreshTeamCardColors(playerTeamView, BattleContext.PlayerUnits, selectedUnit);
-		RefreshTeamCardColors(enemyTeamView, BattleContext.EnemyUnits, null);
+		RefreshTeamCardColors(PlayerTeamView, BattleContext.PlayerUnits, selectedUnit);
+		RefreshTeamCardColors(EnemyTeamView, BattleContext.EnemyUnits, null);
 	}
 
-	private void RefreshTeamCardColors(CreatureTeamView teamView, IReadOnlyList<BattleUnit> units, BattleUnit selectedUnit)
+	private void RefreshTeamCardColors(CreatureTeamView teamView, System.Collections.Generic.IReadOnlyList<BattleUnit> units, BattleUnit selectedUnit)
 	{
-		if (teamView == null)
-		{
-			return;
-		}
-
+		if (teamView == null) return;
 		int cardCount = teamView.GetCardCount();
-		for (int index = 0; index < cardCount; index++)
+		for (int i = 0; i < cardCount; i++)
 		{
-			CreatureCardView card = teamView.GetCard(index);
-			if (card == null)
-			{
-				continue;
-			}
-
-			BattleUnit unit = units != null && index < units.Count ? units[index] : null;
-			card.SetBackgroundColor(GetCardBackgroundColor(unit, selectedUnit));
+			CreatureCardView card = teamView.GetCard(i);
+			if (card == null) continue;
+			BattleUnit unit = units != null && i < units.Count ? units[i] : null;
+			card.SetBackgroundColor(GetCardColor(unit, selectedUnit));
 		}
 	}
 
-	private Color GetCardBackgroundColor(BattleUnit unit, BattleUnit selectedUnit)
+	private Color GetCardColor(BattleUnit unit, BattleUnit selectedUnit)
 	{
 		if (unit == null) return emptySlotColor;
 		if (ReferenceEquals(unit, selectedUnit)) return selectedColor;
@@ -272,10 +199,7 @@ public sealed class PlacementPhaseController : BattlePhaseController
 
 	private void RefreshPlacementOverlay()
 	{
-		if (BattleMode?.BoardPresenter == null)
-		{
-			return;
-		}
+		if (BattleMode?.BoardPresenter == null) return;
 
 		BoardOverlayState overlayState = BattleMode.BoardPresenter.OverlayState;
 		overlayState.Clear(VoxelMask.Placement);
@@ -297,53 +221,38 @@ public sealed class PlacementPhaseController : BattlePhaseController
 		RefreshConfirmButton();
 	}
 
-	private void RefreshConfirmButton()
-	{
-		if (confirmButton == null)
-		{
-			return;
-		}
-
-		confirmButton.interactable = placementPhase != null && placementPhase.CanCompletePlacement();
-	}
-
-	private void SubscribeConfirmButton()
-	{
-		if (confirmButton == null)
-		{
-			return;
-		}
-
-		confirmButton.onClick.RemoveListener(HandleConfirmButtonClicked);
-		confirmButton.onClick.AddListener(HandleConfirmButtonClicked);
-	}
-
-	private void UnsubscribeConfirmButton()
-	{
-		if (confirmButton == null)
-		{
-			return;
-		}
-
-		confirmButton.onClick.RemoveListener(HandleConfirmButtonClicked);
-	}
-
-	private void HandleConfirmButtonClicked()
-	{
-		ResolvePlacementPhase();
-		placementPhase?.TryCompletePlacement();
-	}
-
 	private void ClearPlacementOverlay()
 	{
-		if (BattleMode?.BoardPresenter == null)
-		{
-			return;
-		}
+		if (BattleMode?.BoardPresenter == null) return;
 
 		BoardOverlayState overlayState = BattleMode.BoardPresenter.OverlayState;
 		overlayState.Clear(VoxelMask.Placement);
 		overlayState.Clear(VoxelMask.Selected);
 		BattleMode.BoardPresenter.RefreshOverlay();
 	}
+
+	private void RefreshConfirmButton()
+	{
+		if (confirmButton != null)
+		{
+			confirmButton.interactable = placementPhase != null && placementPhase.CanCompletePlacement();
+		}
+	}
+
+	private void SubscribeConfirmButton()
+	{
+		if (confirmButton != null)
+		{
+			confirmButton.onClick.AddListener(HandleConfirmButtonClicked);
+		}
+	}
+
+	private void HandleConfirmButtonClicked()
+	{
+		if (IsPhaseActive)
+		{
+			placementPhase?.TryCompletePlacement();
+		}
+	}
+
 }
