@@ -15,14 +15,14 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 	}
 
 	private const string DefaultStaminaLabelFormat = "{1:0.##} sec";
-	private static readonly Vector2 FramePadding = new Vector2(2f, 2f);
-	private const float ContentPadding = 8f;
-	private const float StaminaBarHeight = 20f;
 
 	[SerializeField] private PortraitSide portraitSide = PortraitSide.Left;
 	[SerializeField] private bool showStaminaBar = true;
 	[SerializeField] private string defaultName = "Empty Slot";
 	[SerializeField] private string staminaLabelFormat = DefaultStaminaLabelFormat;
+	[SerializeField] private Vector2 framePadding = new Vector2(2f, 2f);
+	[SerializeField, Min(0f)] private float contentPadding = 8f;
+	[SerializeField, Min(0f)] private float staminaBarHeight = 20f;
 	[SerializeField] private Color backgroundColor = new Color(0f, 0f, 0f, 0.45f);
 	[SerializeField] private Color frameColor = new Color(1f, 1f, 1f, 0.08f);
 	[SerializeField] private Color portraitBackgroundColor = new Color(0f, 0f, 0f, 0.25f);
@@ -39,6 +39,9 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 	private BattleUnit boundUnit;
 	private ObservableFloatResource subscribedTurnBar;
 	private Color? backgroundColorOverride;
+	private bool hasStaminaBarOverride;
+	private string staminaOverrideLabelFormat;
+	private bool staminaOverrideUsesMaxValue;
 
 	public event Action<BattleUnit> LeftClicked;
 	public event Action<BattleUnit> RightClicked;
@@ -99,6 +102,7 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 		UnsubscribeFromTurnBar();
 		boundUnit = unit;
 		SubscribeToTurnBar();
+		ApplySerializedState();
 		RefreshBoundState();
 	}
 
@@ -108,8 +112,39 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 
 		if (staminaBar != null)
 		{
-			staminaBar.SetLabelFormat(staminaLabelFormat);
+			staminaBar.SetLabelFormat(GetEffectiveStaminaLabelFormat());
 		}
+	}
+
+	public void SetStaminaBarOverride(string labelFormat, bool useMaxValue)
+	{
+		hasStaminaBarOverride = true;
+		staminaOverrideLabelFormat = string.IsNullOrWhiteSpace(labelFormat) ? staminaLabelFormat : labelFormat;
+		staminaOverrideUsesMaxValue = useMaxValue;
+		ApplySerializedState();
+		RefreshStaminaBar(boundUnit?.BattleAttributes?.TurnBar);
+	}
+
+	public void ClearStaminaBarOverride()
+	{
+		if (!hasStaminaBarOverride)
+		{
+			return;
+		}
+
+		hasStaminaBarOverride = false;
+		staminaOverrideLabelFormat = null;
+		staminaOverrideUsesMaxValue = false;
+		ApplySerializedState();
+		RefreshStaminaBar(boundUnit?.BattleAttributes?.TurnBar);
+	}
+
+	public void ConfigureDefaultLayout(Vector2 defaultFramePadding, float defaultContentPadding, float defaultStaminaBarHeight)
+	{
+		framePadding = new Vector2(Mathf.Max(0f, defaultFramePadding.x), Mathf.Max(0f, defaultFramePadding.y));
+		contentPadding = Mathf.Max(0f, defaultContentPadding);
+		staminaBarHeight = Mathf.Max(0f, defaultStaminaBarHeight);
+		ApplySerializedState();
 	}
 
 	public void SetBackgroundColor(Color color)
@@ -212,8 +247,8 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 		GameObject childObject = UiViewUtility.CreateChild("Frame", transform);
 		RectTransform rect = childObject.GetComponent<RectTransform>();
 		UiViewUtility.Stretch(rect);
-		rect.offsetMin = FramePadding;
-		rect.offsetMax = -FramePadding;
+		rect.offsetMin = framePadding;
+		rect.offsetMax = -framePadding;
 		Image image = childObject.AddComponent<Image>();
 		ApplyImageDefaults(image);
 		return image;
@@ -291,7 +326,7 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 		Transform child = FindContentTransform("NameLabel");
 		if (child != null && child.TryGetComponent(out TextMeshProUGUI existing))
 		{
-			ApplyLabelDefaults(existing);
+			EnsureLabelFont(existing);
 			MoveToFrame(child);
 			return existing;
 		}
@@ -343,8 +378,8 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 		if (frameImage != null)
 		{
 			frameImage.color = frameColor;
-			frameImage.rectTransform.offsetMin = FramePadding;
-			frameImage.rectTransform.offsetMax = -FramePadding;
+			frameImage.rectTransform.offsetMin = framePadding;
+			frameImage.rectTransform.offsetMax = -framePadding;
 		}
 
 		if (portraitBackgroundImage != null)
@@ -364,7 +399,7 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 		{
 			bool shouldShowStaminaBar = ShouldShowStaminaBar();
 			staminaBar.gameObject.SetActive(shouldShowStaminaBar);
-			staminaBar.SetLabelFormat(staminaLabelFormat);
+			staminaBar.SetLabelFormat(GetEffectiveStaminaLabelFormat());
 
 			if (shouldShowStaminaBar)
 			{
@@ -433,6 +468,10 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 
 		bool shouldShowBar = ShouldShowStaminaBar();
 		staminaBar.gameObject.SetActive(shouldShowBar);
+		if (nameLabel != null)
+		{
+			ApplyNameLabelLayout(nameLabel.rectTransform);
+		}
 
 		if (!shouldShowBar || turnBar == null)
 		{
@@ -440,7 +479,15 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 			return;
 		}
 
-		staminaBar.SetValues(Mathf.Max(0f, turnBar.Current), turnBar.Max);
+		float currentValue = staminaOverrideUsesMaxValue ? turnBar.Max : Mathf.Max(0f, turnBar.Current);
+		staminaBar.SetValues(currentValue, turnBar.Max);
+	}
+
+	private string GetEffectiveStaminaLabelFormat()
+	{
+		return hasStaminaBarOverride && !string.IsNullOrWhiteSpace(staminaOverrideLabelFormat)
+			? staminaOverrideLabelFormat
+			: staminaLabelFormat;
 	}
 
 	private bool ShouldShowStaminaBar()
@@ -506,14 +553,14 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 			rect.anchorMin = new Vector2(0f, 0.5f);
 			rect.anchorMax = new Vector2(0f, 0.5f);
 			rect.pivot = new Vector2(0f, 0.5f);
-			rect.anchoredPosition = new Vector2(ContentPadding, 0f);
+			rect.anchoredPosition = new Vector2(contentPadding, 0f);
 		}
 		else
 		{
 			rect.anchorMin = new Vector2(1f, 0.5f);
 			rect.anchorMax = new Vector2(1f, 0.5f);
 			rect.pivot = new Vector2(1f, 0.5f);
-			rect.anchoredPosition = new Vector2(-ContentPadding, 0f);
+			rect.anchoredPosition = new Vector2(-contentPadding, 0f);
 		}
 
 		rect.sizeDelta = new Vector2(portraitSize, portraitSize);
@@ -522,21 +569,21 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 	private void ApplyNameLabelLayout(RectTransform rect)
 	{
 		float portraitSize = GetPortraitSize();
-		float portraitSpan = portraitSize + (ContentPadding * 2f);
+		float portraitSpan = portraitSize + (contentPadding * 2f);
 		rect.anchorMin = new Vector2(0f, 0f);
 		rect.anchorMax = new Vector2(1f, 1f);
 		rect.pivot = new Vector2(0.5f, 0.5f);
 
-		float bottomInset = ShouldShowStaminaBar() ? ContentPadding + StaminaBarHeight + 4f : ContentPadding;
+		float bottomInset = ShouldShowStaminaBar() ? contentPadding + staminaBarHeight + 4f : contentPadding;
 		if (portraitSide == PortraitSide.Left)
 		{
 			rect.offsetMin = new Vector2(portraitSpan, bottomInset);
-			rect.offsetMax = new Vector2(-ContentPadding, -ContentPadding);
+			rect.offsetMax = new Vector2(-contentPadding, -contentPadding);
 		}
 		else
 		{
-			rect.offsetMin = new Vector2(ContentPadding, bottomInset);
-			rect.offsetMax = new Vector2(-portraitSpan, -ContentPadding);
+			rect.offsetMin = new Vector2(contentPadding, bottomInset);
+			rect.offsetMax = new Vector2(-portraitSpan, -contentPadding);
 		}
 	}
 
@@ -550,20 +597,20 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 	private void ApplyStaminaBarLayout(RectTransform rect)
 	{
 		float portraitSize = GetPortraitSize();
-		float portraitSpan = portraitSize + (ContentPadding * 2f);
+		float portraitSpan = portraitSize + (contentPadding * 2f);
 		rect.anchorMin = new Vector2(0f, 0f);
 		rect.anchorMax = new Vector2(1f, 0f);
 		rect.pivot = new Vector2(0.5f, 0f);
 
 		if (portraitSide == PortraitSide.Left)
 		{
-			rect.offsetMin = new Vector2(portraitSpan, ContentPadding);
-			rect.offsetMax = new Vector2(-ContentPadding, ContentPadding + StaminaBarHeight);
+			rect.offsetMin = new Vector2(portraitSpan, contentPadding);
+			rect.offsetMax = new Vector2(-contentPadding, contentPadding + staminaBarHeight);
 		}
 		else
 		{
-			rect.offsetMin = new Vector2(ContentPadding, ContentPadding);
-			rect.offsetMax = new Vector2(-portraitSpan, ContentPadding + StaminaBarHeight);
+			rect.offsetMin = new Vector2(contentPadding, contentPadding);
+			rect.offsetMax = new Vector2(-portraitSpan, contentPadding + staminaBarHeight);
 		}
 	}
 
@@ -574,7 +621,7 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 			return 0f;
 		}
 
-		return Mathf.Max(0f, rectTransform.rect.height - (ContentPadding * 2f));
+		return Mathf.Max(0f, rectTransform.rect.height - (contentPadding * 2f));
 	}
 
 	private static void ApplyImageDefaults(Image image)
@@ -592,6 +639,7 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 
 	private static void ApplyLabelDefaults(TextMeshProUGUI text)
 	{
+		EnsureLabelFont(text);
 		text.raycastTarget = false;
 		text.alignment = TextAlignmentOptions.MidlineLeft;
 		text.enableAutoSizing = true;
@@ -600,6 +648,10 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 		text.fontSize = 16f;
 		text.margin = Vector4.zero;
 
+	}
+
+	private static void EnsureLabelFont(TextMeshProUGUI text)
+	{
 		if (text.font == null)
 		{
 			text.font = TMP_Settings.defaultFontAsset;

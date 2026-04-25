@@ -4,6 +4,8 @@ using UnityEngine.UI;
 
 public sealed class PlacementPhaseController : BattlePhaseController, IBattlePhaseInputHandler
 {
+	private const string PlacementStaminaLabelFormat = "{2:0.##} sec";
+
 	[SerializeField] private Button confirmButton;
 
 	[Header("Card Colors")]
@@ -31,6 +33,7 @@ public sealed class PlacementPhaseController : BattlePhaseController, IBattlePha
 
 	protected override void OnActivate()
 	{
+		ApplyPlacementCardStaminaOverrides();
 		SubscribePlayerCardClicks();
 		RefreshCardColors();
 		RefreshConfirmButton();
@@ -40,6 +43,7 @@ public sealed class PlacementPhaseController : BattlePhaseController, IBattlePha
 	protected override void OnDeactivate()
 	{
 		UnsubscribePlayerCardClicks();
+		ClearPlacementCardStaminaOverrides();
 		ClearPlacementOverlay();
 	}
 
@@ -195,6 +199,40 @@ public sealed class PlacementPhaseController : BattlePhaseController, IBattlePha
 		if (ReferenceEquals(unit, selectedUnit)) return selectedColor;
 		if (unit.HasBoardPosition) return placedColor;
 		return unplacedColor;
+	}
+
+	private void ApplyPlacementCardStaminaOverrides()
+	{
+		ApplyPlacementCardStaminaOverrides(PlayerTeamView);
+		ApplyPlacementCardStaminaOverrides(EnemyTeamView);
+	}
+
+	private void ApplyPlacementCardStaminaOverrides(CreatureTeamView teamView)
+	{
+		if (teamView == null) return;
+
+		int cardCount = teamView.GetCardCount();
+		for (int i = 0; i < cardCount; i++)
+		{
+			teamView.GetCard(i)?.SetStaminaBarOverride(PlacementStaminaLabelFormat, useMaxValue: true);
+		}
+	}
+
+	private void ClearPlacementCardStaminaOverrides()
+	{
+		ClearPlacementCardStaminaOverrides(PlayerTeamView);
+		ClearPlacementCardStaminaOverrides(EnemyTeamView);
+	}
+
+	private void ClearPlacementCardStaminaOverrides(CreatureTeamView teamView)
+	{
+		if (teamView == null) return;
+
+		int cardCount = teamView.GetCardCount();
+		for (int i = 0; i < cardCount; i++)
+		{
+			teamView.GetCard(i)?.ClearStaminaBarOverride();
+		}
 	}
 
 	private void RefreshPlacementOverlay()

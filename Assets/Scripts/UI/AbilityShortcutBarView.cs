@@ -9,11 +9,10 @@ using UnityEngine.UI;
 public sealed class AbilityShortcutBarView : ExecuteAlwaysView
 {
 	public const int SlotCount = 8;
-	public const float SlotWidth = 56f;
-	public const float SlotHeight = 48f;
-	public const float SlotSpacing = 4f;
-	public const float PreferredWidth = (SlotWidth * SlotCount) + (SlotSpacing * (SlotCount - 1));
 
+	[SerializeField, Min(0f)] private float slotWidth = 56f;
+	[SerializeField, Min(0f)] private float slotHeight = 48f;
+	[SerializeField, Min(0f)] private float slotSpacing = 4f;
 	[SerializeField] private AbilityShortcutView shortcutPrefab;
 
 	private readonly List<AbilityShortcutView> shortcutInstances = new();
@@ -22,6 +21,9 @@ public sealed class AbilityShortcutBarView : ExecuteAlwaysView
 	private UnityEngine.Object lastPrefabReference;
 
 	public event Action<int, Ability> AbilityClicked;
+	public float SlotWidth => slotWidth;
+	public float SlotHeight => slotHeight;
+	public float PreferredWidth => (slotWidth * SlotCount) + (slotSpacing * (SlotCount - 1));
 
 	private void Reset()
 	{
@@ -93,7 +95,16 @@ public sealed class AbilityShortcutBarView : ExecuteAlwaysView
 	public void RefreshNow()
 	{
 		EnsureShortcuts();
+		ApplySerializedState();
 		RefreshBindings();
+	}
+
+	public void ConfigureDefaultLayout(float defaultSlotWidth, float defaultSlotHeight, float defaultSlotSpacing)
+	{
+		slotWidth = Mathf.Max(0f, defaultSlotWidth);
+		slotHeight = Mathf.Max(0f, defaultSlotHeight);
+		slotSpacing = Mathf.Max(0f, defaultSlotSpacing);
+		ApplySerializedState();
 	}
 
 	private void EnsureShortcuts()
@@ -250,6 +261,7 @@ public sealed class AbilityShortcutBarView : ExecuteAlwaysView
 
 	private void RefreshBindings()
 	{
+		ApplySerializedState();
 		ApplyShortcutLayouts();
 
 		for (int index = 0; index < shortcutInstances.Count; index++)
@@ -288,18 +300,26 @@ public sealed class AbilityShortcutBarView : ExecuteAlwaysView
 		}
 	}
 
-	private static void ApplyShortcutLayout(LayoutElement layoutElement)
+	private void ApplySerializedState()
+	{
+		if (TryGetComponent(out HorizontalLayoutGroup layoutGroup))
+		{
+			layoutGroup.spacing = slotSpacing;
+		}
+	}
+
+	private void ApplyShortcutLayout(LayoutElement layoutElement)
 	{
 		if (layoutElement == null)
 		{
 			return;
 		}
 
-		layoutElement.minWidth = SlotWidth;
-		layoutElement.preferredWidth = SlotWidth;
+		layoutElement.minWidth = slotWidth;
+		layoutElement.preferredWidth = slotWidth;
 		layoutElement.flexibleWidth = 0f;
-		layoutElement.minHeight = SlotHeight;
-		layoutElement.preferredHeight = SlotHeight;
+		layoutElement.minHeight = slotHeight;
+		layoutElement.preferredHeight = slotHeight;
 		layoutElement.flexibleHeight = 0f;
 	}
 

@@ -321,14 +321,14 @@ public sealed class ProgressBarView : ExecuteAlwaysView
 
 		try
 		{
-			return string.Format(CultureInfo.InvariantCulture, format, ComputeRatio(), currentValue, maxValue);
+			return string.Format(CultureInfo.InvariantCulture, format, ComputeRatio(), currentValue, maxValue, maxValue - currentValue);
 		}
 		catch (System.FormatException)
 		{
 			return string.Format(
 				CultureInfo.InvariantCulture,
-				"Ratio {0:0.##} / Value {1:0.##} / MaxValue {2:0.##}",
-				ComputeRatio(), currentValue, maxValue);
+				"Ratio {0:0.##} / Value {1:0.##} / MaxValue {2:0.##} / Remaining {3:0.##}",
+				ComputeRatio(), currentValue, maxValue, maxValue - currentValue);
 		}
 	}
 

@@ -8,12 +8,11 @@ using UnityEngine.UI;
 [ExecuteAlways]
 public sealed class AbilityShortcutView : ExecuteAlwaysView, IPointerClickHandler
 {
-	private const float Padding = 6f;
-	private const float CostLabelHeight = 18f;
-
+	[SerializeField, Min(0f)] private float padding = 6f;
+	[SerializeField] private Vector2 framePadding = new Vector2(2f, 2f);
 	[SerializeField] private Color backgroundColor = new Color(0f, 0f, 0f, 0.55f);
 	[SerializeField] private Color frameColor = new Color(1f, 1f, 1f, 0.10f);
-	[SerializeField] private Color iconBackgroundColor = new Color(0f, 0f, 0f, 0.35f);
+	[SerializeField] private Color iconColor = Color.white;
 	[SerializeField] private Color labelColor = Color.white;
 	[SerializeField] private Sprite defaultIcon;
 
@@ -75,6 +74,13 @@ public sealed class AbilityShortcutView : ExecuteAlwaysView, IPointerClickHandle
 	public void ClearClickListeners()
 	{
 		Clicked = null;
+	}
+
+	public void ConfigureDefaultLayout(float defaultPadding, Vector2 defaultFramePadding)
+	{
+		padding = Mathf.Max(0f, defaultPadding);
+		framePadding = new Vector2(Mathf.Max(0f, defaultFramePadding.x), Mathf.Max(0f, defaultFramePadding.y));
+		ApplySerializedState();
 	}
 
 	public void OnPointerClick(PointerEventData eventData)
@@ -174,7 +180,7 @@ public sealed class AbilityShortcutView : ExecuteAlwaysView, IPointerClickHandle
 		Transform child = parent.Find(childName);
 		if (child != null && child.TryGetComponent(out TextMeshProUGUI existing))
 		{
-			ApplyLabelDefaults(existing);
+			EnsureLabelFont(existing);
 			return existing;
 		}
 
@@ -201,13 +207,13 @@ public sealed class AbilityShortcutView : ExecuteAlwaysView, IPointerClickHandle
 		{
 			frameImage.color = frameColor;
 			UiViewUtility.Stretch(frameImage.rectTransform);
-			frameImage.rectTransform.offsetMin = new Vector2(2f, 2f);
-			frameImage.rectTransform.offsetMax = new Vector2(-2f, -2f);
+			frameImage.rectTransform.offsetMin = framePadding;
+			frameImage.rectTransform.offsetMax = -framePadding;
 		}
 
 		if (iconImage != null)
 		{
-			iconImage.color = Color.white;
+			iconImage.color = iconColor;
 			ApplyIconLayout(iconImage.rectTransform);
 		}
 
@@ -268,8 +274,8 @@ public sealed class AbilityShortcutView : ExecuteAlwaysView, IPointerClickHandle
 		rect.anchorMin = new Vector2(0f, 0f);
 		rect.anchorMax = new Vector2(1f, 1f);
 		rect.pivot = new Vector2(0.5f, 0.5f);
-		rect.offsetMin = new Vector2(Padding, Padding);
-		rect.offsetMax = new Vector2(-Padding, -Padding);
+		rect.offsetMin = new Vector2(padding, padding);
+		rect.offsetMax = new Vector2(-padding, -padding);
 	}
 
 	private void ApplyCostLabelLayout()
@@ -285,17 +291,17 @@ public sealed class AbilityShortcutView : ExecuteAlwaysView, IPointerClickHandle
 		rect.anchorMin = new Vector2(0f, 0f);
 		rect.anchorMax = new Vector2(1f, 1f);
 		rect.pivot = new Vector2(0.5f, 0.5f);
-		rect.offsetMin = new Vector2(Padding, Padding);
-		rect.offsetMax = new Vector2(-Padding, -Padding);
+		rect.offsetMin = new Vector2(padding, padding);
+		rect.offsetMax = new Vector2(-padding, -padding);
 	}
 
-	private static void ApplyIconLayout(RectTransform rect)
+	private void ApplyIconLayout(RectTransform rect)
 	{
 		rect.anchorMin = Vector2.zero;
 		rect.anchorMax = Vector2.one;
 		rect.pivot = new Vector2(0.5f, 0.5f);
-		rect.offsetMin = new Vector2(Padding, Padding);
-		rect.offsetMax = new Vector2(-Padding, -Padding);
+		rect.offsetMin = new Vector2(padding, padding);
+		rect.offsetMax = new Vector2(-padding, -padding);
 	}
 
 	private static void ApplyImageDefaults(Image image)
@@ -314,13 +320,17 @@ public sealed class AbilityShortcutView : ExecuteAlwaysView, IPointerClickHandle
 
 	private static void ApplyLabelDefaults(TextMeshProUGUI text)
 	{
+		EnsureLabelFont(text);
 		text.raycastTarget = false;
 		text.enableAutoSizing = true;
 		text.fontSizeMin = 8f;
 		text.fontSizeMax = 16f;
 		text.fontSize = 12f;
 		text.margin = Vector4.zero;
+	}
 
+	private static void EnsureLabelFont(TextMeshProUGUI text)
+	{
 		if (text.font == null)
 		{
 			text.font = TMP_Settings.defaultFontAsset;

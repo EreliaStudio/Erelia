@@ -8,9 +8,9 @@ using UnityEngine.UI;
 [ExecuteAlways]
 public sealed class ActionShortcutBarView : ExecuteAlwaysView
 {
-	private const float PageSelectorWidth = 26f;
-	private const float BarHeight = AbilityShortcutBarView.SlotHeight;
-
+	[SerializeField, Min(0f)] private float shortcutBarWidth = 476f;
+	[SerializeField, Min(0f)] private float pageSelectorWidth = 26f;
+	[SerializeField, Min(0f)] private float barHeight = 48f;
 	[SerializeField] private AbilityShortcutBarView shortcutBar;
 	[SerializeField] private ShortcutBarPageSelectorView pageSelector;
 
@@ -28,11 +28,13 @@ public sealed class ActionShortcutBarView : ExecuteAlwaysView
 	private void Awake()
 	{
 		EnsureHierarchy(true);
+		ApplySerializedState();
 	}
 
 	private void OnEnable()
 	{
 		EnsureHierarchy(true);
+		ApplySerializedState();
 		SubscribeChildren();
 		RefreshBindings();
 	}
@@ -65,6 +67,14 @@ public sealed class ActionShortcutBarView : ExecuteAlwaysView
 		EnsureHierarchy(true);
 		ApplySerializedState();
 		RefreshBindings();
+	}
+
+	public void ConfigureDefaultLayout(float defaultShortcutBarWidth, float defaultPageSelectorWidth, float defaultBarHeight)
+	{
+		shortcutBarWidth = Mathf.Max(0f, defaultShortcutBarWidth);
+		pageSelectorWidth = Mathf.Max(0f, defaultPageSelectorWidth);
+		barHeight = Mathf.Max(0f, defaultBarHeight);
+		ApplySerializedState();
 	}
 
 	public bool TrySelectShortcut(int slotIndex)
@@ -100,8 +110,8 @@ public sealed class ActionShortcutBarView : ExecuteAlwaysView
 		GameObject childObject = new GameObject("Shortcut Bar", typeof(RectTransform), typeof(AbilityShortcutBarView), typeof(LayoutElement));
 		childObject.transform.SetParent(transform, false);
 		LayoutElement layoutElement = childObject.GetComponent<LayoutElement>();
-		layoutElement.preferredWidth = AbilityShortcutBarView.PreferredWidth;
-		layoutElement.preferredHeight = BarHeight;
+		layoutElement.preferredWidth = shortcutBarWidth;
+		layoutElement.preferredHeight = barHeight;
 		layoutElement.flexibleWidth = 0f;
 		layoutElement.flexibleHeight = 0f;
 		return childObject.GetComponent<AbilityShortcutBarView>();
@@ -128,10 +138,10 @@ public sealed class ActionShortcutBarView : ExecuteAlwaysView
 		GameObject childObject = new GameObject("Page Selector", typeof(RectTransform), typeof(ShortcutBarPageSelectorView), typeof(LayoutElement));
 		childObject.transform.SetParent(transform, false);
 		LayoutElement layoutElement = childObject.GetComponent<LayoutElement>();
-		layoutElement.minWidth = PageSelectorWidth;
-		layoutElement.preferredWidth = PageSelectorWidth;
-		layoutElement.minHeight = BarHeight;
-		layoutElement.preferredHeight = BarHeight;
+		layoutElement.minWidth = pageSelectorWidth;
+		layoutElement.preferredWidth = pageSelectorWidth;
+		layoutElement.minHeight = barHeight;
+		layoutElement.preferredHeight = barHeight;
 		layoutElement.flexibleWidth = 0f;
 		layoutElement.flexibleHeight = 0f;
 		return childObject.GetComponent<ShortcutBarPageSelectorView>();
@@ -142,14 +152,17 @@ public sealed class ActionShortcutBarView : ExecuteAlwaysView
 		LayoutElement shortcutLayout = shortcutBar != null ? shortcutBar.GetComponent<LayoutElement>() : null;
 		if (shortcutLayout != null)
 		{
-			shortcutLayout.preferredHeight = BarHeight;
+			shortcutLayout.preferredWidth = shortcutBarWidth;
+			shortcutLayout.preferredHeight = barHeight;
 		}
 
 		LayoutElement selectorLayout = pageSelector != null ? pageSelector.GetComponent<LayoutElement>() : null;
 		if (selectorLayout != null)
 		{
-			selectorLayout.minHeight = BarHeight;
-			selectorLayout.preferredHeight = BarHeight;
+			selectorLayout.minWidth = pageSelectorWidth;
+			selectorLayout.preferredWidth = pageSelectorWidth;
+			selectorLayout.minHeight = barHeight;
+			selectorLayout.preferredHeight = barHeight;
 		}
 	}
 
@@ -222,9 +235,10 @@ public sealed class ActionShortcutBarView : ExecuteAlwaysView
 	}
 
 #if UNITY_EDITOR
-	protected override void OnEditorRefresh()
+protected override void OnEditorRefresh()
 	{
 		EnsureHierarchy(true);
+		ApplySerializedState();
 		RefreshBindings();
 	}
 #endif

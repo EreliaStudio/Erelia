@@ -32,15 +32,10 @@ public sealed class ResolutionPhase : BattlePhase
 			return;
 		}
 
-		if (action is not EndTurnAction && Orchestrator.CanContinueActiveTurn())
+		if (action is not EndTurnAction)
 		{
 			Coordinator.TransitionTo(Orchestrator.GetCurrentTurnPhaseType());
 			return;
-		}
-
-		if (action is not EndTurnAction)
-		{
-			BattleTurnRules.EndTurn(BattleContext, action.SourceUnit);
 		}
  
 		TurnContext?.End();

@@ -7,11 +7,10 @@ using UnityEngine.UI;
 [ExecuteAlways]
 public sealed class ShortcutBarPageSelectorView : ExecuteAlwaysView
 {
-	private const float SelectorWidth = 24f;
-	private const float ButtonHeight = 14f;
-	private const float LabelHeight = 14f;
-	private const float VerticalPadding = 1f;
-
+	[SerializeField, Min(0f)] private float selectorWidth = 24f;
+	[SerializeField, Min(0f)] private float buttonHeight = 14f;
+	[SerializeField, Min(0f)] private float labelHeight = 14f;
+	[SerializeField, Min(0f)] private float verticalPadding = 1f;
 	[SerializeField] private Button incrementButton;
 	[SerializeField] private TextMeshProUGUI indexLabel;
 	[SerializeField] private Button decrementButton;
@@ -89,6 +88,15 @@ public sealed class ShortcutBarPageSelectorView : ExecuteAlwaysView
 		Refresh();
 	}
 
+	public void ConfigureDefaultLayout(float defaultSelectorWidth, float defaultButtonHeight, float defaultLabelHeight, float defaultVerticalPadding)
+	{
+		selectorWidth = Mathf.Max(0f, defaultSelectorWidth);
+		buttonHeight = Mathf.Max(0f, defaultButtonHeight);
+		labelHeight = Mathf.Max(0f, defaultLabelHeight);
+		verticalPadding = Mathf.Max(0f, defaultVerticalPadding);
+		ApplySerializedState();
+	}
+
 	private void EnsureHierarchy(bool allowCreate)
 	{
 		incrementButton = ResolveButton(incrementButton, "Increment", allowCreate, "+");
@@ -119,7 +127,7 @@ public sealed class ShortcutBarPageSelectorView : ExecuteAlwaysView
 		GameObject buttonObject = new GameObject(childName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button), typeof(LayoutElement));
 		buttonObject.transform.SetParent(transform, false);
 		buttonObject.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.55f);
-		ApplySelectorChildLayout(buttonObject.GetComponent<LayoutElement>(), ButtonHeight);
+		ApplySelectorChildLayout(buttonObject.GetComponent<LayoutElement>(), buttonHeight);
 		Button button = buttonObject.GetComponent<Button>();
 		EnsureButtonLabel(button, labelText);
 		return button;
@@ -136,7 +144,7 @@ public sealed class ShortcutBarPageSelectorView : ExecuteAlwaysView
 		Transform child = transform.Find(childName);
 		if (child != null && child.TryGetComponent(out TextMeshProUGUI existing))
 		{
-			ApplyLabelDefaults(existing);
+			EnsureLabelFont(existing);
 			return existing;
 		}
 
@@ -149,7 +157,7 @@ public sealed class ShortcutBarPageSelectorView : ExecuteAlwaysView
 		labelObject.transform.SetParent(transform, false);
 		TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
 		ApplyLabelDefaults(label);
-		ApplySelectorChildLayout(labelObject.GetComponent<LayoutElement>(), LabelHeight);
+		ApplySelectorChildLayout(labelObject.GetComponent<LayoutElement>(), labelHeight);
 		return label;
 	}
 
@@ -164,7 +172,7 @@ public sealed class ShortcutBarPageSelectorView : ExecuteAlwaysView
 		TextMeshProUGUI label;
 		if (labelTransform != null && labelTransform.TryGetComponent(out label))
 		{
-			ApplyLabelDefaults(label);
+			EnsureLabelFont(label);
 		}
 		else
 		{
@@ -180,9 +188,9 @@ public sealed class ShortcutBarPageSelectorView : ExecuteAlwaysView
 
 	private void ApplySerializedState()
 	{
-		ApplySelectorChildLayout(incrementButton != null ? incrementButton.GetComponent<LayoutElement>() : null, ButtonHeight);
-		ApplySelectorChildLayout(indexLabel != null ? indexLabel.GetComponent<LayoutElement>() : null, LabelHeight);
-		ApplySelectorChildLayout(decrementButton != null ? decrementButton.GetComponent<LayoutElement>() : null, ButtonHeight);
+		ApplySelectorChildLayout(incrementButton != null ? incrementButton.GetComponent<LayoutElement>() : null, buttonHeight);
+		ApplySelectorChildLayout(indexLabel != null ? indexLabel.GetComponent<LayoutElement>() : null, labelHeight);
+		ApplySelectorChildLayout(decrementButton != null ? decrementButton.GetComponent<LayoutElement>() : null, buttonHeight);
 		ApplySelectorRootLayout();
 
 		if (TryGetComponent(out VerticalLayoutGroup layoutGroup))
@@ -195,9 +203,9 @@ public sealed class ShortcutBarPageSelectorView : ExecuteAlwaysView
 			return;
 		}
 
-		ApplyButtonRect(incrementButton, new Vector2(0.5f, 1f), new Vector2(0f, -VerticalPadding), ButtonHeight);
-		ApplyLabelRect(indexLabel, new Vector2(0.5f, 0.5f), Vector2.zero, LabelHeight);
-		ApplyButtonRect(decrementButton, new Vector2(0.5f, 0f), new Vector2(0f, VerticalPadding), ButtonHeight);
+		ApplyButtonRect(incrementButton, new Vector2(0.5f, 1f), new Vector2(0f, -verticalPadding), buttonHeight);
+		ApplyLabelRect(indexLabel, new Vector2(0.5f, 0.5f), Vector2.zero, labelHeight);
+		ApplyButtonRect(decrementButton, new Vector2(0.5f, 0f), new Vector2(0f, verticalPadding), buttonHeight);
 	}
 
 	private void SubscribeButtons()
@@ -259,6 +267,7 @@ public sealed class ShortcutBarPageSelectorView : ExecuteAlwaysView
 
 	private static void ApplyLabelDefaults(TextMeshProUGUI text)
 	{
+		EnsureLabelFont(text);
 		text.raycastTarget = false;
 		text.color = Color.white;
 		text.alignment = TextAlignmentOptions.Center;
@@ -268,21 +277,25 @@ public sealed class ShortcutBarPageSelectorView : ExecuteAlwaysView
 		text.fontSize = 16f;
 		text.margin = Vector4.zero;
 
+	}
+
+	private static void EnsureLabelFont(TextMeshProUGUI text)
+	{
 		if (text.font == null)
 		{
 			text.font = TMP_Settings.defaultFontAsset;
 		}
 	}
 
-	private static void ApplySelectorChildLayout(LayoutElement layoutElement, float height)
+	private void ApplySelectorChildLayout(LayoutElement layoutElement, float height)
 	{
 		if (layoutElement == null)
 		{
 			return;
 		}
 
-		layoutElement.minWidth = SelectorWidth;
-		layoutElement.preferredWidth = SelectorWidth;
+		layoutElement.minWidth = selectorWidth;
+		layoutElement.preferredWidth = selectorWidth;
 		layoutElement.flexibleWidth = 0f;
 		layoutElement.minHeight = height;
 		layoutElement.preferredHeight = height;
@@ -296,10 +309,10 @@ public sealed class ShortcutBarPageSelectorView : ExecuteAlwaysView
 			return;
 		}
 
-		rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, SelectorWidth);
+		rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, selectorWidth);
 	}
 
-	private static void ApplyButtonRect(Button button, Vector2 anchor, Vector2 anchoredPosition, float height)
+	private void ApplyButtonRect(Button button, Vector2 anchor, Vector2 anchoredPosition, float height)
 	{
 		if (button == null)
 		{
@@ -309,7 +322,7 @@ public sealed class ShortcutBarPageSelectorView : ExecuteAlwaysView
 		ApplyChildRect(button.GetComponent<RectTransform>(), anchor, anchoredPosition, height);
 	}
 
-	private static void ApplyLabelRect(TextMeshProUGUI label, Vector2 anchor, Vector2 anchoredPosition, float height)
+	private void ApplyLabelRect(TextMeshProUGUI label, Vector2 anchor, Vector2 anchoredPosition, float height)
 	{
 		if (label == null)
 		{
@@ -319,7 +332,7 @@ public sealed class ShortcutBarPageSelectorView : ExecuteAlwaysView
 		ApplyChildRect(label.rectTransform, anchor, anchoredPosition, height);
 	}
 
-	private static void ApplyChildRect(RectTransform rectTransform, Vector2 anchor, Vector2 anchoredPosition, float height)
+	private void ApplyChildRect(RectTransform rectTransform, Vector2 anchor, Vector2 anchoredPosition, float height)
 	{
 		if (rectTransform == null)
 		{
@@ -330,7 +343,7 @@ public sealed class ShortcutBarPageSelectorView : ExecuteAlwaysView
 		rectTransform.anchorMax = anchor;
 		rectTransform.pivot = anchor;
 		rectTransform.anchoredPosition = anchoredPosition;
-		rectTransform.sizeDelta = new Vector2(SelectorWidth, height);
+		rectTransform.sizeDelta = new Vector2(selectorWidth, height);
 	}
 
 #if UNITY_EDITOR

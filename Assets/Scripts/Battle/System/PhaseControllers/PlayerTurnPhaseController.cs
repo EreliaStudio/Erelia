@@ -29,7 +29,7 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 	{
 		actionShortcutBar?.Bind(TurnContext?.ActiveUnit);
 		activeUnitHud?.Bind(TurnContext?.ActiveUnit);
-		RefreshPreviewOverlay();
+		RestartMovementTargeting();
 	}
 
 	protected override void OnDeactivate()
@@ -46,7 +46,7 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 	{
 		if (selectedAbility == null) return;
 		selectedAbility = null;
-		RefreshPreviewOverlay();
+		RestartMovementTargeting();
 	}
 
 	public void SelectAbilityShortcut(int shortcutIndex)
@@ -96,14 +96,29 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 	{
 		if (playerTurnPhase == null || !TryGetHoveredBoardCell(out Vector3Int cell)) return;
 
-		bool submitted = selectedAbility != null
-			? playerTurnPhase.TrySubmitAbility(selectedAbility, new[] { cell })
+		Ability abilityToSubmit = selectedAbility;
+		if (abilityToSubmit != null)
+		{
+			selectedAbility = null;
+			ClearPreviewOverlay();
+		}
+
+		bool submitted = abilityToSubmit != null
+			? playerTurnPhase.TrySubmitAbility(abilityToSubmit, new[] { cell })
 			: playerTurnPhase.TrySubmitMove(cell);
 
-		if (!submitted) return;
-
-		selectedAbility = null;
-		ClearPreviewOverlay();
+		if (!submitted)
+		{
+			selectedAbility = abilityToSubmit;
+			if (selectedAbility != null)
+			{
+				RefreshPreviewOverlay();
+			}
+			else
+			{
+				RestartMovementTargeting();
+			}
+		}
 	}
 
 	private bool TryGetHoveredBoardCell(out Vector3Int cell)
@@ -146,6 +161,12 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 		}
 
 		BattleMode.BoardPresenter.RefreshOverlay();
+	}
+
+	private void RestartMovementTargeting()
+	{
+		selectedAbility = null;
+		RefreshPreviewOverlay();
 	}
 
 	private void ClearPreviewOverlay()

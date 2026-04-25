@@ -7,10 +7,9 @@ using UnityEngine.UI;
 [ExecuteAlways]
 public sealed class ActiveUnitHudView : ExecuteAlwaysView
 {
-	public const float BarWidth = 120f;
-	public const float BarHeight = 20f;
-	public const float BarSpacing = 6f;
-
+	[SerializeField, Min(0f)] private float barWidth = 120f;
+	[SerializeField, Min(0f)] private float barHeight = 20f;
+	[SerializeField, Min(0f)] private float barSpacing = 6f;
 	[SerializeField] private ProgressBarView healthBar;
 	[SerializeField] private ProgressBarView actionPointsBar;
 	[SerializeField] private ProgressBarView movementPointsBar;
@@ -93,6 +92,14 @@ public sealed class ActiveUnitHudView : ExecuteAlwaysView
 		ApplySerializedState();
 	}
 
+	public void ConfigureDefaultLayout(float defaultBarWidth, float defaultBarHeight, float defaultBarSpacing)
+	{
+		barWidth = Mathf.Max(0f, defaultBarWidth);
+		barHeight = Mathf.Max(0f, defaultBarHeight);
+		barSpacing = Mathf.Max(0f, defaultBarSpacing);
+		ApplySerializedState();
+	}
+
 	private void EnsureHierarchy(bool allowCreate)
 	{
 		healthBar = ResolveBar("Health Bar", healthBar, allowCreate);
@@ -123,12 +130,12 @@ public sealed class ActiveUnitHudView : ExecuteAlwaysView
 		childObject.transform.SetParent(transform, false);
 
 		LayoutElement layout = childObject.GetComponent<LayoutElement>();
-		layout.minWidth = BarWidth;
-		layout.preferredWidth = BarWidth;
+		layout.minWidth = barWidth;
+		layout.preferredWidth = barWidth;
 		layout.flexibleWidth = 0f;
 
-		layout.minHeight = BarHeight;
-		layout.preferredHeight = BarHeight;
+		layout.minHeight = barHeight;
+		layout.preferredHeight = barHeight;
 		layout.flexibleHeight = 0f;
 
 		ProgressBarView bar = childObject.AddComponent<ProgressBarView>();
@@ -138,12 +145,16 @@ public sealed class ActiveUnitHudView : ExecuteAlwaysView
 
 	private void ApplySerializedState()
 	{
+		ApplyBarLayout(healthBar);
+		ApplyBarLayout(actionPointsBar);
+		ApplyBarLayout(movementPointsBar);
+
 		if (!TryGetComponent(out HorizontalLayoutGroup layoutGroup))
 		{
 			return;
 		}
 
-		layoutGroup.spacing = BarSpacing;
+		layoutGroup.spacing = barSpacing;
 		layoutGroup.childAlignment = TextAnchor.MiddleLeft;
 
 		layoutGroup.childControlWidth = true;
@@ -151,6 +162,21 @@ public sealed class ActiveUnitHudView : ExecuteAlwaysView
 
 		layoutGroup.childForceExpandWidth = true;
 		layoutGroup.childForceExpandHeight = true;
+	}
+
+	private void ApplyBarLayout(ProgressBarView bar)
+	{
+		if (bar == null || !bar.TryGetComponent(out LayoutElement layout))
+		{
+			return;
+		}
+
+		layout.minWidth = barWidth;
+		layout.preferredWidth = barWidth;
+		layout.flexibleWidth = 0f;
+		layout.minHeight = barHeight;
+		layout.preferredHeight = barHeight;
+		layout.flexibleHeight = 0f;
 	}
 
 	private void SubscribeToUnit()

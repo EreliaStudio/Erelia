@@ -598,7 +598,10 @@ MonoBehaviour:
   portraitSide: 0
   showStaminaBar: 1
   defaultName: Empty Slot
-  staminaLabelFormat: '{1:0.##} sec'
+  staminaLabelFormat: '{3:0.##} sec'
+  framePadding: {x: 2, y: 2}
+  contentPadding: 8
+  staminaBarHeight: 20
   backgroundColor: {r: 0, g: 0, b: 0, a: 0.45}
   frameColor: {r: 1, g: 1, b: 1, a: 0.08}
   portraitBackgroundColor: {r: 0, g: 0, b: 0, a: 0.25}
@@ -823,7 +826,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c9bdb45ad1136d4191538065575e935, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Erelia.Runtime::ProgressBarView
-  labelFormat: '{1:0.##} sec'
+  labelFormat: '{3:0.##} sec'
   backgroundColor: {r: 0, g: 0, b: 0, a: 0.45}
   fillColor: {r: 0.8980392, g: 0.69411767, b: 0.30980393, a: 1}
   padding: {x: 2, y: 2}
