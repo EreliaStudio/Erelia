@@ -8,6 +8,7 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 
 	private PlayerTurnPhase playerTurnPhase;
 	private Ability selectedAbility;
+	private Vector3Int? hoveredCell;
 
 	public override BattlePhaseType PhaseType => BattlePhaseType.PlayerTurn;
 
@@ -35,6 +36,7 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 	protected override void OnDeactivate()
 	{
 		selectedAbility = null;
+		hoveredCell = null;
 		ClearPreviewOverlay();
 		actionShortcutBar?.Bind(null);
 		activeUnitHud?.Bind(null);
@@ -64,6 +66,11 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 		if (Mouse.current.leftButton.wasPressedThisFrame)
 		{
 			TryHandleBoardLeftClick();
+		}
+
+		if (selectedAbility != null)
+		{
+			RefreshAoEPreview();
 		}
 	}
 
@@ -153,6 +160,10 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 			if (selectedAbility != null)
 			{
 				BattleMaskRules.ApplyMask(overlayState, playerTurnPhase.GetAttackRangeMaskCells(selectedAbility), VoxelMask.AttackRange, clearExisting: false);
+				if (hoveredCell.HasValue)
+				{
+					BattleMaskRules.ApplyMask(overlayState, playerTurnPhase.GetAreaOfEffectMaskCells(selectedAbility, hoveredCell.Value), VoxelMask.AreaOfEffect, clearExisting: false);
+				}
 			}
 			else
 			{
@@ -163,9 +174,32 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 		BattleMode.BoardPresenter.RefreshOverlay();
 	}
 
+	private void RefreshAoEPreview()
+	{
+		if (BattleMode?.BoardPresenter == null || playerTurnPhase == null) return;
+
+		bool hasHover = TryGetHoveredBoardCell(out Vector3Int cell);
+		Vector3Int? newHoveredCell = hasHover ? cell : (Vector3Int?)null;
+
+		if (newHoveredCell == hoveredCell) return;
+
+		hoveredCell = newHoveredCell;
+
+		BoardOverlayState overlayState = BattleMode.BoardPresenter.OverlayState;
+		BattleMaskRules.ClearMask(overlayState, VoxelMask.AreaOfEffect);
+
+		if (hoveredCell.HasValue)
+		{
+			BattleMaskRules.ApplyMask(overlayState, playerTurnPhase.GetAreaOfEffectMaskCells(selectedAbility, hoveredCell.Value), VoxelMask.AreaOfEffect, clearExisting: false);
+		}
+
+		BattleMode.BoardPresenter.RefreshOverlay();
+	}
+
 	private void RestartMovementTargeting()
 	{
 		selectedAbility = null;
+		hoveredCell = null;
 		RefreshPreviewOverlay();
 	}
 
