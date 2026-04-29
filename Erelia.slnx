@@ -1,8 +1,8 @@
 ﻿<Solution>
   <Project Path="Erelia.Editor.csproj" />
   <Project Path="Erelia.Abilities.Editor.csproj" />
-  <Project Path="Erelia.Tests.EditMode.csproj" />
   <Project Path="Erelia.Runtime.csproj" />
+  <Project Path="Erelia.Tests.EditMode.csproj" />
   <Project Path="AYellowpaper.SerializedCollections.csproj" />
   <Project Path="Erelia.Feats.Editor.csproj" />
   <Project Path="Erelia.Biomes.Editor.csproj" />
