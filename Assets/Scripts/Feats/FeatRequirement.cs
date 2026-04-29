@@ -117,3 +117,97 @@ public class MaxSingleHitDamageRequirement : FeatRequirementTemplated<MaxSingleH
 		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
 	}
 }
+
+[Serializable]
+public class TurnStartPositionRequirement : FeatRequirementTemplated<TurnStartPositionRequirement.Event>
+{
+	public enum TargetKind { Ally, Enemy, AnyUnit }
+	public enum DistanceKind { Within, AtLeast }
+
+	[Serializable]
+	public class Event : FeatRequirement.EventBase
+	{
+		public int ClosestAllyDistance = int.MaxValue;
+		public int ClosestEnemyDistance = int.MaxValue;
+	}
+
+	public TargetKind Target = TargetKind.Enemy;
+	public DistanceKind Condition = DistanceKind.Within;
+	public int Distance = 3;
+
+	public override ProgressMode Mode => ProgressMode.Maximum;
+
+	protected override float ComputeProgress(Event p_event)
+	{
+		int closest = ResolveDistance(p_event);
+		return MeetsCondition(closest) ? 100f : 0f;
+	}
+
+	private int ResolveDistance(Event p_event)
+	{
+		return Target switch
+		{
+			TargetKind.Ally => p_event.ClosestAllyDistance,
+			TargetKind.Enemy => p_event.ClosestEnemyDistance,
+			TargetKind.AnyUnit => Math.Min(p_event.ClosestAllyDistance, p_event.ClosestEnemyDistance),
+			_ => int.MaxValue
+		};
+	}
+
+	private bool MeetsCondition(int closest)
+	{
+		return Condition switch
+		{
+			DistanceKind.Within => closest <= Distance,
+			DistanceKind.AtLeast => closest >= Distance,
+			_ => false
+		};
+	}
+}
+
+[Serializable]
+public class TurnEndPositionRequirement : FeatRequirementTemplated<TurnEndPositionRequirement.Event>
+{
+	public enum TargetKind { Ally, Enemy, AnyUnit }
+	public enum DistanceKind { Within, AtLeast }
+
+	[Serializable]
+	public class Event : FeatRequirement.EventBase
+	{
+		public int ClosestAllyDistance = int.MaxValue;
+		public int ClosestEnemyDistance = int.MaxValue;
+	}
+
+	public TargetKind Target = TargetKind.Enemy;
+	public DistanceKind Condition = DistanceKind.Within;
+	public int Distance = 3;
+
+	public override ProgressMode Mode => ProgressMode.Maximum;
+
+	protected override float ComputeProgress(Event p_event)
+	{
+		int closest = ResolveDistance(p_event);
+		return MeetsCondition(closest) ? 100f : 0f;
+	}
+
+	private int ResolveDistance(Event p_event)
+	{
+		return Target switch
+		{
+			TargetKind.Ally => p_event.ClosestAllyDistance,
+			TargetKind.Enemy => p_event.ClosestEnemyDistance,
+			TargetKind.AnyUnit => Math.Min(p_event.ClosestAllyDistance, p_event.ClosestEnemyDistance),
+			_ => int.MaxValue
+		};
+	}
+
+	private bool MeetsCondition(int closest)
+	{
+		return Condition switch
+		{
+			DistanceKind.Within => closest <= Distance,
+			DistanceKind.AtLeast => closest >= Distance,
+			_ => false
+		};
+	}
+}

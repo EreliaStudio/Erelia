@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,6 +12,8 @@ public static class BattleTurnRules
 		{
 			return;
 		}
+
+		EmitTurnStartPositionEvent(battleContext, activeUnit);
 
 		TrackedResourceDelta before = Track(activeUnit);
 		battleContext.CurrentTurn.Begin(activeUnit);
@@ -35,6 +38,8 @@ public static class BattleTurnRules
 		battleContext.Board?.Runtime?.AdvanceObjectDurations();
 		activeUnit.BattleAttributes.TurnBar.SetCurrent(0f);
 		EmitLossHooks(battleContext, activeUnit, before);
+
+		EmitTurnEndPositionEvent(battleContext, activeUnit);
 	}
 
 	public static bool CanContinueTurn(BattleContext battleContext, TurnContext turnContext)
@@ -279,6 +284,88 @@ public static class BattleTurnRules
 		if (unit.BattleAttributes.MovementPoints.Current < before.MovementPoints)
 		{
 			BattleStatusRules.ApplyHook(unit, battleContext, StatusHookPoint.OnMPLoss, unit);
+		}
+	}
+
+	private static void EmitTurnStartPositionEvent(BattleContext battleContext, BattleUnit activeUnit)
+	{
+		if (!activeUnit.HasBoardPosition ||
+			!battleContext.Board.Runtime.TryGetPosition(activeUnit, out Vector3Int unitPos))
+		{
+			return;
+		}
+
+		ComputeClosestDistances(battleContext, activeUnit, unitPos,
+			out int closestAlly, out int closestEnemy);
+
+		if (closestAlly == int.MaxValue && closestEnemy == int.MaxValue)
+		{
+			return;
+		}
+
+		activeUnit.RecordFeatEvent(new TurnStartPositionRequirement.Event
+		{
+			ClosestAllyDistance = closestAlly,
+			ClosestEnemyDistance = closestEnemy
+		});
+	}
+
+	private static void EmitTurnEndPositionEvent(BattleContext battleContext, BattleUnit activeUnit)
+	{
+		if (!activeUnit.HasBoardPosition ||
+			!battleContext.Board.Runtime.TryGetPosition(activeUnit, out Vector3Int unitPos))
+		{
+			return;
+		}
+
+		ComputeClosestDistances(battleContext, activeUnit, unitPos,
+			out int closestAlly, out int closestEnemy);
+
+		if (closestAlly == int.MaxValue && closestEnemy == int.MaxValue)
+		{
+			return;
+		}
+
+		activeUnit.RecordFeatEvent(new TurnEndPositionRequirement.Event
+		{
+			ClosestAllyDistance = closestAlly,
+			ClosestEnemyDistance = closestEnemy
+		});
+	}
+
+	private static void ComputeClosestDistances(
+		BattleContext battleContext,
+		BattleUnit activeUnit,
+		Vector3Int unitPos,
+		out int closestAlly,
+		out int closestEnemy)
+	{
+		closestAlly = int.MaxValue;
+		closestEnemy = int.MaxValue;
+
+		IReadOnlyList<BattleUnit> allUnits = battleContext.AllUnits;
+		for (int index = 0; index < allUnits.Count; index++)
+		{
+			BattleUnit other = allUnits[index];
+			if (other == null || other == activeUnit || other.IsDefeated || !other.HasBoardPosition)
+			{
+				continue;
+			}
+
+			if (!battleContext.Board.Runtime.TryGetPosition(other, out Vector3Int otherPos))
+			{
+				continue;
+			}
+
+			int dist = Math.Abs(unitPos.x - otherPos.x) + Math.Abs(unitPos.z - otherPos.z);
+			if (other.Side == activeUnit.Side)
+			{
+				closestAlly = Math.Min(closestAlly, dist);
+			}
+			else
+			{
+				closestEnemy = Math.Min(closestEnemy, dist);
+			}
 		}
 	}
 
