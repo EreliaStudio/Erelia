@@ -371,24 +371,66 @@ public class DamageTargetEffect : Effect
 			return;
 		}
 
-		int previousHealth = context.TargetUnit.BattleAttributes.Health.Current;
-		context.TargetUnit.BattleAttributes.Health.Decrease(computedDamage);
-		int appliedDamage = previousHealth - context.TargetUnit.BattleAttributes.Health.Current;
+		// Shields absorb their matching damage kind before HP is touched.
+		BattleShieldAbsorptionResult shieldAbsorption =
+			context.TargetUnit.BattleAttributes.AbsorbDamage(Input.DamageKind, computedDamage);
+		int absorbedByShield = shieldAbsorption.AmountAbsorbed;
+		int damageToHP = computedDamage - absorbedByShield;
 
-		if (appliedDamage <= 0)
+		int appliedToHP = 0;
+		if (damageToHP > 0)
+		{
+			int previousHealth = context.TargetUnit.BattleAttributes.Health.Current;
+			context.TargetUnit.BattleAttributes.Health.Decrease(damageToHP);
+			appliedToHP = previousHealth - context.TargetUnit.BattleAttributes.Health.Current;
+		}
+
+		int totalApplied = absorbedByShield + appliedToHP;
+		if (totalApplied <= 0)
 		{
 			return;
 		}
 
-		int selfHealing = MathFormula.ComputeVampirismHealing(casterAttributes, Input.DamageKind, appliedDamage);
+		// Vampirism only applies to HP damage, not shield absorption.
+		int selfHealing = MathFormula.ComputeVampirismHealing(casterAttributes, Input.DamageKind, appliedToHP);
 		if (selfHealing > 0 && context.SourceUnit != null)
 		{
 			context.SourceUnit.BattleAttributes.Health.Increase(selfHealing);
 		}
 
-		context.SourceUnit?.RecordFeatEvent(new DealDamageRequirement.Event { Amount = appliedDamage });
-		context.SourceUnit?.RecordFeatEvent(new MaxSingleHitDamageRequirement.Event { Amount = appliedDamage });
-		context.TargetUnit.RecordFeatEvent(new TakeDamageRequirement.Event { Amount = appliedDamage });
+		context.SourceUnit?.RecordFeatEvent(new DealDamageRequirement.Event { Amount = totalApplied });
+		context.SourceUnit?.RecordFeatEvent(new MaxSingleHitDamageRequirement.Event { Amount = totalApplied });
+		context.TargetUnit.RecordFeatEvent(new TakeDamageRequirement.Event { Amount = totalApplied });
+
+		if (absorbedByShield > 0)
+		{
+			context.TargetUnit.RecordFeatEvent(new AbsorbDamageWithShieldRequirement.Event { Amount = absorbedByShield });
+		}
+
+		IReadOnlyList<ShieldKind> brokenShieldKinds = shieldAbsorption.BrokenShieldKinds;
+		for (int index = 0; index < brokenShieldKinds.Count; index++)
+		{
+			context.TargetUnit.RecordFeatEvent(new ShieldBrokenRequirement.Event { Kind = brokenShieldKinds[index] });
+		}
+	}
+}
+
+[Serializable]
+public class ApplyShieldEffect : Effect
+{
+	public ShieldKind Kind = ShieldKind.Physical;
+	public int Amount = 10;
+	public int DurationInTurns = 1; // -1 = infinite
+
+	public override void Apply(BattleAbilityExecutionContext context)
+	{
+		if (context?.TargetUnit == null || Amount <= 0)
+		{
+			return;
+		}
+
+		context.TargetUnit.BattleAttributes.AddShield(Kind, Amount, DurationInTurns);
+		context.SourceUnit?.RecordFeatEvent(new ApplyShieldRequirement.Event { Amount = Amount, Kind = Kind });
 	}
 }
 

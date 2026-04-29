@@ -385,6 +385,7 @@ public class EncounterTeamProgressBoardView
 		{
 			BonusStatsReward bonusStatsReward => $"- +{bonusStatsReward.Value} {bonusStatsReward.Attribute}",
 			AbilityReward abilityReward => abilityReward.Ability != null ? $"- Ability: {abilityReward.Ability.name}" : "- Ability: None",
+			RemoveAbilityReward removeAbilityReward => removeAbilityReward.Ability != null ? $"- Remove Ability: {removeAbilityReward.Ability.name}" : "- Remove Ability: None",
 			PassiveReward passiveReward => passiveReward.Status != null ? $"- Passive: {passiveReward.Status.name}" : "- Passive: None",
 			ChangeFormReward changeFormReward => string.IsNullOrEmpty(changeFormReward.FormKey) ? "- Form: None" : $"- Form: {changeFormReward.FormKey}",
 			_ => $"- {reward.GetType().Name}"

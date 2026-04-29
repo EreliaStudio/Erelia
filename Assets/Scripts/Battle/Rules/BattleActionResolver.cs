@@ -74,6 +74,19 @@ public static class BattleActionResolver
 
 		BattleStatusRules.ApplyHook(action.SourceUnit, battleContext, StatusHookPoint.AfterCastingAnAbility, action.SourceUnit);
 
+		int abilityCastCountThisTurn = turnContext.RecordAbilityCast(action.Ability);
+		action.SourceUnit.RecordFeatEvent(new CastAbilityCountRequirement.Event
+		{
+			Ability = action.Ability,
+			Count = 1
+		});
+		action.SourceUnit.RecordFeatEvent(new CastMultipleAbilitiesInOneTurnRequirement.Event
+		{
+			Ability = action.Ability,
+			AbilityCastCountThisTurn = abilityCastCountThisTurn,
+			TotalCastCountThisTurn = turnContext.TotalAbilityCastCountThisTurn
+		});
+
 		for (int index = 0; index < trackedUnits.Count; index++)
 		{
 			BattleUnit unit = trackedUnits[index];

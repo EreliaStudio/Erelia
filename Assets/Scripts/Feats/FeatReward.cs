@@ -119,15 +119,23 @@ public class AbilityReward : FeatReward
 			return;
 		}
 
-		if (p_creatureUnit.Abilities == null)
+		p_creatureUnit.AddAbility(Ability);
+	}
+}
+
+[Serializable]
+public class RemoveAbilityReward : FeatReward
+{
+	public Ability Ability;
+
+	public override void Apply(CreatureUnit p_creatureUnit)
+	{
+		if (p_creatureUnit == null || Ability == null)
 		{
-			p_creatureUnit.Abilities = new List<Ability>();
+			return;
 		}
 
-		if (p_creatureUnit.Abilities.Contains(Ability) == false)
-		{
-			p_creatureUnit.Abilities.Add(Ability);
-		}
+		p_creatureUnit.RemoveAbility(Ability);
 	}
 }
 

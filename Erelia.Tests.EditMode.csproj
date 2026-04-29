@@ -49,21 +49,41 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Tests\TurnPositionRequirementTests.cs" />
+    <Compile Include="Assets\Tests\Effects\RemoveStatusEffectTests.cs" />
+    <Compile Include="Assets\Tests\Effects\AdjustTurnBarTimeEffectTests.cs" />
     <Compile Include="Assets\Tests\PlayerTurnPhaseCommandTests.cs" />
+    <Compile Include="Assets\Tests\Effects\DamageTargetEffectTests.cs" />
+    <Compile Include="Assets\Tests\Effects\MoveStatusTests.cs" />
     <Compile Include="Assets\Tests\InitiativeTurnOrderTests.cs" />
+    <Compile Include="Assets\Tests\Effects\ApplyShieldEffectTests.cs" />
     <Compile Include="Assets\Tests\PlacementPhaseTests.cs" />
     <Compile Include="Assets\Tests\EnemyTurnPhaseTests.cs" />
     <Compile Include="Assets\Tests\TargetingAndLegalityTests.cs" />
+    <Compile Include="Assets\Tests\Effects\StealResourceEffectTests.cs" />
     <Compile Include="Assets\Tests\EndPhaseTests.cs" />
     <Compile Include="Assets\Tests\BackendBehaviorTests.cs" />
+    <Compile Include="Assets\Tests\Effects\EffectTestBase.cs" />
+    <Compile Include="Assets\Tests\Effects\TeleportEffectTests.cs" />
+    <Compile Include="Assets\Tests\Effects\PlaceInteractiveObjectEffectTests.cs" />
     <Compile Include="Assets\Tests\PlayerTurnPhaseQueryTests.cs" />
+    <Compile Include="Assets\Tests\Effects\AdjustTurnBarDurationEffectTests.cs" />
     <Compile Include="Assets\Tests\IdlePhaseTests.cs" />
+    <Compile Include="Assets\Tests\Effects\CleanseEffectTests.cs" />
     <Compile Include="Assets\Tests\LineOfSightTests.cs" />
     <Compile Include="Assets\Tests\ResolutionPhaseTests.cs" />
+    <Compile Include="Assets\Tests\Effects\ResourceChangeEffectTests.cs" />
+    <Compile Include="Assets\Tests\Effects\ConsumeStatusTests.cs" />
     <Compile Include="Assets\Tests\FeatProgressionTests.cs" />
+    <Compile Include="Assets\Tests\ShieldTests.cs" />
+    <Compile Include="Assets\Tests\AbilityCastRequirementTests.cs" />
     <Compile Include="Assets\Tests\SetupPhaseTests.cs" />
     <Compile Include="Assets\Tests\LineOfSightTestFixture.cs" />
     <Compile Include="Assets\Tests\BattleCombatFlowTests.cs" />
+    <Compile Include="Assets\Tests\Effects\HealTargetEffectTests.cs" />
+    <Compile Include="Assets\Tests\Effects\RemoveInteractiveObjectEffectTests.cs" />
+    <Compile Include="Assets\Tests\Effects\ApplyStatusEffectTests.cs" />
+    <Compile Include="Assets\Tests\Effects\ReviveEffectTests.cs" />
+    <Compile Include="Assets\Tests\Effects\SwapPositionEffectTests.cs" />
     <Compile Include="Assets\Tests\NavGraphTests.cs" />
     <Compile Include="Assets\Tests\BattlePhaseTestFixture.cs" />
   </ItemGroup>

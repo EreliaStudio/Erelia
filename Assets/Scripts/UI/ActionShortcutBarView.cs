@@ -231,6 +231,10 @@ public sealed class ActionShortcutBarView : ExecuteAlwaysView
 
 	private IReadOnlyList<Ability> GetBoundAbilities()
 	{
+		if (boundUnit == null)
+		{
+			return null;
+		}
 		return boundUnit?.Abilities;
 	}
 

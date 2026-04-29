@@ -734,9 +734,47 @@ public partial class FeatBoardEditorWindow : EditorWindow
 				}
 				break;
 
+			case CastAbilityCountRequirement castAbility:
+				DrawCastAbilityCountRequirementFields(castAbility);
+				break;
+
+			case CastMultipleAbilitiesInOneTurnRequirement castInTurn:
+				DrawCastMultipleAbilitiesInOneTurnRequirementFields(castInTurn);
+				break;
+
 			default:
 				EditorGUILayout.HelpBox("Unsupported requirement type: " + requirement.GetType().Name, MessageType.Warning);
 				break;
+		}
+	}
+
+	private void DrawCastAbilityCountRequirementFields(CastAbilityCountRequirement requirement)
+	{
+		EditorGUI.BeginChangeCheck();
+		Ability ability = (Ability)EditorGUILayout.ObjectField("Ability", requirement.Ability, typeof(Ability), false);
+		int count = EditorGUILayout.IntField("Required Casts", requirement.RequiredCount);
+		if (EditorGUI.EndChangeCheck())
+		{
+			ApplySpeciesChange("Edit Feat Requirement", () =>
+			{
+				requirement.Ability = ability;
+				requirement.RequiredCount = Mathf.Max(1, count);
+			});
+		}
+	}
+
+	private void DrawCastMultipleAbilitiesInOneTurnRequirementFields(CastMultipleAbilitiesInOneTurnRequirement requirement)
+	{
+		EditorGUI.BeginChangeCheck();
+		Ability ability = (Ability)EditorGUILayout.ObjectField("Ability", requirement.Ability, typeof(Ability), false);
+		int count = EditorGUILayout.IntField("Required Casts In Turn", requirement.RequiredCount);
+		if (EditorGUI.EndChangeCheck())
+		{
+			ApplySpeciesChange("Edit Feat Requirement", () =>
+			{
+				requirement.Ability = ability;
+				requirement.RequiredCount = Mathf.Max(1, count);
+			});
 		}
 	}
 
@@ -814,6 +852,15 @@ public partial class FeatBoardEditorWindow : EditorWindow
 				if (EditorGUI.EndChangeCheck())
 				{
 					ApplySpeciesChange("Edit Feat Reward", () => abilityReward.Ability = ability);
+				}
+				break;
+
+			case RemoveAbilityReward removeAbilityReward:
+				EditorGUI.BeginChangeCheck();
+				Ability abilityToRemove = (Ability)EditorGUILayout.ObjectField("Ability", removeAbilityReward.Ability, typeof(Ability), false);
+				if (EditorGUI.EndChangeCheck())
+				{
+					ApplySpeciesChange("Edit Feat Reward", () => removeAbilityReward.Ability = abilityToRemove);
 				}
 				break;
 

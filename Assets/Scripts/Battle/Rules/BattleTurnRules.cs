@@ -34,7 +34,9 @@ public static class BattleTurnRules
 
 		TrackedResourceDelta before = Track(activeUnit);
 		BattleStatusRules.ApplyHook(activeUnit, battleContext, StatusHookPoint.TurnEnd, activeUnit);
+		EmitAbilityCastInTurnEvents(battleContext, activeUnit);
 		BattleStatusRules.AdvanceTurnDurations(activeUnit);
+		activeUnit.BattleAttributes.AdvanceShieldDurations();
 		battleContext.Board?.Runtime?.AdvanceObjectDurations();
 		activeUnit.BattleAttributes.TurnBar.SetCurrent(0f);
 		EmitLossHooks(battleContext, activeUnit, before);
@@ -331,6 +333,33 @@ public static class BattleTurnRules
 			ClosestAllyDistance = closestAlly,
 			ClosestEnemyDistance = closestEnemy
 		});
+	}
+
+	private static void EmitAbilityCastInTurnEvents(BattleContext battleContext, BattleUnit activeUnit)
+	{
+		TurnContext turnContext = battleContext?.CurrentTurn;
+		if (activeUnit == null ||
+			turnContext == null ||
+			!ReferenceEquals(turnContext.ActiveUnit, activeUnit) ||
+			turnContext.TotalAbilityCastCountThisTurn <= 0)
+		{
+			return;
+		}
+
+		foreach (KeyValuePair<Ability, int> entry in turnContext.AbilityCastCountsThisTurn)
+		{
+			if (entry.Key == null || entry.Value <= 0)
+			{
+				continue;
+			}
+
+			activeUnit.RecordFeatEvent(new CastMultipleAbilitiesInOneTurnRequirement.Event
+			{
+				Ability = entry.Key,
+				AbilityCastCountThisTurn = entry.Value,
+				TotalCastCountThisTurn = turnContext.TotalAbilityCastCountThisTurn
+			});
+		}
 	}
 
 	private static void ComputeClosestDistances(

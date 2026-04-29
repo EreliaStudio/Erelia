@@ -45,6 +45,7 @@ public static class FeatProgressionService
 
 		p_unit.Attributes = new Attributes(p_unit.Species.Attributes);
 		p_unit.Abilities = new List<Ability>();
+		p_unit.AddAbilities(p_unit.Species.DefaultAbilities);
 		p_unit.PermanentPassives = new List<Status>();
 
 		if (featBoard == null || p_unit.FeatBoardProgress?.NodeProgress == null)

@@ -58,6 +58,7 @@ public sealed class BattleContext
 			allUnits[index].BattleAttributes.Setup(allUnits[index].SourceUnit.Attributes);
 			allUnits[index].ClearBoardPosition();
 			allUnits[index].ClearFeatEvents();
+			allUnits[index].BattleAttributes.ClearShields();
 		}
 	}
 

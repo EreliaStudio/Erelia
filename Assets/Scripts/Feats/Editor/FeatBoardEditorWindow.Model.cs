@@ -215,6 +215,9 @@ public partial class FeatBoardEditorWindow
 			case AbilityReward abilityReward:
 				return "Ability: " + (abilityReward.Ability != null ? abilityReward.Ability.name : "Unassigned");
 
+			case RemoveAbilityReward removeAbilityReward:
+				return "Remove Ability: " + (removeAbilityReward.Ability != null ? removeAbilityReward.Ability.name : "Unassigned");
+
 			case PassiveReward passiveReward:
 				return "Passive: " + (passiveReward.Status != null ? passiveReward.Status.name : "Unassigned");
 
@@ -236,9 +239,20 @@ public partial class FeatBoardEditorWindow
 			case HealHealthRequirement healHealth:
 				return "Heal " + healHealth.RequiredAmount;
 
+			case CastAbilityCountRequirement castAbility:
+				return "Cast " + FormatAbilityName(castAbility.Ability) + " " + castAbility.RequiredCount + " times";
+
+			case CastMultipleAbilitiesInOneTurnRequirement castInTurn:
+				return "Cast " + FormatAbilityName(castInTurn.Ability) + " " + castInTurn.RequiredCount + " times in one turn";
+
 			default:
 				return "Unknown requirement";
 		}
+	}
+
+	private static string FormatAbilityName(Ability ability)
+	{
+		return ability != null ? ability.name : "any ability";
 	}
 
 	private string GetNodeLabel(FeatNode node)

@@ -61,7 +61,7 @@ public class CreatureUnit
 		if (Species == null ||
 			string.IsNullOrEmpty(CurrentFormID) ||
 			Species.Forms == null ||
-			!Species.Forms.TryGetValue(CurrentFormID, out CreatureForm form))
+			Species.Forms.TryGetValue(CurrentFormID, out CreatureForm form) == false)
 		{
 			return false;
 		}
@@ -72,26 +72,114 @@ public class CreatureUnit
 
 	public IReadOnlyList<Ability> GetAbilities()
 	{
-		List<Ability> combinedAbilities = new List<Ability>();
-		AddUniqueAbilities(combinedAbilities, Species?.DefaultAbilities);
-		AddUniqueAbilities(combinedAbilities, Abilities);
-		return combinedAbilities;
+		EnsureAbilityList();
+		return Abilities;
 	}
 
-	private static void AddUniqueAbilities(List<Ability> target, IReadOnlyList<Ability> source)
+	public void SetAbilities(IReadOnlyList<Ability> p_abilities)
 	{
-		if (target == null || source == null)
+		EnsureAbilityList();
+		Abilities.Clear();
+
+		AddAbilities(p_abilities);
+	}
+
+	public void InitializeDefaultAbilities()
+	{
+		EnsureAbilityList();
+		AddAbilities(Species?.DefaultAbilities);
+	}
+
+	public bool HasAbility(Ability p_ability)
+	{
+		if (p_ability == null)
+		{
+			return false;
+		}
+
+		return ContainsAbility(Abilities, p_ability);
+	}
+
+	public void AddAbility(Ability p_ability)
+	{
+		if (p_ability == null)
 		{
 			return;
 		}
 
-		for (int index = 0; index < source.Count; index++)
+		EnsureAbilityList();
+
+		if (ContainsAbility(Abilities, p_ability) == false)
 		{
-			Ability ability = source[index];
-			if (ability != null && !target.Contains(ability))
+			Abilities.Add(p_ability);
+		}
+	}
+
+	public void AddAbilities(IReadOnlyList<Ability> p_abilities)
+	{
+		if (p_abilities == null)
+		{
+			return;
+		}
+
+		for (int index = 0; index < p_abilities.Count; index++)
+		{
+			AddAbility(p_abilities[index]);
+		}
+	}
+
+	public void RemoveAbility(Ability p_ability)
+	{
+		if (p_ability == null || Abilities == null)
+		{
+			return;
+		}
+
+		for (int index = Abilities.Count - 1; index >= 0; index--)
+		{
+			if (Abilities[index] == p_ability)
 			{
-				target.Add(ability);
+				Abilities.RemoveAt(index);
 			}
 		}
+	}
+
+	public void RemoveAbilities(IReadOnlyList<Ability> p_abilities)
+	{
+		if (p_abilities == null)
+		{
+			return;
+		}
+
+		for (int index = 0; index < p_abilities.Count; index++)
+		{
+			RemoveAbility(p_abilities[index]);
+		}
+	}
+
+	private void EnsureAbilityList()
+	{
+		if (Abilities == null)
+		{
+			Abilities = new List<Ability>();
+		}
+	}
+
+	private static bool ContainsAbility(IReadOnlyList<Ability> p_abilities, Ability p_ability)
+	{
+		if (p_abilities == null || p_ability == null)
+		{
+			return false;
+		}
+
+		for (int index = 0; index < p_abilities.Count; index++)
+		{
+			if (p_abilities[index] == p_ability)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

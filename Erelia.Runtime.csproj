@@ -137,6 +137,7 @@
     <Compile Include="Assets\Scripts\Math\MathFormula.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatProgressionService.cs" />
     <Compile Include="Assets\Scripts\Battle\Rules\BattleActionValidator.cs" />
+    <Compile Include="Assets\Scripts\Battle\Core\BattleShield.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorManager.cs" />
     <Compile Include="Assets\Scripts\Data\GameSaveData.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\PlacementStyle.cs" />
