@@ -96,6 +96,14 @@ public class FeatRequirementProgress
 			return;
 		}
 
-		CurrentProgress = Math.Min(100f, CurrentProgress + Requirement.Register(p_featEvent));
+		float newProgress = Requirement.Register(p_featEvent);
+		if (Requirement.Mode == FeatRequirement.ProgressMode.Maximum)
+		{
+			CurrentProgress = Math.Min(100f, Math.Max(CurrentProgress, newProgress));
+		}
+		else
+		{
+			CurrentProgress = Math.Min(100f, CurrentProgress + newProgress);
+		}
 	}
 }

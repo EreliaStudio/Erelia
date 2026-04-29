@@ -28,10 +28,61 @@ public sealed class FeatProgressionTests
 
 		effect.Apply(context);
 
-		Assert.That(sourceUnit.PendingFeatEvents.Count, Is.EqualTo(1));
+		// Source gets both DealDamage and MaxSingleHit events
+		Assert.That(sourceUnit.PendingFeatEvents.Count, Is.EqualTo(2));
 		Assert.That(sourceUnit.PendingFeatEvents[0], Is.InstanceOf<DealDamageRequirement.Event>());
 		var dealEvent = (DealDamageRequirement.Event)sourceUnit.PendingFeatEvents[0];
 		Assert.That(dealEvent.Amount, Is.EqualTo(10));
+	}
+
+	[Test]
+	public void DamageEffect_Apply_RecordsMaxSingleHitDamageEventOnSourceUnit()
+	{
+		BattleUnit sourceUnit = CreateUnit(BattleSide.Player, health: 100);
+		BattleUnit targetUnit = CreateUnit(BattleSide.Enemy, health: 100);
+		BattleAbilityExecutionContext context = CreateContext(sourceUnit, targetUnit);
+
+		var effect = new DamageTargetEffect
+		{
+			Input = new MathFormula.DamageInput
+			{
+				BaseDamage = 10,
+				DamageKind = MathFormula.DamageInput.Kind.Physical,
+				AttackRatio = 0f,
+				MagicRatio = 0f
+			}
+		};
+
+		effect.Apply(context);
+
+		Assert.That(sourceUnit.PendingFeatEvents[1], Is.InstanceOf<MaxSingleHitDamageRequirement.Event>());
+		var maxHitEvent = (MaxSingleHitDamageRequirement.Event)sourceUnit.PendingFeatEvents[1];
+		Assert.That(maxHitEvent.Amount, Is.EqualTo(10));
+	}
+
+	[Test]
+	public void DamageEffect_Apply_MaxSingleHitEventCarriesClampedAppliedAmount()
+	{
+		BattleUnit sourceUnit = CreateUnit(BattleSide.Player, health: 100);
+		BattleUnit targetUnit = CreateUnit(BattleSide.Enemy, health: 5);
+		BattleAbilityExecutionContext context = CreateContext(sourceUnit, targetUnit);
+
+		var effect = new DamageTargetEffect
+		{
+			Input = new MathFormula.DamageInput
+			{
+				BaseDamage = 20,
+				DamageKind = MathFormula.DamageInput.Kind.Physical,
+				AttackRatio = 0f,
+				MagicRatio = 0f
+			}
+		};
+
+		effect.Apply(context);
+
+		// Target had only 5 HP — applied damage is clamped; MaxSingleHit must match
+		var maxHitEvent = (MaxSingleHitDamageRequirement.Event)sourceUnit.PendingFeatEvents[1];
+		Assert.That(maxHitEvent.Amount, Is.EqualTo(5));
 	}
 
 	[Test]
@@ -81,10 +132,12 @@ public sealed class FeatProgressionTests
 		effect.Apply(context);
 
 		int dealtAmount = ((DealDamageRequirement.Event)sourceUnit.PendingFeatEvents[0]).Amount;
+		int maxHitAmount = ((MaxSingleHitDamageRequirement.Event)sourceUnit.PendingFeatEvents[1]).Amount;
 		int takenAmount = ((TakeDamageRequirement.Event)targetUnit.PendingFeatEvents[0]).Amount;
 
-		// Target had only 5 HP; the clamped applied amount must match on both sides
+		// Target had only 5 HP; all three events must reflect the same clamped applied damage
 		Assert.That(dealtAmount, Is.EqualTo(5));
+		Assert.That(maxHitAmount, Is.EqualTo(5));
 		Assert.That(takenAmount, Is.EqualTo(5));
 	}
 
@@ -292,6 +345,116 @@ public sealed class FeatProgressionTests
 	}
 
 	// -------------------------------------------------------------------------
+	// Group 2b — MaxSingleHitDamageRequirement accumulation mode
+	// -------------------------------------------------------------------------
+
+	[Test]
+	public void MaxSingleHitRequirement_ProgressTakesMaximumNotSum()
+	{
+		// Two hits of 30 with RequiredAmount=100 should give 30% progress, not 60%
+		var requirement = new MaxSingleHitDamageRequirement { RequiredAmount = 100 };
+		var progress = new FeatRequirementProgress { Requirement = requirement, CurrentProgress = 0f };
+
+		progress.Register(new MaxSingleHitDamageRequirement.Event { Amount = 30 });
+		progress.Register(new MaxSingleHitDamageRequirement.Event { Amount = 30 });
+
+		Assert.That(progress.CurrentProgress, Is.EqualTo(30f).Within(0.01f));
+	}
+
+	[Test]
+	public void MaxSingleHitRequirement_ProgressAdvancesWhenNewHitIsStronger()
+	{
+		// First hit 30%, second hit 50% — progress should update to 50%
+		var requirement = new MaxSingleHitDamageRequirement { RequiredAmount = 100 };
+		var progress = new FeatRequirementProgress { Requirement = requirement, CurrentProgress = 0f };
+
+		progress.Register(new MaxSingleHitDamageRequirement.Event { Amount = 30 });
+		progress.Register(new MaxSingleHitDamageRequirement.Event { Amount = 50 });
+
+		Assert.That(progress.CurrentProgress, Is.EqualTo(50f).Within(0.01f));
+	}
+
+	[Test]
+	public void MaxSingleHitRequirement_TwoWeakHitsDoNotCompleteNode()
+	{
+		// Two hits of 25 with RequiredAmount=50 must not complete the node
+		FeatNode rootNode = new FeatNode { Id = "root", DisplayName = "Root" };
+		FeatNode maxHitNode = new FeatNode
+		{
+			Id = "max_hit_node",
+			Requirements = new List<FeatRequirement>
+			{
+				new MaxSingleHitDamageRequirement { RequiredAmount = 50 }
+			},
+			NeighbourNodeIds = new List<string> { rootNode.Id }
+		};
+
+		var creatureUnit = new CreatureUnit
+		{
+			Attributes = new Attributes { Health = 100 },
+			Abilities = new List<Ability>(),
+			PermanentPassives = new List<Status>()
+		};
+		creatureUnit.Species = ScriptableObject.CreateInstance<CreatureSpecies>();
+		creatureUnit.Species.FeatBoard = new FeatBoard
+		{
+			Nodes = new List<FeatNode> { rootNode, maxHitNode },
+			RootNodeId = rootNode.Id
+		};
+		FeatProgressionService.InitializeCreatureUnit(creatureUnit);
+
+		FeatProgressionService.RegisterEvent(creatureUnit, new MaxSingleHitDamageRequirement.Event { Amount = 25 });
+		FeatProgressionService.RegisterEvent(creatureUnit, new MaxSingleHitDamageRequirement.Event { Amount = 25 });
+
+		FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creatureUnit, maxHitNode);
+		bool completed = nodeProgress != null && nodeProgress.CompletionCount > 0;
+		Assert.That(completed, Is.False, "Two weak hits must not satisfy a max-single-hit requirement.");
+
+		Object.DestroyImmediate(creatureUnit.Species);
+	}
+
+	[Test]
+	public void MaxSingleHitRequirement_SingleHitAtThresholdCompletesNode()
+	{
+		FeatNode rootNode = new FeatNode { Id = "root", DisplayName = "Root" };
+		FeatNode maxHitNode = new FeatNode
+		{
+			Id = "max_hit_node",
+			Requirements = new List<FeatRequirement>
+			{
+				new MaxSingleHitDamageRequirement { RequiredAmount = 50 }
+			},
+			Rewards = new List<FeatReward>
+			{
+				new BonusStatsReward { Attribute = BonusStatsReward.AttributeType.Health, Value = 5 }
+			},
+			NeighbourNodeIds = new List<string> { rootNode.Id }
+		};
+
+		var creatureUnit = new CreatureUnit
+		{
+			Attributes = new Attributes { Health = 100 },
+			Abilities = new List<Ability>(),
+			PermanentPassives = new List<Status>()
+		};
+		creatureUnit.Species = ScriptableObject.CreateInstance<CreatureSpecies>();
+		creatureUnit.Species.FeatBoard = new FeatBoard
+		{
+			Nodes = new List<FeatNode> { rootNode, maxHitNode },
+			RootNodeId = rootNode.Id
+		};
+		FeatProgressionService.InitializeCreatureUnit(creatureUnit);
+
+		FeatProgressionService.RegisterEvent(creatureUnit, new MaxSingleHitDamageRequirement.Event { Amount = 50 });
+
+		FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creatureUnit, maxHitNode);
+		Assert.That(nodeProgress, Is.Not.Null);
+		Assert.That(nodeProgress.CompletionCount, Is.GreaterThan(0), "A single hit meeting the threshold must complete the node.");
+
+		Object.DestroyImmediate(creatureUnit.Species);
+	}
+
+	// -------------------------------------------------------------------------
 	// Group 3 — EndPhase applies feat progression on player victory only
 	// -------------------------------------------------------------------------
 
@@ -446,6 +609,115 @@ public sealed class FeatProgressionTests
 		// Since EnemySources[0] has no species FeatBoard, the best we can verify
 		// is that the enemy unit's pending events were not touched by the end phase.
 		Assert.That(fixture.EnemyUnits[0].PendingFeatEvents.Count, Is.EqualTo(eventCountBeforeEnd));
+
+		orchestrator.Dispose();
+	}
+
+	[Test]
+	public void PlayerVictory_MaxSingleHitNodeCompleted_WhenSingleHitMeetsThreshold()
+	{
+		using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(
+			playerCount: 1,
+			enemyCount: 1,
+			defaultHealth: 50,
+			defaultActionPoints: 4);
+
+		FeatNode rootNode = new FeatNode { Id = "root", DisplayName = "Root" };
+		FeatNode maxHitNode = new FeatNode
+		{
+			Id = "max_hit_node",
+			DisplayName = "Heavy Hitter",
+			Requirements = new List<FeatRequirement>
+			{
+				new MaxSingleHitDamageRequirement { RequiredAmount = 30 }
+			},
+			Rewards = new List<FeatReward>
+			{
+				new BonusStatsReward { Attribute = BonusStatsReward.AttributeType.Health, Value = 5 }
+			},
+			NeighbourNodeIds = new List<string> { rootNode.Id }
+		};
+		rootNode.NeighbourNodeIds.Add(maxHitNode.Id);
+
+		fixture.PlayerSources[0].Species.FeatBoard = new FeatBoard
+		{
+			Nodes = new List<FeatNode> { rootNode, maxHitNode },
+			RootNodeId = rootNode.Id
+		};
+		FeatProgressionService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+
+		BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
+		fixture.CompletePlacement(
+			orchestrator,
+			playerTurnBars: new[] { fixture.PlayerUnits[0].BattleAttributes.TurnBar.Max },
+			enemyTurnBars: new[] { 0f });
+
+		fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
+		fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
+
+		// A single hit of 30 meets the threshold exactly
+		fixture.PlayerUnits[0].RecordFeatEvent(new MaxSingleHitDamageRequirement.Event { Amount = 30 });
+
+		orchestrator.TransitionTo(BattlePhaseType.End);
+
+		FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(fixture.PlayerSources[0], maxHitNode);
+		Assert.That(nodeProgress, Is.Not.Null);
+		Assert.That(nodeProgress.CompletionCount, Is.GreaterThan(0));
+
+		orchestrator.Dispose();
+	}
+
+	[Test]
+	public void PlayerVictory_MaxSingleHitNodeNotCompleted_WhenNoSingleHitMeetsThreshold()
+	{
+		using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(
+			playerCount: 1,
+			enemyCount: 1,
+			defaultHealth: 50,
+			defaultActionPoints: 4);
+
+		FeatNode rootNode = new FeatNode { Id = "root", DisplayName = "Root" };
+		FeatNode maxHitNode = new FeatNode
+		{
+			Id = "max_hit_node",
+			DisplayName = "Heavy Hitter",
+			Requirements = new List<FeatRequirement>
+			{
+				new MaxSingleHitDamageRequirement { RequiredAmount = 50 }
+			},
+			Rewards = new List<FeatReward>
+			{
+				new BonusStatsReward { Attribute = BonusStatsReward.AttributeType.Health, Value = 5 }
+			},
+			NeighbourNodeIds = new List<string> { rootNode.Id }
+		};
+		rootNode.NeighbourNodeIds.Add(maxHitNode.Id);
+
+		fixture.PlayerSources[0].Species.FeatBoard = new FeatBoard
+		{
+			Nodes = new List<FeatNode> { rootNode, maxHitNode },
+			RootNodeId = rootNode.Id
+		};
+		FeatProgressionService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+
+		BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
+		fixture.CompletePlacement(
+			orchestrator,
+			playerTurnBars: new[] { fixture.PlayerUnits[0].BattleAttributes.TurnBar.Max },
+			enemyTurnBars: new[] { 0f });
+
+		fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
+		fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
+
+		// Two hits of 25 each — neither meets the 50-threshold individually
+		fixture.PlayerUnits[0].RecordFeatEvent(new MaxSingleHitDamageRequirement.Event { Amount = 25 });
+		fixture.PlayerUnits[0].RecordFeatEvent(new MaxSingleHitDamageRequirement.Event { Amount = 25 });
+
+		orchestrator.TransitionTo(BattlePhaseType.End);
+
+		FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(fixture.PlayerSources[0], maxHitNode);
+		bool completed = nodeProgress != null && nodeProgress.CompletionCount > 0;
+		Assert.That(completed, Is.False, "Two hits of 25 must not complete a max-single-hit-50 node.");
 
 		orchestrator.Dispose();
 	}

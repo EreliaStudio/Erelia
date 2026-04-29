@@ -4,10 +4,14 @@ using UnityEngine;
 [Serializable]
 public abstract class FeatRequirement
 {
+	public enum ProgressMode { Additive, Maximum }
+
 	[Serializable]
 	public abstract class EventBase
 	{
 	}
+
+	public virtual ProgressMode Mode => ProgressMode.Additive;
 
 	public abstract float Register(EventBase p_event);
 
@@ -88,6 +92,25 @@ public class TakeDamageRequirement : FeatRequirementTemplated<TakeDamageRequirem
 	{
 		public int Amount = 0;
 	}
+
+	protected override float ComputeProgress(Event p_event)
+	{
+		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
+	}
+}
+
+[Serializable]
+public class MaxSingleHitDamageRequirement : FeatRequirementTemplated<MaxSingleHitDamageRequirement.Event>
+{
+	public int RequiredAmount = 10;
+
+	[Serializable]
+	public class Event : FeatRequirement.EventBase
+	{
+		public int Amount = 0;
+	}
+
+	public override ProgressMode Mode => ProgressMode.Maximum;
 
 	protected override float ComputeProgress(Event p_event)
 	{

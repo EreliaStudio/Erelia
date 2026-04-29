@@ -387,6 +387,7 @@ public class DamageTargetEffect : Effect
 		}
 
 		context.SourceUnit?.RecordFeatEvent(new DealDamageRequirement.Event { Amount = appliedDamage });
+		context.SourceUnit?.RecordFeatEvent(new MaxSingleHitDamageRequirement.Event { Amount = appliedDamage });
 		context.TargetUnit.RecordFeatEvent(new TakeDamageRequirement.Event { Amount = appliedDamage });
 	}
 }
