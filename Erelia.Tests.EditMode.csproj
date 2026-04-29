@@ -59,6 +59,7 @@
     <Compile Include="Assets\Tests\IdlePhaseTests.cs" />
     <Compile Include="Assets\Tests\LineOfSightTests.cs" />
     <Compile Include="Assets\Tests\ResolutionPhaseTests.cs" />
+    <Compile Include="Assets\Tests\FeatProgressionTests.cs" />
     <Compile Include="Assets\Tests\SetupPhaseTests.cs" />
     <Compile Include="Assets\Tests\LineOfSightTestFixture.cs" />
     <Compile Include="Assets\Tests\BattleCombatFlowTests.cs" />

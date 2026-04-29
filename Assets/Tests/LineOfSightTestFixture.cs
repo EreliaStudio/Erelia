@@ -55,10 +55,13 @@ internal sealed class LineOfSightTestFixture : IDisposable
 		return new LineOfSightTestFixture(sizeX, sizeZ);
 	}
 
-	// Place an Obstacle wall at standing level. Call before Build().
+	// Place an Obstacle wall at StandY+1. Call before Build().
+	// The LoS ray traces at sourceCell.y+1 (i.e. StandY+1=2), so walls must be placed there.
 	public LineOfSightTestFixture WithWall(int x, int z)
 	{
-		_terrain.Cells[x, StandY, z] = new VoxelCell(VoxelObstacle);
+		_terrain.Cells[x, StandY + 0, z] = new VoxelCell(VoxelObstacle);
+		_terrain.Cells[x, StandY + 1, z] = new VoxelCell(VoxelObstacle);
+		_terrain.Cells[x, StandY + 2, z] = new VoxelCell(VoxelObstacle);
 		_wallCells.Add((x, z));
 		return this;
 	}

@@ -10,7 +10,7 @@ public sealed class IdlePhase : BattlePhase
 			return;
 		}
 
-		if (BattleTurnRules.TrySelectNextReadyUnit(BattleContext, out BattleUnit readyUnit))
+		if (BattleTurnRules.TryFindNextActiveUnit(BattleContext, out BattleUnit readyUnit))
 		{
 			BeginTurnFor(readyUnit);
 		}

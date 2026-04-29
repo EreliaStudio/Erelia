@@ -26,9 +26,12 @@ public class BattleUnit : BattleObject
 		}
 	}
 
+	private readonly List<FeatRequirement.EventBase> pendingFeatEvents = new();
+
 	public CreatureUnit SourceUnit { get; }
 	public BattleAttributes BattleAttributes { get; }
 	public BattleStatuses Statuses { get; } = new();
+	public IReadOnlyList<FeatRequirement.EventBase> PendingFeatEvents => pendingFeatEvents;
 
 	public IReadOnlyList<Ability> Abilities => SourceUnit.GetAbilities();
 	public bool HasBoardPosition => hasBoardPosition;
@@ -37,6 +40,21 @@ public class BattleUnit : BattleObject
 	public bool IsTurnReady => BattleAttributes.TurnBar.Current >= BattleAttributes.TurnBar.Max;
 
 	public event Action<BattleUnit, Vector3Int?> PositionChanged;
+
+	public void RecordFeatEvent(FeatRequirement.EventBase featEvent)
+	{
+		if (featEvent == null)
+		{
+			return;
+		}
+
+		pendingFeatEvents.Add(featEvent);
+	}
+
+	public void ClearFeatEvents()
+	{
+		pendingFeatEvents.Clear();
+	}
 
 	public void SetBoardPosition(Vector3Int p_position)
 	{

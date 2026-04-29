@@ -77,3 +77,20 @@ public class HealHealthRequirement : FeatRequirementTemplated<HealHealthRequirem
 		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
 	}
 }
+
+[Serializable]
+public class TakeDamageRequirement : FeatRequirementTemplated<TakeDamageRequirement.Event>
+{
+	public int RequiredAmount = 10;
+
+	[Serializable]
+	public class Event : FeatRequirement.EventBase
+	{
+		public int Amount = 0;
+	}
+
+	protected override float ComputeProgress(Event p_event)
+	{
+		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
+	}
+}

@@ -115,7 +115,7 @@ public sealed class BackendBehaviorTests
 	[Test]
 	public void DefeatUnit_DefeatedUnitNoLongerBlocksMovement()
 	{
-		using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 2, defaultActionPoints: 2, defaultMovement: 4);
+		using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 2, defaultActionPoints: 2, defaultMovement: 10);
 		Ability killingAbility = fixture.CreateDamageAbility(baseDamage: 999, actionPointCost: 1, targetProfile: TargetProfile.Enemy);
 		fixture.PlayerSources[0].Abilities.Add(killingAbility);
 

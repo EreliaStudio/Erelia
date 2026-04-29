@@ -374,16 +374,20 @@ public class DamageTargetEffect : Effect
 		int previousHealth = context.TargetUnit.BattleAttributes.Health.Current;
 		context.TargetUnit.BattleAttributes.Health.Decrease(computedDamage);
 		int appliedDamage = previousHealth - context.TargetUnit.BattleAttributes.Health.Current;
-		if (appliedDamage <= 0 || context.SourceUnit == null)
+
+		if (appliedDamage <= 0)
 		{
 			return;
 		}
 
 		int selfHealing = MathFormula.ComputeVampirismHealing(casterAttributes, Input.DamageKind, appliedDamage);
-		if (selfHealing > 0)
+		if (selfHealing > 0 && context.SourceUnit != null)
 		{
 			context.SourceUnit.BattleAttributes.Health.Increase(selfHealing);
 		}
+
+		context.SourceUnit?.RecordFeatEvent(new DealDamageRequirement.Event { Amount = appliedDamage });
+		context.TargetUnit.RecordFeatEvent(new TakeDamageRequirement.Event { Amount = appliedDamage });
 	}
 }
 
@@ -414,6 +418,7 @@ public class HealTargetEffect : Effect
 		}
 
 		context.TargetUnit.BattleAttributes.Health.Increase(computedHealing);
+		context.SourceUnit?.RecordFeatEvent(new HealHealthRequirement.Event { Amount = computedHealing });
 	}
 }
 
