@@ -714,6 +714,9 @@ public partial class FeatBoardEditorWindow : EditorWindow
 			return;
 		}
 
+		DrawRequirementDurationField(requirement);
+		DrawRequirementRepeatField(requirement);
+
 		switch (requirement)
 		{
 			case DealDamageRequirement dealDamage:
@@ -722,6 +725,15 @@ public partial class FeatBoardEditorWindow : EditorWindow
 				if (EditorGUI.EndChangeCheck())
 				{
 					ApplySpeciesChange("Edit Feat Requirement", () => dealDamage.RequiredAmount = Mathf.Max(0, dealAmount));
+				}
+				break;
+
+			case MaxSingleHitDamageRequirement maxHit:
+				EditorGUI.BeginChangeCheck();
+				int maxHitAmount = EditorGUILayout.IntField("Required Damage", maxHit.RequiredAmount);
+				if (EditorGUI.EndChangeCheck())
+				{
+					ApplySpeciesChange("Edit Feat Requirement", () => maxHit.RequiredAmount = Mathf.Max(0, maxHitAmount));
 				}
 				break;
 
@@ -738,13 +750,41 @@ public partial class FeatBoardEditorWindow : EditorWindow
 				DrawCastAbilityCountRequirementFields(castAbility);
 				break;
 
-			case CastMultipleAbilitiesInOneTurnRequirement castInTurn:
-				DrawCastMultipleAbilitiesInOneTurnRequirementFields(castInTurn);
-				break;
-
 			default:
 				EditorGUILayout.HelpBox("Unsupported requirement type: " + requirement.GetType().Name, MessageType.Warning);
 				break;
+		}
+	}
+
+	private void DrawRequirementDurationField(FeatRequirement requirement)
+	{
+		if (requirement == null)
+		{
+			return;
+		}
+
+		EditorGUI.BeginChangeCheck();
+		FeatRequirement.Scope scope =
+			(FeatRequirement.Scope)EditorGUILayout.EnumPopup("Scope", requirement.RequirementScope);
+		if (EditorGUI.EndChangeCheck())
+		{
+			ApplySpeciesChange("Edit Feat Requirement Scope", () => requirement.RequirementScope = scope);
+		}
+	}
+
+	private void DrawRequirementRepeatField(FeatRequirement requirement)
+	{
+		if (requirement == null)
+		{
+			return;
+		}
+
+		EditorGUI.BeginChangeCheck();
+		int repeatCount = EditorGUILayout.IntField("Repeat Count", requirement.RequiredRepeatCount);
+		if (EditorGUI.EndChangeCheck())
+		{
+			ApplySpeciesChange("Edit Feat Requirement Repeat Count", () =>
+				requirement.RequiredRepeatCount = Mathf.Max(1, repeatCount));
 		}
 	}
 
@@ -753,21 +793,6 @@ public partial class FeatBoardEditorWindow : EditorWindow
 		EditorGUI.BeginChangeCheck();
 		Ability ability = (Ability)EditorGUILayout.ObjectField("Ability", requirement.Ability, typeof(Ability), false);
 		int count = EditorGUILayout.IntField("Required Casts", requirement.RequiredCount);
-		if (EditorGUI.EndChangeCheck())
-		{
-			ApplySpeciesChange("Edit Feat Requirement", () =>
-			{
-				requirement.Ability = ability;
-				requirement.RequiredCount = Mathf.Max(1, count);
-			});
-		}
-	}
-
-	private void DrawCastMultipleAbilitiesInOneTurnRequirementFields(CastMultipleAbilitiesInOneTurnRequirement requirement)
-	{
-		EditorGUI.BeginChangeCheck();
-		Ability ability = (Ability)EditorGUILayout.ObjectField("Ability", requirement.Ability, typeof(Ability), false);
-		int count = EditorGUILayout.IntField("Required Casts In Turn", requirement.RequiredCount);
 		if (EditorGUI.EndChangeCheck())
 		{
 			ApplySpeciesChange("Edit Feat Requirement", () =>
@@ -947,6 +972,11 @@ public partial class FeatBoardEditorWindow : EditorWindow
 		for (int i = 0; i < requirementTypes.Length; i++)
 		{
 			Type requirementType = requirementTypes[i];
+			if (IsLegacyRequirementType(requirementType))
+			{
+				continue;
+			}
+
 			string label = GetFeatRequirementLabel(requirementType);
 
 			menu.AddItem(new GUIContent(label), false, () =>
@@ -966,6 +996,12 @@ public partial class FeatBoardEditorWindow : EditorWindow
 	private static string GetFeatRequirementLabel(Type requirementType)
 	{
 		return ManagedReferenceTypePicker.NicifyTypeName(requirementType, suffixToTrim: "Requirement");
+	}
+
+	private static bool IsLegacyRequirementType(Type requirementType)
+	{
+		return requirementType == typeof(CastMultipleAbilitiesInOneTurnRequirement) ||
+			requirementType == typeof(MaxSingleHitDamageRequirement);
 	}
 
 	private void HandleCanvasInput(Rect canvasRect)

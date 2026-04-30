@@ -1,19 +1,84 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
 public abstract class FeatRequirement
 {
-	public enum ProgressMode { Additive, Maximum }
+	public enum Scope
+	{
+		Ability,
+		Turn,
+		Fight,
+		Game
+	}
+
+	[Serializable]
+	public struct Advancement
+	{
+		public float Progress;
+		public int CompletedRepeatCount;
+
+		public Advancement(float p_progress, int p_completedRepeatCount)
+		{
+			Progress = p_progress;
+			CompletedRepeatCount = p_completedRepeatCount;
+		}
+	}
 
 	[Serializable]
 	public abstract class EventBase
 	{
+		public int TurnIndex = 0;
 	}
 
-	public virtual ProgressMode Mode => ProgressMode.Additive;
+	public Scope RequirementScope = Scope.Fight;
+	public int RequiredRepeatCount = 1;
 
-	public abstract float Register(EventBase p_event);
+	public Advancement EvaluateEvents(
+		IReadOnlyList<EventBase> p_events,
+		Advancement p_currentAdvancement)
+	{
+		Advancement advancement = p_currentAdvancement;
+
+		if (IsCompleted(advancement))
+		{
+			return advancement;
+		}
+
+		if (p_events == null || p_events.Count == 0)
+		{
+			return advancement;
+		}
+
+		switch (RequirementScope)
+		{
+			case Scope.Ability:
+				EvaluateAbilityScope(p_events, ref advancement);
+				break;
+
+			case Scope.Turn:
+				EvaluateTurnScope(p_events, ref advancement);
+				break;
+
+			case Scope.Fight:
+				EvaluateFightScope(p_events, ref advancement);
+				break;
+
+			case Scope.Game:
+				EvaluateGameScope(p_events, ref advancement);
+				break;
+		}
+
+		return advancement;
+	}
+
+	public bool IsCompleted(Advancement p_advancement)
+	{
+		return p_advancement.CompletedRepeatCount >= RequiredRepeatCount;
+	}
+
+	protected abstract float EvaluateEventProgress(EventBase p_event);
 
 	protected static float ComputeLinearProgress(int p_amount, int p_requiredAmount)
 	{
@@ -27,7 +92,130 @@ public abstract class FeatRequirement
 			return 0f;
 		}
 
-		return Mathf.Clamp((float)p_amount / p_requiredAmount * 100f, 0f, 100f);
+		return (float)p_amount / p_requiredAmount * 100f;
+	}
+
+	private void EvaluateAbilityScope(
+		IReadOnlyList<EventBase> p_events,
+		ref Advancement p_advancement)
+	{
+		for (int index = 0; index < p_events.Count; index++)
+		{
+			float eventProgress = GetEventProgress(p_events[index]);
+
+			if (eventProgress < 100f)
+			{
+				continue;
+			}
+
+			RegisterOneCompletion(ref p_advancement);
+
+			if (IsCompleted(p_advancement))
+			{
+				return;
+			}
+		}
+	}
+
+	private void EvaluateTurnScope(
+		IReadOnlyList<EventBase> p_events,
+		ref Advancement p_advancement)
+	{
+		Dictionary<int, float> progressByTurn = new Dictionary<int, float>();
+
+		for (int index = 0; index < p_events.Count; index++)
+		{
+			EventBase featEvent = p_events[index];
+
+			if (featEvent == null)
+			{
+				continue;
+			}
+
+			float eventProgress = GetEventProgress(featEvent);
+
+			if (eventProgress <= 0f)
+			{
+				continue;
+			}
+
+			if (progressByTurn.ContainsKey(featEvent.TurnIndex) == false)
+			{
+				progressByTurn.Add(featEvent.TurnIndex, 0f);
+			}
+
+			progressByTurn[featEvent.TurnIndex] += eventProgress;
+		}
+
+		foreach (float turnProgress in progressByTurn.Values)
+		{
+			if (turnProgress < 100f)
+			{
+				continue;
+			}
+
+			RegisterOneCompletion(ref p_advancement);
+
+			if (IsCompleted(p_advancement))
+			{
+				return;
+			}
+		}
+	}
+
+	private void EvaluateFightScope(
+		IReadOnlyList<EventBase> p_events,
+		ref Advancement p_advancement)
+	{
+		float fightProgress = 0f;
+
+		for (int index = 0; index < p_events.Count; index++)
+		{
+			fightProgress += GetEventProgress(p_events[index]);
+		}
+
+		if (fightProgress >= 100f)
+		{
+			RegisterOneCompletion(ref p_advancement);
+		}
+	}
+
+	private void EvaluateGameScope(
+		IReadOnlyList<EventBase> p_events,
+		ref Advancement p_advancement)
+	{
+		for (int index = 0; index < p_events.Count; index++)
+		{
+			p_advancement.Progress += GetEventProgress(p_events[index]);
+
+			if (p_advancement.Progress < 100f)
+			{
+				continue;
+			}
+
+			RegisterOneCompletion(ref p_advancement);
+
+			if (IsCompleted(p_advancement))
+			{
+				return;
+			}
+		}
+	}
+
+	private float GetEventProgress(EventBase p_event)
+	{
+		if (p_event == null)
+		{
+			return 0f;
+		}
+
+		return Mathf.Max(0f, EvaluateEventProgress(p_event));
+	}
+
+	private void RegisterOneCompletion(ref Advancement p_advancement)
+	{
+		p_advancement.CompletedRepeatCount++;
+		p_advancement.Progress = 0f;
 	}
 }
 
@@ -35,17 +223,17 @@ public abstract class FeatRequirement
 public abstract class FeatRequirementTemplated<TEvent> : FeatRequirement
 	where TEvent : FeatRequirement.EventBase
 {
-	public sealed override float Register(EventBase p_event)
+	protected sealed override float EvaluateEventProgress(EventBase p_event)
 	{
-		if (p_event is TEvent typedEvent == false)
+		if (p_event is not TEvent typedEvent)
 		{
 			return 0f;
 		}
 
-		return ComputeProgress(typedEvent);
+		return EvaluateProgress(typedEvent);
 	}
 
-	protected abstract float ComputeProgress(TEvent p_event);
+	protected abstract float EvaluateProgress(TEvent p_event);
 }
 
 [Serializable]
@@ -59,7 +247,7 @@ public class DealDamageRequirement : FeatRequirementTemplated<DealDamageRequirem
 		public int Amount = 0;
 	}
 
-	protected override float ComputeProgress(Event p_event)
+	protected override float EvaluateProgress(Event p_event)
 	{
 		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
 	}
@@ -76,7 +264,7 @@ public class HealHealthRequirement : FeatRequirementTemplated<HealHealthRequirem
 		public int Amount = 0;
 	}
 
-	protected override float ComputeProgress(Event p_event)
+	protected override float EvaluateProgress(Event p_event)
 	{
 		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
 	}
@@ -95,7 +283,7 @@ public class CastAbilityCountRequirement : FeatRequirementTemplated<CastAbilityC
 	public Ability Ability;
 	public int RequiredCount = 1;
 
-	protected override float ComputeProgress(Event p_event)
+	protected override float EvaluateProgress(Event p_event)
 	{
 		if (Ability != null && p_event.Ability != Ability)
 		{
@@ -120,9 +308,12 @@ public class CastMultipleAbilitiesInOneTurnRequirement : FeatRequirementTemplate
 	public Ability Ability;
 	public int RequiredCount = 2;
 
-	public override ProgressMode Mode => ProgressMode.Maximum;
+	public CastMultipleAbilitiesInOneTurnRequirement()
+	{
+		RequirementScope = Scope.Ability;
+	}
 
-	protected override float ComputeProgress(Event p_event)
+	protected override float EvaluateProgress(Event p_event)
 	{
 		int count = Ability != null
 			? p_event.Ability == Ability ? p_event.AbilityCastCountThisTurn : 0
@@ -143,7 +334,7 @@ public class TakeDamageRequirement : FeatRequirementTemplated<TakeDamageRequirem
 		public int Amount = 0;
 	}
 
-	protected override float ComputeProgress(Event p_event)
+	protected override float EvaluateProgress(Event p_event)
 	{
 		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
 	}
@@ -160,9 +351,12 @@ public class MaxSingleHitDamageRequirement : FeatRequirementTemplated<MaxSingleH
 		public int Amount = 0;
 	}
 
-	public override ProgressMode Mode => ProgressMode.Maximum;
+	public MaxSingleHitDamageRequirement()
+	{
+		RequirementScope = Scope.Ability;
+	}
 
-	protected override float ComputeProgress(Event p_event)
+	protected override float EvaluateProgress(Event p_event)
 	{
 		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
 	}
@@ -186,9 +380,12 @@ public class TurnStartPositionRequirement : FeatRequirementTemplated<TurnStartPo
 	public int Distance = 3;
 	public int MaximumDistance = 3;
 
-	public override ProgressMode Mode => ProgressMode.Maximum;
+	public TurnStartPositionRequirement()
+	{
+		RequirementScope = Scope.Ability;
+	}
 
-	protected override float ComputeProgress(Event p_event)
+	protected override float EvaluateProgress(Event p_event)
 	{
 		int closest = ResolveDistance(p_event);
 		return MeetsCondition(closest) ? 100f : 0f;
@@ -236,9 +433,12 @@ public class TurnEndPositionRequirement : FeatRequirementTemplated<TurnEndPositi
 	public int Distance = 3;
 	public int MaximumDistance = 3;
 
-	public override ProgressMode Mode => ProgressMode.Maximum;
+	public TurnEndPositionRequirement()
+	{
+		RequirementScope = Scope.Ability;
+	}
 
-	protected override float ComputeProgress(Event p_event)
+	protected override float EvaluateProgress(Event p_event)
 	{
 		int closest = ResolveDistance(p_event);
 		return MeetsCondition(closest) ? 100f : 0f;
@@ -283,7 +483,7 @@ public class ApplyShieldRequirement : FeatRequirementTemplated<ApplyShieldRequir
 	public int RequiredAmount = 10;
 	public KindFilter Filter = KindFilter.Any;
 
-	protected override float ComputeProgress(Event p_event)
+	protected override float EvaluateProgress(Event p_event)
 	{
 		if (Filter == KindFilter.Physical && p_event.Kind != ShieldKind.Physical) return 0f;
 		if (Filter == KindFilter.Magical && p_event.Kind != ShieldKind.Magical) return 0f;
@@ -302,7 +502,7 @@ public class AbsorbDamageWithShieldRequirement : FeatRequirementTemplated<Absorb
 
 	public int RequiredAmount = 10;
 
-	protected override float ComputeProgress(Event p_event)
+	protected override float EvaluateProgress(Event p_event)
 	{
 		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
 	}
@@ -313,9 +513,12 @@ public class MaxDamageAbsorbedInOneHitRequirement : FeatRequirementTemplated<Abs
 {
 	public int RequiredAmount = 10;
 
-	public override ProgressMode Mode => ProgressMode.Maximum;
+	public MaxDamageAbsorbedInOneHitRequirement()
+	{
+		RequirementScope = Scope.Ability;
+	}
 
-	protected override float ComputeProgress(AbsorbDamageWithShieldRequirement.Event p_event)
+	protected override float EvaluateProgress(AbsorbDamageWithShieldRequirement.Event p_event)
 	{
 		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
 	}
@@ -335,7 +538,7 @@ public class ShieldBrokenRequirement : FeatRequirementTemplated<ShieldBrokenRequ
 	public int RequiredCount = 1;
 	public KindFilter Filter = KindFilter.Any;
 
-	protected override float ComputeProgress(Event p_event)
+	protected override float EvaluateProgress(Event p_event)
 	{
 		if (Filter == KindFilter.Physical && p_event.Kind != ShieldKind.Physical) return 0f;
 		if (Filter == KindFilter.Magical && p_event.Kind != ShieldKind.Magical) return 0f;

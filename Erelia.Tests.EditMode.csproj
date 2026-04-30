@@ -69,6 +69,7 @@
     <Compile Include="Assets\Tests\Battle\Phases\EnemyTurn\EnemyTurnPhaseTests.cs" />
     <Compile Include="Assets\Tests\Battle\Backend\BackendBehaviorTests.cs" />
     <Compile Include="Assets\Tests\Effects\EffectTestBase.cs" />
+    <Compile Include="Assets\Tests\Feats\FeatRequirementDurationTests.cs" />
     <Compile Include="Assets\Tests\Effects\BoardObjects\RemoveInteractiveObjectEffectTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\PlayerTurn\PlayerTurnPhaseCommandTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\End\EndPhaseTests.cs" />
@@ -84,8 +85,8 @@
     <Compile Include="Assets\Tests\Battle\Phases\Initiative\InitiativeTurnOrderTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\Idle\IdlePhaseTests.cs" />
     <Compile Include="Assets\Tests\Effects\Health\ReviveEffectTests.cs" />
-    <Compile Include="Assets\Tests\Battle\Fixtures\LineOfSightTestFixture.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\Setup\SetupPhaseTests.cs" />
+    <Compile Include="Assets\Tests\Battle\Fixtures\LineOfSightTestFixture.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Tests\Erelia.Tests.EditMode.asmdef" />

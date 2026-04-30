@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 
+
 namespace Tests.Requirements.Position
 {
 	/// <summary>
@@ -168,83 +169,83 @@ namespace Tests.Requirements.Position
 		// -------------------------------------------------------------------------
 
 		[Test]
-		public void TurnStartRequirement_Within_Enemy_ReturnsFullProgress_WhenCloseEnough()
+		public void TurnStartRequirement_Within_Enemy_Completes_WhenCloseEnough()
 		{
-			var req = new TurnStartPositionRequirement
+			var progress = MakeProgress(new TurnStartPositionRequirement
 			{
 				Target = TurnStartPositionRequirement.TargetKind.Enemy,
 				Condition = TurnStartPositionRequirement.DistanceKind.Within,
 				Distance = 3
-			};
+			});
 
-			float progress = req.Register(new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
 			{
 				ClosestEnemyDistance = 3,
 				ClosestAllyDistance = int.MaxValue
-			});
+			}});
 
-			Assert.That(progress, Is.EqualTo(100f));
+			Assert.That(progress.IsCompleted, Is.True);
 		}
 
 		[Test]
-		public void TurnStartRequirement_Within_Enemy_ReturnsZero_WhenTooFar()
+		public void TurnStartRequirement_Within_Enemy_DoesNotComplete_WhenTooFar()
 		{
-			var req = new TurnStartPositionRequirement
+			var progress = MakeProgress(new TurnStartPositionRequirement
 			{
 				Target = TurnStartPositionRequirement.TargetKind.Enemy,
 				Condition = TurnStartPositionRequirement.DistanceKind.Within,
 				Distance = 3
-			};
+			});
 
-			float progress = req.Register(new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
 			{
 				ClosestEnemyDistance = 4,
 				ClosestAllyDistance = int.MaxValue
-			});
+			}});
 
-			Assert.That(progress, Is.EqualTo(0f));
+			Assert.That(progress.IsCompleted, Is.False);
 		}
 
 		[Test]
-		public void TurnStartRequirement_AtLeast_Enemy_ReturnsFullProgress_WhenFarEnough()
+		public void TurnStartRequirement_AtLeast_Enemy_Completes_WhenFarEnough()
 		{
-			var req = new TurnStartPositionRequirement
+			var progress = MakeProgress(new TurnStartPositionRequirement
 			{
 				Target = TurnStartPositionRequirement.TargetKind.Enemy,
 				Condition = TurnStartPositionRequirement.DistanceKind.AtLeast,
 				Distance = 5
-			};
+			});
 
-			float progress = req.Register(new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
 			{
 				ClosestEnemyDistance = 5,
 				ClosestAllyDistance = int.MaxValue
-			});
+			}});
 
-			Assert.That(progress, Is.EqualTo(100f));
+			Assert.That(progress.IsCompleted, Is.True);
 		}
 
 		[Test]
-		public void TurnStartRequirement_AtLeast_Enemy_ReturnsZero_WhenTooClose()
+		public void TurnStartRequirement_AtLeast_Enemy_DoesNotComplete_WhenTooClose()
 		{
-			var req = new TurnStartPositionRequirement
+			var progress = MakeProgress(new TurnStartPositionRequirement
 			{
 				Target = TurnStartPositionRequirement.TargetKind.Enemy,
 				Condition = TurnStartPositionRequirement.DistanceKind.AtLeast,
 				Distance = 5
-			};
+			});
 
-			float progress = req.Register(new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
 			{
 				ClosestEnemyDistance = 4,
 				ClosestAllyDistance = int.MaxValue
-			});
+			}});
 
-			Assert.That(progress, Is.EqualTo(0f));
+			Assert.That(progress.IsCompleted, Is.False);
 		}
 
 		[Test]
-		public void TurnStartRequirement_Between_Enemy_ReturnsFullProgress_WhenInsideInclusiveRange()
+		public void TurnStartRequirement_Between_Enemy_Completes_WhenInsideInclusiveRange()
 		{
 			var req = new TurnStartPositionRequirement
 			{
@@ -254,23 +255,26 @@ namespace Tests.Requirements.Position
 				MaximumDistance = 5
 			};
 
-			float lowerBoundProgress = req.Register(new TurnStartPositionRequirement.Event
+			var lowerProgress = MakeProgress(req);
+			lowerProgress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
 			{
 				ClosestEnemyDistance = 2,
 				ClosestAllyDistance = int.MaxValue
-			});
-			float upperBoundProgress = req.Register(new TurnStartPositionRequirement.Event
+			}});
+
+			var upperProgress = MakeProgress(req);
+			upperProgress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
 			{
 				ClosestEnemyDistance = 5,
 				ClosestAllyDistance = int.MaxValue
-			});
+			}});
 
-			Assert.That(lowerBoundProgress, Is.EqualTo(100f));
-			Assert.That(upperBoundProgress, Is.EqualTo(100f));
+			Assert.That(lowerProgress.IsCompleted, Is.True);
+			Assert.That(upperProgress.IsCompleted, Is.True);
 		}
 
 		[Test]
-		public void TurnStartRequirement_Between_Enemy_ReturnsZero_WhenOutsideRange()
+		public void TurnStartRequirement_Between_Enemy_DoesNotComplete_WhenOutsideRange()
 		{
 			var req = new TurnStartPositionRequirement
 			{
@@ -280,236 +284,246 @@ namespace Tests.Requirements.Position
 				MaximumDistance = 5
 			};
 
-			float tooCloseProgress = req.Register(new TurnStartPositionRequirement.Event
+			var tooCloseProgress = MakeProgress(req);
+			tooCloseProgress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
 			{
 				ClosestEnemyDistance = 1,
 				ClosestAllyDistance = int.MaxValue
-			});
-			float tooFarProgress = req.Register(new TurnStartPositionRequirement.Event
+			}});
+
+			var tooFarProgress = MakeProgress(req);
+			tooFarProgress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
 			{
 				ClosestEnemyDistance = 6,
 				ClosestAllyDistance = int.MaxValue
-			});
+			}});
 
-			Assert.That(tooCloseProgress, Is.EqualTo(0f));
-			Assert.That(tooFarProgress, Is.EqualTo(0f));
+			Assert.That(tooCloseProgress.IsCompleted, Is.False);
+			Assert.That(tooFarProgress.IsCompleted, Is.False);
 		}
 
 		[Test]
 		public void TurnStartRequirement_Within_Ally_UsesAllyDistance()
 		{
-			var req = new TurnStartPositionRequirement
+			var progress = MakeProgress(new TurnStartPositionRequirement
 			{
 				Target = TurnStartPositionRequirement.TargetKind.Ally,
 				Condition = TurnStartPositionRequirement.DistanceKind.Within,
 				Distance = 2
-			};
+			});
 
 			// Ally at distance 2 (satisfies), enemy at distance 10 (irrelevant)
-			float progress = req.Register(new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
 			{
 				ClosestAllyDistance = 2,
 				ClosestEnemyDistance = 10
-			});
+			}});
 
-			Assert.That(progress, Is.EqualTo(100f));
+			Assert.That(progress.IsCompleted, Is.True);
 		}
 
 		[Test]
 		public void TurnStartRequirement_Within_AnyUnit_UsesSmallerOfAllyAndEnemy()
 		{
-			var req = new TurnStartPositionRequirement
+			var progress = MakeProgress(new TurnStartPositionRequirement
 			{
 				Target = TurnStartPositionRequirement.TargetKind.AnyUnit,
 				Condition = TurnStartPositionRequirement.DistanceKind.Within,
 				Distance = 3
-			};
+			});
 
 			// Ally is far but enemy is close — AnyUnit should pick the minimum
-			float progress = req.Register(new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
 			{
 				ClosestAllyDistance = 10,
 				ClosestEnemyDistance = 2
-			});
+			}});
 
-			Assert.That(progress, Is.EqualTo(100f));
+			Assert.That(progress.IsCompleted, Is.True);
 		}
 
 		[Test]
-		public void TurnStartRequirement_Within_Ally_ReturnsZero_WhenNoAllyExists()
+		public void TurnStartRequirement_Within_Ally_DoesNotComplete_WhenNoAllyExists()
 		{
-			var req = new TurnStartPositionRequirement
+			var progress = MakeProgress(new TurnStartPositionRequirement
 			{
 				Target = TurnStartPositionRequirement.TargetKind.Ally,
 				Condition = TurnStartPositionRequirement.DistanceKind.Within,
 				Distance = 3
-			};
+			});
 
-			float progress = req.Register(new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
 			{
 				ClosestAllyDistance = int.MaxValue,
 				ClosestEnemyDistance = 1
-			});
+			}});
 
-			Assert.That(progress, Is.EqualTo(0f));
+			Assert.That(progress.IsCompleted, Is.False);
 		}
 
 		[Test]
-		public void TurnStartRequirement_AtLeast_Ally_ReturnsFullProgress_WhenNoAllyExists()
+		public void TurnStartRequirement_AtLeast_Ally_Completes_WhenNoAllyExists()
 		{
 			// int.MaxValue >= Distance is always true — no allies means "infinitely far"
-			var req = new TurnStartPositionRequirement
+			var progress = MakeProgress(new TurnStartPositionRequirement
 			{
 				Target = TurnStartPositionRequirement.TargetKind.Ally,
 				Condition = TurnStartPositionRequirement.DistanceKind.AtLeast,
 				Distance = 5
-			};
+			});
 
-			float progress = req.Register(new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
 			{
 				ClosestAllyDistance = int.MaxValue,
 				ClosestEnemyDistance = 1
-			});
+			}});
 
-			Assert.That(progress, Is.EqualTo(100f));
+			Assert.That(progress.IsCompleted, Is.True);
 		}
 
 		[Test]
-		public void TurnEndRequirement_Within_Enemy_ReturnsFullProgress_WhenCloseEnough()
+		public void TurnEndRequirement_Within_Enemy_Completes_WhenCloseEnough()
 		{
-			var req = new TurnEndPositionRequirement
+			var progress = MakeProgress(new TurnEndPositionRequirement
 			{
 				Target = TurnEndPositionRequirement.TargetKind.Enemy,
 				Condition = TurnEndPositionRequirement.DistanceKind.Within,
 				Distance = 2
-			};
+			});
 
-			float progress = req.Register(new TurnEndPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnEndPositionRequirement.Event
 			{
 				ClosestEnemyDistance = 2,
 				ClosestAllyDistance = int.MaxValue
-			});
+			}});
 
-			Assert.That(progress, Is.EqualTo(100f));
+			Assert.That(progress.IsCompleted, Is.True);
 		}
 
 		[Test]
-		public void TurnEndRequirement_AtLeast_Enemy_ReturnsZero_WhenTooClose()
+		public void TurnEndRequirement_AtLeast_Enemy_DoesNotComplete_WhenTooClose()
 		{
-			var req = new TurnEndPositionRequirement
+			var progress = MakeProgress(new TurnEndPositionRequirement
 			{
 				Target = TurnEndPositionRequirement.TargetKind.Enemy,
 				Condition = TurnEndPositionRequirement.DistanceKind.AtLeast,
 				Distance = 4
-			};
+			});
 
-			float progress = req.Register(new TurnEndPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnEndPositionRequirement.Event
 			{
 				ClosestEnemyDistance = 3,
 				ClosestAllyDistance = int.MaxValue
-			});
+			}});
 
-			Assert.That(progress, Is.EqualTo(0f));
+			Assert.That(progress.IsCompleted, Is.False);
 		}
 
 		[Test]
-		public void TurnEndRequirement_Between_Ally_ReturnsFullProgress_WhenInsideInclusiveRange()
+		public void TurnEndRequirement_Between_Ally_Completes_WhenInsideInclusiveRange()
 		{
-			var req = new TurnEndPositionRequirement
+			var progress = MakeProgress(new TurnEndPositionRequirement
 			{
 				Target = TurnEndPositionRequirement.TargetKind.Ally,
 				Condition = TurnEndPositionRequirement.DistanceKind.Between,
 				Distance = 2,
 				MaximumDistance = 4
-			};
+			});
 
-			float progress = req.Register(new TurnEndPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnEndPositionRequirement.Event
 			{
 				ClosestAllyDistance = 3,
 				ClosestEnemyDistance = 10
-			});
+			}});
 
-			Assert.That(progress, Is.EqualTo(100f));
+			Assert.That(progress.IsCompleted, Is.True);
 		}
 
 		[Test]
 		public void TurnEndRequirement_Between_AnyUnit_UsesNearestUnitAndAcceptsReversedBounds()
 		{
-			var req = new TurnEndPositionRequirement
+			var progress = MakeProgress(new TurnEndPositionRequirement
 			{
 				Target = TurnEndPositionRequirement.TargetKind.AnyUnit,
 				Condition = TurnEndPositionRequirement.DistanceKind.Between,
 				Distance = 5,
 				MaximumDistance = 2
-			};
+			});
 
-			float progress = req.Register(new TurnEndPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnEndPositionRequirement.Event
 			{
 				ClosestAllyDistance = 9,
 				ClosestEnemyDistance = 4
+			}});
+
+			Assert.That(progress.IsCompleted, Is.True);
+		}
+
+		[Test]
+		public void PositionRequirement_AbilityScope_FailingEventsDoNotCombine()
+		{
+			// Two failing events must not combine to a completion
+			var progress = MakeProgress(new TurnStartPositionRequirement
+			{
+				Target = TurnStartPositionRequirement.TargetKind.Enemy,
+				Condition = TurnStartPositionRequirement.DistanceKind.Within,
+				Distance = 2
 			});
 
-			Assert.That(progress, Is.EqualTo(100f));
+			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			{
+				new TurnStartPositionRequirement.Event { ClosestEnemyDistance = 5 },
+				new TurnStartPositionRequirement.Event { ClosestEnemyDistance = 5 }
+			});
+
+			Assert.That(progress.IsCompleted, Is.False);
 		}
 
 		[Test]
-		public void PositionRequirement_MaximumMode_DoesNotAccumulateAcrossEvents()
+		public void PositionRequirement_AbilityScope_CompletesOnFirstPassingEvent()
 		{
-			// Two failing events must not combine to 100%
-			var req = new TurnStartPositionRequirement
+			var progress = MakeProgress(new TurnStartPositionRequirement
 			{
 				Target = TurnStartPositionRequirement.TargetKind.Enemy,
 				Condition = TurnStartPositionRequirement.DistanceKind.Within,
 				Distance = 2
-			};
+			});
 
-			var progress = new FeatRequirementProgress { Requirement = req, CurrentProgress = 0f };
-			progress.Register(new TurnStartPositionRequirement.Event { ClosestEnemyDistance = 5 }); // fail
-			progress.Register(new TurnStartPositionRequirement.Event { ClosestEnemyDistance = 5 }); // fail
-
-			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
-		}
-
-		[Test]
-		public void PositionRequirement_MaximumMode_CompletesOnFirstPassingEvent()
-		{
-			var req = new TurnStartPositionRequirement
+			progress.RegisterEvents(new List<FeatRequirement.EventBase>
 			{
-				Target = TurnStartPositionRequirement.TargetKind.Enemy,
-				Condition = TurnStartPositionRequirement.DistanceKind.Within,
-				Distance = 2
-			};
+				new TurnStartPositionRequirement.Event { ClosestEnemyDistance = 5 }, // fail
+				new TurnStartPositionRequirement.Event { ClosestEnemyDistance = 1 }  // pass
+			});
 
-			var progress = new FeatRequirementProgress { Requirement = req, CurrentProgress = 0f };
-			progress.Register(new TurnStartPositionRequirement.Event { ClosestEnemyDistance = 5 }); // fail
-			progress.Register(new TurnStartPositionRequirement.Event { ClosestEnemyDistance = 1 }); // pass
-
-			Assert.That(progress.CurrentProgress, Is.EqualTo(100f));
+			Assert.That(progress.IsCompleted, Is.True);
 		}
 
 		[Test]
 		public void TurnStartEvent_IgnoredBy_TurnEndRequirement_AndViceVersa()
 		{
-			var startReq = new TurnStartPositionRequirement
+			var startProgress = MakeProgress(new TurnStartPositionRequirement
 			{
 				Target = TurnStartPositionRequirement.TargetKind.Enemy,
 				Condition = TurnStartPositionRequirement.DistanceKind.Within,
 				Distance = 10
-			};
-			var endReq = new TurnEndPositionRequirement
+			});
+			var endProgress = MakeProgress(new TurnEndPositionRequirement
 			{
 				Target = TurnEndPositionRequirement.TargetKind.Enemy,
 				Condition = TurnEndPositionRequirement.DistanceKind.Within,
 				Distance = 10
-			};
+			});
 
 			var startEvent = new TurnStartPositionRequirement.Event { ClosestEnemyDistance = 1 };
 			var endEvent = new TurnEndPositionRequirement.Event { ClosestEnemyDistance = 1 };
 
 			// Start req ignores end event
-			Assert.That(startReq.Register(endEvent), Is.EqualTo(0f));
+			startProgress.RegisterEvents(new[] { (FeatRequirement.EventBase)endEvent });
+			Assert.That(startProgress.IsCompleted, Is.False);
+
 			// End req ignores start event
-			Assert.That(endReq.Register(startEvent), Is.EqualTo(0f));
+			endProgress.RegisterEvents(new[] { (FeatRequirement.EventBase)startEvent });
+			Assert.That(endProgress.IsCompleted, Is.False);
 		}
 
 		// -------------------------------------------------------------------------
@@ -777,6 +791,11 @@ namespace Tests.Requirements.Position
 		private static void PlaceAt(BattlePhaseTestFixture fixture, BattleUnit unit, int x, int z)
 		{
 			fixture.BattleContext.TryPlaceUnit(unit, new Vector3Int(x, 0, z));
+		}
+
+		private static FeatRequirementProgress MakeProgress(FeatRequirement requirement)
+		{
+			return new FeatRequirementProgress { Requirement = requirement };
 		}
 
 		private static TEvent FindEvent<TEvent>(BattleUnit unit) where TEvent : FeatRequirement.EventBase

@@ -351,29 +351,29 @@ namespace Tests.Feats
 		// -------------------------------------------------------------------------
 
 		[Test]
-		public void MaxSingleHitRequirement_ProgressTakesMaximumNotSum()
+		public void MaxSingleHitRequirement_TwoWeakHitsDoNotProgress()
 		{
-			// Two hits of 30 with RequiredAmount=100 should give 30% progress, not 60%
+			// Ability scope: each hit evaluated independently — two 30% hits never reach 100%
 			var requirement = new MaxSingleHitDamageRequirement { RequiredAmount = 100 };
-			var progress = new FeatRequirementProgress { Requirement = requirement, CurrentProgress = 0f };
+			var progress = new FeatRequirementProgress { Requirement = requirement };
 
-			progress.Register(new MaxSingleHitDamageRequirement.Event { Amount = 30 });
-			progress.Register(new MaxSingleHitDamageRequirement.Event { Amount = 30 });
+			progress.RegisterEvents(new[] { new MaxSingleHitDamageRequirement.Event { Amount = 30 } });
+			progress.RegisterEvents(new[] { new MaxSingleHitDamageRequirement.Event { Amount = 30 } });
 
-			Assert.That(progress.CurrentProgress, Is.EqualTo(30f).Within(0.01f));
+			Assert.That(progress.CompletedRepeatCount, Is.EqualTo(0));
+			Assert.That(progress.IsCompleted, Is.False);
 		}
 
 		[Test]
-		public void MaxSingleHitRequirement_ProgressAdvancesWhenNewHitIsStronger()
+		public void MaxSingleHitRequirement_HitAtThresholdCompletes()
 		{
-			// First hit 30%, second hit 50% — progress should update to 50%
-			var requirement = new MaxSingleHitDamageRequirement { RequiredAmount = 100 };
-			var progress = new FeatRequirementProgress { Requirement = requirement, CurrentProgress = 0f };
+			// A single hit at exactly 100% should complete the requirement
+			var requirement = new MaxSingleHitDamageRequirement { RequiredAmount = 50 };
+			var progress = new FeatRequirementProgress { Requirement = requirement };
 
-			progress.Register(new MaxSingleHitDamageRequirement.Event { Amount = 30 });
-			progress.Register(new MaxSingleHitDamageRequirement.Event { Amount = 50 });
+			progress.RegisterEvents(new[] { new MaxSingleHitDamageRequirement.Event { Amount = 50 } });
 
-			Assert.That(progress.CurrentProgress, Is.EqualTo(50f).Within(0.01f));
+			Assert.That(progress.IsCompleted, Is.True);
 		}
 
 		[Test]
@@ -724,6 +724,202 @@ namespace Tests.Feats
 			orchestrator.Dispose();
 		}
 
+		[Test]
+		public void DealDamageRequirement_AbilityScope_SingleEventBelowThresholdDoesNotComplete()
+		{
+			// Ability scope: each event is independent — 40% never reaches 100%
+			var requirement = new DealDamageRequirement
+			{
+				RequiredAmount = 100,
+				RequirementScope = FeatRequirement.Scope.Ability
+			};
+			var progress = new FeatRequirementProgress { Requirement = requirement };
+
+			progress.RegisterEvents(new[] { new DealDamageRequirement.Event { Amount = 40 } });
+			progress.RegisterEvents(new[] { new DealDamageRequirement.Event { Amount = 40 } });
+
+			Assert.That(progress.CompletedRepeatCount, Is.EqualTo(0));
+			Assert.That(progress.IsCompleted, Is.False);
+		}
+
+		[Test]
+		public void RegisterFightEvents_FightDurationDoesNotCarryPartialProgressAcrossFights()
+		{
+			CreatureSpecies species = null;
+			try
+			{
+				CreatureUnit creature = CreateCreatureWithRequirement(
+					new DealDamageRequirement { RequiredAmount = 100 },
+					out species,
+					out FeatNode damageNode);
+
+				FeatProgressionService.RegisterFightEvents(
+					creature,
+					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 50 } });
+
+				FeatProgressionService.RegisterFightEvents(
+					creature,
+					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 50 } });
+
+				FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creature, damageNode);
+				Assert.That(nodeProgress, Is.Not.Null);
+				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(0));
+			}
+			finally
+			{
+				if (species != null)
+				{
+					Object.DestroyImmediate(species);
+				}
+			}
+		}
+
+		[Test]
+		public void RegisterFightEvents_FightDurationCanCompleteWithinOneFight()
+		{
+			CreatureSpecies species = null;
+			try
+			{
+				CreatureUnit creature = CreateCreatureWithRequirement(
+					new DealDamageRequirement { RequiredAmount = 100 },
+					out species,
+					out FeatNode damageNode);
+
+				FeatProgressionService.RegisterFightEvents(
+					creature,
+					new List<FeatRequirement.EventBase>
+					{
+						new DealDamageRequirement.Event { Amount = 50 },
+						new DealDamageRequirement.Event { Amount = 50 }
+					});
+
+				FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creature, damageNode);
+				Assert.That(nodeProgress, Is.Not.Null);
+				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(1));
+			}
+			finally
+			{
+				if (species != null)
+				{
+					Object.DestroyImmediate(species);
+				}
+			}
+		}
+
+		[Test]
+		public void RegisterFightEvents_GameDurationCarriesPartialProgressAcrossFights()
+		{
+			CreatureSpecies species = null;
+			try
+			{
+				CreatureUnit creature = CreateCreatureWithRequirement(
+					new DealDamageRequirement
+					{
+						RequiredAmount = 100,
+						RequirementScope = FeatRequirement.Scope.Game
+					},
+					out species,
+					out FeatNode damageNode);
+
+				FeatProgressionService.RegisterFightEvents(
+					creature,
+					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 50 } });
+
+				FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creature, damageNode);
+				Assert.That(nodeProgress, Is.Not.Null);
+				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(0));
+				Assert.That(nodeProgress.RequirementProgress[0].CurrentProgress, Is.EqualTo(50f).Within(0.01f));
+
+				FeatProgressionService.RegisterFightEvents(
+					creature,
+					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 50 } });
+
+				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(1));
+			}
+			finally
+			{
+				if (species != null)
+				{
+					Object.DestroyImmediate(species);
+				}
+			}
+		}
+
+		[Test]
+		public void RegisterFightEvents_RepeatableFightDurationCompletesOncePerQualifyingFight()
+		{
+			CreatureSpecies species = null;
+			try
+			{
+				CreatureUnit creature = CreateCreatureWithRequirement(
+					new DealDamageRequirement
+					{
+						RequiredAmount = 100,
+						RequiredRepeatCount = 2,
+						RequirementScope = FeatRequirement.Scope.Fight
+					},
+					out species,
+					out FeatNode damageNode);
+
+				FeatProgressionService.RegisterFightEvents(
+					creature,
+					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 100 } });
+				FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creature, damageNode);
+				Assert.That(nodeProgress, Is.Not.Null);
+				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(0));
+
+				FeatProgressionService.RegisterFightEvents(
+					creature,
+					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 100 } });
+
+				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(1));
+			}
+			finally
+			{
+				if (species != null)
+				{
+					Object.DestroyImmediate(species);
+				}
+			}
+		}
+
+		[Test]
+		public void RegisterFightEvents_RepeatableAbilityScopeCompletesForEachQualifyingEvent()
+		{
+			CreatureSpecies species = null;
+			try
+			{
+				CreatureUnit creature = CreateCreatureWithRequirement(
+					new DealDamageRequirement
+					{
+						RequiredAmount = 50,
+						RequirementScope = FeatRequirement.Scope.Ability,
+						RequiredRepeatCount = 2
+					},
+					out species,
+					out FeatNode damageNode);
+
+				FeatProgressionService.RegisterFightEvents(
+					creature,
+					new List<FeatRequirement.EventBase>
+					{
+						new DealDamageRequirement.Event { Amount = 50 },
+						new DealDamageRequirement.Event { Amount = 50 }
+					});
+
+				FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creature, damageNode);
+				Assert.That(nodeProgress, Is.Not.Null);
+				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(1));
+			}
+			finally
+			{
+				if (species != null)
+				{
+					Object.DestroyImmediate(species);
+				}
+			}
+		}
+
 		// -------------------------------------------------------------------------
 		// Helpers
 		// -------------------------------------------------------------------------
@@ -746,6 +942,42 @@ namespace Tests.Feats
 				SourceObject = source,
 				TargetObject = target
 			};
+		}
+
+		private static CreatureUnit CreateCreatureWithRequirement(
+			FeatRequirement requirement,
+			out CreatureSpecies species,
+			out FeatNode requirementNode,
+			int numberOfRepeatTime = 0)
+		{
+			FeatNode rootNode = new FeatNode { Id = "root", DisplayName = "Root" };
+			requirementNode = new FeatNode
+			{
+				Id = "requirement_node",
+				DisplayName = "Requirement",
+				Requirements = new List<FeatRequirement> { requirement },
+				NeighbourNodeIds = new List<string> { rootNode.Id },
+				NumberOfRepeatTime = numberOfRepeatTime
+			};
+			rootNode.NeighbourNodeIds.Add(requirementNode.Id);
+
+			species = ScriptableObject.CreateInstance<CreatureSpecies>();
+			species.FeatBoard = new FeatBoard
+			{
+				Nodes = new List<FeatNode> { rootNode, requirementNode },
+				RootNodeId = rootNode.Id
+			};
+
+			var creature = new CreatureUnit
+			{
+				Species = species,
+				Attributes = new Attributes { Health = 100 },
+				Abilities = new List<Ability>(),
+				PermanentPassives = new List<Status>()
+			};
+
+			FeatProgressionService.InitializeCreatureUnit(creature);
+			return creature;
 		}
 	}
 }

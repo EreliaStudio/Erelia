@@ -197,8 +197,60 @@ public static class FeatProgressionService
 
 	public static int RegisterEvent(CreatureUnit p_unit, FeatRequirement.EventBase p_featEvent)
 	{
+		return RegisterEvent(p_unit, p_featEvent, true);
+	}
+
+	public static int RegisterFightEvents(
+		CreatureUnit p_unit,
+		IReadOnlyList<FeatRequirement.EventBase> p_featEvents,
+		bool p_includeTransientRequirements = true)
+	{
+		if (p_unit == null)
+		{
+			return 0;
+		}
+
+		ResetTransientRequirementProgress(p_unit);
+
+		if (p_featEvents == null || p_featEvents.Count == 0)
+		{
+			return 0;
+		}
+
+		int completionCount = RegisterEvents(p_unit, p_featEvents, p_includeTransientRequirements);
+
+		ResetTransientRequirementProgress(p_unit);
+		return completionCount;
+	}
+
+	public static void ResetTransientRequirementProgress(CreatureUnit p_unit)
+	{
+		if (p_unit?.FeatBoardProgress?.NodeProgress == null)
+		{
+			return;
+		}
+
+		for (int index = 0; index < p_unit.FeatBoardProgress.NodeProgress.Count; index++)
+		{
+			p_unit.FeatBoardProgress.NodeProgress[index]?.ResetTransientRequirementProgress();
+		}
+	}
+
+	private static int RegisterEvent(CreatureUnit p_unit, FeatRequirement.EventBase p_featEvent, bool p_includeTransientRequirements)
+	{
+		return RegisterEvents(
+			p_unit,
+			p_featEvent != null ? new[] { p_featEvent } : null,
+			p_includeTransientRequirements);
+	}
+
+	private static int RegisterEvents(
+		CreatureUnit p_unit,
+		IReadOnlyList<FeatRequirement.EventBase> p_featEvents,
+		bool p_includeTransientRequirements)
+	{
 		FeatBoard featBoard = GetBoard(p_unit);
-		if (featBoard == null || p_featEvent == null)
+		if (featBoard == null || p_featEvents == null || p_featEvents.Count == 0)
 		{
 			return 0;
 		}
@@ -214,16 +266,16 @@ public static class FeatProgressionService
 				continue;
 			}
 
-		FeatNodeProgress progress = p_unit.FeatBoardProgress.GetOrCreateProgress(node);
-		if (progress == null || progress.IsExhausted(node) || !progress.HasRequirements)
-		{
-			continue;
-		}
+			FeatNodeProgress progress = p_unit.FeatBoardProgress.GetOrCreateProgress(node);
+			if (progress == null || progress.IsExhausted(node) || !progress.HasRequirements)
+			{
+				continue;
+			}
 
-		progress.Register(p_featEvent);
-		if (progress.IsCompleted && TryCompleteNodeProgress(node, progress))
-		{
-			completionCount++;
+			progress.RegisterEvents(p_featEvents, p_includeTransientRequirements);
+			if (progress.IsCompleted && TryCompleteNodeProgress(node, progress))
+			{
+				completionCount++;
 			}
 		}
 

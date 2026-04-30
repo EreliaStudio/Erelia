@@ -234,20 +234,47 @@ public partial class FeatBoardEditorWindow
 		switch (requirement)
 		{
 			case DealDamageRequirement dealDamage:
-				return "Deal " + dealDamage.RequiredAmount + " damage";
+				return "Deal " + dealDamage.RequiredAmount + " damage " + FormatRequirementDuration(requirement);
+
+			case MaxSingleHitDamageRequirement maxHit:
+				return "Deal " + maxHit.RequiredAmount + " damage " + FormatRequirementDuration(requirement);
 
 			case HealHealthRequirement healHealth:
-				return "Heal " + healHealth.RequiredAmount;
+				return "Heal " + healHealth.RequiredAmount + " " + FormatRequirementDuration(requirement);
 
 			case CastAbilityCountRequirement castAbility:
-				return "Cast " + FormatAbilityName(castAbility.Ability) + " " + castAbility.RequiredCount + " times";
+				return "Cast " + FormatAbilityName(castAbility.Ability) + " " + castAbility.RequiredCount + " times " + FormatRequirementDuration(requirement);
 
-			case CastMultipleAbilitiesInOneTurnRequirement castInTurn:
-				return "Cast " + FormatAbilityName(castInTurn.Ability) + " " + castInTurn.RequiredCount + " times in one turn";
+			case TakeDamageRequirement takeDamage:
+				return "Take " + takeDamage.RequiredAmount + " damage " + FormatRequirementDuration(requirement);
 
 			default:
 				return "Unknown requirement";
 		}
+	}
+
+	private static string FormatRequirementDuration(FeatRequirement requirement)
+	{
+		if (requirement == null)
+		{
+			return string.Empty;
+		}
+
+		string durationText = requirement.RequirementScope switch
+		{
+			FeatRequirement.Scope.Ability => "in one ability",
+			FeatRequirement.Scope.Turn => "in one turn",
+			FeatRequirement.Scope.Fight => "in one fight",
+			FeatRequirement.Scope.Game => "over the game",
+			_ => string.Empty
+		};
+
+		if (requirement.RequiredRepeatCount <= 1)
+		{
+			return durationText;
+		}
+
+		return durationText + " x" + requirement.RequiredRepeatCount;
 	}
 
 	private static string FormatAbilityName(Ability ability)

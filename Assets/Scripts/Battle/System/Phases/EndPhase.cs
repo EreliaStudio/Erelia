@@ -8,15 +8,12 @@ public sealed class EndPhase : BattlePhase
 	{
 		BattleOutcomeRules.TryComputeOutcome(BattleContext, out BattleOutcome outcome);
 
-		if (outcome?.Winner == BattleSide.Player)
-		{
-			ApplyFeatProgressionToPlayerUnits(BattleContext);
-		}
+		ApplyFeatProgressionToPlayerUnits(BattleContext, outcome?.Winner == BattleSide.Player);
 
 		EventCenter.EmitBattleEnded(outcome);
 	}
 
-	private static void ApplyFeatProgressionToPlayerUnits(BattleContext battleContext)
+	private static void ApplyFeatProgressionToPlayerUnits(BattleContext battleContext, bool includeTransientRequirements)
 	{
 		if (battleContext == null)
 		{
@@ -33,10 +30,7 @@ public sealed class EndPhase : BattlePhase
 			}
 
 			IReadOnlyList<FeatRequirement.EventBase> events = unit.PendingFeatEvents;
-			for (int eventIndex = 0; eventIndex < events.Count; eventIndex++)
-			{
-				FeatProgressionService.RegisterEvent(unit.SourceUnit, events[eventIndex]);
-			}
+			FeatProgressionService.RegisterFightEvents(unit.SourceUnit, events, includeTransientRequirements);
 		}
 	}
 }

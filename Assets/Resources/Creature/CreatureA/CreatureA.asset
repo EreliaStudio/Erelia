@@ -136,7 +136,7 @@ MonoBehaviour:
         Id: 0adb5cac9f7540c7b493ecc022a265e5
         DisplayName: New Feat
         Position: {x: 3, y: -6}
-        Kind: 0
+        Kind: 1
         Icon: {fileID: 0}
         NeighbourNodeIds:
         - fbbb59aa5d9546cf9be1ec8ebe92dd8f
@@ -150,7 +150,7 @@ MonoBehaviour:
         Id: dffd36e3cf144bc5a3961517575674f5
         DisplayName: New Feat
         Position: {x: 15, y: -6}
-        Kind: 0
+        Kind: 2
         Icon: {fileID: 0}
         NeighbourNodeIds:
         - 1bce35fc5a8a490eacb2eb7458b50a03

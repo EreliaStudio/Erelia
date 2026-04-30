@@ -48,7 +48,9 @@ public class FeatNodeProgress
 		return CompletionCount >= maxCompletionCount;
 	}
 
-	public void Register(FeatRequirement.EventBase p_featEvent)
+	public void RegisterEvents(
+		IReadOnlyList<FeatRequirement.EventBase> p_featEvents,
+		bool p_includeTransientRequirements = true)
 	{
 		foreach (FeatRequirementProgress requirement in RequirementProgress)
 		{
@@ -57,7 +59,7 @@ public class FeatNodeProgress
 				continue;
 			}
 
-			requirement.Register(p_featEvent);
+			requirement.RegisterEvents(p_featEvents, p_includeTransientRequirements);
 		}
 	}
 
@@ -66,6 +68,20 @@ public class FeatNodeProgress
 		foreach (FeatRequirementProgress requirement in RequirementProgress)
 		{
 			if (requirement == null)
+			{
+				continue;
+			}
+
+			requirement.CurrentProgress = 0f;
+			requirement.CompletedRepeatCount = 0;
+		}
+	}
+
+	public void ResetTransientRequirementProgress()
+	{
+		foreach (FeatRequirementProgress requirement in RequirementProgress)
+		{
+			if (requirement == null || requirement.PersistsAcrossFights)
 			{
 				continue;
 			}
@@ -85,25 +101,55 @@ public class FeatNodeProgress
 public class FeatRequirementProgress
 {
 	public FeatRequirement Requirement;
-	public float CurrentProgress = 0f;
+	public FeatRequirement.Advancement Advancement = new FeatRequirement.Advancement(0f, 0);
 
-	public bool IsCompleted => CurrentProgress >= 100.0f;
+	public float CurrentProgress
+	{
+		get => Advancement.Progress;
+		set => Advancement.Progress = value;
+	}
 
-	public void Register(FeatRequirement.EventBase p_featEvent)
+	public int CompletedRepeatCount
+	{
+		get => Advancement.CompletedRepeatCount;
+		set => Advancement.CompletedRepeatCount = value;
+	}
+
+	public bool IsCompleted
+	{
+		get
+		{
+			if (Requirement == null)
+			{
+				return false;
+			}
+
+			return Requirement.IsCompleted(Advancement);
+		}
+	}
+
+	public bool PersistsAcrossFights
+	{
+		get
+		{
+			return Requirement != null && Requirement.RequirementScope == FeatRequirement.Scope.Game;
+		}
+	}
+
+	public void RegisterEvents(
+		IReadOnlyList<FeatRequirement.EventBase> p_featEvents,
+		bool p_includeTransientRequirements = true)
 	{
 		if (Requirement == null)
 		{
 			return;
 		}
 
-		float newProgress = Requirement.Register(p_featEvent);
-		if (Requirement.Mode == FeatRequirement.ProgressMode.Maximum)
+		if (p_includeTransientRequirements == false && PersistsAcrossFights == false)
 		{
-			CurrentProgress = Math.Min(100f, Math.Max(CurrentProgress, newProgress));
+			return;
 		}
-		else
-		{
-			CurrentProgress = Math.Min(100f, CurrentProgress + newProgress);
-		}
+
+		Advancement = Requirement.EvaluateEvents(p_featEvents, Advancement);
 	}
 }

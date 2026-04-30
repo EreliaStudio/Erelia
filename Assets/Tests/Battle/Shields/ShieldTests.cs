@@ -272,19 +272,23 @@ namespace Tests.Battle.Shields
 		[Test]
 		public void ApplyShieldRequirement_AnyAccumulatesMatchingAmounts()
 		{
+			// Any filter: physical + magical both count toward the total
 			var progress = new FeatRequirementProgress
 			{
 				Requirement = new ApplyShieldRequirement
 				{
-					RequiredAmount = 30,
+					RequiredAmount = 20,
 					Filter = ApplyShieldRequirement.KindFilter.Any
 				}
 			};
 
-			progress.Register(new ApplyShieldRequirement.Event { Amount = 10, Kind = ShieldKind.Physical });
-			progress.Register(new ApplyShieldRequirement.Event { Amount = 10, Kind = ShieldKind.Magical });
+			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			{
+				new ApplyShieldRequirement.Event { Amount = 10, Kind = ShieldKind.Physical },
+				new ApplyShieldRequirement.Event { Amount = 10, Kind = ShieldKind.Magical }
+			});
 
-			Assert.That(progress.CurrentProgress, Is.EqualTo(200f / 3f).Within(0.1f));
+			Assert.That(progress.IsCompleted, Is.True);
 		}
 
 		[Test]
@@ -299,9 +303,12 @@ namespace Tests.Battle.Shields
 				}
 			};
 
-			progress.Register(new ApplyShieldRequirement.Event { Amount = 10, Kind = ShieldKind.Magical });
+			progress.RegisterEvents(new[]
+			{
+				new ApplyShieldRequirement.Event { Amount = 10, Kind = ShieldKind.Magical }
+			});
 
-			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
+			Assert.That(progress.IsCompleted, Is.False);
 		}
 
 		[Test]
@@ -312,30 +319,55 @@ namespace Tests.Battle.Shields
 				Requirement = new AbsorbDamageWithShieldRequirement { RequiredAmount = 20 }
 			};
 
-			progress.Register(new AbsorbDamageWithShieldRequirement.Event { Amount = 10 });
-			progress.Register(new AbsorbDamageWithShieldRequirement.Event { Amount = 10 });
+			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			{
+				new AbsorbDamageWithShieldRequirement.Event { Amount = 10 },
+				new AbsorbDamageWithShieldRequirement.Event { Amount = 10 }
+			});
 
-			Assert.That(progress.CurrentProgress, Is.EqualTo(100f));
+			Assert.That(progress.IsCompleted, Is.True);
 		}
 
 		[Test]
-		public void MaxDamageAbsorbedInOneHitRequirement_UsesMaximumInsteadOfSum()
+		public void MaxDamageAbsorbedInOneHitRequirement_SingleHitBelowThresholdDoesNotComplete()
 		{
+			// Ability scope: two hits of 8 never reach threshold 20 individually
 			var progress = new FeatRequirementProgress
 			{
 				Requirement = new MaxDamageAbsorbedInOneHitRequirement { RequiredAmount = 20 }
 			};
 
-			progress.Register(new AbsorbDamageWithShieldRequirement.Event { Amount = 8 });
-			progress.Register(new AbsorbDamageWithShieldRequirement.Event { Amount = 8 });
-			progress.Register(new AbsorbDamageWithShieldRequirement.Event { Amount = 20 });
+			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			{
+				new AbsorbDamageWithShieldRequirement.Event { Amount = 8 },
+				new AbsorbDamageWithShieldRequirement.Event { Amount = 8 }
+			});
 
-			Assert.That(progress.CurrentProgress, Is.EqualTo(100f));
+			Assert.That(progress.IsCompleted, Is.False);
+		}
+
+		[Test]
+		public void MaxDamageAbsorbedInOneHitRequirement_SingleHitAtThresholdCompletes()
+		{
+			// Ability scope: one hit at exactly the threshold completes the requirement
+			var progress = new FeatRequirementProgress
+			{
+				Requirement = new MaxDamageAbsorbedInOneHitRequirement { RequiredAmount = 20 }
+			};
+
+			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			{
+				new AbsorbDamageWithShieldRequirement.Event { Amount = 8 },
+				new AbsorbDamageWithShieldRequirement.Event { Amount = 20 }
+			});
+
+			Assert.That(progress.IsCompleted, Is.True);
 		}
 
 		[Test]
 		public void ShieldBrokenRequirement_CountsMatchingBreaks()
 		{
+			// Two physical breaks needed; magical break should not count
 			var progress = new FeatRequirementProgress
 			{
 				Requirement = new ShieldBrokenRequirement
@@ -345,11 +377,14 @@ namespace Tests.Battle.Shields
 				}
 			};
 
-			progress.Register(new ShieldBrokenRequirement.Event { Kind = ShieldKind.Magical });
-			progress.Register(new ShieldBrokenRequirement.Event { Kind = ShieldKind.Physical });
-			progress.Register(new ShieldBrokenRequirement.Event { Kind = ShieldKind.Physical });
+			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			{
+				new ShieldBrokenRequirement.Event { Kind = ShieldKind.Magical },
+				new ShieldBrokenRequirement.Event { Kind = ShieldKind.Physical },
+				new ShieldBrokenRequirement.Event { Kind = ShieldKind.Physical }
+			});
 
-			Assert.That(progress.CurrentProgress, Is.EqualTo(100f));
+			Assert.That(progress.IsCompleted, Is.True);
 		}
 
 		[Test]
