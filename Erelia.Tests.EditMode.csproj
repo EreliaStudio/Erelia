@@ -65,7 +65,6 @@
     <Compile Include="Assets\Tests\Effects\Resources\ResourceChangeEffectTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\Placement\PlacementPhaseTests.cs" />
     <Compile Include="Assets\Tests\Feats\FeatProgressionTests.cs" />
-    <Compile Include="Assets\Tests\Requirements\AbilityCast\AbilityCastRequirementTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\EnemyTurn\EnemyTurnPhaseTests.cs" />
     <Compile Include="Assets\Tests\Battle\Backend\BackendBehaviorTests.cs" />
     <Compile Include="Assets\Tests\Effects\EffectTestBase.cs" />
