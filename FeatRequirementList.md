@@ -74,8 +74,7 @@ This keeps the first implementation wave focused on requirements that are reusab
 
 | Name                                        | Description                                                            | Event emitted by                                      | Status | Priority |
 | ------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------- | ----------- | --- |
-| `CastAbilityCountRequirement`               | Cast any or a specific ability X times                                 | `BattleActionResolver.ResolveAbility`                 | Implemented | Priority |
-| `CastDifferentAbilitiesRequirement`         | Cast X different abilities                                             | `BattleActionResolver.ResolveAbility`                 | Planned | Priority |
+| `CastAbilityCountRequirement`               | Cast any ability (or one of a filtered list) X times                   | `BattleActionResolver.ResolveAbility`                 | Implemented | Priority |
 | `CastSameAbilityConsecutivelyRequirement`   | Cast the same ability X turns in a row                                 | `BattleActionResolver.ResolveAbility` + turn tracking | Planned | High |
 | `CastAbilityWithoutMovingRequirement`       | Cast an ability during a turn where the unit did not move              | `BattleTurnRules.EndTurn`                             | Planned | High |
 | `CastAbilityAfterMovingRequirement`         | Cast an ability after moving in the same turn                          | `BattleActionResolver.ResolveAbility`                 | Planned | High |
@@ -84,7 +83,7 @@ This keeps the first implementation wave focused on requirements that are reusab
 | `CastAbilityAtMinimumRangeRequirement`      | Cast an ability adjacent to the target or at its minimum allowed range | `BattleActionResolver.ResolveAbility`                 | Planned | High |
 | `CastAbilityOnFirstTurnRequirement`         | Cast an ability on this unit's first turn                              | `BattleActionResolver.ResolveAbility`                 | Planned | High |
 | `CastAbilityEveryTurnRequirement`           | Cast at least one ability on every turn this unit takes                | End phase                                             | Planned | Low |
-| `WinAfterCastingSpecificAbilityRequirement` | Win a battle after casting a specific ability at least once            | End phase                                             | Planned | Priority |
+| `WinAfterCastingSpecificAbilityRequirement` | Win a battle after casting a specific ability at least once — combine `CastAbilityCountRequirement` (filtered) with an end-phase win check | End phase                                             | Planned | Priority |
 | `CastAbilityWithNoAPRemainingRequirement`   | Cast an ability that leaves the unit with 0 AP                         | `BattleActionResolver.ResolveAbility`                 | Planned | High |
 | `CastAbilityWhileLowHPRequirement`          | Cast an ability while below X% HP                                      | `BattleActionResolver.ResolveAbility`                 | Planned | High |
 | `CastAbilityWhileStatusedRequirement`       | Cast an ability while affected by a specific status/tag                | `BattleActionResolver.ResolveAbility`                 | Planned | High |
@@ -116,7 +115,7 @@ This keeps the first implementation wave focused on requirements that are reusab
 | Name                                       | Description                                         | Event emitted by     | Status | Priority |
 | ------------------------------------------ | --------------------------------------------------- | -------------------- | ----------- | --- |
 | `TakeDamageRequirement`                    | Take X total damage                                 | `DamageTargetEffect` | Implemented | Priority |
-| `SurviveHitRequirement`                    | Survive a hit that dealt at least X damage          | `DamageTargetEffect` | Planned | Priority |
+| `SurviveHitRequirement`                    | Survive a hit that dealt at least X damage          | `DamageTargetEffect` | Implemented | Priority |
 | `TakeDamageAndSurviveRequirement`          | Take X total damage and finish battle alive         | End phase            | Planned | High |
 | `TakeDamageFromSpecificKindRequirement`    | Take X physical/magical/etc. damage                 | `DamageTargetEffect` | Planned | High |
 | `TakeDamageFromSpecificAbilityRequirement` | Take X damage from a specific ability               | `DamageTargetEffect` | Planned | High |
@@ -146,7 +145,7 @@ This keeps the first implementation wave focused on requirements that are reusab
 | `HealStatusedAllyRequirement`       | Heal an ally affected by a specific status/tag               | `HealTargetEffect`              | Planned | High |
 | `HealUnstatusedAllyRequirement`     | Heal an ally with no statuses                                | `HealTargetEffect`              | Planned | Low |
 | `HealAllAlliesRequirement`          | Heal every ally at least once during battle                  | End phase                       | Planned | Low |
-| `WinAfterHealingRequirement`        | Win after healing at least X HP                              | End phase                       | Planned | Priority |
+| `WinAfterHealingRequirement`        | Win after healing at least X HP                              | End phase                       | Implemented | Priority |
 | `HealWithoutDamagingRequirement`    | Heal X HP in a battle where this creature deals no damage    | End phase                       | Planned | High |
 
 ## Shields
@@ -155,12 +154,12 @@ This keeps the first implementation wave focused on requirements that are reusab
 | ------------------------------------------ | ---------------------------------------------------------- | --------------------------------------------- | --------------------- | --- |
 | `ApplyShieldRequirement`                   | Apply X total shield amount                                | `ApplyShieldEffect`                           | Implemented | Priority |
 | `ApplySpecificShieldRequirement`           | Apply X shield amount of a specific kind                   | `ApplyShieldEffect`                           | Implemented / Planned | Priority |
-| `ApplyShieldCountRequirement`              | Apply shield effects X times                               | `ApplyShieldEffect`                           | Planned | Priority |
+| `ApplyShieldCountRequirement`              | Apply shield effects X times                               | `ApplyShieldEffect`                           | Implemented | Priority |
 | `ApplyShieldToAllyRequirement`             | Apply X shield amount to allies                            | `ApplyShieldEffect`                           | Planned | High |
 | `ApplyShieldToSelfRequirement`             | Apply X shield amount to self                              | `ApplyShieldEffect`                           | Planned | High |
 | `ApplyShieldWhileLowHPRequirement`         | Apply shield while below X% HP                             | `ApplyShieldEffect`                           | Planned | High |
-| `AbsorbDamageWithShieldRequirement`        | Absorb X total damage using shields                        | Shield absorption in `BattleAttributes`       | Implemented / Planned | Priority |
-| `ShieldBrokenRequirement`                  | Have X shields broken                                      | Shield absorption                             | Implemented / Planned | High |
+| `AbsorbDamageWithShieldRequirement`        | Absorb X total damage using shields                        | Shield absorption in `BattleAttributes`       | Implemented | Priority |
+| `ShieldBrokenRequirement`                  | Have X shields broken                                      | Shield absorption                             | Implemented | High |
 | `BreakEnemyShieldRequirement`              | Break X enemy shields                                      | Shield absorption + damage source attribution | Planned | Low |
 | `EndTurnWithShieldRequirement`             | End a turn with at least X shield amount active            | `BattleTurnRules.EndTurn`                     | Planned | High |
 | `WinWithShieldRemainingRequirement`        | Win while still having shield active                       | End phase                                     | Planned | High |
@@ -171,7 +170,7 @@ This keeps the first implementation wave focused on requirements that are reusab
 
 | Name                                      | Description                                      | Event emitted by                       | Status | Priority |
 | ----------------------------------------- | ------------------------------------------------ | -------------------------------------- | ------- | --- |
-| `ApplyStatusCountRequirement`             | Apply any status X times                         | `ApplyStatusEffect`                    | Planned | Priority |
+| `ApplyStatusCountRequirement`             | Apply any status X times (event carries `Status` and `StackCount` for specific-status filtering) | `ApplyStatusEffect`                    | Implemented | Priority |
 | `ApplySpecificStatusCountRequirement`     | Apply a specific status X times                  | `ApplyStatusEffect`                    | Planned | Priority |
 | `ApplyStatusWithTagRequirement`           | Apply statuses with a specific tag X times       | `ApplyStatusEffect`                    | Planned | High |
 | `ApplyMultipleStatusesOneTurnRequirement` | Apply X statuses in one turn                     | Turn summary                           | Planned | Low |
@@ -196,7 +195,7 @@ This keeps the first implementation wave focused on requirements that are reusab
 
 | Name                                    | Description                                           | Event emitted by                    | Status | Priority |
 | --------------------------------------- | ----------------------------------------------------- | ----------------------------------- | ------- | --- |
-| `KillCountRequirement`                  | Defeat at least X enemies                             | `BattleContext.DefeatUnit`          | Planned | Priority |
+| `KillCountRequirement`                  | Defeat at least X enemies                             | `BattleContext.DefeatUnit`          | Implemented | Priority |
 | `KillWithSpecificAbilityRequirement`    | Defeat an enemy using a specific ability              | `DamageTargetEffect` + `DefeatUnit` | Planned | Priority |
 | `KillWithSpecificDamageKindRequirement` | Defeat an enemy using physical/magical/etc. damage    | `DamageTargetEffect` + `DefeatUnit` | Planned | High |
 | `KillWithOneHitRequirement`             | Kill an enemy that was at full HP with one hit        | `DamageTargetEffect`                | Planned | High |
@@ -210,15 +209,15 @@ This keeps the first implementation wave focused on requirements that are reusab
 | `KillMultipleEnemiesOneTurnRequirement` | Kill X enemies in one turn                            | Turn summary                        | Planned | High |
 | `KillMultipleEnemiesOneCastRequirement` | Kill X enemies with one ability cast resolution       | Ability resolution summary          | Planned | High |
 | `FirstBloodRequirement`                 | Be the first unit to defeat an enemy in battle        | `DefeatUnit`                        | Planned | High |
-| `LastHitRequirement`                    | Land the killing blow on X enemies                    | `DefeatUnit`                        | Planned | Priority |
+| `LastHitRequirement`                    | Land the killing blow on X enemies                    | `DefeatUnit`                        | Implemented | Priority |
 | `SoloKillRequirement`                   | Kill an enemy that only this creature damaged         | `DefeatUnit` + damage attribution   | Planned | Low |
 
 ## Battle Outcome
 
 | Name                                      | Description                                   | Event emitted by | Status | Priority |
 | ----------------------------------------- | --------------------------------------------- | ---------------- | ------- | --- |
-| `WinBattleCountRequirement`               | Win X battles with this creature present      | End phase        | Planned | Priority |
-| `SurviveBattleCountRequirement`           | Survive X battles                             | End phase        | Planned | Priority |
+| `WinBattleCountRequirement`               | Win X battles with this creature present      | End phase        | Implemented | Priority |
+| `SurviveBattleCountRequirement`           | Survive X battles                             | End phase        | Implemented | Priority |
 | `WinBattleWithFullHPRequirement`          | Win with full HP                              | End phase        | Planned | High |
 | `WinBattleWithoutTakingDamageRequirement` | Win without taking damage                     | End phase        | Planned | High |
 | `WinBattleWithinXTurnsRequirement`        | Win in X turns or fewer                       | End phase        | Planned | High |
@@ -231,7 +230,7 @@ This keeps the first implementation wave focused on requirements that are reusab
 | `WinWithoutMovingRequirement`             | Win without this unit moving                  | End phase        | Planned | Low |
 | `WinWithoutCastingRequirement`            | Win without this unit casting abilities       | End phase        | Planned | Low |
 | `WinAfterTakingDamageRequirement`         | Win after taking at least X damage            | End phase        | Planned | High |
-| `WinAfterDealingDamageRequirement`        | Win after dealing at least X damage           | End phase        | Planned | Priority |
+| `WinAfterDealingDamageRequirement`        | Win after dealing at least X damage           | End phase        | Implemented | Priority |
 | `WinAfterApplyingStatusRequirement`       | Win after applying a specific status/tag      | End phase        | Planned | High |
 | `WinAgainstEnemyCountRequirement`         | Win a battle with at least X enemies          | End phase        | Planned | High |
 | `WinWithTeamSizeRequirement`              | Win with X or fewer allies                    | End phase        | Planned | Low |
@@ -240,8 +239,8 @@ This keeps the first implementation wave focused on requirements that are reusab
 
 | Name                                     | Description                            | Event emitted by                               | Status | Priority |
 | ---------------------------------------- | -------------------------------------- | ---------------------------------------------- | ------- | --- |
-| `SpendActionPointsRequirement`           | Spend X total AP                       | AP decrease event / ability resolution         | Planned | Priority |
-| `SpendMovementPointsRequirement`         | Spend X total MP                       | MP decrease event / move resolution            | Planned | Priority |
+| `SpendActionPointsRequirement`           | Spend X total AP                       | `BattleActionResolver.ResolveAbility`          | Implemented | Priority |
+| `SpendMovementPointsRequirement`         | Spend X total MP                       | `BattleActionResolver.ResolveMove`             | Implemented | Priority |
 | `SpendAllActionPointsRequirement`        | End a turn with 0 AP after spending AP | `BattleTurnRules.EndTurn`                      | Planned | High |
 | `SpendAllMovementPointsRequirement`      | End a turn with 0 MP after moving      | `BattleTurnRules.EndTurn`                      | Planned | High |
 | `EndTurnWithNoResourcesRequirement`      | End a turn with 0 AP and 0 MP          | `BattleTurnRules.EndTurn`                      | Planned | High |
@@ -262,9 +261,9 @@ This keeps the first implementation wave focused on requirements that are reusab
 
 | Name                                    | Description                                    | Event emitted by                   | Status | Priority |
 | --------------------------------------- | ---------------------------------------------- | ---------------------------------- | ------- | --- |
-| `TotalDistanceTravelledRequirement`     | Travel X total cells                           | `BattleActionResolver.ResolveMove` | Planned | Priority |
-| `MaxDistanceInOneMoveRequirement`       | Move X cells in one move action                | `BattleActionResolver.ResolveMove` | Planned | Priority |
-| `MoveCountRequirement`                  | Perform X move actions                         | `BattleActionResolver.ResolveMove` | Planned | Priority |
+| `TotalDistanceTravelledRequirement`     | Travel X total cells                           | `BattleActionResolver.ResolveMove` | Implemented | Priority |
+| `MaxDistanceInOneMoveRequirement`       | Move X cells in one move action                | `BattleActionResolver.ResolveMove` | Implemented | Priority |
+| `MoveCountRequirement`                  | Perform X move actions                         | `BattleActionResolver.ResolveMove` | Implemented | Priority |
 | `MoveTowardEnemyRequirement`            | End move closer to nearest enemy               | `BattleActionResolver.ResolveMove` | Planned | High |
 | `MoveAwayFromEnemyRequirement`          | End move farther from nearest enemy            | `BattleActionResolver.ResolveMove` | Planned | High |
 | `MoveTowardAllyRequirement`             | End move closer to nearest ally                | `BattleActionResolver.ResolveMove` | Planned | High |
@@ -465,8 +464,8 @@ These are not emitted by one event; they combine other requirements.
 
 | Name                             | Description                                            | Event emitted by      | Status | Priority |
 | -------------------------------- | ------------------------------------------------------ | --------------------- | ------- | --- |
-| `AndRequirement`                 | Complete all child requirements                        | Requirement evaluator | Planned | Priority |
-| `OrRequirement`                  | Complete any child requirement                         | Requirement evaluator | Planned | Priority |
+| `AndRequirement`                 | Complete all child requirements                        | Requirement evaluator | Implemented | Priority |
+| `OrRequirement`                  | Complete any child requirement                         | Requirement evaluator | Implemented | Priority |
 | `NotRequirement`                 | Complete if child requirement never occurs             | Requirement evaluator | Planned | High |
 | `SequenceRequirement`            | Complete events in a specific order                    | Requirement evaluator | Planned | Low |
 | `WithinTurnsRequirement`         | Complete child requirement within X turns              | Requirement evaluator | Planned | High |
@@ -474,5 +473,5 @@ These are not emitted by one event; they combine other requirements.
 | `BeforeTakingDamageRequirement`  | Complete child before taking damage                    | Requirement evaluator | Planned | Low |
 | `WhileStatusedRequirement`       | Complete child while source has a status/tag           | Requirement evaluator | Planned | High |
 | `WhileLowHPRequirement`          | Complete child while below HP threshold                | Requirement evaluator | Planned | High |
-| `WithSpecificAbilityRequirement` | Complete child using a specific ability                | Requirement evaluator | Planned | Priority |
+| `WithSpecificAbilityRequirement` | Complete child using a specific ability                | Requirement evaluator | Implemented | Priority |
 | `WithSpecificTargetRequirement`  | Complete child against ally/enemy/self/specific target | Requirement evaluator | Planned | High |

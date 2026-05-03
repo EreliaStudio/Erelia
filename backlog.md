@@ -165,9 +165,9 @@ Priority levels:
 - `ActionShortcutBarView` end-turn and move-mode are wired to `PlayerTurnPhase`.
 - AoE preview overlay works as expected.
 - `FeatReward` concrete subclasses exist: `BonusStatsReward`, `AbilityReward`, `PassiveReward`, `ChangeFormReward`.
-- `FeatRequirement` concrete subclasses exist and are constructable via the feat board editor window.
+- `FeatRequirement` concrete subclasses exist and are constructable via the feat board editor window. `CastAbilityCountRequirement` supports an optional `List<Ability>` filter (empty = any ability); `CastDifferentAbilitiesRequirement` was merged into it.
 - Evolution branching / sibling-branch blocking logic is implemented in `FeatProgressionService`.
-- `Effect.Apply` returns `FeatRequirement.EventBase`; `DamageTargetEffect` and `HealTargetEffect` emit real events; all others return `null`.
+- `DamageTargetEffect` emits `DealDamageRequirement.Event`, `TakeDamageRequirement.Event`, and `SurviveHitRequirement.Event` (when target survives); `HealTargetEffect` emits `HealHealthRequirement.Event` and `HealTargetRequirement.Event`.
 - `BattleUnit` accumulates `PendingFeatEvents` during battle via `RecordFeatEvent`; `BattleActionResolver` routes effect-returned events to the source unit.
 - `EndPhase` applies accumulated events to `FeatProgressionService.RegisterEvent` for all player units, but only on player victory.
-- EditMode test suite covers main backend rules with 177+ passing tests.
+- EditMode test suite: 451 passing tests, split into focused namespaces per requirement type and scope.
