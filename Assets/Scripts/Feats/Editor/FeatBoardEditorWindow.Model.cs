@@ -236,14 +236,12 @@ public partial class FeatBoardEditorWindow
 			case DealDamageRequirement dealDamage:
 				return "Deal " + dealDamage.RequiredAmount + " damage " + FormatRequirementDuration(requirement);
 
-			case MaxSingleHitDamageRequirement maxHit:
-				return "Deal " + maxHit.RequiredAmount + " damage " + FormatRequirementDuration(requirement);
-
 			case HealHealthRequirement healHealth:
 				return "Heal " + healHealth.RequiredAmount + " " + FormatRequirementDuration(requirement);
 
 			case CastAbilityCountRequirement castAbility:
-				return "Cast " + FormatAbilityName(castAbility.Ability) + " " + castAbility.RequiredCount + " times " + FormatRequirementDuration(requirement);
+				string abilitiesLabel = castAbility.Abilities.Count == 0 ? "any ability" : string.Join("/", castAbility.Abilities.ConvertAll(a => FormatAbilityName(a)));
+				return "Cast " + abilitiesLabel + " " + castAbility.RequiredCount + " times " + FormatRequirementDuration(requirement);
 
 			case TakeDamageRequirement takeDamage:
 				return "Take " + takeDamage.RequiredAmount + " damage " + FormatRequirementDuration(requirement);

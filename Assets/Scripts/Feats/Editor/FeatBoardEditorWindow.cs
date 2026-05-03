@@ -728,15 +728,6 @@ public partial class FeatBoardEditorWindow : EditorWindow
 				}
 				break;
 
-			case MaxSingleHitDamageRequirement maxHit:
-				EditorGUI.BeginChangeCheck();
-				int maxHitAmount = EditorGUILayout.IntField("Required Damage", maxHit.RequiredAmount);
-				if (EditorGUI.EndChangeCheck())
-				{
-					ApplySpeciesChange("Edit Feat Requirement", () => maxHit.RequiredAmount = Mathf.Max(0, maxHitAmount));
-				}
-				break;
-
 			case HealHealthRequirement healHealth:
 				EditorGUI.BeginChangeCheck();
 				int healAmount = EditorGUILayout.IntField("Required Healing", healHealth.RequiredAmount);
@@ -790,17 +781,24 @@ public partial class FeatBoardEditorWindow : EditorWindow
 
 	private void DrawCastAbilityCountRequirementFields(CastAbilityCountRequirement requirement)
 	{
+		EditorGUILayout.LabelField("Abilities (leave empty for any)");
+		for (int i = 0; i < requirement.Abilities.Count; i++)
+		{
+			int captured = i;
+			EditorGUI.BeginChangeCheck();
+			Ability ability = (Ability)EditorGUILayout.ObjectField($"  [{i}]", requirement.Abilities[i], typeof(Ability), false);
+			if (EditorGUI.EndChangeCheck())
+				ApplySpeciesChange("Edit Feat Requirement", () => requirement.Abilities[captured] = ability);
+		}
+		if (GUILayout.Button("Add Ability"))
+			ApplySpeciesChange("Edit Feat Requirement", () => requirement.Abilities.Add(null));
+		if (requirement.Abilities.Count > 0 && GUILayout.Button("Remove Last Ability"))
+			ApplySpeciesChange("Edit Feat Requirement", () => requirement.Abilities.RemoveAt(requirement.Abilities.Count - 1));
+
 		EditorGUI.BeginChangeCheck();
-		Ability ability = (Ability)EditorGUILayout.ObjectField("Ability", requirement.Ability, typeof(Ability), false);
 		int count = EditorGUILayout.IntField("Required Casts", requirement.RequiredCount);
 		if (EditorGUI.EndChangeCheck())
-		{
-			ApplySpeciesChange("Edit Feat Requirement", () =>
-			{
-				requirement.Ability = ability;
-				requirement.RequiredCount = Mathf.Max(1, count);
-			});
-		}
+			ApplySpeciesChange("Edit Feat Requirement", () => requirement.RequiredCount = Mathf.Max(1, count));
 	}
 
 	private void DrawRewardsInspector(FeatNode node)
@@ -1000,8 +998,7 @@ public partial class FeatBoardEditorWindow : EditorWindow
 
 	private static bool IsLegacyRequirementType(Type requirementType)
 	{
-		return requirementType == typeof(CastMultipleAbilitiesInOneTurnRequirement) ||
-			requirementType == typeof(MaxSingleHitDamageRequirement);
+		return false;
 	}
 
 	private void HandleCanvasInput(Rect canvasRect)

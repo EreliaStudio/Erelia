@@ -24,6 +24,7 @@ public class ApplyStatusEffect : Effect
 		}
 
 		context.TargetUnit.Statuses.Add(Status, StackCount, Duration.Clone(Duration));
+		context.SourceUnit?.RecordFeatEvent(new ApplyStatusCountRequirement.Event { Status = Status, StackCount = StackCount });
 	}
 }
 
@@ -398,9 +399,8 @@ public class DamageTargetEffect : Effect
 			context.SourceUnit.BattleAttributes.Health.Increase(selfHealing);
 		}
 
-		context.SourceUnit?.RecordFeatEvent(new DealDamageRequirement.Event { Amount = totalApplied });
-		context.SourceUnit?.RecordFeatEvent(new MaxSingleHitDamageRequirement.Event { Amount = totalApplied });
-		context.TargetUnit.RecordFeatEvent(new TakeDamageRequirement.Event { Amount = totalApplied });
+		context.SourceUnit?.RecordFeatEvent(new DealDamageRequirement.Event { Amount = totalApplied, DamageKind = Input.DamageKind, SourceAbility = context.Ability });
+context.TargetUnit.RecordFeatEvent(new TakeDamageRequirement.Event { Amount = totalApplied, SourceAbility = context.Ability });
 
 		if (absorbedByShield > 0)
 		{
@@ -411,6 +411,11 @@ public class DamageTargetEffect : Effect
 		for (int index = 0; index < brokenShieldKinds.Count; index++)
 		{
 			context.TargetUnit.RecordFeatEvent(new ShieldBrokenRequirement.Event { Kind = brokenShieldKinds[index] });
+		}
+
+		if (!context.TargetUnit.IsDefeated)
+		{
+			context.TargetUnit.RecordFeatEvent(new SurviveHitRequirement.Event { Amount = totalApplied });
 		}
 	}
 }
@@ -431,6 +436,7 @@ public class ApplyShieldEffect : Effect
 
 		context.TargetUnit.BattleAttributes.AddShield(Kind, Amount, DurationInTurns);
 		context.SourceUnit?.RecordFeatEvent(new ApplyShieldRequirement.Event { Amount = Amount, Kind = Kind });
+		context.SourceUnit?.RecordFeatEvent(new ApplyShieldCountRequirement.Event { });
 	}
 }
 
@@ -462,6 +468,11 @@ public class HealTargetEffect : Effect
 
 		context.TargetUnit.BattleAttributes.Health.Increase(computedHealing);
 		context.SourceUnit?.RecordFeatEvent(new HealHealthRequirement.Event { Amount = computedHealing });
+		context.SourceUnit?.RecordFeatEvent(new HealTargetRequirement.Event
+		{
+			Amount = computedHealing,
+			IsSelf = context.SourceUnit == context.TargetUnit
+		});
 	}
 }
 

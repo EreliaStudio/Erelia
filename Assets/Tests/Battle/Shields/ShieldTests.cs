@@ -220,7 +220,6 @@ namespace Tests.Battle.Shields
 			Assert.That(target.BattleAttributes.ActiveShields.Count, Is.EqualTo(0));
 
 			DealDamageRequirement.Event dealEvent = FindEvent<DealDamageRequirement.Event>(source);
-			MaxSingleHitDamageRequirement.Event maxHitEvent = FindEvent<MaxSingleHitDamageRequirement.Event>(source);
 			TakeDamageRequirement.Event takeEvent = FindEvent<TakeDamageRequirement.Event>(target);
 			AbsorbDamageWithShieldRequirement.Event absorbEvent =
 				FindEvent<AbsorbDamageWithShieldRequirement.Event>(target);
@@ -228,8 +227,6 @@ namespace Tests.Battle.Shields
 
 			Assert.That(dealEvent, Is.Not.Null);
 			Assert.That(dealEvent.Amount, Is.EqualTo(15));
-			Assert.That(maxHitEvent, Is.Not.Null);
-			Assert.That(maxHitEvent.Amount, Is.EqualTo(15));
 			Assert.That(takeEvent, Is.Not.Null);
 			Assert.That(takeEvent.Amount, Is.EqualTo(15));
 			Assert.That(absorbEvent, Is.Not.Null);

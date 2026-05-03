@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -39,6 +39,11 @@ public static class BattleActionResolver
 		EmitLossHooks(battleContext, action.SourceUnit, sourceDelta);
 		battleContext.Stats.RecordMove(action.SourceUnit);
 
+		action.SourceUnit.RecordFeatEvent(new MoveCountRequirement.Event { });
+		action.SourceUnit.RecordFeatEvent(new TotalDistanceTravelledRequirement.Event { Distance = movementCost });
+		action.SourceUnit.RecordFeatEvent(new MaxDistanceInOneMoveRequirement.Event { Distance = movementCost });
+		action.SourceUnit.RecordFeatEvent(new SpendMovementPointsRequirement.Event { Amount = movementCost });
+
 		BattleStatusRules.ApplyHook(action.SourceUnit, battleContext, StatusHookPoint.AfterMove, action.SourceUnit);
 		return true;
 	}
@@ -65,6 +70,11 @@ public static class BattleActionResolver
 		action.SourceUnit.BattleAttributes.ActionPoints.Decrease(actionPointCost);
 		action.SourceUnit.BattleAttributes.MovementPoints.Decrease(movementPointCost);
 
+		if (actionPointCost > 0)
+			action.SourceUnit.RecordFeatEvent(new SpendActionPointsRequirement.Event { Amount = actionPointCost });
+		if (movementPointCost > 0)
+			action.SourceUnit.RecordFeatEvent(new SpendMovementPointsRequirement.Event { Amount = movementPointCost });
+
 		if (action.TargetCells == null || action.TargetCells.Count == 0)
 		{
 			return false;
@@ -74,17 +84,10 @@ public static class BattleActionResolver
 
 		BattleStatusRules.ApplyHook(action.SourceUnit, battleContext, StatusHookPoint.AfterCastingAnAbility, action.SourceUnit);
 
-		int abilityCastCountThisTurn = turnContext.RecordAbilityCast(action.Ability);
+		turnContext.RecordAbilityCast(action.Ability);
 		action.SourceUnit.RecordFeatEvent(new CastAbilityCountRequirement.Event
 		{
-			Ability = action.Ability,
-			Count = 1
-		});
-		action.SourceUnit.RecordFeatEvent(new CastMultipleAbilitiesInOneTurnRequirement.Event
-		{
-			Ability = action.Ability,
-			AbilityCastCountThisTurn = abilityCastCountThisTurn,
-			TotalCastCountThisTurn = turnContext.TotalAbilityCastCountThisTurn
+			Ability = action.Ability
 		});
 
 		for (int index = 0; index < trackedUnits.Count; index++)
@@ -100,7 +103,7 @@ public static class BattleActionResolver
 		}
 
 		battleContext.Stats.RecordAbilityCast(action.SourceUnit);
-		ProcessDefeatedUnits(battleContext, trackedUnits, deltasByUnit);
+		ProcessDefeatedUnits(battleContext, trackedUnits, deltasByUnit, action.SourceUnit, action.Ability);
 		return true;
 	}
 
@@ -284,7 +287,12 @@ public static class BattleActionResolver
 		}
 	}
 
-	private static void ProcessDefeatedUnits(BattleContext battleContext, List<BattleUnit> trackedUnits, Dictionary<BattleUnit, TrackedResourceDelta> snapshotsBefore)
+	private static void ProcessDefeatedUnits(
+		BattleContext battleContext,
+		List<BattleUnit> trackedUnits,
+		Dictionary<BattleUnit, TrackedResourceDelta> snapshotsBefore,
+		BattleUnit sourceUnit = null,
+		Ability sourceAbility = null)
 	{
 		for (int index = 0; index < trackedUnits.Count; index++)
 		{
@@ -300,6 +308,11 @@ public static class BattleActionResolver
 			}
 
 			battleContext.DefeatUnit(unit);
+
+			if (sourceUnit != null && unit != sourceUnit)
+			{
+				sourceUnit.RecordFeatEvent(new KillCountRequirement.Event { Ability = sourceAbility });
+			}
 		}
 	}
 

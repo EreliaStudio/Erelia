@@ -29,6 +29,16 @@ public sealed class EndPhase : BattlePhase
 				continue;
 			}
 
+			if (includeTransientRequirements)
+			{
+				unit.RecordFeatEvent(new WinBattleCountRequirement.Event { });
+			}
+
+			if (!unit.IsDefeated)
+			{
+				unit.RecordFeatEvent(new SurviveBattleCountRequirement.Event { });
+			}
+
 			IReadOnlyList<FeatRequirement.EventBase> events = unit.PendingFeatEvents;
 			FeatProgressionService.RegisterFightEvents(unit.SourceUnit, events, includeTransientRequirements);
 		}
