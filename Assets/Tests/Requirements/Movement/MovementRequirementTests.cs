@@ -1,14 +1,12 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 
-namespace Tests.Requirements.Movement
+namespace Tests.Requirements.Movement.MoveCount
 {
-	public sealed class MovementRequirementTests
+	public sealed class MoveCountTests
 	{
-		// ── MoveCountRequirement ──────────────────────────────────────────────────
-
 		[Test]
-		public void MoveCount_NoEvents_ZeroProgress()
+		public void NoEvents_ZeroProgress()
 		{
 			var req = new MoveCountRequirement { RequiredCount = 5 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -19,7 +17,7 @@ namespace Tests.Requirements.Movement
 		}
 
 		[Test]
-		public void MoveCount_OneMove_PartialProgress()
+		public void OneMove_PartialProgress()
 		{
 			var req = new MoveCountRequirement { RequiredCount = 5 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -33,7 +31,7 @@ namespace Tests.Requirements.Movement
 		}
 
 		[Test]
-		public void MoveCount_ReachingRequired_Completes()
+		public void ReachingRequired_Completes()
 		{
 			var req = new MoveCountRequirement { RequiredCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -47,11 +45,15 @@ namespace Tests.Requirements.Movement
 
 			Assert.That(progress.IsCompleted, Is.True);
 		}
+	}
+}
 
-		// ── TotalDistanceTravelledRequirement ─────────────────────────────────────
-
+namespace Tests.Requirements.Movement.TotalDistance
+{
+	public sealed class TotalDistanceTests
+	{
 		[Test]
-		public void TotalDistance_NoEvents_ZeroProgress()
+		public void NoEvents_ZeroProgress()
 		{
 			var req = new TotalDistanceTravelledRequirement { RequiredDistance = 10 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -62,7 +64,7 @@ namespace Tests.Requirements.Movement
 		}
 
 		[Test]
-		public void TotalDistance_PartialDistance_PartialProgress()
+		public void PartialDistance_PartialProgress()
 		{
 			var req = new TotalDistanceTravelledRequirement { RequiredDistance = 10 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -76,7 +78,7 @@ namespace Tests.Requirements.Movement
 		}
 
 		[Test]
-		public void TotalDistance_MultipleEvents_Accumulate()
+		public void MultipleEvents_Accumulate()
 		{
 			var req = new TotalDistanceTravelledRequirement { RequiredDistance = 10 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -89,16 +91,19 @@ namespace Tests.Requirements.Movement
 
 			Assert.That(progress.IsCompleted, Is.True);
 		}
+	}
+}
 
-		// ── MaxDistanceInOneMoveRequirement ───────────────────────────────────────
-
+namespace Tests.Requirements.Movement.MaxDistanceInOneMove
+{
+	public sealed class MaxDistanceInOneMoveTests
+	{
 		[Test]
-		public void MaxDistanceInOneMove_BelowThreshold_ZeroProgress()
+		public void BelowThreshold_ZeroProgress()
 		{
 			var req = new MaxDistanceInOneMoveRequirement { RequiredDistance = 5 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			// Ability scope: each event evaluated independently
 			progress.RegisterEvents(new List<FeatRequirement.EventBase>
 			{
 				new MaxDistanceInOneMoveRequirement.Event { Distance = 3 }
@@ -108,7 +113,7 @@ namespace Tests.Requirements.Movement
 		}
 
 		[Test]
-		public void MaxDistanceInOneMove_AtThreshold_Completes()
+		public void AtThreshold_Completes()
 		{
 			var req = new MaxDistanceInOneMoveRequirement { RequiredDistance = 4 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -122,9 +127,8 @@ namespace Tests.Requirements.Movement
 		}
 
 		[Test]
-		public void MaxDistanceInOneMove_TwoSmallMoves_DoNotCombine()
+		public void TwoSmallMoves_DoNotCombine()
 		{
-			// Ability scope — two moves of distance 2 must NOT combine to reach threshold of 4
 			var req = new MaxDistanceInOneMoveRequirement { RequiredDistance = 4 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 

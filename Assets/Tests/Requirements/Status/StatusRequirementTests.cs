@@ -2,14 +2,12 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Tests.Requirements.Status
+namespace Tests.Requirements.Status.ApplyStatusCount
 {
-	public sealed class StatusRequirementTests
+	public sealed class ApplyStatusCountTests
 	{
-		// ── ApplyStatusCountRequirement ───────────────────────────────────────────
-
 		[Test]
-		public void ApplyStatusCount_NoEvents_ZeroProgress()
+		public void NoEvents_ZeroProgress()
 		{
 			var req = new ApplyStatusCountRequirement { RequiredCount = 5 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -20,7 +18,7 @@ namespace Tests.Requirements.Status
 		}
 
 		[Test]
-		public void ApplyStatusCount_OneEvent_PartialProgress()
+		public void OneEvent_PartialProgress()
 		{
 			var req = new ApplyStatusCountRequirement { RequiredCount = 5 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -34,7 +32,7 @@ namespace Tests.Requirements.Status
 		}
 
 		[Test]
-		public void ApplyStatusCount_ReachingRequired_Completes()
+		public void ReachingRequired_Completes()
 		{
 			var req = new ApplyStatusCountRequirement { RequiredCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -49,10 +47,24 @@ namespace Tests.Requirements.Status
 			Assert.That(progress.IsCompleted, Is.True);
 		}
 
-		// ── ApplyStatusCountRequirement – status filter ───────────────────────────
+		[Test]
+		public void NullStatusFilter_AnyStatusCounts()
+		{
+			global::Status status = ScriptableObject.CreateInstance<global::Status>();
+			var req = new ApplyStatusCountRequirement { RequiredStatus = null, RequiredCount = 1 };
+			var progress = new FeatRequirementProgress { Requirement = req };
+
+			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			{
+				new ApplyStatusCountRequirement.Event { Status = status }
+			});
+
+			Assert.That(progress.IsCompleted, Is.True);
+			Object.DestroyImmediate(status);
+		}
 
 		[Test]
-		public void ApplyStatusCount_MatchingStatus_CountsProgress()
+		public void MatchingStatus_CountsProgress()
 		{
 			global::Status status = ScriptableObject.CreateInstance<global::Status>();
 			var req = new ApplyStatusCountRequirement { RequiredStatus = status, RequiredCount = 2 };
@@ -68,7 +80,7 @@ namespace Tests.Requirements.Status
 		}
 
 		[Test]
-		public void ApplyStatusCount_WrongStatus_ZeroProgress()
+		public void WrongStatus_ZeroProgress()
 		{
 			global::Status statusA = ScriptableObject.CreateInstance<global::Status>();
 			global::Status statusB = ScriptableObject.CreateInstance<global::Status>();
@@ -86,23 +98,7 @@ namespace Tests.Requirements.Status
 		}
 
 		[Test]
-		public void ApplyStatusCount_NullStatusFilter_AnyStatusCounts()
-		{
-			global::Status status = ScriptableObject.CreateInstance<global::Status>();
-			var req = new ApplyStatusCountRequirement { RequiredStatus = null, RequiredCount = 1 };
-			var progress = new FeatRequirementProgress { Requirement = req };
-
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
-			{
-				new ApplyStatusCountRequirement.Event { Status = status }
-			});
-
-			Assert.That(progress.IsCompleted, Is.True);
-			Object.DestroyImmediate(status);
-		}
-
-		[Test]
-		public void ApplyStatusCount_MatchingStatusReachesRequired_Completes()
+		public void MatchingStatusReachesRequired_Completes()
 		{
 			global::Status status = ScriptableObject.CreateInstance<global::Status>();
 			var req = new ApplyStatusCountRequirement { RequiredStatus = status, RequiredCount = 2 };

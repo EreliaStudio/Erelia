@@ -5,10 +5,10 @@ using GameStatus = Status;
 
 namespace Tests.Requirements.MaxSingleHit
 {
-	public sealed class MaxSingleHitRequirementTests
+	public sealed class MaxSingleHitTests
 	{
 		[Test]
-		public void TwoWeakHitsDoNotProgress()
+		public void TwoWeakHits_DoNotProgress()
 		{
 			var requirement = new DealDamageRequirement { RequiredAmount = 100, RequirementScope = FeatRequirement.Scope.Ability };
 			var progress = new FeatRequirementProgress { Requirement = requirement };
@@ -21,7 +21,7 @@ namespace Tests.Requirements.MaxSingleHit
 		}
 
 		[Test]
-		public void HitAtThresholdCompletes()
+		public void HitAtThreshold_Completes()
 		{
 			var requirement = new DealDamageRequirement { RequiredAmount = 50, RequirementScope = FeatRequirement.Scope.Ability };
 			var progress = new FeatRequirementProgress { Requirement = requirement };
@@ -32,13 +32,9 @@ namespace Tests.Requirements.MaxSingleHit
 		}
 
 		[Test]
-		public void SingleEventBelowThresholdDoesNotComplete()
+		public void SingleEventBelowThreshold_DoesNotComplete()
 		{
-			var requirement = new DealDamageRequirement
-			{
-				RequiredAmount = 100,
-				RequirementScope = FeatRequirement.Scope.Ability
-			};
+			var requirement = new DealDamageRequirement { RequiredAmount = 100, RequirementScope = FeatRequirement.Scope.Ability };
 			var progress = new FeatRequirementProgress { Requirement = requirement };
 
 			progress.RegisterEvents(new[] { new DealDamageRequirement.Event { Amount = 40 } });
@@ -49,7 +45,7 @@ namespace Tests.Requirements.MaxSingleHit
 		}
 
 		[Test]
-		public void TwoWeakHitsDoNotCompleteNode()
+		public void TwoWeakHits_DoNotCompleteNode()
 		{
 			FeatNode rootNode = new FeatNode { Id = "root", DisplayName = "Root" };
 			FeatNode maxHitNode = new FeatNode
@@ -87,7 +83,7 @@ namespace Tests.Requirements.MaxSingleHit
 		}
 
 		[Test]
-		public void SingleHitAtThresholdCompletesNode()
+		public void SingleHitAtThreshold_CompletesNode()
 		{
 			FeatNode rootNode = new FeatNode { Id = "root", DisplayName = "Root" };
 			FeatNode maxHitNode = new FeatNode
@@ -122,7 +118,7 @@ namespace Tests.Requirements.MaxSingleHit
 
 			FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creatureUnit, maxHitNode);
 			Assert.That(nodeProgress, Is.Not.Null);
-			Assert.That(nodeProgress.CompletionCount, Is.GreaterThan(0), "A single hit meeting the threshold must complete the node.");
+			Assert.That(nodeProgress.CompletionCount, Is.GreaterThan(0));
 
 			Object.DestroyImmediate(creatureUnit.Species);
 		}
@@ -131,10 +127,7 @@ namespace Tests.Requirements.MaxSingleHit
 		public void PlayerVictory_NodeCompleted_WhenSingleHitMeetsThreshold()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(
-				playerCount: 1,
-				enemyCount: 1,
-				defaultHealth: 50,
-				defaultActionPoints: 4);
+				playerCount: 1, enemyCount: 1, defaultHealth: 50, defaultActionPoints: 4);
 
 			FeatNode rootNode = new FeatNode { Id = "root", DisplayName = "Root" };
 			FeatNode maxHitNode = new FeatNode
@@ -168,7 +161,6 @@ namespace Tests.Requirements.MaxSingleHit
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-
 			fixture.PlayerUnits[0].RecordFeatEvent(new DealDamageRequirement.Event { Amount = 30 });
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
@@ -184,10 +176,7 @@ namespace Tests.Requirements.MaxSingleHit
 		public void PlayerVictory_NodeNotCompleted_WhenNoSingleHitMeetsThreshold()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(
-				playerCount: 1,
-				enemyCount: 1,
-				defaultHealth: 50,
-				defaultActionPoints: 4);
+				playerCount: 1, enemyCount: 1, defaultHealth: 50, defaultActionPoints: 4);
 
 			FeatNode rootNode = new FeatNode { Id = "root", DisplayName = "Root" };
 			FeatNode maxHitNode = new FeatNode
@@ -221,7 +210,6 @@ namespace Tests.Requirements.MaxSingleHit
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-
 			fixture.PlayerUnits[0].RecordFeatEvent(new DealDamageRequirement.Event { Amount = 25 });
 			fixture.PlayerUnits[0].RecordFeatEvent(new DealDamageRequirement.Event { Amount = 25 });
 

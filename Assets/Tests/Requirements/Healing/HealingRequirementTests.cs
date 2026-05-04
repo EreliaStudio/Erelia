@@ -1,14 +1,23 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 
-namespace Tests.Requirements.Healing
+namespace Tests.Requirements.Healing.HealSelf
 {
-	public sealed class HealingRequirementTests
+	public sealed class HealSelfTests
 	{
-		// ── HealTargetRequirement (Self) ──────────────────────────────────────────
+		[Test]
+		public void NoEvents_ZeroProgress()
+		{
+			var req = new HealTargetRequirement { RequiredAmount = 50, Target = HealTargetRequirement.TargetFilter.Self };
+			var progress = new FeatRequirementProgress { Requirement = req };
+
+			progress.RegisterEvents(new List<FeatRequirement.EventBase>());
+
+			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
+		}
 
 		[Test]
-		public void HealSelf_AmountBelowRequired_PartialProgress()
+		public void AmountBelowRequired_PartialProgress()
 		{
 			var req = new HealTargetRequirement { RequiredAmount = 100, Target = HealTargetRequirement.TargetFilter.Self };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -22,7 +31,7 @@ namespace Tests.Requirements.Healing
 		}
 
 		[Test]
-		public void HealSelf_AmountAtRequired_Completes()
+		public void AmountAtRequired_Completes()
 		{
 			var req = new HealTargetRequirement { RequiredAmount = 50, Target = HealTargetRequirement.TargetFilter.Self };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -36,18 +45,7 @@ namespace Tests.Requirements.Healing
 		}
 
 		[Test]
-		public void HealSelf_NoEvents_ZeroProgress()
-		{
-			var req = new HealTargetRequirement { RequiredAmount = 50, Target = HealTargetRequirement.TargetFilter.Self };
-			var progress = new FeatRequirementProgress { Requirement = req };
-
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>());
-
-			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
-		}
-
-		[Test]
-		public void HealSelf_AllyEventIgnored()
+		public void AllyEvent_Ignored()
 		{
 			var req = new HealTargetRequirement { RequiredAmount = 50, Target = HealTargetRequirement.TargetFilter.Self };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -59,11 +57,15 @@ namespace Tests.Requirements.Healing
 
 			Assert.That(progress.IsCompleted, Is.False);
 		}
+	}
+}
 
-		// ── HealTargetRequirement (Ally) ──────────────────────────────────────────
-
+namespace Tests.Requirements.Healing.HealOther
+{
+	public sealed class HealOtherTests
+	{
 		[Test]
-		public void HealOther_AmountBelowRequired_PartialProgress()
+		public void AmountBelowRequired_PartialProgress()
 		{
 			var req = new HealTargetRequirement { RequiredAmount = 100, Target = HealTargetRequirement.TargetFilter.Ally };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -77,7 +79,7 @@ namespace Tests.Requirements.Healing
 		}
 
 		[Test]
-		public void HealOther_AmountAtRequired_Completes()
+		public void AmountAtRequired_Completes()
 		{
 			var req = new HealTargetRequirement { RequiredAmount = 40, Target = HealTargetRequirement.TargetFilter.Ally };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -91,7 +93,7 @@ namespace Tests.Requirements.Healing
 		}
 
 		[Test]
-		public void HealOther_SelfEventIgnored()
+		public void SelfEvent_Ignored()
 		{
 			var req = new HealTargetRequirement { RequiredAmount = 40, Target = HealTargetRequirement.TargetFilter.Ally };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -103,11 +105,15 @@ namespace Tests.Requirements.Healing
 
 			Assert.That(progress.IsCompleted, Is.False);
 		}
+	}
+}
 
-		// ── WinAfterHealingRequirement ────────────────────────────────────────────
-
+namespace Tests.Requirements.Healing.WinAfterHealing
+{
+	public sealed class WinAfterHealingTests
+	{
 		[Test]
-		public void WinAfterHealing_HealAmountAccumulatesProgress()
+		public void HealAmountAccumulatesProgress()
 		{
 			var req = new WinAfterHealingRequirement { RequiredAmount = 100 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -121,7 +127,7 @@ namespace Tests.Requirements.Healing
 		}
 
 		[Test]
-		public void WinAfterHealing_ReachingThresholdCompletes()
+		public void ReachingThreshold_Completes()
 		{
 			var req = new WinAfterHealingRequirement { RequiredAmount = 30 };
 			var progress = new FeatRequirementProgress { Requirement = req };

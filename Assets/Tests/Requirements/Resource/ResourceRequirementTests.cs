@@ -1,14 +1,12 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 
-namespace Tests.Requirements.Resource
+namespace Tests.Requirements.Resource.SpendActionPoints
 {
-	public sealed class ResourceRequirementTests
+	public sealed class SpendActionPointsTests
 	{
-		// ── SpendActionPointsRequirement ──────────────────────────────────────────
-
 		[Test]
-		public void SpendAP_NoEvents_ZeroProgress()
+		public void NoEvents_ZeroProgress()
 		{
 			var req = new SpendActionPointsRequirement { RequiredAmount = 10 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -19,7 +17,7 @@ namespace Tests.Requirements.Resource
 		}
 
 		[Test]
-		public void SpendAP_PartialAmount_PartialProgress()
+		public void PartialAmount_PartialProgress()
 		{
 			var req = new SpendActionPointsRequirement { RequiredAmount = 10 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -33,7 +31,7 @@ namespace Tests.Requirements.Resource
 		}
 
 		[Test]
-		public void SpendAP_ReachingRequired_Completes()
+		public void ReachingRequired_Completes()
 		{
 			var req = new SpendActionPointsRequirement { RequiredAmount = 5 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -47,7 +45,7 @@ namespace Tests.Requirements.Resource
 		}
 
 		[Test]
-		public void SpendAP_MultipleEvents_Accumulate()
+		public void MultipleEvents_Accumulate()
 		{
 			var req = new SpendActionPointsRequirement { RequiredAmount = 6 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -60,11 +58,15 @@ namespace Tests.Requirements.Resource
 
 			Assert.That(progress.IsCompleted, Is.True);
 		}
+	}
+}
 
-		// ── SpendMovementPointsRequirement ────────────────────────────────────────
-
+namespace Tests.Requirements.Resource.SpendMovementPoints
+{
+	public sealed class SpendMovementPointsTests
+	{
 		[Test]
-		public void SpendMP_NoEvents_ZeroProgress()
+		public void NoEvents_ZeroProgress()
 		{
 			var req = new SpendMovementPointsRequirement { RequiredAmount = 10 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -75,7 +77,7 @@ namespace Tests.Requirements.Resource
 		}
 
 		[Test]
-		public void SpendMP_PartialAmount_PartialProgress()
+		public void PartialAmount_PartialProgress()
 		{
 			var req = new SpendMovementPointsRequirement { RequiredAmount = 8 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -89,7 +91,7 @@ namespace Tests.Requirements.Resource
 		}
 
 		[Test]
-		public void SpendMP_ReachingRequired_Completes()
+		public void ReachingRequired_Completes()
 		{
 			var req = new SpendMovementPointsRequirement { RequiredAmount = 6 };
 			var progress = new FeatRequirementProgress { Requirement = req };

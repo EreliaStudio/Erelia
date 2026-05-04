@@ -1,15 +1,12 @@
 using System.Collections.Generic;
 using NUnit.Framework;
-using UnityEngine;
 
-namespace Tests.Requirements.Meta
+namespace Tests.Requirements.Meta.And
 {
-	public sealed class MetaRequirementTests
+	public sealed class AndTests
 	{
-		// ── AndRequirement ────────────────────────────────────────────────────────
-
 		[Test]
-		public void And_BothChildrenSatisfied_Completes()
+		public void BothChildrenSatisfied_Completes()
 		{
 			var childA = new DealDamageRequirement { RequiredAmount = 10 };
 			var childB = new HealHealthRequirement { RequiredAmount = 5 };
@@ -26,7 +23,7 @@ namespace Tests.Requirements.Meta
 		}
 
 		[Test]
-		public void And_OnlyOneChildSatisfied_DoesNotComplete()
+		public void OnlyOneChildSatisfied_DoesNotComplete()
 		{
 			var childA = new DealDamageRequirement { RequiredAmount = 10 };
 			var childB = new HealHealthRequirement { RequiredAmount = 5 };
@@ -36,23 +33,19 @@ namespace Tests.Requirements.Meta
 			progress.RegisterEvents(new List<FeatRequirement.EventBase>
 			{
 				new DealDamageRequirement.Event { Amount = 10 }
-				// No heal event
 			});
 
 			Assert.That(progress.IsCompleted, Is.False);
 		}
 
 		[Test]
-		public void And_ProgressIsMinOfChildren()
+		public void ProgressIsMinOfChildren()
 		{
-			// childA at 50%, childB at 80% → AndRequirement progress = 50%
 			var childA = new DealDamageRequirement { RequiredAmount = 100 };
 			var childB = new DealDamageRequirement { RequiredAmount = 100 };
 			var req = new AndRequirement { Children = new List<FeatRequirement> { childA, childB } };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			// Both use DealDamageRequirement.Event — childA needs 100 total, childB needs 100 total
-			// With fight scope on both, 50 damage → both at 50%
 			progress.RegisterEvents(new List<FeatRequirement.EventBase>
 			{
 				new DealDamageRequirement.Event { Amount = 50 }
@@ -62,7 +55,7 @@ namespace Tests.Requirements.Meta
 		}
 
 		[Test]
-		public void And_EmptyChildren_DoesNotComplete()
+		public void EmptyChildren_DoesNotComplete()
 		{
 			var req = new AndRequirement { Children = new List<FeatRequirement>() };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -74,11 +67,15 @@ namespace Tests.Requirements.Meta
 
 			Assert.That(progress.IsCompleted, Is.False);
 		}
+	}
+}
 
-		// ── OrRequirement ─────────────────────────────────────────────────────────
-
+namespace Tests.Requirements.Meta.Or
+{
+	public sealed class OrTests
+	{
 		[Test]
-		public void Or_FirstChildSatisfied_Completes()
+		public void FirstChildSatisfied_Completes()
 		{
 			var childA = new DealDamageRequirement { RequiredAmount = 10 };
 			var childB = new HealHealthRequirement { RequiredAmount = 5 };
@@ -94,7 +91,7 @@ namespace Tests.Requirements.Meta
 		}
 
 		[Test]
-		public void Or_SecondChildSatisfied_Completes()
+		public void SecondChildSatisfied_Completes()
 		{
 			var childA = new DealDamageRequirement { RequiredAmount = 10 };
 			var childB = new HealHealthRequirement { RequiredAmount = 5 };
@@ -110,7 +107,7 @@ namespace Tests.Requirements.Meta
 		}
 
 		[Test]
-		public void Or_NeitherChildSatisfied_DoesNotComplete()
+		public void NeitherChildSatisfied_DoesNotComplete()
 		{
 			var childA = new DealDamageRequirement { RequiredAmount = 100 };
 			var childB = new HealHealthRequirement { RequiredAmount = 100 };
@@ -127,9 +124,8 @@ namespace Tests.Requirements.Meta
 		}
 
 		[Test]
-		public void Or_ProgressIsMaxOfChildren()
+		public void ProgressIsMaxOfChildren()
 		{
-			// childA at 40%, childB at 80% → OrRequirement progress = 80%
 			var childA = new DealDamageRequirement { RequiredAmount = 100 };
 			var childB = new HealHealthRequirement { RequiredAmount = 100 };
 			var req = new OrRequirement { Children = new List<FeatRequirement> { childA, childB } };

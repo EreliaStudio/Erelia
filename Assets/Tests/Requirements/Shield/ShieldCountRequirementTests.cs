@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 
-namespace Tests.Requirements.Shield
+namespace Tests.Requirements.Shield.ApplyShieldCount
 {
-	public sealed class ShieldCountRequirementTests
+	public sealed class ApplyShieldCountTests
 	{
 		[Test]
-		public void ApplyShieldCount_NoEvents_ZeroProgress()
+		public void NoEvents_ZeroProgress()
 		{
 			var req = new ApplyShieldCountRequirement { RequiredCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -17,7 +17,7 @@ namespace Tests.Requirements.Shield
 		}
 
 		[Test]
-		public void ApplyShieldCount_OneEvent_PartialProgress()
+		public void OneEvent_PartialProgress()
 		{
 			var req = new ApplyShieldCountRequirement { RequiredCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -31,7 +31,7 @@ namespace Tests.Requirements.Shield
 		}
 
 		[Test]
-		public void ApplyShieldCount_ExactCountRequired_Completes()
+		public void ExactCountRequired_Completes()
 		{
 			var req = new ApplyShieldCountRequirement { RequiredCount = 2 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -46,7 +46,7 @@ namespace Tests.Requirements.Shield
 		}
 
 		[Test]
-		public void ApplyShieldCount_MoreThanRequired_StillCompletes()
+		public void MoreThanRequired_StillCompletes()
 		{
 			var req = new ApplyShieldCountRequirement { RequiredCount = 2 };
 			var progress = new FeatRequirementProgress { Requirement = req };

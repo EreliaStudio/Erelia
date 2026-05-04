@@ -3,5 +3,7 @@ Library
 Logs
 Temp
 UserSettings
+*.csproj
+*.sln
 ProjectSettings
 .vscode

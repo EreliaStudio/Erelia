@@ -2,14 +2,12 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Tests.Requirements.Kill
+namespace Tests.Requirements.Kill.KillCount
 {
-	public sealed class KillRequirementTests
+	public sealed class KillCountTests
 	{
-		// ── KillCountRequirement ──────────────────────────────────────────────────
-
 		[Test]
-		public void KillCount_NoEvents_ZeroProgress()
+		public void NoEvents_ZeroProgress()
 		{
 			var req = new KillCountRequirement { RequiredCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -20,7 +18,7 @@ namespace Tests.Requirements.Kill
 		}
 
 		[Test]
-		public void KillCount_OneKill_PartialProgress()
+		public void OneKill_PartialProgress()
 		{
 			var req = new KillCountRequirement { RequiredCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -34,7 +32,7 @@ namespace Tests.Requirements.Kill
 		}
 
 		[Test]
-		public void KillCount_ReachingRequired_Completes()
+		public void ReachingRequired_Completes()
 		{
 			var req = new KillCountRequirement { RequiredCount = 2 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -48,10 +46,8 @@ namespace Tests.Requirements.Kill
 			Assert.That(progress.IsCompleted, Is.True);
 		}
 
-		// ── KillCountRequirement – ability filter ─────────────────────────────────
-
 		[Test]
-		public void KillWithAbility_MatchingAbility_CountsProgress()
+		public void AbilityFilter_MatchingAbility_CountsProgress()
 		{
 			Ability ability = ScriptableObject.CreateInstance<Ability>();
 			var req = new KillCountRequirement { SourceAbilities = new List<Ability> { ability }, RequiredCount = 1 };
@@ -67,7 +63,7 @@ namespace Tests.Requirements.Kill
 		}
 
 		[Test]
-		public void KillWithAbility_WrongAbility_ZeroProgress()
+		public void AbilityFilter_WrongAbility_ZeroProgress()
 		{
 			Ability abilityA = ScriptableObject.CreateInstance<Ability>();
 			Ability abilityB = ScriptableObject.CreateInstance<Ability>();
@@ -85,7 +81,7 @@ namespace Tests.Requirements.Kill
 		}
 
 		[Test]
-		public void KillWithAbility_EmptyFilter_AnyAbilityKillCounts()
+		public void AbilityFilter_EmptyFilter_AnyAbilityCounts()
 		{
 			Ability ability = ScriptableObject.CreateInstance<Ability>();
 			var req = new KillCountRequirement { SourceAbilities = new List<Ability>(), RequiredCount = 1 };
@@ -99,11 +95,15 @@ namespace Tests.Requirements.Kill
 			Assert.That(progress.IsCompleted, Is.True);
 			Object.DestroyImmediate(ability);
 		}
+	}
+}
 
-		// ── LastHitRequirement ────────────────────────────────────────────────────
-
+namespace Tests.Requirements.Kill.LastHit
+{
+	public sealed class LastHitTests
+	{
 		[Test]
-		public void LastHit_NoEvents_ZeroProgress()
+		public void NoEvents_ZeroProgress()
 		{
 			var req = new LastHitRequirement { RequiredCount = 5 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -114,7 +114,7 @@ namespace Tests.Requirements.Kill
 		}
 
 		[Test]
-		public void LastHit_OneKill_PartialProgress()
+		public void OneKill_PartialProgress()
 		{
 			var req = new LastHitRequirement { RequiredCount = 5 };
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -128,7 +128,7 @@ namespace Tests.Requirements.Kill
 		}
 
 		[Test]
-		public void LastHit_ReachingRequired_Completes()
+		public void ReachingRequired_Completes()
 		{
 			var req = new LastHitRequirement { RequiredCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
