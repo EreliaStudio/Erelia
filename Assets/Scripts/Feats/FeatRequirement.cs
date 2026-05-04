@@ -658,7 +658,12 @@ public class LastHitRequirement : FeatRequirementTemplated<KillCountRequirement.
 public class WinBattleCountRequirement : FeatRequirementTemplated<WinBattleCountRequirement.Event>
 {
 	[Serializable]
-	public class Event : FeatRequirement.EventBase { }
+	public class Event : FeatRequirement.EventBase
+	{
+		public bool UnitSurvived = false;
+	}
+
+	public bool RequireUnitSurvival = false;
 
 	public WinBattleCountRequirement()
 	{
@@ -667,23 +672,7 @@ public class WinBattleCountRequirement : FeatRequirementTemplated<WinBattleCount
 
 	protected override float EvaluateProgress(Event p_event)
 	{
-		return 100f;
-	}
-}
-
-[Serializable]
-public class SurviveBattleCountRequirement : FeatRequirementTemplated<SurviveBattleCountRequirement.Event>
-{
-	[Serializable]
-	public class Event : FeatRequirement.EventBase { }
-
-	public SurviveBattleCountRequirement()
-	{
-		RequirementScope = Scope.Game;
-	}
-
-	protected override float EvaluateProgress(Event p_event)
-	{
+		if (RequireUnitSurvival && !p_event.UnitSurvived) return 0f;
 		return 100f;
 	}
 }
@@ -851,30 +840,6 @@ public class OrRequirement : FeatRequirement
 		}
 
 		return advancement;
-	}
-
-	protected override float EvaluateEventProgress(EventBase p_event) => 0f;
-}
-
-[Serializable]
-public class WithSpecificAbilityRequirement : FeatRequirement
-{
-	public FeatRequirement ChildRequirement;
-	public Ability Ability;
-
-	public override Advancement EvaluateEvents(IReadOnlyList<EventBase> p_events, Advancement p_currentAdvancement)
-	{
-		if (ChildRequirement == null || IsCompleted(p_currentAdvancement))
-			return p_currentAdvancement;
-
-		List<EventBase> filteredEvents = new List<EventBase>();
-		for (int i = 0; i < p_events.Count; i++)
-		{
-			if (p_events[i]?.SourceAbility == Ability)
-				filteredEvents.Add(p_events[i]);
-		}
-
-		return ChildRequirement.EvaluateEvents(filteredEvents, p_currentAdvancement);
 	}
 
 	protected override float EvaluateEventProgress(EventBase p_event) => 0f;

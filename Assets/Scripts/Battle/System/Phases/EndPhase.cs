@@ -13,7 +13,7 @@ public sealed class EndPhase : BattlePhase
 		EventCenter.EmitBattleEnded(outcome);
 	}
 
-	private static void ApplyFeatProgressionToPlayerUnits(BattleContext battleContext, bool includeTransientRequirements)
+	private static void ApplyFeatProgressionToPlayerUnits(BattleContext battleContext, bool isPlayerWinning)
 	{
 		if (battleContext == null)
 		{
@@ -29,18 +29,13 @@ public sealed class EndPhase : BattlePhase
 				continue;
 			}
 
-			if (includeTransientRequirements)
+			if (isPlayerWinning)
 			{
-				unit.RecordFeatEvent(new WinBattleCountRequirement.Event { });
-			}
-
-			if (!unit.IsDefeated)
-			{
-				unit.RecordFeatEvent(new SurviveBattleCountRequirement.Event { });
+				unit.RecordFeatEvent(new WinBattleCountRequirement.Event { UnitSurvived = !unit.IsDefeated });
 			}
 
 			IReadOnlyList<FeatRequirement.EventBase> events = unit.PendingFeatEvents;
-			FeatProgressionService.RegisterFightEvents(unit.SourceUnit, events, includeTransientRequirements);
+			FeatProgressionService.RegisterFightEvents(unit.SourceUnit, events, isPlayerWinning);
 		}
 	}
 }
