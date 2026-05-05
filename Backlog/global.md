@@ -18,8 +18,6 @@ Each section below lists its top-priority epics only. Full ticket breakdowns (1�
 
 | Priority | Epic | Detail file |
 |----------|------|-------------|
-| 200 | **Taming mechanic** — wild creature taming via `TamingProfile` conditions; nothing implemented yet | [capture_backlog.md](../capture_backlog.md) |
-| 185 | **Stun mechanic on Turn Bar** — `BattleTurnRules.AdvanceTurnBars` must skip stunned units | [battle-backend.md](battle-backend.md) |
 | 155 | **AI turn evaluation** — `EnemyTurnPhaseController` must evaluate `AIBehaviour` rules and submit a legal `BattleAction` | [battle-backend.md](battle-backend.md) |
 | 140 | **Status SO assets authored** — poison, burn, shield, DoT, HoT, stun assets needed; code infrastructure is ready | [battle-backend.md](battle-backend.md) |
 | 125 | **Enemy placement strategy** — strategy interface + fixed / by-line alternatives beyond random | [battle-backend.md](battle-backend.md) |

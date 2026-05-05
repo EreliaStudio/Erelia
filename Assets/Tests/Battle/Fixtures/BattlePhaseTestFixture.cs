@@ -94,6 +94,12 @@ namespace Tests
 			ApplyTurnBars(EnemyUnits, enemyTurnBars);
 		}
 
+		public void SetStaminaRatios(float[] playerStaminaRatios = null, float[] enemyStaminaRatios = null)
+		{
+			ApplyStaminaRatios(PlayerUnits, playerStaminaRatios);
+			ApplyStaminaRatios(EnemyUnits, enemyStaminaRatios);
+		}
+
 		public void SetResources(BattleUnit unit, int actionPoints, int movementPoints)
 		{
 			Assert.That(unit, Is.Not.Null);
@@ -316,6 +322,19 @@ namespace Tests
 			}
 
 			return index < recoveries.Length ? recoveries[index] : recoveries[recoveries.Length - 1];
+		}
+
+		private static void ApplyStaminaRatios(BattleUnit[] units, float[] values)
+		{
+			if (units == null || values == null)
+			{
+				return;
+			}
+
+			for (int index = 0; index < units.Length && index < values.Length; index++)
+			{
+				units[index]?.BattleAttributes.StaminaRatio.Set(values[index], true);
+			}
 		}
 
 		private static void ApplyTurnBars(BattleUnit[] units, float[] values)

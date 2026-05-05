@@ -224,8 +224,15 @@ public static class BattleTurnRules
 				continue;
 			}
 
-			float remainingTime = Mathf.Max(0f, unit.BattleAttributes.TurnBar.Max - unit.BattleAttributes.TurnBar.Current);
-			minimumRemainingTime = Mathf.Min(minimumRemainingTime, remainingTime);
+			float staminaRatio = unit.BattleAttributes.StaminaRatio.Value;
+			if (staminaRatio <= 0f)
+			{
+				continue;
+			}
+
+			float remaining = Mathf.Max(0f, unit.BattleAttributes.TurnBar.Max - unit.BattleAttributes.TurnBar.Current);
+			float realTimeToFill = remaining / staminaRatio;
+			minimumRemainingTime = Mathf.Min(minimumRemainingTime, realTimeToFill);
 		}
 
 		return float.IsPositiveInfinity(minimumRemainingTime) ? 0f : minimumRemainingTime;
@@ -246,7 +253,13 @@ public static class BattleTurnRules
 				continue;
 			}
 
-			unit.BattleAttributes.TurnBar.Increase(elapsedTime);
+			float staminaRatio = unit.BattleAttributes.StaminaRatio.Value;
+			if (staminaRatio <= 0f)
+			{
+				continue;
+			}
+
+			unit.BattleAttributes.TurnBar.Increase(elapsedTime * staminaRatio);
 		}
 	}
 

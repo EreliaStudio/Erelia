@@ -1,0 +1,1422 @@
+# Erelia Backend Service Refactor Prompt — Revised
+
+You are working in the Unity project **Erelia**.
+
+Your task is to refactor the backend architecture into a service-oriented structure and complete/refactor the `EventCenter` so that gameplay features communicate through explicit domain events and payloads.
+
+This refactor must preserve existing gameplay behavior while improving ownership boundaries between systems.
+
+---
+
+## Project Identity
+
+Erelia is a single-player offline creature-collection RPG with:
+
+* Procedural voxel overworld exploration.
+* Tactical board battles.
+* Stamina-turn combat.
+* Six-creature active teams.
+* Passive taming during wild battles.
+* Feat-board progression instead of XP levels.
+* Persistent world seed and save data.
+
+Do **not** introduce XP levels.
+
+Do **not** replace feat boards.
+
+Do **not** replace tactical battle with real-time combat.
+
+Do **not** create capture mechanics such as `CaptureAction`, capture chance, capture item throws, or HP-threshold capture.
+
+Taming must remain passive and condition-based.
+
+---
+
+## Main Refactor Goal
+
+Introduce a backend service layer where each feature owns its own logic and state.
+
+Services must communicate primarily through `EventCenter` events.
+
+A service should not directly mutate another service's feature state.
+
+A service may:
+
+1. Own and mutate its own feature state.
+2. Emit domain events through `EventCenter`.
+3. Listen to domain events through `EventCenter`.
+4. Query shared runtime context where necessary during migration.
+
+Avoid turning one service into a central god-object.
+
+---
+
+## Current Architecture Findings
+
+The project currently contains major backend domains that should become or be supported by services:
+
+* `Battle`
+* `Player`
+* `Creatures`
+* `Encounters`
+* `Feats`
+* `World`
+* `Board`
+* `Mode`
+* `Bootstrap`
+* `Data`
+* `Event`
+
+Current important files include:
+
+* `Event/EventCenter.cs`
+* `Bootstrap/GameBootstrapper.cs`
+* `Bootstrap/GameInitializationService.cs`
+* `Data/GameContext.cs`
+* `Data/GameSaveData.cs`
+* `Mode/ModeManager.cs`
+* `Mode/BattleMode.cs`
+* `Mode/ExplorationMode.cs`
+* `Battle/Core/BattleContext.cs`
+* `Battle/Core/BattleOutcome.cs`
+* `Battle/System/BattleOrchestrator.cs`
+* `Battle/System/BattleCoordinator.cs`
+* `Battle/System/BattlePhaseController.cs`
+* `Battle/System/PhaseControllers/EndPhaseController.cs`
+* `Battle/System/Phases/EndPhase.cs`
+* `Battle/Rules/BattleActionResolver.cs`
+* `Battle/Rules/BattleOutcomeRules.cs`
+* `Battle/Rules/BattleTurnRules.cs`
+
+---
+
+## Current EventCenter State
+
+`EventCenter` is currently a static class with hardcoded events similar to:
+
+```csharp
+public static event Action<Vector3> PlayerMoved;
+public static event Action<ChunkCoordinates> PlayerChunkChanged;
+public static event Action<ActorMovementRequest> ActorMoveRequested;
+public static event Action<BattleContext> BattleStartRequested;
+public static event Action<BattleOutcome> BattleEnded;
+```
+
+It also has emit methods such as:
+
+```csharp
+EmitPlayerMoved(Vector3 worldPosition)
+EmitPlayerChunkChanged(ChunkCoordinates chunkCoordinates)
+EmitActorMoveRequested(ActorMovementRequest request)
+EmitBattleStartRequested(BattleContext context)
+EmitBattleEnded(BattleOutcome outcome)
+```
+
+---
+
+## EventCenter Refactor Decision
+
+Keep the explicit static C# event style for now.
+
+Do **not** introduce a generic event bus yet.
+
+Preferred style:
+
+```csharp
+EventCenter.BattleStarted += OnBattleStarted;
+EventCenter.BattleStarted -= OnBattleStarted;
+EventCenter.EmitBattleStarted(payload);
+```
+
+Do **not** use:
+
+```csharp
+EventCenter.Subscribe<BattleStartedEvent>(OnBattleStarted);
+```
+
+The project should continue using explicit event fields and explicit emit methods.
+
+---
+
+## Partial EventCenter Organization
+
+It is allowed and preferred to split `EventCenter` into multiple `partial` class files so each feature can keep its event declarations easy to find while still keeping the backend event API explicit.
+
+Use this approach:
+
+```csharp
+public static partial class EventCenter
+{
+    public static event Action<BattleLaunchPayload> BattleLaunchRequested;
+
+    public static void EmitBattleLaunchRequested(BattleLaunchPayload p_payload)
+    {
+        BattleLaunchRequested?.Invoke(p_payload);
+    }
+}
+```
+
+Every file must use the exact same declaration:
+
+```csharp
+public static partial class EventCenter
+```
+
+Do not mix `public static class EventCenter` in one file with `public static partial class EventCenter` in another file.
+
+The original `Event/EventCenter.cs` should become a partial root file containing shared/general events and compatibility events.
+
+Recommended organization:
+
+```text
+Assets/Scripts/Event/EventCenter.cs
+Assets/Scripts/Event/BattleEventCenter.cs
+Assets/Scripts/Event/FeatEventCenter.cs
+Assets/Scripts/Event/TamingEventCenter.cs
+Assets/Scripts/Event/PlayerEventCenter.cs
+Assets/Scripts/Event/EncounterEventCenter.cs
+Assets/Scripts/Event/SaveEventCenter.cs
+```
+
+Reason: all event declarations stay easy to find while still being split by feature.
+
+Rules for partial EventCenter files:
+
+* EventCenter files only declare events and emit methods.
+* No gameplay logic inside any partial EventCenter file.
+* No service state inside EventCenter.
+* No dependencies on Unity scene objects.
+* Payload types should live in clear payload files, not inside EventCenter unless extremely small and temporary.
+* Old compatibility events can remain in the root `EventCenter.cs` partial file.
+
+---
+
+## Event and Payload Naming Convention
+
+EventCenter event names should describe **what happened** or **what is being requested**.
+
+Payload class names should describe the **packet of data** carried by the event.
+
+Do not suffix every payload class with `Event`.
+
+Preferred naming:
+
+```csharp
+public static event Action<BattleLaunchPayload> BattleLaunchRequested;
+public static event Action<BattleRuntimePayload> BattleStarted;
+public static event Action<BattleFeatEventPayload> BattleFeatEventOccurred;
+public static event Action<BattleResolutionPayload> BattleResolved;
+```
+
+Preferred usage:
+
+```csharp
+EventCenter.BattleLaunchRequested += OnBattleLaunchRequested;
+EventCenter.EmitBattleLaunchRequested(payload);
+```
+
+Avoid redundant naming like:
+
+```csharp
+public static event Action<BattleRequestedEvent> BattleRequested;
+public static event Action<BattleStartedEvent> BattleStarted;
+```
+
+The event is the thing that happened.
+
+The payload is the data package.
+
+---
+
+## Required New Battle Event Payloads
+
+Create payload classes for battle service communication.
+
+Suggested folder:
+
+```text
+Assets/Scripts/Event/Payloads/
+```
+
+Use this folder unless a stronger existing project convention appears during implementation.
+
+---
+
+## BattleLaunchPayload
+
+Represents the small request/configuration needed to ask the battle system to launch a battle.
+
+Keep this payload intentionally small.
+
+It should describe the battle request, not construct or carry the full battle runtime state.
+
+`BattleLaunchPayload` should **not** contain `BattleContext`.
+
+`BattleContext` should be produced by `BattleService` after it receives `BattleLaunchRequested`.
+
+Recommended fields:
+
+```csharp
+public sealed class BattleLaunchPayload
+{
+    public BoardConfiguration BoardConfiguration { get; }
+    public Vector3 PlayerWorldPosition { get; }
+    public IReadOnlyList<EncounterUnit> EnemyUnits { get; }
+}
+```
+
+Avoid adding fields preemptively.
+
+If encounter provenance is needed by later systems, prefer small stable metadata instead of carrying the whole launch payload forward:
+
+```csharp
+public string BattleId { get; }
+public string SourceEncounterId { get; }
+public BattleKind BattleKind { get; }
+public bool AllowsTaming { get; }
+```
+
+This metadata may live on `BattleContext`, `BattleOutcome`, or a small `BattleMetadata` object owned by the initialized battle runtime.
+
+Long-term target:
+
+* `BattleLaunchPayload` = small input request.
+* `BattleService` = converts request into runtime battle state.
+* `BattleRuntimePayload` = carries produced `BattleContext`.
+* `BattleContext` = battle runtime state only.
+
+The first migration should avoid wrapping an existing `BattleContext` in `BattleLaunchPayload` unless absolutely required for compatibility. If a compatibility bridge is required, mark it as temporary migration debt.
+
+---
+
+## BattleRuntimePayload
+
+Represents an initialized battle runtime.
+
+It should carry only the initialized battle runtime state:
+
+```csharp
+public sealed class BattleRuntimePayload
+{
+    public BattleContext BattleContext { get; }
+}
+```
+
+`BattleRuntimePayload` should **not** store `BattleLaunchPayload`.
+
+Reason:
+
+* `BattleLaunchPayload` is an input request.
+* `BattleRuntimePayload` is a runtime announcement.
+* Carrying the original request forward creates unnecessary coupling between launch configuration and later runtime listeners.
+* If later services need battle source data, use stable metadata such as `BattleId`, `SourceEncounterId`, `BattleKind`, or `AllowsTaming`, not the full launch packet.
+
+This is emitted after battle runtime data is ready.
+
+`ModeManager` should listen to this event and enter `BattleMode` using the BattleContext to link the needed data to UI elements.
+
+---
+
+## BattleFeatEventPayload
+
+Represents one semantic feat-style event that occurred during battle.
+
+The central event should communicate:
+
+> One `FeatRequirement.EventBase` occurred in the battle.
+
+Then listeners decide what to do with it.
+
+This event is consumed by:
+
+* `FeatBoardService`
+* `TamingService`
+* `PlayerService` if player-owned battle history is needed
+* Debug/analytics tools
+* Future quest or achievement systems
+
+Suggested structure:
+
+```csharp
+public sealed class BattleFeatEventPayload
+{
+    public BattleContext BattleContext { get; }
+    public FeatRequirement.EventBase FeatEvent { get; }
+}
+```
+
+---
+
+## Battle Feat Event Emission Rule
+
+The preferred long-term emitter for `BattleFeatEventOccurred` is the class that actually performs the battle mutation.
+
+In most cases, this should be the relevant `Effect` class.
+
+Reason:
+
+* Effects are the objects actually doing the gameplay work.
+* Effects already know what was applied.
+* Effects can create the correct `FeatRequirement.EventBase` at the moment the action occurs.
+* This avoids asking `BattleService`, `BattleActionResolver`, or `ResolutionPhase` to infer semantic events after the fact.
+
+Preferred pattern:
+
+```csharp
+public override void Apply(...)
+{
+    // 1. Mutate live battle state.
+    // Example: apply damage, healing, shield, status, movement, etc.
+
+    // 2. Create the semantic feat event that represents what occurred.
+    FeatRequirement.EventBase featEvent = new SomeConcreteFeatEvent(...);
+
+    // 3. Emit the battle feat event for services.
+    EventCenter.EmitBattleFeatEventOccurred(
+        new BattleFeatEventPayload(
+            p_battleContext,
+            p_sourceUnit,
+            p_targetUnit,
+            featEvent));
+}
+```
+
+`BattleActionResolver` or phase code may emit transitional feat events only where no effect-level seam exists yet.
+
+Mark resolver-level or phase-level semantic event creation as migration debt.
+
+Do not put feat-board logic inside `BattleActionResolver`.
+
+Do not put taming logic inside `BattleActionResolver`.
+
+---
+
+## BattleResolutionPayload
+
+Represents final battle resolution.
+
+It should carry final battle runtime and outcome data:
+
+```csharp
+public sealed class BattleResolutionPayload
+{
+    public BattleContext BattleContext { get; }
+    public BattleOutcome Outcome { get; }
+}
+```
+
+`BattleResolutionPayload` should **not** store `BattleLaunchPayload`.
+
+Reason:
+
+* The resolution payload represents what happened and how the battle ended.
+* The BattleOutcome will contain informations such as "player won the fight ?" etc. The application of events, their list of events from the fight or whatever should **not** be store here, as they should have been catched by the services who need it. For exemple, for the feta board service, it should listen to the BattleFeatEventPayload event, and "save" the event in a list dedicated to each creature. Than, when it will receive the BattleResolutionPayload, it will apply this list to the creature feat board.
+
+This is emitted when the battle has reached a final result.
+
+`ModeManager`, `TamingService`, `FeatBoardService`, `PlayerService`, `EncounterService`, and `SaveService` may listen to this event.
+
+---
+
+## EventCenter Required Changes
+
+Update `EventCenter` to include explicit battle service events.
+
+`EventCenter` may be split with the C# `partial` keyword.
+
+Battle events should live in `BattleEventCenter.cs`:
+
+```csharp
+using System;
+
+public static partial class EventCenter
+{
+    public static event Action<BattleLaunchPayload> BattleLaunchRequested;
+    public static event Action<BattleRuntimePayload> BattleStarted;
+    public static event Action<BattleFeatEventPayload> BattleFeatEventOccurred;
+    public static event Action<BattleResolutionPayload> BattleResolved;
+
+    public static void EmitBattleLaunchRequested(BattleLaunchPayload p_payload)
+    {
+        BattleLaunchRequested?.Invoke(p_payload);
+    }
+
+    public static void EmitBattleStarted(BattleRuntimePayload p_payload)
+    {
+        BattleStarted?.Invoke(p_payload);
+    }
+
+    public static void EmitBattleFeatEventOccurred(BattleFeatEventPayload p_payload)
+    {
+        BattleFeatEventOccurred?.Invoke(p_payload);
+    }
+
+    public static void EmitBattleResolved(BattleResolutionPayload p_payload)
+    {
+        BattleResolved?.Invoke(p_payload);
+    }
+}
+```
+
+Keep old events temporarily for compatibility:
+
+```csharp
+public static event Action<BattleContext> BattleStartRequested;
+public static event Action<BattleOutcome> BattleEnded;
+```
+
+Keep old emit methods temporarily:
+
+```csharp
+EmitBattleStartRequested(BattleContext context)
+EmitBattleEnded(BattleOutcome outcome)
+```
+
+Mark them as migration compatibility methods.
+
+New service code should use the new payload events.
+
+Do not add gameplay logic inside `EventCenter`.
+
+`EventCenter` only dispatches events.
+
+---
+
+## GameServices / ServiceRegistry
+
+Create a lightweight service container, for example:
+
+```csharp
+public sealed class ServiceLocator
+{
+    public BattleService BattleService { get; }
+    public PlayerService PlayerService { get; }
+    public FeatBoardService FeatBoardService { get; }
+    public TamingService TamingService { get; }
+    public EncounterService EncounterService { get; }
+    public WorldService WorldService { get; }
+    public SaveService SaveService { get; }
+}
+```
+
+This should be created by `GameBootstrapper` after `GameContext` is created.
+
+`GameContext` should remain runtime state.
+
+Do not turn `GameContext` into the service container.
+
+Services that subscribe to `EventCenter` should expose lifecycle methods, to subscribe/unsubscribe when the ServiceLocator will be destroyed.
+
+---
+
+## Bootstrap Refactor
+
+Current `GameBootstrapper` creates `GameContext`, initializes save/world/player data, binds world presentation, then hands context to `ModeManager`.
+
+Refactor target:
+
+1. Create/load `GameContext`.
+2. Create `GameServices`.
+3. Initialize services.
+4. Give `GameContext` and/or `GameServices` to systems that need them.
+5. Enter exploration mode.
+
+Possible target flow:
+
+```csharp
+GameContext gameContext = GameContext.FromSave(saveData);
+GameServices gameServices = new GameServices(gameContext);
+gameServices.Initialize();
+modeManager.Initialize(gameContext, gameServices);
+modeManager.EnterExplorationMode();
+```
+
+Adapt exact method names to current code.
+
+---
+
+## GameContext and Save Data
+
+`GameContext` should remain the runtime state container.
+
+It may hold:
+
+* `WorldContext`
+* `PlayerData`
+* other long-lived runtime state
+
+`GameSaveData` should remain save data.
+
+`SaveService` should eventually own synchronization between runtime state and save data.
+
+Do not let `BattleService` save the game directly.
+
+Do not let `ModeManager` contain save logic.
+
+---
+
+## BattleService
+
+Create `BattleService` as a feature-local service.
+
+`BattleService` owns only the battle feature lifecycle.
+
+It does **not** own taming, feat progression, player rewards, encounter cleanup, or save/load.
+
+Responsibilities:
+
+* Subscribe to `EventCenter.BattleLaunchRequested`.
+* Receive `BattleLaunchPayload`.
+* Prepare or validate battle runtime data.
+* Create or wrap `BattleContext` as needed.
+* Store the current active battle context/runtime payload if useful.
+* Emit `BattleStarted` with `BattleRuntimePayload` when battle runtime is ready.
+* Support battle-safe handling of battle-domain requests such as `BattleUnitRemovalRequested` if no better runtime owner exists yet.
+* Emit `BattleResolved` with `BattleResolutionPayload` when the battle ends.
+* Clear active battle state after resolution.
+
+Non-responsibilities:
+
+* Do not apply feat progress.
+* Do not award feat rewards.
+* Do not apply taming rewards.
+* Do not add creatures to active team or PC storage.
+* Do not mark trainers, gyms, or encounters as cleared.
+* Do not save the game.
+* Do not directly call `TamingService`, `FeatBoardService`, `PlayerService`, `EncounterService`, or `SaveService` to mutate their state.
+
+Important:
+
+* Do not move Unity scene references into `BattleService`.
+* Do not make `BattleMode` into `BattleService`.
+* Keep `BattleMode` as the Unity battle presentation/runtime host.
+* Keep `BattleOrchestrator` as the phase/turn runtime in the first pass.
+* Do not make `BattleService` responsible for semantic feat-event creation when an `Effect` can emit the event itself.
+
+---
+
+## BattleMode
+
+`BattleMode` should remain the Unity-facing battle host.
+
+It may continue owning:
+
+* Battle HUD references.
+* `BoardPresenter`.
+* `BattlePlayerController`.
+* `BattleUnitManager`.
+* `BattleOrchestrator`.
+* Battle unit prefab roots.
+* Unity scene bindings.
+
+Refactor `BattleMode` to receive initialized battle runtime data via `BattleRuntimePayload` or its contained `BattleContext`.
+
+`BattleMode` should not apply taming rewards.
+
+`BattleMode` should not apply feat progression.
+
+`BattleMode` should not own encounter cleanup.
+
+---
+
+## ModeManager
+
+Current problem:
+
+`ModeManager` currently listens to battle start/end, enters battle mode, applies taming rewards, contains a save TODO, and returns to exploration.
+
+Refactor target:
+
+`ModeManager` should only manage mode transitions.
+
+It should listen to:
+
+```csharp
+EventCenter.BattleStarted += OnBattleStarted;
+EventCenter.BattleResolved += OnBattleResolved;
+```
+
+It should not listen to `BattleLaunchRequested`.
+
+`BattleLaunchRequested` is for `BattleService`.
+
+`BattleStarted` is for visual/mode transition.
+
+`BattleResolved` is for battle exit and feature services.
+
+ModeManager responsibilities:
+
+* Enter `BattleMode` when `BattleStarted` is emitted.
+* Return to `ExplorationMode` when `BattleResolved` is emitted.
+* Keep the world/battle mode switch clean.
+
+ModeManager must not:
+
+* Apply taming rewards.
+* Apply feat progress.
+* Mutate player team/storage as a reward.
+* Mark encounters as cleared.
+* Save the game directly.
+
+---
+
+## Battle Runtime Findings and Migration Seams
+
+Current battle runtime has these responsibilities:
+
+* `BattleContext` is the main battle-state object.
+* `BattleOutcome` carries final battle result data.
+* `BattleOrchestrator` owns battle phases, phase controllers, input routing, and phase transitions.
+* `BattleCoordinator` currently stores current phase and emits phase changes.
+* `EndPhase` currently computes `BattleOutcome`, applies feat progression, and emits `EventCenter.EmitBattleEnded(outcome)`.
+* `BattleActionResolver` currently resolves movement/abilities and records some feat events directly on units.
+* `ResolutionPhase` consumes pending battle actions, resolves them, and transitions to end/idle.
+* `IdlePhase` selects the next ready unit.
+* `BattleTurnRules.BeginTurn` resets AP/MP at turn start.
+
+---
+
+## Important Preservation Rule
+
+Preserve stamina-turn behavior.
+
+AP and MP must refill at the start of the creature's turn.
+
+Stamina represents duration between turns.
+
+Lower stamina duration means acting more often.
+
+`StaminaRatio` multiplies turn-bar progress.
+
+`StaminaRatio = 0.0` represents stun.
+
+Do not regress to old recovery wording or old stun behavior.
+
+Concept:
+
+```text
+ComputedTurnBarDelta = TickDelta / Stamina
+AppliedTurnBarDelta = ComputedTurnBarDelta * StaminaRatio
+```
+
+---
+
+## Battle End Refactor
+
+Current `EndPhase` applies progression directly.
+
+Refactor target:
+
+* `EndPhase` may compute battle outcome.
+* `EndPhase` must not apply feat progression.
+* `EndPhase` must not apply taming rewards.
+* `EndPhase` must not mutate player storage/team as a reward.
+* `EndPhase` should emit or trigger emission of `BattleResolved` with `BattleResolutionPayload`.
+
+`FeatBoardService` should listen to battle feat events and battle resolution events, then apply progression.
+
+`TamingService` should listen to battle feat events and battle resolution events, then resolve taming.
+
+`PlayerService` should listen to taming/progression events and mutate player-owned data.
+
+Keep old `EmitBattleEnded(BattleOutcome outcome)` temporarily if needed for compatibility, but new service logic should use `BattleResolved`.
+
+---
+
+## Battle Feat Event Reporting
+
+`BattleFeatEventOccurred` is the key event that allows services to react without being coupled to battle internals.
+
+First migration should emit semantic feat events at stable seams.
+
+Preferred emission points:
+
+* Inside `Effect` classes after they mutate battle state.
+* Inside specific resolver logic only when no effect-level seam exists yet.
+* Inside turn/battle flow rules only for semantic events that are not caused by an ability effect, such as turn-start or turn-end feat events.
+
+Examples of feat-style battle events:
+
+* A creature dealt damage.
+* A creature received damage.
+* A creature healed an ally.
+* A creature applied a status.
+* A creature removed a status.
+* A creature used a specific ability.
+* A creature moved a certain distance.
+* A creature ended a turn with a certain state.
+* A unit was defeated.
+* A unit was protected by a shield.
+
+Do not use a generic `BattleActivityType` enum as the main progression/taming signal.
+
+The event should carry the actual `FeatRequirement.EventBase` instance.
+
+Avoid placing feat-board logic inside `BattleActionResolver`.
+
+Existing `unit.RecordFeatEvent(...)` calls may remain temporarily as migration debt, but new progression behavior should move toward event-driven `FeatBoardService` processing through `BattleFeatEventOccurred`.
+
+---
+
+## BattleOutcome and Taming Coupling
+
+Current `BattleOutcome` may contain impressed/tamed creatures.
+
+This is transitional coupling.
+
+Current taming implementation findings:
+
+* `BattleContext.DispatchPlayerFeatEvent(FeatRequirement.EventBase p_event)` currently loops over enemy `WildBattleUnit` instances, evaluates the player feat event against each wild unit's taming profile, removes impressed units from the board, and adds them to `tamedUnits`.
+* `WildBattleUnit` extends `BattleUnit` and owns a `TamingProgress` instance.
+* `TamingProgress` stores per-condition `FeatRequirement.Advancement` values and becomes impressed when all conditions are complete.
+* `TamingRules.AreAllConditionsComplete(...)` checks whether all taming profile requirements are completed.
+* `TamingRules.CreateRecruitFromImpressedUnit(...)` creates a new `CreatureUnit` recruit from an impressed battle unit and applies feat progression to initialize it.
+* `TamingProgressService.AwardWonBattleTamingRewards(PlayerData p_playerData, BattleOutcome p_outcome)` currently adds impressed recruits to the player's team or storage when the player wins.
+* `ModeManager.OnBattleEnded(...)` currently calls `TamingProgressService.AwardWonBattleTamingRewards(...)`, which must be removed from `ModeManager` during the service refactor.
+
+Long-term target:
+
+* Battle owns battle result only.
+* Effects and battle flow emit neutral feat-style battle events through `BattleFeatEventOccurred`.
+* `FeatBoardService` listens to `BattleFeatEventOccurred` and records/applies the event to the relevant player creature feat-event history.
+* `TamingService` listens to `BattleFeatEventOccurred` and tries to apply it to tamable wild creatures.
+* `TamingService` owns impressed creature tracking.
+* `TamingService` owns evaluating taming profile conditions from battle feat events.
+* When a wild unit becomes impressed, `TamingService` emits a separate event requesting the battle runtime to remove that creature from the fight.
+* Battle runtime listens to the impressed-unit removal request and performs the battle-safe removal.
+* `TamingService` owns taming resolution after battle.
+* `PlayerService` adds won tamed creatures to team/storage only after receiving a taming resolution payload.
+
+Do not expand battle/taming coupling.
+
+Do not put new taming logic into `BattleOutcomeRules` unless it is strictly transitional and documented.
+
+Migration guidance:
+
+* Do not delete the current `WildBattleUnit`, `TamingProgress`, `TamingRules`, or `TamingProgressService` behavior in the first pass.
+* Wrap or reuse existing taming classes inside the new `TamingService` where possible.
+* Move the reward application responsibility out of `ModeManager` first.
+* Then move the taming evaluation responsibility out of `BattleContext.DispatchPlayerFeatEvent` once enough `BattleFeatEventPayload` data is available.
+* If full migration is too large for one pass, keep `BattleContext.DispatchPlayerFeatEvent` as compatibility glue, but mark it as migration debt and make new code emit `BattleFeatEventOccurred` for future `TamingService` processing.
+
+---
+
+## TamingService
+
+Create or refactor `TamingService` as its own feature service.
+
+Responsibilities:
+
+* Listen to `BattleStarted`.
+* If the battle allows taming, create battle-local taming tracking data.
+* Reuse existing `TamingProfile`, `TamingProgress`, `TamingRules`, and `WildBattleUnit` concepts where possible.
+* Listen to `BattleFeatEventOccurred`.
+* Update taming condition progress based on feat-style battle events.
+* Support the current design where taming conditions are evaluated using `FeatRequirement`-style event data.
+* Emit `CreatureImpressed` when a wild creature completes its taming profile.
+* Emit a separate battle-facing removal request, such as `BattleUnitRemovalRequested`, when an impressed creature should leave the fight.
+* Do not remove the battle unit directly from `TamingService` unless there is no safe battle API yet.
+* Let BattleService/runtime listen to the removal request and perform the actual battle-state mutation.
+* Listen to `BattleResolved`.
+* If the player won, emit a taming resolution payload describing impressed creatures that should join the player.
+* If the player lost, discard impressed creatures.
+
+First migration priority:
+
+* Move `TamingProgressService.AwardWonBattleTamingRewards(...)` usage out of `ModeManager`.
+* Let `TamingService` listen to `BattleResolved` and emit `TamingResolved`.
+* Let `PlayerService` listen to `TamingResolved` and call `PlayerData.AddCreatureToTeamOrStorage(...)`.
+* Keep current impressed-creature data in `BattleOutcome.ImpressedCreatures` temporarily if needed.
+
+Second migration priority:
+
+* Move taming event evaluation out of `BattleContext.DispatchPlayerFeatEvent(...)` and into `TamingService`.
+* Effects/runtime should emit the event occurring in the fight through `BattleFeatEventOccurred`.
+* `FeatBoardService` should listen to `BattleFeatEventOccurred` and save/record/apply it to the list of events that occurred for the relevant player creature.
+* `TamingService` should listen to `BattleFeatEventOccurred` and try to apply the same event to tamable wild creatures.
+* If a wild creature becomes impressed, `TamingService` should emit `CreatureImpressed` and then emit `BattleUnitRemovalRequested`.
+* BattleService/runtime should listen to `BattleUnitRemovalRequested` and remove the creature from the battle through a battle-safe API.
+* Prefer `BattleFeatEventPayload` and its `FeatRequirement.EventBase` as the source of taming condition progress.
+* Once `TamingService` owns evaluation, `BattleContext` should only expose battle-safe operations such as removing a unit from battle; it should not know taming rules.
+
+Taming rules:
+
+* Taming applies only to wild encounters.
+* Trainer and gym battles do not allow taming unless explicitly changed later.
+* Taming is passive; no player action is spent.
+* When all conditions are fulfilled, the wild creature is impressed and leaves the fight.
+* An impressed creature does not count as defeated.
+* If the player wins, impressed creatures join active team or PC storage.
+* If the player loses, impressed creatures are forfeit.
+
+Suggested taming events/payloads:
+
+```csharp
+public static event Action<CreatureImpressionPayload> CreatureImpressed;
+public static event Action<TamingResolutionPayload> TamingResolved;
+```
+
+Suggested battle-facing removal request event/payload:
+
+```csharp
+public static event Action<BattleUnitRemovalRequestPayload> BattleUnitRemovalRequested;
+```
+
+Suggested emit methods:
+
+```csharp
+EmitCreatureImpressed(CreatureImpressionPayload p_payload)
+EmitTamingResolved(TamingResolutionPayload p_payload)
+EmitBattleUnitRemovalRequested(BattleUnitRemovalRequestPayload p_payload)
+```
+
+Important distinction:
+
+* `CreatureImpressed` is a taming-domain event: it means taming conditions are complete.
+* `BattleUnitRemovalRequested` is a battle-domain request: it asks the battle runtime to remove the impressed unit from the fight.
+* BattleService/runtime owns the actual removal from `BattleContext`.
+* TamingService owns the reason and impressed-creature tracking.
+
+Payload names may be adjusted, but avoid `CreatureImpressedEvent`.
+
+---
+
+## FeatBoardService
+
+Create or refactor `FeatBoardService` as the owner of feat-board progression.
+
+Responsibilities:
+
+* Listen to `BattleStarted` if it needs to initialize battle-local tracking.
+* Listen to `BattleFeatEventOccurred`.
+* Apply or record the contained `FeatRequirement.EventBase` against the relevant player creature's feat board progress.
+* Listen to `BattleResolved`.
+* Apply completed feat requirements and unlock eligible feat nodes.
+* Apply feat rewards directly if they belong to creature feat state, or emit reward payloads if another service should mutate state.
+* Emit feat progress/reward notifications.
+
+Suggested events/payloads:
+
+```csharp
+public static event Action<FeatProgressPayload> FeatProgressUpdated;
+public static event Action<FeatNodeUnlockPayload> FeatNodeUnlocked;
+public static event Action<FeatRewardPayload> FeatRewardUnlocked;
+```
+
+Possible names:
+
+* `FeatProgressPayload`
+* `FeatNodeUnlockPayload`
+* `FeatRewardPayload`
+
+Avoid naming all payloads with `Event` suffix.
+
+Important:
+
+* Feat board progression remains central.
+* Do not replace feat boards with another progression system.
+* Progression comes from what creatures do in battle, not simply victory.
+* Losing battle should still preserve meaningful progression.
+
+Migration note:
+
+If current `FeatProgressionService` is static or already service-like, either:
+
+1. Wrap it inside the new `FeatBoardService`, or
+2. Rename/refactor it into `FeatBoardService`, preserving behavior.
+
+Do not rewrite all feat requirement/reward code at once unless necessary.
+
+---
+
+## PlayerService
+
+Create `PlayerService` to own player-owned data.
+
+Responsibilities:
+
+* Own or wrap access to `PlayerData`.
+* Own active team and PC storage mutation.
+* Enforce six active creatures.
+* Listen to taming resolution events and add creatures to active team or PC storage.
+* Listen to feat reward payloads if rewards mutate player-owned creature data.
+* Listen to battle feat events/resolution if player-specific battle history must be recorded.
+* Provide read-only access to player team where needed.
+
+Non-responsibilities:
+
+* Do not own battle rules.
+* Do not own taming condition checks.
+* Do not own feat requirement evaluation unless that logic already belongs to player-owned data and cannot be separated yet.
+* Do not launch battles directly unless done through encounter/game-flow events.
+
+---
+
+## EncounterService
+
+Create or refactor `EncounterService` to own encounter resolution.
+
+Responsibilities:
+
+* Convert wild/trainer/gym/special encounter triggers into `BattleLaunchPayload`.
+* Emit `BattleLaunchRequested`.
+* Listen to `BattleResolved`.
+* Mark trainers, gyms, wild encounters, or special encounters resolved where appropriate.
+* Own encounter cleanup and repeatability rules.
+* Determine whether taming is allowed for the encounter.
+* Determine encounter tier based on badge/unlock tier, not creature level.
+
+Non-responsibilities:
+
+* Do not directly enter battle mode.
+* Do not directly apply battle rewards.
+* Do not mutate player team/storage directly.
+
+---
+
+## WorldService
+
+Create or refactor `WorldService` to own world-related backend logic.
+
+Responsibilities:
+
+* Own or wrap `WorldContext` access.
+* Own persistent world seed logic.
+* Coordinate world loading/generation with existing world classes.
+* Provide world-derived battle board data when needed.
+* Listen to player movement/chunk events if world systems need to react.
+
+Non-responsibilities:
+
+* Do not own player team state.
+* Do not own battle tactical rules.
+* Do not own feat/taming progression.
+
+---
+
+## SaveService
+
+Create `SaveService` to own persistence.
+
+Responsibilities:
+
+* Convert runtime state to/from `GameSaveData`.
+* Coordinate save requests.
+* Listen to persistence-worthy events if appropriate.
+* Provide explicit save/load methods if needed.
+
+Non-responsibilities:
+
+* Do not let `BattleService` save directly.
+* Do not let `ModeManager` save directly.
+* Do not scatter save-data writes across unrelated services.
+
+Potential events:
+
+```csharp
+public static event Action<SaveRequestPayload> SaveRequested;
+public static event Action<SaveCompletedPayload> SaveCompleted;
+```
+
+Only add these if needed in this refactor.
+
+---
+
+## Service Communication Rules
+
+Use `EventCenter` for cross-feature communication.
+
+Examples:
+
+```text
+EncounterService -> emits BattleLaunchRequested
+BattleService -> listens BattleLaunchRequested
+BattleService -> emits BattleStarted
+ModeManager -> listens BattleStarted and enters BattleMode
+Effect/runtime -> emits BattleFeatEventOccurred
+FeatBoardService -> listens BattleFeatEventOccurred and records/applies feat-relevant progress
+TamingService -> listens BattleFeatEventOccurred and applies activity to tamable wild creatures
+TamingService -> emits CreatureImpressed when taming conditions are complete
+TamingService -> emits BattleUnitRemovalRequested for impressed creatures
+BattleService/runtime -> listens BattleUnitRemovalRequested and removes the unit from battle
+BattleService/runtime -> emits BattleResolved
+ModeManager -> listens BattleResolved and returns to ExplorationMode
+TamingService -> listens BattleResolved and emits TamingResolved
+PlayerService -> listens TamingResolved and mutates team/storage
+EncounterService -> listens BattleResolved and clears encounter/trainer/gym state
+SaveService -> listens save-worthy events or explicit SaveRequested
+```
+
+Avoid this:
+
+```text
+BattleService directly calls TamingService.AwardRewards()
+BattleService directly calls PlayerService.AddCreature()
+BattleService directly calls EncounterService.ClearEncounter()
+ModeManager directly calls TamingProgressService.AwardWonBattleTamingRewards()
+EndPhase directly calls FeatProgressionService.RegisterFightEvents()
+BattleActionResolver directly applies feat-board progression
+BattleActionResolver directly applies taming rewards
+```
+
+---
+
+## Migration Strategy
+
+This should be implemented in small, compiling steps.
+
+### Step 1: Add payloads and EventCenter events
+
+* Add battle payload classes.
+* Add `BattleFeatEventPayload`.
+* Do not add `BattleActivityPayload`.
+* Do not add `BattleActivityType`.
+* Add new EventCenter events and emit methods.
+* Keep old events for compatibility.
+
+### Step 2: Add GameServices container
+
+* Create `GameServices`.
+* Create initial service classes with lifecycle methods.
+* Instantiate services in `GameBootstrapper`.
+* Initialize/shutdown services cleanly.
+
+### Step 3: Add BattleService
+
+* Make `BattleService` listen to `BattleLaunchRequested`.
+* For first migration, allow it to wrap an existing `BattleContext` only if unavoidable.
+* Emit `BattleStarted` with `BattleRuntimePayload`.
+* Keep old battle start path temporarily if needed.
+
+### Step 4: Refactor ModeManager
+
+* Make `ModeManager` listen to `BattleStarted` and `BattleResolved`.
+* Remove taming reward application from `ModeManager`.
+* Remove save TODO responsibility from `ModeManager`.
+* Keep mode transitions only.
+
+### Step 5: Refactor battle end
+
+* Update `EndPhase` so it no longer applies feat progression directly.
+* Emit or trigger `BattleResolved` with `BattleResolutionPayload`.
+* Keep old `EmitBattleEnded` temporarily if necessary.
+
+### Step 6: Add feat event reporting
+
+* Emit `BattleFeatEventOccurred` at stable seams.
+* Prefer effect-level emitters.
+* Use turn/battle-flow emitters only for events that are not caused by effects.
+* Keep resolver-level emitters only as temporary migration debt.
+* Do not fully rewrite effect resolution yet.
+
+### Step 7: Add FeatBoardService
+
+* Move end-of-battle feat application out of `EndPhase`.
+* Let `FeatBoardService` listen to `BattleFeatEventOccurred` and `BattleResolved`.
+* Reuse existing feat progression logic.
+* Keep existing feat classes intact.
+
+### Step 8: Add TamingService
+
+* Move taming reward resolution out of `ModeManager`.
+* Track impressed creatures through battle/taming events.
+* Resolve won/lost taming at `BattleResolved`.
+* Reuse current impressed-creature data in `BattleOutcome` temporarily if needed.
+
+### Step 9: Add PlayerService and EncounterService integration
+
+* PlayerService owns team/storage mutations.
+* EncounterService owns encounter launch and cleanup.
+* Migrate old direct battle start emitters to produce `BattleLaunchPayload`.
+
+### Step 10: Add SaveService integration
+
+* Move save coordination into `SaveService`.
+* Do not scatter save writes.
+
+---
+
+## Code Style Requirements
+
+Follow existing Unity/C# style.
+
+Use full file contents when modifying files.
+
+Use `[SerializeField]` for Unity Inspector configuration.
+
+Prefer plain C# services unless Unity lifecycle is required.
+
+Use clear parameter names.
+
+Method and constructor parameters should use the `p_` prefix.
+
+Keep views simple and data-bound.
+
+Rules should remain in static rule classes where appropriate:
+
+* `BattleTurnRules`
+* `BattleActionValidator`
+* `BattleStatusRules`
+* `BattleOutcomeRules`
+* etc.
+
+Do not move pure battle rules into services unless there is a clear reason.
+
+Services orchestrate features.
+
+Rules evaluate rules.
+
+Data classes store data.
+
+Views/presenters display UI/scene state.
+
+Modes switch high-level gameplay modes.
+
+---
+
+## Backward Compatibility Requirements
+
+Do not break the project in one large rewrite.
+
+Keep old EventCenter events temporarily:
+
+* `BattleStartRequested(BattleContext)`
+* `BattleEnded(BattleOutcome)`
+
+Mark them as compatibility events.
+
+New code should use:
+
+* `BattleLaunchRequested(BattleLaunchPayload)`
+* `BattleStarted(BattleRuntimePayload)`
+* `BattleFeatEventOccurred(BattleFeatEventPayload)`
+* `BattleResolved(BattleResolutionPayload)`
+
+Old events can forward into new events or coexist during migration.
+
+Remove old events only after all callers are migrated.
+
+---
+
+## Do Not Do
+
+Do not introduce a full external dependency injection framework.
+
+Do not introduce a generic event bus yet.
+
+Do not introduce UnityEvent for backend/domain events.
+
+Do not make services global MonoBehaviour singletons.
+
+Do not put gameplay logic inside `EventCenter`.
+
+Do not turn `BattleService` into a god service.
+
+Do not let `BattleService` apply taming rewards.
+
+Do not let `BattleService` apply feat rewards.
+
+Do not let `BattleService` mutate player team/storage.
+
+Do not let `ModeManager` own gameplay rewards.
+
+Do not let `EndPhase` own feat progression.
+
+Do not replace the existing battle rules architecture unnecessarily.
+
+Do not make `BattleActivityPayload` or `BattleActivityType` the main battle-progress event system.
+
+Do not make battle services infer feat events that effects can emit directly.
+
+Do not break AP/MP refill at turn start.
+
+Do not change stamina-turn fundamentals.
+
+Do not add XP levels.
+
+Do not add capture mechanics.
+
+---
+
+## Expected Deliverables
+
+When implementing this refactor, produce:
+
+1. New payload classes.
+2. Updated `EventCenter`.
+3. New `GameServices` container.
+4. Initial service classes:
+
+   * `BattleService`
+   * `PlayerService`
+   * `FeatBoardService`
+   * `TamingService`
+   * `EncounterService`
+   * `WorldService`
+   * `SaveService`
+5. Updated bootstrap wiring.
+6. Updated `ModeManager` responsibilities.
+7. Updated battle end flow.
+8. Initial `BattleFeatEventOccurred` reporting.
+9. Compatibility bridge for old events.
+10. Notes/TODOs for remaining migration debt.
+
+---
+
+## Suggested Initial Files To Add
+
+```text
+Assets/Scripts/Services/Core/GameServices.cs
+Assets/Scripts/Services/Battle/BattleService.cs
+Assets/Scripts/Services/Player/PlayerService.cs
+Assets/Scripts/Services/Progression/FeatBoardService.cs
+Assets/Scripts/Services/Taming/TamingService.cs
+Assets/Scripts/Services/Encounters/EncounterService.cs
+Assets/Scripts/Services/World/WorldService.cs
+Assets/Scripts/Services/Persistence/SaveService.cs
+
+Assets/Scripts/Event/BattleEventCenter.cs
+Assets/Scripts/Event/FeatEventCenter.cs
+Assets/Scripts/Event/TamingEventCenter.cs
+Assets/Scripts/Event/PlayerEventCenter.cs
+Assets/Scripts/Event/EncounterEventCenter.cs
+Assets/Scripts/Event/SaveEventCenter.cs
+
+Assets/Scripts/Event/Payloads/BattleLaunchPayload.cs
+Assets/Scripts/Event/Payloads/BattleRuntimePayload.cs
+Assets/Scripts/Event/Payloads/BattleFeatEventPayload.cs
+Assets/Scripts/Event/Payloads/BattleResolutionPayload.cs
+```
+
+Do not add:
+
+```text
+Assets/Scripts/Event/Payloads/BattleActivityPayload.cs
+Assets/Scripts/Event/Payloads/BattleActivityType.cs
+```
+
+---
+
+## Suggested Initial Files To Modify
+
+```text
+Assets/Scripts/Event/EventCenter.cs
+Assets/Scripts/Bootstrap/GameBootstrapper.cs
+Assets/Scripts/Bootstrap/GameInitializationService.cs
+Assets/Scripts/Mode/ModeManager.cs
+Assets/Scripts/Mode/BattleMode.cs
+Assets/Scripts/Battle/Core/BattleContext.cs
+Assets/Scripts/Battle/Core/BattleOutcome.cs
+Assets/Scripts/Battle/Rules/BattleOutcomeRules.cs
+Assets/Scripts/Battle/System/Phases/EndPhase.cs
+Assets/Scripts/Battle/System/Phases/ResolutionPhase.cs
+Assets/Scripts/Battle/Rules/BattleActionResolver.cs
+Assets/Scripts/Abilities/Effect.cs
+Assets/Scripts/Creatures/WildBattleUnit.cs
+Assets/Scripts/Feats/FeatProgressionService.cs
+Assets/Scripts/Taming/TamingProgressService.cs
+Assets/Scripts/Taming/TamingProgress.cs
+Assets/Scripts/Taming/TamingRules.cs
+```
+
+Only modify additional files as needed to keep the project compiling.
+
+---
+
+## Acceptance Criteria
+
+The refactor is successful when:
+
+* The project compiles.
+* Existing battle launch still works.
+* Existing exploration-to-battle-to-exploration loop still works.
+* `EventCenter` exposes the new payload-based battle events.
+* `ModeManager` no longer applies taming rewards.
+* `EndPhase` no longer directly applies feat progression.
+* `BattleService` does not directly mutate taming, player, encounter, feat, or save state.
+* Feature services communicate through `EventCenter` events.
+* Old battle events remain available temporarily for compatibility.
+* New code follows the payload naming convention.
+* `BattleRuntimePayload` does not contain `BattleLaunchPayload`.
+* `BattleResolutionPayload` does not contain `BattleLaunchPayload`.
+* `BattleFeatEventOccurred` carries `BattleFeatEventPayload` containing a `FeatRequirement.EventBase`.
+* Effects emit feat events after applying the actual battle mutation where possible.
+* AP/MP refill and stamina-turn behavior are preserved.
+
+---
+
+## Final Architectural Target
+
+The final direction should look like this:
+
+```text
+EncounterService
+    emits BattleLaunchRequested(BattleLaunchPayload)
+
+BattleService
+    listens BattleLaunchRequested
+    creates BattleContext
+    emits BattleStarted(BattleRuntimePayload)
+
+ModeManager
+    listens BattleStarted
+    enters BattleMode
+
+Effect / runtime battle flow
+    mutates battle state
+    emits BattleFeatEventOccurred(BattleFeatEventPayload)
+
+FeatBoardService
+    listens BattleStarted if needed
+    listens BattleFeatEventOccurred
+    records/applies feat requirement progress
+    listens BattleResolved
+    emits FeatProgressUpdated / FeatNodeUnlocked / FeatRewardUnlocked
+
+TamingService
+    listens BattleStarted
+    listens BattleFeatEventOccurred
+    updates taming progress
+    emits CreatureImpressed
+    emits BattleUnitRemovalRequested
+    listens BattleResolved
+    emits TamingResolved if appropriate
+
+Battle runtime / BattleService bridge
+    listens BattleUnitRemovalRequested
+    removes impressed unit safely from battle
+
+EndPhase / battle runtime
+    computes BattleOutcome
+    emits BattleResolved(BattleResolutionPayload)
+
+ModeManager
+    listens BattleResolved
+    returns to ExplorationMode
+
+PlayerService
+    listens TamingResolved
+    listens relevant feat reward events
+    mutates active team, PC storage, and player-owned creature data
+
+EncounterService
+    listens BattleResolved
+    clears encounter/trainer/gym state
+
+SaveService
+    listens save-worthy events or explicit save requests
+    owns persistence synchronization
+```
+
+---
+
+## Migration Debt Notes
+
+Track these explicitly during implementation:
+
+* Old `BattleStartRequested(BattleContext)` still exists until all callers migrate to `BattleLaunchRequested(BattleLaunchPayload)`.
+* Old `BattleEnded(BattleOutcome)` still exists until all listeners migrate to `BattleResolved(BattleResolutionPayload)`.
+* Existing `unit.RecordFeatEvent(...)` calls may remain temporarily, but should eventually be replaced or mirrored by `BattleFeatEventOccurred`.
+* Existing `BattleContext.DispatchPlayerFeatEvent(...)` may remain temporarily as taming compatibility glue, but should eventually move into `TamingService`.
+* `BattleOutcome.ImpressedCreatures` may remain temporarily for taming reward resolution, but should eventually be owned by `TamingService` battle-local tracking.
+* Resolver-level feat event emission is acceptable only where effect-level emission is not yet available.

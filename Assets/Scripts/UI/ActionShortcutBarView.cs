@@ -14,7 +14,7 @@ public sealed class ActionShortcutBarView : ExecuteAlwaysView
 	[SerializeField] private AbilityShortcutBarView shortcutBar;
 	[SerializeField] private ShortcutBarPageSelectorView pageSelector;
 
-	private BattleUnit boundUnit;
+	private BattleUnit boundUnit = null;
 
 	public event Action<int, Ability> AbilityClicked;
 	public BattleUnit BoundUnit => boundUnit;
@@ -210,6 +210,10 @@ public sealed class ActionShortcutBarView : ExecuteAlwaysView
 
 	private void HandlePageIndexChanged(int pageIndex)
 	{
+		if (boundUnit == null)
+		{
+			return ;
+		}
 		shortcutBar?.Bind(GetBoundAbilities(), pageIndex);
 	}
 

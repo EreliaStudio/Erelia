@@ -23,4 +23,10 @@ public sealed class GameSaveData
 	{
 		respawnPoint = cell;
 	}
+
+	public void CopyPlayerFrom(PlayerData source)
+	{
+		player ??= new PlayerData();
+		player.CopyFrom(source);
+	}
 }

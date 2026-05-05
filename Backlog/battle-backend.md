@@ -4,8 +4,6 @@ See [global.md](global.md) for the epic summary.
 
 | Priority | Pts | Ticket | Notes |
 |----------|-----|--------|-------|
-| 185 | 1 | **[BB-01] Add `StaminaRatio` attribute to `BattleUnit`'s `Attribute`** | Add a float, that will represent the "ratio" needed to apply on the tick count, to either slow down the bar advancement, or even stop it, or to make it go faster. |
-| 185 | 2 | **[BB-02] Hook the `StaminaRatio` to the advancement of the `BattleUnit`** | Linking it via a rule dedicated to the stamina bar |
 | 155 | 2 | **[BB-03] Make a list of all AICondition subclass** | Need a full list of all concrete `AICondition`. Creating a proposition in format of a file in .md. |
 | 155 | 2 | **[BB-04] Implement all AICondition subclass** | Compose all the `AICondition` and TUs |
 | 155 | 3 | **[BB-07] Wire `EnemyTurnPhaseController` to evaluate `AIBehaviour` rule list** | Iterate `AIBehaviour.Rules` top-down. For each `AIRule`, evaluate all `AICondition`s (AND logic); on first full match, execute the `AIDecision` to build and submit a `BattleAction`. Fall through to `EndTurnAction` if no rule matches. |

@@ -25,6 +25,7 @@ public class Attributes
 		ResistancePenetration = p_source.ResistancePenetration;
 		BonusRange = p_source.BonusRange;
 		Recovery = p_source.Recovery;
+		Stamina = p_source.Stamina;
 		BonusHealing = p_source.BonusHealing;
 		LifeSteal = p_source.LifeSteal;
 		Omnivamprism = p_source.Omnivamprism;
@@ -46,6 +47,7 @@ public class Attributes
 	public int BonusRange = 0;
 
 	public float Recovery = 4f;
+	public float Stamina = 1f;
 	public float BonusHealing = 0f;
 	public float LifeSteal = 0f;
 	public float Omnivamprism = 0f;

@@ -93,6 +93,10 @@ public class ModeManager : MonoBehaviour
 
 	private void OnBattleEnded(BattleOutcome outcome)
 	{
+		TamingProgressService.AwardWonBattleTamingRewards(currentGameContext?.Player, outcome);
+
+		// TODO TI-06: persist PlayerData to GameSaveData and trigger disk write here.
+
 		EndBattle();
 	}
 

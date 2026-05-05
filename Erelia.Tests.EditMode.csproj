@@ -52,6 +52,7 @@
     <Compile Include="Assets\Tests\Battle\Navigation\NavGraphTests.cs" />
     <Compile Include="Assets\Tests\Effects\Health\DamageTargetEffectTests.cs" />
     <Compile Include="Assets\Tests\Requirements\Kill\KillRequirementTests.cs" />
+    <Compile Include="Assets\Tests\Battle\Phases\Initiative\StaminaRatioTests.cs" />
     <Compile Include="Assets\Tests\Feats\VictoryProgressionTests.cs" />
     <Compile Include="Assets\Tests\Feats\AbilityScopeTests.cs" />
     <Compile Include="Assets\Tests\Effects\Movement\SwapPositionEffectTests.cs" />
@@ -82,12 +83,14 @@
     <Compile Include="Assets\Tests\Requirements\Healing\HealingRequirementTests.cs" />
     <Compile Include="Assets\Tests\Requirements\Movement\MovementRequirementTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\EnemyTurn\EnemyTurnPhaseTests.cs" />
+    <Compile Include="Assets\Tests\Encounters\EncounterResolverTests.cs" />
     <Compile Include="Assets\Tests\Requirements\Meta\MetaRequirementTests.cs" />
     <Compile Include="Assets\Tests\Battle\Backend\BackendBehaviorTests.cs" />
     <Compile Include="Assets\Tests\Effects\EffectTestBase.cs" />
     <Compile Include="Assets\Tests\Effects\BoardObjects\RemoveInteractiveObjectEffectTests.cs" />
     <Compile Include="Assets\Tests\Feats\HealEffectTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\PlayerTurn\PlayerTurnPhaseCommandTests.cs" />
+    <Compile Include="Assets\Tests\Encounters\BiomeDefinitionTests.cs" />
     <Compile Include="Assets\Tests\CreatureStorage\CreatureStorageTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\End\EndPhaseTests.cs" />
     <Compile Include="Assets\Tests\Effects\Resources\AdjustTurnBarTimeEffectTests.cs" />
@@ -100,6 +103,7 @@
     <Compile Include="Assets\Tests\Effects\Resources\AdjustTurnBarDurationEffectTests.cs" />
     <Compile Include="Assets\Tests\Effects\Shields\ApplyShieldEffectTests.cs" />
     <Compile Include="Assets\Tests\Taming\TamingProgressTests.cs" />
+    <Compile Include="Assets\Tests\Encounters\EncounterTableTests.cs" />
     <Compile Include="Assets\Tests\Taming\TamingRewardTests.cs" />
     <Compile Include="Assets\Tests\Taming\BattleUnitTamingStateTests.cs" />
     <Compile Include="Assets\Tests\Feats\DamageEffectTests.cs" />

@@ -8,6 +8,7 @@ public sealed class BattleAttributes : ObservableValue<BattleAttributes>
 	public ObservableResource ActionPoints { get; } = new();
 	public ObservableResource MovementPoints { get; } = new();
 	public ObservableFloatResource TurnBar { get; } = new();
+	public ObservableValue<float> StaminaRatio { get; } = new();
 	public ObservableValue<int> BonusRange { get; } = new();
 	public ObservableValue<int> Attack { get; } = new();
 	public ObservableValue<int> Armor { get; } = new();
@@ -27,6 +28,7 @@ public sealed class BattleAttributes : ObservableValue<BattleAttributes>
 		ActionPoints.Changed += _ => Notify();
 		MovementPoints.Changed += _ => Notify();
 		TurnBar.Changed += _ => Notify();
+		StaminaRatio.Changed += _ => Notify();
 		BonusRange.Changed += _ => Notify();
 		Attack.Changed += _ => Notify();
 		Armor.Changed += _ => Notify();
@@ -52,6 +54,7 @@ public sealed class BattleAttributes : ObservableValue<BattleAttributes>
 		ActionPoints.Set(maxActionPoints, maxActionPoints, true);
 		MovementPoints.Set(maxMovementPoints, maxMovementPoints, true);
 		TurnBar.Set(0f, turnBarDuration, true);
+		StaminaRatio.Set(p_attributes?.Stamina ?? 1f, true);
 
 		BonusRange.Set(p_attributes?.BonusRange ?? 0, true);
 		Attack.Set(p_attributes?.Attack ?? 0, true);
