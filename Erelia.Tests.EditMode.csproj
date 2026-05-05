@@ -55,8 +55,10 @@
     <Compile Include="Assets\Tests\Feats\VictoryProgressionTests.cs" />
     <Compile Include="Assets\Tests\Feats\AbilityScopeTests.cs" />
     <Compile Include="Assets\Tests\Effects\Movement\SwapPositionEffectTests.cs" />
+    <Compile Include="Assets\Tests\Taming\TamingRulesTests.cs" />
     <Compile Include="Assets\Tests\Feats\GameScopeTests.cs" />
     <Compile Include="Assets\Tests\Battle\LineOfSight\LineOfSightTests.cs" />
+    <Compile Include="Assets\Tests\Taming\TamingProfileTests.cs" />
     <Compile Include="Assets\Tests\Effects\Resources\StealResourceEffectTests.cs" />
     <Compile Include="Assets\Tests\Effects\BoardObjects\PlaceInteractiveObjectEffectTests.cs" />
     <Compile Include="Assets\Tests\Requirements\BattleOutcome\BattleOutcomeRequirementTests.cs" />
@@ -86,6 +88,7 @@
     <Compile Include="Assets\Tests\Effects\BoardObjects\RemoveInteractiveObjectEffectTests.cs" />
     <Compile Include="Assets\Tests\Feats\HealEffectTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\PlayerTurn\PlayerTurnPhaseCommandTests.cs" />
+    <Compile Include="Assets\Tests\CreatureStorage\CreatureStorageTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\End\EndPhaseTests.cs" />
     <Compile Include="Assets\Tests\Effects\Resources\AdjustTurnBarTimeEffectTests.cs" />
     <Compile Include="Assets\Tests\Effects\Statuses\ConsumeStatusTests.cs" />
@@ -96,6 +99,9 @@
     <Compile Include="Assets\Tests\Feats\NonDamageEffectTests.cs" />
     <Compile Include="Assets\Tests\Effects\Resources\AdjustTurnBarDurationEffectTests.cs" />
     <Compile Include="Assets\Tests\Effects\Shields\ApplyShieldEffectTests.cs" />
+    <Compile Include="Assets\Tests\Taming\TamingProgressTests.cs" />
+    <Compile Include="Assets\Tests\Taming\TamingRewardTests.cs" />
+    <Compile Include="Assets\Tests\Taming\BattleUnitTamingStateTests.cs" />
     <Compile Include="Assets\Tests\Feats\DamageEffectTests.cs" />
     <Compile Include="Assets\Tests\Feats\TurnScopeTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\PlayerTurn\PlayerTurnPhaseQueryTests.cs" />

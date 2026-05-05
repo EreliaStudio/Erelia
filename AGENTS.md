@@ -7,10 +7,7 @@ Use it to keep implementation aligned with the intended game, UI layouts, and te
 
 - Core design intent: `GDD.md`
 - Current UI wireframes: `main_menu.png`, `Exploration_mode_screen.png`, `BattleHUD.png`, `BattleUIElement.png`, `TeamUIElement.png`, `Creature_UI_Element.png`, `Action_UI_Element.png`, `Passive_UI_Element.png`, `Encounter_Table_UI.png`, `Team_Editor_Window.png`, `Team_Editor_WindowV2.png`
-- Live V3 scaffold: `Assets/`, `Packages/`, `ProjectSettings/`, `README.md`
-- Archived history: `archive/V1`, `archive/V2`
-
-The live root is now a fresh `V3` baseline. Previous implementations are archived and should be treated as reference material, not as the active base.
+- Live scaffold: `Assets/`, `Packages/`, `ProjectSettings/`, `README.md`
 
 If the GDD, code, and mockups disagree, prefer this order:
 
@@ -18,6 +15,8 @@ If the GDD, code, and mockups disagree, prefer this order:
 2. `GDD.md`
 3. Latest wireframe mockup
 4. Existing code
+
+---
 
 ## Project Identity
 
@@ -31,6 +30,8 @@ If the GDD, code, and mockups disagree, prefer this order:
 - Primary win condition:
   - Defeat 8 gyms in randomized order
   - Defeat the Elite Four
+
+---
 
 ## Prototype Scope
 
@@ -46,12 +47,12 @@ Anything outside those three runtime surfaces is deferred until later unless the
 
 Prototype assumptions:
 
-- V3 is intentionally sparse and should be rebuilt cleanly from the wireframes.
-- The old implementation in `archive/V2` is reference-only.
 - Exploration only needs enough HUD and interaction support to move in the world and trigger encounters.
 - Battle only needs enough UI to inspect combat state, choose abilities, and end turns.
 - Deeper management screens can be postponed even if progression systems already exist in code.
 - Editor tooling may continue to carry some setup burden during the prototype phase.
+
+---
 
 ## Terminology Mapping
 
@@ -65,6 +66,8 @@ Several names refer to the same concept depending on whether you are reading the
 - `PM` in mockups == `MP` in code and GDD
 
 Do not invent a second progression system unless the user explicitly asks for one.
+
+---
 
 ## Non-Negotiable Design Rules
 
@@ -82,6 +85,8 @@ Do not invent a second progression system unless the user explicitly asks for on
 - Gym order, encounter scaling, and progression gating are badge or unlock-tier driven, not level driven.
 - Losing a battle should still preserve meaningful progression.
 
+---
+
 ## Desired Player Experience
 
 - Exploration should feel familiar and readable: roads, towns, gyms, routes, caves, bushes, trainers.
@@ -89,6 +94,8 @@ Do not invent a second progression system unless the user explicitly asks for on
 - Progression should feel earned through play patterns: range play, shielding, cleansing, positioning, healing, tanking, and similar behaviors.
 - Creature building should support branching identity through feat board unlocks, passive choices, and form or evolution choices.
 - Replayability should come from different world layouts, gym order, POI placement, and encounter availability.
+
+---
 
 ## Visual And UX Direction
 
@@ -121,19 +128,132 @@ These points are grounded mostly in the current wireframes and should be treated
   - generated description text
 - Final palette, typography, iconography style, and environmental mood are still under-specified.
 
-## What Exists In The Repository Today
+---
 
-The repo already contains useful anchors. Do not assume it is empty.
+## Architecture Overview
 
-- The repo root now contains a clean `V3` Unity scaffold.
+The codebase lives entirely in `Assets/Scripts/` with no C# namespaces (deliberate prototype-phase simplification). ~199 C# files organized into domain folders.
+
+### Top-Level Pattern: Mode-Based State Machine
+
+```
+GameBootstrapper
+  └─ ModeManager
+        ├─ ExplorationMode   (world traversal, encounter triggers)
+        └─ BattleMode        (combat loop via BattleOrchestrator)
+```
+
+- `Mode` is an abstract base with `Enter()` / `Exit()` lifecycle.
+- `ModeManager` switches modes in response to `EventCenter` events.
+- `GameContext` is the root state container (`WorldContext` + `PlayerData`).
+
+### Key Patterns Used Throughout
+
+- **Static rule classes**: Battle logic is split into stateless utility classes (`BattleTurnRules`, `BattleActionValidator`, `BattleStatusRules`, etc.). Add new rules there, not inline.
+- **Polymorphic ScriptableObjects**: `Ability`, `CreatureSpecies`, `Status`, `BiomeDefinition` are all SO assets. Effects, Requirements, and Rewards are abstract base classes with many concrete subclasses.
+- **Observable properties**: `ObservableValue<T>`, `ObservableResource`, `ObservableList<T>` drive UI binding. UI subscribes to `.Changed` events — never poll.
+- **EventCenter**: Static pub-sub dispatcher for cross-system events (`PlayerMoved`, `BattleStartRequested`, `BattleEnded`, etc.). Systems talk to each other through it.
+- **p_ prefix**: Private fields that mirror constructor/method parameters use `p_` prefix (e.g., `p_sourceUnit`).
+
+---
+
+## Current Implementation State
+
+### Battle System — ✅ Functional
+
+`Assets/Scripts/Battle/`
+
+The battle is a 7-phase FSM orchestrated by `BattleOrchestrator`:
+
+```
+SetupPhase → PlacementPhase → IdlePhase → PlayerTurnPhase / EnemyTurnPhase → ResolutionPhase → EndPhase
+```
+
+- **Turn bar**: `BattleTurnRules.AdvanceTurnBars` fills each unit's `TurnBar` based on `Recovery` stat. When full, that unit's turn begins. AP and MP reset on turn start.
+- **Actions**: Three types — `MoveAction` (costs MP), `AbilityAction` (costs AP/MP), `EndTurnAction`. Validated by `BattleActionValidator`, resolved by `BattleActionResolver`.
+- **Effects**: Abstract `Effect` base; subclasses cover damage, heal, status apply/remove, shield, buff/debuff, revive, trap, keyword.
+- **Status hooks**: 9 hook points (TurnStart, TurnEnd, TakeDamage, etc.) processed by `BattleStatusRules`.
+- **Feat events**: During resolution, `BattleUnit.RecordFeatEvent()` stores typed event structs. `FeatProgressionService.ApplyProgress()` evaluates them post-battle.
+
+**Not yet implemented in battle**: Capture action, battle result screen, end-of-battle feat summary screen.
+
+### Creature & Feat System — ✅ Functional
+
+- `CreatureSpecies` (SO): base stats, default abilities, forms (evolutions), shared `FeatBoard`.
+- `CreatureUnit`: per-instance state — current form, ability pool, feat board progress, permanent passives.
+- `FeatBoard` / `FeatNode`: adjacency-locked tree. Root always unlocked. Nodes hold `List<FeatRequirement>` (all must complete) and `List<FeatReward>`.
+- 15+ `FeatRequirement` subclasses track specific in-battle conditions by scope (Ability / Turn / Fight / Game).
+- `FeatReward` subclasses: `BonusStatsReward`, `UnlockAbilityReward`, `UnlockPassiveReward`, `UnlockEvolutionReward`, `FormChangeReward`.
+- `FeatProgressionService`: evaluates recorded events against node requirements; applies rewards; recomputes attributes.
+
+**Not yet implemented**: runtime feat board UI (an editor-only window exists; a runtime in-game equivalent is needed).
+
+### AI System — ⚠️ Framework Ready, Implementations Sparse
+
+- `AIBehaviour` (SO): named rule sets (`SerializedDictionary<string, List<AIRule>>`).
+- `AIRule`: ordered list of `AICondition` (AND logic) + `AIDecision`. Top-down evaluation; first match wins.
+- `AICondition` and `AIDecision` are abstract — concrete subclasses exist but are sparse. This is the main gap.
+- `EnemyTurnPhaseController` must evaluate the rule list and submit a legal `BattleAction`.
+
+### Encounter & World — ✅ Functional, POI Generation Stubbed
+
+- `EncounterTable` / `EncounterTier`: 10 tiers (NoBadge → PostGame), weighted team compositions. `EncounterResolver` handles biome-based weighted roll.
+- `MetaWorldGenerator`: seeded chunk generation with biome assignment — currently returns `defaultBiome` for all chunks. Noise-based biome distribution not yet implemented.
+- `WorldPresenter`: dynamic chunk load/unload around player. Voxel meshes rendered via `VoxelMesher`.
+- `EncounterEmitter` exists but is **not yet subscribed** to `EventCenter.EmitPlayerMoved` — wild encounters are not triggered.
+- `BoardDataBuilder` exists but the pipeline (voxel slice → `BoardData` → battle entry) is **not yet connected**.
+
+**Not yet implemented**: trainer line-of-sight, heal point / respawn, procedural town/gym/road placement.
+
+### Save / Load — ✅ Structure Ready, Incomplete Wiring
+
+- `GameSaveData`: world seed, `PlayerData` (team, position), respawn point.
+- `GameBootstrapper` calls `GameInitializationService.TryInitializeNewGameSave()` on start.
+- Feat board progress is stored per `CreatureUnit` inside `PlayerData` — persists implicitly with team.
+- **Missing**: defeated gym tracking, defeated trainer tracking, PC (creature storage) beyond the 6-slot team.
+
+### Voxel & Board — ✅ Functional
+
+- `VoxelGrid` / `VoxelCell` / `VoxelMesher`: exploration terrain, full meshing pipeline.
+- `BoardData`: battle arena wrapping `BoardTerrainLayer` (voxels), `BoardNavigationLayer` (walkable graph), `BoardRuntimeRegistry` (unit positions, traps).
+- `VoxelTraversalGraph` / `BoardPathfinder`: A\* pathfinding used by both exploration movement and battle movement.
+- LOS checks use voxel raycasting inside `BattleLineOfSightRules`.
+
+### UI — ✅ Baseline Working
+
+- `CreatureTeamView` / `CreatureCardView`: 6-slot team column with compact and expanded (hover) states.
+- `AbilityShortcutBarView` / `AbilityShortcutView`: 8-slot ability bar with AP/MP cost display.
+- `ActiveUnitHudView`: HP / AP / MP / TurnBar for the active unit.
+- All views bind to `ObservableResource` / `ObservableValue` events.
+- **Missing**: battle result screen, damage/heal floating text, world-space HP bars, creature info floating window.
+
+---
+
+## What Is Missing (Critical Path)
+
+These are the blockers for a playable end-to-end prototype, in rough priority order:
+
+1. **Capture mechanic** — No `CaptureAction` exists. Needs: action type, turn cost, HP-threshold gate, success % formula, add creature to team/PC, trigger battle end on success.
+2. **Battle ↔ Exploration transition** — `BoardDataBuilder` → `BattleMode` pipeline not connected; `EncounterEmitter` not subscribed to player movement.
+3. **At least one authored `CreatureSpecies` + `FeatBoard`** — Nothing playable without real creature data.
+4. **Battle result screen** — No victory / defeat screen.
+5. **Stun on turn bar** — `BattleTurnRules.AdvanceTurnBars` must skip stunned units.
+6. **AI turn evaluation** — `EnemyTurnPhaseController` needs working condition/decision subclasses.
+7. **Save/Load end-to-end** — Bootstrap → world → spawn player flow needs validation.
+8. **Board generation from world voxels** — `BoardDataBuilder` pipeline incomplete.
+9. **Battle camera rig** — No separate battle camera exists; exploration camera orbits player.
+
+---
+
+## Key Entry Points In The Repository
+
 - `Assets/Scripts/Bootstrap/PrototypeSceneNames.cs` defines the intended scene names.
 - `Assets/Scripts/Bootstrap/PrototypeSceneLoader.cs` provides basic scene-load helpers for menu buttons and simple flow.
-- `Assets/Scripts/UI/CreatureSlotView.cs` is the new minimal replacement direction for creature presentation.
-- `Assets/Scripts/Exploration/ExplorationHudView.cs` and `Assets/Scripts/Battle/BattleHudView.cs` define a small, clean UI baseline for the prototype.
-- `Assets/Scenes/README.md` lists the scene creation order for V3.
-- `archive/V2` contains the previous live implementation, including the old runtime UI and scenes.
-- `archive/V1` contains the older imported archive.
+- `Assets/Scripts/UI/CreatureSlotView.cs` is the current direction for creature presentation.
+- `Assets/Scripts/Exploration/ExplorationHudView.cs` and `Assets/Scripts/Battle/BattleHudView.cs` are the UI baselines for each mode.
 - Root-level PNGs are user-authored wireframes and should be treated as intentional design references.
+
+---
 
 ## Working Rules For Future AI Contributors
 
@@ -142,8 +262,10 @@ The repo already contains useful anchors. Do not assume it is empty.
 - Preserve the eight-ability action bar expectation unless the user changes it.
 - Do not replace the tactical board battle with real-time combat.
 - Do not compress the UI into a mobile-first layout without approval.
-- Build on V3, not on archived V2 debug composition, unless the user explicitly asks to restore something from it.
-- Keep prototype views simple and dumb; avoid reintroducing hover-expanded all-in-one creature cards as the baseline.
+- Keep prototype views simple and dumb; avoid over-engineering creature cards at the baseline.
+- All new battle rules go into the existing static rule classes (`BattleTurnRules`, `BattleActionValidator`, etc.) — not inline in phase controllers.
+- New effect types extend the abstract `Effect` base class. New requirement types extend `FeatRequirement`. New reward types extend `FeatReward`.
+- Cross-system communication uses `EventCenter` — do not create direct references between `ExplorationMode` and `BattleMode`.
 - When in doubt, keep terminology aligned with the existing code:
   - `CreatureSpecies`
   - `CreatureUnit`
@@ -151,50 +273,53 @@ The repo already contains useful anchors. Do not assume it is empty.
   - `FeatNode`
   - `EncounterTable`
   - `EncounterTier`
-- Treat `archive/` as reference, not live implementation.
+
+---
 
 ## Current Screen And Window Inventory
 
 ### Runtime Screens
 
 - `Main Menu / Load Screen`
-  - Status: wireframed, not yet rebuilt in V3
+  - Status: wireframed, not yet implemented
   - Source: `main_menu.png`
-  - Note: current intended layout is title on top, background behind menu, and right-side action stack
+  - Note: title on top, background behind menu, right-side action stack
 
 - `Battle HUD`
-  - Status: wireframed, V3 baseline scripts created
+  - Status: baseline scripts created
   - Source: `BattleHUD.png`, `BattleUIElement.png`, `TeamUIElement.png`, `Creature_UI_Element.png`
 
 - `Exploration Screen / HUD`
-  - Status: required for prototype, wireframed, V3 baseline scripts created
+  - Status: baseline scripts created
   - Source: `Exploration_mode_screen.png`
-  - Note: current layout includes a time widget, zone label, contextual icons, left-side party strip, and a largely unobstructed world view
+  - Note: time widget, zone label, contextual icons, left-side party strip, unobstructed world view
 
 - `Creature Card States`
-  - Status: wireframed, old V2 version archived, V3 direction is to replace it with simpler slot views first
+  - Status: wireframed; current direction is simpler slot views
   - Source: `Creature_UI_Element.png`
 
 ### Editor Screens
 
 - `Feat Board Editor`
-  - Status: archived in V2
-  - Source: `archive/V2/Assets/Scripts/Feats/Editor/FeatBoardEditorWindow.cs`
+  - Status: editor-only window exists in code
+  - Source: `Assets/Scripts/Feats/Editor/FeatBoardEditorWindow.cs`
   - Purpose: edit species feat board layout, links, rewards, and requirements
 
 - `Encounter Team Editor`
-  - Status: archived in V2
-  - Source: `archive/V2/Assets/Scripts/Encounters/Editor/EncounterTeamEditorWindow.cs`
+  - Status: exists in code
+  - Source: `Assets/Scripts/Encounters/Editor/EncounterTeamEditorWindow.cs`
   - Purpose: edit a six-creature encounter team with top tabs, board preview, and right inspector
 
 - `Encounter Table Tier Window`
-  - Status: wireframed, related implementation archived in V2
-  - Source: `Encounter_Table_UI.png`, `archive/V2/Assets/Scripts/Encounters/Editor/*`
+  - Status: wireframed
+  - Source: `Encounter_Table_UI.png`
 
 - `Team Editor Window`
   - Status: wireframed
   - Source: `Team_Editor_WindowV2.png`
-  - Note: `Team_Editor_Window.png` is an earlier version; V2 should be treated as the preferred direction unless the user says otherwise
+  - Note: `Team_Editor_Window.png` is an earlier version; the V2 wireframe is the preferred direction
+
+---
 
 ## ASCII Wireframes
 
@@ -286,7 +411,6 @@ Compact / outside battle or placement
 Battle version
 +----------------------------------------------------+
 | [Icon]  Name                                       |
-| HP / Max HP bar                                    |
 | Stamina / turn bar with countdown                  |
 +----------------------------------------------------+
 
@@ -307,10 +431,11 @@ Source: `BattleUIElement.png`
      | MP / Max  |     | HP / Max  |     | AP / Max  |
      +-----------+     +-----------+     +-----------+
 
-+---------------------------------------------------------------+
-| [1] 8 ability slots for the active creature               [8] |
-| Shortcut labels sit on top of each slot                      |
-+---------------------------------------------------------------+
++---------------------------------------------------------------+---+
+| [1] 8 ability slots for the active creature               [8] | - |
+|                                                               |   | <- Selector to change the "page" of ability slots
+| Shortcut labels sit on top of each slot                       | + |
++---------------------------------------------------------------+---+
 
                     +-------------------+
                     |     End Turn      |
@@ -381,6 +506,8 @@ Source: `Team_Editor_WindowV2.png`
 +--------------------------------------------------------------+-------------------+
 ```
 
+---
+
 ## Prototype-Critical Open Questions
 
 These are the design gaps that still matter right now for the prototype.
@@ -408,6 +535,8 @@ These are the design gaps that still matter right now for the prototype.
 - `Battle targeting and preview overlays`
   - How much path, range, area, and line-of-sight preview should be shown before confirming an ability?
 
+---
+
 ## Deferred Runtime Screens
 
 These screens are intentionally out of prototype scope for now:
@@ -422,6 +551,8 @@ These screens are intentionally out of prototype scope for now:
 - Pause, options, accessibility
 - World map and fast travel
 
+---
+
 ## Prototype Screen Set
 
 The current prototype screen map is:
@@ -429,6 +560,8 @@ The current prototype screen map is:
 1. Main menu
 2. Exploration screen
 3. Battle screen
+
+---
 
 ## Owner Questions To Answer Next
 

@@ -159,10 +159,33 @@ Examples:
 - Respec exists but is not a main feature.
 - Evolutions are quests that require: (1) completing a specified number of quests, then (2) satisfying a condition. Evolution choices are branching: A -> B or C; B -> D; C -> E. Choosing B blocks C and its branch.
 
-### Capture
-- Capture attempts occur in wild encounters after weakening the target below a HP threshold.
-- Capture costs a creature's turn (no consumable item).
-- Capture can be attempted from any board position and has a percent success chance.
+### Taming
+
+Wild creatures are not captured by spending a turn or throwing an item. Instead, each wild `CreatureSpecies` defines a **Taming Profile**: a list of **Taming Conditions** that describe feats the player's team must perform during the fight to impress that creature.
+
+**Taming Conditions** are structured identically to `FeatRequirement` nodes: they specify an in-battle event type, a scope (per-turn, per-fight, per-ability, etc.), and a threshold. Examples:
+
+- Deal more than 80 magical damage in a single hit.
+- Keep at least two allies alive until the end of the fight.
+- Move a creature to a cell adjacent to the wild creature.
+- Use the same Ability three times in a single fight.
+- Avoid taking any physical damage for two consecutive turns.
+
+**Mechanics:**
+
+- All Taming Conditions for a wild unit are tracked passively throughout the entire fight, with no player input required.
+- When **all** conditions in a wild creature's Taming Profile are fulfilled, the creature is **impressed**: it immediately leaves the fight on its own, removing itself from the board.
+- A creature that leaves through taming does **not** count as defeated; the battle continues normally until a standard victory or defeat condition is reached.
+- If the wild unit is defeated before all its Taming Conditions are met, taming fails for that unit permanently in that encounter.
+- At the end of a **won** battle, every impressed creature joins the player's active team (if a slot is available) or is sent to PC storage (if the team is full).
+- If the player **loses** the battle, all impressed creatures are forfeit — they do not join the player's team or PC.
+- Taming is only possible in wild encounters. Trainer and gym battles never apply Taming Conditions.
+
+**Design intent:**
+
+- Taming rewards deliberate, creative play patterns — not grinding or item use.
+- Conditions are species-specific and hint at the creature's personality or fighting style.
+- Players discover Taming Conditions organically through observation or by consulting in-game lore.
 
 ---
 

@@ -61,6 +61,7 @@
     <Compile Include="Assets\Scripts\Voxel\VoxelShape.cs" />
     <Compile Include="Assets\Scripts\UI\UiViewUtility.cs" />
     <Compile Include="Assets\Scripts\World\SimpleDebugChunkGenerator.cs" />
+    <Compile Include="Assets\Scripts\Taming\TamingProgressService.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\VoxelStairShape.cs" />
     <Compile Include="Assets\Scripts\Battle\System\BattleCoordinator.cs" />
     <Compile Include="Assets\Scripts\Battle\System\Phases\EnemyTurnPhase.cs" />
@@ -78,6 +79,7 @@
     <Compile Include="Assets\Scripts\Abilities\AbilityCost.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorView.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelGrid.cs" />
+    <Compile Include="Assets\Scripts\Taming\TamingProfile.cs" />
     <Compile Include="Assets\Scripts\Battle\System\PhaseControllers\EndPhaseController.cs" />
     <Compile Include="Assets\Scripts\Board\BoardVoxelRaycaster.cs" />
     <Compile Include="Assets\Scripts\Battle\Rules\AbilityCastLegality.cs" />
@@ -121,6 +123,7 @@
     <Compile Include="Assets\Scripts\BattleCellGraph\VoxelTraversalGraphBuilder.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleStatus.cs" />
     <Compile Include="Assets\Scripts\UI\ActiveUnitHudView.cs" />
+    <Compile Include="Assets\Scripts\Taming\TamingProgress.cs" />
     <Compile Include="Assets\Scripts\Battle\System\BattlePhaseType.cs" />
     <Compile Include="Assets\Scripts\Battle\System\IBattlePhaseInputHandler.cs" />
     <Compile Include="Assets\Scripts\Board\BoardPathfinder.cs" />
@@ -159,6 +162,7 @@
     <Compile Include="Assets\Scripts\InteractiveObject\InteractionObject.cs" />
     <Compile Include="Assets\Scripts\AI\AIBehaviour.cs" />
     <Compile Include="Assets\Scripts\Board\BoardOverlayState.cs" />
+    <Compile Include="Assets\Scripts\Taming\TamingRules.cs" />
     <Compile Include="Assets\Scripts\Battle\System\PhaseControllers\PlayerTurnPhaseController.cs" />
     <Compile Include="Assets\Scripts\Battle\System\IBattlePhaseAbilityShortcutHandler.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatRequirement.cs" />
@@ -167,6 +171,7 @@
     <Compile Include="Assets\Scripts\World\WorldContext.cs" />
     <Compile Include="Assets\Scripts\Biomes\BiomeEncounterRule.cs" />
     <Compile Include="Assets\Scripts\UI\CreatureCardView.cs" />
+    <Compile Include="Assets\Scripts\Creatures\CreatureStorage.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMaskRegistry.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleInteractiveObject.cs" />
     <Compile Include="Assets\Scripts\Board\BoardPresenter.cs" />
@@ -203,6 +208,7 @@
     <Compile Include="Assets\Scripts\Battle\Core\BattleAttributes.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatReward.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatNode.cs" />
+    <Compile Include="Assets\Scripts\Taming\WildBattleUnit.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatNodeKind.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleSide.cs" />
     <Compile Include="Assets\Scripts\World\MaskOverlayView.cs" />

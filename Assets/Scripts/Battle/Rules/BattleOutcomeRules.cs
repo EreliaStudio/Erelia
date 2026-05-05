@@ -29,14 +29,36 @@ public static class BattleOutcomeRules
 
 		outcome = new BattleOutcome(
 			winner,
-			CollectLivingUnits(battleContext.PlayerUnits),
-			CollectLivingUnits(battleContext.EnemyUnits),
-			battleContext.Stats);
+			CollectActiveUnits(battleContext.PlayerUnits),
+			CollectActiveUnits(battleContext.EnemyUnits),
+			battleContext.Stats,
+			CreateRecruits(battleContext.TamedUnits));
 
 		return true;
 	}
 
-	private static List<BattleUnit> CollectLivingUnits(IReadOnlyList<BattleUnit> units)
+	private static List<CreatureUnit> CreateRecruits(IReadOnlyList<BattleUnit> p_tamedUnits)
+	{
+		List<CreatureUnit> recruits = new List<CreatureUnit>();
+
+		if (p_tamedUnits == null)
+		{
+			return recruits;
+		}
+
+		for (int index = 0; index < p_tamedUnits.Count; index++)
+		{
+			CreatureUnit recruit = TamingRules.CreateRecruitFromImpressedUnit(p_tamedUnits[index]);
+			if (recruit != null)
+			{
+				recruits.Add(recruit);
+			}
+		}
+
+		return recruits;
+	}
+
+	private static List<BattleUnit> CollectActiveUnits(IReadOnlyList<BattleUnit> units)
 	{
 		List<BattleUnit> living = new List<BattleUnit>();
 		if (units == null)
@@ -47,7 +69,7 @@ public static class BattleOutcomeRules
 		for (int index = 0; index < units.Count; index++)
 		{
 			BattleUnit unit = units[index];
-			if (unit != null && !unit.IsDefeated)
+			if (unit != null && unit.IsActiveInBattle)
 			{
 				living.Add(unit);
 			}

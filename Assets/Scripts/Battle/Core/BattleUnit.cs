@@ -7,6 +7,7 @@ public class BattleUnit : BattleObject
 {
 	private Vector3Int boardPosition;
 	private bool hasBoardPosition;
+	private bool hasLeftBattle;
 
 	public BattleUnit(CreatureUnit p_sourceUnit, BattleSide p_side)
 	{
@@ -36,7 +37,9 @@ public class BattleUnit : BattleObject
 	public IReadOnlyList<Ability> Abilities => SourceUnit.GetAbilities();
 	public bool HasBoardPosition => hasBoardPosition;
 	public Vector3Int BoardPosition => boardPosition;
+	public bool HasLeftBattle => hasLeftBattle;
 	public bool IsDefeated => BattleAttributes.Health.Current <= 0;
+	public bool IsActiveInBattle => !IsDefeated && !HasLeftBattle;
 	public bool IsTurnReady => BattleAttributes.TurnBar.Current >= BattleAttributes.TurnBar.Max;
 
 	public event Action<BattleUnit, Vector3Int?> PositionChanged;
@@ -72,5 +75,19 @@ public class BattleUnit : BattleObject
 
 		hasBoardPosition = false;
 		PositionChanged?.Invoke(this, null);
+	}
+
+	public void MarkLeftBattle()
+	{
+		hasLeftBattle = true;
+	}
+
+	public virtual void ResetBattleRuntimeState()
+	{
+		hasLeftBattle = false;
+		ClearBoardPosition();
+		ClearFeatEvents();
+		BattleAttributes.Setup(SourceUnit.Attributes);
+		BattleAttributes.ClearShields();
 	}
 }

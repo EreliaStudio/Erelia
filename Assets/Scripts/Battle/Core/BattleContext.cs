@@ -8,6 +8,7 @@ public sealed class BattleContext
 	private readonly List<BattleUnit> playerUnits = new();
 	private readonly List<BattleUnit> enemyUnits = new();
 	private readonly List<BattleUnit> allUnits = new();
+	private readonly List<BattleUnit> tamedUnits = new();
 
 	public event Action<BattleUnit> UnitRegistered;
 	public event Action<BattleUnit> UnitRemoved;
@@ -21,13 +22,15 @@ public sealed class BattleContext
 	public IReadOnlyList<BattleUnit> PlayerUnits => playerUnits;
 	public IReadOnlyList<BattleUnit> EnemyUnits => enemyUnits;
 	public IReadOnlyList<BattleUnit> AllUnits => allUnits;
+	public IReadOnlyList<BattleUnit> TamedUnits => tamedUnits;
 
 	public BattleContext(
 		IReadOnlyList<CreatureUnit> p_playerTeam,
 		IReadOnlyList<EncounterUnit> p_enemyTeam,
 		BoardData p_board,
 		PlacementStyle p_placementStyle,
-		Vector3 p_playerWorldPosition)
+		Vector3 p_playerWorldPosition,
+		bool p_allowsTaming = true)
 	{
 		if (p_playerTeam == null)
 		{
@@ -43,8 +46,8 @@ public sealed class BattleContext
 		PlacementStyle = p_placementStyle;
 		PlayerWorldPosition = p_playerWorldPosition;
 
-		InitializeUnits(p_playerTeam, BattleSide.Player, playerUnits);
-		InitializeUnits(p_enemyTeam, BattleSide.Enemy, enemyUnits);
+		InitializeUnits(p_playerTeam, BattleSide.Player, playerUnits, false);
+		InitializeUnits(p_enemyTeam, BattleSide.Enemy, enemyUnits, p_allowsTaming);
 	}
 
 	public void ClearRuntime()
@@ -52,13 +55,11 @@ public sealed class BattleContext
 		Board.Runtime.Clear();
 		Stats.Reset();
 		CurrentTurn.End();
+		tamedUnits.Clear();
 
 		for (int index = 0; index < allUnits.Count; index++)
 		{
-			allUnits[index].BattleAttributes.Setup(allUnits[index].SourceUnit.Attributes);
-			allUnits[index].ClearBoardPosition();
-			allUnits[index].ClearFeatEvents();
-			allUnits[index].BattleAttributes.ClearShields();
+			allUnits[index].ResetBattleRuntimeState();
 		}
 	}
 
@@ -86,7 +87,7 @@ public sealed class BattleContext
 	{
 		foreach (BattleUnit unit in GetUnits(p_side))
 		{
-			if (unit != null && !unit.IsDefeated)
+			if (unit != null && unit.IsActiveInBattle)
 			{
 				return true;
 			}
@@ -99,7 +100,7 @@ public sealed class BattleContext
 	{
 		foreach (BattleUnit unit in GetOpponents(p_sourceUnit))
 		{
-			if (unit != null && !unit.IsDefeated)
+			if (unit != null && unit.IsActiveInBattle)
 			{
 				p_targetUnit = unit;
 				return true;
@@ -135,7 +136,7 @@ public sealed class BattleContext
 	public bool TryPlaceUnit(BattleUnit p_unit, Vector3Int p_cell)
 	{
 		bool wasAlreadyPlaced = p_unit != null && p_unit.HasBoardPosition;
-		if (p_unit == null || !Board.TryPlace(p_unit, p_cell))
+		if (p_unit == null || p_unit.HasLeftBattle || !Board.TryPlace(p_unit, p_cell))
 		{
 			return false;
 		}
@@ -151,7 +152,7 @@ public sealed class BattleContext
 
 	public bool TryMoveUnit(BattleUnit p_unit, Vector3Int p_cell)
 	{
-		if (p_unit == null || !Board.TryMove(p_unit, p_cell))
+		if (p_unit == null || p_unit.HasLeftBattle || !Board.TryMove(p_unit, p_cell))
 		{
 			return false;
 		}
@@ -162,7 +163,11 @@ public sealed class BattleContext
 
 	public bool TrySwapUnits(BattleUnit p_firstUnit, BattleUnit p_secondUnit)
 	{
-		if (p_firstUnit == null || p_secondUnit == null || !Board.Runtime.SwapUnits(p_firstUnit, p_secondUnit))
+		if (p_firstUnit == null ||
+			p_secondUnit == null ||
+			p_firstUnit.HasLeftBattle ||
+			p_secondUnit.HasLeftBattle ||
+			!Board.Runtime.SwapUnits(p_firstUnit, p_secondUnit))
 		{
 			return false;
 		}
@@ -189,6 +194,7 @@ public sealed class BattleContext
 
 		Board.Remove(p_unit);
 		p_unit.ClearBoardPosition();
+		p_unit.MarkLeftBattle();
 		UnitRemoved?.Invoke(p_unit);
 	}
 
@@ -198,6 +204,8 @@ public sealed class BattleContext
 		{
 			return;
 		}
+
+		(p_unit as WildBattleUnit)?.MarkUntamable();
 
 		if (p_unit.HasBoardPosition)
 		{
@@ -209,7 +217,33 @@ public sealed class BattleContext
 		UnitDefeated?.Invoke(p_unit);
 	}
 
-	private void InitializeUnits(IReadOnlyList<CreatureUnit> p_sourceUnits, BattleSide p_side, List<BattleUnit> p_targetList)
+	public void DispatchPlayerFeatEvent(FeatRequirement.EventBase p_event)
+	{
+		if (p_event == null)
+		{
+			return;
+		}
+
+		for (int index = 0; index < enemyUnits.Count; index++)
+		{
+			if (enemyUnits[index] is not WildBattleUnit wildUnit || !wildUnit.IsActiveInBattle)
+			{
+				continue;
+			}
+
+			wildUnit.EvaluateTamingEvent(p_event);
+
+			if (!wildUnit.IsTamed)
+			{
+				continue;
+			}
+
+			RemoveUnit(wildUnit);
+			tamedUnits.Add(wildUnit);
+		}
+	}
+
+	private void InitializeUnits(IReadOnlyList<CreatureUnit> p_sourceUnits, BattleSide p_side, List<BattleUnit> p_targetList, bool p_wild)
 	{
 		if (p_sourceUnits == null)
 		{
@@ -224,7 +258,19 @@ public sealed class BattleContext
 				continue;
 			}
 
-			var battleUnit = new BattleUnit(sourceUnit, p_side);
+			BattleUnit battleUnit;
+			if (p_wild)
+			{
+				TamingProfile profile = sourceUnit.Species.TamingProfile;
+				battleUnit = profile != null && profile.HasConditions
+					? new WildBattleUnit(sourceUnit, p_side, profile)
+					: new BattleUnit(sourceUnit, p_side);
+			}
+			else
+			{
+				battleUnit = new BattleUnit(sourceUnit, p_side);
+			}
+
 			p_targetList.Add(battleUnit);
 			allUnits.Add(battleUnit);
 		}

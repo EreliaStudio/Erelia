@@ -5,7 +5,12 @@ using UnityEngine;
 public class PlayerData : ActorData
 {
 	[SerializeField] private Vector3Int worldCell = Vector3Int.zero;
-	[SerializeReference] private CreatureUnit[] team = new CreatureUnit[GameRule.TeamMemberCount];
+
+	[SerializeReference]
+	private CreatureUnit[] team = new CreatureUnit[GameRule.TeamMemberCount];
+
+	[SerializeField]
+	private CreatureStorage creatureStorage = new CreatureStorage();
 
 	public Vector3Int WorldCell
 	{
@@ -14,6 +19,16 @@ public class PlayerData : ActorData
 	}
 
 	public CreatureUnit[] Team => team;
+
+	public CreatureStorage CreatureStorage
+	{
+		get
+		{
+			creatureStorage ??= new CreatureStorage();
+			return creatureStorage;
+		}
+	}
+
 	public Vector3 WorldPosition => worldCell;
 
 	public void CopyFrom(PlayerData p_other)
@@ -22,11 +37,52 @@ public class PlayerData : ActorData
 		{
 			worldCell = Vector3Int.zero;
 			team = new CreatureUnit[GameRule.TeamMemberCount];
+			creatureStorage = new CreatureStorage();
 			return;
 		}
 
 		worldCell = p_other.WorldCell;
 		team = CloneTeam(p_other.Team);
+		creatureStorage = p_other.CreatureStorage.Clone();
+	}
+
+	public bool AddCreatureToTeamOrStorage(CreatureUnit p_creatureUnit)
+	{
+		if (p_creatureUnit == null)
+		{
+			return false;
+		}
+
+		EnsureTeamInitialized();
+
+		for (int index = 0; index < team.Length; index++)
+		{
+			if (team[index] != null)
+			{
+				continue;
+			}
+
+			team[index] = p_creatureUnit;
+			return true;
+		}
+
+		CreatureStorage.Add(p_creatureUnit);
+		return true;
+	}
+
+	private void EnsureTeamInitialized()
+	{
+		if (team == null || team.Length != GameRule.TeamMemberCount)
+		{
+			CreatureUnit[] resizedTeam = new CreatureUnit[GameRule.TeamMemberCount];
+
+			if (team != null)
+			{
+				Array.Copy(team, resizedTeam, Mathf.Min(team.Length, resizedTeam.Length));
+			}
+
+			team = resizedTeam;
+		}
 	}
 
 	private static CreatureUnit[] CloneTeam(CreatureUnit[] p_sourceTeam)
