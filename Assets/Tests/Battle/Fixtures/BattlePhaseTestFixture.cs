@@ -44,6 +44,7 @@ namespace Tests
 		public BattleOrchestrator CreateInitializedOrchestrator(int randomSeed = 12345)
 		{
 			UnityEngine.Random.InitState(randomSeed);
+			EventCenter.EmitBattleStarted(BattleContext);
 			BattleOrchestrator orchestrator = new BattleOrchestrator();
 			orchestrator.Initialize(null, BattleContext);
 			return orchestrator;

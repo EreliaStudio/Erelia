@@ -11,14 +11,14 @@ public sealed class SetupPhase : BattlePhase
 
 		if (!BattleContext.HasLivingUnits(BattleSide.Player))
 		{
-			Logger.LogError("[SetupPhase] Cannot start battle: player team has no living units.", Logger.Severity.Critical);
+			Logger.LogError("[SetupPhase] Cannot start battle: player team has no living units.", Logger.Severity.Warning);
 			Coordinator.TransitionTo(BattlePhaseType.End);
 			return;
 		}
 
 		if (!BattleContext.HasLivingUnits(BattleSide.Enemy))
 		{
-			Logger.LogError("[SetupPhase] Cannot start battle: enemy team has no living units.", Logger.Severity.Critical);
+			Logger.LogError("[SetupPhase] Cannot start battle: enemy team has no living units.", Logger.Severity.Warning);
 			Coordinator.TransitionTo(BattlePhaseType.End);
 			return;
 		}
