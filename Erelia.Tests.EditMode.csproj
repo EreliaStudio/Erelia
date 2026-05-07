@@ -77,6 +77,7 @@
     <Compile Include="Assets\Tests\Requirements\Damage\DamageRequirementTests.cs" />
     <Compile Include="Assets\Tests\Feats\FightScopeTests.cs" />
     <Compile Include="Assets\Tests\Effects\Statuses\ApplyStatusEffectTests.cs" />
+    <Compile Include="Assets\Tests\Services\FeatBoardServiceTests.cs" />
     <Compile Include="Assets\Tests\Battle\Fixtures\BattlePhaseTestFixture.cs" />
     <Compile Include="Assets\Tests\Feats\FightEventRegistrationTests.cs" />
     <Compile Include="Assets\Tests\Effects\Resources\ResourceChangeEffectTests.cs" />
@@ -89,6 +90,7 @@
     <Compile Include="Assets\Tests\Requirements\Meta\MetaRequirementTests.cs" />
     <Compile Include="Assets\Tests\Battle\Backend\BackendBehaviorTests.cs" />
     <Compile Include="Assets\Tests\Effects\EffectTestBase.cs" />
+    <Compile Include="Assets\Tests\Services\TamingServiceTests.cs" />
     <Compile Include="Assets\Tests\Effects\BoardObjects\RemoveInteractiveObjectEffectTests.cs" />
     <Compile Include="Assets\Tests\Feats\HealEffectTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\PlayerTurn\PlayerTurnPhaseCommandTests.cs" />

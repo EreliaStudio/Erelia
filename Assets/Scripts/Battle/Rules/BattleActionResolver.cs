@@ -22,6 +22,11 @@ public static class BattleActionResolver
 
 	private static bool ResolveMove(BattleContext battleContext, TurnContext turnContext, MoveAction action)
 	{
+		if (!BattleActionValidator.CanMove(battleContext, turnContext, action))
+		{
+			return false;
+		}
+
 		BattleStatusRules.ApplyHook(CreateHookContext(
 			battleContext,
 			StatusHookPoint.BeforeConsumingResources,

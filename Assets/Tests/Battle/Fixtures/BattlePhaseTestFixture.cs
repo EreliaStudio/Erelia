@@ -16,6 +16,7 @@ namespace Tests
 		public BattleUnit[] EnemyUnits => ToArray(BattleContext?.EnemyUnits);
 
 		private readonly List<UnityEngine.Object> ownedAssets = new List<UnityEngine.Object>();
+		private ServiceLocatorTestScope serviceLocatorScope;
 
 		public static BattlePhaseTestFixture Create(
 			int playerCount = 2,
@@ -24,7 +25,8 @@ namespace Tests
 			float[] enemyRecoveries = null,
 			int defaultHealth = 10,
 			int defaultActionPoints = 2,
-			int defaultMovement = 2)
+			int defaultMovement = 2,
+			TamingProfile[] enemyTamingProfiles = null)
 		{
 			BattlePhaseTestFixture fixture = new BattlePhaseTestFixture();
 			fixture.Build(
@@ -34,7 +36,8 @@ namespace Tests
 				enemyRecoveries,
 				defaultHealth,
 				defaultActionPoints,
-				defaultMovement);
+				defaultMovement,
+				enemyTamingProfiles);
 			return fixture;
 		}
 
@@ -177,6 +180,8 @@ namespace Tests
 			BattleContext = null;
 			PlayerSources = null;
 			EnemySources = null;
+			serviceLocatorScope?.Dispose();
+			serviceLocatorScope = null;
 		}
 
 		private void Build(
@@ -186,8 +191,10 @@ namespace Tests
 			float[] enemyRecoveries,
 			int defaultHealth,
 			int defaultActionPoints,
-			int defaultMovement)
+			int defaultMovement,
+			TamingProfile[] enemyTamingProfiles = null)
 		{
+			serviceLocatorScope = new ServiceLocatorTestScope();
 			VoxelRegistry voxelRegistry = CreateWalkableBoardVoxelRegistry();
 			BoardData board = CreateBoard(voxelRegistry, 4, 3, 6);
 
@@ -202,7 +209,8 @@ namespace Tests
 				enemyRecoveries,
 				defaultHealth,
 				defaultActionPoints,
-				defaultMovement);
+				defaultMovement,
+				enemyTamingProfiles);
 
 			BattleContext = new BattleContext(
 				PlayerSources,
@@ -258,15 +266,22 @@ namespace Tests
 			float[] recoveries,
 			int defaultHealth,
 			int defaultActionPoints,
-			int defaultMovement)
+			int defaultMovement,
+			TamingProfile[] tamingProfiles = null)
 		{
 			EncounterUnit[] units = new EncounterUnit[count];
 			for (int index = 0; index < count; index++)
 			{
 				float recovery = ResolveRecovery(recoveries, index);
+				CreatureSpecies species = CreateSpecies($"EnemySpecies_{index}", recovery, defaultHealth, defaultActionPoints, defaultMovement);
+				if (tamingProfiles != null && index < tamingProfiles.Length && tamingProfiles[index] != null)
+				{
+					species.TamingProfile = tamingProfiles[index];
+				}
+
 				units[index] = new EncounterUnit
 				{
-					Species = CreateSpecies($"EnemySpecies_{index}", recovery, defaultHealth, defaultActionPoints, defaultMovement),
+					Species = species,
 					Attributes = CreateAttributes(recovery, defaultHealth, defaultActionPoints, defaultMovement),
 					Abilities = new List<Ability>(),
 					PermanentPassives = new List<Status>()

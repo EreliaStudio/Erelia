@@ -106,6 +106,14 @@ public static class BattleActionValidator
 			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.SourceNotPlaced, targetCell);
 		}
 
+		int requiredAp = Math.Max(0, ability.Cost?.Ability ?? 0);
+		int requiredMp = Math.Max(0, ability.Cost?.Movement ?? 0);
+		if (activeUnit.BattleAttributes.ActionPoints.Current < requiredAp ||
+			activeUnit.BattleAttributes.MovementPoints.Current < requiredMp)
+		{
+			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.InsufficientResources, targetCell);
+		}
+
 		if (!battleContext.Board.IsInside(targetCell))
 		{
 			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.OutOfBoard, targetCell);

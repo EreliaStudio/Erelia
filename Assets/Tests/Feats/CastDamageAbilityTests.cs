@@ -14,6 +14,10 @@ namespace Tests.Feats.CastDamageAbility
 				enemyCount: 1,
 				defaultHealth: 50,
 				defaultActionPoints: 4);
+
+			Ability damageAbility = fixture.CreateDamageAbility(baseDamage: 5, actionPointCost: 1, targetProfile: TargetProfile.Enemy);
+			fixture.PlayerSources[0].Abilities.Add(damageAbility);
+
 			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
@@ -22,17 +26,12 @@ namespace Tests.Feats.CastDamageAbility
 				playerTurnBars: new[] { fixture.PlayerUnits[0].BattleAttributes.TurnBar.Max },
 				enemyTurnBars: new[] { 0f });
 
-			Ability damageAbility = fixture.CreateDamageAbility(baseDamage: 5, actionPointCost: 1);
 			PlayerTurnPhase playerTurn = fixture.GetPlayerTurnPhase(orchestrator);
-			IReadOnlyList<Vector3Int> validCells = playerTurn.GetValidTargetCells(damageAbility);
+			Vector3Int enemyCell = fixture.EnemyUnits[0].BoardPosition;
 
-			Assert.That(validCells.Count, Is.GreaterThan(0), "No valid target cells for damage ability.");
-
-			playerTurn.TrySubmitAbility(damageAbility, new List<Vector3Int> { validCells[0] });
-			orchestrator.TransitionTo(BattlePhaseType.Resolution);
+			playerTurn.TrySubmitAbility(damageAbility, new List<Vector3Int> { enemyCell });
 
 			BattleUnit caster = fixture.PlayerUnits[0];
-
 			Assert.That(capture.Find<DealDamageRequirement.Event>(caster), Is.Not.Null);
 
 			orchestrator.Dispose();
@@ -46,6 +45,10 @@ namespace Tests.Feats.CastDamageAbility
 				enemyCount: 1,
 				defaultHealth: 50,
 				defaultActionPoints: 4);
+
+			Ability damageAbility = fixture.CreateDamageAbility(baseDamage: 5, actionPointCost: 1, targetProfile: TargetProfile.Enemy);
+			fixture.PlayerSources[0].Abilities.Add(damageAbility);
+
 			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
@@ -54,14 +57,10 @@ namespace Tests.Feats.CastDamageAbility
 				playerTurnBars: new[] { fixture.PlayerUnits[0].BattleAttributes.TurnBar.Max },
 				enemyTurnBars: new[] { 0f });
 
-			Ability damageAbility = fixture.CreateDamageAbility(baseDamage: 5, actionPointCost: 1);
 			PlayerTurnPhase playerTurn = fixture.GetPlayerTurnPhase(orchestrator);
-			IReadOnlyList<Vector3Int> validCells = playerTurn.GetValidTargetCells(damageAbility);
+			Vector3Int enemyCell = fixture.EnemyUnits[0].BoardPosition;
 
-			Assert.That(validCells.Count, Is.GreaterThan(0), "No valid target cells for damage ability.");
-
-			playerTurn.TrySubmitAbility(damageAbility, new List<Vector3Int> { validCells[0] });
-			orchestrator.TransitionTo(BattlePhaseType.Resolution);
+			playerTurn.TrySubmitAbility(damageAbility, new List<Vector3Int> { enemyCell });
 
 			BattleUnit target = fixture.EnemyUnits[0];
 			Assert.That(capture.Find<TakeDamageRequirement.Event>(target), Is.Not.Null);
