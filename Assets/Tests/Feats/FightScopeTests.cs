@@ -19,7 +19,7 @@ namespace Tests.Feats.FightScope
 				}
 			};
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
 				new TestAmountEvent { Amount = 80, TurnIndex = 1 },
 				new TestAmountEvent { Amount = 80, TurnIndex = 2 }
@@ -40,7 +40,7 @@ namespace Tests.Feats.FightScope
 		}
 
 		[Serializable]
-		private sealed class TestAmountEvent : FeatRequirement.EventBase
+		private sealed class TestAmountEvent : BattleEvent
 		{
 			public int Amount;
 		}

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 public sealed class FeatBoardService
 {
 	private readonly GameContext gameContext;
-	private readonly Dictionary<CreatureUnit, List<FeatRequirement.EventBase>> battleEventsByUnit = new();
+	private readonly Dictionary<CreatureUnit, List<BattleEvent>> battleEventsByUnit = new();
 
 	private BattleContext activeBattleContext;
 
@@ -15,7 +15,7 @@ public sealed class FeatBoardService
 	public void Initialize()
 	{
 		EventCenter.BattleStarted += OnBattleStarted;
-		EventCenter.BattleFeatEventOccurred += OnBattleFeatEventOccurred;
+		EventCenter.BattleEventOccurred += OnBattleEventOccurred;
 		EventCenter.BattleAbilityResolved += OnBattleAbilityResolved;
 		EventCenter.BattleTurnEnded += OnBattleTurnEnded;
 		EventCenter.BattleResolved += OnBattleResolved;
@@ -24,7 +24,7 @@ public sealed class FeatBoardService
 	public void Shutdown()
 	{
 		EventCenter.BattleStarted -= OnBattleStarted;
-		EventCenter.BattleFeatEventOccurred -= OnBattleFeatEventOccurred;
+		EventCenter.BattleEventOccurred -= OnBattleEventOccurred;
 		EventCenter.BattleAbilityResolved -= OnBattleAbilityResolved;
 		EventCenter.BattleTurnEnded -= OnBattleTurnEnded;
 		EventCenter.BattleResolved -= OnBattleResolved;
@@ -48,12 +48,12 @@ public sealed class FeatBoardService
 			CreatureUnit unit = activeBattleContext.PlayerUnits[index]?.SourceUnit;
 			if (unit != null && !battleEventsByUnit.ContainsKey(unit))
 			{
-				battleEventsByUnit.Add(unit, new List<FeatRequirement.EventBase>());
+				battleEventsByUnit.Add(unit, new List<BattleEvent>());
 			}
 		}
 	}
 
-	private void OnBattleFeatEventOccurred(BattleUnit p_unit, FeatRequirement.EventBase p_featEvent)
+	private void OnBattleEventOccurred(BattleUnit p_unit, BattleEvent p_featEvent)
 	{
 		if (p_unit == null ||
 			p_unit.Side != BattleSide.Player ||
@@ -109,10 +109,10 @@ public sealed class FeatBoardService
 					continue;
 				}
 
-				List<FeatRequirement.EventBase> featEvents = GetOrCreateBattleEventList(battleUnit.SourceUnit);
+				List<BattleEvent> featEvents = GetOrCreateBattleEventList(battleUnit.SourceUnit);
 				if (playerWon)
 				{
-					featEvents.Add(new WinBattleCountRequirement.Event { UnitSurvived = !battleUnit.IsDefeated });
+					featEvents.Add(new BattleWonEvent { UnitSurvived = !battleUnit.IsDefeated });
 				}
 
 				int completedNodeCount = RegisterFightEvents(battleUnit.SourceUnit, featEvents, true);
@@ -127,11 +127,11 @@ public sealed class FeatBoardService
 		battleEventsByUnit.Clear();
 	}
 
-	private List<FeatRequirement.EventBase> GetOrCreateBattleEventList(CreatureUnit p_unit)
+	private List<BattleEvent> GetOrCreateBattleEventList(CreatureUnit p_unit)
 	{
-		if (!battleEventsByUnit.TryGetValue(p_unit, out List<FeatRequirement.EventBase> featEvents))
+		if (!battleEventsByUnit.TryGetValue(p_unit, out List<BattleEvent> featEvents))
 		{
-			featEvents = new List<FeatRequirement.EventBase>();
+			featEvents = new List<BattleEvent>();
 			battleEventsByUnit[p_unit] = featEvents;
 		}
 
@@ -331,14 +331,14 @@ public sealed class FeatBoardService
 		return true;
 	}
 
-	public static int RegisterEvent(CreatureUnit p_unit, FeatRequirement.EventBase p_featEvent)
+	public static int RegisterEvent(CreatureUnit p_unit, BattleEvent p_featEvent)
 	{
 		return RegisterEvent(p_unit, p_featEvent, true);
 	}
 
 	public static int RegisterFightEvents(
 		CreatureUnit p_unit,
-		IReadOnlyList<FeatRequirement.EventBase> p_featEvents,
+		IReadOnlyList<BattleEvent> p_featEvents,
 		bool p_includeTransientRequirements = true)
 	{
 		if (p_unit == null)
@@ -401,7 +401,7 @@ public sealed class FeatBoardService
 		}
 	}
 
-	private static int RegisterEvent(CreatureUnit p_unit, FeatRequirement.EventBase p_featEvent, bool p_includeTransientRequirements)
+	private static int RegisterEvent(CreatureUnit p_unit, BattleEvent p_featEvent, bool p_includeTransientRequirements)
 	{
 		return RegisterEvents(
 			p_unit,
@@ -411,7 +411,7 @@ public sealed class FeatBoardService
 
 	private static int RegisterEvents(
 		CreatureUnit p_unit,
-		IReadOnlyList<FeatRequirement.EventBase> p_featEvents,
+		IReadOnlyList<BattleEvent> p_featEvents,
 		bool p_includeTransientRequirements)
 	{
 		FeatBoard featBoard = GetBoard(p_unit);

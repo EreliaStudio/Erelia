@@ -25,7 +25,7 @@ public sealed class TamingProgress
 		}
 	}
 
-	public void EvaluateEvents(IReadOnlyList<FeatRequirement.EventBase> p_events)
+	public void EvaluateEvents(IReadOnlyList<BattleEvent> p_events)
 	{
 		if (IsImpressed || HasFailed || Profile?.Conditions == null)
 		{

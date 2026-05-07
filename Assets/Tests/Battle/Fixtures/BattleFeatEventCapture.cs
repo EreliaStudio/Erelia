@@ -9,12 +9,12 @@ namespace Tests
 
 		public BattleFeatEventCapture()
 		{
-			EventCenter.BattleFeatEventOccurred += OnBattleFeatEventOccurred;
+			EventCenter.BattleEventOccurred += OnBattleEventOccurred;
 		}
 
 		public void Dispose()
 		{
-			EventCenter.BattleFeatEventOccurred -= OnBattleFeatEventOccurred;
+			EventCenter.BattleEventOccurred -= OnBattleEventOccurred;
 			entries.Clear();
 		}
 
@@ -33,7 +33,7 @@ namespace Tests
 		}
 
 		public TEvent Find<TEvent>(BattleUnit p_unit)
-			where TEvent : FeatRequirement.EventBase
+			where TEvent : BattleEvent
 		{
 			for (int index = 0; index < entries.Count; index++)
 			{
@@ -47,9 +47,9 @@ namespace Tests
 			return null;
 		}
 
-		public IReadOnlyList<FeatRequirement.EventBase> GetEvents(BattleUnit p_unit)
+		public IReadOnlyList<BattleEvent> GetEvents(BattleUnit p_unit)
 		{
-			List<FeatRequirement.EventBase> events = new List<FeatRequirement.EventBase>();
+			List<BattleEvent> events = new List<BattleEvent>();
 			for (int index = 0; index < entries.Count; index++)
 			{
 				Entry entry = entries[index];
@@ -62,7 +62,7 @@ namespace Tests
 			return events;
 		}
 
-		private void OnBattleFeatEventOccurred(BattleUnit p_unit, FeatRequirement.EventBase p_featEvent)
+		private void OnBattleEventOccurred(BattleUnit p_unit, BattleEvent p_featEvent)
 		{
 			if (p_unit != null && p_featEvent != null)
 			{
@@ -72,14 +72,14 @@ namespace Tests
 
 		private readonly struct Entry
 		{
-			public Entry(BattleUnit p_unit, FeatRequirement.EventBase p_featEvent)
+			public Entry(BattleUnit p_unit, BattleEvent p_featEvent)
 			{
 				Unit = p_unit;
 				FeatEvent = p_featEvent;
 			}
 
 			public BattleUnit Unit { get; }
-			public FeatRequirement.EventBase FeatEvent { get; }
+			public BattleEvent FeatEvent { get; }
 		}
 	}
 }

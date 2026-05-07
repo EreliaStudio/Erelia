@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -26,18 +26,11 @@ public abstract class FeatRequirement
 		}
 	}
 
-	[Serializable]
-	public abstract class EventBase
-	{
-		public int TurnIndex = 0;
-		public Ability SourceAbility;
-	}
-
 	public Scope RequirementScope = Scope.Fight;
 	public int RequiredRepeatCount = 1;
 
 	public virtual Advancement EvaluateEvents(
-		IReadOnlyList<EventBase> p_events,
+		IReadOnlyList<BattleEvent> p_events,
 		Advancement p_currentAdvancement)
 	{
 		Advancement advancement = p_currentAdvancement;
@@ -79,7 +72,7 @@ public abstract class FeatRequirement
 		return p_advancement.CompletedRepeatCount >= RequiredRepeatCount;
 	}
 
-	protected abstract float EvaluateEventProgress(EventBase p_event);
+	protected abstract float EvaluateEventProgress(BattleEvent p_event);
 
 	protected static float ComputeLinearProgress(int p_amount, int p_requiredAmount)
 	{
@@ -97,7 +90,7 @@ public abstract class FeatRequirement
 	}
 
 	private void EvaluateActionScope(
-		IReadOnlyList<EventBase> p_events,
+		IReadOnlyList<BattleEvent> p_events,
 		ref Advancement p_advancement)
 	{
 		for (int index = 0; index < p_events.Count; index++)
@@ -119,33 +112,33 @@ public abstract class FeatRequirement
 	}
 
 	private void EvaluateTurnScope(
-		IReadOnlyList<EventBase> p_events,
+		IReadOnlyList<BattleEvent> p_events,
 		ref Advancement p_advancement)
 	{
 		Dictionary<int, float> progressByTurn = new Dictionary<int, float>();
 
 		for (int index = 0; index < p_events.Count; index++)
 		{
-			EventBase featEvent = p_events[index];
+			BattleEvent battleEvent = p_events[index];
 
-			if (featEvent == null)
+			if (battleEvent == null)
 			{
 				continue;
 			}
 
-			float eventProgress = GetEventProgress(featEvent);
+			float eventProgress = GetEventProgress(battleEvent);
 
 			if (eventProgress <= 0f)
 			{
 				continue;
 			}
 
-			if (progressByTurn.ContainsKey(featEvent.TurnIndex) == false)
+			if (progressByTurn.ContainsKey(battleEvent.TurnIndex) == false)
 			{
-				progressByTurn.Add(featEvent.TurnIndex, 0f);
+				progressByTurn.Add(battleEvent.TurnIndex, 0f);
 			}
 
-			progressByTurn[featEvent.TurnIndex] += eventProgress;
+			progressByTurn[battleEvent.TurnIndex] += eventProgress;
 		}
 
 		foreach (float turnProgress in progressByTurn.Values)
@@ -165,7 +158,7 @@ public abstract class FeatRequirement
 	}
 
 	private void EvaluateFightScope(
-		IReadOnlyList<EventBase> p_events,
+		IReadOnlyList<BattleEvent> p_events,
 		ref Advancement p_advancement)
 	{
 		float fightProgress = p_advancement.Progress;
@@ -191,7 +184,7 @@ public abstract class FeatRequirement
 	}
 
 	private void EvaluateGameScope(
-		IReadOnlyList<EventBase> p_events,
+		IReadOnlyList<BattleEvent> p_events,
 		ref Advancement p_advancement)
 	{
 		for (int index = 0; index < p_events.Count; index++)
@@ -212,7 +205,7 @@ public abstract class FeatRequirement
 		}
 	}
 
-	private float GetEventProgress(EventBase p_event)
+	private float GetEventProgress(BattleEvent p_event)
 	{
 		if (p_event == null)
 		{
@@ -231,9 +224,9 @@ public abstract class FeatRequirement
 
 [Serializable]
 public abstract class FeatRequirementTemplated<TEvent> : FeatRequirement
-	where TEvent : FeatRequirement.EventBase
+	where TEvent : BattleEvent
 {
-	protected sealed override float EvaluateEventProgress(EventBase p_event)
+	protected sealed override float EvaluateEventProgress(BattleEvent p_event)
 	{
 		if (p_event is not TEvent typedEvent)
 		{
@@ -246,23 +239,19 @@ public abstract class FeatRequirementTemplated<TEvent> : FeatRequirement
 	protected abstract float EvaluateProgress(TEvent p_event);
 }
 
+// ── Damage ────────────────────────────────────────────────────────────────────
+
 [Serializable]
-public class DealDamageRequirement : FeatRequirementTemplated<DealDamageRequirement.Event>
+public class DealDamageRequirement : FeatRequirementTemplated<DamageEvent>
 {
 	public int RequiredAmount = 10;
 	public List<Ability> SourceAbilities = new();
 	public bool FilterByDamageKind = false;
 	public MathFormula.DamageInput.Kind RequiredDamageKind = MathFormula.DamageInput.Kind.Physical;
 
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
+	protected override float EvaluateProgress(DamageEvent p_event)
 	{
-		public int Amount = 0;
-		public MathFormula.DamageInput.Kind DamageKind = MathFormula.DamageInput.Kind.Physical;
-	}
-
-	protected override float EvaluateProgress(Event p_event)
-	{
+		if (p_event.Caster == null) return 0f;
 		if (SourceAbilities.Count > 0 && !SourceAbilities.Contains(p_event.SourceAbility)) return 0f;
 		if (FilterByDamageKind && p_event.DamageKind != RequiredDamageKind) return 0f;
 		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
@@ -270,75 +259,349 @@ public class DealDamageRequirement : FeatRequirementTemplated<DealDamageRequirem
 }
 
 [Serializable]
-public class HealHealthRequirement : FeatRequirementTemplated<HealHealthRequirement.Event>
+public class TakeDamageRequirement : FeatRequirementTemplated<DamageEvent>
 {
 	public int RequiredAmount = 10;
 
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
+	protected override float EvaluateProgress(DamageEvent p_event)
 	{
-		public int Amount = 0;
-	}
-
-	protected override float EvaluateProgress(Event p_event)
-	{
+		if (p_event.Target == null) return 0f;
 		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
 	}
 }
 
 [Serializable]
-public class CastAbilityCountRequirement : FeatRequirementTemplated<CastAbilityCountRequirement.Event>
+public class WinAfterDealingDamageRequirement : FeatRequirementTemplated<DamageEvent>
 {
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
+	public int RequiredAmount = 100;
+
+	public WinAfterDealingDamageRequirement()
 	{
-		public Ability Ability;
+		RequirementScope = Scope.Fight;
 	}
 
-	public List<Ability> Abilities = new();
-	public int RequiredCount = 1;
-
-	protected override float EvaluateProgress(Event p_event)
+	protected override float EvaluateProgress(DamageEvent p_event)
 	{
-		if (Abilities.Count > 0 && !Abilities.Contains(p_event.Ability))
-		{
-			return 0f;
-		}
+		if (p_event.Caster == null) return 0f;
+		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
+	}
+}
 
+[Serializable]
+public class SurviveHitRequirement : FeatRequirementTemplated<HitSurvivedEvent>
+{
+	public int RequiredAmount = 10;
+
+	public SurviveHitRequirement()
+	{
+		RequirementScope = Scope.Action;
+	}
+
+	protected override float EvaluateProgress(HitSurvivedEvent p_event)
+	{
+		return p_event.Amount >= RequiredAmount ? 100f : 0f;
+	}
+}
+
+// ── Healing ───────────────────────────────────────────────────────────────────
+
+[Serializable]
+public class HealHealthRequirement : FeatRequirementTemplated<HealEvent>
+{
+	public int RequiredAmount = 10;
+
+	protected override float EvaluateProgress(HealEvent p_event)
+	{
+		if (p_event.Caster == null) return 0f;
+		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
+	}
+}
+
+[Serializable]
+public class HealTargetRequirement : FeatRequirementTemplated<HealEvent>
+{
+	public enum TargetFilter { Self, Ally, Any }
+
+	public int RequiredAmount = 10;
+	public TargetFilter Target = TargetFilter.Any;
+
+	protected override float EvaluateProgress(HealEvent p_event)
+	{
+		if (p_event.Caster == null) return 0f;
+		bool isSelf = p_event.Caster == p_event.Target;
+		if (Target == TargetFilter.Self && !isSelf) return 0f;
+		if (Target == TargetFilter.Ally && isSelf) return 0f;
+		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
+	}
+}
+
+[Serializable]
+public class WinAfterHealingRequirement : FeatRequirementTemplated<HealEvent>
+{
+	public int RequiredAmount = 50;
+
+	public WinAfterHealingRequirement()
+	{
+		RequirementScope = Scope.Fight;
+	}
+
+	protected override float EvaluateProgress(HealEvent p_event)
+	{
+		if (p_event.Caster == null) return 0f;
+		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
+	}
+}
+
+// ── Shields ───────────────────────────────────────────────────────────────────
+
+[Serializable]
+public class ApplyShieldRequirement : FeatRequirementTemplated<ShieldAppliedEvent>
+{
+	public enum KindFilter { Any, Physical, Magical }
+
+	public int RequiredAmount = 10;
+	public KindFilter Filter = KindFilter.Any;
+
+	protected override float EvaluateProgress(ShieldAppliedEvent p_event)
+	{
+		if (p_event.Caster == null) return 0f;
+		if (Filter == KindFilter.Physical && p_event.Kind != ShieldKind.Physical) return 0f;
+		if (Filter == KindFilter.Magical && p_event.Kind != ShieldKind.Magical) return 0f;
+		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
+	}
+}
+
+[Serializable]
+public class ApplyShieldCountRequirement : FeatRequirementTemplated<ShieldAppliedEvent>
+{
+	public int RequiredCount = 3;
+
+	protected override float EvaluateProgress(ShieldAppliedEvent p_event)
+	{
+		if (p_event.Caster == null) return 0f;
 		return ComputeLinearProgress(1, RequiredCount);
 	}
 }
 
 [Serializable]
-public class TakeDamageRequirement : FeatRequirementTemplated<TakeDamageRequirement.Event>
+public class AbsorbDamageWithShieldRequirement : FeatRequirementTemplated<DamageAbsorbedEvent>
 {
 	public int RequiredAmount = 10;
 
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
+	protected override float EvaluateProgress(DamageAbsorbedEvent p_event)
 	{
-		public int Amount = 0;
-	}
-
-	protected override float EvaluateProgress(Event p_event)
-	{
+		if (p_event.Target == null) return 0f;
 		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
 	}
 }
 
+[Serializable]
+public class MaxDamageAbsorbedInOneHitRequirement : FeatRequirementTemplated<DamageAbsorbedEvent>
+{
+	public int RequiredAmount = 10;
+
+	public MaxDamageAbsorbedInOneHitRequirement()
+	{
+		RequirementScope = Scope.Action;
+	}
+
+	protected override float EvaluateProgress(DamageAbsorbedEvent p_event)
+	{
+		if (p_event.Target == null) return 0f;
+		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
+	}
+}
 
 [Serializable]
-public class TurnStartPositionRequirement : FeatRequirementTemplated<TurnStartPositionRequirement.Event>
+public class ShieldBrokenRequirement : FeatRequirementTemplated<ShieldBrokenEvent>
+{
+	public enum KindFilter { Any, Physical, Magical }
+
+	public int RequiredCount = 1;
+	public KindFilter Filter = KindFilter.Any;
+
+	protected override float EvaluateProgress(ShieldBrokenEvent p_event)
+	{
+		if (Filter == KindFilter.Physical && p_event.Kind != ShieldKind.Physical) return 0f;
+		if (Filter == KindFilter.Magical && p_event.Kind != ShieldKind.Magical) return 0f;
+		return ComputeLinearProgress(1, RequiredCount);
+	}
+}
+
+// ── Status ────────────────────────────────────────────────────────────────────
+
+[Serializable]
+public class ApplyStatusCountRequirement : FeatRequirementTemplated<StatusAppliedEvent>
+{
+	public int RequiredCount = 5;
+	public Status RequiredStatus;
+	public List<Ability> SourceAbilities = new();
+
+	protected override float EvaluateProgress(StatusAppliedEvent p_event)
+	{
+		if (p_event.Caster == null) return 0f;
+		if (RequiredStatus != null && p_event.Status != RequiredStatus) return 0f;
+		if (SourceAbilities.Count > 0 && !SourceAbilities.Contains(p_event.SourceAbility)) return 0f;
+		return ComputeLinearProgress(1, RequiredCount);
+	}
+}
+
+[Serializable]
+public class RemoveStatusCountRequirement : FeatRequirementTemplated<StatusRemovedEvent>
+{
+	public int RequiredCount = 1;
+	public Status RequiredStatus;
+
+	protected override float EvaluateProgress(StatusRemovedEvent p_event)
+	{
+		if (p_event.Caster == null) return 0f;
+		if (RequiredStatus != null && p_event.Status != RequiredStatus) return 0f;
+		return ComputeLinearProgress(1, RequiredCount);
+	}
+}
+
+// ── Kills ─────────────────────────────────────────────────────────────────────
+
+[Serializable]
+public class KillCountRequirement : FeatRequirementTemplated<UnitDefeatedEvent>
+{
+	public int RequiredCount = 3;
+	public List<Ability> SourceAbilities = new();
+
+	protected override float EvaluateProgress(UnitDefeatedEvent p_event)
+	{
+		if (p_event.Caster == null) return 0f;
+		if (SourceAbilities.Count > 0 && !SourceAbilities.Contains(p_event.SourceAbility)) return 0f;
+		return ComputeLinearProgress(1, RequiredCount);
+	}
+}
+
+[Serializable]
+public class LastHitRequirement : FeatRequirementTemplated<UnitDefeatedEvent>
+{
+	public int RequiredCount = 5;
+
+	protected override float EvaluateProgress(UnitDefeatedEvent p_event)
+	{
+		if (p_event.Caster == null) return 0f;
+		return ComputeLinearProgress(1, RequiredCount);
+	}
+}
+
+// ── Battle outcome ────────────────────────────────────────────────────────────
+
+[Serializable]
+public class WinBattleCountRequirement : FeatRequirementTemplated<BattleWonEvent>
+{
+	public bool RequireUnitSurvival = false;
+
+	public WinBattleCountRequirement()
+	{
+		RequirementScope = Scope.Game;
+	}
+
+	protected override float EvaluateProgress(BattleWonEvent p_event)
+	{
+		if (RequireUnitSurvival && !p_event.UnitSurvived) return 0f;
+		return 100f;
+	}
+}
+
+// ── Resources ─────────────────────────────────────────────────────────────────
+
+[Serializable]
+public class ConsumeResourcesRequirement : FeatRequirementTemplated<ResourceConsumedEvent>
+{
+	public ResourceConsumedEvent.ResourceKind RequiredResource = ResourceConsumedEvent.ResourceKind.ActionPoints;
+	public int RequiredAmount = 10;
+
+	protected override float EvaluateProgress(ResourceConsumedEvent p_event)
+	{
+		if (p_event.Resource != RequiredResource) return 0f;
+		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
+	}
+}
+
+// ── Movement ──────────────────────────────────────────────────────────────────
+
+[Serializable]
+public class TotalDistanceTravelledRequirement : FeatRequirementTemplated<DistanceTravelledEvent>
+{
+	public int RequiredDistance = 10;
+
+	protected override float EvaluateProgress(DistanceTravelledEvent p_event)
+	{
+		return ComputeLinearProgress(p_event.Distance, RequiredDistance);
+	}
+}
+
+// Tracks distance pushed/pulled to or from targets.
+// Use on the caster's feat (Caster != null) for "push enemies X squares total".
+[Serializable]
+public class DisplacementDealtRequirement : FeatRequirementTemplated<DisplacementEvent>
+{
+	public int RequiredDistance = 5;
+	public bool FilterByOrientation = false;
+	public MoveStatus.Orientation RequiredOrientation = MoveStatus.Orientation.AwayFromCaster;
+
+	protected override float EvaluateProgress(DisplacementEvent p_event)
+	{
+		if (p_event.Caster == null) return 0f;
+		if (FilterByOrientation && p_event.Orientation != RequiredOrientation) return 0f;
+		return ComputeLinearProgress(p_event.Distance, RequiredDistance);
+	}
+}
+
+// Tracks being displaced (pushed or pulled) by any source.
+// Use on the target's feat (Target != null) for "be pushed X times".
+[Serializable]
+public class DisplacementReceivedRequirement : FeatRequirementTemplated<DisplacementEvent>
+{
+	public int RequiredCount = 3;
+	public bool FilterByOrientation = false;
+	public MoveStatus.Orientation RequiredOrientation = MoveStatus.Orientation.AwayFromCaster;
+
+	protected override float EvaluateProgress(DisplacementEvent p_event)
+	{
+		if (p_event.Target == null) return 0f;
+		if (FilterByOrientation && p_event.Orientation != RequiredOrientation) return 0f;
+		return ComputeLinearProgress(1, RequiredCount);
+	}
+}
+
+// ── Teleport ──────────────────────────────────────────────────────────────────
+
+[Serializable]
+public class TeleportCountRequirement : FeatRequirementTemplated<TeleportedEvent>
+{
+	public int RequiredCount = 1;
+
+	protected override float EvaluateProgress(TeleportedEvent p_event)
+	{
+		if (p_event.Caster == null) return 0f;
+		return ComputeLinearProgress(1, RequiredCount);
+	}
+}
+
+[Serializable]
+public class TeleportDistanceRequirement : FeatRequirementTemplated<TeleportedEvent>
+{
+	public int RequiredDistance = 10;
+
+	protected override float EvaluateProgress(TeleportedEvent p_event)
+	{
+		if (p_event.Caster == null) return 0f;
+		return ComputeLinearProgress(p_event.Distance, RequiredDistance);
+	}
+}
+
+// ── Positional ────────────────────────────────────────────────────────────────
+
+[Serializable]
+public class TurnStartPositionRequirement : FeatRequirementTemplated<TurnStartedEvent>
 {
 	public enum TargetKind { Ally, Enemy, AnyUnit }
 	public enum DistanceKind { Within, AtLeast, Between }
-
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
-	{
-		public int ClosestAllyDistance = int.MaxValue;
-		public int ClosestEnemyDistance = int.MaxValue;
-	}
 
 	public TargetKind Target = TargetKind.Enemy;
 	public DistanceKind Condition = DistanceKind.Within;
@@ -350,13 +613,13 @@ public class TurnStartPositionRequirement : FeatRequirementTemplated<TurnStartPo
 		RequirementScope = Scope.Action;
 	}
 
-	protected override float EvaluateProgress(Event p_event)
+	protected override float EvaluateProgress(TurnStartedEvent p_event)
 	{
 		int closest = ResolveDistance(p_event);
 		return MeetsCondition(closest) ? 100f : 0f;
 	}
 
-	private int ResolveDistance(Event p_event)
+	private int ResolveDistance(TurnStartedEvent p_event)
 	{
 		return Target switch
 		{
@@ -381,17 +644,10 @@ public class TurnStartPositionRequirement : FeatRequirementTemplated<TurnStartPo
 }
 
 [Serializable]
-public class TurnEndPositionRequirement : FeatRequirementTemplated<TurnEndPositionRequirement.Event>
+public class TurnEndPositionRequirement : FeatRequirementTemplated<TurnEndedEvent>
 {
 	public enum TargetKind { Ally, Enemy, AnyUnit }
 	public enum DistanceKind { Within, AtLeast, Between }
-
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
-	{
-		public int ClosestAllyDistance = int.MaxValue;
-		public int ClosestEnemyDistance = int.MaxValue;
-	}
 
 	public TargetKind Target = TargetKind.Enemy;
 	public DistanceKind Condition = DistanceKind.Within;
@@ -403,13 +659,13 @@ public class TurnEndPositionRequirement : FeatRequirementTemplated<TurnEndPositi
 		RequirementScope = Scope.Action;
 	}
 
-	protected override float EvaluateProgress(Event p_event)
+	protected override float EvaluateProgress(TurnEndedEvent p_event)
 	{
 		int closest = ResolveDistance(p_event);
 		return MeetsCondition(closest) ? 100f : 0f;
 	}
 
-	private int ResolveDistance(Event p_event)
+	private int ResolveDistance(TurnEndedEvent p_event)
 	{
 		return Target switch
 		{
@@ -433,296 +689,33 @@ public class TurnEndPositionRequirement : FeatRequirementTemplated<TurnEndPositi
 	}
 }
 
-[Serializable]
-public class ApplyShieldRequirement : FeatRequirementTemplated<ApplyShieldRequirement.Event>
-{
-	public enum KindFilter { Any, Physical, Magical }
-
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
-	{
-		public int Amount = 0;
-		public ShieldKind Kind = ShieldKind.Physical;
-	}
-
-	public int RequiredAmount = 10;
-	public KindFilter Filter = KindFilter.Any;
-
-	protected override float EvaluateProgress(Event p_event)
-	{
-		if (Filter == KindFilter.Physical && p_event.Kind != ShieldKind.Physical) return 0f;
-		if (Filter == KindFilter.Magical && p_event.Kind != ShieldKind.Magical) return 0f;
-		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
-	}
-}
+// ── Ability casting ───────────────────────────────────────────────────────────
 
 [Serializable]
-public class AbsorbDamageWithShieldRequirement : FeatRequirementTemplated<AbsorbDamageWithShieldRequirement.Event>
+public class CastAbilityCountRequirement : FeatRequirementTemplated<AbilityCastEvent>
 {
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
-	{
-		public int Amount = 0;
-	}
-
-	public int RequiredAmount = 10;
-
-	protected override float EvaluateProgress(Event p_event)
-	{
-		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
-	}
-}
-
-[Serializable]
-public class MaxDamageAbsorbedInOneHitRequirement : FeatRequirementTemplated<AbsorbDamageWithShieldRequirement.Event>
-{
-	public int RequiredAmount = 10;
-
-	public MaxDamageAbsorbedInOneHitRequirement()
-	{
-		RequirementScope = Scope.Action;
-	}
-
-	protected override float EvaluateProgress(AbsorbDamageWithShieldRequirement.Event p_event)
-	{
-		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
-	}
-}
-
-[Serializable]
-public class ShieldBrokenRequirement : FeatRequirementTemplated<ShieldBrokenRequirement.Event>
-{
-	public enum KindFilter { Any, Physical, Magical }
-
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
-	{
-		public ShieldKind Kind = ShieldKind.Physical;
-	}
-
+	public List<Ability> Abilities = new();
 	public int RequiredCount = 1;
-	public KindFilter Filter = KindFilter.Any;
 
-	protected override float EvaluateProgress(Event p_event)
+	protected override float EvaluateProgress(AbilityCastEvent p_event)
 	{
-		if (Filter == KindFilter.Physical && p_event.Kind != ShieldKind.Physical) return 0f;
-		if (Filter == KindFilter.Magical && p_event.Kind != ShieldKind.Magical) return 0f;
+		if (Abilities.Count > 0 && !Abilities.Contains(p_event.SourceAbility))
+		{
+			return 0f;
+		}
+
 		return ComputeLinearProgress(1, RequiredCount);
 	}
 }
 
-[Serializable]
-public class WinAfterDealingDamageRequirement : FeatRequirementTemplated<DealDamageRequirement.Event>
-{
-	public int RequiredAmount = 100;
-
-	public WinAfterDealingDamageRequirement()
-	{
-		RequirementScope = Scope.Fight;
-	}
-
-	protected override float EvaluateProgress(DealDamageRequirement.Event p_event)
-	{
-		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
-	}
-}
-
-[Serializable]
-public class SurviveHitRequirement : FeatRequirementTemplated<SurviveHitRequirement.Event>
-{
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
-	{
-		public int Amount = 0;
-	}
-
-	public int RequiredAmount = 10;
-
-	public SurviveHitRequirement()
-	{
-		RequirementScope = Scope.Action;
-	}
-
-	protected override float EvaluateProgress(Event p_event)
-	{
-		return p_event.Amount >= RequiredAmount ? 100f : 0f;
-	}
-}
-
-[Serializable]
-public class HealTargetRequirement : FeatRequirementTemplated<HealTargetRequirement.Event>
-{
-	public enum TargetFilter { Self, Ally, Any }
-
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
-	{
-		public int Amount = 0;
-		public bool IsSelf = false;
-	}
-
-	public int RequiredAmount = 10;
-	public TargetFilter Target = TargetFilter.Any;
-
-	protected override float EvaluateProgress(Event p_event)
-	{
-		if (Target == TargetFilter.Self && !p_event.IsSelf) return 0f;
-		if (Target == TargetFilter.Ally && p_event.IsSelf) return 0f;
-		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
-	}
-}
-
-[Serializable]
-public class WinAfterHealingRequirement : FeatRequirementTemplated<HealHealthRequirement.Event>
-{
-	public int RequiredAmount = 50;
-
-	public WinAfterHealingRequirement()
-	{
-		RequirementScope = Scope.Fight;
-	}
-
-	protected override float EvaluateProgress(HealHealthRequirement.Event p_event)
-	{
-		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
-	}
-}
-
-[Serializable]
-public class ApplyShieldCountRequirement : FeatRequirementTemplated<ApplyShieldCountRequirement.Event>
-{
-	[Serializable]
-	public class Event : FeatRequirement.EventBase { }
-
-	public int RequiredCount = 3;
-
-	protected override float EvaluateProgress(Event p_event)
-	{
-		return ComputeLinearProgress(1, RequiredCount);
-	}
-}
-
-[Serializable]
-public class ApplyStatusCountRequirement : FeatRequirementTemplated<ApplyStatusCountRequirement.Event>
-{
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
-	{
-		public Status Status;
-		public int StackCount = 1;
-	}
-
-	public int RequiredCount = 5;
-	public Status RequiredStatus;
-	public List<Ability> SourceAbilities = new();
-
-	protected override float EvaluateProgress(Event p_event)
-	{
-		if (RequiredStatus != null && p_event.Status != RequiredStatus) return 0f;
-		if (SourceAbilities.Count > 0 && !SourceAbilities.Contains(p_event.SourceAbility)) return 0f;
-		return ComputeLinearProgress(1, RequiredCount);
-	}
-}
-
-[Serializable]
-public class KillCountRequirement : FeatRequirementTemplated<KillCountRequirement.Event>
-{
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
-	{
-		public Ability Ability;
-	}
-
-	public int RequiredCount = 3;
-	public List<Ability> SourceAbilities = new();
-
-	protected override float EvaluateProgress(Event p_event)
-	{
-		if (SourceAbilities.Count > 0 && !SourceAbilities.Contains(p_event.Ability)) return 0f;
-		return ComputeLinearProgress(1, RequiredCount);
-	}
-}
-
-[Serializable]
-public class LastHitRequirement : FeatRequirementTemplated<KillCountRequirement.Event>
-{
-	public int RequiredCount = 5;
-
-	protected override float EvaluateProgress(KillCountRequirement.Event p_event)
-	{
-		return ComputeLinearProgress(1, RequiredCount);
-	}
-}
-
-[Serializable]
-public class WinBattleCountRequirement : FeatRequirementTemplated<WinBattleCountRequirement.Event>
-{
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
-	{
-		public bool UnitSurvived = false;
-	}
-
-	public bool RequireUnitSurvival = false;
-
-	public WinBattleCountRequirement()
-	{
-		RequirementScope = Scope.Game;
-	}
-
-	protected override float EvaluateProgress(Event p_event)
-	{
-		if (RequireUnitSurvival && !p_event.UnitSurvived) return 0f;
-		return 100f;
-	}
-}
-
-[Serializable]
-public class ConsumeResourcesRequirement : FeatRequirementTemplated<ConsumeResourcesRequirement.Event>
-{
-	public enum ResourceKind { ActionPoints, MovementPoints }
-
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
-	{
-		public ResourceKind Resource;
-		public int Amount = 0;
-	}
-
-	public ResourceKind RequiredResource = ResourceKind.ActionPoints;
-	public int RequiredAmount = 10;
-
-	protected override float EvaluateProgress(Event p_event)
-	{
-		if (p_event.Resource != RequiredResource) return 0f;
-		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
-	}
-}
-
-[Serializable]
-public class TotalDistanceTravelledRequirement : FeatRequirementTemplated<TotalDistanceTravelledRequirement.Event>
-{
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
-	{
-		public int Distance = 0;
-	}
-
-	public int RequiredDistance = 10;
-
-	protected override float EvaluateProgress(Event p_event)
-	{
-		return ComputeLinearProgress(p_event.Distance, RequiredDistance);
-	}
-}
-
+// ── Meta ──────────────────────────────────────────────────────────────────────
 
 [Serializable]
 public class AndRequirement : FeatRequirement
 {
 	public List<FeatRequirement> Children = new();
 
-	public override Advancement EvaluateEvents(IReadOnlyList<EventBase> p_events, Advancement p_currentAdvancement)
+	public override Advancement EvaluateEvents(IReadOnlyList<BattleEvent> p_events, Advancement p_currentAdvancement)
 	{
 		if (Children == null || Children.Count == 0 || IsCompleted(p_currentAdvancement))
 			return p_currentAdvancement;
@@ -754,7 +747,7 @@ public class AndRequirement : FeatRequirement
 		return advancement;
 	}
 
-	protected override float EvaluateEventProgress(EventBase p_event) => 0f;
+	protected override float EvaluateEventProgress(BattleEvent p_event) => 0f;
 }
 
 [Serializable]
@@ -762,7 +755,7 @@ public class OrRequirement : FeatRequirement
 {
 	public List<FeatRequirement> Children = new();
 
-	public override Advancement EvaluateEvents(IReadOnlyList<EventBase> p_events, Advancement p_currentAdvancement)
+	public override Advancement EvaluateEvents(IReadOnlyList<BattleEvent> p_events, Advancement p_currentAdvancement)
 	{
 		if (Children == null || Children.Count == 0 || IsCompleted(p_currentAdvancement))
 			return p_currentAdvancement;
@@ -794,5 +787,5 @@ public class OrRequirement : FeatRequirement
 		return advancement;
 	}
 
-	protected override float EvaluateEventProgress(EventBase p_event) => 0f;
+	protected override float EvaluateEventProgress(BattleEvent p_event) => 0f;
 }

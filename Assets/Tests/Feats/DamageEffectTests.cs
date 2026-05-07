@@ -6,7 +6,7 @@ namespace Tests.Feats.DamageEffect
 	public sealed class DamageEffectTests
 	{
 		[Test]
-		public void Apply_RecordsDealDamageEventOnSourceUnit()
+		public void Apply_RecordsDamageEventOnSourceUnit()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
 			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
@@ -28,13 +28,13 @@ namespace Tests.Feats.DamageEffect
 			effect.Apply(context);
 
 			Assert.That(capture.Count(sourceUnit), Is.EqualTo(1));
-			var dealEvent = capture.Find<DealDamageRequirement.Event>(sourceUnit);
-			Assert.That(dealEvent, Is.Not.Null);
-			Assert.That(dealEvent.Amount, Is.EqualTo(10));
+			var damageEvent = capture.Find<DamageEvent>(sourceUnit);
+			Assert.That(damageEvent, Is.Not.Null);
+			Assert.That(damageEvent.Amount, Is.EqualTo(10));
 		}
 
 		[Test]
-		public void Apply_RecordsTakeDamageEventOnTargetUnit()
+		public void Apply_RecordsDamageEventOnTargetUnit()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
 			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
@@ -56,13 +56,13 @@ namespace Tests.Feats.DamageEffect
 			effect.Apply(context);
 
 			Assert.That(capture.Count(targetUnit), Is.EqualTo(2));
-			var takeEvent = capture.Find<TakeDamageRequirement.Event>(targetUnit);
-			Assert.That(takeEvent, Is.Not.Null);
-			Assert.That(takeEvent.Amount, Is.EqualTo(10));
+			var damageEvent = capture.Find<DamageEvent>(targetUnit);
+			Assert.That(damageEvent, Is.Not.Null);
+			Assert.That(damageEvent.Amount, Is.EqualTo(10));
 		}
 
 		[Test]
-		public void Apply_BothEventsCarryTheSameAppliedAmount()
+		public void Apply_BothLogsCarryTheSameAppliedAmount()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
 			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
@@ -84,11 +84,11 @@ namespace Tests.Feats.DamageEffect
 
 			effect.Apply(context);
 
-			int dealtAmount = capture.Find<DealDamageRequirement.Event>(sourceUnit).Amount;
-			int takenAmount = capture.Find<TakeDamageRequirement.Event>(targetUnit).Amount;
+			int casterAmount = capture.Find<DamageEvent>(sourceUnit).Amount;
+			int targetAmount = capture.Find<DamageEvent>(targetUnit).Amount;
 
-			Assert.That(dealtAmount, Is.EqualTo(5));
-			Assert.That(takenAmount, Is.EqualTo(5));
+			Assert.That(casterAmount, Is.EqualTo(5));
+			Assert.That(targetAmount, Is.EqualTo(5));
 		}
 
 		[Test]

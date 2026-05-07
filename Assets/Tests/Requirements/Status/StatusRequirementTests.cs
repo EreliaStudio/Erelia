@@ -12,7 +12,7 @@ namespace Tests.Requirements.Status.ApplyStatusCount
 			var req = new ApplyStatusCountRequirement { RequiredCount = 5 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>());
+			progress.RegisterEvents(new List<BattleEvent>());
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
 		}
@@ -23,9 +23,9 @@ namespace Tests.Requirements.Status.ApplyStatusCount
 			var req = new ApplyStatusCountRequirement { RequiredCount = 5 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new ApplyStatusCountRequirement.Event()
+				new StatusAppliedEvent()
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(20f).Within(0.01f));
@@ -37,11 +37,11 @@ namespace Tests.Requirements.Status.ApplyStatusCount
 			var req = new ApplyStatusCountRequirement { RequiredCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new ApplyStatusCountRequirement.Event(),
-				new ApplyStatusCountRequirement.Event(),
-				new ApplyStatusCountRequirement.Event()
+				new StatusAppliedEvent(),
+				new StatusAppliedEvent(),
+				new StatusAppliedEvent()
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -54,9 +54,9 @@ namespace Tests.Requirements.Status.ApplyStatusCount
 			var req = new ApplyStatusCountRequirement { RequiredStatus = null, RequiredCount = 1 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new ApplyStatusCountRequirement.Event { Status = status }
+				new StatusAppliedEvent { Status = status }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -70,9 +70,9 @@ namespace Tests.Requirements.Status.ApplyStatusCount
 			var req = new ApplyStatusCountRequirement { RequiredStatus = status, RequiredCount = 2 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new ApplyStatusCountRequirement.Event { Status = status }
+				new StatusAppliedEvent { Status = status }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(50f).Within(0.01f));
@@ -87,9 +87,9 @@ namespace Tests.Requirements.Status.ApplyStatusCount
 			var req = new ApplyStatusCountRequirement { RequiredStatus = statusA, RequiredCount = 2 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new ApplyStatusCountRequirement.Event { Status = statusB }
+				new StatusAppliedEvent { Status = statusB }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
@@ -104,10 +104,10 @@ namespace Tests.Requirements.Status.ApplyStatusCount
 			var req = new ApplyStatusCountRequirement { RequiredStatus = status, RequiredCount = 2 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new ApplyStatusCountRequirement.Event { Status = status },
-				new ApplyStatusCountRequirement.Event { Status = status }
+				new StatusAppliedEvent { Status = status },
+				new StatusAppliedEvent { Status = status }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);

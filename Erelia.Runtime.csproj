@@ -91,6 +91,7 @@
     <Compile Include="Assets\Scripts\World\WorldData.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\VoxelCrossPlaneShape.cs" />
     <Compile Include="Assets\Scripts\Event\TamingEventCenter.cs" />
+    <Compile Include="Assets\Scripts\Battle\BattleEvent.cs" />
     <Compile Include="Assets\Scripts\Creatures\CreatureSpecies.cs" />
     <Compile Include="Assets\Scripts\Board\BoardConfiguration.cs" />
     <Compile Include="Assets\Scripts\Battle\Rules\BattleTargetingRules.cs" />

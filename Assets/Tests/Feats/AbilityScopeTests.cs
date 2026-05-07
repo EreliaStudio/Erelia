@@ -18,7 +18,7 @@ namespace Tests.Feats.AbilityScope
 				}
 			};
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
 				new TestAmountEvent { Amount = 30 },
 				new TestAmountEvent { Amount = 40 },
@@ -41,7 +41,7 @@ namespace Tests.Feats.AbilityScope
 				}
 			};
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
 				new TestAmountEvent { Amount = 60 },
 				new TestAmountEvent { Amount = 100 },
@@ -65,7 +65,7 @@ namespace Tests.Feats.AbilityScope
 				}
 			};
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
 				new TestAmountEvent { Amount = 100 },
 				new TestAmountEvent { Amount = 20 },
@@ -87,7 +87,7 @@ namespace Tests.Feats.AbilityScope
 		}
 
 		[Serializable]
-		private sealed class TestAmountEvent : FeatRequirement.EventBase
+		private sealed class TestAmountEvent : BattleEvent
 		{
 			public int Amount;
 		}

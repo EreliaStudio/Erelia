@@ -11,7 +11,7 @@ namespace Tests.Requirements.BattleOutcome.WinBattle
 			var req = new WinBattleCountRequirement { RequiredRepeatCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>());
+			progress.RegisterEvents(new List<BattleEvent>());
 
 			Assert.That(progress.CompletedRepeatCount, Is.EqualTo(0));
 		}
@@ -22,9 +22,9 @@ namespace Tests.Requirements.BattleOutcome.WinBattle
 			var req = new WinBattleCountRequirement { RequiredRepeatCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new WinBattleCountRequirement.Event()
+				new BattleWonEvent()
 			});
 
 			Assert.That(progress.CompletedRepeatCount, Is.EqualTo(1));
@@ -36,9 +36,9 @@ namespace Tests.Requirements.BattleOutcome.WinBattle
 			var req = new WinBattleCountRequirement { RequiredRepeatCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase> { new WinBattleCountRequirement.Event() });
-			progress.RegisterEvents(new List<FeatRequirement.EventBase> { new WinBattleCountRequirement.Event() });
-			progress.RegisterEvents(new List<FeatRequirement.EventBase> { new WinBattleCountRequirement.Event() });
+			progress.RegisterEvents(new List<BattleEvent> { new BattleWonEvent() });
+			progress.RegisterEvents(new List<BattleEvent> { new BattleWonEvent() });
+			progress.RegisterEvents(new List<BattleEvent> { new BattleWonEvent() });
 
 			Assert.That(progress.IsCompleted, Is.True);
 		}
@@ -55,7 +55,7 @@ namespace Tests.Requirements.BattleOutcome.SurviveBattle
 			var req = new WinBattleCountRequirement { RequiredRepeatCount = 2, RequireUnitSurvival = true };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>());
+			progress.RegisterEvents(new List<BattleEvent>());
 
 			Assert.That(progress.CompletedRepeatCount, Is.EqualTo(0));
 		}
@@ -66,9 +66,9 @@ namespace Tests.Requirements.BattleOutcome.SurviveBattle
 			var req = new WinBattleCountRequirement { RequiredRepeatCount = 2, RequireUnitSurvival = true };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new WinBattleCountRequirement.Event { UnitSurvived = true }
+				new BattleWonEvent { UnitSurvived = true }
 			});
 
 			Assert.That(progress.CompletedRepeatCount, Is.EqualTo(1));
@@ -80,9 +80,9 @@ namespace Tests.Requirements.BattleOutcome.SurviveBattle
 			var req = new WinBattleCountRequirement { RequiredRepeatCount = 2, RequireUnitSurvival = true };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new WinBattleCountRequirement.Event { UnitSurvived = false }
+				new BattleWonEvent { UnitSurvived = false }
 			});
 
 			Assert.That(progress.CompletedRepeatCount, Is.EqualTo(0));
@@ -94,8 +94,8 @@ namespace Tests.Requirements.BattleOutcome.SurviveBattle
 			var req = new WinBattleCountRequirement { RequiredRepeatCount = 2, RequireUnitSurvival = true };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase> { new WinBattleCountRequirement.Event { UnitSurvived = true } });
-			progress.RegisterEvents(new List<FeatRequirement.EventBase> { new WinBattleCountRequirement.Event { UnitSurvived = true } });
+			progress.RegisterEvents(new List<BattleEvent> { new BattleWonEvent { UnitSurvived = true } });
+			progress.RegisterEvents(new List<BattleEvent> { new BattleWonEvent { UnitSurvived = true } });
 
 			Assert.That(progress.IsCompleted, Is.True);
 		}

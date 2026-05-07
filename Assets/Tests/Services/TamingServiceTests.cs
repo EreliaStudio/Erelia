@@ -28,7 +28,7 @@ namespace Tests.Services
             WildBattleUnit wildUnit = GetWildUnit(fixture, 0);
 
             EventCenter.EmitBattleStarted(fixture.BattleContext);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 5 });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 5, Caster = fixture.PlayerUnits[0] });
 
             Assert.That(wildUnit.IsTamed, Is.True);
         }
@@ -44,7 +44,7 @@ namespace Tests.Services
             WildBattleUnit wildUnit = GetWildUnit(fixture, 0);
 
             EventCenter.EmitBattleStarted(fixture.BattleContext);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.EnemyUnits[0], new DealDamageRequirement.Event { Amount = 5 });
+            EventCenter.EmitBattleEventOccurred(fixture.EnemyUnits[0], new DamageEvent { Amount = 5, Caster = fixture.EnemyUnits[0] });
 
             Assert.That(wildUnit.IsTamed, Is.False);
         }
@@ -70,7 +70,7 @@ namespace Tests.Services
             try
             {
                 EventCenter.EmitBattleStarted(fixture.BattleContext);
-                EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 5 });
+                EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 5, Caster = fixture.PlayerUnits[0] });
 
                 Assert.That(capturedContext, Is.Not.Null);
                 Assert.That(capturedUnit, Is.SameAs(wildUnit));
@@ -103,7 +103,7 @@ namespace Tests.Services
             try
             {
                 EventCenter.EmitBattleStarted(fixture.BattleContext);
-                EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 5 });
+                EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 5, Caster = fixture.PlayerUnits[0] });
 
                 Assert.That(capturedRemoval, Is.SameAs(wildUnit));
             }
@@ -127,7 +127,7 @@ namespace Tests.Services
             EventCenter.BattleUnitRemovalRequested += (_, __) => removalFired = true;
 
             EventCenter.EmitBattleStarted(fixture.BattleContext);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 5 });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 5, Caster = fixture.PlayerUnits[0] });
 
             Assert.That(removalFired, Is.False);
         }
@@ -150,7 +150,7 @@ namespace Tests.Services
             try
             {
                 EventCenter.EmitBattleStarted(fixture.BattleContext);
-                EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 5 });
+                EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 5, Caster = fixture.PlayerUnits[0] });
                 EventCenter.EmitBattleResolved(fixture.BattleContext, BattleSide.Player);
 
                 Assert.That(receivedRecruits, Is.Not.Null);
@@ -176,7 +176,7 @@ namespace Tests.Services
             EventCenter.TamingResolved += (_, __) => tamingResolvedFired = true;
 
             EventCenter.EmitBattleStarted(fixture.BattleContext);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 5 });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 5, Caster = fixture.PlayerUnits[0] });
             EventCenter.EmitBattleResolved(fixture.BattleContext, BattleSide.Enemy);
 
             Assert.That(tamingResolvedFired, Is.False);
@@ -212,7 +212,7 @@ namespace Tests.Services
             EventCenter.TamingResolved += (_, recruits) => receivedRecruits = recruits;
 
             EventCenter.EmitBattleStarted(fixture.BattleContext);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 1 });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 1, Caster = fixture.PlayerUnits[0] });
             EventCenter.EmitBattleResolved(fixture.BattleContext, BattleSide.Player);
 
             Assert.That(receivedRecruits, Is.Not.Null);

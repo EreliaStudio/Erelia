@@ -23,7 +23,7 @@ namespace Tests.Effects.Health
 			}.Apply(CreateContext(source, target));
 
 			Assert.That(target.BattleAttributes.Health.Current, Is.EqualTo(75));
-			Assert.That(FindEvent<HealHealthRequirement.Event>(source)?.Amount, Is.EqualTo(15));
+			Assert.That(FindEvent<HealEvent>(source)?.Amount, Is.EqualTo(15));
 		}
 
 		[Test]
@@ -44,7 +44,7 @@ namespace Tests.Effects.Health
 			}.Apply(CreateContext(source, target));
 
 			Assert.That(target.BattleAttributes.Health.Current, Is.EqualTo(100));
-			Assert.That(FindEvent<HealHealthRequirement.Event>(source)?.Amount, Is.EqualTo(20));
+			Assert.That(FindEvent<HealEvent>(source)?.Amount, Is.EqualTo(20));
 		}
 
 		[Test]

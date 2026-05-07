@@ -11,7 +11,7 @@ namespace Tests.Requirements.Movement.TotalDistance
 			var req = new TotalDistanceTravelledRequirement { RequiredDistance = 10 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>());
+			progress.RegisterEvents(new List<BattleEvent>());
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
 		}
@@ -22,9 +22,9 @@ namespace Tests.Requirements.Movement.TotalDistance
 			var req = new TotalDistanceTravelledRequirement { RequiredDistance = 10 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new TotalDistanceTravelledRequirement.Event { Distance = 3 }
+				new DistanceTravelledEvent { Distance = 3 }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(30f).Within(0.01f));
@@ -36,10 +36,10 @@ namespace Tests.Requirements.Movement.TotalDistance
 			var req = new TotalDistanceTravelledRequirement { RequiredDistance = 10 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new TotalDistanceTravelledRequirement.Event { Distance = 4 },
-				new TotalDistanceTravelledRequirement.Event { Distance = 6 }
+				new DistanceTravelledEvent { Distance = 4 },
+				new DistanceTravelledEvent { Distance = 6 }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -64,9 +64,9 @@ namespace Tests.Requirements.Movement.MaxDistanceInOneMove
 			var req = MakeReq(5);
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new TotalDistanceTravelledRequirement.Event { Distance = 3 }
+				new DistanceTravelledEvent { Distance = 3 }
 			});
 
 			Assert.That(progress.IsCompleted, Is.False);
@@ -78,9 +78,9 @@ namespace Tests.Requirements.Movement.MaxDistanceInOneMove
 			var req = MakeReq(4);
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new TotalDistanceTravelledRequirement.Event { Distance = 4 }
+				new DistanceTravelledEvent { Distance = 4 }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -92,10 +92,10 @@ namespace Tests.Requirements.Movement.MaxDistanceInOneMove
 			var req = MakeReq(4);
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new TotalDistanceTravelledRequirement.Event { Distance = 2 },
-				new TotalDistanceTravelledRequirement.Event { Distance = 2 }
+				new DistanceTravelledEvent { Distance = 2 },
+				new DistanceTravelledEvent { Distance = 2 }
 			});
 
 			Assert.That(progress.IsCompleted, Is.False);

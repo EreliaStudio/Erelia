@@ -3,7 +3,7 @@ using System;
 [Serializable]
 public sealed class WildBattleUnit : BattleUnit
 {
-	private readonly FeatRequirement.EventBase[] singleEventBuffer = new FeatRequirement.EventBase[1];
+	private readonly BattleEvent[] singleEventBuffer = new BattleEvent[1];
 
 	public TamingProgress TamingProgress { get; }
 	public bool IsTamed => TamingProgress?.IsImpressed ?? false;
@@ -14,7 +14,7 @@ public sealed class WildBattleUnit : BattleUnit
 		TamingProgress = new TamingProgress(this, p_profile);
 	}
 
-	public void EvaluateTamingEvent(FeatRequirement.EventBase p_event)
+	public void EvaluateTamingEvent(BattleEvent p_event)
 	{
 		if (p_event == null)
 		{

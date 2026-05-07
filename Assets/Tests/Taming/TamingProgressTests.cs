@@ -13,9 +13,9 @@ namespace Tests.Taming.Progress
 			var requirement = new DealDamageRequirement { RequiredAmount = 10 };
 			var progress = new TamingProgress(targetUnit, CreateProfile(requirement));
 
-			progress.EvaluateEvents(new List<FeatRequirement.EventBase>
+			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, Amount = 1 }
+				new ResourceConsumedEvent { Resource = ResourceConsumedEvent.ResourceKind.MovementPoints, Amount = 1 }
 			});
 
 			Assert.That(progress.IsImpressed, Is.False);
@@ -29,9 +29,9 @@ namespace Tests.Taming.Progress
 			var requirement = new DealDamageRequirement { RequiredAmount = 10 };
 			var progress = new TamingProgress(targetUnit, CreateProfile(requirement));
 
-			progress.EvaluateEvents(new List<FeatRequirement.EventBase>
+			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 5 }
+				new DamageEvent { Amount = 5 }
 			});
 
 			Assert.That(progress.IsImpressed, Is.False);
@@ -45,9 +45,9 @@ namespace Tests.Taming.Progress
 			var requirement = new DealDamageRequirement { RequiredAmount = 10 };
 			var progress = new TamingProgress(targetUnit, CreateProfile(requirement));
 
-			progress.EvaluateEvents(new List<FeatRequirement.EventBase>
+			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 10 }
+				new DamageEvent { Amount = 10 }
 			});
 
 			Assert.That(progress.IsImpressed, Is.True);
@@ -59,22 +59,22 @@ namespace Tests.Taming.Progress
 			BattleUnit targetUnit = CreateBattleUnit(BattleSide.Enemy);
 
 			var damageRequirement = new DealDamageRequirement { RequiredAmount = 10 };
-			var moveRequirement = new ConsumeResourcesRequirement { RequiredResource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, RequiredAmount = 1 };
+			var moveRequirement = new ConsumeResourcesRequirement { RequiredResource = ResourceConsumedEvent.ResourceKind.MovementPoints, RequiredAmount = 1 };
 
 			var progress = new TamingProgress(
 				targetUnit,
 				CreateProfile(damageRequirement, moveRequirement));
 
-			progress.EvaluateEvents(new List<FeatRequirement.EventBase>
+			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 10 }
+				new DamageEvent { Amount = 10 }
 			});
 
 			Assert.That(progress.IsImpressed, Is.False);
 
-			progress.EvaluateEvents(new List<FeatRequirement.EventBase>
+			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, Amount = 1 }
+				new ResourceConsumedEvent { Resource = ResourceConsumedEvent.ResourceKind.MovementPoints, Amount = 1 }
 			});
 
 			Assert.That(progress.IsImpressed, Is.True);
@@ -87,17 +87,17 @@ namespace Tests.Taming.Progress
 			var requirement = new DealDamageRequirement { RequiredAmount = 10 };
 			var progress = new TamingProgress(targetUnit, CreateProfile(requirement));
 
-			progress.EvaluateEvents(new List<FeatRequirement.EventBase>
+			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 4 }
+				new DamageEvent { Amount = 4 }
 			});
 
 			Assert.That(progress.IsImpressed, Is.False);
 			Assert.That(progress.ConditionAdvancements[0].Progress, Is.EqualTo(40f).Within(0.01f));
 
-			progress.EvaluateEvents(new List<FeatRequirement.EventBase>
+			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 6 }
+				new DamageEvent { Amount = 6 }
 			});
 
 			Assert.That(progress.IsImpressed, Is.True);
@@ -112,9 +112,9 @@ namespace Tests.Taming.Progress
 
 			progress.MarkFailed();
 
-			progress.EvaluateEvents(new List<FeatRequirement.EventBase>
+			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 10 }
+				new DamageEvent { Amount = 10 }
 			});
 
 			Assert.That(progress.HasFailed, Is.True);
@@ -128,9 +128,9 @@ namespace Tests.Taming.Progress
 			var requirement = new DealDamageRequirement { RequiredAmount = 10 };
 			var progress = new TamingProgress(targetUnit, CreateProfile(requirement));
 
-			progress.EvaluateEvents(new List<FeatRequirement.EventBase>
+			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 10 }
+				new DamageEvent { Amount = 10 }
 			});
 
 			progress.MarkFailed();

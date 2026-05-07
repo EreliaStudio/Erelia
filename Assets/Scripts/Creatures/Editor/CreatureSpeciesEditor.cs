@@ -16,6 +16,8 @@ public class CreatureSpeciesEditor : Editor
 		EditorGUILayout.Space(6f);
 		EditorGUILayout.PropertyField(serializedObject.FindProperty("DefaultAbilities"), true);
 		EditorGUILayout.Space(6f);
+		DrawTamingSection(serializedObject.FindProperty("TamingProfile"));
+		EditorGUILayout.Space(6f);
 		EditorGUILayout.PropertyField(serializedObject.FindProperty("Forms"), true);
 		EditorGUILayout.Space(8f);
 
@@ -25,6 +27,26 @@ public class CreatureSpeciesEditor : Editor
 		}
 
 		serializedObject.ApplyModifiedProperties();
+	}
+
+	private void DrawTamingSection(SerializedProperty tamingProfileProperty)
+	{
+		EditorGUILayout.LabelField("Taming", EditorStyles.boldLabel);
+
+		TamingProfile profile = ((CreatureSpecies)target).TamingProfile;
+		int conditionCount = profile?.Conditions?.Count ?? 0;
+		EditorGUILayout.LabelField("Requirements", conditionCount.ToString());
+
+		if (tamingProfileProperty == null)
+		{
+			EditorGUILayout.HelpBox("Taming profile data is missing on this species asset.", MessageType.Warning);
+			return;
+		}
+
+		if (GUILayout.Button("Edit Taming Requirements"))
+		{
+			TamingProfileEditorWindow.Open((CreatureSpecies)target);
+		}
 	}
 
 	private void DrawScriptField()

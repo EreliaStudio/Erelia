@@ -6,7 +6,7 @@ public static partial class EventCenter
 {
 	public static event Action<BoardConfiguration, Vector3, IReadOnlyList<EncounterUnit>, PlacementStyle, bool> BattleLaunchRequested;
 	public static event Action<BattleContext> BattleStarted;
-	public static event Action<BattleUnit, FeatRequirement.EventBase> BattleFeatEventOccurred;
+	public static event Action<BattleUnit, BattleEvent> BattleEventOccurred;
 	public static event Action<BattleContext, BattleUnit> BattleAbilityResolved;
 	public static event Action<BattleContext, BattleUnit> BattleTurnEnded;
 	public static event Action<BattleContext, BattleUnit> BattleUnitRemovalRequested;
@@ -36,9 +36,9 @@ public static partial class EventCenter
 		BattleStarted?.Invoke(p_battleContext);
 	}
 
-	public static void EmitBattleFeatEventOccurred(BattleUnit p_unit, FeatRequirement.EventBase p_featEvent)
+	public static void EmitBattleEventOccurred(BattleUnit p_unit, BattleEvent p_featEvent)
 	{
-		BattleFeatEventOccurred?.Invoke(p_unit, p_featEvent);
+		BattleEventOccurred?.Invoke(p_unit, p_featEvent);
 	}
 
 	public static void EmitBattleAbilityResolved(BattleContext p_battleContext, BattleUnit p_sourceUnit)

@@ -51,7 +51,7 @@ namespace Tests.Feats.VictoryProgression
 
 			BattleFeatEventReporter.Emit(
 				fixture.PlayerUnits[0],
-				new DealDamageRequirement.Event { Amount = 50 });
+				new DamageEvent { Amount = 50, Caster = fixture.PlayerUnits[0] });
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 
@@ -108,7 +108,7 @@ namespace Tests.Feats.VictoryProgression
 
 			BattleFeatEventReporter.Emit(
 				fixture.PlayerUnits[0],
-				new DealDamageRequirement.Event { Amount = 50 });
+				new DamageEvent { Amount = 50, Caster = fixture.PlayerUnits[0] });
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 
@@ -161,7 +161,7 @@ namespace Tests.Feats.VictoryProgression
 
 			BattleFeatEventReporter.Emit(
 				fixture.EnemyUnits[0],
-				new DealDamageRequirement.Event { Amount = 50 });
+				new DamageEvent { Amount = 50, Caster = fixture.EnemyUnits[0] });
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 

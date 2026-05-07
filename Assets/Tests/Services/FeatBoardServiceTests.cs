@@ -28,7 +28,7 @@ namespace Tests.Services
             EventCenter.FeatProgressUpdated += (_, _) => progressUpdatedCount++;
 
             EventCenter.EmitBattleStarted(fixture.BattleContext);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 10 });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 10, Caster = fixture.PlayerUnits[0] });
             EventCenter.EmitBattleResolved(fixture.BattleContext, BattleSide.Player);
 
             Assert.That(progressUpdatedCount, Is.EqualTo(1));
@@ -45,7 +45,7 @@ namespace Tests.Services
             EventCenter.FeatProgressUpdated += (_, _) => progressUpdatedCount++;
 
             EventCenter.EmitBattleStarted(fixture.BattleContext);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.EnemyUnits[0], new DealDamageRequirement.Event { Amount = 10 });
+            EventCenter.EmitBattleEventOccurred(fixture.EnemyUnits[0], new DamageEvent { Amount = 10, Caster = fixture.EnemyUnits[0] });
             EventCenter.EmitBattleResolved(fixture.BattleContext, BattleSide.Player);
 
             Assert.That(progressUpdatedCount, Is.EqualTo(0));
@@ -62,9 +62,9 @@ namespace Tests.Services
             EventCenter.FeatProgressUpdated += (_, _) => progressUpdatedCount++;
 
             EventCenter.EmitBattleStarted(fixture.BattleContext);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 10 });
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 10 });
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 10 });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 10, Caster = fixture.PlayerUnits[0] });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 10, Caster = fixture.PlayerUnits[0] });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 10, Caster = fixture.PlayerUnits[0] });
             EventCenter.EmitBattleResolved(fixture.BattleContext, BattleSide.Player);
 
             Assert.That(progressUpdatedCount, Is.EqualTo(1));
@@ -85,7 +85,7 @@ namespace Tests.Services
             EventCenter.FeatProgressUpdated += (unit, _) => receivedUnit = unit;
 
             EventCenter.EmitBattleStarted(fixture.BattleContext);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 10 });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 10, Caster = fixture.PlayerUnits[0] });
             EventCenter.EmitBattleResolved(fixture.BattleContext, BattleSide.Player);
 
             Assert.That(receivedUnit, Is.SameAs(playerSource));
@@ -103,7 +103,7 @@ namespace Tests.Services
             EventCenter.FeatProgressUpdated += (_, _) => progressUpdatedFired = true;
 
             EventCenter.EmitBattleStarted(fixture.BattleContext);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 10 });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 10, Caster = fixture.PlayerUnits[0] });
             EventCenter.EmitBattleResolved(fixture.BattleContext, BattleSide.Player);
 
             Assert.That(progressUpdatedFired, Is.False);
@@ -121,7 +121,7 @@ namespace Tests.Services
             EventCenter.FeatProgressUpdated += (_, _) => progressUpdatedFired = true;
 
             EventCenter.EmitBattleStarted(fixture.BattleContext);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 10 });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 10, Caster = fixture.PlayerUnits[0] });
             EventCenter.EmitBattleResolved(otherFixture.BattleContext, BattleSide.Player);
 
             Assert.That(progressUpdatedFired, Is.False);
@@ -146,9 +146,9 @@ namespace Tests.Services
             EventCenter.FeatProgressUpdated += (_, _) => progressUpdatedFired = true;
 
             EventCenter.EmitBattleStarted(fixture.BattleContext);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 5 });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 5, Caster = fixture.PlayerUnits[0] });
             EventCenter.EmitBattleAbilityResolved(fixture.BattleContext, fixture.PlayerUnits[0]);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 5 });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 5, Caster = fixture.PlayerUnits[0] });
             EventCenter.EmitBattleResolved(fixture.BattleContext, BattleSide.Player);
 
             Assert.That(progressUpdatedFired, Is.False);
@@ -170,9 +170,9 @@ namespace Tests.Services
             EventCenter.FeatProgressUpdated += (_, _) => progressUpdatedFired = true;
 
             EventCenter.EmitBattleStarted(fixture.BattleContext);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 5, TurnIndex = 0 });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 5, TurnIndex = 0, Caster = fixture.PlayerUnits[0] });
             EventCenter.EmitBattleTurnEnded(fixture.BattleContext, fixture.PlayerUnits[0]);
-            EventCenter.EmitBattleFeatEventOccurred(fixture.PlayerUnits[0], new DealDamageRequirement.Event { Amount = 5, TurnIndex = 1 });
+            EventCenter.EmitBattleEventOccurred(fixture.PlayerUnits[0], new DamageEvent { Amount = 5, TurnIndex = 1, Caster = fixture.PlayerUnits[0] });
             EventCenter.EmitBattleResolved(fixture.BattleContext, BattleSide.Player);
 
             Assert.That(progressUpdatedFired, Is.False);

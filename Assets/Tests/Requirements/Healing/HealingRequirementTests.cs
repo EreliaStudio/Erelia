@@ -5,13 +5,17 @@ namespace Tests.Requirements.Healing.HealSelf
 {
 	public sealed class HealSelfTests
 	{
+		private static BattleUnit CreateTestUnit() => new BattleUnit(
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			BattleSide.Player);
+
 		[Test]
 		public void NoEvents_ZeroProgress()
 		{
 			var req = new HealTargetRequirement { RequiredAmount = 50, Target = HealTargetRequirement.TargetFilter.Self };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>());
+			progress.RegisterEvents(new List<BattleEvent>());
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
 		}
@@ -21,10 +25,11 @@ namespace Tests.Requirements.Healing.HealSelf
 		{
 			var req = new HealTargetRequirement { RequiredAmount = 100, Target = HealTargetRequirement.TargetFilter.Self };
 			var progress = new FeatRequirementProgress { Requirement = req };
+			var unit = CreateTestUnit();
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new HealTargetRequirement.Event { Amount = 30, IsSelf = true }
+				new HealEvent { Amount = 30, Caster = unit, Target = unit }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(30f).Within(0.01f));
@@ -35,10 +40,11 @@ namespace Tests.Requirements.Healing.HealSelf
 		{
 			var req = new HealTargetRequirement { RequiredAmount = 50, Target = HealTargetRequirement.TargetFilter.Self };
 			var progress = new FeatRequirementProgress { Requirement = req };
+			var unit = CreateTestUnit();
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new HealTargetRequirement.Event { Amount = 50, IsSelf = true }
+				new HealEvent { Amount = 50, Caster = unit, Target = unit }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -49,10 +55,12 @@ namespace Tests.Requirements.Healing.HealSelf
 		{
 			var req = new HealTargetRequirement { RequiredAmount = 50, Target = HealTargetRequirement.TargetFilter.Self };
 			var progress = new FeatRequirementProgress { Requirement = req };
+			var caster = CreateTestUnit();
+			var target = CreateTestUnit();
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new HealTargetRequirement.Event { Amount = 50, IsSelf = false }
+				new HealEvent { Amount = 50, Caster = caster, Target = target }
 			});
 
 			Assert.That(progress.IsCompleted, Is.False);
@@ -64,15 +72,21 @@ namespace Tests.Requirements.Healing.HealOther
 {
 	public sealed class HealOtherTests
 	{
+		private static BattleUnit CreateTestUnit() => new BattleUnit(
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			BattleSide.Player);
+
 		[Test]
 		public void AmountBelowRequired_PartialProgress()
 		{
 			var req = new HealTargetRequirement { RequiredAmount = 100, Target = HealTargetRequirement.TargetFilter.Ally };
 			var progress = new FeatRequirementProgress { Requirement = req };
+			var caster = CreateTestUnit();
+			var target = CreateTestUnit();
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new HealTargetRequirement.Event { Amount = 75, IsSelf = false }
+				new HealEvent { Amount = 75, Caster = caster, Target = target }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(75f).Within(0.01f));
@@ -83,10 +97,12 @@ namespace Tests.Requirements.Healing.HealOther
 		{
 			var req = new HealTargetRequirement { RequiredAmount = 40, Target = HealTargetRequirement.TargetFilter.Ally };
 			var progress = new FeatRequirementProgress { Requirement = req };
+			var caster = CreateTestUnit();
+			var target = CreateTestUnit();
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new HealTargetRequirement.Event { Amount = 40, IsSelf = false }
+				new HealEvent { Amount = 40, Caster = caster, Target = target }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -97,10 +113,11 @@ namespace Tests.Requirements.Healing.HealOther
 		{
 			var req = new HealTargetRequirement { RequiredAmount = 40, Target = HealTargetRequirement.TargetFilter.Ally };
 			var progress = new FeatRequirementProgress { Requirement = req };
+			var unit = CreateTestUnit();
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new HealTargetRequirement.Event { Amount = 40, IsSelf = true }
+				new HealEvent { Amount = 40, Caster = unit, Target = unit }
 			});
 
 			Assert.That(progress.IsCompleted, Is.False);
@@ -112,15 +129,19 @@ namespace Tests.Requirements.Healing.WinAfterHealing
 {
 	public sealed class WinAfterHealingTests
 	{
+		private static BattleUnit CreateTestUnit() => new BattleUnit(
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			BattleSide.Player);
+
 		[Test]
 		public void HealAmountAccumulatesProgress()
 		{
 			var req = new WinAfterHealingRequirement { RequiredAmount = 100 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new HealHealthRequirement.Event { Amount = 50 }
+				new HealEvent { Amount = 50, Caster = CreateTestUnit() }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(50f).Within(0.01f));
@@ -132,9 +153,9 @@ namespace Tests.Requirements.Healing.WinAfterHealing
 			var req = new WinAfterHealingRequirement { RequiredAmount = 30 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new HealHealthRequirement.Event { Amount = 30 }
+				new HealEvent { Amount = 30, Caster = CreateTestUnit() }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);

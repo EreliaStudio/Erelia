@@ -101,7 +101,7 @@ namespace Tests.Effects
 			Assert.That(p_battleContext.TryPlaceUnit(p_unit, p_cell), Is.True, $"Unit should be placeable at: {p_cell}");
 		}
 
-		protected TEvent FindEvent<TEvent>(BattleUnit p_unit) where TEvent : FeatRequirement.EventBase
+		protected TEvent FindEvent<TEvent>(BattleUnit p_unit) where TEvent : BattleEvent
 		{
 			return featEventCapture?.Find<TEvent>(p_unit);
 		}

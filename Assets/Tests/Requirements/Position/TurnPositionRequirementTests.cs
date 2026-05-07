@@ -27,7 +27,7 @@ internal static class PositionTestHelpers
 		return new FeatRequirementProgress { Requirement = requirement };
 	}
 
-	public static TEvent FindEvent<TEvent>(BattleUnit unit) where TEvent : FeatRequirement.EventBase
+	public static TEvent FindEvent<TEvent>(BattleUnit unit) where TEvent : BattleEvent
 	{
 		return FeatEvents.Find<TEvent>(unit);
 	}
@@ -48,8 +48,8 @@ namespace Tests.Requirements.Position.TurnStartPosition
 
 			BattleTurnRules.BeginTurn(fixture.BattleContext, fixture.PlayerUnits[0]);
 
-			TurnStartPositionRequirement.Event ev =
-				PositionTestHelpers.FindEvent<TurnStartPositionRequirement.Event>(fixture.PlayerUnits[0]);
+			TurnStartedEvent ev =
+				PositionTestHelpers.FindEvent<TurnStartedEvent>(fixture.PlayerUnits[0]);
 			Assert.That(ev, Is.Not.Null);
 		}
 
@@ -62,8 +62,8 @@ namespace Tests.Requirements.Position.TurnStartPosition
 
 			BattleTurnRules.BeginTurn(fixture.BattleContext, fixture.PlayerUnits[0]);
 
-			TurnStartPositionRequirement.Event ev =
-				PositionTestHelpers.FindEvent<TurnStartPositionRequirement.Event>(fixture.PlayerUnits[0]);
+			TurnStartedEvent ev =
+				PositionTestHelpers.FindEvent<TurnStartedEvent>(fixture.PlayerUnits[0]);
 			Assert.That(ev.ClosestEnemyDistance, Is.EqualTo(3));
 		}
 
@@ -77,8 +77,8 @@ namespace Tests.Requirements.Position.TurnStartPosition
 
 			BattleTurnRules.BeginTurn(fixture.BattleContext, fixture.PlayerUnits[0]);
 
-			TurnStartPositionRequirement.Event ev =
-				PositionTestHelpers.FindEvent<TurnStartPositionRequirement.Event>(fixture.PlayerUnits[0]);
+			TurnStartedEvent ev =
+				PositionTestHelpers.FindEvent<TurnStartedEvent>(fixture.PlayerUnits[0]);
 			Assert.That(ev.ClosestAllyDistance, Is.EqualTo(2));
 		}
 
@@ -91,8 +91,8 @@ namespace Tests.Requirements.Position.TurnStartPosition
 
 			BattleTurnRules.BeginTurn(fixture.BattleContext, fixture.PlayerUnits[0]);
 
-			TurnStartPositionRequirement.Event ev =
-				PositionTestHelpers.FindEvent<TurnStartPositionRequirement.Event>(fixture.PlayerUnits[0]);
+			TurnStartedEvent ev =
+				PositionTestHelpers.FindEvent<TurnStartedEvent>(fixture.PlayerUnits[0]);
 			Assert.That(ev.ClosestAllyDistance, Is.EqualTo(int.MaxValue));
 		}
 
@@ -105,8 +105,8 @@ namespace Tests.Requirements.Position.TurnStartPosition
 
 			BattleTurnRules.BeginTurn(fixture.BattleContext, fixture.PlayerUnits[0]);
 
-			TurnStartPositionRequirement.Event ev =
-				PositionTestHelpers.FindEvent<TurnStartPositionRequirement.Event>(fixture.PlayerUnits[0]);
+			TurnStartedEvent ev =
+				PositionTestHelpers.FindEvent<TurnStartedEvent>(fixture.PlayerUnits[0]);
 			Assert.That(ev.ClosestEnemyDistance, Is.EqualTo(int.MaxValue));
 		}
 
@@ -118,8 +118,8 @@ namespace Tests.Requirements.Position.TurnStartPosition
 
 			BattleTurnRules.BeginTurn(fixture.BattleContext, fixture.PlayerUnits[0]);
 
-			TurnStartPositionRequirement.Event ev =
-				PositionTestHelpers.FindEvent<TurnStartPositionRequirement.Event>(fixture.PlayerUnits[0]);
+			TurnStartedEvent ev =
+				PositionTestHelpers.FindEvent<TurnStartedEvent>(fixture.PlayerUnits[0]);
 			Assert.That(ev, Is.Null);
 		}
 
@@ -131,8 +131,8 @@ namespace Tests.Requirements.Position.TurnStartPosition
 
 			BattleTurnRules.BeginTurn(fixture.BattleContext, fixture.PlayerUnits[0]);
 
-			TurnStartPositionRequirement.Event ev =
-				PositionTestHelpers.FindEvent<TurnStartPositionRequirement.Event>(fixture.PlayerUnits[0]);
+			TurnStartedEvent ev =
+				PositionTestHelpers.FindEvent<TurnStartedEvent>(fixture.PlayerUnits[0]);
 			Assert.That(ev, Is.Null);
 		}
 
@@ -148,7 +148,7 @@ namespace Tests.Requirements.Position.TurnStartPosition
 				Distance = 3
 			});
 
-			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartedEvent
 			{
 				ClosestEnemyDistance = 3, ClosestAllyDistance = int.MaxValue
 			}});
@@ -166,7 +166,7 @@ namespace Tests.Requirements.Position.TurnStartPosition
 				Distance = 3
 			});
 
-			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartedEvent
 			{
 				ClosestEnemyDistance = 4, ClosestAllyDistance = int.MaxValue
 			}});
@@ -184,7 +184,7 @@ namespace Tests.Requirements.Position.TurnStartPosition
 				Distance = 5
 			});
 
-			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartedEvent
 			{
 				ClosestEnemyDistance = 5, ClosestAllyDistance = int.MaxValue
 			}});
@@ -202,7 +202,7 @@ namespace Tests.Requirements.Position.TurnStartPosition
 				Distance = 5
 			});
 
-			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartedEvent
 			{
 				ClosestEnemyDistance = 4, ClosestAllyDistance = int.MaxValue
 			}});
@@ -222,13 +222,13 @@ namespace Tests.Requirements.Position.TurnStartPosition
 			};
 
 			var lowerProgress = PositionTestHelpers.MakeProgress(req);
-			lowerProgress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
+			lowerProgress.RegisterEvents(new[] { new TurnStartedEvent
 			{
 				ClosestEnemyDistance = 2, ClosestAllyDistance = int.MaxValue
 			}});
 
 			var upperProgress = PositionTestHelpers.MakeProgress(req);
-			upperProgress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
+			upperProgress.RegisterEvents(new[] { new TurnStartedEvent
 			{
 				ClosestEnemyDistance = 5, ClosestAllyDistance = int.MaxValue
 			}});
@@ -249,13 +249,13 @@ namespace Tests.Requirements.Position.TurnStartPosition
 			};
 
 			var tooCloseProgress = PositionTestHelpers.MakeProgress(req);
-			tooCloseProgress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
+			tooCloseProgress.RegisterEvents(new[] { new TurnStartedEvent
 			{
 				ClosestEnemyDistance = 1, ClosestAllyDistance = int.MaxValue
 			}});
 
 			var tooFarProgress = PositionTestHelpers.MakeProgress(req);
-			tooFarProgress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
+			tooFarProgress.RegisterEvents(new[] { new TurnStartedEvent
 			{
 				ClosestEnemyDistance = 6, ClosestAllyDistance = int.MaxValue
 			}});
@@ -274,7 +274,7 @@ namespace Tests.Requirements.Position.TurnStartPosition
 				Distance = 2
 			});
 
-			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartedEvent
 			{
 				ClosestAllyDistance = 2, ClosestEnemyDistance = 10
 			}});
@@ -292,7 +292,7 @@ namespace Tests.Requirements.Position.TurnStartPosition
 				Distance = 3
 			});
 
-			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartedEvent
 			{
 				ClosestAllyDistance = 10, ClosestEnemyDistance = 2
 			}});
@@ -310,7 +310,7 @@ namespace Tests.Requirements.Position.TurnStartPosition
 				Distance = 3
 			});
 
-			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartedEvent
 			{
 				ClosestAllyDistance = int.MaxValue, ClosestEnemyDistance = 1
 			}});
@@ -328,7 +328,7 @@ namespace Tests.Requirements.Position.TurnStartPosition
 				Distance = 5
 			});
 
-			progress.RegisterEvents(new[] { new TurnStartPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnStartedEvent
 			{
 				ClosestAllyDistance = int.MaxValue, ClosestEnemyDistance = 1
 			}});
@@ -346,10 +346,10 @@ namespace Tests.Requirements.Position.TurnStartPosition
 				Distance = 2
 			});
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new TurnStartPositionRequirement.Event { ClosestEnemyDistance = 5 },
-				new TurnStartPositionRequirement.Event { ClosestEnemyDistance = 5 }
+				new TurnStartedEvent { ClosestEnemyDistance = 5 },
+				new TurnStartedEvent { ClosestEnemyDistance = 5 }
 			});
 
 			Assert.That(progress.IsCompleted, Is.False);
@@ -365,10 +365,10 @@ namespace Tests.Requirements.Position.TurnStartPosition
 				Distance = 2
 			});
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new TurnStartPositionRequirement.Event { ClosestEnemyDistance = 5 },
-				new TurnStartPositionRequirement.Event { ClosestEnemyDistance = 1 }
+				new TurnStartedEvent { ClosestEnemyDistance = 5 },
+				new TurnStartedEvent { ClosestEnemyDistance = 1 }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -384,7 +384,7 @@ namespace Tests.Requirements.Position.TurnStartPosition
 				Distance = 10
 			});
 
-			endProgress.RegisterEvents(new[] { (FeatRequirement.EventBase)new TurnStartPositionRequirement.Event { ClosestEnemyDistance = 1 } });
+			endProgress.RegisterEvents(new[] { (BattleEvent)new TurnStartedEvent { ClosestEnemyDistance = 1 } });
 
 			Assert.That(endProgress.IsCompleted, Is.False);
 		}
@@ -435,7 +435,7 @@ namespace Tests.Requirements.Position.TurnStartPosition
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-			BattleFeatEventReporter.Emit(fixture.PlayerUnits[0], new TurnStartPositionRequirement.Event
+			BattleFeatEventReporter.Emit(fixture.PlayerUnits[0], new TurnStartedEvent
 			{
 				ClosestEnemyDistance = 2, ClosestAllyDistance = int.MaxValue
 			});
@@ -493,7 +493,7 @@ namespace Tests.Requirements.Position.TurnStartPosition
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-			BattleFeatEventReporter.Emit(fixture.PlayerUnits[0], new TurnStartPositionRequirement.Event
+			BattleFeatEventReporter.Emit(fixture.PlayerUnits[0], new TurnStartedEvent
 			{
 				ClosestEnemyDistance = 5, ClosestAllyDistance = int.MaxValue
 			});
@@ -583,8 +583,8 @@ namespace Tests.Requirements.Position.TurnEndPosition
 
 			BattleTurnRules.EndTurn(fixture.BattleContext, fixture.PlayerUnits[0]);
 
-			TurnEndPositionRequirement.Event ev =
-				PositionTestHelpers.FindEvent<TurnEndPositionRequirement.Event>(fixture.PlayerUnits[0]);
+			TurnEndedEvent ev =
+				PositionTestHelpers.FindEvent<TurnEndedEvent>(fixture.PlayerUnits[0]);
 			Assert.That(ev, Is.Not.Null);
 		}
 
@@ -597,8 +597,8 @@ namespace Tests.Requirements.Position.TurnEndPosition
 
 			BattleTurnRules.EndTurn(fixture.BattleContext, fixture.PlayerUnits[0]);
 
-			TurnEndPositionRequirement.Event ev =
-				PositionTestHelpers.FindEvent<TurnEndPositionRequirement.Event>(fixture.PlayerUnits[0]);
+			TurnEndedEvent ev =
+				PositionTestHelpers.FindEvent<TurnEndedEvent>(fixture.PlayerUnits[0]);
 			Assert.That(ev.ClosestEnemyDistance, Is.EqualTo(4));
 		}
 
@@ -610,8 +610,8 @@ namespace Tests.Requirements.Position.TurnEndPosition
 
 			BattleTurnRules.EndTurn(fixture.BattleContext, fixture.PlayerUnits[0]);
 
-			TurnEndPositionRequirement.Event ev =
-				PositionTestHelpers.FindEvent<TurnEndPositionRequirement.Event>(fixture.PlayerUnits[0]);
+			TurnEndedEvent ev =
+				PositionTestHelpers.FindEvent<TurnEndedEvent>(fixture.PlayerUnits[0]);
 			Assert.That(ev, Is.Null);
 		}
 
@@ -627,7 +627,7 @@ namespace Tests.Requirements.Position.TurnEndPosition
 				Distance = 2
 			});
 
-			progress.RegisterEvents(new[] { new TurnEndPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnEndedEvent
 			{
 				ClosestEnemyDistance = 2, ClosestAllyDistance = int.MaxValue
 			}});
@@ -645,7 +645,7 @@ namespace Tests.Requirements.Position.TurnEndPosition
 				Distance = 4
 			});
 
-			progress.RegisterEvents(new[] { new TurnEndPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnEndedEvent
 			{
 				ClosestEnemyDistance = 3, ClosestAllyDistance = int.MaxValue
 			}});
@@ -664,7 +664,7 @@ namespace Tests.Requirements.Position.TurnEndPosition
 				MaximumDistance = 4
 			});
 
-			progress.RegisterEvents(new[] { new TurnEndPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnEndedEvent
 			{
 				ClosestAllyDistance = 3, ClosestEnemyDistance = 10
 			}});
@@ -683,7 +683,7 @@ namespace Tests.Requirements.Position.TurnEndPosition
 				MaximumDistance = 2
 			});
 
-			progress.RegisterEvents(new[] { new TurnEndPositionRequirement.Event
+			progress.RegisterEvents(new[] { new TurnEndedEvent
 			{
 				ClosestAllyDistance = 9, ClosestEnemyDistance = 4
 			}});
@@ -701,7 +701,7 @@ namespace Tests.Requirements.Position.TurnEndPosition
 				Distance = 10
 			});
 
-			startProgress.RegisterEvents(new[] { (FeatRequirement.EventBase)new TurnEndPositionRequirement.Event { ClosestEnemyDistance = 1 } });
+			startProgress.RegisterEvents(new[] { (BattleEvent)new TurnEndedEvent { ClosestEnemyDistance = 1 } });
 
 			Assert.That(startProgress.IsCompleted, Is.False);
 		}
@@ -752,7 +752,7 @@ namespace Tests.Requirements.Position.TurnEndPosition
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-			BattleFeatEventReporter.Emit(fixture.PlayerUnits[0], new TurnEndPositionRequirement.Event
+			BattleFeatEventReporter.Emit(fixture.PlayerUnits[0], new TurnEndedEvent
 			{
 				ClosestEnemyDistance = 5, ClosestAllyDistance = int.MaxValue
 			});

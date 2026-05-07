@@ -45,10 +45,10 @@ public static class BattleActionResolver
 			action.SourceUnit,
 			action.SourceUnit,
 			-action.MovementPointCost);
-		BattleFeatEventReporter.Emit(action.SourceUnit, new TotalDistanceTravelledRequirement.Event { Distance = action.MovementPointCost });
+		BattleFeatEventReporter.Emit(action.SourceUnit, new DistanceTravelledEvent { Distance = action.MovementPointCost });
 		if (movementPointChange.LossAmount > 0)
 		{
-			BattleFeatEventReporter.Emit(action.SourceUnit, new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, Amount = movementPointChange.LossAmount });
+			BattleFeatEventReporter.Emit(action.SourceUnit, new ResourceConsumedEvent { Resource = ResourceConsumedEvent.ResourceKind.MovementPoints, Amount = movementPointChange.LossAmount });
 		}
 
 		BattleStatusRules.ApplyHook(CreateHookContext(
@@ -90,12 +90,12 @@ public static class BattleActionResolver
 
 		if (actionPointChange.LossAmount > 0)
 		{
-			BattleFeatEventReporter.Emit(action.SourceUnit, new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.ActionPoints, Amount = actionPointChange.LossAmount });
+			BattleFeatEventReporter.Emit(action.SourceUnit, new ResourceConsumedEvent { Resource = ResourceConsumedEvent.ResourceKind.ActionPoints, Amount = actionPointChange.LossAmount });
 		}
 
 		if (movementPointChange.LossAmount > 0)
 		{
-			BattleFeatEventReporter.Emit(action.SourceUnit, new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, Amount = movementPointChange.LossAmount });
+			BattleFeatEventReporter.Emit(action.SourceUnit, new ResourceConsumedEvent { Resource = ResourceConsumedEvent.ResourceKind.MovementPoints, Amount = movementPointChange.LossAmount });
 		}
 
 		ApplyAbilityEffects(action, battleContext);
@@ -111,10 +111,7 @@ public static class BattleActionResolver
 		BattleUnitRules.ResolvePendingDefeats(battleContext, action.SourceUnit, action.Ability);
 
 		turnContext.RecordAbilityCast(action.Ability);
-		BattleFeatEventReporter.Emit(action.SourceUnit, new CastAbilityCountRequirement.Event
-		{
-			Ability = action.Ability
-		});
+		BattleFeatEventReporter.Emit(action.SourceUnit, new AbilityCastEvent { SourceAbility = action.Ability });
 
 		EventCenter.EmitBattleAbilityResolved(battleContext, action.SourceUnit);
 		return true;

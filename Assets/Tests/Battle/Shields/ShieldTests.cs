@@ -168,9 +168,9 @@ namespace Tests.Battle.Shields
 			Assert.That(target.BattleAttributes.ActiveShields[0].Value.Kind, Is.EqualTo(ShieldKind.Magical));
 			Assert.That(target.BattleAttributes.ActiveShields[0].Value.CurrentAmount, Is.EqualTo(15));
 			Assert.That(target.BattleAttributes.ActiveShields[0].Value.RemainingTurns, Is.EqualTo(2));
-			Assert.That(FindEvent<ApplyShieldRequirement.Event>(target), Is.Null);
+			Assert.That(FindEvent<ShieldAppliedEvent>(target), Is.Not.Null);
 
-			ApplyShieldRequirement.Event shieldEvent = FindEvent<ApplyShieldRequirement.Event>(source);
+			ShieldAppliedEvent shieldEvent = FindEvent<ShieldAppliedEvent>(source);
 			Assert.That(shieldEvent, Is.Not.Null);
 			Assert.That(shieldEvent.Amount, Is.EqualTo(15));
 			Assert.That(shieldEvent.Kind, Is.EqualTo(ShieldKind.Magical));
@@ -190,7 +190,7 @@ namespace Tests.Battle.Shields
 			}.Apply(CreateContext(source, target));
 
 			Assert.That(target.BattleAttributes.ActiveShields.Count, Is.EqualTo(0));
-			Assert.That(FindEvent<ApplyShieldRequirement.Event>(source), Is.Null);
+			Assert.That(FindEvent<ShieldAppliedEvent>(source), Is.Null);
 		}
 
 		[Test]
@@ -221,11 +221,11 @@ namespace Tests.Battle.Shields
 			Assert.That(target.BattleAttributes.Health.Current, Is.EqualTo(90));
 			Assert.That(target.BattleAttributes.ActiveShields.Count, Is.EqualTo(0));
 
-			DealDamageRequirement.Event dealEvent = FindEvent<DealDamageRequirement.Event>(source);
-			TakeDamageRequirement.Event takeEvent = FindEvent<TakeDamageRequirement.Event>(target);
-			AbsorbDamageWithShieldRequirement.Event absorbEvent =
-				FindEvent<AbsorbDamageWithShieldRequirement.Event>(target);
-			ShieldBrokenRequirement.Event brokenEvent = FindEvent<ShieldBrokenRequirement.Event>(target);
+			DamageEvent dealEvent = FindEvent<DamageEvent>(source);
+			DamageEvent takeEvent = FindEvent<DamageEvent>(target);
+			DamageAbsorbedEvent absorbEvent =
+				FindEvent<DamageAbsorbedEvent>(target);
+			ShieldBrokenEvent brokenEvent = FindEvent<ShieldBrokenEvent>(target);
 
 			Assert.That(dealEvent, Is.Not.Null);
 			Assert.That(dealEvent.Amount, Is.EqualTo(15));
@@ -250,7 +250,7 @@ namespace Tests.Battle.Shields
 			Assert.That(target.BattleAttributes.Health.Current, Is.EqualTo(85));
 			Assert.That(target.BattleAttributes.ActiveShields.Count, Is.EqualTo(1));
 			Assert.That(target.BattleAttributes.ActiveShields[0].Value.CurrentAmount, Is.EqualTo(20));
-			Assert.That(FindEvent<AbsorbDamageWithShieldRequirement.Event>(target), Is.Null);
+			Assert.That(FindEvent<DamageAbsorbedEvent>(target), Is.Null);
 		}
 
 		[Test]
@@ -281,10 +281,10 @@ namespace Tests.Battle.Shields
 				}
 			};
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new ApplyShieldRequirement.Event { Amount = 10, Kind = ShieldKind.Physical },
-				new ApplyShieldRequirement.Event { Amount = 10, Kind = ShieldKind.Magical }
+				new ShieldAppliedEvent { Amount = 10, Kind = ShieldKind.Physical, Caster = CreateUnit() },
+				new ShieldAppliedEvent { Amount = 10, Kind = ShieldKind.Magical, Caster = CreateUnit() }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -304,7 +304,7 @@ namespace Tests.Battle.Shields
 
 			progress.RegisterEvents(new[]
 			{
-				new ApplyShieldRequirement.Event { Amount = 10, Kind = ShieldKind.Magical }
+				new ShieldAppliedEvent { Amount = 10, Kind = ShieldKind.Magical, Caster = CreateUnit() }
 			});
 
 			Assert.That(progress.IsCompleted, Is.False);
@@ -318,10 +318,10 @@ namespace Tests.Battle.Shields
 				Requirement = new AbsorbDamageWithShieldRequirement { RequiredAmount = 20 }
 			};
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new AbsorbDamageWithShieldRequirement.Event { Amount = 10 },
-				new AbsorbDamageWithShieldRequirement.Event { Amount = 10 }
+				new DamageAbsorbedEvent { Amount = 10, Target = CreateUnit() },
+				new DamageAbsorbedEvent { Amount = 10, Target = CreateUnit() }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -336,10 +336,10 @@ namespace Tests.Battle.Shields
 				Requirement = new MaxDamageAbsorbedInOneHitRequirement { RequiredAmount = 20 }
 			};
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new AbsorbDamageWithShieldRequirement.Event { Amount = 8 },
-				new AbsorbDamageWithShieldRequirement.Event { Amount = 8 }
+				new DamageAbsorbedEvent { Amount = 8, Target = CreateUnit() },
+				new DamageAbsorbedEvent { Amount = 8, Target = CreateUnit() }
 			});
 
 			Assert.That(progress.IsCompleted, Is.False);
@@ -354,10 +354,10 @@ namespace Tests.Battle.Shields
 				Requirement = new MaxDamageAbsorbedInOneHitRequirement { RequiredAmount = 20 }
 			};
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new AbsorbDamageWithShieldRequirement.Event { Amount = 8 },
-				new AbsorbDamageWithShieldRequirement.Event { Amount = 20 }
+				new DamageAbsorbedEvent { Amount = 8, Target = CreateUnit() },
+				new DamageAbsorbedEvent { Amount = 20, Target = CreateUnit() }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -376,11 +376,11 @@ namespace Tests.Battle.Shields
 				}
 			};
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new ShieldBrokenRequirement.Event { Kind = ShieldKind.Magical },
-				new ShieldBrokenRequirement.Event { Kind = ShieldKind.Physical },
-				new ShieldBrokenRequirement.Event { Kind = ShieldKind.Physical }
+				new ShieldBrokenEvent { Kind = ShieldKind.Magical },
+				new ShieldBrokenEvent { Kind = ShieldKind.Physical },
+				new ShieldBrokenEvent { Kind = ShieldKind.Physical }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -436,8 +436,9 @@ namespace Tests.Battle.Shields
 
 			AssertPlayerVictoryCompletesNode(
 				applyShieldNode,
-				unit => BattleFeatEventReporter.Emit(unit, new ApplyShieldRequirement.Event
+				unit => BattleFeatEventReporter.Emit(unit, new ShieldAppliedEvent
 				{
+					Caster = unit,
 					Amount = 15,
 					Kind = ShieldKind.Physical
 				}));
@@ -452,7 +453,7 @@ namespace Tests.Battle.Shields
 
 			AssertPlayerVictoryCompletesNode(
 				absorbShieldNode,
-				unit => BattleFeatEventReporter.Emit(unit, new AbsorbDamageWithShieldRequirement.Event { Amount = 20 }));
+				unit => BattleFeatEventReporter.Emit(unit, new DamageAbsorbedEvent { Target = unit, Amount = 20 }));
 		}
 
 		[Test]
@@ -475,7 +476,7 @@ namespace Tests.Battle.Shields
 						unit.BattleAttributes.AbsorbDamage(MathFormula.DamageInput.Kind.Physical, 10);
 					for (int index = 0; index < result.BrokenShieldKinds.Count; index++)
 					{
-						BattleFeatEventReporter.Emit(unit, new ShieldBrokenRequirement.Event
+						BattleFeatEventReporter.Emit(unit, new ShieldBrokenEvent
 						{
 							Kind = result.BrokenShieldKinds[index]
 						});
@@ -588,7 +589,7 @@ namespace Tests.Battle.Shields
 			orchestrator.Dispose();
 		}
 
-		private static TEvent FindEvent<TEvent>(BattleUnit unit) where TEvent : FeatRequirement.EventBase
+		private static TEvent FindEvent<TEvent>(BattleUnit unit) where TEvent : BattleEvent
 		{
 			return FeatEvents.Find<TEvent>(unit);
 		}

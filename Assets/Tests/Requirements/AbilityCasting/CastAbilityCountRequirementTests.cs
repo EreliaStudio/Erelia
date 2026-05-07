@@ -13,9 +13,9 @@ namespace Tests.Requirements.AbilityCasting.AbilityFilter
 			var req = new CastAbilityCountRequirement { Abilities = new List<Ability>(), RequiredCount = 1 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new CastAbilityCountRequirement.Event { Ability = ability }
+				new AbilityCastEvent { SourceAbility = ability }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -29,9 +29,9 @@ namespace Tests.Requirements.AbilityCasting.AbilityFilter
 			var req = new CastAbilityCountRequirement { Abilities = new List<Ability> { ability }, RequiredCount = 1 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new CastAbilityCountRequirement.Event { Ability = ability }
+				new AbilityCastEvent { SourceAbility = ability }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -46,9 +46,9 @@ namespace Tests.Requirements.AbilityCasting.AbilityFilter
 			var req = new CastAbilityCountRequirement { Abilities = new List<Ability> { abilityA }, RequiredCount = 1 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new CastAbilityCountRequirement.Event { Ability = abilityB }
+				new AbilityCastEvent { SourceAbility = abilityB }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
@@ -68,7 +68,7 @@ namespace Tests.Requirements.AbilityCasting.Events
 			var req = new CastAbilityCountRequirement { RequiredCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>());
+			progress.RegisterEvents(new List<BattleEvent>());
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
 			Assert.That(progress.IsCompleted, Is.False);
@@ -81,9 +81,9 @@ namespace Tests.Requirements.AbilityCasting.Events
 			var req = new CastAbilityCountRequirement { RequiredCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new CastAbilityCountRequirement.Event { Ability = ability }
+				new AbilityCastEvent { SourceAbility = ability }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(100f / 3f).Within(0.01f));
@@ -97,11 +97,11 @@ namespace Tests.Requirements.AbilityCasting.Events
 			var req = new CastAbilityCountRequirement { RequiredCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new CastAbilityCountRequirement.Event { Ability = ability },
-				new CastAbilityCountRequirement.Event { Ability = ability },
-				new CastAbilityCountRequirement.Event { Ability = ability }
+				new AbilityCastEvent { SourceAbility = ability },
+				new AbilityCastEvent { SourceAbility = ability },
+				new AbilityCastEvent { SourceAbility = ability }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);

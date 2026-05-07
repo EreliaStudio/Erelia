@@ -16,14 +16,14 @@ public sealed class TamingService
 	public void Initialize()
 	{
 		EventCenter.BattleStarted += OnBattleStarted;
-		EventCenter.BattleFeatEventOccurred += OnBattleFeatEventOccurred;
+		EventCenter.BattleEventOccurred += OnBattleEventOccurred;
 		EventCenter.BattleResolved += OnBattleResolved;
 	}
 
 	public void Shutdown()
 	{
 		EventCenter.BattleStarted -= OnBattleStarted;
-		EventCenter.BattleFeatEventOccurred -= OnBattleFeatEventOccurred;
+		EventCenter.BattleEventOccurred -= OnBattleEventOccurred;
 		EventCenter.BattleResolved -= OnBattleResolved;
 		ClearBattleState();
 	}
@@ -48,7 +48,7 @@ public sealed class TamingService
 		}
 	}
 
-	private void OnBattleFeatEventOccurred(BattleUnit p_unit, FeatRequirement.EventBase p_featEvent)
+	private void OnBattleEventOccurred(BattleUnit p_unit, BattleEvent p_featEvent)
 	{
 		if (p_unit == null ||
 			p_unit.Side != BattleSide.Player ||

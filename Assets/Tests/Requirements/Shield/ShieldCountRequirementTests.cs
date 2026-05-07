@@ -11,7 +11,7 @@ namespace Tests.Requirements.Shield.ApplyShieldCount
 			var req = new ApplyShieldCountRequirement { RequiredCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>());
+			progress.RegisterEvents(new List<BattleEvent>());
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
 		}
@@ -22,9 +22,9 @@ namespace Tests.Requirements.Shield.ApplyShieldCount
 			var req = new ApplyShieldCountRequirement { RequiredCount = 3 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new ApplyShieldCountRequirement.Event()
+				new ShieldAppliedEvent()
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(100f / 3f).Within(0.01f));
@@ -36,10 +36,10 @@ namespace Tests.Requirements.Shield.ApplyShieldCount
 			var req = new ApplyShieldCountRequirement { RequiredCount = 2 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new ApplyShieldCountRequirement.Event(),
-				new ApplyShieldCountRequirement.Event()
+				new ShieldAppliedEvent(),
+				new ShieldAppliedEvent()
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -51,11 +51,11 @@ namespace Tests.Requirements.Shield.ApplyShieldCount
 			var req = new ApplyShieldCountRequirement { RequiredCount = 2 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new ApplyShieldCountRequirement.Event(),
-				new ApplyShieldCountRequirement.Event(),
-				new ApplyShieldCountRequirement.Event()
+				new ShieldAppliedEvent(),
+				new ShieldAppliedEvent(),
+				new ShieldAppliedEvent()
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);

@@ -310,7 +310,7 @@ public static class BattleTurnRules
 			return;
 		}
 
-		BattleFeatEventReporter.Emit(activeUnit, new TurnStartPositionRequirement.Event
+		BattleFeatEventReporter.Emit(activeUnit, new TurnStartedEvent
 		{
 			ClosestAllyDistance = closestAlly,
 			ClosestEnemyDistance = closestEnemy
@@ -333,7 +333,7 @@ public static class BattleTurnRules
 			return;
 		}
 
-		BattleFeatEventReporter.Emit(activeUnit, new TurnEndPositionRequirement.Event
+		BattleFeatEventReporter.Emit(activeUnit, new TurnEndedEvent
 		{
 			ClosestAllyDistance = closestAlly,
 			ClosestEnemyDistance = closestEnemy

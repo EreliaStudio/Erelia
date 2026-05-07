@@ -32,7 +32,7 @@ namespace Tests.Feats.CastDamageAbility
 			playerTurn.TrySubmitAbility(damageAbility, new List<Vector3Int> { enemyCell });
 
 			BattleUnit caster = fixture.PlayerUnits[0];
-			Assert.That(capture.Find<DealDamageRequirement.Event>(caster), Is.Not.Null);
+			Assert.That(capture.Find<DamageEvent>(caster), Is.Not.Null);
 
 			orchestrator.Dispose();
 		}
@@ -63,7 +63,7 @@ namespace Tests.Feats.CastDamageAbility
 			playerTurn.TrySubmitAbility(damageAbility, new List<Vector3Int> { enemyCell });
 
 			BattleUnit target = fixture.EnemyUnits[0];
-			Assert.That(capture.Find<TakeDamageRequirement.Event>(target), Is.Not.Null);
+			Assert.That(capture.Find<DamageEvent>(target), Is.Not.Null);
 
 			orchestrator.Dispose();
 		}

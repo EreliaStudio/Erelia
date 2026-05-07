@@ -6,7 +6,7 @@ namespace Tests.Feats.HealEffect
 	public sealed class HealEffectTests
 	{
 		[Test]
-		public void Apply_RecordsHealHealthEventOnSourceUnit()
+		public void Apply_RecordsHealEventOnSourceUnit()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
 			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
@@ -28,13 +28,13 @@ namespace Tests.Feats.HealEffect
 			effect.Apply(context);
 
 			Assert.That(capture.Count(sourceUnit), Is.EqualTo(2));
-			var healEvent = capture.Find<HealHealthRequirement.Event>(sourceUnit);
+			var healEvent = capture.Find<HealEvent>(sourceUnit);
 			Assert.That(healEvent, Is.Not.Null);
 			Assert.That(healEvent.Amount, Is.EqualTo(15));
 		}
 
 		[Test]
-		public void Apply_RecordsNoEventOnTargetUnit()
+		public void Apply_RecordsHealEventOnTargetUnit()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
 			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
@@ -50,7 +50,9 @@ namespace Tests.Feats.HealEffect
 
 			effect.Apply(context);
 
-			Assert.That(capture.Count(targetUnit), Is.Zero);
+			var healEvent = capture.Find<HealEvent>(targetUnit);
+			Assert.That(healEvent, Is.Not.Null);
+			Assert.That(healEvent.Amount, Is.EqualTo(15));
 		}
 
 		[Test]

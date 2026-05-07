@@ -6,6 +6,10 @@ namespace Tests.Feats.FightEventRegistration
 {
 	public sealed class FightEventRegistrationTests
 	{
+		private static readonly BattleUnit DummyUnit = new BattleUnit(
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			BattleSide.Player);
+
 		[Test]
 		public void FightDurationDoesNotCarryPartialProgressAcrossFights()
 		{
@@ -19,11 +23,11 @@ namespace Tests.Feats.FightEventRegistration
 
 				FeatBoardService.RegisterFightEvents(
 					creature,
-					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 50 } });
+					new List<BattleEvent> { new DamageEvent { Amount = 50, Caster = DummyUnit } });
 
 				FeatBoardService.RegisterFightEvents(
 					creature,
-					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 50 } });
+					new List<BattleEvent> { new DamageEvent { Amount = 50, Caster = DummyUnit } });
 
 				FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(creature, damageNode);
 				Assert.That(nodeProgress, Is.Not.Null);
@@ -51,10 +55,10 @@ namespace Tests.Feats.FightEventRegistration
 
 				FeatBoardService.RegisterFightEvents(
 					creature,
-					new List<FeatRequirement.EventBase>
+					new List<BattleEvent>
 					{
-						new DealDamageRequirement.Event { Amount = 50 },
-						new DealDamageRequirement.Event { Amount = 50 }
+						new DamageEvent { Amount = 50, Caster = DummyUnit },
+						new DamageEvent { Amount = 50, Caster = DummyUnit }
 					});
 
 				FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(creature, damageNode);
@@ -87,7 +91,7 @@ namespace Tests.Feats.FightEventRegistration
 
 				FeatBoardService.RegisterFightEvents(
 					creature,
-					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 50 } });
+					new List<BattleEvent> { new DamageEvent { Amount = 50, Caster = DummyUnit } });
 
 				FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(creature, damageNode);
 				Assert.That(nodeProgress, Is.Not.Null);
@@ -96,7 +100,7 @@ namespace Tests.Feats.FightEventRegistration
 
 				FeatBoardService.RegisterFightEvents(
 					creature,
-					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 50 } });
+					new List<BattleEvent> { new DamageEvent { Amount = 50, Caster = DummyUnit } });
 
 				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(1));
 			}
@@ -127,14 +131,14 @@ namespace Tests.Feats.FightEventRegistration
 
 				FeatBoardService.RegisterFightEvents(
 					creature,
-					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 100 } });
+					new List<BattleEvent> { new DamageEvent { Amount = 100, Caster = DummyUnit } });
 				FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(creature, damageNode);
 				Assert.That(nodeProgress, Is.Not.Null);
 				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(0));
 
 				FeatBoardService.RegisterFightEvents(
 					creature,
-					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 100 } });
+					new List<BattleEvent> { new DamageEvent { Amount = 100, Caster = DummyUnit } });
 
 				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(1));
 			}
@@ -165,10 +169,10 @@ namespace Tests.Feats.FightEventRegistration
 
 				FeatBoardService.RegisterFightEvents(
 					creature,
-					new List<FeatRequirement.EventBase>
+					new List<BattleEvent>
 					{
-						new DealDamageRequirement.Event { Amount = 50 },
-						new DealDamageRequirement.Event { Amount = 50 }
+						new DamageEvent { Amount = 50, Caster = DummyUnit },
+						new DamageEvent { Amount = 50, Caster = DummyUnit }
 					});
 
 				FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(creature, damageNode);

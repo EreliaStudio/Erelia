@@ -18,7 +18,7 @@ namespace Tests.Feats.GameScope
 				}
 			};
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
 				new TestAmountEvent { Amount = 60, TurnIndex = 1 }
 			});
@@ -26,7 +26,7 @@ namespace Tests.Feats.GameScope
 			Assert.That(progress.CompletedRepeatCount, Is.EqualTo(0));
 			Assert.That(progress.CurrentProgress, Is.EqualTo(60f).Within(0.01f));
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
 				new TestAmountEvent { Amount = 40, TurnIndex = 2 }
 			});
@@ -46,7 +46,7 @@ namespace Tests.Feats.GameScope
 		}
 
 		[Serializable]
-		private sealed class TestAmountEvent : FeatRequirement.EventBase
+		private sealed class TestAmountEvent : BattleEvent
 		{
 			public int Amount;
 		}

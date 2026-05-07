@@ -16,8 +16,8 @@ public sealed class DamageTargetEffectTests : EffectTestBase
 			.Apply(CreateContext(source, target));
 
 		Assert.That(target.BattleAttributes.Health.Current, Is.EqualTo(85));
-		Assert.That(FindEvent<DealDamageRequirement.Event>(source)?.Amount, Is.EqualTo(15));
-		Assert.That(FindEvent<TakeDamageRequirement.Event>(target)?.Amount, Is.EqualTo(15));
+		Assert.That(FindEvent<DamageEvent>(source)?.Amount, Is.EqualTo(15));
+		Assert.That(FindEvent<DamageEvent>(target)?.Amount, Is.EqualTo(15));
 	}
 
 	[Test]

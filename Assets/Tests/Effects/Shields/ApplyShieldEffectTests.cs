@@ -37,7 +37,7 @@ public sealed class ApplyShieldEffectTests : EffectTestBase
 			DurationInTurns = 2
 		}.Apply(CreateContext(source, target));
 
-		ApplyShieldRequirement.Event shieldEvent = FindEvent<ApplyShieldRequirement.Event>(source);
+		ShieldAppliedEvent shieldEvent = FindEvent<ShieldAppliedEvent>(source);
 
 		Assert.That(shieldEvent, Is.Not.Null);
 		Assert.That(shieldEvent.Amount, Is.EqualTo(12));
@@ -105,7 +105,7 @@ public sealed class ApplyShieldEffectTests : EffectTestBase
 		}.Apply(CreateContext(source, target));
 
 		Assert.That(target.BattleAttributes.ActiveShields.Count, Is.EqualTo(0));
-		Assert.That(FindEvent<ApplyShieldRequirement.Event>(source), Is.Null);
+		Assert.That(FindEvent<ShieldAppliedEvent>(source), Is.Null);
 	}
 
 	[Test]
@@ -122,7 +122,7 @@ public sealed class ApplyShieldEffectTests : EffectTestBase
 		}.Apply(CreateContext(source, target));
 
 		Assert.That(target.BattleAttributes.ActiveShields.Count, Is.EqualTo(0));
-		Assert.That(FindEvent<ApplyShieldRequirement.Event>(source), Is.Null);
+		Assert.That(FindEvent<ShieldAppliedEvent>(source), Is.Null);
 	}
 
 	[Test]
@@ -140,7 +140,7 @@ public sealed class ApplyShieldEffectTests : EffectTestBase
 			}.Apply(CreateContext(p_source: source));
 		});
 
-		Assert.That(FindEvent<ApplyShieldRequirement.Event>(source), Is.Null);
+		Assert.That(FindEvent<ShieldAppliedEvent>(source), Is.Null);
 	}
 
 	[Test]

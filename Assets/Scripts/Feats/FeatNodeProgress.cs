@@ -49,7 +49,7 @@ public class FeatNodeProgress
 	}
 
 	public void RegisterEvents(
-		IReadOnlyList<FeatRequirement.EventBase> p_featEvents,
+		IReadOnlyList<BattleEvent> p_featEvents,
 		bool p_includeTransientRequirements = true)
 	{
 		foreach (FeatRequirementProgress requirement in RequirementProgress)
@@ -137,7 +137,7 @@ public class FeatRequirementProgress
 	}
 
 	public void RegisterEvents(
-		IReadOnlyList<FeatRequirement.EventBase> p_featEvents,
+		IReadOnlyList<BattleEvent> p_featEvents,
 		bool p_includeTransientRequirements = true)
 	{
 		if (Requirement == null)

@@ -5,6 +5,10 @@ namespace Tests.Requirements.Meta.And
 {
 	public sealed class AndTests
 	{
+		private static readonly BattleUnit DummyUnit = new BattleUnit(
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			BattleSide.Player);
+
 		[Test]
 		public void BothChildrenSatisfied_Completes()
 		{
@@ -13,10 +17,10 @@ namespace Tests.Requirements.Meta.And
 			var req = new AndRequirement { Children = new List<FeatRequirement> { childA, childB } };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 10 },
-				new HealHealthRequirement.Event { Amount = 5 }
+				new DamageEvent { Amount = 10, Caster = DummyUnit },
+				new HealEvent { Amount = 5, Caster = DummyUnit }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -30,9 +34,9 @@ namespace Tests.Requirements.Meta.And
 			var req = new AndRequirement { Children = new List<FeatRequirement> { childA, childB } };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 10 }
+				new DamageEvent { Amount = 10, Caster = DummyUnit }
 			});
 
 			Assert.That(progress.IsCompleted, Is.False);
@@ -46,9 +50,9 @@ namespace Tests.Requirements.Meta.And
 			var req = new AndRequirement { Children = new List<FeatRequirement> { childA, childB } };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 50 }
+				new DamageEvent { Amount = 50, Caster = DummyUnit }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(50f).Within(0.01f));
@@ -60,9 +64,9 @@ namespace Tests.Requirements.Meta.And
 			var req = new AndRequirement { Children = new List<FeatRequirement>() };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 100 }
+				new DamageEvent { Amount = 100, Caster = DummyUnit }
 			});
 
 			Assert.That(progress.IsCompleted, Is.False);
@@ -74,6 +78,10 @@ namespace Tests.Requirements.Meta.Or
 {
 	public sealed class OrTests
 	{
+		private static readonly BattleUnit DummyUnit = new BattleUnit(
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			BattleSide.Player);
+
 		[Test]
 		public void FirstChildSatisfied_Completes()
 		{
@@ -82,9 +90,9 @@ namespace Tests.Requirements.Meta.Or
 			var req = new OrRequirement { Children = new List<FeatRequirement> { childA, childB } };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 10 }
+				new DamageEvent { Amount = 10, Caster = DummyUnit }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -98,9 +106,9 @@ namespace Tests.Requirements.Meta.Or
 			var req = new OrRequirement { Children = new List<FeatRequirement> { childA, childB } };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new HealHealthRequirement.Event { Amount = 5 }
+				new HealEvent { Amount = 5, Caster = DummyUnit }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -114,10 +122,10 @@ namespace Tests.Requirements.Meta.Or
 			var req = new OrRequirement { Children = new List<FeatRequirement> { childA, childB } };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 40 },
-				new HealHealthRequirement.Event { Amount = 30 }
+				new DamageEvent { Amount = 40, Caster = DummyUnit },
+				new HealEvent { Amount = 30, Caster = DummyUnit }
 			});
 
 			Assert.That(progress.IsCompleted, Is.False);
@@ -131,10 +139,10 @@ namespace Tests.Requirements.Meta.Or
 			var req = new OrRequirement { Children = new List<FeatRequirement> { childA, childB } };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 40 },
-				new HealHealthRequirement.Event { Amount = 80 }
+				new DamageEvent { Amount = 40, Caster = DummyUnit },
+				new HealEvent { Amount = 80, Caster = DummyUnit }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(80f).Within(0.01f));

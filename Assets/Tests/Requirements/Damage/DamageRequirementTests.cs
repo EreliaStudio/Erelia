@@ -6,6 +6,10 @@ namespace Tests.Requirements.Damage.DealDamage
 {
 	public sealed class DealDamageTests
 	{
+		private static BattleUnit CreateTestUnit() => new BattleUnit(
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			BattleSide.Player);
+
 		[Test]
 		public void EmptyAbilitiesFilter_AnyAbilityCounts()
 		{
@@ -13,9 +17,9 @@ namespace Tests.Requirements.Damage.DealDamage
 			var req = new DealDamageRequirement { SourceAbilities = new List<Ability>(), RequiredAmount = 100 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 100, SourceAbility = ability }
+				new DamageEvent { Amount = 100, Caster = CreateTestUnit(), SourceAbility = ability }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -29,9 +33,9 @@ namespace Tests.Requirements.Damage.DealDamage
 			var req = new DealDamageRequirement { SourceAbilities = new List<Ability> { ability }, RequiredAmount = 100 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 50, SourceAbility = ability }
+				new DamageEvent { Amount = 50, Caster = CreateTestUnit(), SourceAbility = ability }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(50f).Within(0.01f));
@@ -46,9 +50,9 @@ namespace Tests.Requirements.Damage.DealDamage
 			var req = new DealDamageRequirement { SourceAbilities = new List<Ability> { abilityA }, RequiredAmount = 100 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 50, SourceAbility = abilityB }
+				new DamageEvent { Amount = 50, Caster = CreateTestUnit(), SourceAbility = abilityB }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
@@ -67,9 +71,9 @@ namespace Tests.Requirements.Damage.DealDamage
 			};
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 40, DamageKind = MathFormula.DamageInput.Kind.Physical }
+				new DamageEvent { Amount = 40, Caster = CreateTestUnit(), DamageKind = MathFormula.DamageInput.Kind.Physical }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(40f).Within(0.01f));
@@ -86,9 +90,9 @@ namespace Tests.Requirements.Damage.DealDamage
 			};
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 40, DamageKind = MathFormula.DamageInput.Kind.Magical }
+				new DamageEvent { Amount = 40, Caster = CreateTestUnit(), DamageKind = MathFormula.DamageInput.Kind.Magical }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
@@ -106,9 +110,9 @@ namespace Tests.Requirements.Damage.SurviveHit
 			var req = new SurviveHitRequirement { RequiredAmount = 20 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new SurviveHitRequirement.Event { Amount = 25 }
+				new HitSurvivedEvent { Amount = 25 }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -120,9 +124,9 @@ namespace Tests.Requirements.Damage.SurviveHit
 			var req = new SurviveHitRequirement { RequiredAmount = 20 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new SurviveHitRequirement.Event { Amount = 10 }
+				new HitSurvivedEvent { Amount = 10 }
 			});
 
 			Assert.That(progress.IsCompleted, Is.False);
@@ -134,9 +138,9 @@ namespace Tests.Requirements.Damage.SurviveHit
 			var req = new SurviveHitRequirement { RequiredAmount = 20 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new SurviveHitRequirement.Event { Amount = 20 }
+				new HitSurvivedEvent { Amount = 20 }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -148,15 +152,19 @@ namespace Tests.Requirements.Damage.WinAfterDealing
 {
 	public sealed class WinAfterDealingTests
 	{
+		private static BattleUnit CreateTestUnit() => new BattleUnit(
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			BattleSide.Player);
+
 		[Test]
 		public void DamageAccumulatesProgress()
 		{
 			var req = new WinAfterDealingDamageRequirement { RequiredAmount = 100 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 60 }
+				new DamageEvent { Amount = 60, Caster = CreateTestUnit() }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(60f).Within(0.01f));
@@ -168,9 +176,9 @@ namespace Tests.Requirements.Damage.WinAfterDealing
 			var req = new WinAfterDealingDamageRequirement { RequiredAmount = 50 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
-			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new DealDamageRequirement.Event { Amount = 50 }
+				new DamageEvent { Amount = 50, Caster = CreateTestUnit() }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);

@@ -2,6 +2,7 @@
     "name": "Erelia.Creatures.Editor",
     "references": [
         "Erelia.Runtime",
+        "Erelia.Editor",
         "Erelia.Feats.Editor",
         "AYellowpaper.SerializedCollections",
         "AYellowpaper.SerializedCollections.Editor"

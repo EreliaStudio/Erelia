@@ -7,14 +7,18 @@ namespace Tests.Requirements.MaxSingleHit
 {
 	public sealed class MaxSingleHitTests
 	{
+		private static BattleUnit CreateTestUnit() => new BattleUnit(
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			BattleSide.Player);
+
 		[Test]
 		public void TwoWeakHits_DoNotProgress()
 		{
 			var requirement = new DealDamageRequirement { RequiredAmount = 100, RequirementScope = FeatRequirement.Scope.Action };
 			var progress = new FeatRequirementProgress { Requirement = requirement };
 
-			progress.RegisterEvents(new[] { new DealDamageRequirement.Event { Amount = 30 } });
-			progress.RegisterEvents(new[] { new DealDamageRequirement.Event { Amount = 30 } });
+			progress.RegisterEvents(new[] { new DamageEvent { Amount = 30, Caster = CreateTestUnit() } });
+			progress.RegisterEvents(new[] { new DamageEvent { Amount = 30, Caster = CreateTestUnit() } });
 
 			Assert.That(progress.CompletedRepeatCount, Is.EqualTo(0));
 			Assert.That(progress.IsCompleted, Is.False);
@@ -26,7 +30,7 @@ namespace Tests.Requirements.MaxSingleHit
 			var requirement = new DealDamageRequirement { RequiredAmount = 50, RequirementScope = FeatRequirement.Scope.Action };
 			var progress = new FeatRequirementProgress { Requirement = requirement };
 
-			progress.RegisterEvents(new[] { new DealDamageRequirement.Event { Amount = 50 } });
+			progress.RegisterEvents(new[] { new DamageEvent { Amount = 50, Caster = CreateTestUnit() } });
 
 			Assert.That(progress.IsCompleted, Is.True);
 		}
@@ -37,8 +41,8 @@ namespace Tests.Requirements.MaxSingleHit
 			var requirement = new DealDamageRequirement { RequiredAmount = 100, RequirementScope = FeatRequirement.Scope.Action };
 			var progress = new FeatRequirementProgress { Requirement = requirement };
 
-			progress.RegisterEvents(new[] { new DealDamageRequirement.Event { Amount = 40 } });
-			progress.RegisterEvents(new[] { new DealDamageRequirement.Event { Amount = 40 } });
+			progress.RegisterEvents(new[] { new DamageEvent { Amount = 40, Caster = CreateTestUnit() } });
+			progress.RegisterEvents(new[] { new DamageEvent { Amount = 40, Caster = CreateTestUnit() } });
 
 			Assert.That(progress.CompletedRepeatCount, Is.EqualTo(0));
 			Assert.That(progress.IsCompleted, Is.False);
@@ -72,8 +76,8 @@ namespace Tests.Requirements.MaxSingleHit
 			};
 			FeatBoardService.InitializeCreatureUnit(creatureUnit);
 
-			FeatBoardService.RegisterEvent(creatureUnit, new DealDamageRequirement.Event { Amount = 25 });
-			FeatBoardService.RegisterEvent(creatureUnit, new DealDamageRequirement.Event { Amount = 25 });
+			FeatBoardService.RegisterEvent(creatureUnit, new DamageEvent { Amount = 25, Caster = CreateTestUnit() });
+			FeatBoardService.RegisterEvent(creatureUnit, new DamageEvent { Amount = 25, Caster = CreateTestUnit() });
 
 			FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(creatureUnit, maxHitNode);
 			bool completed = nodeProgress != null && nodeProgress.CompletionCount > 0;
@@ -114,7 +118,7 @@ namespace Tests.Requirements.MaxSingleHit
 			};
 			FeatBoardService.InitializeCreatureUnit(creatureUnit);
 
-			FeatBoardService.RegisterEvent(creatureUnit, new DealDamageRequirement.Event { Amount = 50 });
+			FeatBoardService.RegisterEvent(creatureUnit, new DamageEvent { Amount = 50, Caster = CreateTestUnit() });
 
 			FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(creatureUnit, maxHitNode);
 			Assert.That(nodeProgress, Is.Not.Null);
@@ -165,7 +169,7 @@ namespace Tests.Requirements.MaxSingleHit
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
 			BattleFeatEventReporter.Emit(
 				fixture.PlayerUnits[0],
-				new DealDamageRequirement.Event { Amount = 30 });
+				new DamageEvent { Amount = 30, Caster = fixture.PlayerUnits[0] });
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 
@@ -218,10 +222,10 @@ namespace Tests.Requirements.MaxSingleHit
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
 			BattleFeatEventReporter.Emit(
 				fixture.PlayerUnits[0],
-				new DealDamageRequirement.Event { Amount = 25 });
+				new DamageEvent { Amount = 25, Caster = fixture.PlayerUnits[0] });
 			BattleFeatEventReporter.Emit(
 				fixture.PlayerUnits[0],
-				new DealDamageRequirement.Event { Amount = 25 });
+				new DamageEvent { Amount = 25, Caster = fixture.PlayerUnits[0] });
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 
