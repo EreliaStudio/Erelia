@@ -41,7 +41,6 @@ public sealed class BattleOrchestrator : IDisposable
 		BattleMode = battleMode;
 		BattleContext = battleContext;
 		Coordinator = new BattleCoordinator();
-		EventCenter.EmitBattleStarted(battleContext);
 
 		BindPhases();
 		BindControllers();

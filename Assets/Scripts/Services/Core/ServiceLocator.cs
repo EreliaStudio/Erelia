@@ -2,6 +2,7 @@ public sealed class ServiceLocator
 {
 	public static ServiceLocator Instance { get; private set; }
 
+	public GameContext GameContext { get; }
 	public BattleService BattleService { get; }
 	public BattleActionCompositionService BattleActionCompositionService { get; }
 	public PlayerService PlayerService { get; }
@@ -10,23 +11,48 @@ public sealed class ServiceLocator
 	public EncounterService EncounterService { get; }
 	public WorldService WorldService { get; }
 	public SaveService SaveService { get; }
+	public IOFileService IOFileService { get; }
 
-	private ServiceLocator(GameContext p_gameContext)
+	private ServiceLocator(GameSaveData p_saveData)
+		: this(p_saveData, null, null)
 	{
-		PlayerService = new PlayerService(p_gameContext);
-		WorldService = new WorldService(p_gameContext);
-		FeatBoardService = new FeatBoardService(p_gameContext);
-		TamingService = new TamingService(p_gameContext);
-		EncounterService = new EncounterService(p_gameContext);
-		SaveService = new SaveService(p_gameContext);
-		BattleActionCompositionService = new BattleActionCompositionService();
-		BattleService = new BattleService(p_gameContext);
 	}
 
-	public static void Create(GameContext p_gameContext)
+	private ServiceLocator(
+		GameSaveData p_saveData,
+		string p_saveDirectoryPath,
+		string p_saveFileName)
+	{
+		IOFileService = new IOFileService(p_saveDirectoryPath, p_saveFileName);
+		SaveService = new SaveService(IOFileService);
+		GameContext = SaveService.CreateGameContext(p_saveData);
+		PlayerService = new PlayerService(GameContext);
+		SaveService.BindRuntimeServices(GameContext, PlayerService);
+		WorldService = new WorldService(GameContext);
+		FeatBoardService = new FeatBoardService(GameContext);
+		TamingService = new TamingService(GameContext);
+		EncounterService = new EncounterService(GameContext);
+		BattleActionCompositionService = new BattleActionCompositionService();
+		BattleService = new BattleService(GameContext);
+	}
+
+	public static void Create(GameSaveData p_saveData)
 	{
 		Destroy();
-		Instance = new ServiceLocator(p_gameContext);
+		Instance = new ServiceLocator(p_saveData);
+		Instance.Initialize();
+	}
+
+	public static void CreateWithSaveFileOverride(
+		GameSaveData p_saveData,
+		string p_saveDirectoryPath,
+		string p_saveFileName)
+	{
+		Destroy();
+		Instance = new ServiceLocator(
+			p_saveData,
+			p_saveDirectoryPath,
+			p_saveFileName);
 		Instance.Initialize();
 	}
 

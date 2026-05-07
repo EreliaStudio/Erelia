@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Battle\Rules\BattleFeatEventReporter.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMaskLayer.cs" />
+    <Compile Include="Assets\Scripts\Data\GameSaveFileData.cs" />
     <Compile Include="Assets\Scripts\Battle\System\IBattlePhase.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleContext.cs" />
     <Compile Include="Assets\Scripts\Bootstrap\GameBootstrapper.cs" />
@@ -59,6 +60,7 @@
     <Compile Include="Assets\Scripts\Battle\Execution\BattleActionCompositionService.cs" />
     <Compile Include="Assets\Scripts\Voxel\CardinalHeightSet.cs" />
     <Compile Include="Assets\Scripts\Data\GameContext.cs" />
+    <Compile Include="Assets\Scripts\Bootstrap\GameSceneEntryEmulator.cs" />
     <Compile Include="Assets\Scripts\Input\GameplayInputBlocker.cs" />
     <Compile Include="Assets\Scripts\Rules\GameRule.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelShape.cs" />
@@ -164,9 +166,11 @@
     <Compile Include="Assets\Scripts\Services\Core\ServiceLocator.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterEmitter.cs" />
     <Compile Include="Assets\Scripts\Battle\System\Phases\EndPhase.cs" />
+    <Compile Include="Assets\Scripts\Event\BootstrapEventCenter.cs" />
     <Compile Include="Assets\Scripts\Services\World\WorldService.cs" />
     <Compile Include="Assets\Scripts\Battle\System\PhaseControllers\SetupPhaseController.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleStatuses.cs" />
+    <Compile Include="Assets\Scripts\Services\Persistence\IOFileService.cs" />
     <Compile Include="Assets\Scripts\Battle\Rules\BattleTurnRules.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleObject.cs" />
     <Compile Include="Assets\Scripts\Event\PlayerEventCenter.cs" />
@@ -238,6 +242,7 @@
     <Compile Include="Assets\Scripts\Battle\Core\BattleAction.cs" />
     <Compile Include="Assets\Scripts\UI\ProgressBarView.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleUnitManager.cs" />
+    <Compile Include="Assets\Scripts\Bootstrap\MainMenuMock.cs" />
     <Compile Include="Assets\Scripts\Observables\ObservableValue.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMesher.Geometry.cs" />
   </ItemGroup>

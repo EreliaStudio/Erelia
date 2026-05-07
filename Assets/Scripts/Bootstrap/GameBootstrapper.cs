@@ -3,16 +3,7 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class GameBootstrapper : MonoBehaviour
 {
-	private enum BootstrapMode
-	{
-		NewGame,
-		LoadFromSave
-	}
-
 	[SerializeField] private ModeManager modeManager;
-	[SerializeField] private GameSaveData gameSaveData = new GameSaveData();
-	[SerializeField] private BootstrapMode bootstrapMode = BootstrapMode.NewGame;
-	[SerializeField] private bool bootstrapOnStart = true;
 	[SerializeField] private WorldPresenter worldPresenter;
 
 	private void Awake()
@@ -28,31 +19,37 @@ public class GameBootstrapper : MonoBehaviour
 		}
 	}
 
-	private void Start()
+	private void OnEnable()
 	{
-		if (bootstrapOnStart)
-		{
-			Bootstrap();
-		}
+		EventCenter.EnteringGame += Bootstrap;
 	}
 
-	public void Bootstrap()
+	private void OnDisable()
 	{
-		gameSaveData ??= new GameSaveData();
-		GameContext gameContext = GameContext.CreateFromSave(gameSaveData);
-		ServiceLocator.Create(gameContext);
+		EventCenter.EnteringGame -= Bootstrap;
+	}
+
+	public void Bootstrap(GameSaveData p_gameSaveData)
+	{
+		if (p_gameSaveData == null)
+		{
+			Logger.LogError("[GameBootstrapper] Cannot enter game: GameSaveData is null. The entry emitter must provide a valid GameSaveData instance.", Logger.Severity.Critical, this);
+			return;
+		}
+
+		ServiceLocator.Create(p_gameSaveData);
+		GameContext gameContext = ServiceLocator.Instance.GameContext;
+		PlayerService playerService = ServiceLocator.Instance.PlayerService;
+
 		worldPresenter.Bind(gameContext.World);
 		ServiceLocator.Instance.WorldService.ConfigureVoxelRegistry(worldPresenter.VoxelRegistry);
-		ServiceLocator.Instance.SaveService.BindSaveData(gameSaveData);
 
-		if (bootstrapMode == BootstrapMode.NewGame)
+		// Empty incoming saves need generated terrain available to resolve the initial spawn.
+		worldPresenter.LoadImmediatelyAroundWorldCell(playerService.PlayerWorldCell);
+		if (GameInitializationService.TryInitializeNewGameSave(p_gameSaveData, worldPresenter.WorldData, worldPresenter.VoxelRegistry))
 		{
-			// New-game setup needs generated terrain available to resolve the initial spawn.
-			worldPresenter.LoadImmediatelyAroundWorldCell(gameSaveData.PlayerWorldCell);
-			if (GameInitializationService.TryInitializeNewGameSave(gameSaveData, worldPresenter.WorldData, worldPresenter.VoxelRegistry))
-			{
-				gameContext.LoadFromSave(gameSaveData);
-			}
+			gameContext.LoadFromSave(p_gameSaveData);
+			ServiceLocator.Instance.SaveService.Save();
 		}
 
 		modeManager.SetGameContext(gameContext);

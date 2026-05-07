@@ -77,6 +77,12 @@ public class ModeManager : MonoBehaviour
 			return;
 		}
 
+		if (ReferenceEquals(currentMode, battleMode) &&
+			ReferenceEquals(battleMode.BattleContext, context))
+		{
+			return;
+		}
+
 		SwitchTo(battleMode);
 		battleMode.Enter(context);
 	}

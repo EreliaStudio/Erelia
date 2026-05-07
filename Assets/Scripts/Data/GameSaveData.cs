@@ -13,6 +13,11 @@ public sealed class GameSaveData
 	public Vector3Int PlayerWorldCell => player != null ? player.WorldCell : Vector3Int.zero;
 	public Vector3Int RespawnPoint => respawnPoint;
 
+	public void SetWorldSeed(int seed)
+	{
+		worldSeed = seed;
+	}
+
 	public void SetPlayerWorldCell(Vector3Int cell)
 	{
 		player ??= new PlayerData();

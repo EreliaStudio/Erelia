@@ -11,5 +11,6 @@
   <Project Path="Erelia.Player.Editor.csproj" />
   <Project Path="Erelia.AI.Editor.csproj" />
   <Project Path="Erelia.Encounters.Editor.csproj" />
+  <Project Path="Erelia.Bootstrap.Editor.csproj" />
   <Project Path="Erelia.Creatures.Editor.csproj" />
 </Solution>
