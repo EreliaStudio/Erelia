@@ -1,32 +1,43 @@
 @startuml Battle System
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
 class BoardData <<CF diagram 03>> {}
 class CreatureUnit <<CF diagram 06>> {}
+class EncounterUnit <<CF diagram 05>> {}
 class Ability <<CF diagram 04b>> {}
 class Effect <<CF diagram 04b>> {}
+class InteractionObject <<CF diagram 04b>> {}
 class ObservableResource <<CF diagram 00>> {}
 class ObservableFloatResource <<CF diagram 00>> {}
-class ObservableValue <<CF diagram 00>> {}
-class ObservableList <<CF diagram 00>> {}
+class "ObservableValue<T>" as ObservableValueT <<CF diagram 00>> {}
+class "ObservableList<T>" as ObservableListT <<CF diagram 00>> {}
 class Duration <<CF diagram 07>> {}
-class InteractionObject <<CF diagram 04b>> {}
 
 enum BattleSide {
-	Neutral 
-Player 
-Enemy
+  Neutral
+  Player
+  Enemy
 }
+
+enum PlacementStyle {
+  HalfBoard
+  FullBoard
+  Corners
+}
+
 enum StatusHookPoint {
-	TurnStart 
-	TurnEnd 
-	BeforeCastingAnAbility 
-	AfterCastingAnAbility 
-	OnHPLoss 
-	OnAPLoss 
-	OnMPLoss
+  TurnStart
+  TurnEnd
+  BeforeMove
+  AfterMove
+  BeforeCastingAnAbility
+  AfterCastingAnAbility
+  OnHPLoss
+  OnAPLoss
+  OnMPLoss
 }
 
 abstract class BattleObject {
@@ -55,10 +66,26 @@ class BattleStatus {
 }
 
 class BattleStatuses {
+  +Changed : event Action<BattleStatuses>
   +Count : int
   +Add(Status, int, Duration, bool)
   +Remove(Status, int, bool) : int
+  +Remove(IEnumerable<string>, int, bool) : int
   +Contains(Status, bool) : bool
+  +Contains(IEnumerable<string>, bool) : bool
+  +AdvanceTurnDurations()
+}
+
+enum ShieldKind {
+  Physical
+  Magical
+}
+
+class BattleShield {
+  +Kind : ShieldKind
+  +CurrentAmount : int
+  +RemainingTurns : int
+  +IsInfinite : bool
 }
 
 class BattleAttributes {
@@ -66,9 +93,22 @@ class BattleAttributes {
   +ActionPoints : ObservableResource
   +MovementPoints : ObservableResource
   +TurnBar : ObservableFloatResource
+  +StaminaRatio : ObservableValue<float>
+  +BonusRange : ObservableValue<int>
   +Attack : ObservableValue<int>
   +Armor : ObservableValue<int>
+  +ArmorPenetration : ObservableValue<int>
+  +Magic : ObservableValue<int>
+  +Resistance : ObservableValue<int>
+  +ResistancePenetration : ObservableValue<int>
+  +LifeSteal : ObservableValue<float>
+  +Omnivamprism : ObservableValue<float>
+  +ActiveShields : ObservableList<BattleShield>
   +Setup(Attributes)
+  +AddShield(ShieldKind, int, int)
+  +AbsorbDamage(Kind, int) : BattleShieldAbsorptionResult
+  +AdvanceShieldDurations()
+  +ClearShields()
 }
 
 class BattleUnit {
@@ -76,39 +116,147 @@ class BattleUnit {
   +BattleAttributes : BattleAttributes
   +Statuses : BattleStatuses
   +Abilities : IReadOnlyList<Ability>
+  +HasBoardPosition : bool
+  +BoardPosition : Vector3Int
+  +HasLeftBattle : bool
   +IsDefeated : bool
+  +IsActiveInBattle : bool
   +IsTurnReady : bool
+  +PositionChanged : event Action<BattleUnit, Vector3Int?>
+  +SetBoardPosition(Vector3Int)
+  +ClearBoardPosition()
+  +MarkLeftBattle()
+  +ResetBattleRuntimeState()
+}
+
+class WildBattleUnit <<CF diagram 05>> {}
+
+class TurnContext {
+  +ActiveUnit : BattleUnit
+  +ActiveSide : BattleSide
+  +PendingAction : BattleAction
+  +ResolvedActionCount : int
+  +TotalAbilityCastCountThisTurn : int
+  +AbilityCastCountsThisTurn : IReadOnlyDictionary<Ability, int>
+  +HasActiveUnit : bool
+  +HasPendingAction : bool
+  +Begin(BattleUnit)
+  +TrySetPendingAction(BattleAction) : bool
+  +ConsumePendingAction() : BattleAction
+  +RecordAbilityCast(Ability)
+  +End()
 }
 
 class BattleContext {
+  +UnitRegistered : event Action<BattleUnit>
+  +UnitRemoved : event Action<BattleUnit>
+  +UnitDefeated : event Action<BattleUnit>
   +Board : BoardData
+  +PlacementStyle : PlacementStyle
+  +Stats : BattleStats
+  +CurrentTurn : TurnContext
+  +PlayerWorldPosition : Vector3
+  +PlayerUnits : IReadOnlyList<BattleUnit>
+  +EnemyUnits : IReadOnlyList<BattleUnit>
+  +AllUnits : IReadOnlyList<BattleUnit>
+  +ClearRuntime()
+  +GetUnits(BattleSide) : IEnumerable<BattleUnit>
+  +GetOpponents(BattleUnit) : IEnumerable<BattleUnit>
+  +HasLivingUnits(BattleSide) : bool
+  +GetObjectsAt(Vector3Int) : IReadOnlyList<BattleObject>
+  +TryPlaceUnit(BattleUnit, Vector3Int) : bool
+  +TryMoveUnit(BattleUnit, Vector3Int) : bool
+  +TrySwapUnits(BattleUnit, BattleUnit) : bool
+  +RemoveUnit(BattleUnit)
+  +DefeatUnit(BattleUnit)
 }
 
-class BattleSetup {
-  +Team : EncounterUnit[]
-  +Board : BoardData
-  +PlayerWorldPosition : Vector3
+abstract class BattleAction {
+  +SourceUnit : BattleUnit
 }
+
+class MoveAction {
+  +Destination : Vector3Int
+}
+
+class AbilityAction {
+  +Ability : Ability
+  +TargetCells : IReadOnlyList<Vector3Int>
+}
+
+class EndTurnAction
+
+class BattleStats {
+  +GetStats(BattleUnit) : UnitStats
+  +RecordMove(BattleUnit)
+  +RecordAbilityCast(BattleUnit)
+  +RecordDamageDealt(BattleUnit, int)
+  +RecordHealingDone(BattleUnit, int)
+  +Reset()
+}
+
+class BattleOutcome {
+  +Winner : BattleSide
+  +SurvivingPlayerUnits : IReadOnlyList<BattleUnit>
+  +SurvivingEnemyUnits : IReadOnlyList<BattleUnit>
+  +Stats : BattleStats
+}
+
+class BattleActionValidator <<static>>
+class BattleActionResolver <<static>>
+class BattleTurnRules <<static>>
+class BattleStatusRules <<static>>
+class BattleOutcomeRules <<static>>
+class BattlePlacementRules <<static>>
+class BattleTargetingRules <<static>>
+class BattleRangeRules <<static>>
+class BattleMaskRules <<static>>
+class BattleLineOfSightRules <<static>>
+class BattleFeatEventReporter <<static>>
 
 BattleObject <|-- BattleUnit
 BattleObject <|-- BattleInteractiveObject
-BattleObject *-- BattleSide
+BattleUnit <|-- WildBattleUnit
+BattleObject --> BattleSide
 BattleUnit *-- BattleAttributes
 BattleUnit *-- BattleStatuses
-BattleUnit o-- CreatureUnit
-BattleUnit o-- Ability
-BattleStatuses *-- ObservableList
-BattleStatuses o-- BattleStatus
-BattleStatus o-- Status
-BattleStatus *-- Duration
-BattleInteractiveObject *-- Duration
-BattleInteractiveObject o-- InteractionObject
+BattleUnit --> CreatureUnit
+BattleUnit --> Ability
+BattleStatuses *-- BattleStatus
+BattleStatus --> Status
+BattleStatus --> Duration
+Status --> StatusHookPoint
+Status o-- Effect
 BattleAttributes *-- ObservableResource
 BattleAttributes *-- ObservableFloatResource
-BattleAttributes o-- ObservableValue
-BattleContext o-- BoardData
-BattleSetup o-- BoardData
-Status o-- Effect
-Status *-- StatusHookPoint
+BattleAttributes *-- ObservableValueT
+BattleAttributes *-- ObservableListT
+BattleAttributes *-- BattleShield
+BattleShield --> ShieldKind
+BattleInteractiveObject --> InteractionObject
+BattleInteractiveObject --> Duration
+BattleContext --> BoardData
+BattleContext --> PlacementStyle
+BattleContext *-- TurnContext
+BattleContext *-- BattleStats
+BattleContext *-- BattleUnit
+TurnContext --> BattleAction
+TurnContext --> BattleUnit
+TurnContext --> BattleSide
+BattleAction <|-- MoveAction
+BattleAction <|-- AbilityAction
+BattleAction <|-- EndTurnAction
+AbilityAction --> Ability
+BattleOutcome --> BattleStats
+BattleOutcome --> BattleSide
+BattleOutcome --> BattleUnit
+
+BattleActionValidator ..> BattleContext
+BattleActionResolver ..> BattleAction
+BattleActionResolver ..> BattleFeatEventReporter
+BattleTurnRules ..> BattleContext
+BattleTurnRules ..> EventCenter : emits turn end
+BattleOutcomeRules ..> BattleOutcome
+BattleFeatEventReporter ..> EventCenter : emits BattleFeatEventOccurred
 
 @enduml

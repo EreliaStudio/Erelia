@@ -22,88 +22,96 @@ public static class BattleActionResolver
 
 	private static bool ResolveMove(BattleContext battleContext, TurnContext turnContext, MoveAction action)
 	{
-		if (!BattleActionValidator.TryGetMovementCost(battleContext, turnContext, action.Destination, out int movementCost))
-		{
-			return false;
-		}
-
-		BattleStatusRules.ApplyHook(action.SourceUnit, battleContext, StatusHookPoint.BeforeMove, action.SourceUnit);
+		BattleStatusRules.ApplyHook(CreateHookContext(
+			battleContext,
+			StatusHookPoint.BeforeConsumingResources,
+			action.SourceUnit,
+			action.SourceUnit,
+			action.SourceUnit,
+			action));
 
 		if (!battleContext.TryMoveUnit(action.SourceUnit, action.Destination))
 		{
 			return false;
 		}
 
-		TrackedResourceDelta sourceDelta = Track(action.SourceUnit);
-		action.SourceUnit.BattleAttributes.MovementPoints.Decrease(movementCost);
-		EmitLossHooks(battleContext, action.SourceUnit, sourceDelta);
-		battleContext.Stats.RecordMove(action.SourceUnit);
+		BattleResourceChangeResult movementPointChange = BattleResourceRules.ChangeMovementPoints(
+			battleContext,
+			action.SourceUnit,
+			action.SourceUnit,
+			-action.MovementPointCost);
+		BattleFeatEventReporter.Emit(action.SourceUnit, new TotalDistanceTravelledRequirement.Event { Distance = action.MovementPointCost });
+		if (movementPointChange.LossAmount > 0)
+		{
+			BattleFeatEventReporter.Emit(action.SourceUnit, new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, Amount = movementPointChange.LossAmount });
+		}
 
-		action.SourceUnit.RecordFeatEvent(new MoveCountRequirement.Event { });
-		action.SourceUnit.RecordFeatEvent(new TotalDistanceTravelledRequirement.Event { Distance = movementCost });
-		action.SourceUnit.RecordFeatEvent(new MaxDistanceInOneMoveRequirement.Event { Distance = movementCost });
-		action.SourceUnit.RecordFeatEvent(new SpendMovementPointsRequirement.Event { Amount = movementCost });
-
-		BattleStatusRules.ApplyHook(action.SourceUnit, battleContext, StatusHookPoint.AfterMove, action.SourceUnit);
+		BattleStatusRules.ApplyHook(CreateHookContext(
+			battleContext,
+			StatusHookPoint.AfterConsumingResources,
+			action.SourceUnit,
+			action.SourceUnit,
+			action.SourceUnit,
+			action));
+		BattleUnitRules.ResolvePendingDefeats(battleContext, action.SourceUnit);
 		return true;
 	}
 
 	private static bool ResolveAbility(BattleContext battleContext, TurnContext turnContext, AbilityAction action)
 	{
-		if (!BattleActionValidator.CanUseAbility(battleContext, turnContext, action.Ability))
-		{
-			return false;
-		}
-
-		if (!AreTargetsValid(battleContext, turnContext, action))
-		{
-			return false;
-		}
-
-		List<BattleUnit> trackedUnits = BuildTrackedUnits(battleContext, action);
-		Dictionary<BattleUnit, TrackedResourceDelta> deltasByUnit = SnapshotTrackedUnits(trackedUnits);
-
-		BattleStatusRules.ApplyHook(action.SourceUnit, battleContext, StatusHookPoint.BeforeCastingAnAbility, action.SourceUnit);
-
-		int actionPointCost = Math.Max(0, action.Ability.Cost?.Ability ?? 0);
-		int movementPointCost = Math.Max(0, action.Ability.Cost?.Movement ?? 0);
-		action.SourceUnit.BattleAttributes.ActionPoints.Decrease(actionPointCost);
-		action.SourceUnit.BattleAttributes.MovementPoints.Decrease(movementPointCost);
-
-		if (actionPointCost > 0)
-			action.SourceUnit.RecordFeatEvent(new SpendActionPointsRequirement.Event { Amount = actionPointCost });
-		if (movementPointCost > 0)
-			action.SourceUnit.RecordFeatEvent(new SpendMovementPointsRequirement.Event { Amount = movementPointCost });
-
 		if (action.TargetCells == null || action.TargetCells.Count == 0)
 		{
 			return false;
 		}
 
-		ApplyAbilityEffects(action, battleContext);
+		BattleStatusRules.ApplyHook(CreateHookContext(
+			battleContext,
+			StatusHookPoint.BeforeConsumingResources,
+			action.SourceUnit,
+			action.SourceUnit,
+			action.SourceUnit,
+			action));
 
-		BattleStatusRules.ApplyHook(action.SourceUnit, battleContext, StatusHookPoint.AfterCastingAnAbility, action.SourceUnit);
+		BattleResourceChangeResult actionPointChange = BattleResourceRules.ChangeActionPoints(
+			battleContext,
+			action.SourceUnit,
+			action.SourceUnit,
+			-action.ActionPointCost);
+		BattleResourceChangeResult movementPointChange = BattleResourceRules.ChangeMovementPoints(
+			battleContext,
+			action.SourceUnit,
+			action.SourceUnit,
+			-action.MovementPointCost);
+
+		if (actionPointChange.LossAmount > 0)
+		{
+			BattleFeatEventReporter.Emit(action.SourceUnit, new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.ActionPoints, Amount = actionPointChange.LossAmount });
+		}
+
+		if (movementPointChange.LossAmount > 0)
+		{
+			BattleFeatEventReporter.Emit(action.SourceUnit, new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, Amount = movementPointChange.LossAmount });
+		}
+
+		ApplyAbilityEffects(action, battleContext);
+		BattleUnitRules.ResolvePendingDefeats(battleContext, action.SourceUnit, action.Ability);
+
+		BattleStatusRules.ApplyHook(CreateHookContext(
+			battleContext,
+			StatusHookPoint.AfterConsumingResources,
+			action.SourceUnit,
+			action.SourceUnit,
+			action.SourceUnit,
+			action));
+		BattleUnitRules.ResolvePendingDefeats(battleContext, action.SourceUnit, action.Ability);
 
 		turnContext.RecordAbilityCast(action.Ability);
-		action.SourceUnit.RecordFeatEvent(new CastAbilityCountRequirement.Event
+		BattleFeatEventReporter.Emit(action.SourceUnit, new CastAbilityCountRequirement.Event
 		{
 			Ability = action.Ability
 		});
 
-		for (int index = 0; index < trackedUnits.Count; index++)
-		{
-			BattleUnit unit = trackedUnits[index];
-			if (unit == null || !deltasByUnit.TryGetValue(unit, out TrackedResourceDelta delta))
-			{
-				continue;
-			}
-
-			EmitLossHooks(battleContext, unit, delta, action.SourceUnit);
-			RecordStatDeltas(battleContext, action.SourceUnit, unit, delta);
-		}
-
-		battleContext.Stats.RecordAbilityCast(action.SourceUnit);
-		ProcessDefeatedUnits(battleContext, trackedUnits, deltasByUnit, action.SourceUnit, action.Ability);
+		EventCenter.EmitBattleAbilityResolved(battleContext, action.SourceUnit);
 		return true;
 	}
 
@@ -205,146 +213,22 @@ public static class BattleActionResolver
 		}
 	}
 
-	private static List<BattleUnit> BuildTrackedUnits(BattleContext battleContext, AbilityAction action)
-	{
-		List<BattleUnit> trackedUnits = new List<BattleUnit>();
-		AddTrackedUnit(trackedUnits, action?.SourceUnit);
-
-		if (battleContext == null || action?.TargetCells == null)
-		{
-			return trackedUnits;
-		}
-
-		for (int anchorIndex = 0; anchorIndex < action.TargetCells.Count; anchorIndex++)
-		{
-			IReadOnlyList<Vector3Int> affectedCells = BattleTargetingRules.GetAffectedCells(battleContext, action.Ability, action.TargetCells[anchorIndex]);
-			for (int cellIndex = 0; cellIndex < affectedCells.Count; cellIndex++)
-			{
-				IReadOnlyList<BattleObject> objectsAtCell = BattleTargetingRules.GetObjectsAtCell(battleContext, affectedCells[cellIndex]);
-				for (int objectIndex = 0; objectIndex < objectsAtCell.Count; objectIndex++)
-				{
-					AddTrackedUnit(trackedUnits, objectsAtCell[objectIndex] as BattleUnit);
-				}
-			}
-		}
-
-		return trackedUnits;
-	}
-
-	private static Dictionary<BattleUnit, TrackedResourceDelta> SnapshotTrackedUnits(List<BattleUnit> units)
-	{
-		Dictionary<BattleUnit, TrackedResourceDelta> snapshots = new Dictionary<BattleUnit, TrackedResourceDelta>();
-		for (int index = 0; index < units.Count; index++)
-		{
-			BattleUnit unit = units[index];
-			if (unit == null || snapshots.ContainsKey(unit))
-			{
-				continue;
-			}
-
-			snapshots[unit] = Track(unit);
-		}
-
-		return snapshots;
-	}
-
-	private static void AddTrackedUnit(List<BattleUnit> units, BattleUnit unit)
-	{
-		if (unit != null && !units.Contains(unit))
-		{
-			units.Add(unit);
-		}
-	}
-
-	private static TrackedResourceDelta Track(BattleUnit unit)
-	{
-		return new TrackedResourceDelta(
-			unit?.BattleAttributes.Health.Current ?? 0,
-			unit?.BattleAttributes.ActionPoints.Current ?? 0,
-			unit?.BattleAttributes.MovementPoints.Current ?? 0);
-	}
-
-	private static void EmitLossHooks(BattleContext battleContext, BattleUnit unit, TrackedResourceDelta before, BattleObject caster = null)
-	{
-		if (unit == null)
-		{
-			return;
-		}
-
-		if (unit.BattleAttributes.Health.Current < before.Health)
-		{
-			BattleStatusRules.ApplyHook(unit, battleContext, StatusHookPoint.OnHPLoss, caster);
-		}
-
-		if (unit.BattleAttributes.ActionPoints.Current < before.ActionPoints)
-		{
-			BattleStatusRules.ApplyHook(unit, battleContext, StatusHookPoint.OnAPLoss, caster);
-		}
-
-		if (unit.BattleAttributes.MovementPoints.Current < before.MovementPoints)
-		{
-			BattleStatusRules.ApplyHook(unit, battleContext, StatusHookPoint.OnMPLoss, caster);
-		}
-	}
-
-	private static void ProcessDefeatedUnits(
+	private static BattleHookContext CreateHookContext(
 		BattleContext battleContext,
-		List<BattleUnit> trackedUnits,
-		Dictionary<BattleUnit, TrackedResourceDelta> snapshotsBefore,
-		BattleUnit sourceUnit = null,
-		Ability sourceAbility = null)
+		StatusHookPoint hookPoint,
+		BattleUnit hookOwner,
+		BattleObject sourceObject,
+		BattleObject targetObject,
+		BattleAction action = null)
 	{
-		for (int index = 0; index < trackedUnits.Count; index++)
+		return new BattleHookContext
 		{
-			BattleUnit unit = trackedUnits[index];
-			if (unit == null || !unit.IsDefeated)
-			{
-				continue;
-			}
-
-			if (snapshotsBefore.TryGetValue(unit, out TrackedResourceDelta before) && before.Health <= 0)
-			{
-				continue;
-			}
-
-			battleContext.DefeatUnit(unit);
-
-			if (sourceUnit != null && unit != sourceUnit)
-			{
-				sourceUnit.RecordFeatEvent(new KillCountRequirement.Event { Ability = sourceAbility });
-			}
-		}
-	}
-
-	private static void RecordStatDeltas(BattleContext battleContext, BattleUnit source, BattleUnit target, TrackedResourceDelta before)
-	{
-		if (source == null || target == null)
-		{
-			return;
-		}
-
-		int healthDelta = before.Health - target.BattleAttributes.Health.Current;
-		if (healthDelta > 0 && target.Side != source.Side)
-		{
-			battleContext.Stats.RecordDamageDealt(source, healthDelta);
-		}
-		else if (healthDelta < 0 && target.Side == source.Side)
-		{
-			battleContext.Stats.RecordHealingDone(source, -healthDelta);
-		}
-	}
-
-	private readonly struct TrackedResourceDelta
-	{
-		public TrackedResourceDelta(int health, int actionPoints, int movementPoints)
-		{
-			Health = health;
-			ActionPoints = actionPoints;
-			MovementPoints = movementPoints;
-		}
-
-		public int Health { get; }
-		public int ActionPoints { get; }
-		public int MovementPoints { get; }
+			BattleContext = battleContext,
+			HookPoint = hookPoint,
+			HookOwner = hookOwner,
+			SourceObject = sourceObject,
+			TargetObject = targetObject,
+			Action = action
+		};
 	}
 }

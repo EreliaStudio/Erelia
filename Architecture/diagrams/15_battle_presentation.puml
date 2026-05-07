@@ -1,0 +1,132 @@
+@startuml Erelia_Battle_Presentation
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+hide empty members
+
+title Battle Architecture - Presentation Layer
+
+class GameObject
+class Transform
+class Camera
+class Vector3
+class Vector3Int
+
+class BattleMode
+class BattleContext
+class BattleUnit
+class BoardData
+class BoardOverlayState
+class Ability
+
+class BoardPresenter <<MonoBehaviour>> {
+  +BoardData : BoardData
+  +OverlayState : BoardOverlayState
+  +OverlayView : MaskOverlayView
+  +Assign(BoardData)
+  +RefreshOverlay()
+  +Rebuild()
+}
+
+class MaskOverlayView <<MonoBehaviour>> {
+  +SetMaskMesh(Mesh)
+  +SetVisible(bool)
+}
+
+class BattlePlayerController <<MonoBehaviour>> {
+  +ActiveCamera : Camera
+  +Bind(Vector3Int, Vector3Int, Vector3)
+  +Unbind()
+}
+
+class BattleUnitView <<MonoBehaviour>> {
+  +SetModel(GameObject)
+  +ClearModel()
+}
+
+class BattleUnitPresenter <<MonoBehaviour>> {
+  +BattleUnit : BattleUnit
+  +BattleUnitView : BattleUnitView
+  +Bind(BattleUnit, BoardData)
+  +RefreshVisual()
+}
+
+class BattleUnitManager {
+  +BattleUnitManager(Transform, Transform, GameObject, BattleContext)
+  +Dispose()
+}
+
+class CreatureTeamView <<UI>> {
+  +Bind(IReadOnlyList<BattleUnit>)
+  +Clear()
+  +GetCardCount() : int
+  +GetCard(int) : CreatureCardView
+  +TryResolveSceneTeamViews(out CreatureTeamView, out CreatureTeamView) : bool
+}
+
+class CreatureCardView <<UI>> {
+  +LeftClicked : event Action<BattleUnit>
+  +RightClicked : event Action<BattleUnit>
+  +Bind(BattleUnit)
+  +SetBackgroundColor(Color)
+  +ClearBackgroundColorOverride()
+}
+
+class ActiveUnitHudView <<UI>> {
+  +EndTurnClicked : event Action
+  +Bind(BattleUnit)
+  +RefreshNow()
+}
+
+class ActionShortcutBarView <<UI>> {
+  +AbilityClicked : event Action<int, Ability>
+  +BoundUnit : BattleUnit
+  +Bind(BattleUnit)
+  +TrySelectShortcut(int) : bool
+}
+
+class AbilityShortcutBarView <<UI>> {
+  +SlotCount : int
+  +AbilityClicked : event Action<int, Ability>
+  +Bind(IReadOnlyList<Ability>, int)
+  +TrySelectShortcut(int) : bool
+}
+
+class ShortcutBarPageSelectorView <<UI>> {
+  +IndexChanged : event Action<int>
+  +CurrentIndex : int
+  +MaxIndex : int
+}
+
+BattleMode *-- BoardPresenter
+BattleMode *-- BattlePlayerController
+BattleMode o-- BattleUnitManager
+BattleMode ..> GameObject : battleHud / unit prefab
+BattleMode ..> Transform : team roots
+
+BoardPresenter --> BoardData
+BoardPresenter *-- BoardOverlayState
+BoardPresenter o-- MaskOverlayView
+BattlePlayerController ..> Camera
+BattlePlayerController ..> GameObject : camera prefab
+
+BattleUnitManager --> BattleContext
+BattleUnitManager --> BattleUnit
+BattleUnitManager --> BattleUnitPresenter
+BattleUnitManager --> Transform
+BattleUnitManager --> GameObject
+BattleUnitPresenter *-- BattleUnitView
+BattleUnitPresenter --> BattleUnit
+BattleUnitPresenter --> BoardData
+
+CreatureTeamView *-- CreatureCardView
+CreatureTeamView --> BattleUnit
+CreatureCardView --> BattleUnit
+ActiveUnitHudView --> BattleUnit
+ActionShortcutBarView *-- AbilityShortcutBarView
+ActionShortcutBarView *-- ShortcutBarPageSelectorView
+ActionShortcutBarView --> BattleUnit
+AbilityShortcutBarView --> Ability
+
+@enduml

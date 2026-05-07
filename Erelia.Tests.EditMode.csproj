@@ -51,6 +51,7 @@
     <Compile Include="Assets\Tests\Requirements\MaxSingleHit\MaxSingleHitRequirementTests.cs" />
     <Compile Include="Assets\Tests\Battle\Navigation\NavGraphTests.cs" />
     <Compile Include="Assets\Tests\Effects\Health\DamageTargetEffectTests.cs" />
+    <Compile Include="Assets\Tests\Battle\Fixtures\TestBattleContextFactory.cs" />
     <Compile Include="Assets\Tests\Requirements\Kill\KillRequirementTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\Initiative\StaminaRatioTests.cs" />
     <Compile Include="Assets\Tests\Feats\VictoryProgressionTests.cs" />
@@ -69,6 +70,7 @@
     <Compile Include="Assets\Tests\Effects\Movement\MoveStatusTests.cs" />
     <Compile Include="Assets\Tests\Requirements\Status\StatusRequirementTests.cs" />
     <Compile Include="Assets\Tests\Effects\Movement\TeleportEffectTests.cs" />
+    <Compile Include="Assets\Tests\Battle\Fixtures\BattleFeatEventCapture.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\Resolution\ResolutionPhaseTests.cs" />
     <Compile Include="Assets\Tests\Requirements\Position\TurnPositionRequirementTests.cs" />
     <Compile Include="Assets\Tests\Effects\Statuses\CleanseEffectTests.cs" />
@@ -102,6 +104,7 @@
     <Compile Include="Assets\Tests\Feats\NonDamageEffectTests.cs" />
     <Compile Include="Assets\Tests\Effects\Resources\AdjustTurnBarDurationEffectTests.cs" />
     <Compile Include="Assets\Tests\Effects\Shields\ApplyShieldEffectTests.cs" />
+    <Compile Include="Assets\Tests\Battle\Fixtures\ServiceLocatorTestScope.cs" />
     <Compile Include="Assets\Tests\Taming\TamingProgressTests.cs" />
     <Compile Include="Assets\Tests\Encounters\EncounterTableTests.cs" />
     <Compile Include="Assets\Tests\Taming\TamingRewardTests.cs" />

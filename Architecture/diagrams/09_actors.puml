@@ -1,11 +1,16 @@
 @startuml Actor System
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
-class WorldPresenter <<CF diagram 02>> {}
+class WorldPresenter <<CF diagram 02b>> {}
 class WorldData <<CF diagram 02>> {}
 class VoxelRegistry <<CF diagram 01>> {}
+class WorldTraversalGraphCache <<CF diagram 03b>> {}
+class WorldPathfinder <<CF diagram 03b>> {}
+class CreatureUnit <<CF diagram 06>> {}
+class CreatureStorage <<CF diagram 06>> {}
 
 class ActorData {
   +MovementSpeed : float
@@ -13,18 +18,31 @@ class ActorData {
 
 class PlayerData {
   +WorldCell : Vector3Int
+  +Team : CreatureUnit[]
+  +CreatureStorage : CreatureStorage
   +WorldPosition : Vector3
+  +CopyFrom(PlayerData)
+  +AddCreatureToTeamOrStorage(CreatureUnit) : bool
 }
 
-class ActorView <<MonoBehaviour>> {}
+class ActorMovementRequest <<struct>> {
+  +Actor : ActorPresenter
+  +DestinationWorldPosition : Vector3Int
+}
+
+class ActorView <<MonoBehaviour>>
 
 class ActorPresenter <<MonoBehaviour>> {
-  +CellReached : Action<ActorPresenter, Vector3Int>
+  +CellReached : event Action<ActorPresenter, Vector3Int>
+  +ActorData : ActorData
+  +ActorView : ActorView
+  +MovementSpeed : float
   +Bind(ActorData)
   +NotifyCellReached(Vector3Int)
 }
 
 class ActorPathDriver {
+  +Presenter : ActorPresenter
   +IsMoving : bool
   +SetPath(IReadOnlyList<Vector3Int>)
   +Stop()
@@ -36,13 +54,19 @@ class ActorManager <<MonoBehaviour>> {
 }
 
 PlayerData --|> ActorData
+PlayerData o-- CreatureUnit : team
+PlayerData *-- CreatureStorage
 ActorPresenter *-- ActorView
 ActorPresenter o-- ActorData
 ActorPathDriver o-- ActorPresenter
-ActorPathDriver ..> WorldData : uses
-ActorPathDriver ..> VoxelRegistry : uses
-ActorManager *-- ActorPathDriver
-ActorManager ..> ActorPresenter : spawns
+ActorPathDriver ..> WorldData
+ActorPathDriver ..> VoxelRegistry
+ActorPathDriver ..> VoxelTraversalUtility
 ActorManager o-- WorldPresenter
+ActorManager *-- WorldTraversalGraphCache
+ActorManager *-- ActorPathDriver
+ActorManager ..> WorldPathfinder
+ActorManager ..> EventCenter : listens ActorMoveRequested
+ActorMovementRequest --> ActorPresenter
 
 @enduml

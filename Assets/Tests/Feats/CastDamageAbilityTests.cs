@@ -14,6 +14,7 @@ namespace Tests.Feats.CastDamageAbility
 				enemyCount: 1,
 				defaultHealth: 50,
 				defaultActionPoints: 4);
+			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 			fixture.CompletePlacement(
@@ -31,19 +32,8 @@ namespace Tests.Feats.CastDamageAbility
 			orchestrator.TransitionTo(BattlePhaseType.Resolution);
 
 			BattleUnit caster = fixture.PlayerUnits[0];
-			Assert.That(caster.PendingFeatEvents.Count, Is.GreaterThan(0));
 
-			bool hasDealDamageEvent = false;
-			for (int i = 0; i < caster.PendingFeatEvents.Count; i++)
-			{
-				if (caster.PendingFeatEvents[i] is DealDamageRequirement.Event)
-				{
-					hasDealDamageEvent = true;
-					break;
-				}
-			}
-
-			Assert.That(hasDealDamageEvent, Is.True);
+			Assert.That(capture.Find<DealDamageRequirement.Event>(caster), Is.Not.Null);
 
 			orchestrator.Dispose();
 		}
@@ -56,6 +46,7 @@ namespace Tests.Feats.CastDamageAbility
 				enemyCount: 1,
 				defaultHealth: 50,
 				defaultActionPoints: 4);
+			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 			fixture.CompletePlacement(
@@ -73,19 +64,7 @@ namespace Tests.Feats.CastDamageAbility
 			orchestrator.TransitionTo(BattlePhaseType.Resolution);
 
 			BattleUnit target = fixture.EnemyUnits[0];
-			Assert.That(target.PendingFeatEvents.Count, Is.GreaterThan(0));
-
-			bool hasTakeDamageEvent = false;
-			for (int i = 0; i < target.PendingFeatEvents.Count; i++)
-			{
-				if (target.PendingFeatEvents[i] is TakeDamageRequirement.Event)
-				{
-					hasTakeDamageEvent = true;
-					break;
-				}
-			}
-
-			Assert.That(hasTakeDamageEvent, Is.True);
+			Assert.That(capture.Find<TakeDamageRequirement.Event>(target), Is.Not.Null);
 
 			orchestrator.Dispose();
 		}

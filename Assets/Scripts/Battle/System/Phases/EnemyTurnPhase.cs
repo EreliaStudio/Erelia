@@ -14,34 +14,37 @@ public sealed class EnemyTurnPhase : BattlePhase
 			return;
 		}
 
-		BattleAction action = BuildAction();
-		if (!Orchestrator.TrySubmitPendingAction(action))
+		if (!TryComposeAction() &&
+			!(ServiceLocator.Instance?.BattleActionCompositionService?.TryComposeEndTurn() ?? false))
 		{
 			Coordinator.TransitionTo(BattlePhaseType.End);
 		}
 	}
 
-	private BattleAction BuildAction()
+	private bool TryComposeAction()
 	{
 		BattleUnit activeUnit = TurnContext.ActiveUnit;
 		if (activeUnit == null)
 		{
-			return null;
+			return false;
 		}
 
 		if (TryGetAbilityTargetingEnemy(activeUnit, out Ability ability, out IReadOnlyList<Vector3Int> targetCells))
 		{
-			return new AbilityAction(activeUnit, ability, targetCells);
+			BattleActionCompositionService compositionService = ServiceLocator.Instance?.BattleActionCompositionService;
+			return compositionService != null &&
+				compositionService.TrySelectAbility(ability) &&
+				compositionService.TryComposeAbilityTargets(targetCells);
 		}
 
 		IReadOnlyList<Vector3Int> reachableCells = BattleActionValidator.GetReachableCells(BattleContext, TurnContext);
 		if (reachableCells.Count > 0)
 		{
 			Vector3Int destination = PickCellTowardNearestEnemy(activeUnit, reachableCells);
-			return new MoveAction(activeUnit, destination);
+			return ServiceLocator.Instance?.BattleActionCompositionService?.TryComposeMovement(destination) ?? false;
 		}
 
-		return new EndTurnAction(activeUnit);
+		return false;
 	}
 
 	private bool TryGetAbilityTargetingEnemy(BattleUnit unit, out Ability ability, out IReadOnlyList<Vector3Int> targetCells)

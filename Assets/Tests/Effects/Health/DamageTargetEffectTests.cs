@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Tests.Effects
 {
@@ -29,6 +30,23 @@ public sealed class DamageTargetEffectTests : EffectTestBase
 			.Apply(CreateContext(source, target));
 
 		Assert.That(target.BattleAttributes.Health.Current, Is.EqualTo(0));
+	}
+
+	[Test]
+	public void Apply_HealthLossFiresStatusHook()
+	{
+		BattleUnit source = CreateUnit();
+		BattleUnit target = CreateUnit(p_health: 100);
+
+		Status status = CreateStatus();
+		status.HookPoint = StatusHookPoint.OnHPLoss;
+		status.Effects = new List<Effect> { CreateDamageEffect(5) };
+		target.Statuses.Add(status, 1, new Duration { Type = Duration.Kind.Infinite });
+
+		CreateDamageEffect(10)
+			.Apply(CreateContext(source, target));
+
+		Assert.That(target.BattleAttributes.Health.Current, Is.EqualTo(85));
 	}
 
 	[Test]

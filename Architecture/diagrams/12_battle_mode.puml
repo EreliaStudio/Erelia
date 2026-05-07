@@ -1,22 +1,56 @@
 @startuml Battle Mode
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
 class BoardPresenter <<CF diagram 03>> {}
-class BattleSetup <<CF diagram 04>> {}
+class BoardData <<CF diagram 03>> {}
+class BattleContext <<CF diagram 04>> {}
+class BattleUnit <<CF diagram 04>> {}
+class BattleUnitManager <<CF diagram 15>> {}
+class CreatureTeamView <<CF diagram 15>> {}
 
 class BattlePlayerController <<MonoBehaviour>> {
-  +Bind(Vector3Int boardOrigin, Vector3Int boardSize, Vector3 anchor)
+  +ActiveCamera : Camera
+  +Bind(Vector3Int, Vector3Int, Vector3)
   +Unbind()
 }
 
-class BattleMode {
-  +Enter(BattleSetup)
+class BattleOrchestrator <<CF diagram 13>> {
+  +BattleMode : BattleMode
+  +BattleContext : BattleContext
+  +Coordinator : BattleCoordinator
+  +TurnContext : TurnContext
+  +PlayerTeamView : CreatureTeamView
+  +EnemyTeamView : CreatureTeamView
+  +Initialize(BattleMode, BattleContext)
+  +Dispose()
+  +TransitionTo(BattlePhaseType)
+  +ConfigurePhaseInput()
+  +TrySubmitPendingAction(BattleAction) : bool
+  +ConsumePendingAction() : BattleAction
 }
 
+class BattleMode {
+  +BattleContext : BattleContext
+  +BattleOrchestrator : BattleOrchestrator
+  +BoardPresenter : BoardPresenter
+  +CurrentPhaseType : BattlePhaseType?
+  +Enter(BattleContext)
+  +TransitionToPhase(BattlePhaseType)
+}
+
+BattleMode o-- BattleContext
 BattleMode o-- BoardPresenter
 BattleMode o-- BattlePlayerController
-BattleMode o-- BattleSetup
+BattleMode *-- BattleOrchestrator
+BattleMode o-- BattleUnitManager
+BattleMode ..> BoardData
+BattleMode ..> BattleUnit
+BattleMode ..> GameObject : battleHud/prefab
+BattleOrchestrator --> BattleContext
+BattleOrchestrator --> BattleMode
+BattlePlayerController ..> Camera
 
 @enduml

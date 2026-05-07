@@ -15,7 +15,7 @@ namespace Tests.Taming.Progress
 
 			progress.EvaluateEvents(new List<FeatRequirement.EventBase>
 			{
-				new MoveCountRequirement.Event()
+				new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, Amount = 1 }
 			});
 
 			Assert.That(progress.IsImpressed, Is.False);
@@ -59,7 +59,7 @@ namespace Tests.Taming.Progress
 			BattleUnit targetUnit = CreateBattleUnit(BattleSide.Enemy);
 
 			var damageRequirement = new DealDamageRequirement { RequiredAmount = 10 };
-			var moveRequirement = new MoveCountRequirement { RequiredCount = 1 };
+			var moveRequirement = new ConsumeResourcesRequirement { RequiredResource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, RequiredAmount = 1 };
 
 			var progress = new TamingProgress(
 				targetUnit,
@@ -74,7 +74,7 @@ namespace Tests.Taming.Progress
 
 			progress.EvaluateEvents(new List<FeatRequirement.EventBase>
 			{
-				new MoveCountRequirement.Event()
+				new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, Amount = 1 }
 			});
 
 			Assert.That(progress.IsImpressed, Is.True);

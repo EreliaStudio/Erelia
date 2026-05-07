@@ -62,7 +62,7 @@ public class EncounterTeamEditorWindow : EditorWindow
 		EncounterUnit selectedUnit = GetSelectedUnit();
 		if (selectedUnit != null)
 		{
-			FeatProgressionService.ApplyProgress(selectedUnit);
+			FeatBoardService.ApplyProgress(selectedUnit);
 		}
 
 		Rect toolbarRect = new Rect(0f, 0f, position.width, ToolbarHeight);
@@ -173,7 +173,7 @@ public class EncounterTeamEditorWindow : EditorWindow
 		EncounterUnit selectedUnit = GetSelectedUnit();
 		if (selectedUnit != null)
 		{
-			FeatProgressionService.ApplyProgress(selectedUnit);
+			FeatBoardService.ApplyProgress(selectedUnit);
 		}
 
 		EditorUtility.SetDirty(biome);

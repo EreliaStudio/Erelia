@@ -84,7 +84,7 @@ public class EncounterTeamUnitInspectorView
 				unit.Species = newSpecies;
 				unit.CurrentFormID = string.Empty;
 				unit.FeatBoardProgress = new FeatBoardProgress();
-				FeatProgressionService.ApplyProgress(unit);
+				FeatBoardService.ApplyProgress(unit);
 				boardView?.ClearSelection();
 
 				if (string.IsNullOrWhiteSpace(entry.DisplayName) || entry.DisplayName.StartsWith("team ", StringComparison.OrdinalIgnoreCase))

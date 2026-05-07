@@ -1,33 +1,43 @@
 @startuml Voxel System
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
 enum VoxelTraversal {
-	Obstacle
-	Walkable
+  Obstacle
+  Walkable
 }
 
 enum VoxelOrientation {
-	PositiveX
-	PositiveZ
-	NegativeX
-	NegativeZ
+  PositiveX
+  PositiveZ
+  NegativeX
+  NegativeZ
 }
 
 enum VoxelFlipOrientation {
-	PositiveY
-	NegativeY
+  PositiveY
+  NegativeY
+}
+
+enum VoxelAxisPlane {
+  PosX
+  NegX
+  PosY
+  NegY
+  PosZ
+  NegZ
 }
 
 enum VoxelMask {
-	None
-	Placement
-	AttackRange
-	MovementRange
-	AreaOfEffect
-	Selected
-	BattleAreaBorder
+  None
+  Placement
+  AttackRange
+  MovementRange
+  AreaOfEffect
+  Selected
+  BattleAreaBorder
 }
 
 class VoxelCell {
@@ -47,6 +57,7 @@ class VoxelDefinition <<ScriptableObject>> {
   +Data : VoxelData
   +Shape : VoxelShape
   +HasTag(string) : bool
+  +Initialize()
 }
 
 abstract class VoxelShape {
@@ -54,6 +65,17 @@ abstract class VoxelShape {
   +Collision : FaceSet
   +GetMaskFaces(VoxelFlipOrientation) : List<Face>
   +GetCardinalHeights(VoxelFlipOrientation) : CardinalHeightSet
+  +Initialize()
+}
+
+class CardinalHeightSet {
+  +PositiveX : float
+  +NegativeX : float
+  +PositiveZ : float
+  +NegativeZ : float
+  +Stationary : float
+  +Get(Direction) : float
+  +CreateDefault() : CardinalHeightSet
 }
 
 class VoxelCubeShape
@@ -71,14 +93,19 @@ class VoxelGrid {
 }
 
 class VoxelRegistry <<ScriptableObject>> {
+  +Voxels : SerializedDictionary<int, VoxelDefinition>
   +TryGetVoxel(int, out VoxelDefinition) : bool
 }
 
 class VoxelMaskRegistry <<ScriptableObject>> {
+  +Placement : Sprite
+  +AttackRange : Sprite
+  +MovementRange : Sprite
+  +AreaOfEffect : Sprite
+  +Selected : Sprite
+  +BattleAreaBorder : Sprite
   +TryGetSprite(VoxelMask, out Sprite) : bool
 }
-
-class UnitySprite {}
 
 class VoxelMaskCell {
   +Masks : List<VoxelMask>
@@ -90,6 +117,13 @@ class VoxelMaskLayer {
   +TryRemoveMask(Vector3Int, VoxelMask) : bool
   +TryGetMaskCell(Vector3Int, out VoxelMaskCell) : bool
   +Clear()
+  +Clear(VoxelMask)
+}
+
+class VoxelMesher <<static>> {
+  +BuildRenderMesh(VoxelGrid, VoxelRegistry) : Mesh
+  +BuildColliderMesh(VoxelGrid, VoxelRegistry, VoxelTraversal) : Mesh
+  +BuildMaskMesh(VoxelGrid, VoxelMaskLayer, VoxelRegistry, VoxelMaskRegistry) : Mesh
 }
 
 VoxelShape <|-- VoxelCubeShape
@@ -98,16 +132,22 @@ VoxelShape <|-- VoxelSlopeShape
 VoxelShape <|-- VoxelStairShape
 VoxelShape <|-- VoxelCrossPlaneShape
 
-VoxelCell *-- VoxelOrientation
-VoxelCell *-- VoxelFlipOrientation
-VoxelData *-- VoxelTraversal
+VoxelCell --> VoxelOrientation
+VoxelCell --> VoxelFlipOrientation
+VoxelData --> VoxelTraversal
 VoxelDefinition *-- VoxelData
 VoxelDefinition *-- VoxelShape
+VoxelShape ..> VoxelAxisPlane
+VoxelShape ..> VoxelFlipOrientation
+VoxelShape ..> CardinalHeightSet
 VoxelGrid *-- VoxelCell
 VoxelRegistry o-- VoxelDefinition
 VoxelMaskLayer *-- VoxelMaskCell
 VoxelMaskCell *-- VoxelMask
-VoxelMaskRegistry "key" o-- VoxelMask
-VoxelMaskRegistry "value" o-- UnitySprite
+VoxelMaskRegistry ..> VoxelMask
+VoxelMesher ..> VoxelGrid
+VoxelMesher ..> VoxelRegistry
+VoxelMesher ..> VoxelMaskLayer
+VoxelMesher ..> VoxelMaskRegistry
 
 @enduml

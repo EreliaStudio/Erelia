@@ -1,11 +1,20 @@
 @startuml Board System
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
 class VoxelGrid <<CF diagram 01>> {}
 class VoxelMaskLayer <<CF diagram 01>> {}
-class MaskOverlayView <<CF diagram 02>> {}
+class VoxelRegistry <<CF diagram 01>> {}
+class VoxelMaskRegistry <<CF diagram 01>> {}
+class VoxelMesher <<CF diagram 01>> {}
+class WorldData <<CF diagram 02>> {}
+class VoxelTraversalGraph <<CF diagram 03b>> {}
+class BattleObject <<CF diagram 04>> {}
+class BattleUnit <<CF diagram 04>> {}
+class BattleInteractiveObject <<CF diagram 04>> {}
+class MaskOverlayView <<CF diagram 02b>> {}
 
 class BoardConfiguration {
   +SizeX : int
@@ -16,36 +25,44 @@ class BoardConfiguration {
   +GetWorldOrigin(Vector3Int) : Vector3Int
 }
 
-enum BoardConfigurationShape {
+enum "BoardConfiguration.Shape" as BoardConfigurationShape {
   Square
   Circle
   RoundedSquare
 }
 
 class BoardTerrainLayer {
-  +MaskLayer : VoxelMaskLayer
+  +VoxelRegistry : VoxelRegistry
+  +AssignVoxelRegistry(VoxelRegistry)
   +IsInside(Vector3Int) : bool
   +TryGetCell(Vector3Int, out VoxelCell) : bool
   +HasTerrain(Vector3Int) : bool
+  +IsEmpty(Vector3Int) : bool
 }
 
 class BoardNavigationLayer {
+  +Graph : VoxelTraversalGraph
   +Nodes : IReadOnlyList<Node>
-  +Rebuild(BoardTerrainLayer)
-  +IsStandable(Vector3Int) : bool
+  +Clear()
+  +Rebuild(BoardTerrainLayer, HashSet<Vector2Int>)
+  +HasNode(Vector3Int) : bool
   +TryGetNode(Vector3Int, out Node) : bool
+  +IsStandable(Vector3Int) : bool
 }
 
 class BoardRuntimeRegistry {
   +AttachNavigationLayer(BoardNavigationLayer)
-  +TryPlaceUnit(BattleUnit, Vector3Int) : bool
-  +TryAddInteractiveObject(BattleInteractiveObject, Vector3Int) : bool
-  +TryRegister(BattleObject, Vector3Int, BoardNavigationLayer) : bool
-  +TryMove(BattleObject, Vector3Int, BoardNavigationLayer) : bool
+  +Clear()
+  +TryGetPosition(BattleObject, out Vector3Int) : bool
   +HasUnitAt(Vector3Int) : bool
   +TryGetUnitAt(Vector3Int, out BattleUnit) : bool
+  +CanPlaceUnit(Vector3Int, BattleUnit) : bool
+  +TryPlaceUnit(BattleUnit, Vector3Int) : bool
+  +TryAddInteractiveObject(BattleInteractiveObject, Vector3Int) : bool
+  +SwapUnits(BattleUnit, BattleUnit) : bool
   +Remove(BattleObject)
-  +Clear()
+  +GetInteractiveObjects(Vector3Int) : IReadOnlyList<BattleInteractiveObject>
+  +AdvanceObjectDurations()
 }
 
 class BoardData {
@@ -54,13 +71,26 @@ class BoardData {
   +Runtime : BoardRuntimeRegistry
   +WorldAnchor : Vector3Int
   +BorderLocalCells : IReadOnlyList<Vector3Int>
-  +ClearMask()
-  +RebuildNavigation()
+  +AssignBorderLocalCells(IReadOnlyList<Vector3Int>)
+  +AssignVoxelRegistry(VoxelRegistry)
+  +RebuildNavigation(HashSet<Vector2Int>)
   +IsInside(Vector3Int) : bool
+  +IsBorderCell(Vector3Int) : bool
   +IsStandable(Vector3Int) : bool
   +TryPlace(BattleObject, Vector3Int) : bool
   +TryMove(BattleObject, Vector3Int) : bool
   +Remove(BattleObject)
+  +TryGetPosition(BattleObject, out Vector3Int) : bool
+}
+
+class BoardOverlayState {
+  +MaskLayer : VoxelMaskLayer
+  +CreateForBoard(BoardData) : BoardOverlayState
+  +Initialize(BoardData)
+  +Clear()
+  +Clear(VoxelMask)
+  +ApplyMask(IReadOnlyList<Vector3Int>, VoxelMask)
+  +TryGetMaskCell(Vector3Int, out VoxelMaskCell) : bool
 }
 
 class BoardDataBuilder <<static>> {
@@ -69,20 +99,35 @@ class BoardDataBuilder <<static>> {
 
 class BoardPresenter <<MonoBehaviour>> {
   +BoardData : BoardData
+  +OverlayState : BoardOverlayState
   +OverlayView : MaskOverlayView
   +Assign(BoardData)
+  +RefreshOverlay()
   +Rebuild()
 }
 
 BoardTerrainLayer --|> VoxelGrid
-BoardTerrainLayer *-- VoxelMaskLayer
 BoardData *-- BoardTerrainLayer
 BoardData *-- BoardNavigationLayer
 BoardData *-- BoardRuntimeRegistry
-BoardConfiguration *-- BoardConfigurationShape
-BoardDataBuilder ..> BoardData : creates
-BoardDataBuilder ..> BoardConfiguration : uses
+BoardData --> VoxelRegistry
+BoardConfiguration --> BoardConfigurationShape
+BoardNavigationLayer *-- VoxelTraversalGraph
+BoardRuntimeRegistry --> BoardNavigationLayer
+BoardRuntimeRegistry --> BattleObject
+BoardRuntimeRegistry --> BattleUnit
+BoardRuntimeRegistry --> BattleInteractiveObject
+BoardOverlayState *-- VoxelMaskLayer
+BoardOverlayState ..> BoardData
+BoardDataBuilder ..> WorldData
+BoardDataBuilder ..> VoxelRegistry
+BoardDataBuilder ..> BoardConfiguration
+BoardDataBuilder ..> BoardData
 BoardPresenter o-- BoardData
+BoardPresenter *-- BoardOverlayState
 BoardPresenter o-- MaskOverlayView
+BoardPresenter ..> VoxelMesher
+BoardPresenter ..> VoxelRegistry
+BoardPresenter ..> VoxelMaskRegistry
 
 @enduml

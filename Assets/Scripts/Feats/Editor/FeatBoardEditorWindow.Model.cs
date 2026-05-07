@@ -260,7 +260,7 @@ public partial class FeatBoardEditorWindow
 
 		string durationText = requirement.RequirementScope switch
 		{
-			FeatRequirement.Scope.Ability => "in one ability",
+			FeatRequirement.Scope.Action => "in one action",
 			FeatRequirement.Scope.Turn => "in one turn",
 			FeatRequirement.Scope.Fight => "in one fight",
 			FeatRequirement.Scope.Game => "over the game",

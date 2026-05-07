@@ -4,6 +4,7 @@ using UnityEngine;
 public sealed class PlayerTurnPhase : BattlePhase
 {
 	public override BattlePhaseType PhaseType => BattlePhaseType.PlayerTurn;
+	private BattleActionCompositionService ActionCompositionService => ServiceLocator.Instance?.BattleActionCompositionService;
 
 	public bool CanMoveTo(Vector3Int destination)
 	{
@@ -93,35 +94,24 @@ public sealed class PlayerTurnPhase : BattlePhase
 
 	public bool TrySubmitMove(Vector3Int destination)
 	{
-		if (TurnContext?.ActiveUnit == null || !CanMoveTo(destination))
-		{
-			return false;
-		}
+		return ActionCompositionService?.TryComposeMovement(destination) ?? false;
+	}
 
-		return Orchestrator.TrySubmitPendingAction(new MoveAction(TurnContext.ActiveUnit, destination));
+	public bool TrySelectAbility(Ability ability)
+	{
+		return ActionCompositionService?.TrySelectAbility(ability) ?? false;
+	}
+
+	public bool TrySubmitSelectedAbilityTarget(Vector3Int targetCell)
+	{
+		return ActionCompositionService?.TryComposeAbilityTarget(targetCell) ?? false;
 	}
 
 	public bool TrySubmitAbility(Ability ability, IReadOnlyList<Vector3Int> targetCells)
 	{
-		if (TurnContext?.ActiveUnit == null || ability == null || !CanUseAbility(ability))
-		{
-			return false;
-		}
-
-		if (targetCells == null || targetCells.Count == 0)
-		{
-			return false;
-		}
-
-		for (int index = 0; index < targetCells.Count; index++)
-		{
-			if (!CanCastAtCell(ability, targetCells[index]))
-			{
-				return false;
-			}
-		}
-
-		return Orchestrator.TrySubmitPendingAction(new AbilityAction(TurnContext.ActiveUnit, ability, targetCells));
+		return ActionCompositionService != null &&
+			ActionCompositionService.TrySelectAbility(ability) &&
+			ActionCompositionService.TryComposeAbilityTargets(targetCells);
 	}
 
 	public bool TryGetPathTo(Vector3Int destination, out IReadOnlyList<Vector3Int> path)
@@ -131,11 +121,6 @@ public sealed class PlayerTurnPhase : BattlePhase
 
 	public bool TrySubmitEndTurn()
 	{
-		if (!CanEndTurn())
-		{
-			return false;
-		}
-
-		return Orchestrator.TrySubmitPendingAction(new EndTurnAction(TurnContext.ActiveUnit));
+		return ActionCompositionService?.TryComposeEndTurn() ?? false;
 	}
 }

@@ -69,31 +69,13 @@ public class EncounterEmitter : MonoBehaviour
 			return;
 		}
 
-		BoardData boardData = BoardDataBuilder.Build(
-			worldPresenter.WorldData,
-			worldPresenter.VoxelRegistry,
-			standingCell,
-			boardConfiguration);
-
-		if (boardData == null)
-		{
-			return;
-		}
-
-		IReadOnlyList<CreatureUnit> playerTeam = Array.Empty<CreatureUnit>();
-		if (TryGetPlayerTeam(out IReadOnlyList<CreatureUnit> resolvedPlayerTeam))
-		{
-			playerTeam = resolvedPlayerTeam;
-		}
-
-		var battleContext = new BattleContext(
-			playerTeam,
+		Vector3 battleOriginWorldPosition = standingCell;
+		ServiceLocator.Instance?.EncounterService?.RequestBattle(
+			boardConfiguration,
+			battleOriginWorldPosition,
 			selectedTeam,
-			boardData,
 			encounterRule.PlacementStyle,
-			worldPosition);
-
-		EventCenter.EmitBattleStartRequested(battleContext);
+			true);
 	}
 
 	private bool TryGetBiome(Vector3Int standingCell, out BiomeDefinition biome)
@@ -182,20 +164,6 @@ public class EncounterEmitter : MonoBehaviour
 		}
 
 		return worldPresenter.VoxelRegistry.TryGetVoxel(cell.Id, out voxelDefinition) && voxelDefinition != null;
-	}
-
-	private bool TryGetPlayerTeam(out IReadOnlyList<CreatureUnit> playerTeam)
-	{
-		playerTeam = null;
-
-		ModeManager modeManager = FindAnyObjectByType<ModeManager>();
-		if (modeManager?.CurrentGameContext?.Player?.Team == null)
-		{
-			return false;
-		}
-
-		playerTeam = modeManager.CurrentGameContext.Player.Team;
-		return true;
 	}
 
 }

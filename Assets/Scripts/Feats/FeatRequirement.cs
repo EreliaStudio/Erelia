@@ -7,7 +7,7 @@ public abstract class FeatRequirement
 {
 	public enum Scope
 	{
-		Ability,
+		Action,
 		Turn,
 		Fight,
 		Game
@@ -54,8 +54,8 @@ public abstract class FeatRequirement
 
 		switch (RequirementScope)
 		{
-			case Scope.Ability:
-				EvaluateAbilityScope(p_events, ref advancement);
+			case Scope.Action:
+				EvaluateActionScope(p_events, ref advancement);
 				break;
 
 			case Scope.Turn:
@@ -96,7 +96,7 @@ public abstract class FeatRequirement
 		return (float)p_amount / p_requiredAmount * 100f;
 	}
 
-	private void EvaluateAbilityScope(
+	private void EvaluateActionScope(
 		IReadOnlyList<EventBase> p_events,
 		ref Advancement p_advancement)
 	{
@@ -347,7 +347,7 @@ public class TurnStartPositionRequirement : FeatRequirementTemplated<TurnStartPo
 
 	public TurnStartPositionRequirement()
 	{
-		RequirementScope = Scope.Ability;
+		RequirementScope = Scope.Action;
 	}
 
 	protected override float EvaluateProgress(Event p_event)
@@ -400,7 +400,7 @@ public class TurnEndPositionRequirement : FeatRequirementTemplated<TurnEndPositi
 
 	public TurnEndPositionRequirement()
 	{
-		RequirementScope = Scope.Ability;
+		RequirementScope = Scope.Action;
 	}
 
 	protected override float EvaluateProgress(Event p_event)
@@ -480,7 +480,7 @@ public class MaxDamageAbsorbedInOneHitRequirement : FeatRequirementTemplated<Abs
 
 	public MaxDamageAbsorbedInOneHitRequirement()
 	{
-		RequirementScope = Scope.Ability;
+		RequirementScope = Scope.Action;
 	}
 
 	protected override float EvaluateProgress(AbsorbDamageWithShieldRequirement.Event p_event)
@@ -540,7 +540,7 @@ public class SurviveHitRequirement : FeatRequirementTemplated<SurviveHitRequirem
 
 	public SurviveHitRequirement()
 	{
-		RequirementScope = Scope.Ability;
+		RequirementScope = Scope.Action;
 	}
 
 	protected override float EvaluateProgress(Event p_event)
@@ -678,50 +678,24 @@ public class WinBattleCountRequirement : FeatRequirementTemplated<WinBattleCount
 }
 
 [Serializable]
-public class SpendActionPointsRequirement : FeatRequirementTemplated<SpendActionPointsRequirement.Event>
+public class ConsumeResourcesRequirement : FeatRequirementTemplated<ConsumeResourcesRequirement.Event>
 {
+	public enum ResourceKind { ActionPoints, MovementPoints }
+
 	[Serializable]
 	public class Event : FeatRequirement.EventBase
 	{
+		public ResourceKind Resource;
 		public int Amount = 0;
 	}
 
+	public ResourceKind RequiredResource = ResourceKind.ActionPoints;
 	public int RequiredAmount = 10;
 
 	protected override float EvaluateProgress(Event p_event)
 	{
+		if (p_event.Resource != RequiredResource) return 0f;
 		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
-	}
-}
-
-[Serializable]
-public class SpendMovementPointsRequirement : FeatRequirementTemplated<SpendMovementPointsRequirement.Event>
-{
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
-	{
-		public int Amount = 0;
-	}
-
-	public int RequiredAmount = 10;
-
-	protected override float EvaluateProgress(Event p_event)
-	{
-		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
-	}
-}
-
-[Serializable]
-public class MoveCountRequirement : FeatRequirementTemplated<MoveCountRequirement.Event>
-{
-	[Serializable]
-	public class Event : FeatRequirement.EventBase { }
-
-	public int RequiredCount = 5;
-
-	protected override float EvaluateProgress(Event p_event)
-	{
-		return ComputeLinearProgress(1, RequiredCount);
 	}
 }
 
@@ -735,28 +709,6 @@ public class TotalDistanceTravelledRequirement : FeatRequirementTemplated<TotalD
 	}
 
 	public int RequiredDistance = 10;
-
-	protected override float EvaluateProgress(Event p_event)
-	{
-		return ComputeLinearProgress(p_event.Distance, RequiredDistance);
-	}
-}
-
-[Serializable]
-public class MaxDistanceInOneMoveRequirement : FeatRequirementTemplated<MaxDistanceInOneMoveRequirement.Event>
-{
-	[Serializable]
-	public class Event : FeatRequirement.EventBase
-	{
-		public int Distance = 0;
-	}
-
-	public int RequiredDistance = 4;
-
-	public MaxDistanceInOneMoveRequirement()
-	{
-		RequirementScope = Scope.Ability;
-	}
 
 	protected override float EvaluateProgress(Event p_event)
 	{

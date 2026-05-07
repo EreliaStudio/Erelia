@@ -5,9 +5,9 @@ using UnityEngine;
 [Serializable]
 public class BattleUnit : BattleObject
 {
-	private Vector3Int boardPosition;
-	private bool hasBoardPosition;
-	private bool hasLeftBattle;
+	public Vector3Int BoardPosition;
+	public bool HasBoardPosition;
+	public bool HasLeftBattle;
 
 	public BattleUnit(CreatureUnit p_sourceUnit, BattleSide p_side)
 	{
@@ -27,66 +27,44 @@ public class BattleUnit : BattleObject
 		}
 	}
 
-	private readonly List<FeatRequirement.EventBase> pendingFeatEvents = new();
-
 	public CreatureUnit SourceUnit { get; }
 	public BattleAttributes BattleAttributes { get; }
 	public BattleStatuses Statuses { get; } = new();
-	public IReadOnlyList<FeatRequirement.EventBase> PendingFeatEvents => pendingFeatEvents;
 
 	public IReadOnlyList<Ability> Abilities => SourceUnit.GetAbilities();
-	public bool HasBoardPosition => hasBoardPosition;
-	public Vector3Int BoardPosition => boardPosition;
-	public bool HasLeftBattle => hasLeftBattle;
 	public bool IsDefeated => BattleAttributes.Health.Current <= 0;
 	public bool IsActiveInBattle => !IsDefeated && !HasLeftBattle;
 	public bool IsTurnReady => BattleAttributes.TurnBar.Current >= BattleAttributes.TurnBar.Max;
 
 	public event Action<BattleUnit, Vector3Int?> PositionChanged;
 
-	public void RecordFeatEvent(FeatRequirement.EventBase featEvent)
-	{
-		if (featEvent == null)
-		{
-			return;
-		}
-
-		pendingFeatEvents.Add(featEvent);
-	}
-
-	public void ClearFeatEvents()
-	{
-		pendingFeatEvents.Clear();
-	}
-
 	public void SetBoardPosition(Vector3Int p_position)
 	{
-		boardPosition = p_position;
-		hasBoardPosition = true;
+		BoardPosition = p_position;
+		HasBoardPosition = true;
 		PositionChanged?.Invoke(this, p_position);
 	}
 
 	public void ClearBoardPosition()
 	{
-		if (!hasBoardPosition)
+		if (!HasBoardPosition)
 		{
 			return;
 		}
 
-		hasBoardPosition = false;
+		HasBoardPosition = false;
 		PositionChanged?.Invoke(this, null);
 	}
 
 	public void MarkLeftBattle()
 	{
-		hasLeftBattle = true;
+		HasLeftBattle = true;
 	}
 
 	public virtual void ResetBattleRuntimeState()
 	{
-		hasLeftBattle = false;
+		HasLeftBattle = false;
 		ClearBoardPosition();
-		ClearFeatEvents();
 		BattleAttributes.Setup(SourceUnit.Attributes);
 		BattleAttributes.ClearShields();
 	}

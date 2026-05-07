@@ -7,10 +7,20 @@ namespace Tests.Effects
 	public abstract class EffectTestBase
 	{
 		private readonly List<UnityEngine.Object> ownedAssets = new();
+		private BattleFeatEventCapture featEventCapture;
+
+		[SetUp]
+		public void SetUp()
+		{
+			featEventCapture = new BattleFeatEventCapture();
+		}
 
 		[TearDown]
 		public void TearDown()
 		{
+			featEventCapture?.Dispose();
+			featEventCapture = null;
+
 			for (int index = 0; index < ownedAssets.Count; index++)
 			{
 				if (ownedAssets[index] != null)
@@ -68,7 +78,7 @@ namespace Tests.Effects
 			};
 		}
 
-		protected static BattleAbilityExecutionContext CreateContext(
+		protected BattleAbilityExecutionContext CreateContext(
 			BattleUnit p_source = null,
 			BattleUnit p_target = null,
 			BattleContext p_battleContext = null,
@@ -77,7 +87,7 @@ namespace Tests.Effects
 		{
 			return new BattleAbilityExecutionContext
 			{
-				BattleContext = p_battleContext,
+				BattleContext = p_battleContext ?? TestBattleContextFactory.CreateEmpty(),
 				SourceObject = p_source,
 				TargetObject = p_target,
 				AnchorCell = p_anchorCell,
@@ -91,23 +101,9 @@ namespace Tests.Effects
 			Assert.That(p_battleContext.TryPlaceUnit(p_unit, p_cell), Is.True, $"Unit should be placeable at: {p_cell}");
 		}
 
-		protected static TEvent FindEvent<TEvent>(BattleUnit p_unit) where TEvent : FeatRequirement.EventBase
+		protected TEvent FindEvent<TEvent>(BattleUnit p_unit) where TEvent : FeatRequirement.EventBase
 		{
-			if (p_unit == null)
-			{
-				return null;
-			}
-
-			IReadOnlyList<FeatRequirement.EventBase> events = p_unit.PendingFeatEvents;
-			for (int index = 0; index < events.Count; index++)
-			{
-				if (events[index] is TEvent typedEvent)
-				{
-					return typedEvent;
-				}
-			}
-
-			return null;
+			return featEventCapture?.Find<TEvent>(p_unit);
 		}
 	}
 }

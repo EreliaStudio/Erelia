@@ -80,7 +80,7 @@ public sealed class BattleMode : Mode
 			battleContext.Board.Terrain.SizeY,
 			battleContext.Board.Terrain.SizeZ);
 
-		battlePlayerController.Bind(anchor, size, battleContext.PlayerWorldPosition);
+		battlePlayerController.Bind(anchor, size);
 		battleOrchestrator.Initialize(this, battleContext);
 		battleOrchestrator.ConfigurePhaseInput();
 	}

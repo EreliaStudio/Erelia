@@ -5,6 +5,8 @@ using UnityEngine;
 
 internal static class PositionTestHelpers
 {
+	private static readonly BattleFeatEventCapture FeatEvents = new BattleFeatEventCapture();
+
 	public static BattlePhaseTestFixture BuildFixture(int playerCount, int enemyCount)
 	{
 		return BattlePhaseTestFixture.Create(
@@ -27,13 +29,7 @@ internal static class PositionTestHelpers
 
 	public static TEvent FindEvent<TEvent>(BattleUnit unit) where TEvent : FeatRequirement.EventBase
 	{
-		IReadOnlyList<FeatRequirement.EventBase> events = unit.PendingFeatEvents;
-		for (int i = 0; i < events.Count; i++)
-		{
-			if (events[i] is TEvent typedEvent)
-				return typedEvent;
-		}
-		return null;
+		return FeatEvents.Find<TEvent>(unit);
 	}
 }
 
@@ -427,7 +423,9 @@ namespace Tests.Requirements.Position.TurnStartPosition
 				Nodes = new List<FeatNode> { rootNode, posNode },
 				RootNodeId = rootNode.Id
 			};
-			FeatProgressionService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+			FeatBoardService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+			using ServiceLocatorTestScope services = new ServiceLocatorTestScope();
+			EventCenter.EmitBattleStarted(fixture.BattleContext);
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 			fixture.CompletePlacement(
@@ -437,14 +435,14 @@ namespace Tests.Requirements.Position.TurnStartPosition
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-			fixture.PlayerUnits[0].RecordFeatEvent(new TurnStartPositionRequirement.Event
+			BattleFeatEventReporter.Emit(fixture.PlayerUnits[0], new TurnStartPositionRequirement.Event
 			{
 				ClosestEnemyDistance = 2, ClosestAllyDistance = int.MaxValue
 			});
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 
-			FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(fixture.PlayerSources[0], posNode);
+			FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(fixture.PlayerSources[0], posNode);
 			Assert.That(nodeProgress, Is.Not.Null);
 			Assert.That(nodeProgress.CompletionCount, Is.GreaterThan(0));
 
@@ -483,7 +481,9 @@ namespace Tests.Requirements.Position.TurnStartPosition
 				Nodes = new List<FeatNode> { rootNode, posNode },
 				RootNodeId = rootNode.Id
 			};
-			FeatProgressionService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+			FeatBoardService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+			using ServiceLocatorTestScope services = new ServiceLocatorTestScope();
+			EventCenter.EmitBattleStarted(fixture.BattleContext);
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 			fixture.CompletePlacement(
@@ -493,14 +493,14 @@ namespace Tests.Requirements.Position.TurnStartPosition
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-			fixture.PlayerUnits[0].RecordFeatEvent(new TurnStartPositionRequirement.Event
+			BattleFeatEventReporter.Emit(fixture.PlayerUnits[0], new TurnStartPositionRequirement.Event
 			{
 				ClosestEnemyDistance = 5, ClosestAllyDistance = int.MaxValue
 			});
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 
-			FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(fixture.PlayerSources[0], posNode);
+			FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(fixture.PlayerSources[0], posNode);
 			bool completed = nodeProgress != null && nodeProgress.CompletionCount > 0;
 			Assert.That(completed, Is.False);
 
@@ -539,7 +539,9 @@ namespace Tests.Requirements.Position.TurnStartPosition
 				Nodes = new List<FeatNode> { rootNode, posNode },
 				RootNodeId = rootNode.Id
 			};
-			FeatProgressionService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+			FeatBoardService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+			using ServiceLocatorTestScope services = new ServiceLocatorTestScope();
+			EventCenter.EmitBattleStarted(fixture.BattleContext);
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 			fixture.CompletePlacement(
@@ -557,7 +559,7 @@ namespace Tests.Requirements.Position.TurnStartPosition
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 
-			FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(fixture.PlayerSources[0], posNode);
+			FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(fixture.PlayerSources[0], posNode);
 			Assert.That(nodeProgress, Is.Not.Null);
 			Assert.That(nodeProgress.CompletionCount, Is.GreaterThan(0));
 
@@ -738,7 +740,9 @@ namespace Tests.Requirements.Position.TurnEndPosition
 				Nodes = new List<FeatNode> { rootNode, posNode },
 				RootNodeId = rootNode.Id
 			};
-			FeatProgressionService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+			FeatBoardService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+			using ServiceLocatorTestScope services = new ServiceLocatorTestScope();
+			EventCenter.EmitBattleStarted(fixture.BattleContext);
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 			fixture.CompletePlacement(
@@ -748,14 +752,14 @@ namespace Tests.Requirements.Position.TurnEndPosition
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-			fixture.PlayerUnits[0].RecordFeatEvent(new TurnEndPositionRequirement.Event
+			BattleFeatEventReporter.Emit(fixture.PlayerUnits[0], new TurnEndPositionRequirement.Event
 			{
 				ClosestEnemyDistance = 5, ClosestAllyDistance = int.MaxValue
 			});
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 
-			FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(fixture.PlayerSources[0], posNode);
+			FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(fixture.PlayerSources[0], posNode);
 			Assert.That(nodeProgress, Is.Not.Null);
 			Assert.That(nodeProgress.CompletionCount, Is.GreaterThan(0));
 

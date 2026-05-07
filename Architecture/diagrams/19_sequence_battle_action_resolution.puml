@@ -1,0 +1,85 @@
+@startuml Battle Action Resolution Sequence
+
+skinparam shadowing false
+hide footbox
+
+title Battle Turn and Action Resolution
+
+participant BattleOrchestrator
+participant BattleCoordinator
+participant SetupPhase
+participant PlacementPhase
+participant IdlePhase
+participant PlayerTurnPhase
+participant EnemyTurnPhase
+participant ResolutionPhase
+participant BattleTurnRules
+participant BattleActionValidator
+participant BattleActionResolver
+participant BattleStatusRules
+participant Effect
+participant BattleFeatEventReporter
+participant EventCenter
+participant FeatBoardService
+participant TamingService
+
+BattleOrchestrator -> BattleCoordinator : TransitionTo(Setup)
+BattleCoordinator -> SetupPhase : Enter()
+SetupPhase -> BattleCoordinator : TransitionTo(Placement)
+BattleCoordinator -> PlacementPhase : Enter()
+PlacementPhase -> PlacementPhase : auto-place enemies
+PlacementPhase -> BattleCoordinator : TransitionTo(Idle)
+
+loop until a unit is ready
+  BattleCoordinator -> IdlePhase : Tick(deltaTime)
+  IdlePhase -> BattleTurnRules : AdvanceTurnBars(context, deltaTime)
+  IdlePhase -> BattleTurnRules : TrySelectNextReadyUnit(context, out unit)
+end
+
+IdlePhase -> BattleOrchestrator : TryBeginTurn(unit, out phase)
+BattleOrchestrator -> BattleTurnRules : BeginTurn(context, unit)
+BattleTurnRules -> BattleStatusRules : ApplyHook(TurnStart)
+BattleOrchestrator -> BattleCoordinator : TransitionTo(PlayerTurn or EnemyTurn)
+
+alt player active unit
+  BattleCoordinator -> PlayerTurnPhase : Enter()
+  PlayerTurnPhase -> BattleActionValidator : query movement/range/targets
+  PlayerTurnPhase -> BattleOrchestrator : TrySubmitPendingAction(action)
+else enemy active unit
+  BattleCoordinator -> EnemyTurnPhase : Enter()
+  EnemyTurnPhase -> BattleActionValidator : find usable ability or move
+  EnemyTurnPhase -> BattleOrchestrator : TrySubmitPendingAction(action)
+end
+
+BattleOrchestrator -> BattleCoordinator : TransitionTo(Resolution)
+BattleCoordinator -> ResolutionPhase : Enter()
+ResolutionPhase -> BattleOrchestrator : ConsumePendingAction()
+ResolutionPhase -> BattleActionResolver : Resolve(context, turnContext, action)
+
+alt MoveAction
+  BattleActionResolver -> BattleActionValidator : TryGetMovementCost(...)
+  BattleActionResolver -> BattleStatusRules : ApplyHook(BeforeMove/AfterMove)
+  BattleActionResolver -> BattleFeatEventReporter : Emit(move/spend MP events)
+else AbilityAction
+  BattleActionResolver -> BattleActionValidator : CanUseAbility / target validation
+  BattleActionResolver -> BattleStatusRules : ApplyHook(BeforeCastingAnAbility)
+  BattleActionResolver -> Effect : Apply(BattleAbilityExecutionContext)
+  Effect -> BattleFeatEventReporter : Emit(effect feat event)
+  BattleActionResolver -> BattleStatusRules : ApplyHook(AfterCastingAnAbility)
+  BattleActionResolver -> BattleFeatEventReporter : Emit(cast/spend/kill events)
+  BattleActionResolver -> EventCenter : EmitBattleAbilityResolved(context, sourceUnit)
+  EventCenter -> FeatBoardService : BattleAbilityResolved(context, sourceUnit)
+else EndTurnAction
+  BattleActionResolver -> BattleTurnRules : EndTurn(context, sourceUnit)
+  BattleTurnRules -> BattleStatusRules : ApplyHook(TurnEnd)
+  BattleTurnRules -> EventCenter : EmitBattleTurnEnded(context, sourceUnit)
+  EventCenter -> FeatBoardService : BattleTurnEnded(context, sourceUnit)
+end
+
+BattleFeatEventReporter -> EventCenter : EmitBattleFeatEventOccurred(context, unit, event)
+EventCenter -> FeatBoardService : BattleFeatEventOccurred(context, unit, event)
+EventCenter -> TamingService : BattleFeatEventOccurred(context, unit, event)
+
+ResolutionPhase -> BattleCoordinator : current turn phase / Idle / End
+
+@enduml

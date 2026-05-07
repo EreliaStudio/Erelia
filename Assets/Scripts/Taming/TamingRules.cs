@@ -59,7 +59,7 @@ public static class TamingRules
 			FeatBoardProgress = new FeatBoardProgress()
 		};
 
-		FeatProgressionService.ApplyProgress(recruit);
+		FeatBoardService.ApplyProgress(recruit);
 		recruit.CurrentFormID = sourceUnit.CurrentFormID;
 		return recruit;
 	}

@@ -21,9 +21,15 @@ public sealed class SetupPhase : BattlePhase
 
 	private void InitializeTurnBars()
 	{
-		for (int index = 0; index < BattleContext.AllUnits.Count; index++)
+		InitializeTurnBarsForList(BattleContext.PlayerUnits);
+		InitializeTurnBarsForList(BattleContext.EnemyUnits);
+	}
+
+	private static void InitializeTurnBarsForList(System.Collections.Generic.IReadOnlyList<BattleUnit> units)
+	{
+		for (int index = 0; index < units.Count; index++)
 		{
-			BattleUnit unit = BattleContext.AllUnits[index];
+			BattleUnit unit = units[index];
 			if (unit == null || unit.IsDefeated)
 			{
 				continue;

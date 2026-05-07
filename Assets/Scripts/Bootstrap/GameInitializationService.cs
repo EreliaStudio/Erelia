@@ -65,7 +65,7 @@ public static class GameInitializationService
 			CurrentFormID = index % 2 == 0 ? "Default" : "DPS"
 		};
 
-		FeatProgressionService.ApplyProgress(unit);
+		FeatBoardService.ApplyProgress(unit);
 		return unit;
 	}
 

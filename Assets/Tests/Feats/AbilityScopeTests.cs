@@ -14,7 +14,7 @@ namespace Tests.Feats.AbilityScope
 				Requirement = new TestAmountRequirement
 				{
 					RequiredAmount = 100,
-					RequirementScope = FeatRequirement.Scope.Ability
+					RequirementScope = FeatRequirement.Scope.Action
 				}
 			};
 
@@ -37,7 +37,7 @@ namespace Tests.Feats.AbilityScope
 				Requirement = new TestAmountRequirement
 				{
 					RequiredAmount = 100,
-					RequirementScope = FeatRequirement.Scope.Ability
+					RequirementScope = FeatRequirement.Scope.Action
 				}
 			};
 
@@ -60,7 +60,7 @@ namespace Tests.Feats.AbilityScope
 				Requirement = new TestAmountRequirement
 				{
 					RequiredAmount = 100,
-					RequirementScope = FeatRequirement.Scope.Ability,
+					RequirementScope = FeatRequirement.Scope.Action,
 					RequiredRepeatCount = 2
 				}
 			};

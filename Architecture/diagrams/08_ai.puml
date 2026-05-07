@@ -1,10 +1,14 @@
 @startuml AI System
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
+class BattleUnit <<CF diagram 04>> {}
+class BoardData <<CF diagram 03>> {}
+
 abstract class AICondition {
-  +IsMet(BattleUnit caster, BoardData board) : bool
+  +IsMet(BattleUnit, BoardData) : bool
 }
 
 abstract class AIDecision
@@ -16,14 +20,29 @@ class AIRule {
 
 class AIBehaviour {
   +ActiveMode : string
-  +RulesByModes : Dictionary<string, List<AIRule>>
+  +RulesByModes : SerializedDictionary<string, List<AIRule>>
+}
+
+class EncounterUnit <<CF diagram 05>> {
+  +Behaviour : AIBehaviour
+}
+
+class EnemyTurnPhase <<CF diagram 13>> {
+  +PhaseType : BattlePhaseType
 }
 
 AIBehaviour *-- AIRule
 AIRule o-- AICondition
 AIRule o-- AIDecision
+EncounterUnit o-- AIBehaviour
+AICondition ..> BattleUnit
+AICondition ..> BoardData
 
-note bottom of AICondition : Concrete implementations\nto be added (EnemyIsAtDistance,\nHPThreshold, etc.)
-note bottom of AIDecision : Concrete implementations\nto be added (CastAbility,\nMoveUnit, EndTurn, etc.)
+note bottom of EnemyTurnPhase
+Current implementation uses a simple fallback heuristic:
+cast the first usable ability at an enemy, otherwise move
+toward the nearest enemy, otherwise end turn.
+AIBehaviour data exists on EncounterUnit but is not yet consumed here.
+end note
 
 @enduml

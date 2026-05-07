@@ -35,8 +35,9 @@ namespace Tests.Battle.Phases.Resolution
 
 			PlayerTurnPhase playerTurnPhase = fixture.GetPlayerTurnPhase(orchestrator);
 			Vector3Int destination = playerTurnPhase.GetReachableCells()[0];
+			Assert.That(BattleActionValidator.TryGetMovementCost(fixture.BattleContext, orchestrator.TurnContext, destination, out int movementCost), Is.True);
 
-			Assert.That(orchestrator.TurnContext.TrySetPendingAction(new MoveAction(fixture.PlayerUnits[0], destination)), Is.True);
+			Assert.That(orchestrator.TurnContext.TrySetPendingAction(new MoveAction(fixture.PlayerUnits[0], destination, movementCost)), Is.True);
 			orchestrator.TransitionTo(BattlePhaseType.Resolution);
 
 			Assert.That(fixture.PlayerUnits[0].BoardPosition, Is.EqualTo(destination));

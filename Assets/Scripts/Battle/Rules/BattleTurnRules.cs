@@ -15,14 +15,16 @@ public static class BattleTurnRules
 
 		EmitTurnStartPositionEvent(battleContext, activeUnit);
 
-		TrackedResourceDelta before = Track(activeUnit);
 		battleContext.CurrentTurn.Begin(activeUnit);
-		activeUnit.BattleAttributes.ActionPoints.Reset();
-		activeUnit.BattleAttributes.MovementPoints.Reset();
 		activeUnit.BattleAttributes.TurnBar.SetCurrent(activeUnit.BattleAttributes.TurnBar.Max);
 
-		BattleStatusRules.ApplyHook(activeUnit, battleContext, StatusHookPoint.TurnStart, activeUnit);
-		EmitLossHooks(battleContext, activeUnit, before);
+		BattleStatusRules.ApplyHook(CreateHookContext(
+			battleContext,
+			StatusHookPoint.TurnStart,
+			activeUnit,
+			activeUnit,
+			activeUnit));
+		BattleUnitRules.ResolvePendingDefeats(battleContext, activeUnit);
 	}
 
 	public static void EndTurn(BattleContext battleContext, BattleUnit activeUnit)
@@ -32,15 +34,32 @@ public static class BattleTurnRules
 			return;
 		}
 
-		TrackedResourceDelta before = Track(activeUnit);
-		BattleStatusRules.ApplyHook(activeUnit, battleContext, StatusHookPoint.TurnEnd, activeUnit);
+		BattleStatusRules.ApplyHook(CreateHookContext(
+			battleContext,
+			StatusHookPoint.TurnEnd,
+			activeUnit,
+			activeUnit,
+			activeUnit));
 		BattleStatusRules.AdvanceTurnDurations(activeUnit);
 		activeUnit.BattleAttributes.AdvanceShieldDurations();
 		battleContext.Board?.Runtime?.AdvanceObjectDurations();
+		ResetTurnResources(activeUnit);
 		activeUnit.BattleAttributes.TurnBar.SetCurrent(0f);
-		EmitLossHooks(battleContext, activeUnit, before);
+		BattleUnitRules.ResolvePendingDefeats(battleContext, activeUnit);
 
 		EmitTurnEndPositionEvent(battleContext, activeUnit);
+		EventCenter.EmitBattleTurnEnded(battleContext, activeUnit);
+	}
+
+	private static void ResetTurnResources(BattleUnit activeUnit)
+	{
+		if (activeUnit?.BattleAttributes == null)
+		{
+			return;
+		}
+
+		activeUnit.BattleAttributes.ActionPoints.SetCurrent(activeUnit.BattleAttributes.ActionPoints.Max);
+		activeUnit.BattleAttributes.MovementPoints.SetCurrent(activeUnit.BattleAttributes.MovementPoints.Max);
 	}
 
 	public static bool CanContinueTurn(BattleContext battleContext, TurnContext turnContext)
@@ -86,7 +105,8 @@ public static class BattleTurnRules
 			return;
 		}
 
-		AdvanceTurnBars(GetLivingUnits(battleContext), deltaTime);
+		AdvanceTurnBars(battleContext.PlayerUnits, deltaTime);
+		AdvanceTurnBars(battleContext.EnemyUnits, deltaTime);
 	}
 
 	public static bool TrySelectNextReadyUnit(BattleContext battleContext, out BattleUnit unit)
@@ -97,7 +117,7 @@ public static class BattleTurnRules
 			return false;
 		}
 
-		return TrySelectReadyUnit(battleContext, GetLivingUnits(battleContext), out unit);
+		return TrySelectReadyUnit(battleContext, out unit);
 	}
 
 	public static bool TryFindNextActiveUnit(BattleContext battleContext, out BattleUnit unit)
@@ -108,66 +128,33 @@ public static class BattleTurnRules
 			return false;
 		}
 
-		List<BattleUnit> livingUnits = GetLivingUnits(battleContext);
-		if (livingUnits.Count == 0)
-		{
-			return false;
-		}
-
-		if (TrySelectReadyUnit(battleContext, livingUnits, out unit))
+		if (TrySelectReadyUnit(battleContext, out unit))
 		{
 			return true;
 		}
 
-		float elapsedTime = ComputeTimeUntilNextReadyUnit(livingUnits);
+		float elapsedTime = ComputeTimeUntilNextReadyUnit(battleContext);
 		if (elapsedTime <= TurnBarEpsilon)
 		{
 			return false;
 		}
 
-		AdvanceTurnBars(livingUnits, elapsedTime);
-		return TrySelectReadyUnit(battleContext, livingUnits, out unit);
+		AdvanceTurnBars(battleContext.PlayerUnits, elapsedTime);
+		AdvanceTurnBars(battleContext.EnemyUnits, elapsedTime);
+		return TrySelectReadyUnit(battleContext, out unit);
 	}
 
-	private static List<BattleUnit> GetLivingUnits(BattleContext battleContext)
-	{
-		List<BattleUnit> units = new List<BattleUnit>();
-		if (battleContext?.AllUnits == null)
-		{
-			return units;
-		}
-
-		for (int index = 0; index < battleContext.AllUnits.Count; index++)
-		{
-			BattleUnit candidate = battleContext.AllUnits[index];
-			if (candidate == null || candidate.IsDefeated)
-			{
-				continue;
-			}
-
-			units.Add(candidate);
-		}
-
-		return units;
-	}
-
-	private static bool TrySelectReadyUnit(BattleContext battleContext, List<BattleUnit> candidates, out BattleUnit unit)
+	private static bool TrySelectReadyUnit(BattleContext battleContext, out BattleUnit unit)
 	{
 		unit = null;
-		if (battleContext == null || candidates == null)
+		if (battleContext == null)
 		{
 			return false;
 		}
 
 		List<BattleUnit> readyUnits = new List<BattleUnit>();
-		for (int index = 0; index < candidates.Count; index++)
-		{
-			BattleUnit candidate = candidates[index];
-			if (candidate != null && IsTurnReady(candidate))
-			{
-				readyUnits.Add(candidate);
-			}
-		}
+		CollectReadyUnits(battleContext.PlayerUnits, readyUnits);
+		CollectReadyUnits(battleContext.EnemyUnits, readyUnits);
 
 		if (readyUnits.Count == 0)
 		{
@@ -176,6 +163,18 @@ public static class BattleTurnRules
 
 		unit = ResolveTie(battleContext, readyUnits);
 		return unit != null;
+	}
+
+	private static void CollectReadyUnits(IReadOnlyList<BattleUnit> source, List<BattleUnit> readyUnits)
+	{
+		for (int index = 0; index < source.Count; index++)
+		{
+			BattleUnit candidate = source[index];
+			if (candidate != null && !candidate.IsDefeated && IsTurnReady(candidate))
+			{
+				readyUnits.Add(candidate);
+			}
+		}
 	}
 
 	private static BattleUnit ResolveTie(BattleContext battleContext, List<BattleUnit> readyUnits)
@@ -213,13 +212,20 @@ public static class BattleTurnRules
 		return null;
 	}
 
-	private static float ComputeTimeUntilNextReadyUnit(List<BattleUnit> units)
+	private static float ComputeTimeUntilNextReadyUnit(BattleContext battleContext)
 	{
 		float minimumRemainingTime = float.PositiveInfinity;
+		minimumRemainingTime = ComputeMinTimeFromList(battleContext.PlayerUnits, minimumRemainingTime);
+		minimumRemainingTime = ComputeMinTimeFromList(battleContext.EnemyUnits, minimumRemainingTime);
+		return float.IsPositiveInfinity(minimumRemainingTime) ? 0f : minimumRemainingTime;
+	}
+
+	private static float ComputeMinTimeFromList(IReadOnlyList<BattleUnit> units, float currentMin)
+	{
 		for (int index = 0; index < units.Count; index++)
 		{
 			BattleUnit unit = units[index];
-			if (unit == null)
+			if (unit == null || unit.IsDefeated)
 			{
 				continue;
 			}
@@ -231,14 +237,13 @@ public static class BattleTurnRules
 			}
 
 			float remaining = Mathf.Max(0f, unit.BattleAttributes.TurnBar.Max - unit.BattleAttributes.TurnBar.Current);
-			float realTimeToFill = remaining / staminaRatio;
-			minimumRemainingTime = Mathf.Min(minimumRemainingTime, realTimeToFill);
+			currentMin = Mathf.Min(currentMin, remaining / staminaRatio);
 		}
 
-		return float.IsPositiveInfinity(minimumRemainingTime) ? 0f : minimumRemainingTime;
+		return currentMin;
 	}
 
-	private static void AdvanceTurnBars(List<BattleUnit> units, float elapsedTime)
+	private static void AdvanceTurnBars(IReadOnlyList<BattleUnit> units, float elapsedTime)
 	{
 		if (units == null || elapsedTime <= 0f)
 		{
@@ -248,7 +253,7 @@ public static class BattleTurnRules
 		for (int index = 0; index < units.Count; index++)
 		{
 			BattleUnit unit = units[index];
-			if (unit == null)
+			if (unit == null || unit.IsDefeated)
 			{
 				continue;
 			}
@@ -270,35 +275,23 @@ public static class BattleTurnRules
 			unit.BattleAttributes.TurnBar.Current >= unit.BattleAttributes.TurnBar.Max - TurnBarEpsilon;
 	}
 
-	private static TrackedResourceDelta Track(BattleUnit unit)
+	private static BattleHookContext CreateHookContext(
+		BattleContext battleContext,
+		StatusHookPoint hookPoint,
+		BattleUnit hookOwner,
+		BattleObject sourceObject,
+		BattleObject targetObject,
+		BattleAction action = null)
 	{
-		return new TrackedResourceDelta(
-			unit?.BattleAttributes.Health.Current ?? 0,
-			unit?.BattleAttributes.ActionPoints.Current ?? 0,
-			unit?.BattleAttributes.MovementPoints.Current ?? 0);
-	}
-
-	private static void EmitLossHooks(BattleContext battleContext, BattleUnit unit, TrackedResourceDelta before)
-	{
-		if (unit == null)
+		return new BattleHookContext
 		{
-			return;
-		}
-
-		if (unit.BattleAttributes.Health.Current < before.Health)
-		{
-			BattleStatusRules.ApplyHook(unit, battleContext, StatusHookPoint.OnHPLoss, unit);
-		}
-
-		if (unit.BattleAttributes.ActionPoints.Current < before.ActionPoints)
-		{
-			BattleStatusRules.ApplyHook(unit, battleContext, StatusHookPoint.OnAPLoss, unit);
-		}
-
-		if (unit.BattleAttributes.MovementPoints.Current < before.MovementPoints)
-		{
-			BattleStatusRules.ApplyHook(unit, battleContext, StatusHookPoint.OnMPLoss, unit);
-		}
+			BattleContext = battleContext,
+			HookPoint = hookPoint,
+			HookOwner = hookOwner,
+			SourceObject = sourceObject,
+			TargetObject = targetObject,
+			Action = action
+		};
 	}
 
 	private static void EmitTurnStartPositionEvent(BattleContext battleContext, BattleUnit activeUnit)
@@ -317,7 +310,7 @@ public static class BattleTurnRules
 			return;
 		}
 
-		activeUnit.RecordFeatEvent(new TurnStartPositionRequirement.Event
+		BattleFeatEventReporter.Emit(activeUnit, new TurnStartPositionRequirement.Event
 		{
 			ClosestAllyDistance = closestAlly,
 			ClosestEnemyDistance = closestEnemy
@@ -340,7 +333,7 @@ public static class BattleTurnRules
 			return;
 		}
 
-		activeUnit.RecordFeatEvent(new TurnEndPositionRequirement.Event
+		BattleFeatEventReporter.Emit(activeUnit, new TurnEndPositionRequirement.Event
 		{
 			ClosestAllyDistance = closestAlly,
 			ClosestEnemyDistance = closestEnemy
@@ -357,10 +350,21 @@ public static class BattleTurnRules
 		closestAlly = int.MaxValue;
 		closestEnemy = int.MaxValue;
 
-		IReadOnlyList<BattleUnit> allUnits = battleContext.AllUnits;
-		for (int index = 0; index < allUnits.Count; index++)
+		ComputeClosestDistancesInList(battleContext.PlayerUnits, activeUnit, unitPos, battleContext, ref closestAlly, ref closestEnemy);
+		ComputeClosestDistancesInList(battleContext.EnemyUnits, activeUnit, unitPos, battleContext, ref closestAlly, ref closestEnemy);
+	}
+
+	private static void ComputeClosestDistancesInList(
+		IReadOnlyList<BattleUnit> p_list,
+		BattleUnit activeUnit,
+		Vector3Int unitPos,
+		BattleContext battleContext,
+		ref int closestAlly,
+		ref int closestEnemy)
+	{
+		for (int index = 0; index < p_list.Count; index++)
 		{
-			BattleUnit other = allUnits[index];
+			BattleUnit other = p_list[index];
 			if (other == null || other == activeUnit || other.IsDefeated || !other.HasBoardPosition)
 			{
 				continue;
@@ -383,17 +387,4 @@ public static class BattleTurnRules
 		}
 	}
 
-	private readonly struct TrackedResourceDelta
-	{
-		public TrackedResourceDelta(int health, int actionPoints, int movementPoints)
-		{
-			Health = health;
-			ActionPoints = actionPoints;
-			MovementPoints = movementPoints;
-		}
-
-		public int Health { get; }
-		public int ActionPoints { get; }
-		public int MovementPoints { get; }
-	}
 }

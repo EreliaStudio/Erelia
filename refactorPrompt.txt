@@ -375,8 +375,6 @@ public override void Apply(...)
     EventCenter.EmitBattleFeatEventOccurred(
         new BattleFeatEventPayload(
             p_battleContext,
-            p_sourceUnit,
-            p_targetUnit,
             featEvent));
 }
 ```
@@ -455,6 +453,19 @@ public static partial class EventCenter
     {
         BattleResolved?.Invoke(p_payload);
     }
+
+    public static event Action<BattleAbilityResolvedPayload> BattleAbilityResolved;
+    public static event Action<BattleTurnEndedPayload> BattleTurnEnded;
+
+    public static void EmitBattleAbilityResolved(BattleAbilityResolvedPayload p_payload)
+    {
+        BattleAbilityResolved?.Invoke(p_payload);
+    }
+
+    public static void EmitBattleTurnEnded(BattleTurnEndedPayload p_payload)
+    {
+        BattleTurnEnded?.Invoke(p_payload);
+    }
 }
 ```
 
@@ -482,13 +493,17 @@ Do not add gameplay logic inside `EventCenter`.
 
 ---
 
-## GameServices / ServiceRegistry
+## ServiceLocator
 
-Create a lightweight service container, for example:
+`ServiceLocator` is a singleton that provides global access to all feature services.
+
+It is not passed around as an argument. Systems that need a service access it through `ServiceLocator.Instance`.
 
 ```csharp
 public sealed class ServiceLocator
 {
+    public static ServiceLocator Instance { get; private set; }
+
     public BattleService BattleService { get; }
     public PlayerService PlayerService { get; }
     public FeatBoardService FeatBoardService { get; }
@@ -496,16 +511,35 @@ public sealed class ServiceLocator
     public EncounterService EncounterService { get; }
     public WorldService WorldService { get; }
     public SaveService SaveService { get; }
+
+    public static void Create(GameContext p_gameContext)
+    {
+        Instance = new ServiceLocator(p_gameContext);
+    }
+
+    public static void Destroy()
+    {
+        Instance?.Shutdown();
+        Instance = null;
+    }
 }
 ```
 
-This should be created by `GameBootstrapper` after `GameContext` is created.
+The file path for this class is:
+
+```text
+Assets/Scripts/Services/Core/ServiceLocator.cs
+```
+
+`ServiceLocator.Create(gameContext)` is called by `GameBootstrapper` after `GameContext` is created.
+
+`ServiceLocator.Destroy()` is called when the game session ends.
 
 `GameContext` should remain runtime state.
 
 Do not turn `GameContext` into the service container.
 
-Services that subscribe to `EventCenter` should expose lifecycle methods, to subscribe/unsubscribe when the ServiceLocator will be destroyed.
+Services that subscribe to `EventCenter` should expose `Initialize()` and `Shutdown()` lifecycle methods. `ServiceLocator` calls `Initialize()` on all services after creation and `Shutdown()` on all services before nulling the instance. This ensures subscriptions are always cleaned up.
 
 ---
 
@@ -516,20 +550,21 @@ Current `GameBootstrapper` creates `GameContext`, initializes save/world/player 
 Refactor target:
 
 1. Create/load `GameContext`.
-2. Create `GameServices`.
-3. Initialize services.
-4. Give `GameContext` and/or `GameServices` to systems that need them.
+2. Create `ServiceLocator` singleton.
+3. Services initialize and subscribe to `EventCenter`.
+4. Give `GameContext` to systems that need it directly (e.g. `ModeManager`).
 5. Enter exploration mode.
 
 Possible target flow:
 
 ```csharp
 GameContext gameContext = GameContext.FromSave(saveData);
-GameServices gameServices = new GameServices(gameContext);
-gameServices.Initialize();
-modeManager.Initialize(gameContext, gameServices);
+ServiceLocator.Create(gameContext);
+modeManager.Initialize(gameContext);
 modeManager.EnterExplorationMode();
 ```
+
+Systems that need a service access it via `ServiceLocator.Instance.SomeService` — they do not receive the locator as a constructor or method argument.
 
 Adapt exact method names to current code.
 
@@ -563,12 +598,15 @@ Create `BattleService` as a feature-local service.
 
 It does **not** own taming, feat progression, player rewards, encounter cleanup, or save/load.
 
+`BattleService` requires access to `PlayerService` (or directly to `PlayerData` via `GameContext`) to retrieve the player's active team when building `BattleContext`. `BattleLaunchPayload` intentionally does not carry player units — `BattleService` must ask `PlayerService` for the current team at launch time. This is an explicit, expected dependency.
+
 Responsibilities:
 
 * Subscribe to `EventCenter.BattleLaunchRequested`.
 * Receive `BattleLaunchPayload`.
+* Query `PlayerService` for the current active player team.
 * Prepare or validate battle runtime data.
-* Create or wrap `BattleContext` as needed.
+* Create or wrap `BattleContext` using the enemy units from the payload and the player team from `PlayerService`.
 * Store the current active battle context/runtime payload if useful.
 * Emit `BattleStarted` with `BattleRuntimePayload` when battle runtime is ready.
 * Support battle-safe handling of battle-domain requests such as `BattleUnitRemovalRequested` if no better runtime owner exists yet.
@@ -881,17 +919,84 @@ Payload names may be adjusted, but avoid `CreatureImpressedEvent`.
 
 ---
 
+## FeatRequirement Scope Lifecycle
+
+The existing `FeatRequirement` system uses four scopes to determine when progress accumulates and when it resets:
+
+* `Scope.Ability` — resets after each ability cast resolves.
+* `Scope.Turn` — resets when a creature's turn ends.
+* `Scope.Fight` — accumulates across the whole battle; resets when the fight ends.
+* `Scope.Game` — accumulates across the entire game session; never resets mid-battle.
+
+`FeatProgressionService.ResetTransientRequirementProgress(scope)` is the existing method that performs these resets.
+
+Currently this is called at specific lifecycle points inside the battle runtime:
+
+* `BattleActionResolver.ResolveAbility` calls it with `Scope.Ability` after all effects are applied.
+* `BattleTurnRules.EndTurn` calls it with `Scope.Turn` after the turn ends.
+
+When `FeatBoardService` takes over feat progression from `FeatProgressionService`, it must still honor these resets. To do this without coupling `FeatBoardService` to battle internals, two new lifecycle events must be added to `BattleEventCenter.cs`:
+
+```csharp
+public static event Action<BattleAbilityResolvedPayload> BattleAbilityResolved;
+public static event Action<BattleTurnEndedPayload> BattleTurnEnded;
+
+public static void EmitBattleAbilityResolved(BattleAbilityResolvedPayload p_payload)
+{
+    BattleAbilityResolved?.Invoke(p_payload);
+}
+
+public static void EmitBattleTurnEnded(BattleTurnEndedPayload p_payload)
+{
+    BattleTurnEnded?.Invoke(p_payload);
+}
+```
+
+Emission points:
+
+* `BattleActionResolver.ResolveAbility` emits `BattleAbilityResolved` after all effects are applied and after existing `Scope.Ability` reset logic runs.
+* `BattleTurnRules.EndTurn` emits `BattleTurnEnded` after existing `Scope.Turn` reset logic runs.
+
+`FeatBoardService` must subscribe to both events and call the appropriate scope reset on the tracked creature progression data.
+
+`TamingService` does **not** need to subscribe to these events. Taming conditions use `FeatRequirement` internally via `TamingProgress`, but taming progress resets are governed by `TamingProgress.Reset()` and the existing `WildBattleUnit` lifecycle, not by `FeatBoardService`.
+
+Payload structure for these events should be minimal:
+
+```csharp
+public sealed class BattleAbilityResolvedPayload
+{
+    public BattleUnit SourceUnit { get; }
+}
+
+public sealed class BattleTurnEndedPayload
+{
+    public BattleUnit Unit { get; }
+}
+```
+
+Add these payload files:
+
+```text
+Assets/Scripts/Event/Payloads/BattleAbilityResolvedPayload.cs
+Assets/Scripts/Event/Payloads/BattleTurnEndedPayload.cs
+```
+
+---
+
 ## FeatBoardService
 
 Create or refactor `FeatBoardService` as the owner of feat-board progression.
 
 Responsibilities:
 
-* Listen to `BattleStarted` if it needs to initialize battle-local tracking.
+* Listen to `BattleStarted` to initialize battle-local feat event tracking per player creature.
 * Listen to `BattleFeatEventOccurred`.
-* Apply or record the contained `FeatRequirement.EventBase` against the relevant player creature's feat board progress.
+* Record the contained `FeatRequirement.EventBase` against the relevant player creature's feat board progress.
+* Listen to `BattleAbilityResolved` and reset `Scope.Ability` progress for the source unit's tracked progression.
+* Listen to `BattleTurnEnded` and reset `Scope.Turn` progress for the unit's tracked progression.
 * Listen to `BattleResolved`.
-* Apply completed feat requirements and unlock eligible feat nodes.
+* Apply accumulated feat events, complete satisfied feat nodes, and unlock eligible feat nodes.
 * Apply feat rewards directly if they belong to creature feat state, or emit reward payloads if another service should mutate state.
 * Emit feat progress/reward notifications.
 
@@ -920,10 +1025,17 @@ Important:
 
 Migration note:
 
-If current `FeatProgressionService` is static or already service-like, either:
+`FeatProgressionService` should be fully renamed and refactored into `FeatBoardService`. Do not keep `FeatProgressionService` as a separate class. `FeatBoardService` becomes the single API for all feat-board concerns, including:
 
-1. Wrap it inside the new `FeatBoardService`, or
-2. Rename/refactor it into `FeatBoardService`, preserving behavior.
+* Initializing a new creature's feat board (`InitializeCreatureUnit` — currently in `FeatProgressionService`).
+* Applying progression rewards to a creature (`ApplyProgress` — currently in `FeatProgressionService`).
+* Registering battle events and completing feat nodes (`RegisterFightEvents`, `RegisterEvent` — currently in `FeatProgressionService`).
+* Querying node state (`IsNodeReachable`, `IsNodeCompleted`, etc. — currently in `FeatProgressionService`).
+* Resetting transient scope progress (`ResetTransientRequirementProgress` — currently in `FeatProgressionService`).
+
+All call-sites that currently reference `FeatProgressionService` — including `GameInitializationService.EnsurePrototypeStarterTeam()` and `EndPhase.ApplyFeatProgressionToPlayerUnits()` — must be updated to call `FeatBoardService` instead. `GameInitializationService` should call `FeatBoardService.InitializeCreatureUnit(...)` and `FeatBoardService.ApplyProgress(...)` for starter creatures.
+
+The underlying feat-board logic classes (`FeatBoard`, `FeatNode`, `FeatNodeProgress`, `FeatRequirement`, `FeatReward`) remain untouched — only the service-layer entry point changes name and gains an instance lifecycle.
 
 Do not rewrite all feat requirement/reward code at once unless necessary.
 
@@ -1067,12 +1179,13 @@ This should be implemented in small, compiling steps.
 
 ### Step 1: Add payloads and EventCenter events
 
+* **First**, change the declaration in `Event/EventCenter.cs` from `public static class EventCenter` to `public static partial class EventCenter`. This must be done before any partial file is added — the compiler requires all files sharing a `partial` class to use the `partial` keyword, including the original.
 * Add battle payload classes.
 * Add `BattleFeatEventPayload`.
 * Do not add `BattleActivityPayload`.
 * Do not add `BattleActivityType`.
-* Add new EventCenter events and emit methods.
-* Keep old events for compatibility.
+* Add new partial EventCenter files (`BattleEventCenter.cs`, etc.) with their events and emit methods.
+* Keep old events in `EventCenter.cs` for compatibility.
 
 ### Step 2: Add GameServices container
 
@@ -1266,7 +1379,7 @@ When implementing this refactor, produce:
 ## Suggested Initial Files To Add
 
 ```text
-Assets/Scripts/Services/Core/GameServices.cs
+Assets/Scripts/Services/Core/ServiceLocator.cs
 Assets/Scripts/Services/Battle/BattleService.cs
 Assets/Scripts/Services/Player/PlayerService.cs
 Assets/Scripts/Services/Progression/FeatBoardService.cs
@@ -1286,6 +1399,8 @@ Assets/Scripts/Event/Payloads/BattleLaunchPayload.cs
 Assets/Scripts/Event/Payloads/BattleRuntimePayload.cs
 Assets/Scripts/Event/Payloads/BattleFeatEventPayload.cs
 Assets/Scripts/Event/Payloads/BattleResolutionPayload.cs
+Assets/Scripts/Event/Payloads/BattleAbilityResolvedPayload.cs
+Assets/Scripts/Event/Payloads/BattleTurnEndedPayload.cs
 ```
 
 Do not add:
@@ -1313,7 +1428,7 @@ Assets/Scripts/Battle/System/Phases/ResolutionPhase.cs
 Assets/Scripts/Battle/Rules/BattleActionResolver.cs
 Assets/Scripts/Abilities/Effect.cs
 Assets/Scripts/Creatures/WildBattleUnit.cs
-Assets/Scripts/Feats/FeatProgressionService.cs
+Assets/Scripts/Feats/FeatProgressionService.cs  (to be renamed/replaced by FeatBoardService)
 Assets/Scripts/Taming/TamingProgressService.cs
 Assets/Scripts/Taming/TamingProgress.cs
 Assets/Scripts/Taming/TamingRules.cs
@@ -1367,10 +1482,11 @@ Effect / runtime battle flow
     emits BattleFeatEventOccurred(BattleFeatEventPayload)
 
 FeatBoardService
-    listens BattleStarted if needed
-    listens BattleFeatEventOccurred
-    records/applies feat requirement progress
-    listens BattleResolved
+    listens BattleStarted (initializes battle-local feat event tracking per player creature)
+    listens BattleFeatEventOccurred (records feat events per creature)
+    listens BattleAbilityResolved (resets Scope.Ability progress)
+    listens BattleTurnEnded (resets Scope.Turn progress)
+    listens BattleResolved (applies accumulated events, completes nodes, unlocks rewards)
     emits FeatProgressUpdated / FeatNodeUnlocked / FeatRewardUnlocked
 
 TamingService
@@ -1420,3 +1536,4 @@ Track these explicitly during implementation:
 * Existing `BattleContext.DispatchPlayerFeatEvent(...)` may remain temporarily as taming compatibility glue, but should eventually move into `TamingService`.
 * `BattleOutcome.ImpressedCreatures` may remain temporarily for taming reward resolution, but should eventually be owned by `TamingService` battle-local tracking.
 * Resolver-level feat event emission is acceptable only where effect-level emission is not yet available.
+* `BattleActionResolver.ResolveAbility` and `BattleTurnRules.EndTurn` currently call `FeatProgressionService.ResetTransientRequirementProgress(scope)` directly. Once `FeatBoardService` owns progression, these call-sites must emit `BattleAbilityResolved` and `BattleTurnEnded` instead, and `FeatBoardService` performs the resets. Do not remove the existing direct reset calls until `FeatBoardService` is confirmed to handle them.

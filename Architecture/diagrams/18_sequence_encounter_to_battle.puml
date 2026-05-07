@@ -1,0 +1,62 @@
+@startuml Encounter To Battle Sequence
+
+skinparam shadowing false
+hide footbox
+
+title Exploration Encounter to Battle Mode
+
+participant ExplorationMode
+participant EventCenter
+participant EncounterEmitter
+participant WorldPresenter
+participant WorldPathfinder
+participant EncounterResolver
+participant BiomeDefinition
+participant BiomeEncounterRule
+participant EncounterService
+participant BattleService
+participant WorldService
+participant BoardDataBuilder
+participant PlayerService
+participant ModeManager
+participant FeatBoardService
+participant TamingService
+participant BattleMode
+participant BattleOrchestrator
+
+ExplorationMode -> EventCenter : EmitPlayerMoved(worldPosition)
+EventCenter -> EncounterEmitter : PlayerMoved(worldPosition)
+EncounterEmitter -> WorldPathfinder : TryResolveStandingCell(...)
+EncounterEmitter -> WorldPresenter : MetaWorldData.TryGetChunkMeta(...)
+EncounterEmitter -> BiomeDefinition : TryGetEncounterRule(triggerTag, out rule)
+EncounterEmitter -> EncounterResolver : TryResolveEncounter(biome, tag, cell, out team)
+EncounterResolver -> BiomeDefinition : TryGetEncounterRule(tag, out rule)
+EncounterResolver -> BiomeEncounterRule : EncounterTable.GetTierForBadgeCount(0)
+EncounterResolver --> EncounterEmitter : selectedTeam
+EncounterEmitter -> BiomeEncounterRule : TryPickBoardConfiguration(out boardConfiguration)
+EncounterEmitter -> EncounterService : RequestBattle(boardConfiguration, worldPosition, team, placementStyle, true)
+EncounterService -> EventCenter : EmitBattleLaunchRequested(...)
+
+EventCenter -> BattleService : BattleLaunchRequested(...)
+BattleService -> WorldService : TryBuildBattleBoard(configuration, worldPosition, out boardData)
+WorldService -> BoardDataBuilder : Build(worldData, voxelRegistry, anchorCell, configuration)
+BoardDataBuilder --> WorldService : BoardData
+WorldService --> BattleService : boardData
+BattleService -> PlayerService : GetActiveTeam()
+PlayerService --> BattleService : CreatureUnit[]
+BattleService -> BattleService : new BattleContext(playerTeam, enemyTeam, boardData, placementStyle, worldPosition, allowsTaming)
+BattleService -> EventCenter : EmitBattleStarted(activeBattleContext)
+
+EventCenter -> ModeManager : BattleStarted(context)
+ModeManager -> BattleMode : Enter(context)
+BattleMode -> BattleMode : context.ClearRuntime()
+BattleMode -> BattleMode : new BattleUnitManager(...)
+BattleMode -> BattleOrchestrator : Initialize(this, context)
+BattleOrchestrator -> BattleOrchestrator : Coordinator.TransitionTo(Setup)
+
+EventCenter -> FeatBoardService : BattleStarted(context)
+FeatBoardService -> FeatBoardService : track player units
+EventCenter -> TamingService : BattleStarted(context)
+TamingService -> TamingService : track wild enemy units
+
+@enduml

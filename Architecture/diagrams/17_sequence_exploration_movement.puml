@@ -1,0 +1,56 @@
+@startuml Exploration Movement Sequence
+
+skinparam shadowing false
+hide footbox
+
+title Exploration Selection, Movement, and Chunk Updates
+
+actor Player
+participant ExplorationPlayerController
+participant WorldVoxelRaycaster
+participant WorldPathfinder
+participant WorldTraversalGraphCache
+participant WorldPresenter
+participant EventCenter
+participant ActorManager
+participant ActorPathDriver
+participant ActorPresenter
+participant ExplorationMode
+
+Player -> ExplorationPlayerController : point input
+ExplorationPlayerController -> WorldVoxelRaycaster : TryRaycast(worldData, voxelRegistry, ray, ...)
+WorldVoxelRaycaster --> ExplorationPlayerController : hit world voxel
+ExplorationPlayerController -> WorldPathfinder : TryResolveSelectableTarget(...)
+WorldPathfinder -> WorldTraversalGraphCache : HasNode(...)
+WorldTraversalGraphCache --> WorldPathfinder : cached or built graph node
+WorldPathfinder --> ExplorationPlayerController : selectable target cell
+ExplorationPlayerController -> WorldPresenter : TryAddMask(target, Selected)
+ExplorationPlayerController -> WorldPresenter : RebuildChunkOverlay(chunk)
+
+Player -> ExplorationPlayerController : validate input
+ExplorationPlayerController -> EventCenter : EmitActorMoveRequested(request)
+EventCenter -> ActorManager : ActorMoveRequested(request)
+ActorManager -> WorldPathfinder : TryResolveStandingCell(...)
+ActorManager -> WorldPathfinder : TryFindPath(start, destination)
+WorldPathfinder -> WorldTraversalGraphCache : TryGetNode/TryGetGraph(...)
+WorldPathfinder --> ActorManager : path
+ActorManager -> ActorPathDriver : SetPath(path)
+
+loop Unity Update while driver is moving
+  ActorManager -> ActorPathDriver : Tick(worldData, voxelRegistry, deltaTime)
+  ActorPathDriver -> ActorPresenter : transform.position = MoveTowards(...)
+  alt target cell reached
+    ActorPathDriver -> ActorPresenter : NotifyCellReached(worldCell)
+    ActorPresenter -> ExplorationMode : CellReached(presenter, worldCell)
+    ExplorationMode -> ExplorationMode : currentPlayerData.WorldCell = worldCell
+    ExplorationMode -> EventCenter : EmitPlayerMoved(presenter.position)
+    alt chunk changed
+      ExplorationMode -> EventCenter : EmitPlayerChunkChanged(newChunk)
+      EventCenter -> WorldPresenter : PlayerChunkChanged(newChunk)
+      WorldPresenter -> WorldPresenter : Load(newChunk)
+      WorldPresenter -> WorldPresenter : ApplyLoadResult(...)
+    end
+  end
+end
+
+@enduml

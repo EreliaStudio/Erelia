@@ -10,16 +10,21 @@ public abstract class BattleAction
 	}
 
 	public BattleUnit SourceUnit { get; }
+	public virtual int ActionPointCost => 0;
+	public virtual int MovementPointCost => 0;
 }
 
 public sealed class MoveAction : BattleAction
 {
-	public MoveAction(BattleUnit p_sourceUnit, Vector3Int p_destination) : base(p_sourceUnit)
+	public MoveAction(BattleUnit p_sourceUnit, Vector3Int p_destination, int p_distance) : base(p_sourceUnit)
 	{
 		Destination = p_destination;
+		Distance = Math.Max(0, p_distance);
 	}
 
 	public Vector3Int Destination { get; }
+	public int Distance { get; }
+	public override int MovementPointCost => Distance;
 }
 
 public sealed class AbilityAction : BattleAction
@@ -32,6 +37,8 @@ public sealed class AbilityAction : BattleAction
 
 	public Ability Ability { get; }
 	public IReadOnlyList<Vector3Int> TargetCells { get; }
+	public override int ActionPointCost => Math.Max(0, Ability?.Cost?.Ability ?? 0);
+	public override int MovementPointCost => Math.Max(0, Ability?.Cost?.Movement ?? 0);
 }
 
 public sealed class EndTurnAction : BattleAction

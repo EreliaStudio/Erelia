@@ -1,0 +1,61 @@
+@startuml Battle End Progression Sequence
+
+skinparam shadowing false
+hide footbox
+
+title Battle Resolution, Feat Progression, Taming, and Return to Exploration
+
+participant ResolutionPhase
+participant EndPhase
+participant BattleOutcomeRules
+participant BattleService
+participant EventCenter
+participant FeatBoardService
+participant TamingService
+participant PlayerService
+participant EncounterService
+participant ModeManager
+participant BattleMode
+participant ExplorationMode
+
+ResolutionPhase -> ResolutionPhase : detects missing living side
+ResolutionPhase -> EndPhase : Coordinator.TransitionTo(End)
+EndPhase -> BattleOutcomeRules : TryComputeOutcome(context, out outcome)
+EndPhase -> BattleService : ResolveBattle(context, outcome)
+BattleService -> BattleService : verify context == activeBattleContext
+BattleService -> EventCenter : EmitBattleResolved(context, outcome)
+BattleService -> BattleService : activeBattleContext = null
+
+EventCenter -> FeatBoardService : BattleResolved(context, outcome)
+FeatBoardService -> FeatBoardService : verify context == activeBattleContext
+loop each player BattleUnit
+  FeatBoardService -> FeatBoardService : add win event when player won
+  FeatBoardService -> FeatBoardService : RegisterFightEvents(sourceUnit, collectedEvents)
+  FeatBoardService -> FeatBoardService : ApplyProgress(sourceUnit)
+  opt completed nodes
+    FeatBoardService -> EventCenter : EmitFeatProgressUpdated(unit, completedCount)
+  end
+end
+FeatBoardService -> FeatBoardService : clear active battle state
+
+EventCenter -> TamingService : BattleResolved(context, outcome)
+TamingService -> TamingService : verify context == activeBattleContext
+opt player won and impressed recruits exist
+  TamingService -> EventCenter : EmitTamingResolved(context, outcome, recruits)
+  EventCenter -> PlayerService : TamingResolved(context, outcome, recruits)
+  loop each recruit
+    PlayerService -> PlayerService : AddCreatureToTeamOrStorage(recruit)
+    PlayerService -> EventCenter : EmitPlayerCreatureAdded(recruit, addedToActiveTeam)
+  end
+end
+TamingService -> TamingService : clear active battle state
+
+EventCenter -> EncounterService : BattleResolved(context, outcome)
+EncounterService -> EventCenter : EmitEncounterResolved(context, outcome)
+
+EventCenter -> ModeManager : BattleResolved(context, outcome)
+ModeManager -> ModeManager : EndBattle()
+ModeManager -> BattleMode : Exit()
+ModeManager -> ExplorationMode : Enter(currentGameContext)
+
+@enduml

@@ -12,9 +12,14 @@ namespace Tests.Battle.Phases.Setup
 
 			Assert.That(orchestrator.Coordinator.CurrentPhaseType, Is.EqualTo(BattlePhaseType.Placement));
 
-			for (int index = 0; index < fixture.BattleContext.AllUnits.Count; index++)
+			foreach (BattleUnit unit in fixture.BattleContext.PlayerUnits)
 			{
-				BattleUnit unit = fixture.BattleContext.AllUnits[index];
+				Assert.That(unit.BattleAttributes.TurnBar.Current, Is.GreaterThanOrEqualTo(0f));
+				Assert.That(unit.BattleAttributes.TurnBar.Current, Is.LessThanOrEqualTo(unit.BattleAttributes.TurnBar.Max));
+			}
+
+			foreach (BattleUnit unit in fixture.BattleContext.EnemyUnits)
+			{
 				Assert.That(unit.BattleAttributes.TurnBar.Current, Is.GreaterThanOrEqualTo(0f));
 				Assert.That(unit.BattleAttributes.TurnBar.Current, Is.LessThanOrEqualTo(unit.BattleAttributes.TurnBar.Max));
 			}

@@ -1,21 +1,28 @@
 @startuml Mode Manager
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
 class ExplorationMode <<CF diagram 11>> {}
 class BattleMode <<CF diagram 12>> {}
-class BattleSetup <<CF diagram 04>> {}
+class BattleContext <<CF diagram 04>> {}
+class WorldContext <<CF diagram 02>> {}
+class PlayerData <<CF diagram 09>> {}
+class WorldPresenter <<CF diagram 02b>> {}
 
 abstract class Mode {
+  +IsActive : bool
   +Enter()
   +Exit()
 }
 
 class ModeManager <<MonoBehaviour>> {
+  +CurrentMode : Mode
+  +CurrentGameContext : GameContext
   +SetGameContext(GameContext)
   +EnterExplorationMode(GameContext)
-  +EnterBattleMode(BattleSetup)
+  +EnterBattleMode(BattleContext)
   +EndBattle()
 }
 
@@ -23,24 +30,54 @@ class GameContext {
   +World : WorldContext
   +Player : PlayerData
   +CreateFromSave(GameSaveData) : GameContext
+  +LoadFromSave(GameSaveData)
 }
 
 class GameSaveData {
   +WorldSeed : int
+  +Player : PlayerData
   +PlayerWorldCell : Vector3Int
+  +RespawnPoint : Vector3Int
+  +SetPlayerWorldCell(Vector3Int)
+  +SetRespawnPoint(Vector3Int)
+  +CopyPlayerFrom(PlayerData)
 }
 
 class GameBootstrapper <<MonoBehaviour>> {
   +Bootstrap()
 }
 
+class GameInitializationService <<static>> {
+  +TryInitializeNewGameSave(GameSaveData, WorldData, VoxelRegistry) : bool
+}
+
+class ServiceLocator {
+  +Instance : ServiceLocator
+  +BattleService : BattleService
+  +PlayerService : PlayerService
+  +FeatBoardService : FeatBoardService
+  +TamingService : TamingService
+  +EncounterService : EncounterService
+  +WorldService : WorldService
+  +SaveService : SaveService
+  +Create(GameContext)
+  +Destroy()
+}
+
 Mode <|-- ExplorationMode
 Mode <|-- BattleMode
 ModeManager *-- ExplorationMode
 ModeManager *-- BattleMode
-ModeManager ..> BattleSetup : routes
-GameContext ..> GameSaveData : reads
+ModeManager ..> EventCenter : BattleStarted/BattleResolved
+ModeManager ..> BattleContext
+GameContext *-- WorldContext
+GameContext *-- PlayerData
+GameContext ..> GameSaveData
 GameBootstrapper o-- ModeManager
-GameBootstrapper ..> GameContext : creates
+GameBootstrapper o-- WorldPresenter
+GameBootstrapper ..> GameContext
+GameBootstrapper ..> ServiceLocator
+GameBootstrapper ..> GameInitializationService
+ServiceLocator ..> GameContext
 
 @enduml

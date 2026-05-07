@@ -8,9 +8,12 @@ namespace Tests.Feats.HealEffect
 		[Test]
 		public void Apply_RecordsHealHealthEventOnSourceUnit()
 		{
-			BattleUnit sourceUnit = CreateUnit(BattleSide.Player, health: 100);
-			BattleUnit targetUnit = CreateUnit(BattleSide.Enemy, health: 50);
-			BattleAbilityExecutionContext context = CreateContext(sourceUnit, targetUnit);
+			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
+			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
+			BattleUnit sourceUnit = fixture.PlayerUnits[0];
+			BattleUnit targetUnit = fixture.EnemyUnits[0];
+			targetUnit.BattleAttributes.Health.SetCurrent(50);
+			BattleAbilityExecutionContext context = CreateContext(fixture.BattleContext, sourceUnit, targetUnit);
 
 			var effect = new HealTargetEffect
 			{
@@ -24,18 +27,21 @@ namespace Tests.Feats.HealEffect
 
 			effect.Apply(context);
 
-			Assert.That(sourceUnit.PendingFeatEvents.Count, Is.EqualTo(2));
-			Assert.That(sourceUnit.PendingFeatEvents[0], Is.InstanceOf<HealHealthRequirement.Event>());
-			var healEvent = (HealHealthRequirement.Event)sourceUnit.PendingFeatEvents[0];
+			Assert.That(capture.Count(sourceUnit), Is.EqualTo(2));
+			var healEvent = capture.Find<HealHealthRequirement.Event>(sourceUnit);
+			Assert.That(healEvent, Is.Not.Null);
 			Assert.That(healEvent.Amount, Is.EqualTo(15));
 		}
 
 		[Test]
 		public void Apply_RecordsNoEventOnTargetUnit()
 		{
-			BattleUnit sourceUnit = CreateUnit(BattleSide.Player, health: 100);
-			BattleUnit targetUnit = CreateUnit(BattleSide.Enemy, health: 50);
-			BattleAbilityExecutionContext context = CreateContext(sourceUnit, targetUnit);
+			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
+			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
+			BattleUnit sourceUnit = fixture.PlayerUnits[0];
+			BattleUnit targetUnit = fixture.EnemyUnits[0];
+			targetUnit.BattleAttributes.Health.SetCurrent(50);
+			BattleAbilityExecutionContext context = CreateContext(fixture.BattleContext, sourceUnit, targetUnit);
 
 			var effect = new HealTargetEffect
 			{
@@ -44,15 +50,18 @@ namespace Tests.Feats.HealEffect
 
 			effect.Apply(context);
 
-			Assert.That(targetUnit.PendingFeatEvents.Count, Is.Zero);
+			Assert.That(capture.Count(targetUnit), Is.Zero);
 		}
 
 		[Test]
 		public void Apply_RecordsNoEventsWhenBaseHealingIsZero()
 		{
-			BattleUnit sourceUnit = CreateUnit(BattleSide.Player, health: 100);
-			BattleUnit targetUnit = CreateUnit(BattleSide.Enemy, health: 50);
-			BattleAbilityExecutionContext context = CreateContext(sourceUnit, targetUnit);
+			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
+			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
+			BattleUnit sourceUnit = fixture.PlayerUnits[0];
+			BattleUnit targetUnit = fixture.EnemyUnits[0];
+			targetUnit.BattleAttributes.Health.SetCurrent(50);
+			BattleAbilityExecutionContext context = CreateContext(fixture.BattleContext, sourceUnit, targetUnit);
 
 			var effect = new HealTargetEffect
 			{
@@ -61,23 +70,12 @@ namespace Tests.Feats.HealEffect
 
 			effect.Apply(context);
 
-			Assert.That(sourceUnit.PendingFeatEvents.Count, Is.Zero);
+			Assert.That(capture.Count(sourceUnit), Is.Zero);
 		}
 
-		private static BattleUnit CreateUnit(BattleSide side, int health = 100)
+		private static BattleAbilityExecutionContext CreateContext(BattleContext battleContext, BattleUnit source, BattleUnit target)
 		{
-			var creatureUnit = new CreatureUnit
-			{
-				Attributes = new Attributes { Health = health },
-				Abilities = new List<Ability>(),
-				PermanentPassives = new List<Status>()
-			};
-			return new BattleUnit(creatureUnit, side);
-		}
-
-		private static BattleAbilityExecutionContext CreateContext(BattleUnit source, BattleUnit target)
-		{
-			return new BattleAbilityExecutionContext { SourceObject = source, TargetObject = target };
+			return new BattleAbilityExecutionContext { BattleContext = battleContext, SourceObject = source, TargetObject = target };
 		}
 	}
 }

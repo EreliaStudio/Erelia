@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using System.Collections.Generic;
 
 namespace Tests.Effects
 {
@@ -36,7 +37,7 @@ public sealed class ResourceChangeEffectTests : EffectTestBase
 	}
 
 	[Test]
-	public void Apply_ActionPointsDoNotExceedMax()
+	public void Apply_ActionPointsCanExceedMax()
 	{
 		BattleUnit target = CreateUnit();
 		target.BattleAttributes.ActionPoints.Set(4, 6, true);
@@ -47,7 +48,27 @@ public sealed class ResourceChangeEffectTests : EffectTestBase
 			Value = 10
 		}.Apply(CreateContext(p_target: target));
 
-		Assert.That(target.BattleAttributes.ActionPoints.Current, Is.EqualTo(6));
+		Assert.That(target.BattleAttributes.ActionPoints.Current, Is.EqualTo(14));
+	}
+
+	[Test]
+	public void Apply_ActionPointLossFiresStatusHook()
+	{
+		BattleUnit target = CreateUnit(p_health: 100);
+		target.BattleAttributes.ActionPoints.Set(4, 6, true);
+
+		Status status = CreateStatus();
+		status.HookPoint = StatusHookPoint.OnAPLoss;
+		status.Effects = new List<Effect> { CreateDamageEffect(5) };
+		target.Statuses.Add(status, 1, new Duration { Type = Duration.Kind.Infinite });
+
+		new ResourceChangeEffect
+		{
+			ResourceTargeted = ResourceChangeEffect.Target.ActionPoint,
+			Value = -3
+		}.Apply(CreateContext(p_target: target));
+
+		Assert.That(target.BattleAttributes.Health.Current, Is.EqualTo(95));
 	}
 
 	[Test]
@@ -81,7 +102,7 @@ public sealed class ResourceChangeEffectTests : EffectTestBase
 	}
 
 	[Test]
-	public void Apply_MovementPointsDoNotExceedMax()
+	public void Apply_MovementPointsCanExceedMax()
 	{
 		BattleUnit target = CreateUnit();
 		target.BattleAttributes.MovementPoints.Set(4, 6, true);
@@ -92,7 +113,27 @@ public sealed class ResourceChangeEffectTests : EffectTestBase
 			Value = 10
 		}.Apply(CreateContext(p_target: target));
 
-		Assert.That(target.BattleAttributes.MovementPoints.Current, Is.EqualTo(6));
+		Assert.That(target.BattleAttributes.MovementPoints.Current, Is.EqualTo(14));
+	}
+
+	[Test]
+	public void Apply_MovementPointLossFiresStatusHook()
+	{
+		BattleUnit target = CreateUnit(p_health: 100);
+		target.BattleAttributes.MovementPoints.Set(4, 6, true);
+
+		Status status = CreateStatus();
+		status.HookPoint = StatusHookPoint.OnMPLoss;
+		status.Effects = new List<Effect> { CreateDamageEffect(5) };
+		target.Statuses.Add(status, 1, new Duration { Type = Duration.Kind.Infinite });
+
+		new ResourceChangeEffect
+		{
+			ResourceTargeted = ResourceChangeEffect.Target.MovementPoint,
+			Value = -3
+		}.Apply(CreateContext(p_target: target));
+
+		Assert.That(target.BattleAttributes.Health.Current, Is.EqualTo(95));
 	}
 
 	[Test]

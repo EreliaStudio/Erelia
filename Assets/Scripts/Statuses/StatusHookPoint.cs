@@ -2,11 +2,12 @@ public enum StatusHookPoint
 {
 	TurnStart,
 	TurnEnd,
-	BeforeMove,
-	AfterMove,
-	BeforeCastingAnAbility,
-	AfterCastingAnAbility,
+	BeforeConsumingResources,
+	AfterConsumingResources,
 	OnHPLoss,
 	OnAPLoss,
-	OnMPLoss
+	OnMPLoss,
+	OnHPGain,
+	OnAPGain,
+	OnMPGain
 }

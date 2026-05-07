@@ -1,34 +1,47 @@
 @startuml Creature System
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
 class Ability <<CF diagram 04b>> {}
 class Status <<CF diagram 04>> {}
 class FeatBoard <<CF diagram 07>> {}
 class FeatBoardProgress <<CF diagram 07>> {}
+class TamingProfile <<CF diagram 05>> {}
 
 class Attributes {
   +Health : int
   +ActionPoints : int
-  +MovementPoints : int
+  +Movement : int
   +Attack : int
   +Armor : int
+  +ArmorPenetration : int
   +Magic : int
   +Resistance : int
+  +ResistancePenetration : int
+  +BonusRange : int
+  +Recovery : float
+  +Stamina : float
+  +BonusHealing : float
+  +LifeSteal : float
+  +Omnivamprism : float
+  +TimeEffectResistance : float
 }
 
 class CreatureForm {
   +DisplayName : string
   +Tier : int
-  +Icon : Sprite
+  +Avatar : Sprite
   +ModelPrefab : GameObject
 }
 
 class CreatureSpecies <<ScriptableObject>> {
   +Attributes : Attributes
+  +DefaultAbilities : List<Ability>
+  +TamingProfile : TamingProfile
   +FeatBoard : FeatBoard
-  +Forms : Dictionary<string, CreatureForm>
+  +Forms : SerializedDictionary<string, CreatureForm>
 }
 
 class CreatureUnit {
@@ -40,15 +53,49 @@ class CreatureUnit {
   +FeatBoardProgress : FeatBoardProgress
   +HasForm(string) : bool
   +GetForm() : CreatureForm
+  +TryGetForm(out CreatureForm) : bool
+  +GetAbilities() : IReadOnlyList<Ability>
+  +SetAbilities(IReadOnlyList<Ability>)
+  +InitializeDefaultAbilities()
+  +HasAbility(Ability) : bool
+  +AddAbility(Ability)
+  +AddAbilities(IReadOnlyList<Ability>)
+  +RemoveAbility(Ability)
+  +RemoveAbilities(IReadOnlyList<Ability>)
+}
+
+class CreatureStorage {
+  +StoredCreatures : IReadOnlyList<CreatureUnit>
+  +Count : int
+  +Add(CreatureUnit)
+  +Remove(CreatureUnit) : bool
+  +Contains(CreatureUnit) : bool
+  +GetAt(int) : CreatureUnit
+  +Clear()
+  +Clone() : CreatureStorage
+}
+
+class PlayerData <<CF diagram 09>> {
+  +WorldCell : Vector3Int
+  +Team : CreatureUnit[]
+  +CreatureStorage : CreatureStorage
+  +WorldPosition : Vector3
+  +CopyFrom(PlayerData)
+  +AddCreatureToTeamOrStorage(CreatureUnit) : bool
 }
 
 CreatureSpecies *-- Attributes
+CreatureSpecies o-- Ability : default abilities
+CreatureSpecies *-- TamingProfile
+CreatureSpecies *-- FeatBoard
 CreatureSpecies *-- CreatureForm
-CreatureSpecies o-- FeatBoard
 CreatureUnit o-- CreatureSpecies
 CreatureUnit *-- Attributes
 CreatureUnit o-- Ability
 CreatureUnit o-- Status
 CreatureUnit *-- FeatBoardProgress
+CreatureStorage o-- CreatureUnit
+PlayerData o-- CreatureUnit : active team
+PlayerData *-- CreatureStorage
 
 @enduml

@@ -5,10 +5,9 @@ using UnityEngine;
 [Serializable]
 public sealed class BattleContext
 {
-	private readonly List<BattleUnit> playerUnits = new();
-	private readonly List<BattleUnit> enemyUnits = new();
-	private readonly List<BattleUnit> allUnits = new();
-	private readonly List<BattleUnit> tamedUnits = new();
+	public readonly List<BattleUnit> PlayerUnits = new();
+	public readonly List<BattleUnit> EnemyUnits = new();
+	private readonly List<BattleResourceChangeResult> pendingResourceChanges = new();
 
 	public event Action<BattleUnit> UnitRegistered;
 	public event Action<BattleUnit> UnitRemoved;
@@ -16,20 +15,13 @@ public sealed class BattleContext
 
 	public BoardData Board { get; }
 	public PlacementStyle PlacementStyle { get; }
-	public BattleStats Stats { get; } = new BattleStats();
 	public TurnContext CurrentTurn { get; } = new();
-	public Vector3 PlayerWorldPosition { get; }
-	public IReadOnlyList<BattleUnit> PlayerUnits => playerUnits;
-	public IReadOnlyList<BattleUnit> EnemyUnits => enemyUnits;
-	public IReadOnlyList<BattleUnit> AllUnits => allUnits;
-	public IReadOnlyList<BattleUnit> TamedUnits => tamedUnits;
 
 	public BattleContext(
 		IReadOnlyList<CreatureUnit> p_playerTeam,
 		IReadOnlyList<EncounterUnit> p_enemyTeam,
 		BoardData p_board,
 		PlacementStyle p_placementStyle,
-		Vector3 p_playerWorldPosition,
 		bool p_allowsTaming = true)
 	{
 		if (p_playerTeam == null)
@@ -44,22 +36,25 @@ public sealed class BattleContext
 
 		Board = p_board ?? throw new ArgumentNullException(nameof(p_board));
 		PlacementStyle = p_placementStyle;
-		PlayerWorldPosition = p_playerWorldPosition;
 
-		InitializeUnits(p_playerTeam, BattleSide.Player, playerUnits, false);
-		InitializeUnits(p_enemyTeam, BattleSide.Enemy, enemyUnits, p_allowsTaming);
+		InitializeUnits(p_playerTeam, BattleSide.Player, PlayerUnits, false);
+		InitializeUnits(p_enemyTeam, BattleSide.Enemy, EnemyUnits, p_allowsTaming);
 	}
 
 	public void ClearRuntime()
 	{
+		pendingResourceChanges.Clear();
 		Board.Runtime.Clear();
-		Stats.Reset();
 		CurrentTurn.End();
-		tamedUnits.Clear();
 
-		for (int index = 0; index < allUnits.Count; index++)
+		for (int index = 0; index < PlayerUnits.Count; index++)
 		{
-			allUnits[index].ResetBattleRuntimeState();
+			PlayerUnits[index].ResetBattleRuntimeState();
+		}
+
+		for (int index = 0; index < EnemyUnits.Count; index++)
+		{
+			EnemyUnits[index].ResetBattleRuntimeState();
 		}
 	}
 
@@ -67,8 +62,8 @@ public sealed class BattleContext
 	{
 		return p_side switch
 		{
-			BattleSide.Player => playerUnits,
-			BattleSide.Enemy => enemyUnits,
+			BattleSide.Player => PlayerUnits,
+			BattleSide.Enemy => EnemyUnits,
 			_ => Array.Empty<BattleUnit>()
 		};
 	}
@@ -80,7 +75,7 @@ public sealed class BattleContext
 			return Array.Empty<BattleUnit>();
 		}
 
-		return p_unit.Side == BattleSide.Player ? enemyUnits : playerUnits;
+		return p_unit.Side == BattleSide.Player ? EnemyUnits : PlayerUnits;
 	}
 
 	public bool HasLivingUnits(BattleSide p_side)
@@ -185,6 +180,21 @@ public sealed class BattleContext
 		return true;
 	}
 
+	internal void RecordResourceChange(BattleResourceChangeResult p_result)
+	{
+		if (p_result.Changed)
+		{
+			pendingResourceChanges.Add(p_result);
+		}
+	}
+
+	internal List<BattleResourceChangeResult> ConsumePendingResourceChanges()
+	{
+		List<BattleResourceChangeResult> results = new List<BattleResourceChangeResult>(pendingResourceChanges);
+		pendingResourceChanges.Clear();
+		return results;
+	}
+
 	public void RemoveUnit(BattleUnit p_unit)
 	{
 		if (p_unit == null)
@@ -217,32 +227,6 @@ public sealed class BattleContext
 		UnitDefeated?.Invoke(p_unit);
 	}
 
-	public void DispatchPlayerFeatEvent(FeatRequirement.EventBase p_event)
-	{
-		if (p_event == null)
-		{
-			return;
-		}
-
-		for (int index = 0; index < enemyUnits.Count; index++)
-		{
-			if (enemyUnits[index] is not WildBattleUnit wildUnit || !wildUnit.IsActiveInBattle)
-			{
-				continue;
-			}
-
-			wildUnit.EvaluateTamingEvent(p_event);
-
-			if (!wildUnit.IsTamed)
-			{
-				continue;
-			}
-
-			RemoveUnit(wildUnit);
-			tamedUnits.Add(wildUnit);
-		}
-	}
-
 	private void InitializeUnits(IReadOnlyList<CreatureUnit> p_sourceUnits, BattleSide p_side, List<BattleUnit> p_targetList, bool p_wild)
 	{
 		if (p_sourceUnits == null)
@@ -272,7 +256,6 @@ public sealed class BattleContext
 			}
 
 			p_targetList.Add(battleUnit);
-			allUnits.Add(battleUnit);
 		}
 	}
 }

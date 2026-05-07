@@ -17,15 +17,15 @@ namespace Tests.Feats.FightEventRegistration
 					out species,
 					out FeatNode damageNode);
 
-				FeatProgressionService.RegisterFightEvents(
+				FeatBoardService.RegisterFightEvents(
 					creature,
 					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 50 } });
 
-				FeatProgressionService.RegisterFightEvents(
+				FeatBoardService.RegisterFightEvents(
 					creature,
 					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 50 } });
 
-				FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creature, damageNode);
+				FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(creature, damageNode);
 				Assert.That(nodeProgress, Is.Not.Null);
 				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(0));
 			}
@@ -49,7 +49,7 @@ namespace Tests.Feats.FightEventRegistration
 					out species,
 					out FeatNode damageNode);
 
-				FeatProgressionService.RegisterFightEvents(
+				FeatBoardService.RegisterFightEvents(
 					creature,
 					new List<FeatRequirement.EventBase>
 					{
@@ -57,7 +57,7 @@ namespace Tests.Feats.FightEventRegistration
 						new DealDamageRequirement.Event { Amount = 50 }
 					});
 
-				FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creature, damageNode);
+				FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(creature, damageNode);
 				Assert.That(nodeProgress, Is.Not.Null);
 				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(1));
 			}
@@ -85,16 +85,16 @@ namespace Tests.Feats.FightEventRegistration
 					out species,
 					out FeatNode damageNode);
 
-				FeatProgressionService.RegisterFightEvents(
+				FeatBoardService.RegisterFightEvents(
 					creature,
 					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 50 } });
 
-				FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creature, damageNode);
+				FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(creature, damageNode);
 				Assert.That(nodeProgress, Is.Not.Null);
 				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(0));
 				Assert.That(nodeProgress.RequirementProgress[0].CurrentProgress, Is.EqualTo(50f).Within(0.01f));
 
-				FeatProgressionService.RegisterFightEvents(
+				FeatBoardService.RegisterFightEvents(
 					creature,
 					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 50 } });
 
@@ -125,14 +125,14 @@ namespace Tests.Feats.FightEventRegistration
 					out species,
 					out FeatNode damageNode);
 
-				FeatProgressionService.RegisterFightEvents(
+				FeatBoardService.RegisterFightEvents(
 					creature,
 					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 100 } });
-				FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creature, damageNode);
+				FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(creature, damageNode);
 				Assert.That(nodeProgress, Is.Not.Null);
 				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(0));
 
-				FeatProgressionService.RegisterFightEvents(
+				FeatBoardService.RegisterFightEvents(
 					creature,
 					new List<FeatRequirement.EventBase> { new DealDamageRequirement.Event { Amount = 100 } });
 
@@ -157,13 +157,13 @@ namespace Tests.Feats.FightEventRegistration
 					new DealDamageRequirement
 					{
 						RequiredAmount = 50,
-						RequirementScope = FeatRequirement.Scope.Ability,
+						RequirementScope = FeatRequirement.Scope.Action,
 						RequiredRepeatCount = 2
 					},
 					out species,
 					out FeatNode damageNode);
 
-				FeatProgressionService.RegisterFightEvents(
+				FeatBoardService.RegisterFightEvents(
 					creature,
 					new List<FeatRequirement.EventBase>
 					{
@@ -171,7 +171,7 @@ namespace Tests.Feats.FightEventRegistration
 						new DealDamageRequirement.Event { Amount = 50 }
 					});
 
-				FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creature, damageNode);
+				FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(creature, damageNode);
 				Assert.That(nodeProgress, Is.Not.Null);
 				Assert.That(nodeProgress.CompletionCount, Is.EqualTo(1));
 			}
@@ -216,7 +216,7 @@ namespace Tests.Feats.FightEventRegistration
 				PermanentPassives = new List<Status>()
 			};
 
-			FeatProgressionService.InitializeCreatureUnit(creature);
+			FeatBoardService.InitializeCreatureUnit(creature);
 			return creature;
 		}
 	}

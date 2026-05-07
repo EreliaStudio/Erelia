@@ -1,28 +1,78 @@
 @startuml Feat System
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
 class CreatureUnit <<CF diagram 06>> {}
 class Ability <<CF diagram 04b>> {}
 class Status <<CF diagram 04>> {}
 class Attributes <<CF diagram 06>> {}
+class BattleContext <<CF diagram 04>> {}
+class BattleUnit <<CF diagram 04>> {}
+class BattleOutcome <<CF diagram 04>> {}
 
 enum FeatNodeKind {
-	StatsBonus 
-	Ability 
-	Passive 
-	Form
+  StatsBonus
+  Ability
+  Passive
+  Form
+}
+
+enum "FeatRequirement.Scope" as FeatRequirementScope {
+  Ability
+  Turn
+  Fight
+  Game
+}
+
+class "FeatRequirement.Advancement" as FeatRequirementAdvancement {
+  +Progress : float
+  +CompletedRepeatCount : int
+}
+
+abstract class "FeatRequirement.EventBase" as FeatRequirementEventBase {
+  +TurnIndex : int
+  +SourceAbility : Ability
 }
 
 abstract class FeatRequirement {
-  +Register(EventBase) : float
+  +RequirementScope : Scope
+  +RequiredRepeatCount : int
+  +EvaluateEvents(IReadOnlyList<EventBase>, Advancement) : Advancement
+  +IsCompleted(Advancement) : bool
 }
 
-abstract class FeatRequirementEventBase
+abstract class "FeatRequirementTemplated<T>" as FeatRequirementTemplated {
+  #EvaluateTypedEvent(T) : float
+}
 
 class DealDamageRequirement
 class HealHealthRequirement
+class CastAbilityCountRequirement
+class TakeDamageRequirement
+class TurnStartPositionRequirement
+class TurnEndPositionRequirement
+class ApplyShieldRequirement
+class AbsorbDamageWithShieldRequirement
+class MaxDamageAbsorbedInOneHitRequirement
+class ShieldBrokenRequirement
+class WinAfterDealingDamageRequirement
+class SurviveHitRequirement
+class HealTargetRequirement
+class WinAfterHealingRequirement
+class ApplyShieldCountRequirement
+class ApplyStatusCountRequirement
+class KillCountRequirement
+class LastHitRequirement
+class WinBattleCountRequirement
+class SpendActionPointsRequirement
+class SpendMovementPointsRequirement
+class MoveCountRequirement
+class TotalDistanceTravelledRequirement
+class MaxDistanceInOneMoveRequirement
+class AndRequirement
+class OrRequirement
 
 abstract class FeatReward {
   +Apply(CreatureUnit)
@@ -30,13 +80,16 @@ abstract class FeatReward {
 
 class BonusStatsReward
 class AbilityReward
+class RemoveAbilityReward
 class PassiveReward
 class ChangeFormReward
 
 class FeatNode {
   +Id : string
   +DisplayName : string
+  +Position : Vector2
   +Kind : FeatNodeKind
+  +Icon : Sprite
   +NeighbourNodeIds : List<string>
   +NumberOfRepeatTime : int
   +Requirements : List<FeatRequirement>
@@ -48,21 +101,30 @@ class FeatBoard {
   +RootNodeId : string
   +GetNode(string) : FeatNode
   +GetRootNode() : FeatNode
+  +IsRootNode(FeatNode) : bool
   +GetNeighbourNodes(FeatNode) : List<FeatNode>
 }
 
 class FeatRequirementProgress {
   +Requirement : FeatRequirement
+  +Advancement : Advancement
   +CurrentProgress : float
+  +CompletedRepeatCount : int
   +IsCompleted : bool
-  +Register(FeatRequirementEventBase)
+  +PersistsAcrossFights : bool
+  +RegisterEvents(IReadOnlyList<EventBase>, bool)
 }
 
 class FeatNodeProgress {
   +NodeId : string
   +CompletionCount : int
+  +RequirementProgress : List<FeatRequirementProgress>
+  +HasRequirements : bool
   +IsCompleted : bool
   +IsExhausted(FeatNode) : bool
+  +RegisterEvents(IReadOnlyList<EventBase>, bool)
+  +ResetRequirementProgress()
+  +ResetTransientRequirementProgress()
   +Complete()
 }
 
@@ -70,38 +132,82 @@ class FeatBoardProgress {
   +NodeProgress : List<FeatNodeProgress>
   +FindProgress(string) : FeatNodeProgress
   +GetOrCreateProgress(FeatNode) : FeatNodeProgress
+  +RemoveProgress(string)
 }
 
-class FeatProgressionService <<static>> {
+class FeatBoardService {
+  +Initialize()
+  +Shutdown()
   +InitializeCreatureUnit(CreatureUnit) : FeatBoard
   +ApplyProgress(CreatureUnit)
   +GetReachableNodes(CreatureUnit) : List<FeatNode>
+  +IsNodeReachable(CreatureUnit, FeatNode) : bool
   +CompleteNodeOnce(CreatureUnit, FeatNode) : bool
-  +RegisterEvent(CreatureUnit, FeatRequirementEventBase) : int
+  +RegisterEvent(CreatureUnit, EventBase) : int
+  +RegisterFightEvents(CreatureUnit, IReadOnlyList<EventBase>, bool) : int
+  +ResetTransientRequirementProgress(CreatureUnit)
   +ClearAllProgress(CreatureUnit)
 }
 
-FeatRequirement <|-- DealDamageRequirement
-FeatRequirement <|-- HealHealthRequirement
-FeatRequirement o-- FeatRequirementEventBase
+class BattleFeatEventReporter <<static>> {
+  +Emit(BattleContext, BattleUnit, EventBase)
+  +Emit(BattleAbilityExecutionContext, BattleUnit, EventBase)
+}
+
+FeatRequirement --> FeatRequirementScope
+FeatRequirement --> FeatRequirementAdvancement
+FeatRequirement --> FeatRequirementEventBase
+FeatRequirement <|-- FeatRequirementTemplated
+FeatRequirement <|-- AndRequirement
+FeatRequirement <|-- OrRequirement
+FeatRequirementTemplated <|-- DealDamageRequirement
+FeatRequirementTemplated <|-- HealHealthRequirement
+FeatRequirementTemplated <|-- CastAbilityCountRequirement
+FeatRequirementTemplated <|-- TakeDamageRequirement
+FeatRequirementTemplated <|-- TurnStartPositionRequirement
+FeatRequirementTemplated <|-- TurnEndPositionRequirement
+FeatRequirementTemplated <|-- ApplyShieldRequirement
+FeatRequirementTemplated <|-- AbsorbDamageWithShieldRequirement
+FeatRequirementTemplated <|-- MaxDamageAbsorbedInOneHitRequirement
+FeatRequirementTemplated <|-- ShieldBrokenRequirement
+FeatRequirementTemplated <|-- WinAfterDealingDamageRequirement
+FeatRequirementTemplated <|-- SurviveHitRequirement
+FeatRequirementTemplated <|-- HealTargetRequirement
+FeatRequirementTemplated <|-- WinAfterHealingRequirement
+FeatRequirementTemplated <|-- ApplyShieldCountRequirement
+FeatRequirementTemplated <|-- ApplyStatusCountRequirement
+FeatRequirementTemplated <|-- KillCountRequirement
+FeatRequirementTemplated <|-- LastHitRequirement
+FeatRequirementTemplated <|-- WinBattleCountRequirement
+FeatRequirementTemplated <|-- SpendActionPointsRequirement
+FeatRequirementTemplated <|-- SpendMovementPointsRequirement
+FeatRequirementTemplated <|-- MoveCountRequirement
+FeatRequirementTemplated <|-- TotalDistanceTravelledRequirement
+FeatRequirementTemplated <|-- MaxDistanceInOneMoveRequirement
+
 FeatReward <|-- BonusStatsReward
 FeatReward <|-- AbilityReward
+FeatReward <|-- RemoveAbilityReward
 FeatReward <|-- PassiveReward
 FeatReward <|-- ChangeFormReward
 BonusStatsReward o-- Attributes
 AbilityReward o-- Ability
+RemoveAbilityReward o-- Ability
 PassiveReward o-- Status
 
+FeatNode --> FeatNodeKind
 FeatNode *-- FeatRequirement
 FeatNode *-- FeatReward
-FeatNode o-- FeatNodeKind
 FeatBoard *-- FeatNode
+FeatBoardProgress *-- FeatNodeProgress
 FeatNodeProgress *-- FeatRequirementProgress
 FeatRequirementProgress o-- FeatRequirement
-FeatRequirementProgress ..> FeatRequirementEventBase : registers
-FeatBoardProgress *-- FeatNodeProgress
-FeatProgressionService ..> CreatureUnit : operates on
-FeatProgressionService ..> FeatBoard : uses
-FeatProgressionService ..> FeatBoardProgress : uses
+FeatRequirementProgress *-- FeatRequirementAdvancement
+FeatBoardService ..> EventCenter : listens battle events
+FeatBoardService ..> CreatureUnit
+FeatBoardService ..> FeatBoard
+FeatBoardService ..> BattleContext
+FeatBoardService ..> BattleOutcome
+BattleFeatEventReporter ..> EventCenter : BattleFeatEventOccurred
 
 @enduml

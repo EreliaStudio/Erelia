@@ -36,6 +36,20 @@ public sealed class ObservableResource : ObservableValue<ObservableResource>
 		return Set(p_current, max, p_forceNotify);
 	}
 
+	public bool SetCurrentAllowOverflow(int p_current, bool p_forceNotify = false)
+	{
+		int targetCurrent = Math.Max(0, p_current);
+
+		if (!p_forceNotify && current == targetCurrent)
+		{
+			return false;
+		}
+
+		current = targetCurrent;
+		Notify();
+		return true;
+	}
+
 	public bool SetMax(int p_max, bool p_resetCurrent = false, bool p_forceNotify = false)
 	{
 		int targetCurrent = p_resetCurrent ? Math.Max(0, p_max) : current;

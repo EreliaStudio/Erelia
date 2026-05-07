@@ -1,0 +1,29 @@
+@startuml Save Sequence
+
+skinparam shadowing false
+hide footbox
+
+title Save Request Flow
+
+actor Caller
+participant EventCenter
+participant SaveService
+participant GameContext
+participant PlayerData
+participant GameSaveData
+
+Caller -> EventCenter : EmitSaveRequested(optional targetSaveData)
+EventCenter -> SaveService : SaveRequested(targetSaveData)
+SaveService -> SaveService : Save(targetSaveData)
+
+alt target save data is available
+  SaveService -> GameContext : Player
+  GameContext --> SaveService : PlayerData
+  SaveService -> GameSaveData : CopyPlayerFrom(PlayerData)
+  GameSaveData -> PlayerData : CopyFrom(source)
+  SaveService -> EventCenter : EmitSaveCompleted(saveData, true)
+else no target save data or no game context
+  SaveService -> EventCenter : EmitSaveCompleted(targetSaveData, false)
+end
+
+@enduml

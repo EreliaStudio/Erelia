@@ -7,6 +7,8 @@ namespace Tests.Battle.Shields
 {
 	public sealed class ShieldTests
 	{
+		private static readonly BattleFeatEventCapture FeatEvents = new BattleFeatEventCapture();
+
 		[Test]
 		public void AddShield_IgnoresNonPositiveAmount()
 		{
@@ -415,12 +417,10 @@ namespace Tests.Battle.Shields
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1);
 			BattleUnit unit = fixture.PlayerUnits[0];
 			unit.BattleAttributes.AddShield(ShieldKind.Physical, 10, durationTurns: -1);
-			unit.RecordFeatEvent(new ApplyShieldRequirement.Event { Amount = 10, Kind = ShieldKind.Physical });
 
 			fixture.BattleContext.ClearRuntime();
 
 			Assert.That(unit.BattleAttributes.ActiveShields.Count, Is.EqualTo(0));
-			Assert.That(unit.PendingFeatEvents.Count, Is.EqualTo(0));
 		}
 
 		[Test]
@@ -436,7 +436,7 @@ namespace Tests.Battle.Shields
 
 			AssertPlayerVictoryCompletesNode(
 				applyShieldNode,
-				unit => unit.RecordFeatEvent(new ApplyShieldRequirement.Event
+				unit => BattleFeatEventReporter.Emit(unit, new ApplyShieldRequirement.Event
 				{
 					Amount = 15,
 					Kind = ShieldKind.Physical
@@ -452,7 +452,7 @@ namespace Tests.Battle.Shields
 
 			AssertPlayerVictoryCompletesNode(
 				absorbShieldNode,
-				unit => unit.RecordFeatEvent(new AbsorbDamageWithShieldRequirement.Event { Amount = 20 }));
+				unit => BattleFeatEventReporter.Emit(unit, new AbsorbDamageWithShieldRequirement.Event { Amount = 20 }));
 		}
 
 		[Test]
@@ -475,7 +475,7 @@ namespace Tests.Battle.Shields
 						unit.BattleAttributes.AbsorbDamage(MathFormula.DamageInput.Kind.Physical, 10);
 					for (int index = 0; index < result.BrokenShieldKinds.Count; index++)
 					{
-						unit.RecordFeatEvent(new ShieldBrokenRequirement.Event
+						BattleFeatEventReporter.Emit(unit, new ShieldBrokenRequirement.Event
 						{
 							Kind = result.BrokenShieldKinds[index]
 						});
@@ -517,6 +517,7 @@ namespace Tests.Battle.Shields
 		{
 			return new BattleAbilityExecutionContext
 			{
+				BattleContext = TestBattleContextFactory.CreateEmpty(),
 				SourceObject = source,
 				TargetObject = target
 			};
@@ -564,7 +565,9 @@ namespace Tests.Battle.Shields
 				RootNodeId = rootNode.Id
 			};
 
-			FeatProgressionService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+			FeatBoardService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+			using ServiceLocatorTestScope services = new ServiceLocatorTestScope();
+			EventCenter.EmitBattleStarted(fixture.BattleContext);
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 			fixture.CompletePlacement(orchestrator,
@@ -578,7 +581,7 @@ namespace Tests.Battle.Shields
 			orchestrator.TransitionTo(BattlePhaseType.End);
 
 			FeatNodeProgress nodeProgress =
-				FeatProgressionService.FindNodeProgress(fixture.PlayerSources[0], featNode);
+				FeatBoardService.FindNodeProgress(fixture.PlayerSources[0], featNode);
 			Assert.That(nodeProgress, Is.Not.Null);
 			Assert.That(nodeProgress.CompletionCount, Is.GreaterThan(0));
 
@@ -587,16 +590,7 @@ namespace Tests.Battle.Shields
 
 		private static TEvent FindEvent<TEvent>(BattleUnit unit) where TEvent : FeatRequirement.EventBase
 		{
-			IReadOnlyList<FeatRequirement.EventBase> events = unit.PendingFeatEvents;
-			for (int index = 0; index < events.Count; index++)
-			{
-				if (events[index] is TEvent typedEvent)
-				{
-					return typedEvent;
-				}
-			}
-
-			return null;
+			return FeatEvents.Find<TEvent>(unit);
 		}
 	}
 }

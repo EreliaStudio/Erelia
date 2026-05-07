@@ -39,9 +39,11 @@ public class GameBootstrapper : MonoBehaviour
 	public void Bootstrap()
 	{
 		gameSaveData ??= new GameSaveData();
-		GameContext gameContext = new GameContext();
-		gameContext.LoadFromSave(gameSaveData);
+		GameContext gameContext = GameContext.CreateFromSave(gameSaveData);
+		ServiceLocator.Create(gameContext);
 		worldPresenter.Bind(gameContext.World);
+		ServiceLocator.Instance.WorldService.ConfigureVoxelRegistry(worldPresenter.VoxelRegistry);
+		ServiceLocator.Instance.SaveService.BindSaveData(gameSaveData);
 
 		if (bootstrapMode == BootstrapMode.NewGame)
 		{
@@ -55,5 +57,10 @@ public class GameBootstrapper : MonoBehaviour
 
 		modeManager.SetGameContext(gameContext);
 		modeManager.EnterExplorationMode(gameContext);
+	}
+
+	private void OnDestroy()
+	{
+		ServiceLocator.Destroy();
 	}
 }

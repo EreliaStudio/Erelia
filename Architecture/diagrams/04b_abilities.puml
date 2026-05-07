@@ -1,16 +1,22 @@
 @startuml Ability & Effect System
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
-class BattleObject <<CF diagram 04>> {}
 class BattleContext <<CF diagram 04>> {}
+class BattleObject <<CF diagram 04>> {}
+class BattleUnit <<CF diagram 04>> {}
+class Status <<CF diagram 04>> {}
+class Duration <<CF diagram 04>> {}
+class InteractionObject <<CF diagram 04>> {}
+class FeatRequirementEventBase <<CF diagram 07>> {}
 
 enum TargetProfile {
-	Everything 
-	Ally 
-	Enemy
-	Empty
+  Everything
+  Ally
+  Enemy
+  Empty
 }
 
 class AbilityCost {
@@ -18,26 +24,109 @@ class AbilityCost {
   +Movement : int
 }
 
+class "Ability.RangeDefinition" as AbilityRangeDefinition {
+  +Type : Shape
+  +Value : int
+  +RequireLineOfSight : bool
+}
+
+enum "Ability.RangeDefinition.Shape" as AbilityRangeShape {
+  Circle
+  Line
+  Diagonal
+}
+
+class "Ability.AreaOfEffectDefinition" as AbilityAreaDefinition {
+  +Type : Shape
+  +Value : int
+}
+
+enum "Ability.AreaOfEffectDefinition.Shape" as AbilityAreaShape {
+  Square
+  Cross
+  Circle
+}
+
 class Ability <<ScriptableObject>> {
   +Icon : Sprite
   +Cost : AbilityCost
+  +Range : RangeDefinition
+  +AreaOfEffect : AreaOfEffectDefinition
   +TargetProfile : TargetProfile
   +Effects : List<Effect>
 }
 
-abstract class Effect {
-  +Apply(BattleObject source, BattleObject target, BattleContext)
+class BattleAbilityExecutionContext {
+  +BattleContext : BattleContext
+  +Ability : Ability
+  +SourceObject : BattleObject
+  +TargetObject : BattleObject
+  +AnchorCell : Vector3Int
+  +AffectedCell : Vector3Int
+  +SourceUnit : BattleUnit
+  +TargetUnit : BattleUnit
+  +HasTargetObject : bool
 }
 
-class ConcreteEffect
+abstract class Effect {
+  +Apply(BattleAbilityExecutionContext)
+}
 
-Effect <|-- ConcreteEffect
+class ApplyStatusEffect
+class RemoveStatusEffect
+class ReviveEffect
+class CleanseEffect
+class ResourceChangeEffect
+class MoveStatus
+class SwapPositionEffect
+class TeleportEffect
+class StealResourceEffect
+class ConsumeStatus
+class AdjustTurnBarTimeEffect
+class AdjustTurnBarDurationEffect
+class DamageTargetEffect
+class ApplyShieldEffect
+class HealTargetEffect
+class PlaceInteractiveObjectEffect
+class RemoveInteractiveObjectEffect
 
 Ability *-- AbilityCost
+Ability *-- AbilityRangeDefinition
+Ability *-- AbilityAreaDefinition
+Ability --> TargetProfile
 Ability o-- Effect
-Ability o-- TargetProfile
+AbilityRangeDefinition --> AbilityRangeShape
+AbilityAreaDefinition --> AbilityAreaShape
 
-BattleObject <.. Effect
-BattleContext <.. Effect
+BattleAbilityExecutionContext --> BattleContext
+BattleAbilityExecutionContext --> Ability
+BattleAbilityExecutionContext --> BattleObject
+BattleAbilityExecutionContext --> BattleUnit
+
+Effect <|-- ApplyStatusEffect
+Effect <|-- RemoveStatusEffect
+Effect <|-- ReviveEffect
+Effect <|-- CleanseEffect
+Effect <|-- ResourceChangeEffect
+Effect <|-- MoveStatus
+Effect <|-- SwapPositionEffect
+Effect <|-- TeleportEffect
+Effect <|-- StealResourceEffect
+Effect <|-- ConsumeStatus
+Effect <|-- AdjustTurnBarTimeEffect
+Effect <|-- AdjustTurnBarDurationEffect
+Effect <|-- DamageTargetEffect
+Effect <|-- ApplyShieldEffect
+Effect <|-- HealTargetEffect
+Effect <|-- PlaceInteractiveObjectEffect
+Effect <|-- RemoveInteractiveObjectEffect
+
+ApplyStatusEffect --> Status
+ApplyStatusEffect --> Duration
+RemoveStatusEffect --> Status
+ConsumeStatus --> Status
+PlaceInteractiveObjectEffect --> InteractionObject
+PlaceInteractiveObjectEffect --> Duration
+Effect ..> BattleFeatEventReporter : emits feat events
 
 @enduml

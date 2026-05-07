@@ -5,7 +5,7 @@ namespace Tests.Battle.Phases.End
 	public sealed class EndPhaseTests
 	{
 		[Test]
-		public void Enter_EmitsBattleEndedOutcome()
+		public void Enter_EmitsBattleResolvedOutcome()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1);
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
@@ -13,27 +13,25 @@ namespace Tests.Battle.Phases.End
 			fixture.EnemyUnits[0].BattleAttributes.Health.SetCurrent(0, true);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
 
-			BattleOutcome emittedOutcome = null;
-			EventCenter.BattleEnded += OnBattleEnded;
+			BattleSide? emittedWinner = null;
+			EventCenter.BattleResolved += OnBattleResolved;
 
 			try
 			{
 				orchestrator.TransitionTo(BattlePhaseType.End);
 
-				Assert.That(emittedOutcome, Is.Not.Null);
-				Assert.That(emittedOutcome.Winner, Is.EqualTo(BattleSide.Player));
-				Assert.That(emittedOutcome.SurvivingPlayerUnits.Count, Is.EqualTo(1));
-				Assert.That(emittedOutcome.SurvivingEnemyUnits.Count, Is.EqualTo(0));
+				Assert.That(emittedWinner, Is.Not.Null);
+				Assert.That(emittedWinner, Is.EqualTo(BattleSide.Player));
 			}
 			finally
 			{
-				EventCenter.BattleEnded -= OnBattleEnded;
+				EventCenter.BattleResolved -= OnBattleResolved;
 				orchestrator.Dispose();
 			}
 
-			void OnBattleEnded(BattleOutcome outcome)
+			void OnBattleResolved(BattleContext context, BattleSide winner)
 			{
-				emittedOutcome = outcome;
+				emittedWinner = winner;
 			}
 		}
 	}

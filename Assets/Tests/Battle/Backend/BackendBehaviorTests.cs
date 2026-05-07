@@ -27,7 +27,7 @@ namespace Tests.Battle.Backend
 			Vector3Int destination = new Vector3Int(player.BoardPosition.x + 1, player.BoardPosition.y, player.BoardPosition.z);
 
 			// Bypass the phase API and inject a pending action the resolver will reject
-			Assert.That(orchestrator.TurnContext.TrySetPendingAction(new MoveAction(player, destination)), Is.True);
+			Assert.That(orchestrator.TurnContext.TrySetPendingAction(new MoveAction(player, destination, 1)), Is.True);
 			orchestrator.TransitionTo(BattlePhaseType.Resolution);
 
 			// Should revert to PlayerTurn, not advance
@@ -50,7 +50,7 @@ namespace Tests.Battle.Backend
 			fixture.SetResources(player, actionPoints: 2, movementPoints: 0);
 			Vector3Int unreachableDestination = new Vector3Int(player.BoardPosition.x + 1, player.BoardPosition.y, player.BoardPosition.z);
 
-			Assert.That(orchestrator.TurnContext.TrySetPendingAction(new MoveAction(player, unreachableDestination)), Is.True);
+			Assert.That(orchestrator.TurnContext.TrySetPendingAction(new MoveAction(player, unreachableDestination, 1)), Is.True);
 			orchestrator.TransitionTo(BattlePhaseType.Resolution);
 
 			// Active unit must still be the same player — turn was not consumed
@@ -180,14 +180,14 @@ namespace Tests.Battle.Backend
 		}
 
 		// -------------------------------------------------------------------------
-		// Status hooks: BeforeMove / AfterMove
+		// Status hooks: BeforeConsumingResources / AfterConsumingResources
 		// -------------------------------------------------------------------------
 
 		[Test]
-		public void BeforeMoveHook_FiresBeforeMove_AndDamagesUnit()
+		public void BeforeConsumingResourcesHook_FiresBeforeMove_AndDamagesUnit()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 20, defaultMovement: 2);
-			Status status = CreateDamageStatus(fixture, StatusHookPoint.BeforeMove, damage: 3);
+			Status status = CreateDamageStatus(fixture, StatusHookPoint.BeforeConsumingResources, damage: 3);
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 			fixture.CompletePlacement(orchestrator,
@@ -208,10 +208,10 @@ namespace Tests.Battle.Backend
 		}
 
 		[Test]
-		public void AfterMoveHook_FiresAfterMove_AndDamagesUnit()
+		public void AfterConsumingResourcesHook_FiresAfterMove_AndDamagesUnit()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 20, defaultMovement: 2);
-			Status status = CreateDamageStatus(fixture, StatusHookPoint.AfterMove, damage: 3);
+			Status status = CreateDamageStatus(fixture, StatusHookPoint.AfterConsumingResources, damage: 3);
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 			fixture.CompletePlacement(orchestrator,
@@ -232,13 +232,13 @@ namespace Tests.Battle.Backend
 		}
 
 		[Test]
-		public void BeforeMoveHook_UnitPositionNotYetChanged_WhenHookFires()
+		public void BeforeConsumingResourcesHook_UnitPositionNotYetChanged_WhenHookFires()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 20, defaultMovement: 2);
 
 			// The hook fires before the move, so the unit is still at its starting cell
 			Vector3Int capturedPosition = default;
-			Status status = CreateCallbackStatus(fixture, StatusHookPoint.BeforeMove, ctx =>
+			Status status = CreateCallbackStatus(fixture, StatusHookPoint.BeforeConsumingResources, ctx =>
 			{
 				if (ctx.TargetObject is BattleUnit u)
 				{
@@ -265,12 +265,12 @@ namespace Tests.Battle.Backend
 		}
 
 		[Test]
-		public void AfterMoveHook_UnitPositionAlreadyChanged_WhenHookFires()
+		public void AfterConsumingResourcesHook_UnitPositionAlreadyChanged_WhenHookFires()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 20, defaultMovement: 2);
 
 			Vector3Int capturedPosition = default;
-			Status status = CreateCallbackStatus(fixture, StatusHookPoint.AfterMove, ctx =>
+			Status status = CreateCallbackStatus(fixture, StatusHookPoint.AfterConsumingResources, ctx =>
 			{
 				if (ctx.TargetObject is BattleUnit u)
 				{
@@ -296,17 +296,17 @@ namespace Tests.Battle.Backend
 		}
 
 		// -------------------------------------------------------------------------
-		// Status hooks: BeforeCastingAnAbility / AfterCastingAnAbility
+		// Status hooks: BeforeConsumingResources / AfterConsumingResources (ability cast)
 		// -------------------------------------------------------------------------
 
 		[Test]
-		public void BeforeCastingAnAbilityHook_FiresBeforeCast_AndDamagesUnit()
+		public void BeforeConsumingResourcesHook_FiresBeforeCast_AndDamagesUnit()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 20, defaultActionPoints: 4);
 			Ability abilityToUse = fixture.CreateDamageAbility(baseDamage: 1, actionPointCost: 1, targetProfile: TargetProfile.Enemy);
 			fixture.PlayerSources[0].Abilities.Add(abilityToUse);
 
-			Status hookStatus = CreateDamageStatus(fixture, StatusHookPoint.BeforeCastingAnAbility, damage: 3);
+			Status hookStatus = CreateDamageStatus(fixture, StatusHookPoint.BeforeConsumingResources, damage: 3);
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 			fixture.CompletePlacement(orchestrator,
@@ -326,13 +326,13 @@ namespace Tests.Battle.Backend
 		}
 
 		[Test]
-		public void AfterCastingAnAbilityHook_FiresAfterCast_AndDamagesUnit()
+		public void AfterConsumingResourcesHook_FiresAfterCast_AndDamagesUnit()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 20, defaultActionPoints: 4);
 			Ability abilityToUse = fixture.CreateDamageAbility(baseDamage: 1, actionPointCost: 1, targetProfile: TargetProfile.Enemy);
 			fixture.PlayerSources[0].Abilities.Add(abilityToUse);
 
-			Status hookStatus = CreateDamageStatus(fixture, StatusHookPoint.AfterCastingAnAbility, damage: 3);
+			Status hookStatus = CreateDamageStatus(fixture, StatusHookPoint.AfterConsumingResources, damage: 3);
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 			fixture.CompletePlacement(orchestrator,

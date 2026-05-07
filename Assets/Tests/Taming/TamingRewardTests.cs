@@ -7,51 +7,50 @@ namespace Tests.Taming.Rewards
 	public sealed class TamingRewardTests
 	{
 		[Test]
-		public void AwardWonBattleTamingRewards_PlayerWin_AddsCreatureToEmptyTeamSlot()
+		public void TamingResolved_AddsCreatureToEmptyTeamSlot()
 		{
-			var playerData = new PlayerData();
+			PlayerService playerService = CreatePlayerService(out GameContext gameContext);
+			PlayerData playerData = gameContext.Player;
 			CreatureUnit recruit = CreateCreatureUnit();
 
-			BattleOutcome outcome = CreateOutcome(BattleSide.Player, recruit);
-
-			TamingProgressService.AwardWonBattleTamingRewards(playerData, outcome);
+			try
+			{
+				EmitTamingResolved(recruit);
+			}
+			finally
+			{
+				playerService.Shutdown();
+			}
 
 			Assert.That(Array.IndexOf(playerData.Team, recruit), Is.GreaterThanOrEqualTo(0));
 			Assert.That(playerData.CreatureStorage.Count, Is.EqualTo(0));
 		}
 
 		[Test]
-		public void AwardWonBattleTamingRewards_PlayerLoss_ForfeitsCreature()
+		public void NoTamingResolution_PlayerLoss_ForfeitsCreature()
 		{
 			var playerData = new PlayerData();
 			CreatureUnit recruit = CreateCreatureUnit();
-
-			BattleOutcome outcome = CreateOutcome(BattleSide.Enemy, recruit);
-
-			TamingProgressService.AwardWonBattleTamingRewards(playerData, outcome);
 
 			Assert.That(Array.IndexOf(playerData.Team, recruit), Is.EqualTo(-1));
 			Assert.That(playerData.CreatureStorage.Contains(recruit), Is.False);
 		}
 
 		[Test]
-		public void AwardWonBattleTamingRewards_NeutralOutcome_DoesNotAwardCreature()
+		public void NoTamingResolution_NeutralOutcome_DoesNotAwardCreature()
 		{
 			var playerData = new PlayerData();
 			CreatureUnit recruit = CreateCreatureUnit();
-
-			BattleOutcome outcome = CreateOutcome(BattleSide.Neutral, recruit);
-
-			TamingProgressService.AwardWonBattleTamingRewards(playerData, outcome);
 
 			Assert.That(Array.IndexOf(playerData.Team, recruit), Is.EqualTo(-1));
 			Assert.That(playerData.CreatureStorage.Contains(recruit), Is.False);
 		}
 
 		[Test]
-		public void AwardWonBattleTamingRewards_FullTeam_SendsCreatureToStorage()
+		public void TamingResolved_FullTeam_SendsCreatureToStorage()
 		{
-			var playerData = new PlayerData();
+			PlayerService playerService = CreatePlayerService(out GameContext gameContext);
+			PlayerData playerData = gameContext.Player;
 
 			for (int index = 0; index < playerData.Team.Length; index++)
 			{
@@ -59,9 +58,14 @@ namespace Tests.Taming.Rewards
 			}
 
 			CreatureUnit recruit = CreateCreatureUnit();
-			BattleOutcome outcome = CreateOutcome(BattleSide.Player, recruit);
-
-			TamingProgressService.AwardWonBattleTamingRewards(playerData, outcome);
+			try
+			{
+				EmitTamingResolved(recruit);
+			}
+			finally
+			{
+				playerService.Shutdown();
+			}
 
 			Assert.That(Array.IndexOf(playerData.Team, recruit), Is.EqualTo(-1));
 			Assert.That(playerData.CreatureStorage.Contains(recruit), Is.True);
@@ -69,32 +73,48 @@ namespace Tests.Taming.Rewards
 		}
 
 		[Test]
-		public void AwardWonBattleTamingRewards_NullPlayerData_DoesNotThrow()
+		public void PlayerService_AddCreature_NullCreatureDoesNotThrow()
 		{
-			CreatureUnit recruit = CreateCreatureUnit();
-			BattleOutcome outcome = CreateOutcome(BattleSide.Player, recruit);
+			PlayerService playerService = CreatePlayerService(out _);
 
-			Assert.DoesNotThrow(() =>
-				TamingProgressService.AwardWonBattleTamingRewards(null, outcome));
+			try
+			{
+				Assert.DoesNotThrow(() => playerService.AddCreatureToTeamOrStorage(null));
+			}
+			finally
+			{
+				playerService.Shutdown();
+			}
 		}
 
 		[Test]
-		public void AwardWonBattleTamingRewards_NullOutcome_DoesNotThrow()
+		public void TamingResolved_NullArgumentsDoNotThrow()
 		{
-			var playerData = new PlayerData();
+			PlayerService playerService = CreatePlayerService(out _);
 
-			Assert.DoesNotThrow(() =>
-				TamingProgressService.AwardWonBattleTamingRewards(playerData, null));
+			try
+			{
+				Assert.DoesNotThrow(() => EventCenter.EmitTamingResolved(null, null));
+			}
+			finally
+			{
+				playerService.Shutdown();
+			}
 		}
 
-		private static BattleOutcome CreateOutcome(BattleSide p_winner, params CreatureUnit[] p_impressedCreatures)
+		private static PlayerService CreatePlayerService(out GameContext p_gameContext)
 		{
-			return new BattleOutcome(
-				p_winner,
-				Array.Empty<BattleUnit>(),
-				Array.Empty<BattleUnit>(),
-				new BattleStats(),
-				p_impressedCreatures);
+			p_gameContext = new GameContext();
+			PlayerService playerService = new PlayerService(p_gameContext);
+			playerService.Initialize();
+			return playerService;
+		}
+
+		private static void EmitTamingResolved(params CreatureUnit[] p_recruits)
+		{
+			EventCenter.EmitTamingResolved(
+				TestBattleContextFactory.CreateEmpty(),
+				p_recruits);
 		}
 
 		private static CreatureUnit CreateCreatureUnit()

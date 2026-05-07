@@ -1,41 +1,20 @@
-using System.Collections.Generic;
-
 public sealed class EndPhase : BattlePhase
 {
 	public override BattlePhaseType PhaseType => BattlePhaseType.End;
 
 	public override void Enter()
 	{
-		BattleOutcomeRules.TryComputeOutcome(BattleContext, out BattleOutcome outcome);
-
-		ApplyFeatProgressionToPlayerUnits(BattleContext, outcome?.Winner == BattleSide.Player);
-
-		EventCenter.EmitBattleEnded(outcome);
-	}
-
-	private static void ApplyFeatProgressionToPlayerUnits(BattleContext battleContext, bool isPlayerWinning)
-	{
-		if (battleContext == null)
+		BattleOutcomeRules.TryComputeWinner(BattleContext, out BattleSide winner);
+		BattleService battleService = ServiceLocator.Instance?.BattleService;
+		if (battleService != null)
 		{
+			battleService.ResolveBattle(BattleContext, winner);
 			return;
 		}
 
-		IReadOnlyList<BattleUnit> playerUnits = battleContext.PlayerUnits;
-		for (int unitIndex = 0; unitIndex < playerUnits.Count; unitIndex++)
+		if (BattleContext != null)
 		{
-			BattleUnit unit = playerUnits[unitIndex];
-			if (unit?.SourceUnit == null)
-			{
-				continue;
-			}
-
-			if (isPlayerWinning)
-			{
-				unit.RecordFeatEvent(new WinBattleCountRequirement.Event { UnitSurvived = !unit.IsDefeated });
-			}
-
-			IReadOnlyList<FeatRequirement.EventBase> events = unit.PendingFeatEvents;
-			FeatProgressionService.RegisterFightEvents(unit.SourceUnit, events, isPlayerWinning);
+			EventCenter.EmitBattleResolved(BattleContext, winner);
 		}
 	}
 }

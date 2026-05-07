@@ -46,7 +46,7 @@ namespace Tests.Taming.Rules
 		public void AreAllConditionsComplete_AllCompleted_ReturnsTrue()
 		{
 			var damageRequirement = new DealDamageRequirement { RequiredAmount = 10 };
-			var moveRequirement = new MoveCountRequirement { RequiredCount = 1 };
+			var moveRequirement = new ConsumeResourcesRequirement { RequiredResource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, RequiredAmount = 1 };
 			var profile = CreateProfile(damageRequirement, moveRequirement);
 
 			var advancements = new[]
@@ -62,7 +62,7 @@ namespace Tests.Taming.Rules
 		public void AreAllConditionsComplete_OneIncomplete_ReturnsFalse()
 		{
 			var damageRequirement = new DealDamageRequirement { RequiredAmount = 10 };
-			var moveRequirement = new MoveCountRequirement { RequiredCount = 1 };
+			var moveRequirement = new ConsumeResourcesRequirement { RequiredResource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, RequiredAmount = 1 };
 			var profile = CreateProfile(damageRequirement, moveRequirement);
 
 			var advancements = new[]

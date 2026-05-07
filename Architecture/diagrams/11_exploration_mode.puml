@@ -1,16 +1,21 @@
 @startuml Exploration Mode
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
-class WorldPresenter <<CF diagram 02>> {}
+class WorldPresenter <<CF diagram 02b>> {}
 class ActorManager <<CF diagram 09>> {}
 class ActorPresenter <<CF diagram 09>> {}
+class ActorMovementRequest <<CF diagram 09>> {}
 class GameContext <<CF diagram 10>> {}
+class PlayerData <<CF diagram 09>> {}
+class WorldTraversalGraphCache <<CF diagram 03b>> {}
+class WorldPathfinder <<CF diagram 03b>> {}
+class WorldVoxelRaycaster <<CF diagram 03b>> {}
 
 class OrbitingObject <<MonoBehaviour>> {
   +Orbit(float, float)
-  +LookAtTarget()
 }
 
 class ExplorationPlayerController <<MonoBehaviour>> {
@@ -23,12 +28,19 @@ class ExplorationMode {
   +Enter(GameContext)
 }
 
-GameContext <.. ExplorationMode
-
 ExplorationMode o-- WorldPresenter
 ExplorationMode o-- ActorManager
 ExplorationMode o-- ActorPresenter
 ExplorationMode o-- ExplorationPlayerController
+ExplorationMode ..> GameContext
+ExplorationMode ..> PlayerData
+ExplorationMode ..> EventCenter : emits PlayerMoved/PlayerChunkChanged
+ExplorationPlayerController o-- WorldPresenter
+ExplorationPlayerController o-- ActorPresenter
 ExplorationPlayerController o-- OrbitingObject
+ExplorationPlayerController *-- WorldTraversalGraphCache
+ExplorationPlayerController ..> WorldVoxelRaycaster
+ExplorationPlayerController ..> WorldPathfinder
+ExplorationPlayerController ..> EventCenter : emits ActorMoveRequested
 
 @enduml

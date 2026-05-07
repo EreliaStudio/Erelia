@@ -50,14 +50,19 @@ public sealed class IdlePhase : BattlePhase
 
 	private bool HasAnyLivingUnit()
 	{
-		if (BattleContext?.AllUnits == null)
+		if (BattleContext == null)
 		{
 			return false;
 		}
 
-		for (int index = 0; index < BattleContext.AllUnits.Count; index++)
+		return HasLivingUnitInList(BattleContext.PlayerUnits) || HasLivingUnitInList(BattleContext.EnemyUnits);
+	}
+
+	private static bool HasLivingUnitInList(System.Collections.Generic.IReadOnlyList<BattleUnit> units)
+	{
+		for (int index = 0; index < units.Count; index++)
 		{
-			BattleUnit unit = BattleContext.AllUnits[index];
+			BattleUnit unit = units[index];
 			if (unit != null && !unit.IsDefeated)
 			{
 				return true;

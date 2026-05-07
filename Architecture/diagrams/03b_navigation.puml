@@ -1,6 +1,7 @@
 @startuml Navigation System
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
 class VoxelGrid <<CF diagram 01>> {}
@@ -10,14 +11,14 @@ class ChunkCoordinates <<CF diagram 02>> {}
 class WorldData <<CF diagram 02>> {}
 class BoardTerrainLayer <<CF diagram 03>> {}
 
-enum "Node.Direction" {
+enum "VoxelTraversalGraph.Node.Direction" as GraphDirection {
   PositiveX
   NegativeX
   PositiveZ
   NegativeZ
 }
 
-class VoxelTraversalGraphNode {
+class "VoxelTraversalGraph.Node" as VoxelTraversalGraphNode {
   +Position : Vector3Int
   +PositiveX : Node
   +NegativeX : Node
@@ -35,50 +36,66 @@ class VoxelTraversalGraph {
   +IsInside(Vector3Int) : bool
   +ContainsNode(Vector3Int) : bool
   +TryGetNode(Vector3Int, out Node) : bool
+  +GetNode(Vector3Int) : Node
   +CreateNode(Vector3Int) : Node
 }
 
 class VoxelTraversalGraphBuilder <<static>> {
-  +Build(VoxelGrid, VoxelRegistry) : VoxelTraversalGraph
+  +Build(VoxelGrid, VoxelRegistry, HashSet<Vector2Int>) : VoxelTraversalGraph
 }
 
 class VoxelTraversalUtility <<static>> {
   +MaximumVerticalTraversalGap : float
   +IsReachableCell(VoxelGrid, Vector3Int, VoxelRegistry) : bool
+  +IsPassableSpace(VoxelCell, VoxelRegistry) : bool
+  +IsSolid(VoxelCell, VoxelRegistry) : bool
+  +IsPassable(VoxelCell, VoxelRegistry) : bool
   +TryGetWorldHeight(VoxelGrid, Vector3Int, Direction, VoxelRegistry, out float) : bool
+  +TryGetWorldHeight(WorldData, Vector3Int, Direction, VoxelRegistry, out float) : bool
+  +TryGetStandingWorldPoint(WorldData, Vector3Int, VoxelRegistry, out Vector3) : bool
+  +TryGetTraversalWorldPoint(WorldData, Vector3Int, Direction, VoxelRegistry, out Vector3) : bool
 }
 
 class WorldTraversalGraphCache {
+  +Clear()
+  +Invalidate(ChunkCoordinates)
   +TryGetGraph(WorldData, VoxelRegistry, ChunkCoordinates, out VoxelTraversalGraph) : bool
   +TryGetNode(WorldData, VoxelRegistry, Vector3Int, out Node) : bool
   +HasNode(WorldData, VoxelRegistry, Vector3Int) : bool
-  +Invalidate(ChunkCoordinates)
-  +Clear()
 }
 
-class BoardNavigationLayer {
-  +Graph : VoxelTraversalGraph
-  +Nodes : IReadOnlyList<Node>
-  +Rebuild(BoardTerrainLayer)
-  +IsStandable(Vector3Int) : bool
-  +TryGetNode(Vector3Int, out Node) : bool
-  +Clear()
+class WorldPathfinder <<static>> {
+  +TryFindPath(WorldData, VoxelRegistry, WorldTraversalGraphCache, Vector3Int, Vector3Int, out List<Vector3Int>, int) : bool
+  +TryResolveSelectableTarget(WorldData, VoxelRegistry, WorldTraversalGraphCache, Vector3Int, out Vector3Int) : bool
+  +TryResolveStandingCell(WorldData, VoxelRegistry, WorldTraversalGraphCache, Vector3, out Vector3Int) : bool
+  +TryGetStandingWorldPoint(WorldData, VoxelRegistry, Vector3Int, out Vector3) : bool
 }
+
+class BoardPathfinder <<static>> {
+  +TryFindPath(BoardData, Vector3Int, Vector3Int, out List<Vector3Int>, int) : bool
+}
+
+class BoardVoxelRaycaster <<static>>
+class WorldVoxelRaycaster <<static>>
 
 VoxelTraversalGraph *-- VoxelTraversalGraphNode
-VoxelTraversalGraphNode *-- "Node.Direction"
+VoxelTraversalGraphNode --> GraphDirection
 VoxelTraversalGraphNode o-- VoxelTraversalGraphNode : neighbours
-VoxelTraversalGraphBuilder ..> VoxelTraversalGraph : creates
-VoxelTraversalGraphBuilder ..> VoxelGrid : reads
-VoxelTraversalGraphBuilder ..> VoxelRegistry : uses
-VoxelTraversalGraphBuilder ..> VoxelTraversalUtility : uses
+VoxelTraversalGraphBuilder ..> VoxelTraversalGraph
+VoxelTraversalGraphBuilder ..> VoxelGrid
+VoxelTraversalGraphBuilder ..> VoxelRegistry
+VoxelTraversalGraphBuilder ..> VoxelTraversalUtility
 WorldTraversalGraphCache *-- VoxelTraversalGraph
-WorldTraversalGraphCache ..> VoxelTraversalGraphBuilder : uses
-WorldTraversalGraphCache ..> WorldData : reads
-WorldTraversalGraphCache ..> ChunkCoordinates : uses
-WorldTraversalGraphCache ..> ChunkData : reads
-BoardNavigationLayer *-- VoxelTraversalGraph
-BoardNavigationLayer ..> VoxelTraversalGraphBuilder : uses
-BoardNavigationLayer ..> BoardTerrainLayer : reads
+WorldTraversalGraphCache ..> WorldData
+WorldTraversalGraphCache ..> ChunkCoordinates
+WorldTraversalGraphCache ..> ChunkData
+WorldTraversalGraphCache ..> VoxelTraversalGraphBuilder
+WorldPathfinder ..> WorldTraversalGraphCache
+WorldPathfinder ..> VoxelTraversalUtility
+BoardPathfinder ..> BoardData
+BoardPathfinder ..> VoxelTraversalGraph
+BoardTerrainLayer ..> VoxelTraversalGraphBuilder
+BoardVoxelRaycaster ..> BoardData
+WorldVoxelRaycaster ..> WorldData
 
 @enduml

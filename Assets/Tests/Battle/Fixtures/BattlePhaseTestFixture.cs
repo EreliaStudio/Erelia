@@ -208,8 +208,7 @@ namespace Tests
 				PlayerSources,
 				EnemySources,
 				board,
-				PlacementStyle.HalfBoard,
-				Vector3.zero);
+				PlacementStyle.HalfBoard);
 			OverlayState.Initialize(board);
 		}
 

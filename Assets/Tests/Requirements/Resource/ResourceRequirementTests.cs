@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 
-namespace Tests.Requirements.Resource.SpendActionPoints
+namespace Tests.Requirements.Resource.ConsumeActionPoints
 {
-	public sealed class SpendActionPointsTests
+	public sealed class ConsumeActionPointsTests
 	{
 		[Test]
 		public void NoEvents_ZeroProgress()
 		{
-			var req = new SpendActionPointsRequirement { RequiredAmount = 10 };
+			var req = new ConsumeResourcesRequirement { RequiredResource = ConsumeResourcesRequirement.ResourceKind.ActionPoints, RequiredAmount = 10 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
 			progress.RegisterEvents(new List<FeatRequirement.EventBase>());
@@ -19,12 +19,12 @@ namespace Tests.Requirements.Resource.SpendActionPoints
 		[Test]
 		public void PartialAmount_PartialProgress()
 		{
-			var req = new SpendActionPointsRequirement { RequiredAmount = 10 };
+			var req = new ConsumeResourcesRequirement { RequiredResource = ConsumeResourcesRequirement.ResourceKind.ActionPoints, RequiredAmount = 10 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
 			progress.RegisterEvents(new List<FeatRequirement.EventBase>
 			{
-				new SpendActionPointsRequirement.Event { Amount = 4 }
+				new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.ActionPoints, Amount = 4 }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(40f).Within(0.01f));
@@ -33,12 +33,12 @@ namespace Tests.Requirements.Resource.SpendActionPoints
 		[Test]
 		public void ReachingRequired_Completes()
 		{
-			var req = new SpendActionPointsRequirement { RequiredAmount = 5 };
+			var req = new ConsumeResourcesRequirement { RequiredResource = ConsumeResourcesRequirement.ResourceKind.ActionPoints, RequiredAmount = 5 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
 			progress.RegisterEvents(new List<FeatRequirement.EventBase>
 			{
-				new SpendActionPointsRequirement.Event { Amount = 5 }
+				new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.ActionPoints, Amount = 5 }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -47,28 +47,42 @@ namespace Tests.Requirements.Resource.SpendActionPoints
 		[Test]
 		public void MultipleEvents_Accumulate()
 		{
-			var req = new SpendActionPointsRequirement { RequiredAmount = 6 };
+			var req = new ConsumeResourcesRequirement { RequiredResource = ConsumeResourcesRequirement.ResourceKind.ActionPoints, RequiredAmount = 6 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
 			progress.RegisterEvents(new List<FeatRequirement.EventBase>
 			{
-				new SpendActionPointsRequirement.Event { Amount = 2 },
-				new SpendActionPointsRequirement.Event { Amount = 4 }
+				new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.ActionPoints, Amount = 2 },
+				new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.ActionPoints, Amount = 4 }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
 		}
+
+		[Test]
+		public void WrongResourceKind_IsIgnored()
+		{
+			var req = new ConsumeResourcesRequirement { RequiredResource = ConsumeResourcesRequirement.ResourceKind.ActionPoints, RequiredAmount = 5 };
+			var progress = new FeatRequirementProgress { Requirement = req };
+
+			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			{
+				new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, Amount = 10 }
+			});
+
+			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
+		}
 	}
 }
 
-namespace Tests.Requirements.Resource.SpendMovementPoints
+namespace Tests.Requirements.Resource.ConsumeMovementPoints
 {
-	public sealed class SpendMovementPointsTests
+	public sealed class ConsumeMovementPointsTests
 	{
 		[Test]
 		public void NoEvents_ZeroProgress()
 		{
-			var req = new SpendMovementPointsRequirement { RequiredAmount = 10 };
+			var req = new ConsumeResourcesRequirement { RequiredResource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, RequiredAmount = 10 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
 			progress.RegisterEvents(new List<FeatRequirement.EventBase>());
@@ -79,12 +93,12 @@ namespace Tests.Requirements.Resource.SpendMovementPoints
 		[Test]
 		public void PartialAmount_PartialProgress()
 		{
-			var req = new SpendMovementPointsRequirement { RequiredAmount = 8 };
+			var req = new ConsumeResourcesRequirement { RequiredResource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, RequiredAmount = 8 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
 			progress.RegisterEvents(new List<FeatRequirement.EventBase>
 			{
-				new SpendMovementPointsRequirement.Event { Amount = 4 }
+				new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, Amount = 4 }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(50f).Within(0.01f));
@@ -93,16 +107,30 @@ namespace Tests.Requirements.Resource.SpendMovementPoints
 		[Test]
 		public void ReachingRequired_Completes()
 		{
-			var req = new SpendMovementPointsRequirement { RequiredAmount = 6 };
+			var req = new ConsumeResourcesRequirement { RequiredResource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, RequiredAmount = 6 };
 			var progress = new FeatRequirementProgress { Requirement = req };
 
 			progress.RegisterEvents(new List<FeatRequirement.EventBase>
 			{
-				new SpendMovementPointsRequirement.Event { Amount = 3 },
-				new SpendMovementPointsRequirement.Event { Amount = 3 }
+				new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, Amount = 3 },
+				new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, Amount = 3 }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
+		}
+
+		[Test]
+		public void WrongResourceKind_IsIgnored()
+		{
+			var req = new ConsumeResourcesRequirement { RequiredResource = ConsumeResourcesRequirement.ResourceKind.MovementPoints, RequiredAmount = 5 };
+			var progress = new FeatRequirementProgress { Requirement = req };
+
+			progress.RegisterEvents(new List<FeatRequirement.EventBase>
+			{
+				new ConsumeResourcesRequirement.Event { Resource = ConsumeResourcesRequirement.ResourceKind.ActionPoints, Amount = 10 }
+			});
+
+			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
 		}
 	}
 }

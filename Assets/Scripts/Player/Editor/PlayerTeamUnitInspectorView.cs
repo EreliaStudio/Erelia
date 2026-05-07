@@ -71,7 +71,7 @@ public sealed class PlayerTeamUnitInspectorView
 				currentUnit.Species = newSpecies;
 				currentUnit.CurrentFormID = string.Empty;
 				currentUnit.FeatBoardProgress = new FeatBoardProgress();
-				FeatProgressionService.ApplyProgress(currentUnit);
+				FeatBoardService.ApplyProgress(currentUnit);
 				boardView?.ClearSelection();
 			});
 		}

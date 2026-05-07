@@ -11,8 +11,8 @@ namespace Tests.Battle.Flow
 			Ability killingAbility = fixture.CreateDamageAbility(baseDamage: 99, actionPointCost: 1, targetProfile: TargetProfile.Enemy, requireLineOfSight: false);
 			fixture.PlayerSources[0].Abilities.Add(killingAbility);
 
-			BattleOutcome emittedOutcome = null;
-			EventCenter.BattleEnded += OnBattleEnded;
+			BattleSide? emittedWinner = null;
+			EventCenter.BattleResolved += OnBattleResolved;
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 
@@ -28,18 +28,18 @@ namespace Tests.Battle.Flow
 
 				Assert.That(orchestrator.Coordinator.CurrentPhaseType, Is.EqualTo(BattlePhaseType.End));
 				Assert.That(fixture.EnemyUnits[0].IsDefeated, Is.True);
-				Assert.That(emittedOutcome, Is.Not.Null);
-				Assert.That(emittedOutcome.Winner, Is.EqualTo(BattleSide.Player));
+				Assert.That(emittedWinner, Is.Not.Null);
+				Assert.That(emittedWinner, Is.EqualTo(BattleSide.Player));
 			}
 			finally
 			{
-				EventCenter.BattleEnded -= OnBattleEnded;
+				EventCenter.BattleResolved -= OnBattleResolved;
 				orchestrator.Dispose();
 			}
 
-			void OnBattleEnded(BattleOutcome outcome)
+			void OnBattleResolved(BattleContext context, BattleSide winner)
 			{
-				emittedOutcome = outcome;
+				emittedWinner = winner;
 			}
 		}
 	}

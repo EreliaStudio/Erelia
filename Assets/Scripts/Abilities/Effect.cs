@@ -24,7 +24,9 @@ public class ApplyStatusEffect : Effect
 		}
 
 		context.TargetUnit.Statuses.Add(Status, StackCount, Duration.Clone(Duration));
-		context.SourceUnit?.RecordFeatEvent(new ApplyStatusCountRequirement.Event { Status = Status, StackCount = StackCount });
+		BattleFeatEventReporter.Emit(
+			context.SourceUnit,
+			new ApplyStatusCountRequirement.Event { Status = Status, StackCount = StackCount });
 	}
 }
 
@@ -64,7 +66,11 @@ public class ReviveEffect : Effect
 				BaseHealing = Math.Max(1, HealthRestored)
 			});
 
-		context.TargetUnit.BattleAttributes.Health.SetCurrent(Math.Max(1, restoredHealth));
+		BattleResourceRules.ChangeHealth(
+			context.BattleContext,
+			context.TargetUnit,
+			context.SourceUnit,
+			Math.Max(1, restoredHealth));
 	}
 }
 
@@ -109,22 +115,38 @@ public class ResourceChangeEffect : Effect
 			case Target.ActionPoint:
 				if (Value > 0)
 				{
-					context.TargetUnit.BattleAttributes.ActionPoints.Increase(Value);
+					BattleResourceRules.ChangeActionPoints(
+						context.BattleContext,
+						context.TargetUnit,
+						context.SourceUnit,
+						Value);
 				}
 				else
 				{
-					context.TargetUnit.BattleAttributes.ActionPoints.Decrease(-Value);
+					BattleResourceRules.ChangeActionPoints(
+						context.BattleContext,
+						context.TargetUnit,
+						context.SourceUnit,
+						Value);
 				}
 				break;
 
 			case Target.MovementPoint:
 				if (Value > 0)
 				{
-					context.TargetUnit.BattleAttributes.MovementPoints.Increase(Value);
+					BattleResourceRules.ChangeMovementPoints(
+						context.BattleContext,
+						context.TargetUnit,
+						context.SourceUnit,
+						Value);
 				}
 				else
 				{
-					context.TargetUnit.BattleAttributes.MovementPoints.Decrease(-Value);
+					BattleResourceRules.ChangeMovementPoints(
+						context.BattleContext,
+						context.TargetUnit,
+						context.SourceUnit,
+						Value);
 				}
 				break;
 
@@ -259,15 +281,15 @@ public class StealResourceEffect : Effect
 		switch (ResourceTargeted)
 		{
 			case Target.Health:
-				StealHealth(context.SourceUnit, context.TargetUnit, Value);
+				StealHealth(context.BattleContext, context.SourceUnit, context.TargetUnit, Value);
 				break;
 
 			case Target.ActionPoint:
-				StealActionPoints(context.SourceUnit, context.TargetUnit, Value);
+				StealActionPoints(context.BattleContext, context.SourceUnit, context.TargetUnit, Value);
 				break;
 
 			case Target.MovementPoint:
-				StealMovementPoints(context.SourceUnit, context.TargetUnit, Value);
+				StealMovementPoints(context.BattleContext, context.SourceUnit, context.TargetUnit, Value);
 				break;
 
 			case Target.Range:
@@ -381,9 +403,12 @@ public class DamageTargetEffect : Effect
 		int appliedToHP = 0;
 		if (damageToHP > 0)
 		{
-			int previousHealth = context.TargetUnit.BattleAttributes.Health.Current;
-			context.TargetUnit.BattleAttributes.Health.Decrease(damageToHP);
-			appliedToHP = previousHealth - context.TargetUnit.BattleAttributes.Health.Current;
+			BattleResourceChangeResult healthChange = BattleResourceRules.ChangeHealth(
+				context.BattleContext,
+				context.TargetUnit,
+				context.SourceUnit,
+				-damageToHP);
+			appliedToHP = healthChange.LossAmount;
 		}
 
 		int totalApplied = absorbedByShield + appliedToHP;
@@ -396,26 +421,40 @@ public class DamageTargetEffect : Effect
 		int selfHealing = MathFormula.ComputeVampirismHealing(casterAttributes, Input.DamageKind, appliedToHP);
 		if (selfHealing > 0 && context.SourceUnit != null)
 		{
-			context.SourceUnit.BattleAttributes.Health.Increase(selfHealing);
+			BattleResourceRules.ChangeHealth(
+				context.BattleContext,
+				context.SourceUnit,
+				context.SourceUnit,
+				selfHealing);
 		}
 
-		context.SourceUnit?.RecordFeatEvent(new DealDamageRequirement.Event { Amount = totalApplied, DamageKind = Input.DamageKind, SourceAbility = context.Ability });
-context.TargetUnit.RecordFeatEvent(new TakeDamageRequirement.Event { Amount = totalApplied, SourceAbility = context.Ability });
+		BattleFeatEventReporter.Emit(
+			context.SourceUnit,
+			new DealDamageRequirement.Event { Amount = totalApplied, DamageKind = Input.DamageKind });
+		BattleFeatEventReporter.Emit(
+			context.TargetUnit,
+			new TakeDamageRequirement.Event { Amount = totalApplied });
 
 		if (absorbedByShield > 0)
 		{
-			context.TargetUnit.RecordFeatEvent(new AbsorbDamageWithShieldRequirement.Event { Amount = absorbedByShield });
+			BattleFeatEventReporter.Emit(
+				context.TargetUnit,
+				new AbsorbDamageWithShieldRequirement.Event { Amount = absorbedByShield });
 		}
 
 		IReadOnlyList<ShieldKind> brokenShieldKinds = shieldAbsorption.BrokenShieldKinds;
 		for (int index = 0; index < brokenShieldKinds.Count; index++)
 		{
-			context.TargetUnit.RecordFeatEvent(new ShieldBrokenRequirement.Event { Kind = brokenShieldKinds[index] });
+			BattleFeatEventReporter.Emit(
+				context.TargetUnit,
+				new ShieldBrokenRequirement.Event { Kind = brokenShieldKinds[index] });
 		}
 
 		if (!context.TargetUnit.IsDefeated)
 		{
-			context.TargetUnit.RecordFeatEvent(new SurviveHitRequirement.Event { Amount = totalApplied });
+			BattleFeatEventReporter.Emit(
+				context.TargetUnit,
+				new SurviveHitRequirement.Event { Amount = totalApplied });
 		}
 	}
 }
@@ -435,8 +474,12 @@ public class ApplyShieldEffect : Effect
 		}
 
 		context.TargetUnit.BattleAttributes.AddShield(Kind, Amount, DurationInTurns);
-		context.SourceUnit?.RecordFeatEvent(new ApplyShieldRequirement.Event { Amount = Amount, Kind = Kind });
-		context.SourceUnit?.RecordFeatEvent(new ApplyShieldCountRequirement.Event { });
+		BattleFeatEventReporter.Emit(
+			context.SourceUnit,
+			new ApplyShieldRequirement.Event { Amount = Amount, Kind = Kind });
+		BattleFeatEventReporter.Emit(
+			context.SourceUnit,
+			new ApplyShieldCountRequirement.Event { });
 	}
 }
 
@@ -466,9 +509,17 @@ public class HealTargetEffect : Effect
 			return;
 		}
 
-		context.TargetUnit.BattleAttributes.Health.Increase(computedHealing);
-		context.SourceUnit?.RecordFeatEvent(new HealHealthRequirement.Event { Amount = computedHealing });
-		context.SourceUnit?.RecordFeatEvent(new HealTargetRequirement.Event
+		BattleResourceRules.ChangeHealth(
+			context.BattleContext,
+			context.TargetUnit,
+			context.SourceUnit,
+			computedHealing);
+		BattleFeatEventReporter.Emit(
+			context.SourceUnit,
+			new HealHealthRequirement.Event { Amount = computedHealing });
+		BattleFeatEventReporter.Emit(
+			context.SourceUnit,
+			new HealTargetRequirement.Event
 		{
 			Amount = computedHealing,
 			IsSelf = context.SourceUnit == context.TargetUnit
@@ -583,42 +634,44 @@ internal static class EffectUtility
 		return new Vector3Int(stepX, 0, stepZ);
 	}
 
-	public static void StealHealth(BattleUnit casterUnit, BattleUnit targetUnit, int value)
+	public static void StealHealth(
+		BattleContext battleContext,
+		BattleUnit casterUnit,
+		BattleUnit targetUnit,
+		int value)
 	{
-		int previousTargetHealth = targetUnit.BattleAttributes.Health.Current;
-		targetUnit.BattleAttributes.Health.Decrease(value);
-
-		int stolenHealth = previousTargetHealth - targetUnit.BattleAttributes.Health.Current;
+		BattleResourceChangeResult targetHealthChange = BattleResourceRules.ChangeHealth(battleContext, targetUnit, casterUnit, -value);
+		int stolenHealth = targetHealthChange.LossAmount;
 		if (stolenHealth <= 0)
 		{
 			return;
 		}
 
-		casterUnit.BattleAttributes.Health.Increase(stolenHealth);
+		BattleResourceRules.ChangeHealth(battleContext, casterUnit, casterUnit, stolenHealth);
 	}
 
-	public static void StealActionPoints(BattleUnit casterUnit, BattleUnit targetUnit, int value)
+	public static void StealActionPoints(BattleContext battleContext, BattleUnit casterUnit, BattleUnit targetUnit, int value)
 	{
-		int stolenPoints = Math.Min(value, targetUnit.BattleAttributes.ActionPoints.Current);
+		BattleResourceChangeResult targetPointChange = BattleResourceRules.ChangeActionPoints(battleContext, targetUnit, casterUnit, -value);
+		int stolenPoints = targetPointChange.LossAmount;
 		if (stolenPoints <= 0)
 		{
 			return;
 		}
 
-		targetUnit.BattleAttributes.ActionPoints.Decrease(stolenPoints);
-		casterUnit.BattleAttributes.ActionPoints.Increase(stolenPoints);
+		BattleResourceRules.ChangeActionPoints(battleContext, casterUnit, casterUnit, stolenPoints);
 	}
 
-	public static void StealMovementPoints(BattleUnit casterUnit, BattleUnit targetUnit, int value)
+	public static void StealMovementPoints(BattleContext battleContext, BattleUnit casterUnit, BattleUnit targetUnit, int value)
 	{
-		int stolenPoints = Math.Min(value, targetUnit.BattleAttributes.MovementPoints.Current);
+		BattleResourceChangeResult targetPointChange = BattleResourceRules.ChangeMovementPoints(battleContext, targetUnit, casterUnit, -value);
+		int stolenPoints = targetPointChange.LossAmount;
 		if (stolenPoints <= 0)
 		{
 			return;
 		}
 
-		targetUnit.BattleAttributes.MovementPoints.Decrease(stolenPoints);
-		casterUnit.BattleAttributes.MovementPoints.Increase(stolenPoints);
+		BattleResourceRules.ChangeMovementPoints(battleContext, casterUnit, casterUnit, stolenPoints);
 	}
 
 	public static void StealRange(BattleUnit casterUnit, BattleUnit targetUnit, int value)

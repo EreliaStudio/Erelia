@@ -1,0 +1,122 @@
+@startuml Erelia_Battle_Overview
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+hide empty members
+
+title Battle Architecture - Current Overview
+
+abstract class Mode {
+  +IsActive : bool
+  +Enter()
+  +Exit()
+}
+
+class BattleMode {
+  +BattleContext : BattleContext
+  +BattleOrchestrator : BattleOrchestrator
+  +BoardPresenter : BoardPresenter
+  +CurrentPhaseType : BattlePhaseType?
+  +Enter(BattleContext)
+  +TransitionToPhase(BattlePhaseType)
+}
+
+class BattleOrchestrator {
+  +BattleMode : BattleMode
+  +BattleContext : BattleContext
+  +Coordinator : BattleCoordinator
+  +TurnContext : TurnContext
+  +PlayerTeamView : CreatureTeamView
+  +EnemyTeamView : CreatureTeamView
+  +Initialize(BattleMode, BattleContext)
+  +Dispose()
+  +TransitionTo(BattlePhaseType)
+  +ConfigurePhaseInput()
+  +TrySubmitPendingAction(BattleAction) : bool
+  +ConsumePendingAction() : BattleAction
+  +TryBeginTurn(BattleUnit, out BattlePhaseType) : bool
+  +TryBeginNextTurn(out BattlePhaseType) : bool
+  +CanContinueActiveTurn() : bool
+}
+
+class BattleCoordinator {
+  +PhaseChanged : event Action<BattlePhaseType>
+  +CurrentPhaseType : BattlePhaseType
+  +HasActivePhase : bool
+  +TransitionTo(BattlePhaseType)
+}
+
+class BattlePhaseInputRouter {
+  +Validate(Object)
+  +Configure(BattleOrchestrator)
+  +Dispose()
+}
+
+class BattleContext {
+  +Board : BoardData
+  +PlacementStyle : PlacementStyle
+  +Stats : BattleStats
+  +CurrentTurn : TurnContext
+  +PlayerWorldPosition : Vector3
+  +PlayerUnits : IReadOnlyList<BattleUnit>
+  +EnemyUnits : IReadOnlyList<BattleUnit>
+  +AllUnits : IReadOnlyList<BattleUnit>
+  +ClearRuntime()
+}
+
+class TurnContext {
+  +ActiveUnit : BattleUnit
+  +ActiveSide : BattleSide
+  +PendingAction : BattleAction
+  +ResolvedActionCount : int
+}
+
+class BattleService {
+  +ActiveBattleContext : BattleContext
+  +Initialize()
+  +Shutdown()
+  +ResolveBattle(BattleContext, BattleOutcome)
+}
+
+class BoardPresenter
+class BattlePlayerController
+class BattleUnitManager
+class CreatureTeamView
+class BoardData
+class BattleStats
+class BattleUnit
+class BattleAction
+enum BattleSide
+enum PlacementStyle
+enum BattlePhaseType
+
+Mode <|-- BattleMode
+BattleMode *-- BattleOrchestrator
+BattleMode o-- BattleContext
+BattleMode o-- BattleUnitManager
+BattleMode o-- BoardPresenter
+BattleMode o-- BattlePlayerController
+
+BattleOrchestrator *-- BattleCoordinator
+BattleOrchestrator *-- BattlePhaseInputRouter
+BattleOrchestrator --> BattleMode
+BattleOrchestrator --> BattleContext
+BattleOrchestrator --> CreatureTeamView
+BattleOrchestrator ..> BattleAction
+BattleCoordinator ..> BattlePhaseType
+
+BattleContext --> BoardData
+BattleContext --> PlacementStyle
+BattleContext *-- BattleStats
+BattleContext *-- TurnContext
+BattleContext *-- BattleUnit
+TurnContext --> BattleUnit
+TurnContext --> BattleAction
+TurnContext --> BattleSide
+
+BattleService ..> EventCenter : BattleLaunchRequested/UnitRemovalRequested
+BattleService ..> BoardDataBuilder : creates board through WorldService
+BattleService --> BattleContext : active battle
+
+@enduml

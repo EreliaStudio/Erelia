@@ -16,6 +16,7 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 	{
 		SubscribeActionShortcutBar();
 		SubscribeActiveUnitHud();
+		SubscribeCompositionEvents();
 	}
 
 	protected override void OnBind()
@@ -35,6 +36,7 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 
 	protected override void OnDeactivate()
 	{
+		ServiceLocator.Instance?.BattleActionCompositionService?.CancelPending();
 		selectedAbility = null;
 		hoveredCell = null;
 		ClearPreviewOverlay();
@@ -47,7 +49,7 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 	public void Cancel()
 	{
 		if (selectedAbility == null) return;
-		selectedAbility = null;
+		ServiceLocator.Instance?.BattleActionCompositionService?.CancelPending();
 		RestartMovementTargeting();
 	}
 
@@ -95,8 +97,7 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 	private void HandleAbilityClicked(int abilityIndex, Ability ability)
 	{
 		if (!IsPhaseActive || ability == null) return;
-		selectedAbility = ability;
-		RefreshPreviewOverlay();
+		playerTurnPhase?.TrySelectAbility(ability);
 	}
 
 	private void TryHandleBoardLeftClick()
@@ -106,25 +107,13 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 		Ability abilityToSubmit = selectedAbility;
 		if (abilityToSubmit != null)
 		{
-			selectedAbility = null;
-			ClearPreviewOverlay();
+			playerTurnPhase.TrySubmitSelectedAbilityTarget(cell);
+			return;
 		}
 
-		bool submitted = abilityToSubmit != null
-			? playerTurnPhase.TrySubmitAbility(abilityToSubmit, new[] { cell })
-			: playerTurnPhase.TrySubmitMove(cell);
-
-		if (!submitted)
+		if (!playerTurnPhase.TrySubmitMove(cell))
 		{
-			selectedAbility = abilityToSubmit;
-			if (selectedAbility != null)
-			{
-				RefreshPreviewOverlay();
-			}
-			else
-			{
-				RestartMovementTargeting();
-			}
+			RestartMovementTargeting();
 		}
 	}
 
@@ -200,6 +189,7 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 	{
 		selectedAbility = null;
 		hoveredCell = null;
+		ServiceLocator.Instance?.BattleActionCompositionService?.TryBeginMovementSelection();
 		RefreshPreviewOverlay();
 	}
 
@@ -208,5 +198,61 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 		if (BattleMode?.BoardPresenter == null) return;
 		BattleMaskRules.ClearPreviewMasks(BattleMode.BoardPresenter.OverlayState);
 		BattleMode.BoardPresenter.RefreshOverlay();
+	}
+
+	private void SubscribeCompositionEvents()
+	{
+		EventCenter.BattleActionCompositionStarted += HandleCompositionStarted;
+		EventCenter.BattleActionCompositionUpdated += HandleCompositionUpdated;
+		EventCenter.BattleActionCompositionCanceled += HandleCompositionCanceled;
+		EventCenter.BattleActionComposed += HandleActionComposed;
+	}
+
+	private void OnDestroy()
+	{
+		EventCenter.BattleActionCompositionStarted -= HandleCompositionStarted;
+		EventCenter.BattleActionCompositionUpdated -= HandleCompositionUpdated;
+		EventCenter.BattleActionCompositionCanceled -= HandleCompositionCanceled;
+		EventCenter.BattleActionComposed -= HandleActionComposed;
+	}
+
+	private void HandleCompositionStarted(BattleActionCompositionContext context)
+	{
+		if (!IsPhaseActive || !IsCurrentBattleContext(context)) return;
+
+		selectedAbility = context.Action is AbilityAction abilityAction ? abilityAction.Ability : null;
+		hoveredCell = null;
+		RefreshPreviewOverlay();
+	}
+
+	private void HandleCompositionUpdated(BattleActionCompositionContext context)
+	{
+		if (!IsPhaseActive || !IsCurrentBattleContext(context)) return;
+
+		selectedAbility = context.Action is AbilityAction abilityAction ? abilityAction.Ability : null;
+		RefreshPreviewOverlay();
+	}
+
+	private void HandleCompositionCanceled(BattleActionCompositionContext context)
+	{
+		if (!IsPhaseActive || !IsCurrentBattleContext(context)) return;
+
+		selectedAbility = null;
+		hoveredCell = null;
+		RefreshPreviewOverlay();
+	}
+
+	private void HandleActionComposed(BattleActionCompositionContext context, BattleAction action)
+	{
+		if (!IsPhaseActive || !IsCurrentBattleContext(context)) return;
+
+		selectedAbility = null;
+		hoveredCell = null;
+		ClearPreviewOverlay();
+	}
+
+	private bool IsCurrentBattleContext(BattleActionCompositionContext context)
+	{
+		return context?.BattleContext != null && ReferenceEquals(context.BattleContext, BattleContext);
 	}
 }

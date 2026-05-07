@@ -13,7 +13,7 @@ public class CreatureUnit
 
 	public CreatureUnit()
 	{
-		FeatProgressionService.InitializeCreatureUnit(this);
+		FeatBoardService.InitializeCreatureUnit(this);
 	}
 
 	public bool HasForm(string p_formID)

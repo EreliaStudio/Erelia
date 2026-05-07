@@ -41,11 +41,13 @@ public sealed class BattleOrchestrator : IDisposable
 		BattleMode = battleMode;
 		BattleContext = battleContext;
 		Coordinator = new BattleCoordinator();
+		ServiceLocator.Instance?.BattleActionCompositionService?.Bind(battleContext);
 
 		BindPhases();
 		BindControllers();
 
 		Coordinator.PhaseChanged += OnPhaseChanged;
+		EventCenter.BattleActionComposed += OnBattleActionComposed;
 		Coordinator.TransitionTo(BattlePhaseType.Setup);
 	}
 
@@ -55,6 +57,8 @@ public sealed class BattleOrchestrator : IDisposable
 		{
 			Coordinator.PhaseChanged -= OnPhaseChanged;
 		}
+
+		EventCenter.BattleActionComposed -= OnBattleActionComposed;
 
 		if (activeController != null)
 		{
@@ -217,6 +221,18 @@ public sealed class BattleOrchestrator : IDisposable
 
 		activePhase?.Enter();
 		activeController?.Activate();
+	}
+
+	private void OnBattleActionComposed(BattleActionCompositionContext context, BattleAction action)
+	{
+		if (context?.BattleContext == null ||
+			action == null ||
+			!ReferenceEquals(context.BattleContext, BattleContext))
+		{
+			return;
+		}
+
+		TrySubmitPendingAction(action);
 	}
 
 	private void BindController(BattlePhaseController controller)

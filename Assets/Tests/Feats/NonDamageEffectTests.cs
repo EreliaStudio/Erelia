@@ -8,22 +8,14 @@ namespace Tests.Feats.NonDamageEffect
 		[Test]
 		public void Apply_RecordsNoEvents()
 		{
-			var creatureUnit = new CreatureUnit
-			{
-				Attributes = new Attributes { Health = 100 },
-				Abilities = new List<Ability>(),
-				PermanentPassives = new List<Status>()
-			};
-			BattleUnit sourceUnit = new BattleUnit(creatureUnit, BattleSide.Player);
-			BattleUnit targetUnit = new BattleUnit(new CreatureUnit
-			{
-				Attributes = new Attributes { Health = 100 },
-				Abilities = new List<Ability>(),
-				PermanentPassives = new List<Status>()
-			}, BattleSide.Enemy);
+			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
+			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
+			BattleUnit sourceUnit = fixture.PlayerUnits[0];
+			BattleUnit targetUnit = fixture.EnemyUnits[0];
 
 			BattleAbilityExecutionContext context = new BattleAbilityExecutionContext
 			{
+				BattleContext = fixture.BattleContext,
 				SourceObject = sourceUnit,
 				TargetObject = targetUnit
 			};
@@ -31,8 +23,8 @@ namespace Tests.Feats.NonDamageEffect
 			var effect = new AdjustTurnBarTimeEffect { Delta = 1f };
 			effect.Apply(context);
 
-			Assert.That(sourceUnit.PendingFeatEvents.Count, Is.Zero);
-			Assert.That(targetUnit.PendingFeatEvents.Count, Is.Zero);
+			Assert.That(capture.Count(sourceUnit), Is.Zero);
+			Assert.That(capture.Count(targetUnit), Is.Zero);
 		}
 	}
 }

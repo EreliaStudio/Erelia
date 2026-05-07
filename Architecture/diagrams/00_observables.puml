@@ -1,15 +1,23 @@
 @startuml Observable System
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
-class "ObservableValue<T>" {
+class "ObservableValue<T>" as ObservableValueT {
   +Value : T
-  +Changed : Action<T>
+  +Changed : event Action<T>
   +Set(T, bool) : bool
   +Increase(T) : bool
   +Decrease(T) : bool
   +Notify()
+}
+
+abstract class "ObservableValue<T>.Listener" as ObservableValueListener {
+  +SubscribeTo(ObservableValue<T>)
+  +ClearBinding()
+  #ClearRenderedValue()
+  #ReactToEdition(T)
 }
 
 class ObservableResource {
@@ -18,7 +26,10 @@ class ObservableResource {
   +Ratio : float
   +Set(int, int, bool) : bool
   +SetCurrent(int, bool) : bool
+  +SetMax(int, bool, bool) : bool
   +Change(int) : bool
+  +Increase(int) : bool
+  +Decrease(int) : bool
   +Reset() : bool
 }
 
@@ -28,17 +39,31 @@ class ObservableFloatResource {
   +Ratio : float
   +Set(float, float, bool) : bool
   +SetCurrent(float, bool) : bool
+  +SetMax(float, bool, bool) : bool
   +Change(float) : bool
+  +Increase(float) : bool
+  +Decrease(float) : bool
   +Reset() : bool
 }
 
-class "ObservableList<T>" {
+class "ObservableList<T>" as ObservableListT {
   +Count : int
-  +Changed : Action<ObservableList<T>>
+  +Changed : event Action<ObservableList<T>>
+  +this[int] : ObservableValue<T>
   +Add(T) : ObservableValue<T>
   +SetItems(IEnumerable<T>)
-  +Remove(T)
   +Clear()
+  +RemoveAt(int)
+  +RemoveAll(Predicate<T>) : int
+  +NotifyItemChanged(T) : bool
+  +NotifyItemChangedAt(int)
+  +FindIndex(T) : int
+  +NotifyChanged()
 }
+
+ObservableValueT <|-- ObservableResource
+ObservableValueT <|-- ObservableFloatResource
+ObservableValueListener ..> ObservableValueT : subscribes
+ObservableListT *-- ObservableValueT : entries
 
 @enduml

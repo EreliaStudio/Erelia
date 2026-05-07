@@ -1,53 +1,116 @@
 @startuml Encounter & Biome System
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
 class BoardConfiguration <<CF diagram 03>> {}
+class BattleContext <<CF diagram 04>> {}
+class BattleOutcome <<CF diagram 04>> {}
+class BattleUnit <<CF diagram 04>> {}
 class CreatureUnit <<CF diagram 06>> {}
+class CreatureSpecies <<CF diagram 06>> {}
 class AIBehaviour <<CF diagram 08>> {}
+class FeatRequirement <<CF diagram 07>> {}
+class FeatRequirementAdvancement <<CF diagram 07>> {}
+class WorldPresenter <<CF diagram 02b>> {}
+class WorldTraversalGraphCache <<CF diagram 03b>> {}
+class WorldPathfinder <<CF diagram 03b>> {}
 
 class EncounterUnit {
   +Behaviour : AIBehaviour
+}
+
+class "EncounterTier.Entry" as EncounterTierEntry {
+  +DisplayName : string
+  +Team : EncounterUnit[]
+  +Weight : int
 }
 
 class EncounterTier {
   +WeightedTeams : List<Entry>
 }
 
-class EncounterTierEntry {
-  +DisplayName : string
-  +Team : List<EncounterUnit>
-  +Weight : int
-}
-
 class EncounterTable {
   +NoBadge : EncounterTier
   +OneBadge : EncounterTier
   +TwoBadges : EncounterTier
+  +ThreeBadges : EncounterTier
+  +FourBadges : EncounterTier
+  +FiveBadges : EncounterTier
+  +SixBadges : EncounterTier
+  +SevenBadges : EncounterTier
+  +EightBadges : EncounterTier
+  +PostGame : EncounterTier
   +GetTierForBadgeCount(int) : EncounterTier
 }
 
 class BiomeEncounterRule {
   +BaseChancePerStep : float
   +BoardConfigurations : List<BoardConfiguration>
+  +PlacementStyle : PlacementStyle
   +EncounterTable : EncounterTable
-  +TryPickBoardConfiguration(out BoardConfiguration) : bool
+  +TryPickBoardConfiguration(out BoardConfiguration, Random) : bool
 }
 
 class BiomeDefinition <<ScriptableObject>> {
-  +WildEncounterRulesByTriggerTag : Dictionary<string, BiomeEncounterRule>
+  +WildEncounterRulesByTriggerTag : SerializedDictionary<string, BiomeEncounterRule>
   +TryGetEncounterRule(string, out BiomeEncounterRule) : bool
+  +CleanTriggerTag(string) : string
+  +AreTriggerTagsEquivalent(string, string) : bool
   +GetEncounterRuleTags() : IReadOnlyList<string>
 }
 
 class EncounterResolver {
-  +TryResolveEncounter(BiomeDefinition, string, Vector3Int, out EncounterUnit[]) : bool
+  +TryResolveEncounter(BiomeDefinition, string, Vector3Int, out EncounterUnit[], Object) : bool
 }
 
 class EncounterEmitter <<MonoBehaviour>> {
+  -worldPresenter : WorldPresenter
   -detectionHeightInCells : int
   -encounterResolver : EncounterResolver
+}
+
+class EncounterService {
+  +Initialize()
+  +Shutdown()
+  +RequestBattle(BoardConfiguration, Vector3, IReadOnlyList<EncounterUnit>, PlacementStyle, bool)
+}
+
+class TamingProfile {
+  +Conditions : List<FeatRequirement>
+  +HasConditions : bool
+  +EnsureInitialized()
+}
+
+class TamingProgress {
+  +TargetUnit : BattleUnit
+  +Profile : TamingProfile
+  +IsImpressed : bool
+  +HasFailed : bool
+  +ConditionAdvancements : IReadOnlyList<Advancement>
+  +EvaluateEvents(IReadOnlyList<EventBase>)
+  +MarkFailed()
+  +Reset()
+}
+
+class WildBattleUnit {
+  +TamingProgress : TamingProgress
+  +IsTamed : bool
+  +EvaluateTamingEvent(EventBase)
+  +MarkUntamable()
+  +ResetBattleRuntimeState()
+}
+
+class TamingRules <<static>> {
+  +CanTrackTaming(BattleUnit, TamingProfile) : bool
+  +AreAllConditionsComplete(TamingProfile, IReadOnlyList<Advancement>) : bool
+  +CreateRecruitFromImpressedUnit(BattleUnit) : CreatureUnit
+}
+
+class TamingService {
+  +Initialize()
+  +Shutdown()
 }
 
 EncounterUnit --|> CreatureUnit
@@ -58,8 +121,21 @@ EncounterTable *-- EncounterTier
 BiomeEncounterRule *-- EncounterTable
 BiomeEncounterRule o-- BoardConfiguration
 BiomeDefinition *-- BiomeEncounterRule
-EncounterResolver ..> BiomeDefinition : uses
+EncounterResolver ..> BiomeDefinition
+EncounterResolver ..> EncounterTable
 EncounterEmitter *-- EncounterResolver
-EncounterEmitter ..> BiomeDefinition : reads
+EncounterEmitter o-- WorldPresenter
+EncounterEmitter *-- WorldTraversalGraphCache
+EncounterEmitter ..> WorldPathfinder
+EncounterEmitter ..> ServiceLocator : EncounterService
+EncounterService ..> EventCenter : BattleLaunchRequested/EncounterResolved
+TamingProfile *-- FeatRequirement
+TamingProgress --> TamingProfile
+TamingProgress --> BattleUnit
+TamingRules ..> TamingProfile
+TamingRules ..> CreatureUnit
+WildBattleUnit --|> BattleUnit
+WildBattleUnit *-- TamingProgress
+TamingService ..> EventCenter : BattleStarted/FeatEvent/BattleResolved
 
 @enduml

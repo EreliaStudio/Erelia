@@ -1,0 +1,177 @@
+@startuml Erelia_Battle_Phase_System
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+hide empty members
+
+title Battle Architecture - Phase System
+
+class BattleMode
+class BattleContext
+class TurnContext
+class BattleAction
+class BattleUnit
+class Ability
+class CreatureTeamView
+
+enum BattlePhaseType {
+  Setup
+  Placement
+  Idle
+  PlayerTurn
+  EnemyTurn
+  Resolution
+  End
+}
+
+interface IBattlePhase {
+  +PhaseType : BattlePhaseType
+  +Bind(BattleOrchestrator)
+  +Enter()
+  +Exit()
+}
+
+interface IBattlePhaseInputHandler {
+  +Confirm()
+  +Cancel()
+}
+
+interface IBattlePhaseAbilityShortcutHandler {
+  +SelectAbilityShortcut(int)
+}
+
+abstract class BattlePhase {
+  #Orchestrator : BattleOrchestrator
+  #BattleMode : BattleMode
+  #BattleContext : BattleContext
+  #TurnContext : TurnContext
+  #Coordinator : BattleCoordinator
+  +PhaseType : BattlePhaseType
+  +Bind(BattleOrchestrator)
+  +Enter()
+  +Exit()
+}
+
+abstract class BattlePhaseController {
+  #Orchestrator : BattleOrchestrator
+  #BattleMode : BattleMode
+  #BattleContext : BattleContext
+  #TurnContext : TurnContext
+  #Coordinator : BattleCoordinator
+  #PlayerTeamView : CreatureTeamView
+  #EnemyTeamView : CreatureTeamView
+  #IsPhaseActive : bool
+  +PhaseType : BattlePhaseType
+  +Bind(BattleOrchestrator)
+  +Activate()
+  +Deactivate()
+}
+
+class SetupPhase
+class PlacementPhase
+class IdlePhase {
+  +Tick(float)
+}
+class PlayerTurnPhase {
+  +TrySubmitMove(Vector3Int) : bool
+  +TrySubmitAbility(Ability, IReadOnlyList<Vector3Int>) : bool
+  +TrySubmitEndTurn() : bool
+}
+class EnemyTurnPhase
+class ResolutionPhase
+class EndPhase
+
+class SetupPhaseController
+class PlacementPhaseController
+class IdlePhaseController
+class PlayerTurnPhaseController
+class EnemyTurnPhaseController
+class ResolutionPhaseController
+class EndPhaseController
+
+class BattleCoordinator {
+  +PhaseChanged : event Action<BattlePhaseType>
+  +CurrentPhaseType : BattlePhaseType
+  +HasActivePhase : bool
+  +TransitionTo(BattlePhaseType)
+}
+
+class BattleOrchestrator {
+  +BattleMode : BattleMode
+  +BattleContext : BattleContext
+  +Coordinator : BattleCoordinator
+  +Initialize(BattleMode, BattleContext)
+  +Dispose()
+  +TransitionTo(BattlePhaseType)
+  +TrySubmitPendingAction(BattleAction) : bool
+  +ConsumePendingAction() : BattleAction
+  +TryBeginTurn(BattleUnit, out BattlePhaseType) : bool
+  +TryBeginNextTurn(out BattlePhaseType) : bool
+  +TryGetPhase(BattlePhaseType, out IBattlePhase) : bool
+  +TryGetController(BattlePhaseType, out BattlePhaseController) : bool
+  +TryGetActiveController(out BattlePhaseController) : bool
+}
+
+class BattlePhaseInputRouter {
+  +Validate(Object)
+  +Configure(BattleOrchestrator)
+  +Dispose()
+}
+
+IBattlePhase <|.. BattlePhase
+BattlePhase <|-- SetupPhase
+BattlePhase <|-- PlacementPhase
+BattlePhase <|-- IdlePhase
+BattlePhase <|-- PlayerTurnPhase
+BattlePhase <|-- EnemyTurnPhase
+BattlePhase <|-- ResolutionPhase
+BattlePhase <|-- EndPhase
+
+BattlePhaseController <|-- SetupPhaseController
+BattlePhaseController <|-- PlacementPhaseController
+BattlePhaseController <|-- IdlePhaseController
+BattlePhaseController <|-- PlayerTurnPhaseController
+BattlePhaseController <|-- EnemyTurnPhaseController
+BattlePhaseController <|-- ResolutionPhaseController
+BattlePhaseController <|-- EndPhaseController
+
+IBattlePhaseInputHandler <|.. PlacementPhaseController
+IBattlePhaseInputHandler <|.. PlayerTurnPhaseController
+IBattlePhaseAbilityShortcutHandler <|.. PlayerTurnPhaseController
+
+BattleOrchestrator *-- BattleCoordinator
+BattleOrchestrator *-- BattlePhaseInputRouter
+BattleOrchestrator o-- IBattlePhase : activePhase
+BattleOrchestrator o-- BattlePhaseController : activeController
+BattleOrchestrator *-- SetupPhase
+BattleOrchestrator *-- PlacementPhase
+BattleOrchestrator *-- IdlePhase
+BattleOrchestrator *-- PlayerTurnPhase
+BattleOrchestrator *-- EnemyTurnPhase
+BattleOrchestrator *-- ResolutionPhase
+BattleOrchestrator *-- EndPhase
+BattleOrchestrator o-- SetupPhaseController
+BattleOrchestrator o-- PlacementPhaseController
+BattleOrchestrator o-- IdlePhaseController
+BattleOrchestrator o-- PlayerTurnPhaseController
+BattleOrchestrator o-- EnemyTurnPhaseController
+BattleOrchestrator o-- ResolutionPhaseController
+BattleOrchestrator o-- EndPhaseController
+
+BattlePhase --> BattleOrchestrator
+BattlePhaseController --> BattleOrchestrator
+BattlePhaseController --> CreatureTeamView
+BattlePhaseInputRouter ..> IBattlePhaseInputHandler
+BattlePhaseInputRouter ..> IBattlePhaseAbilityShortcutHandler
+BattleContext *-- TurnContext
+
+note bottom of BattleOrchestrator
+Concrete phases own battle-state transitions.
+Controllers own per-phase UI/input presentation.
+The input router forwards confirm/cancel/shortcut actions
+to the currently active controller when it implements the
+matching handler interface.
+end note
+
+@enduml

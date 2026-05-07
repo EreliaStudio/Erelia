@@ -103,8 +103,7 @@ namespace Tests.Battle.LineOfSight
 				new[] { playerSource },
 				new[] { enemySource },
 				_board,
-				PlacementStyle.HalfBoard,
-				Vector3.zero);
+				PlacementStyle.HalfBoard);
 
 			PlayerUnit = BattleContext.PlayerUnits[0];
 			EnemyUnit = BattleContext.EnemyUnits[0];

@@ -1,0 +1,58 @@
+@startuml Bootstrap Sequence
+
+skinparam shadowing false
+hide footbox
+
+title Bootstrap and Service Initialization
+
+actor Unity
+participant GameBootstrapper
+participant GameSaveData
+participant GameContext
+participant WorldContext
+participant ServiceLocator
+participant WorldPresenter
+participant WorldService
+participant SaveService
+participant GameInitializationService
+participant ModeManager
+participant ExplorationMode
+
+Unity -> GameBootstrapper : Start()
+GameBootstrapper -> GameBootstrapper : Bootstrap()
+GameBootstrapper -> GameContext : CreateFromSave(gameSaveData)
+GameContext -> GameContext : LoadFromSave(gameSaveData)
+GameContext -> WorldContext : ApplySeed(gameSaveData.WorldSeed)
+
+GameBootstrapper -> ServiceLocator : Create(gameContext)
+ServiceLocator -> ServiceLocator : Destroy()
+ServiceLocator -> ServiceLocator : new Player/World/Feat/Taming/Encounter/Save/Battle services
+ServiceLocator -> ServiceLocator : Initialize() services
+
+GameBootstrapper -> WorldPresenter : Bind(gameContext.World)
+WorldPresenter -> WorldContext : WorldLoader.SetVisibilityRange(...)
+WorldPresenter -> WorldContext : MetaWorldGenerator.SetDefaultBiome(...)
+
+GameBootstrapper -> WorldService : ConfigureVoxelRegistry(worldPresenter.VoxelRegistry)
+GameBootstrapper -> SaveService : BindSaveData(gameSaveData)
+
+alt bootstrapMode == NewGame
+  GameBootstrapper -> WorldPresenter : LoadImmediatelyAroundWorldCell(gameSaveData.PlayerWorldCell)
+  WorldPresenter -> WorldContext : WorldLoader.Load(...)
+  loop pending chunks
+    WorldPresenter -> WorldContext : WorldLoader.ProcessPending(...)
+    WorldPresenter -> WorldPresenter : CreateChunkPresenter(...).Assign(chunk)
+    WorldPresenter -> WorldContext : MetaWorldGenerator.GenerateChunkMeta(...)
+  end
+  GameBootstrapper -> GameInitializationService : TryInitializeNewGameSave(save, worldData, voxelRegistry)
+  GameInitializationService -> GameSaveData : SetPlayerWorldCell(spawnCell)
+  GameInitializationService -> GameSaveData : SetRespawnPoint(spawnCell)
+  GameInitializationService -> GameContext : FeatBoardService.ApplyProgress(starter units)
+  GameBootstrapper -> GameContext : LoadFromSave(gameSaveData)
+end
+
+GameBootstrapper -> ModeManager : SetGameContext(gameContext)
+GameBootstrapper -> ModeManager : EnterExplorationMode(gameContext)
+ModeManager -> ExplorationMode : Enter(gameContext)
+
+@enduml

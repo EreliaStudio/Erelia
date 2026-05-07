@@ -58,7 +58,7 @@ public sealed class PlayerTeamEditorWindow : EditorWindow
 		CreatureUnit selectedUnit = GetSelectedUnit(teamProperty, selectedUnitIndex, true);
 		if (selectedUnit != null)
 		{
-			FeatProgressionService.ApplyProgress(selectedUnit);
+			FeatBoardService.ApplyProgress(selectedUnit);
 		}
 
 		Rect topRect = new Rect(OuterPadding, OuterPadding, position.width - OuterPadding * 2f, TopBarHeight);

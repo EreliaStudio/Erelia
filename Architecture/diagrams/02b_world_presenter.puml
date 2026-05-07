@@ -1,65 +1,86 @@
 @startuml World Presenter
 
 skinparam classAttributeIconSize 0
+skinparam shadowing false
 hide empty members
 
 class WorldContext <<CF diagram 02>> {}
 class WorldData <<CF diagram 02>> {}
+class MetaWorldData <<CF diagram 02>> {}
+class WorldLoader <<CF diagram 02>> {}
+class MetaWorldGenerator <<CF diagram 02>> {}
+class WorldLoadResult <<CF diagram 02>> {}
 class ChunkData <<CF diagram 02>> {}
 class ChunkCoordinates <<CF diagram 02>> {}
 class VoxelRegistry <<CF diagram 01>> {}
+class VoxelMaskRegistry <<CF diagram 01>> {}
 class VoxelMask <<CF diagram 01>> {}
-
-class VoxelMesher <<static>> {
-  +BuildRenderMesh(VoxelGrid, VoxelRegistry) : Mesh
-  +BuildColliderMesh(VoxelGrid, VoxelRegistry, VoxelTraversal) : Mesh
-  +BuildMaskMesh(VoxelGrid, VoxelMaskLayer, VoxelRegistry, VoxelMaskRegistry) : Mesh
-}
+class VoxelMesher <<CF diagram 01>> {}
 
 class TerrainView <<MonoBehaviour>> {
+  +MeshFilter : MeshFilter
+  +MeshRenderer : MeshRenderer
+  +MeshCollider : MeshCollider
   +SetRenderMesh(Mesh)
   +SetCollisionMesh(Mesh)
   +SetVisible(bool)
 }
 
 class MaskOverlayView <<MonoBehaviour>> {
+  +MeshFilter : MeshFilter
+  +MeshRenderer : MeshRenderer
   +SetMaskMesh(Mesh)
   +SetVisible(bool)
 }
 
 class ChunkPresenter <<MonoBehaviour>> {
+  +ChunkData : ChunkData
+  +TerrainView : TerrainView
+  +OverlayView : MaskOverlayView
+  +VoxelRegistry : VoxelRegistry
+  +VoxelMaskRegistry : VoxelMaskRegistry
   +Assign(ChunkData)
   +Rebuild()
+  +RebuildTerrain()
+  +RebuildOverlay()
   +SetViewsVisible(bool)
 }
 
 class WorldPresenter <<MonoBehaviour>> {
+  +WorldContext : WorldContext
   +WorldData : WorldData
   +MetaWorldData : MetaWorldData
+  +WorldLoader : WorldLoader
+  +MetaWorldGenerator : MetaWorldGenerator
   +VoxelRegistry : VoxelRegistry
   +Bind(WorldContext)
   +LoadImmediatelyAroundWorldCell(Vector3Int)
+  +TryGetChunk(ChunkCoordinates, out ChunkData) : bool
   +TryAddMask(Vector3Int, VoxelMask) : bool
   +TryRemoveMask(Vector3Int, VoxelMask) : bool
   +RebuildChunkOverlay(ChunkCoordinates)
+  +RebuildAllChunkOverlays()
   +ClearAllChunkMasks()
+  +ShowBattleAreaBorder(IEnumerable<Vector3Int>)
 }
 
 ChunkPresenter *-- ChunkData
 ChunkPresenter *-- TerrainView
 ChunkPresenter *-- MaskOverlayView
-ChunkPresenter ..> VoxelMesher : uses
-WorldPresenter o-- WorldContext
-WorldPresenter o-- WorldData
-WorldPresenter *-- ChunkPresenter
-WorldPresenter ..> ChunkCoordinates : uses
-WorldPresenter ..> VoxelMask : uses
-WorldPresenter o-- VoxelRegistry
+ChunkPresenter o-- VoxelRegistry
+ChunkPresenter o-- VoxelMaskRegistry
+ChunkPresenter ..> VoxelMesher
 
-WorldContext -[hidden] WorldData
-WorldData -[hidden] ChunkCoordinates
-ChunkCoordinates -[hidden] ChunkPresenter
-ChunkPresenter -[hidden] VoxelMask
-VoxelMask -[hidden] VoxelRegistry
+WorldPresenter o-- WorldContext
+WorldPresenter *-- ChunkPresenter
+WorldPresenter ..> WorldLoadResult : applies
+WorldPresenter ..> ChunkCoordinates
+WorldPresenter ..> VoxelMask
+WorldPresenter ..> EventCenter : listens PlayerChunkChanged
+
+WorldContext --> WorldData
+WorldContext --> MetaWorldData
+WorldContext --> WorldLoader
+WorldContext --> MetaWorldGenerator
 
 @enduml

@@ -8,9 +8,11 @@ namespace Tests.Feats.DamageEffect
 		[Test]
 		public void Apply_RecordsDealDamageEventOnSourceUnit()
 		{
-			BattleUnit sourceUnit = CreateUnit(BattleSide.Player, health: 100);
-			BattleUnit targetUnit = CreateUnit(BattleSide.Enemy, health: 100);
-			BattleAbilityExecutionContext context = CreateContext(sourceUnit, targetUnit);
+			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
+			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
+			BattleUnit sourceUnit = fixture.PlayerUnits[0];
+			BattleUnit targetUnit = fixture.EnemyUnits[0];
+			BattleAbilityExecutionContext context = CreateContext(fixture.BattleContext, sourceUnit, targetUnit);
 
 			var effect = new DamageTargetEffect
 			{
@@ -25,18 +27,20 @@ namespace Tests.Feats.DamageEffect
 
 			effect.Apply(context);
 
-			Assert.That(sourceUnit.PendingFeatEvents.Count, Is.EqualTo(1));
-			Assert.That(sourceUnit.PendingFeatEvents[0], Is.InstanceOf<DealDamageRequirement.Event>());
-			var dealEvent = (DealDamageRequirement.Event)sourceUnit.PendingFeatEvents[0];
+			Assert.That(capture.Count(sourceUnit), Is.EqualTo(1));
+			var dealEvent = capture.Find<DealDamageRequirement.Event>(sourceUnit);
+			Assert.That(dealEvent, Is.Not.Null);
 			Assert.That(dealEvent.Amount, Is.EqualTo(10));
 		}
 
 		[Test]
 		public void Apply_RecordsTakeDamageEventOnTargetUnit()
 		{
-			BattleUnit sourceUnit = CreateUnit(BattleSide.Player, health: 100);
-			BattleUnit targetUnit = CreateUnit(BattleSide.Enemy, health: 100);
-			BattleAbilityExecutionContext context = CreateContext(sourceUnit, targetUnit);
+			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
+			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
+			BattleUnit sourceUnit = fixture.PlayerUnits[0];
+			BattleUnit targetUnit = fixture.EnemyUnits[0];
+			BattleAbilityExecutionContext context = CreateContext(fixture.BattleContext, sourceUnit, targetUnit);
 
 			var effect = new DamageTargetEffect
 			{
@@ -51,18 +55,21 @@ namespace Tests.Feats.DamageEffect
 
 			effect.Apply(context);
 
-			Assert.That(targetUnit.PendingFeatEvents.Count, Is.EqualTo(2));
-			Assert.That(targetUnit.PendingFeatEvents[0], Is.InstanceOf<TakeDamageRequirement.Event>());
-			var takeEvent = (TakeDamageRequirement.Event)targetUnit.PendingFeatEvents[0];
+			Assert.That(capture.Count(targetUnit), Is.EqualTo(2));
+			var takeEvent = capture.Find<TakeDamageRequirement.Event>(targetUnit);
+			Assert.That(takeEvent, Is.Not.Null);
 			Assert.That(takeEvent.Amount, Is.EqualTo(10));
 		}
 
 		[Test]
 		public void Apply_BothEventsCarryTheSameAppliedAmount()
 		{
-			BattleUnit sourceUnit = CreateUnit(BattleSide.Player, health: 100);
-			BattleUnit targetUnit = CreateUnit(BattleSide.Enemy, health: 5);
-			BattleAbilityExecutionContext context = CreateContext(sourceUnit, targetUnit);
+			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
+			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
+			BattleUnit sourceUnit = fixture.PlayerUnits[0];
+			BattleUnit targetUnit = fixture.EnemyUnits[0];
+			targetUnit.BattleAttributes.Health.SetCurrent(5);
+			BattleAbilityExecutionContext context = CreateContext(fixture.BattleContext, sourceUnit, targetUnit);
 
 			var effect = new DamageTargetEffect
 			{
@@ -77,8 +84,8 @@ namespace Tests.Feats.DamageEffect
 
 			effect.Apply(context);
 
-			int dealtAmount = ((DealDamageRequirement.Event)sourceUnit.PendingFeatEvents[0]).Amount;
-			int takenAmount = ((TakeDamageRequirement.Event)targetUnit.PendingFeatEvents[0]).Amount;
+			int dealtAmount = capture.Find<DealDamageRequirement.Event>(sourceUnit).Amount;
+			int takenAmount = capture.Find<TakeDamageRequirement.Event>(targetUnit).Amount;
 
 			Assert.That(dealtAmount, Is.EqualTo(5));
 			Assert.That(takenAmount, Is.EqualTo(5));
@@ -87,9 +94,11 @@ namespace Tests.Feats.DamageEffect
 		[Test]
 		public void Apply_RecordsNoEventsWhenBaseDamageIsZero()
 		{
-			BattleUnit sourceUnit = CreateUnit(BattleSide.Player, health: 100);
-			BattleUnit targetUnit = CreateUnit(BattleSide.Enemy, health: 100);
-			BattleAbilityExecutionContext context = CreateContext(sourceUnit, targetUnit);
+			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
+			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
+			BattleUnit sourceUnit = fixture.PlayerUnits[0];
+			BattleUnit targetUnit = fixture.EnemyUnits[0];
+			BattleAbilityExecutionContext context = CreateContext(fixture.BattleContext, sourceUnit, targetUnit);
 
 			var effect = new DamageTargetEffect
 			{
@@ -98,16 +107,19 @@ namespace Tests.Feats.DamageEffect
 
 			effect.Apply(context);
 
-			Assert.That(sourceUnit.PendingFeatEvents.Count, Is.Zero);
-			Assert.That(targetUnit.PendingFeatEvents.Count, Is.Zero);
+			Assert.That(capture.Count(sourceUnit), Is.Zero);
+			Assert.That(capture.Count(targetUnit), Is.Zero);
 		}
 
 		[Test]
 		public void Apply_RecordsNoEventsWhenTargetAlreadyAtZeroHealth()
 		{
-			BattleUnit sourceUnit = CreateUnit(BattleSide.Player, health: 100);
-			BattleUnit targetUnit = CreateUnit(BattleSide.Enemy, health: 0);
-			BattleAbilityExecutionContext context = CreateContext(sourceUnit, targetUnit);
+			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
+			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
+			BattleUnit sourceUnit = fixture.PlayerUnits[0];
+			BattleUnit targetUnit = fixture.EnemyUnits[0];
+			targetUnit.BattleAttributes.Health.SetCurrent(0);
+			BattleAbilityExecutionContext context = CreateContext(fixture.BattleContext, sourceUnit, targetUnit);
 
 			var effect = new DamageTargetEffect
 			{
@@ -122,24 +134,13 @@ namespace Tests.Feats.DamageEffect
 
 			effect.Apply(context);
 
-			Assert.That(sourceUnit.PendingFeatEvents.Count, Is.Zero);
-			Assert.That(targetUnit.PendingFeatEvents.Count, Is.Zero);
+			Assert.That(capture.Count(sourceUnit), Is.Zero);
+			Assert.That(capture.Count(targetUnit), Is.Zero);
 		}
 
-		private static BattleUnit CreateUnit(BattleSide side, int health = 100)
+		private static BattleAbilityExecutionContext CreateContext(BattleContext battleContext, BattleUnit source, BattleUnit target)
 		{
-			var creatureUnit = new CreatureUnit
-			{
-				Attributes = new Attributes { Health = health },
-				Abilities = new List<Ability>(),
-				PermanentPassives = new List<Status>()
-			};
-			return new BattleUnit(creatureUnit, side);
-		}
-
-		private static BattleAbilityExecutionContext CreateContext(BattleUnit source, BattleUnit target)
-		{
-			return new BattleAbilityExecutionContext { SourceObject = source, TargetObject = target };
+			return new BattleAbilityExecutionContext { BattleContext = battleContext, SourceObject = source, TargetObject = target };
 		}
 	}
 }

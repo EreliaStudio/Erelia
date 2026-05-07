@@ -39,14 +39,14 @@ public class ModeManager : MonoBehaviour
 
 	private void OnEnable()
 	{
-		EventCenter.BattleStartRequested += OnBattleStartRequested;
-		EventCenter.BattleEnded += OnBattleEnded;
+		EventCenter.BattleStarted += OnBattleStarted;
+		EventCenter.BattleResolved += OnBattleResolved;
 	}
 
 	private void OnDisable()
 	{
-		EventCenter.BattleStartRequested -= OnBattleStartRequested;
-		EventCenter.BattleEnded -= OnBattleEnded;
+		EventCenter.BattleStarted -= OnBattleStarted;
+		EventCenter.BattleResolved -= OnBattleResolved;
 	}
 
 	public void SetGameContext(GameContext gameContext)
@@ -86,17 +86,13 @@ public class ModeManager : MonoBehaviour
 		EnterExplorationMode(currentGameContext);
 	}
 
-	private void OnBattleStartRequested(BattleContext context)
+	private void OnBattleStarted(BattleContext p_battleContext)
 	{
-		EnterBattleMode(context);
+		EnterBattleMode(p_battleContext);
 	}
 
-	private void OnBattleEnded(BattleOutcome outcome)
+	private void OnBattleResolved(BattleContext p_battleContext, BattleSide p_winner)
 	{
-		TamingProgressService.AwardWonBattleTamingRewards(currentGameContext?.Player, outcome);
-
-		// TODO TI-06: persist PlayerData to GameSaveData and trigger disk write here.
-
 		EndBattle();
 	}
 

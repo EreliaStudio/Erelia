@@ -9,6 +9,22 @@ public static class BattleActionValidator
 		return TryGetMovementCost(battleContext, turnContext, destination, out _);
 	}
 
+	public static bool CanMove(BattleContext battleContext, TurnContext turnContext, MoveAction action)
+	{
+		BattleUnit activeUnit = turnContext?.ActiveUnit;
+		if (battleContext?.Board == null ||
+			action?.SourceUnit == null ||
+			activeUnit == null ||
+			action.SourceUnit != activeUnit ||
+			activeUnit.IsDefeated ||
+			!activeUnit.HasBoardPosition)
+		{
+			return false;
+		}
+
+		return activeUnit.BattleAttributes.MovementPoints.Current >= action.MovementPointCost;
+	}
+
 	public static bool TryGetMovementCost(BattleContext battleContext, TurnContext turnContext, Vector3Int destination, out int movementCost)
 	{
 		movementCost = -1;
@@ -55,7 +71,21 @@ public static class BattleActionValidator
 
 	public static bool CanUseAbility(BattleContext battleContext, TurnContext turnContext, Ability ability)
 	{
-		return GetValidTargetCells(battleContext, turnContext, ability).Count > 0;
+		BattleUnit activeUnit = turnContext?.ActiveUnit;
+		if (battleContext?.Board == null ||
+			ability == null ||
+			activeUnit == null ||
+			activeUnit.IsDefeated ||
+			!activeUnit.HasBoardPosition ||
+			!DoesUnitOwnAbility(activeUnit, ability))
+		{
+			return false;
+		}
+
+		int requiredActionPoints = Math.Max(0, ability.Cost?.Ability ?? 0);
+		int requiredMovementPoints = Math.Max(0, ability.Cost?.Movement ?? 0);
+		return activeUnit.BattleAttributes.ActionPoints.Current >= requiredActionPoints &&
+			activeUnit.BattleAttributes.MovementPoints.Current >= requiredMovementPoints;
 	}
 
 	public static AbilityCastLegality GetCastLegality(BattleContext battleContext, TurnContext turnContext, Ability ability, Vector3Int targetCell)
@@ -74,14 +104,6 @@ public static class BattleActionValidator
 		if (!activeUnit.HasBoardPosition)
 		{
 			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.SourceNotPlaced, targetCell);
-		}
-
-		int requiredActionPoints = Math.Max(0, ability.Cost?.Ability ?? 0);
-		int requiredMovementPoints = Math.Max(0, ability.Cost?.Movement ?? 0);
-		if (activeUnit.BattleAttributes.ActionPoints.Current < requiredActionPoints ||
-			activeUnit.BattleAttributes.MovementPoints.Current < requiredMovementPoints)
-		{
-			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.InsufficientResources, targetCell);
 		}
 
 		if (!battleContext.Board.IsInside(targetCell))
@@ -294,6 +316,24 @@ public static class BattleActionValidator
 			TargetProfile.Enemy => candidate.Side != source.Side,
 			_ => false
 		};
+	}
+
+	private static bool DoesUnitOwnAbility(BattleUnit unit, Ability ability)
+	{
+		if (unit?.Abilities == null || ability == null)
+		{
+			return false;
+		}
+
+		for (int index = 0; index < unit.Abilities.Count; index++)
+		{
+			if (unit.Abilities[index] == ability)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private static bool MatchesTargetProfile(BattleContext battleContext, BattleUnit source, Ability ability, Vector3Int cell)

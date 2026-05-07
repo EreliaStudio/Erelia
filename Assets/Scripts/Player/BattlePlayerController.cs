@@ -70,7 +70,7 @@ public class BattlePlayerController : MonoBehaviour
 		orbitRightHeld = false;
 	}
 
-	public void Bind(Vector3Int p_boardAnchor, Vector3Int p_boardSize, Vector3 p_playerWorldPosition)
+	public void Bind(Vector3Int p_boardAnchor, Vector3Int p_boardSize)
 	{
 		boardAnchor = p_boardAnchor;
 		boardSize = p_boardSize;
@@ -83,7 +83,7 @@ public class BattlePlayerController : MonoBehaviour
 			cameraHolder.transform.SetParent(parentTransform, true);
 		}
 
-		cameraHolder.transform.position = p_playerWorldPosition;
+		cameraHolder.transform.position = GetBoardFocusPosition(p_boardAnchor, p_boardSize);
 		cameraHolder.transform.rotation = Quaternion.identity;
 
 		if (spawnedCamera == null && cameraPrefab != null)
@@ -194,6 +194,14 @@ public class BattlePlayerController : MonoBehaviour
 
 		spawnedCamera.transform.localPosition = cameraLocalOffset;
 		spawnedCamera.transform.LookAt(cameraHolder.transform.position, Vector3.up);
+	}
+
+	private static Vector3 GetBoardFocusPosition(Vector3Int p_boardAnchor, Vector3Int p_boardSize)
+	{
+		return new Vector3(
+			p_boardAnchor.x + p_boardSize.x * 0.5f,
+			p_boardAnchor.y,
+			p_boardAnchor.z + p_boardSize.z * 0.5f);
 	}
 
 	private void ResolveActions()

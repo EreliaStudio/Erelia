@@ -10,7 +10,7 @@ namespace Tests.Requirements.MaxSingleHit
 		[Test]
 		public void TwoWeakHits_DoNotProgress()
 		{
-			var requirement = new DealDamageRequirement { RequiredAmount = 100, RequirementScope = FeatRequirement.Scope.Ability };
+			var requirement = new DealDamageRequirement { RequiredAmount = 100, RequirementScope = FeatRequirement.Scope.Action };
 			var progress = new FeatRequirementProgress { Requirement = requirement };
 
 			progress.RegisterEvents(new[] { new DealDamageRequirement.Event { Amount = 30 } });
@@ -23,7 +23,7 @@ namespace Tests.Requirements.MaxSingleHit
 		[Test]
 		public void HitAtThreshold_Completes()
 		{
-			var requirement = new DealDamageRequirement { RequiredAmount = 50, RequirementScope = FeatRequirement.Scope.Ability };
+			var requirement = new DealDamageRequirement { RequiredAmount = 50, RequirementScope = FeatRequirement.Scope.Action };
 			var progress = new FeatRequirementProgress { Requirement = requirement };
 
 			progress.RegisterEvents(new[] { new DealDamageRequirement.Event { Amount = 50 } });
@@ -34,7 +34,7 @@ namespace Tests.Requirements.MaxSingleHit
 		[Test]
 		public void SingleEventBelowThreshold_DoesNotComplete()
 		{
-			var requirement = new DealDamageRequirement { RequiredAmount = 100, RequirementScope = FeatRequirement.Scope.Ability };
+			var requirement = new DealDamageRequirement { RequiredAmount = 100, RequirementScope = FeatRequirement.Scope.Action };
 			var progress = new FeatRequirementProgress { Requirement = requirement };
 
 			progress.RegisterEvents(new[] { new DealDamageRequirement.Event { Amount = 40 } });
@@ -53,7 +53,7 @@ namespace Tests.Requirements.MaxSingleHit
 				Id = "max_hit_node",
 				Requirements = new List<FeatRequirement>
 				{
-					new DealDamageRequirement { RequiredAmount = 50, RequirementScope = FeatRequirement.Scope.Ability }
+					new DealDamageRequirement { RequiredAmount = 50, RequirementScope = FeatRequirement.Scope.Action }
 				},
 				NeighbourNodeIds = new List<string> { rootNode.Id }
 			};
@@ -70,12 +70,12 @@ namespace Tests.Requirements.MaxSingleHit
 				Nodes = new List<FeatNode> { rootNode, maxHitNode },
 				RootNodeId = rootNode.Id
 			};
-			FeatProgressionService.InitializeCreatureUnit(creatureUnit);
+			FeatBoardService.InitializeCreatureUnit(creatureUnit);
 
-			FeatProgressionService.RegisterEvent(creatureUnit, new DealDamageRequirement.Event { Amount = 25 });
-			FeatProgressionService.RegisterEvent(creatureUnit, new DealDamageRequirement.Event { Amount = 25 });
+			FeatBoardService.RegisterEvent(creatureUnit, new DealDamageRequirement.Event { Amount = 25 });
+			FeatBoardService.RegisterEvent(creatureUnit, new DealDamageRequirement.Event { Amount = 25 });
 
-			FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creatureUnit, maxHitNode);
+			FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(creatureUnit, maxHitNode);
 			bool completed = nodeProgress != null && nodeProgress.CompletionCount > 0;
 			Assert.That(completed, Is.False, "Two weak hits must not satisfy a max-single-hit requirement.");
 
@@ -91,7 +91,7 @@ namespace Tests.Requirements.MaxSingleHit
 				Id = "max_hit_node",
 				Requirements = new List<FeatRequirement>
 				{
-					new DealDamageRequirement { RequiredAmount = 50, RequirementScope = FeatRequirement.Scope.Ability }
+					new DealDamageRequirement { RequiredAmount = 50, RequirementScope = FeatRequirement.Scope.Action }
 				},
 				Rewards = new List<FeatReward>
 				{
@@ -112,11 +112,11 @@ namespace Tests.Requirements.MaxSingleHit
 				Nodes = new List<FeatNode> { rootNode, maxHitNode },
 				RootNodeId = rootNode.Id
 			};
-			FeatProgressionService.InitializeCreatureUnit(creatureUnit);
+			FeatBoardService.InitializeCreatureUnit(creatureUnit);
 
-			FeatProgressionService.RegisterEvent(creatureUnit, new DealDamageRequirement.Event { Amount = 50 });
+			FeatBoardService.RegisterEvent(creatureUnit, new DealDamageRequirement.Event { Amount = 50 });
 
-			FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(creatureUnit, maxHitNode);
+			FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(creatureUnit, maxHitNode);
 			Assert.That(nodeProgress, Is.Not.Null);
 			Assert.That(nodeProgress.CompletionCount, Is.GreaterThan(0));
 
@@ -136,7 +136,7 @@ namespace Tests.Requirements.MaxSingleHit
 				DisplayName = "Heavy Hitter",
 				Requirements = new List<FeatRequirement>
 				{
-					new DealDamageRequirement { RequiredAmount = 30, RequirementScope = FeatRequirement.Scope.Ability }
+					new DealDamageRequirement { RequiredAmount = 30, RequirementScope = FeatRequirement.Scope.Action }
 				},
 				Rewards = new List<FeatReward>
 				{
@@ -151,7 +151,9 @@ namespace Tests.Requirements.MaxSingleHit
 				Nodes = new List<FeatNode> { rootNode, maxHitNode },
 				RootNodeId = rootNode.Id
 			};
-			FeatProgressionService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+			FeatBoardService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+			using ServiceLocatorTestScope services = new ServiceLocatorTestScope();
+			EventCenter.EmitBattleStarted(fixture.BattleContext);
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 			fixture.CompletePlacement(
@@ -161,11 +163,13 @@ namespace Tests.Requirements.MaxSingleHit
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-			fixture.PlayerUnits[0].RecordFeatEvent(new DealDamageRequirement.Event { Amount = 30 });
+			BattleFeatEventReporter.Emit(
+				fixture.PlayerUnits[0],
+				new DealDamageRequirement.Event { Amount = 30 });
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 
-			FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(fixture.PlayerSources[0], maxHitNode);
+			FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(fixture.PlayerSources[0], maxHitNode);
 			Assert.That(nodeProgress, Is.Not.Null);
 			Assert.That(nodeProgress.CompletionCount, Is.GreaterThan(0));
 
@@ -185,7 +189,7 @@ namespace Tests.Requirements.MaxSingleHit
 				DisplayName = "Heavy Hitter",
 				Requirements = new List<FeatRequirement>
 				{
-					new DealDamageRequirement { RequiredAmount = 50, RequirementScope = FeatRequirement.Scope.Ability }
+					new DealDamageRequirement { RequiredAmount = 50, RequirementScope = FeatRequirement.Scope.Action }
 				},
 				Rewards = new List<FeatReward>
 				{
@@ -200,7 +204,9 @@ namespace Tests.Requirements.MaxSingleHit
 				Nodes = new List<FeatNode> { rootNode, maxHitNode },
 				RootNodeId = rootNode.Id
 			};
-			FeatProgressionService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+			FeatBoardService.InitializeCreatureUnit(fixture.PlayerSources[0]);
+			using ServiceLocatorTestScope services = new ServiceLocatorTestScope();
+			EventCenter.EmitBattleStarted(fixture.BattleContext);
 
 			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
 			fixture.CompletePlacement(
@@ -210,12 +216,16 @@ namespace Tests.Requirements.MaxSingleHit
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-			fixture.PlayerUnits[0].RecordFeatEvent(new DealDamageRequirement.Event { Amount = 25 });
-			fixture.PlayerUnits[0].RecordFeatEvent(new DealDamageRequirement.Event { Amount = 25 });
+			BattleFeatEventReporter.Emit(
+				fixture.PlayerUnits[0],
+				new DealDamageRequirement.Event { Amount = 25 });
+			BattleFeatEventReporter.Emit(
+				fixture.PlayerUnits[0],
+				new DealDamageRequirement.Event { Amount = 25 });
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 
-			FeatNodeProgress nodeProgress = FeatProgressionService.FindNodeProgress(fixture.PlayerSources[0], maxHitNode);
+			FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(fixture.PlayerSources[0], maxHitNode);
 			bool completed = nodeProgress != null && nodeProgress.CompletionCount > 0;
 			Assert.That(completed, Is.False, "Two hits of 25 must not complete a max-single-hit-50 node.");
 
