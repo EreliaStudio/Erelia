@@ -167,9 +167,7 @@ namespace Tests.Requirements.MaxSingleHit
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-			BattleFeatEventReporter.Emit(
-				fixture.PlayerUnits[0],
-				new DamageEvent { Amount = 30, Caster = fixture.PlayerUnits[0] });
+			BattleEventReporter.Emit(new DamageEvent { Amount = 30, Caster = fixture.PlayerUnits[0] });
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 
@@ -220,12 +218,8 @@ namespace Tests.Requirements.MaxSingleHit
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-			BattleFeatEventReporter.Emit(
-				fixture.PlayerUnits[0],
-				new DamageEvent { Amount = 25, Caster = fixture.PlayerUnits[0] });
-			BattleFeatEventReporter.Emit(
-				fixture.PlayerUnits[0],
-				new DamageEvent { Amount = 25, Caster = fixture.PlayerUnits[0] });
+			BattleEventReporter.Emit(new DamageEvent { Amount = 25, Caster = fixture.PlayerUnits[0] });
+			BattleEventReporter.Emit(new DamageEvent { Amount = 25, Caster = fixture.PlayerUnits[0] });
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 

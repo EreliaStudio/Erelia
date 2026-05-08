@@ -24,9 +24,7 @@ public class ApplyStatusEffect : Effect
 		}
 
 		context.TargetUnit.Statuses.Add(Status, StackCount, Duration.Clone(Duration));
-		BattleFeatEventReporter.EmitBoth(
-			context.SourceUnit,
-			context.TargetUnit,
+		BattleEventReporter.Emit(
 			new StatusAppliedEvent
 			{
 				Caster = context.SourceUnit,
@@ -52,9 +50,7 @@ public class RemoveStatusEffect : Effect
 		}
 
 		context.TargetUnit.Statuses.Remove(Status, Math.Max(1, StackCount));
-		BattleFeatEventReporter.EmitBoth(
-			context.SourceUnit,
-			context.TargetUnit,
+		BattleEventReporter.Emit(
 			new StatusRemovedEvent
 			{
 				Caster = context.SourceUnit,
@@ -91,9 +87,7 @@ public class ReviveEffect : Effect
 			context.SourceUnit,
 			Math.Max(1, restoredHealth));
 
-		BattleFeatEventReporter.EmitBoth(
-			context.SourceUnit,
-			context.TargetUnit,
+		BattleEventReporter.Emit(
 			new ReviveEvent
 			{
 				Caster = context.SourceUnit,
@@ -148,10 +142,7 @@ public class ResourceChangeEffect : Effect
 					context.TargetUnit,
 					context.SourceUnit,
 					Value);
-				BattleFeatEventReporter.EmitBoth(
-					context.SourceUnit,
-					context.TargetUnit,
-					new ResourceChangedEvent
+				BattleEventReporter.Emit(new ResourceChangedEvent
 					{
 						Caster = context.SourceUnit,
 						Target = context.TargetUnit,
@@ -167,10 +158,7 @@ public class ResourceChangeEffect : Effect
 					context.TargetUnit,
 					context.SourceUnit,
 					Value);
-				BattleFeatEventReporter.EmitBoth(
-					context.SourceUnit,
-					context.TargetUnit,
-					new ResourceChangedEvent
+				BattleEventReporter.Emit(new ResourceChangedEvent
 					{
 						Caster = context.SourceUnit,
 						Target = context.TargetUnit,
@@ -241,10 +229,7 @@ public class MoveStatus : Effect
 
 		if (distanceMoved > 0)
 		{
-			BattleFeatEventReporter.EmitBoth(
-				context.SourceUnit,
-				context.TargetUnit,
-				new DisplacementEvent
+			BattleEventReporter.Emit(new DisplacementEvent
 				{
 					Caster = context.SourceUnit,
 					Target = context.TargetUnit,
@@ -271,10 +256,7 @@ public class SwapPositionEffect : Effect
 		bool swapped = context.BattleContext.TrySwapUnits(context.SourceUnit, context.TargetUnit);
 		if (swapped)
 		{
-			BattleFeatEventReporter.EmitBoth(
-				context.SourceUnit,
-				context.TargetUnit,
-				new SwapPositionEvent
+			BattleEventReporter.Emit(new SwapPositionEvent
 				{
 					Caster = context.SourceUnit,
 					Target = context.TargetUnit,
@@ -316,10 +298,7 @@ public class TeleportEffect : Effect
 		if (teleported)
 		{
 			int distance = Math.Abs(destination.x - fromPosition.x) + Math.Abs(destination.z - fromPosition.z);
-			BattleFeatEventReporter.EmitBoth(
-				context.SourceUnit,
-				context.TargetUnit,
-				new TeleportedEvent
+			BattleEventReporter.Emit(new TeleportedEvent
 				{
 					Caster = context.SourceUnit,
 					Target = context.TargetUnit,
@@ -378,10 +357,7 @@ public class StealResourceEffect : Effect
 
 		if (stolenAmount > 0)
 		{
-			BattleFeatEventReporter.EmitBoth(
-				context.SourceUnit,
-				context.TargetUnit,
-				new ResourceStolenEvent
+			BattleEventReporter.Emit(new ResourceStolenEvent
 				{
 					Caster = context.SourceUnit,
 					Target = context.TargetUnit,
@@ -435,9 +411,7 @@ public class AdjustTurnBarTimeEffect : Effect
 			context.TargetUnit.BattleAttributes.TurnBar.Decrease(-adjustedDelta);
 		}
 
-		BattleFeatEventReporter.EmitBoth(
-			context.SourceUnit,
-			context.TargetUnit,
+		BattleEventReporter.Emit(
 			new TurnBarTimeAdjustedEvent
 			{
 				Caster = context.SourceUnit,
@@ -466,9 +440,7 @@ public class AdjustTurnBarDurationEffect : Effect
 
 		context.TargetUnit.BattleAttributes.TurnBar.SetMax(Math.Max(MathFormula.MinimumTurnBarDuration, context.TargetUnit.BattleAttributes.TurnBar.Max + adjustedDelta));
 
-		BattleFeatEventReporter.EmitBoth(
-			context.SourceUnit,
-			context.TargetUnit,
+		BattleEventReporter.Emit(
 			new TurnBarDurationAdjustedEvent
 			{
 				Caster = context.SourceUnit,
@@ -540,9 +512,7 @@ public class DamageTargetEffect : Effect
 				selfHealing);
 		}
 
-		BattleFeatEventReporter.EmitBoth(
-			context.SourceUnit,
-			context.TargetUnit,
+		BattleEventReporter.Emit(
 			new DamageEvent
 			{
 				Caster = context.SourceUnit,
@@ -554,10 +524,7 @@ public class DamageTargetEffect : Effect
 
 		if (absorbedByShield > 0)
 		{
-			BattleFeatEventReporter.EmitBoth(
-				context.SourceUnit,
-				context.TargetUnit,
-				new DamageAbsorbedEvent
+			BattleEventReporter.Emit(new DamageAbsorbedEvent
 				{
 					Caster = context.SourceUnit,
 					Target = context.TargetUnit,
@@ -569,10 +536,7 @@ public class DamageTargetEffect : Effect
 		IReadOnlyList<ShieldKind> brokenShieldKinds = shieldAbsorption.BrokenShieldKinds;
 		for (int index = 0; index < brokenShieldKinds.Count; index++)
 		{
-			BattleFeatEventReporter.EmitBoth(
-				context.SourceUnit,
-				context.TargetUnit,
-				new ShieldBrokenEvent
+			BattleEventReporter.Emit(new ShieldBrokenEvent
 				{
 					Caster = context.SourceUnit,
 					Target = context.TargetUnit,
@@ -583,9 +547,7 @@ public class DamageTargetEffect : Effect
 
 		if (!context.TargetUnit.IsDefeated)
 		{
-			BattleFeatEventReporter.Emit(
-				context.TargetUnit,
-				new HitSurvivedEvent
+			BattleEventReporter.Emit(new HitSurvivedEvent
 				{
 					Caster = context.SourceUnit,
 					Target = context.TargetUnit,
@@ -611,9 +573,7 @@ public class ApplyShieldEffect : Effect
 		}
 
 		context.TargetUnit.BattleAttributes.AddShield(Kind, Amount, DurationInTurns);
-		BattleFeatEventReporter.EmitBoth(
-			context.SourceUnit,
-			context.TargetUnit,
+		BattleEventReporter.Emit(
 			new ShieldAppliedEvent
 			{
 				Caster = context.SourceUnit,
@@ -656,9 +616,7 @@ public class HealTargetEffect : Effect
 			context.TargetUnit,
 			context.SourceUnit,
 			computedHealing);
-		BattleFeatEventReporter.EmitBoth(
-			context.SourceUnit,
-			context.TargetUnit,
+		BattleEventReporter.Emit(
 			new HealEvent
 			{
 				Caster = context.SourceUnit,

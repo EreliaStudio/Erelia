@@ -3,91 +3,33 @@ using System.Collections.Generic;
 public sealed class FeatBoardService
 {
 	private readonly GameContext gameContext;
-	private readonly Dictionary<CreatureUnit, List<BattleEvent>> battleEventsByUnit = new();
+	private readonly BattleLogService battleLogService;
 
 	private BattleContext activeBattleContext;
 
-	public FeatBoardService(GameContext p_gameContext)
+	public FeatBoardService(GameContext p_gameContext, BattleLogService p_battleLogService)
 	{
 		gameContext = p_gameContext;
+		battleLogService = p_battleLogService;
 	}
 
 	public void Initialize()
 	{
 		EventCenter.BattleStarted += OnBattleStarted;
-		EventCenter.BattleEventOccurred += OnBattleEventOccurred;
-		EventCenter.BattleAbilityResolved += OnBattleAbilityResolved;
-		EventCenter.BattleTurnEnded += OnBattleTurnEnded;
 		EventCenter.BattleResolved += OnBattleResolved;
 	}
 
 	public void Shutdown()
 	{
 		EventCenter.BattleStarted -= OnBattleStarted;
-		EventCenter.BattleEventOccurred -= OnBattleEventOccurred;
-		EventCenter.BattleAbilityResolved -= OnBattleAbilityResolved;
-		EventCenter.BattleTurnEnded -= OnBattleTurnEnded;
 		EventCenter.BattleResolved -= OnBattleResolved;
 
 		activeBattleContext = null;
-		battleEventsByUnit.Clear();
 	}
 
 	private void OnBattleStarted(BattleContext p_battleContext)
 	{
 		activeBattleContext = p_battleContext;
-		battleEventsByUnit.Clear();
-
-		if (activeBattleContext?.PlayerUnits == null)
-		{
-			return;
-		}
-
-		for (int index = 0; index < activeBattleContext.PlayerUnits.Count; index++)
-		{
-			CreatureUnit unit = activeBattleContext.PlayerUnits[index]?.SourceUnit;
-			if (unit != null && !battleEventsByUnit.ContainsKey(unit))
-			{
-				battleEventsByUnit.Add(unit, new List<BattleEvent>());
-			}
-		}
-	}
-
-	private void OnBattleEventOccurred(BattleUnit p_unit, BattleEvent p_featEvent)
-	{
-		if (p_unit == null ||
-			p_unit.Side != BattleSide.Player ||
-			p_unit.SourceUnit == null ||
-			p_featEvent == null)
-		{
-			return;
-		}
-
-		GetOrCreateBattleEventList(p_unit.SourceUnit).Add(p_featEvent);
-	}
-
-	private void OnBattleAbilityResolved(BattleContext p_battleContext, BattleUnit p_sourceUnit)
-	{
-		if (!ReferenceEquals(p_battleContext, activeBattleContext) ||
-			p_sourceUnit?.SourceUnit == null ||
-			p_sourceUnit.Side != BattleSide.Player)
-		{
-			return;
-		}
-
-		ResetTransientRequirementProgress(p_sourceUnit.SourceUnit, FeatRequirement.Scope.Action);
-	}
-
-	private void OnBattleTurnEnded(BattleContext p_battleContext, BattleUnit p_unit)
-	{
-		if (!ReferenceEquals(p_battleContext, activeBattleContext) ||
-			p_unit?.SourceUnit == null ||
-			p_unit.Side != BattleSide.Player)
-		{
-			return;
-		}
-
-		ResetTransientRequirementProgress(p_unit.SourceUnit, FeatRequirement.Scope.Turn);
 	}
 
 	private void OnBattleResolved(BattleContext p_battleContext, BattleSide p_winner)
@@ -97,45 +39,79 @@ public sealed class FeatBoardService
 			return;
 		}
 
-		bool playerWon = p_winner == BattleSide.Player;
-		IReadOnlyList<BattleUnit> playerUnits = activeBattleContext?.PlayerUnits;
-		if (playerUnits != null)
+		if (p_winner == BattleSide.Player)
 		{
-			for (int index = 0; index < playerUnits.Count; index++)
-			{
-				BattleUnit battleUnit = playerUnits[index];
-				if (battleUnit?.SourceUnit == null)
-				{
-					continue;
-				}
-
-				List<BattleEvent> featEvents = GetOrCreateBattleEventList(battleUnit.SourceUnit);
-				if (playerWon)
-				{
-					featEvents.Add(new BattleWonEvent { UnitSurvived = !battleUnit.IsDefeated });
-				}
-
-				int completedNodeCount = RegisterFightEvents(battleUnit.SourceUnit, featEvents, true);
-				if (completedNodeCount > 0)
-				{
-					EventCenter.EmitFeatProgressUpdated(battleUnit.SourceUnit, completedNodeCount);
-				}
-			}
+			ProcessBattleLog(activeBattleContext);
 		}
 
 		activeBattleContext = null;
-		battleEventsByUnit.Clear();
 	}
 
-	private List<BattleEvent> GetOrCreateBattleEventList(CreatureUnit p_unit)
+	private void ProcessBattleLog(BattleContext p_battleContext)
 	{
-		if (!battleEventsByUnit.TryGetValue(p_unit, out List<BattleEvent> featEvents))
+		IReadOnlyList<BattleUnit> playerUnits = p_battleContext?.PlayerUnits;
+		if (playerUnits == null)
 		{
-			featEvents = new List<BattleEvent>();
-			battleEventsByUnit[p_unit] = featEvents;
+			return;
 		}
 
-		return featEvents;
+		Dictionary<CreatureUnit, int> completionsByUnit = new();
+
+		IReadOnlyList<BattleEvent> log = battleLogService.BattleLog;
+		for (int i = 0; i < log.Count; i++)
+		{
+			BattleEvent ev = log[i];
+			if (ev == null)
+			{
+				continue;
+			}
+
+			if (ev.Caster?.Side == BattleSide.Player && ev.Caster.SourceUnit != null)
+			{
+				AccumulateCompletions(completionsByUnit, ev.Caster.SourceUnit, RegisterEvent(ev.Caster.SourceUnit, ev));
+			}
+
+			if (ev.Target != null &&
+				ev.Target != ev.Caster &&
+				ev.Target.Side == BattleSide.Player &&
+				ev.Target.SourceUnit != null)
+			{
+				AccumulateCompletions(completionsByUnit, ev.Target.SourceUnit, RegisterEvent(ev.Target.SourceUnit, ev));
+			}
+		}
+
+		for (int index = 0; index < playerUnits.Count; index++)
+		{
+			BattleUnit battleUnit = playerUnits[index];
+			if (battleUnit?.SourceUnit == null)
+			{
+				continue;
+			}
+
+			AccumulateCompletions(
+				completionsByUnit,
+				battleUnit.SourceUnit,
+				RegisterEvent(battleUnit.SourceUnit, new BattleWonEvent { UnitSurvived = !battleUnit.IsDefeated }));
+		}
+
+		foreach (KeyValuePair<CreatureUnit, int> pair in completionsByUnit)
+		{
+			if (pair.Value > 0)
+			{
+				EventCenter.EmitFeatProgressUpdated(pair.Key, pair.Value);
+			}
+		}
+	}
+
+	private static void AccumulateCompletions(Dictionary<CreatureUnit, int> p_dict, CreatureUnit p_unit, int p_count)
+	{
+		if (p_count <= 0)
+		{
+			return;
+		}
+
+		p_dict.TryGetValue(p_unit, out int existing);
+		p_dict[p_unit] = existing + p_count;
 	}
 
 	public static FeatBoard InitializeCreatureUnit(CreatureUnit p_unit)

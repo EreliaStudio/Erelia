@@ -435,9 +435,9 @@ namespace Tests.Requirements.Position.TurnStartPosition
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-			BattleFeatEventReporter.Emit(fixture.PlayerUnits[0], new TurnStartedEvent
+			BattleEventReporter.Emit(new TurnStartedEvent
 			{
-				ClosestEnemyDistance = 2, ClosestAllyDistance = int.MaxValue
+				Caster = fixture.PlayerUnits[0], ClosestEnemyDistance = 2, ClosestAllyDistance = int.MaxValue
 			});
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
@@ -493,9 +493,9 @@ namespace Tests.Requirements.Position.TurnStartPosition
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-			BattleFeatEventReporter.Emit(fixture.PlayerUnits[0], new TurnStartedEvent
+			BattleEventReporter.Emit(new TurnStartedEvent
 			{
-				ClosestEnemyDistance = 5, ClosestAllyDistance = int.MaxValue
+				Caster = fixture.PlayerUnits[0], ClosestEnemyDistance = 5, ClosestAllyDistance = int.MaxValue
 			});
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
@@ -752,9 +752,9 @@ namespace Tests.Requirements.Position.TurnEndPosition
 
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
-			BattleFeatEventReporter.Emit(fixture.PlayerUnits[0], new TurnEndedEvent
+			BattleEventReporter.Emit(new TurnEndedEvent
 			{
-				ClosestEnemyDistance = 5, ClosestAllyDistance = int.MaxValue
+				Caster = fixture.PlayerUnits[0], ClosestEnemyDistance = 5, ClosestAllyDistance = int.MaxValue
 			});
 
 			orchestrator.TransitionTo(BattlePhaseType.End);

@@ -24,12 +24,15 @@ MonoBehaviour:
     ResistancePenetration: 0
     BonusRange: 0
     Recovery: 4
+    Stamina: 1
     BonusHealing: 0
     LifeSteal: 0
     Omnivamprism: 0
     TimeEffectResistance: 0
   DefaultAbilities:
   - {fileID: 11400000, guid: e3f6dee464301b84caa32b6aec30a4eb, type: 2}
+  TamingProfile:
+    Conditions: []
   FeatBoard:
     Nodes:
     - rid: 7055333531646951492

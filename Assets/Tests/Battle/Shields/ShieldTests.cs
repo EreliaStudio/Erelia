@@ -436,7 +436,7 @@ namespace Tests.Battle.Shields
 
 			AssertPlayerVictoryCompletesNode(
 				applyShieldNode,
-				unit => BattleFeatEventReporter.Emit(unit, new ShieldAppliedEvent
+				unit => BattleEventReporter.Emit(new ShieldAppliedEvent
 				{
 					Caster = unit,
 					Amount = 15,
@@ -453,7 +453,7 @@ namespace Tests.Battle.Shields
 
 			AssertPlayerVictoryCompletesNode(
 				absorbShieldNode,
-				unit => BattleFeatEventReporter.Emit(unit, new DamageAbsorbedEvent { Target = unit, Amount = 20 }));
+				unit => BattleEventReporter.Emit(new DamageAbsorbedEvent { Caster = unit, Target = unit, Amount = 20 }));
 		}
 
 		[Test]
@@ -476,8 +476,9 @@ namespace Tests.Battle.Shields
 						unit.BattleAttributes.AbsorbDamage(MathFormula.DamageInput.Kind.Physical, 10);
 					for (int index = 0; index < result.BrokenShieldKinds.Count; index++)
 					{
-						BattleFeatEventReporter.Emit(unit, new ShieldBrokenEvent
+						BattleEventReporter.Emit(new ShieldBrokenEvent
 						{
+							Caster = unit,
 							Kind = result.BrokenShieldKinds[index]
 						});
 					}

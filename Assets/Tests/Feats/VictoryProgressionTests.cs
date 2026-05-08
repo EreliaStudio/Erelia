@@ -49,9 +49,7 @@ namespace Tests.Feats.VictoryProgression
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
 
-			BattleFeatEventReporter.Emit(
-				fixture.PlayerUnits[0],
-				new DamageEvent { Amount = 50, Caster = fixture.PlayerUnits[0] });
+			BattleEventReporter.Emit(new DamageEvent { Amount = 50, Caster = fixture.PlayerUnits[0] });
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 
@@ -106,9 +104,7 @@ namespace Tests.Feats.VictoryProgression
 			fixture.PlayerUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.PlayerUnits[0]);
 
-			BattleFeatEventReporter.Emit(
-				fixture.PlayerUnits[0],
-				new DamageEvent { Amount = 50, Caster = fixture.PlayerUnits[0] });
+			BattleEventReporter.Emit(new DamageEvent { Amount = 50, Caster = fixture.PlayerUnits[0] });
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 
@@ -159,9 +155,7 @@ namespace Tests.Feats.VictoryProgression
 			fixture.EnemyUnits[0].BattleAttributes.Health.Decrease(1000);
 			fixture.BattleContext.DefeatUnit(fixture.EnemyUnits[0]);
 
-			BattleFeatEventReporter.Emit(
-				fixture.EnemyUnits[0],
-				new DamageEvent { Amount = 50, Caster = fixture.EnemyUnits[0] });
+			BattleEventReporter.Emit(new DamageEvent { Amount = 50, Caster = fixture.EnemyUnits[0] });
 
 			orchestrator.TransitionTo(BattlePhaseType.End);
 

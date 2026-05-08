@@ -6,6 +6,7 @@ public sealed class ServiceLocator
 	public BattleService BattleService { get; }
 	public BattleActionCompositionService BattleActionCompositionService { get; }
 	public PlayerService PlayerService { get; }
+	public BattleLogService BattleLogService { get; }
 	public FeatBoardService FeatBoardService { get; }
 	public TamingService TamingService { get; }
 	public EncounterService EncounterService { get; }
@@ -29,7 +30,8 @@ public sealed class ServiceLocator
 		PlayerService = new PlayerService(GameContext);
 		SaveService.BindRuntimeServices(GameContext, PlayerService);
 		WorldService = new WorldService(GameContext);
-		FeatBoardService = new FeatBoardService(GameContext);
+		BattleLogService = new BattleLogService();
+		FeatBoardService = new FeatBoardService(GameContext, BattleLogService);
 		TamingService = new TamingService(GameContext);
 		EncounterService = new EncounterService(GameContext);
 		BattleActionCompositionService = new BattleActionCompositionService();
@@ -66,6 +68,7 @@ public sealed class ServiceLocator
 	{
 		PlayerService.Initialize();
 		WorldService.Initialize();
+		BattleLogService.Initialize();
 		FeatBoardService.Initialize();
 		TamingService.Initialize();
 		EncounterService.Initialize();
@@ -82,6 +85,7 @@ public sealed class ServiceLocator
 		EncounterService.Shutdown();
 		TamingService.Shutdown();
 		FeatBoardService.Shutdown();
+		BattleLogService.Shutdown();
 		WorldService.Shutdown();
 		PlayerService.Shutdown();
 	}

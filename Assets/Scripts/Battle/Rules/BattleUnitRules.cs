@@ -44,15 +44,12 @@ internal static class BattleUnitRules
 
 		if (sourceUnit != null && unit != sourceUnit)
 		{
-			BattleFeatEventReporter.EmitBoth(
-				sourceUnit,
-				unit,
-				new UnitDefeatedEvent
-				{
-					Caster = sourceUnit,
-					Target = unit,
-					SourceAbility = sourceAbility
-				});
+			BattleEventReporter.Emit(new UnitDefeatedEvent
+			{
+				Caster = sourceUnit,
+				Target = unit,
+				SourceAbility = sourceAbility
+			});
 		}
 
 		return true;

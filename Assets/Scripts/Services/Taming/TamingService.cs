@@ -48,11 +48,10 @@ public sealed class TamingService
 		}
 	}
 
-	private void OnBattleEventOccurred(BattleUnit p_unit, BattleEvent p_featEvent)
+	private void OnBattleEventOccurred(BattleEvent p_featEvent)
 	{
-		if (p_unit == null ||
-			p_unit.Side != BattleSide.Player ||
-			p_featEvent == null)
+		if (p_featEvent?.Caster == null ||
+			p_featEvent.Caster.Side != BattleSide.Player)
 		{
 			return;
 		}
