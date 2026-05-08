@@ -4,8 +4,7 @@ See [global.md](global.md) for the epic summary.
 
 | Priority | Pts | Ticket | Notes |
 |----------|-----|--------|-------|
-| 195 | 2 | **[PP-01] JSON serialization for `GameSaveData` to disk** | `JsonUtility` or `Newtonsoft.Json` serialization of `GameSaveData` to `Application.persistentDataPath/save.json`. Include error handling for corrupt files. |
-| 195 | 2 | **[PP-02] Load `GameSaveData` from disk on startup in `GameBootstrapper`** | On launch, attempt to read and deserialize the save file. If absent or corrupt, call `GameInitializationService.TryInitializeNewGameSave()`. Set loaded data on `GameContext`. |
+| 195 | 2 | **[PP-02] Load `GameSaveData` from disk on startup** | `SaveService.TryLoadFromFile` and `IOFileService.TryLoad` exist and work. Wire them to the startup flow: `MainMenuMock.EnterGame` (and later the real main menu) should call `TryLoadFromFile` and only fall back to `TryInitializeNewGameSave` on missing/corrupt file. Currently it always creates a blank `new GameSaveData()`. |
 | 195 | 1 | **[PP-03] Auto-save on mode transitions** | Serialize and write `GameSaveData` to disk in `ExplorationMode.Enter` (after returning from battle) and when the player uses a heal point. Avoids requiring an explicit save action. |
 | 135 | 1 | **[PP-04] Add `HashSet<string> DefeatedGyms` to `GameSaveData`** | String key = gym ID or asset GUID. Persists across sessions. `EndPhaseController` writes to this set after a gym battle victory. |
 | 135 | 2 | **[PP-05] Wire gym defeat count to `EncounterTier` scaling in `EncounterResolver`** | `EncounterResolver.Resolve` reads `GameSaveData.DefeatedGyms.Count` and selects the matching `EncounterTier` index (0–8). Clamp to max tier if more than 8 gyms cleared. |

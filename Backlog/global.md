@@ -73,7 +73,7 @@ Each section below lists its top-priority epics only. Full ticket breakdowns (1�
 
 | Priority | Epic | Detail file |
 |----------|------|-------------|
-| 195 | **Save / Load system** — serialization to disk and loading on startup not wired | [player-progression.md](player-progression.md) |
+| 195 | **Save / Load system** — `IOFileService` + `SaveService` implemented; startup load not yet wired (always creates blank save) | [player-progression.md](player-progression.md) |
 | 135 | **Gym defeat tracking + encounter tier scaling** — cleared-gym set and tier feed missing | [player-progression.md](player-progression.md) |
 | 125 | **Team management screen** — UI to swap creatures between team and PC box | [player-progression.md](player-progression.md) |
 | 115 | **PC storage creature box** — PC box storage and swap UI needed | [player-progression.md](player-progression.md) |
