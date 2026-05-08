@@ -1,0 +1,145 @@
+@startuml Ability Selection Sequence
+
+skinparam shadowing false
+hide footbox
+
+title Ability Selection, Targeting and Execution (Player Turn)
+
+actor Player
+
+participant PlayerTurnPhaseController as UI
+participant PlayerTurnPhase as Phase
+participant BattleActionCompositionService as CompSvc
+participant BattleActionValidator as Validator
+participant EventCenter as Events
+participant BattleOrchestrator as Orch
+participant ResolutionPhase as ResoPhase
+participant BattleActionResolver as Resolver
+participant "Effect.Apply()" as Effects
+
+== Spell Selection ==
+
+Player -> UI : clicks ability button
+UI -> Phase : TrySelectAbility(ability)
+Phase -> CompSvc : TrySelectAbility(ability)
+CompSvc -> Validator : DoesUnitOwnAbility(unit, ability)
+Validator --> CompSvc : true
+CompSvc -> CompSvc : create pending AbilityAction(unit, ability, [])
+CompSvc -> Events : EmitBattleActionCompositionStarted(pendingContext)
+Events --> UI : BattleActionCompositionStarted
+UI -> UI : store selectedAbility\nshow attack range mask
+
+== Target Hovering (preview) ==
+
+Player -> UI : hovers cell
+UI -> Phase : CanTargetCellWithAbility(ability, cell)
+Phase -> Validator : CanTargetCellWithAbility(ctx, turn, ability, cell)
+note right of Validator
+  Checks board bounds, range,
+  LOS, target profile only.
+  No resource check.
+end note
+Validator --> Phase : true / false
+Phase --> UI : true / false
+
+alt cell is a valid target
+    UI -> Phase : GetAffectedCells(ability, cell)
+    Phase -> Validator : CanTargetCellWithAbility (guard)
+    Phase --> UI : affected cell list
+    UI -> UI : show AoE mask preview
+else cell is invalid
+    UI -> UI : clear AoE preview
+end
+
+== Target Confirmation ==
+
+Player -> UI : clicks target cell
+UI -> Phase : TrySubmitSelectedAbilityTarget(cell)
+Phase -> CompSvc : TryComposeAbilityTarget(cell)
+CompSvc -> Validator : GetCastLegality(ctx, turn, ability, cell)
+note right of Validator
+  Combined check:
+  caster resources + cell geometry.
+end note
+Validator --> CompSvc : AbilityCastLegality
+
+alt legality valid
+    CompSvc -> CompSvc : update pending action\nwith confirmed target cell
+    CompSvc -> Events : EmitBattleActionCompositionUpdated
+    Events --> UI : BattleActionCompositionUpdated
+    CompSvc -> CompSvc : TryConfirmPendingAction()
+    CompSvc -> Events : EmitBattleActionComposed(context, AbilityAction)
+    Events --> Orch : BattleActionComposed
+    Events --> UI : BattleActionComposed\nclear UI, hide masks
+else legality invalid
+    CompSvc --> Phase : false
+    Phase --> UI : false
+    UI -> UI : show rejection feedback
+end
+
+== Phase Transition to Resolution ==
+
+Orch -> Orch : store pending action
+Orch -> Orch : TransitionTo(Resolution)
+Orch -> ResoPhase : Enter()
+
+== Ability Execution ==
+
+ResoPhase -> Orch : ConsumePendingAction()
+Orch --> ResoPhase : AbilityAction
+ResoPhase -> Resolver : Resolve(ctx, turn, AbilityAction)
+
+Resolver -> Validator : CanUseAbilityAction(ctx, turn, action)
+note right of Validator
+  source == active unit,
+  alive, placed,
+  AP/MP >= action costs.
+end note
+Validator --> Resolver : true / false
+
+alt action valid
+    Resolver -> Validator : CanTargetCellWithAbility\n(each target cell)
+    Validator --> Resolver : all valid
+
+    Resolver -> Resolver : ApplyHook(BeforeConsumingResources)
+    Resolver -> Resolver : deduct AP / MP from unit
+    Resolver -> Events : emit ResourceConsumedEvent(AP)
+    Resolver -> Events : emit ResourceConsumedEvent(MP)
+
+    loop for each target cell (anchor)
+        Resolver -> Resolver : GetAffectedCells(anchor)
+        loop for each affected cell
+            loop for each BattleObject at cell
+                Resolver -> Effects : effect.Apply(ExecutionContext)
+                note right of Effects
+                  e.g. DamageTargetEffect,
+                  HealTargetEffect,
+                  ApplyStatusEffect…
+                end note
+            end
+        end
+    end
+
+    Resolver -> Resolver : ResolvePendingDefeats()
+    Resolver -> Resolver : ApplyHook(AfterConsumingResources)
+    Resolver -> Resolver : RecordAbilityCast(ability)
+    Resolver -> Events : emit AbilityCastEvent
+    Resolver -> Events : EmitBattleAbilityResolved(ctx, unit)
+    Resolver --> ResoPhase : true
+else action invalid
+    Resolver --> ResoPhase : false
+end
+
+== Next Turn Decision ==
+
+ResoPhase -> ResoPhase : TransitionAfterResolution()
+
+alt battle won / lost
+    ResoPhase -> Orch : TransitionTo(End)
+else player turn next
+    ResoPhase -> Orch : TransitionTo(PlayerTurn)
+else enemy turn next
+    ResoPhase -> Orch : TransitionTo(EnemyTurn)
+end
+
+@enduml

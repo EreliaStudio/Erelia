@@ -114,33 +114,25 @@ public static class BattleActionValidator
 			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.InsufficientResources, targetCell);
 		}
 
-		if (!battleContext.Board.IsInside(targetCell))
-		{
-			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.OutOfBoard, targetCell);
-		}
-
-		if (!BattleRangeRules.IsCellInRange(activeUnit, targetCell, ability))
-		{
-			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.OutOfRange, targetCell);
-		}
-
-		if ((ability.Range?.RequireLineOfSight ?? false) &&
-			!BattleLineOfSightRules.HasLineOfSight(battleContext, activeUnit.BoardPosition, targetCell))
-		{
-			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.BlockedByLineOfSight, targetCell);
-		}
-
-		if (!MatchesTargetProfile(battleContext, activeUnit, ability, targetCell))
-		{
-			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.InvalidTargetProfile, targetCell);
-		}
-
-		return AbilityCastLegality.Valid(targetCell);
+		return GetCellLegality(battleContext, activeUnit, ability, targetCell);
 	}
 
 	public static bool CanCastAtCell(BattleContext battleContext, TurnContext turnContext, Ability ability, Vector3Int targetCell)
 	{
 		return GetCastLegality(battleContext, turnContext, ability, targetCell).IsValid;
+	}
+
+	// Validates only target-cell geometry (board bounds, range, LOS, target profile).
+	// Does NOT check caster resources — use CanUseAbility or GetCastLegality for the combined check.
+	public static bool CanTargetCellWithAbility(BattleContext battleContext, TurnContext turnContext, Ability ability, Vector3Int targetCell)
+	{
+		BattleUnit activeUnit = turnContext?.ActiveUnit;
+		if (battleContext?.Board == null || ability == null || activeUnit == null || !activeUnit.HasBoardPosition)
+		{
+			return false;
+		}
+
+		return GetCellLegality(battleContext, activeUnit, ability, targetCell).IsValid;
 	}
 
 	public static bool CanTarget(BattleContext battleContext, TurnContext turnContext, Ability ability, BattleObject target)
@@ -169,7 +161,7 @@ public static class BattleActionValidator
 
 	public static bool CanTargetCell(BattleContext battleContext, TurnContext turnContext, Ability ability, Vector3Int cell)
 	{
-		return CanCastAtCell(battleContext, turnContext, ability, cell);
+		return CanTargetCellWithAbility(battleContext, turnContext, ability, cell);
 	}
 
 	public static IReadOnlyList<BattleObject> GetValidTargets(BattleContext battleContext, TurnContext turnContext, Ability ability)
@@ -208,7 +200,7 @@ public static class BattleActionValidator
 		for (int index = 0; index < nodes.Count; index++)
 		{
 			Vector3Int cell = nodes[index].Position;
-			if (!GetCastLegality(battleContext, turnContext, ability, cell).IsValid)
+			if (!GetCellLegality(battleContext, activeUnit, ability, cell).IsValid)
 			{
 				continue;
 			}
@@ -217,6 +209,26 @@ public static class BattleActionValidator
 		}
 
 		return validCells;
+	}
+
+	// Validates a fully resolved AbilityAction before execution: source must be the active unit,
+	// alive, placed, and able to pay the action's stored AP/MP costs.
+	public static bool CanUseAbilityAction(BattleContext battleContext, TurnContext turnContext, AbilityAction action)
+	{
+		BattleUnit activeUnit = turnContext?.ActiveUnit;
+		if (battleContext?.Board == null ||
+			action?.SourceUnit == null ||
+			action.Ability == null ||
+			activeUnit == null ||
+			action.SourceUnit != activeUnit ||
+			activeUnit.IsDefeated ||
+			!activeUnit.HasBoardPosition)
+		{
+			return false;
+		}
+
+		return activeUnit.BattleAttributes.ActionPoints.Current >= action.ActionPointCost &&
+			activeUnit.BattleAttributes.MovementPoints.Current >= action.MovementPointCost;
 	}
 
 	public static bool CanEndTurn(BattleContext battleContext, TurnContext turnContext)
@@ -308,6 +320,33 @@ public static class BattleActionValidator
 			costs[neighbour.Position] = nextCost;
 			frontier.Enqueue(neighbour.Position);
 		}
+	}
+
+	// Checks only target-cell geometry. Assumes source is already validated as placed and non-defeated.
+	private static AbilityCastLegality GetCellLegality(BattleContext battleContext, BattleUnit source, Ability ability, Vector3Int targetCell)
+	{
+		if (!battleContext.Board.IsInside(targetCell))
+		{
+			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.OutOfBoard, targetCell);
+		}
+
+		if (!BattleRangeRules.IsCellInRange(source, targetCell, ability))
+		{
+			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.OutOfRange, targetCell);
+		}
+
+		if ((ability.Range?.RequireLineOfSight ?? false) &&
+			!BattleLineOfSightRules.HasLineOfSight(battleContext, source.BoardPosition, targetCell))
+		{
+			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.BlockedByLineOfSight, targetCell);
+		}
+
+		if (!MatchesTargetProfile(battleContext, source, ability, targetCell))
+		{
+			return AbilityCastLegality.Invalid(AbilityCastLegality.Failure.InvalidTargetProfile, targetCell);
+		}
+
+		return AbilityCastLegality.Valid(targetCell);
 	}
 
 	private static bool IsValidTargetUnit(BattleUnit source, Ability ability, BattleUnit candidate)

@@ -38,14 +38,14 @@ public sealed class PlayerTurnPhase : BattlePhase
 
 	public IReadOnlyList<Vector3Int> GetAffectedCells(Ability ability, Vector3Int targetCell)
 	{
-		return !CanCastAtCell(ability, targetCell)
+		return !CanTargetCellWithAbility(ability, targetCell)
 			? System.Array.Empty<Vector3Int>()
 			: BattleTargetingRules.GetAffectedCells(BattleContext, ability, targetCell);
 	}
 
 	public IReadOnlyList<BattleObject> GetAffectedObjects(Ability ability, Vector3Int targetCell)
 	{
-		return !CanCastAtCell(ability, targetCell)
+		return !CanTargetCellWithAbility(ability, targetCell)
 			? System.Array.Empty<BattleObject>()
 			: BattleTargetingRules.GetAffectedObjects(BattleContext, ability, targetCell);
 	}
@@ -67,7 +67,7 @@ public sealed class PlayerTurnPhase : BattlePhase
 
 	public IReadOnlyList<Vector3Int> GetAreaOfEffectMaskCells(Ability ability, Vector3Int targetCell)
 	{
-		return !CanCastAtCell(ability, targetCell)
+		return !CanTargetCellWithAbility(ability, targetCell)
 			? System.Array.Empty<Vector3Int>()
 			: BattleMaskRules.GetAreaOfEffectCells(BattleContext, ability, targetCell);
 	}
@@ -82,6 +82,13 @@ public sealed class PlayerTurnPhase : BattlePhase
 		return BattleActionValidator.CanTargetCell(BattleContext, TurnContext, ability, cell);
 	}
 
+	// Cell-only check: range, LOS, board bounds, target profile. Does not check caster resources.
+	public bool CanTargetCellWithAbility(Ability ability, Vector3Int cell)
+	{
+		return BattleActionValidator.CanTargetCellWithAbility(BattleContext, TurnContext, ability, cell);
+	}
+
+	// Combined check: caster resources + cell validity.
 	public bool CanCastAtCell(Ability ability, Vector3Int cell)
 	{
 		return BattleActionValidator.CanCastAtCell(BattleContext, TurnContext, ability, cell);

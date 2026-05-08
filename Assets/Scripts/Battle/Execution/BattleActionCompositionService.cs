@@ -96,11 +96,6 @@ public sealed class BattleActionCompositionService
 			return false;
 		}
 
-		if (!BattleActionValidator.CanUseAbility(battleContext, battleContext.CurrentTurn, ability))
-		{
-			return false;
-		}
-
 		pendingContext = new BattleActionCompositionContext
 		{
 			BattleContext = battleContext,

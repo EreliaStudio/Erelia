@@ -64,7 +64,12 @@ public static class BattleActionResolver
 
 	private static bool ResolveAbility(BattleContext battleContext, TurnContext turnContext, AbilityAction action)
 	{
-		if (action.TargetCells == null || action.TargetCells.Count == 0)
+		if (!BattleActionValidator.CanUseAbilityAction(battleContext, turnContext, action))
+		{
+			return false;
+		}
+
+		if (!AreTargetsValid(battleContext, turnContext, action))
 		{
 			return false;
 		}
@@ -137,7 +142,7 @@ public static class BattleActionResolver
 
 		for (int index = 0; index < action.TargetCells.Count; index++)
 		{
-			if (!BattleActionValidator.CanTargetCell(battleContext, turnContext, action.Ability, action.TargetCells[index]))
+			if (!BattleActionValidator.CanTargetCellWithAbility(battleContext, turnContext, action.Ability, action.TargetCells[index]))
 			{
 				return false;
 			}
