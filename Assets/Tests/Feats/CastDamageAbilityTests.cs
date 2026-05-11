@@ -67,5 +67,41 @@ namespace Tests.Feats.CastDamageAbility
 
 			orchestrator.Dispose();
 		}
+
+		[Test]
+		public void CastEventRecordsTargetDistanceFromCaster()
+		{
+			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(
+				playerCount: 1,
+				enemyCount: 1,
+				defaultHealth: 50,
+				defaultActionPoints: 4);
+
+			Ability damageAbility = fixture.CreateDamageAbility(baseDamage: 5, actionPointCost: 1, targetProfile: TargetProfile.Enemy);
+			fixture.PlayerSources[0].Abilities.Add(damageAbility);
+
+			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
+
+			BattleOrchestrator orchestrator = fixture.CreateInitializedOrchestrator();
+			fixture.CompletePlacement(
+				orchestrator,
+				playerTurnBars: new[] { fixture.PlayerUnits[0].BattleAttributes.TurnBar.Max },
+				enemyTurnBars: new[] { 0f });
+
+			PlayerTurnPhase playerTurn = fixture.GetPlayerTurnPhase(orchestrator);
+			BattleUnit caster = fixture.PlayerUnits[0];
+			Vector3Int enemyCell = fixture.EnemyUnits[0].BoardPosition;
+			int expectedDistance = Mathf.Abs(caster.BoardPosition.x - enemyCell.x) +
+				Mathf.Abs(caster.BoardPosition.y - enemyCell.y) +
+				Mathf.Abs(caster.BoardPosition.z - enemyCell.z);
+
+			playerTurn.TrySubmitAbility(damageAbility, new List<Vector3Int> { enemyCell });
+
+			AbilityCastEvent castEvent = capture.Find<AbilityCastEvent>(caster);
+			Assert.That(castEvent, Is.Not.Null);
+			Assert.That(castEvent.TargetDistance, Is.EqualTo(expectedDistance));
+
+			orchestrator.Dispose();
+		}
 	}
 }

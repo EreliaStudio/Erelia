@@ -29,7 +29,10 @@ public class HealEvent : BattleEvent
 }
 
 [Serializable]
-public class AbilityCastEvent : BattleEvent { }
+public class AbilityCastEvent : BattleEvent
+{
+	public int TargetDistance = 0;
+}
 
 [Serializable]
 public class ShieldAppliedEvent : BattleEvent

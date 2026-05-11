@@ -116,10 +116,41 @@ public static class BattleActionResolver
 		BattleUnitRules.ResolvePendingDefeats(battleContext, action.SourceUnit, action.Ability);
 
 		turnContext.RecordAbilityCast(action.Ability);
-		BattleEventReporter.Emit(new AbilityCastEvent { Caster = action.SourceUnit, SourceAbility = action.Ability });
+		BattleEventReporter.Emit(new AbilityCastEvent
+		{
+			Caster = action.SourceUnit,
+			SourceAbility = action.Ability,
+			TargetDistance = ComputeNearestTargetDistance(action)
+		});
 
 		EventCenter.EmitBattleAbilityResolved(battleContext, action.SourceUnit);
 		return true;
+	}
+
+	private static int ComputeNearestTargetDistance(AbilityAction action)
+	{
+		if (action?.SourceUnit == null ||
+			!action.SourceUnit.HasBoardPosition ||
+			action.TargetCells == null ||
+			action.TargetCells.Count == 0)
+		{
+			return 0;
+		}
+
+		Vector3Int casterCell = action.SourceUnit.BoardPosition;
+		int minimumDistance = int.MaxValue;
+
+		for (int index = 0; index < action.TargetCells.Count; index++)
+		{
+			minimumDistance = Math.Min(minimumDistance, ManhattanDistance(casterCell, action.TargetCells[index]));
+		}
+
+		return minimumDistance == int.MaxValue ? 0 : minimumDistance;
+	}
+
+	private static int ManhattanDistance(Vector3Int from, Vector3Int to)
+	{
+		return Math.Abs(from.x - to.x) + Math.Abs(from.y - to.y) + Math.Abs(from.z - to.z);
 	}
 
 	private static bool ResolveEndTurn(BattleContext battleContext, EndTurnAction action)

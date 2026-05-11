@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,6 +14,7 @@ public partial class FeatBoardEditorWindow : EditorWindow
 	private const float MaxZoom = 1.75f;
 	private const float DefaultZoom = 1f;
 	private const float InspectorPadding = 10f;
+	private const int MaxNestedRequirementDepth = 5;
 
 	private static readonly Vector2 NodeGridSize = new Vector2(5f, 4f);
 
@@ -706,7 +709,7 @@ public partial class FeatBoardEditorWindow : EditorWindow
 		}
 	}
 
-	private void DrawRequirementFields(FeatRequirement requirement)
+	private void DrawRequirementFields(FeatRequirement requirement, int depth = 0)
 	{
 		if (requirement == null)
 		{
@@ -714,37 +717,125 @@ public partial class FeatBoardEditorWindow : EditorWindow
 			return;
 		}
 
+		if (depth > MaxNestedRequirementDepth)
+		{
+			EditorGUILayout.HelpBox("Nested requirements are too deep to edit safely.", MessageType.Warning);
+			return;
+		}
+
 		DrawRequirementDurationField(requirement);
 		DrawRequirementRepeatField(requirement);
+		DrawRequirementSpecificFields(requirement, depth);
+	}
 
-		switch (requirement)
+	private void DrawRequirementSpecificFields(FeatRequirement requirement, int depth)
+	{
+		FieldInfo[] fields = requirement.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
+		bool drewField = false;
+
+		for (int index = 0; index < fields.Length; index++)
 		{
-			case DealDamageRequirement dealDamage:
-				EditorGUI.BeginChangeCheck();
-				int dealAmount = EditorGUILayout.IntField("Required Damage", dealDamage.RequiredAmount);
-				if (EditorGUI.EndChangeCheck())
-				{
-					ApplySpeciesChange("Edit Feat Requirement", () => dealDamage.RequiredAmount = Mathf.Max(0, dealAmount));
-				}
-				break;
+			FieldInfo field = fields[index];
+			if (ShouldSkipRequirementField(requirement, field))
+			{
+				continue;
+			}
 
-			case HealHealthRequirement healHealth:
-				EditorGUI.BeginChangeCheck();
-				int healAmount = EditorGUILayout.IntField("Required Healing", healHealth.RequiredAmount);
-				if (EditorGUI.EndChangeCheck())
-				{
-					ApplySpeciesChange("Edit Feat Requirement", () => healHealth.RequiredAmount = Mathf.Max(0, healAmount));
-				}
-				break;
-
-			case CastAbilityCountRequirement castAbility:
-				DrawCastAbilityCountRequirementFields(castAbility);
-				break;
-
-			default:
-				EditorGUILayout.HelpBox("Unsupported requirement type: " + requirement.GetType().Name, MessageType.Warning);
-				break;
+			drewField |= DrawRequirementField(requirement, field, depth);
 		}
+
+		if (!drewField)
+		{
+			EditorGUILayout.HelpBox("This requirement has no editable fields beyond scope and repeat count.", MessageType.Info);
+		}
+	}
+
+	private bool DrawRequirementField(FeatRequirement requirement, FieldInfo field, int depth)
+	{
+		Type fieldType = field.FieldType;
+		string label = ObjectNames.NicifyVariableName(field.Name);
+		object currentValue = field.GetValue(requirement);
+
+		if (fieldType == typeof(int))
+		{
+			EditorGUI.BeginChangeCheck();
+			int value = EditorGUILayout.IntField(label, (int)currentValue);
+			if (EditorGUI.EndChangeCheck())
+			{
+				ApplySpeciesChange("Edit Feat Requirement", () =>
+					field.SetValue(requirement, ClampRequirementInt(field.Name, value)));
+			}
+
+			return true;
+		}
+
+		if (fieldType == typeof(float))
+		{
+			EditorGUI.BeginChangeCheck();
+			float value = EditorGUILayout.FloatField(label, (float)currentValue);
+			if (EditorGUI.EndChangeCheck())
+			{
+				ApplySpeciesChange("Edit Feat Requirement", () => field.SetValue(requirement, value));
+			}
+
+			return true;
+		}
+
+		if (fieldType == typeof(bool))
+		{
+			EditorGUI.BeginChangeCheck();
+			bool value = EditorGUILayout.Toggle(label, (bool)currentValue);
+			if (EditorGUI.EndChangeCheck())
+			{
+				ApplySpeciesChange("Edit Feat Requirement", () => field.SetValue(requirement, value));
+			}
+
+			return true;
+		}
+
+		if (fieldType == typeof(string))
+		{
+			EditorGUI.BeginChangeCheck();
+			string value = EditorGUILayout.TextField(label, (string)currentValue);
+			if (EditorGUI.EndChangeCheck())
+			{
+				ApplySpeciesChange("Edit Feat Requirement", () => field.SetValue(requirement, value));
+			}
+
+			return true;
+		}
+
+		if (fieldType.IsEnum)
+		{
+			EditorGUI.BeginChangeCheck();
+			Enum value = EditorGUILayout.EnumPopup(label, (Enum)currentValue);
+			if (EditorGUI.EndChangeCheck())
+			{
+				ApplySpeciesChange("Edit Feat Requirement", () => field.SetValue(requirement, value));
+			}
+
+			return true;
+		}
+
+		if (typeof(UnityEngine.Object).IsAssignableFrom(fieldType))
+		{
+			EditorGUI.BeginChangeCheck();
+			UnityEngine.Object value = EditorGUILayout.ObjectField(label, (UnityEngine.Object)currentValue, fieldType, false);
+			if (EditorGUI.EndChangeCheck())
+			{
+				ApplySpeciesChange("Edit Feat Requirement", () => field.SetValue(requirement, value));
+			}
+
+			return true;
+		}
+
+		if (TryDrawRequirementListField(requirement, field, label, currentValue, depth))
+		{
+			return true;
+		}
+
+		EditorGUILayout.HelpBox("Unsupported requirement field: " + label + " (" + fieldType.Name + ")", MessageType.Warning);
+		return true;
 	}
 
 	private void DrawRequirementDurationField(FeatRequirement requirement)
@@ -779,26 +870,166 @@ public partial class FeatBoardEditorWindow : EditorWindow
 		}
 	}
 
-	private void DrawCastAbilityCountRequirementFields(CastAbilityCountRequirement requirement)
+	private bool TryDrawRequirementListField(
+		FeatRequirement requirement,
+		FieldInfo field,
+		string label,
+		object currentValue,
+		int depth)
 	{
-		EditorGUILayout.LabelField("Abilities (leave empty for any)");
-		for (int i = 0; i < requirement.Abilities.Count; i++)
+		if (!typeof(IList).IsAssignableFrom(field.FieldType) || !field.FieldType.IsGenericType)
 		{
-			int captured = i;
-			EditorGUI.BeginChangeCheck();
-			Ability ability = (Ability)EditorGUILayout.ObjectField($"  [{i}]", requirement.Abilities[i], typeof(Ability), false);
-			if (EditorGUI.EndChangeCheck())
-				ApplySpeciesChange("Edit Feat Requirement", () => requirement.Abilities[captured] = ability);
+			return false;
 		}
-		if (GUILayout.Button("Add Ability"))
-			ApplySpeciesChange("Edit Feat Requirement", () => requirement.Abilities.Add(null));
-		if (requirement.Abilities.Count > 0 && GUILayout.Button("Remove Last Ability"))
-			ApplySpeciesChange("Edit Feat Requirement", () => requirement.Abilities.RemoveAt(requirement.Abilities.Count - 1));
 
-		EditorGUI.BeginChangeCheck();
-		int count = EditorGUILayout.IntField("Required Casts", requirement.RequiredCount);
-		if (EditorGUI.EndChangeCheck())
-			ApplySpeciesChange("Edit Feat Requirement", () => requirement.RequiredCount = Mathf.Max(1, count));
+		Type elementType = field.FieldType.GetGenericArguments()[0];
+		if (currentValue == null)
+		{
+			if (GUILayout.Button("Create " + label))
+			{
+				ApplySpeciesChange("Edit Feat Requirement", () =>
+					field.SetValue(requirement, Activator.CreateInstance(field.FieldType)));
+			}
+
+			return true;
+		}
+
+		if (elementType == typeof(FeatRequirement))
+		{
+			DrawChildRequirementList((List<FeatRequirement>)currentValue, label, depth);
+			return true;
+		}
+
+		if (typeof(UnityEngine.Object).IsAssignableFrom(elementType))
+		{
+			DrawUnityObjectList((IList)currentValue, elementType, label);
+			return true;
+		}
+
+		EditorGUILayout.HelpBox("Unsupported list field: " + label + " (" + elementType.Name + ")", MessageType.Warning);
+		return true;
+	}
+
+	private void DrawUnityObjectList(IList list, Type elementType, string label)
+	{
+		string listLabel = elementType == typeof(Ability) ? label + " (empty = any)" : label;
+		EditorGUILayout.LabelField(listLabel);
+
+		int removeIndex = -1;
+		for (int index = 0; index < list.Count; index++)
+		{
+			int captured = index;
+			EditorGUILayout.BeginHorizontal();
+			EditorGUI.BeginChangeCheck();
+			UnityEngine.Object value = EditorGUILayout.ObjectField(
+				"  [" + index + "]",
+				(UnityEngine.Object)list[index],
+				elementType,
+				false);
+			if (EditorGUI.EndChangeCheck())
+			{
+				ApplySpeciesChange("Edit Feat Requirement", () => list[captured] = value);
+			}
+
+			if (GUILayout.Button("Remove", GUILayout.Width(68f)))
+			{
+				removeIndex = index;
+			}
+
+			EditorGUILayout.EndHorizontal();
+		}
+
+		if (removeIndex >= 0)
+		{
+			ApplySpeciesChange("Edit Feat Requirement", () => list.RemoveAt(removeIndex));
+			GUIUtility.ExitGUI();
+		}
+
+		if (GUILayout.Button("Add " + ObjectNames.NicifyVariableName(elementType.Name)))
+		{
+			ApplySpeciesChange("Edit Feat Requirement", () => list.Add(null));
+		}
+	}
+
+	private void DrawChildRequirementList(List<FeatRequirement> requirements, string label, int depth)
+	{
+		EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
+
+		int removeIndex = -1;
+		for (int index = 0; index < requirements.Count; index++)
+		{
+			int captured = index;
+			FeatRequirement child = requirements[index];
+
+			EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(
+				child != null ? ObjectNames.NicifyVariableName(child.GetType().Name.Replace("Requirement", string.Empty)) : "Missing Requirement",
+				EditorStyles.miniBoldLabel);
+
+			if (GUILayout.Button("Remove", GUILayout.Width(68f)))
+			{
+				removeIndex = captured;
+			}
+
+			EditorGUILayout.EndHorizontal();
+			EditorGUI.indentLevel++;
+			DrawRequirementFields(child, depth + 1);
+			EditorGUI.indentLevel--;
+			EditorGUILayout.EndVertical();
+		}
+
+		if (removeIndex >= 0)
+		{
+			ApplySpeciesChange("Remove Child Feat Requirement", () => requirements.RemoveAt(removeIndex));
+			GUIUtility.ExitGUI();
+		}
+
+		if (GUILayout.Button("Add Child Requirement"))
+		{
+			ShowAddChildRequirementMenu(requirements);
+		}
+	}
+
+	private void ShowAddChildRequirementMenu(List<FeatRequirement> requirements)
+	{
+		if (requirements == null)
+		{
+			return;
+		}
+
+		GenericMenu menu = new GenericMenu();
+		AddRequirementTypeMenuItems(
+			menu,
+			requirementType =>
+			{
+				ApplySpeciesChange("Add Child Feat Requirement", () =>
+					requirements.Add((FeatRequirement)ManagedReferenceTypePicker.CreateInstance(requirementType)));
+			});
+		menu.ShowAsContext();
+	}
+
+	private static bool ShouldSkipRequirementField(FeatRequirement requirement, FieldInfo field)
+	{
+		if (field == null ||
+			field.IsStatic ||
+			field.DeclaringType == typeof(FeatRequirement) ||
+			field.Name == nameof(FeatRequirement.RequirementScope) ||
+			field.Name == nameof(FeatRequirement.RequiredRepeatCount))
+		{
+			return true;
+		}
+
+		return requirement is CastAbilityCountRequirement castAbility &&
+			field.Name == nameof(CastAbilityCountRequirement.Range) &&
+			castAbility.TargetRangeCondition == CastAbilityCountRequirement.RangeCondition.Either;
+	}
+
+	private static int ClampRequirementInt(string fieldName, int value)
+	{
+		return fieldName.IndexOf("Count", StringComparison.OrdinalIgnoreCase) >= 0
+			? Mathf.Max(1, value)
+			: Mathf.Max(0, value);
 	}
 
 	private void DrawRewardsInspector(FeatNode node)
@@ -965,6 +1196,23 @@ public partial class FeatBoardEditorWindow : EditorWindow
 	private void ShowAddRequirementMenu(FeatNode node)
 	{
 		GenericMenu menu = new GenericMenu();
+		AddRequirementTypeMenuItems(
+			menu,
+			requirementType =>
+			{
+				ApplySpeciesChange("Add Feat Requirement", () =>
+					node.Requirements.Add((FeatRequirement)ManagedReferenceTypePicker.CreateInstance(requirementType)));
+			});
+		menu.ShowAsContext();
+	}
+
+	private void AddRequirementTypeMenuItems(GenericMenu menu, Action<Type> addRequirement)
+	{
+		if (menu == null || addRequirement == null)
+		{
+			return;
+		}
+
 		Type[] requirementTypes = ManagedReferenceTypePicker.GetConcreteTypes(typeof(FeatRequirement), FeatRequirementTypeComparison);
 
 		for (int i = 0; i < requirementTypes.Length; i++)
@@ -979,11 +1227,9 @@ public partial class FeatBoardEditorWindow : EditorWindow
 
 			menu.AddItem(new GUIContent(label), false, () =>
 			{
-				ApplySpeciesChange("Add Feat Requirement", () => node.Requirements.Add((FeatRequirement)ManagedReferenceTypePicker.CreateInstance(requirementType)));
+				addRequirement(requirementType);
 			});
 		}
-
-		menu.ShowAsContext();
 	}
 
 	private static string GetFeatRewardLabel(Type rewardType)

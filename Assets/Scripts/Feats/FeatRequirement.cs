@@ -241,19 +241,26 @@ public abstract class FeatRequirementTemplated<TEvent> : FeatRequirement
 
 // ── Damage ────────────────────────────────────────────────────────────────────
 
+public enum DamageKindFilter
+{
+	Any,
+	Physical,
+	Magical
+}
+
 [Serializable]
 public class DealDamageRequirement : FeatRequirementTemplated<DamageEvent>
 {
 	public int RequiredAmount = 10;
 	public List<Ability> SourceAbilities = new();
-	public bool FilterByDamageKind = false;
-	public MathFormula.DamageInput.Kind RequiredDamageKind = MathFormula.DamageInput.Kind.Physical;
+	public DamageKindFilter DamageKind = DamageKindFilter.Any;
 
 	protected override float EvaluateProgress(DamageEvent p_event)
 	{
 		if (p_event.Caster == null) return 0f;
 		if (SourceAbilities.Count > 0 && !SourceAbilities.Contains(p_event.SourceAbility)) return 0f;
-		if (FilterByDamageKind && p_event.DamageKind != RequiredDamageKind) return 0f;
+		if (DamageKind == DamageKindFilter.Physical && p_event.DamageKind != MathFormula.DamageInput.Kind.Physical) return 0f;
+		if (DamageKind == DamageKindFilter.Magical && p_event.DamageKind != MathFormula.DamageInput.Kind.Magical) return 0f;
 		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
 	}
 }
@@ -262,10 +269,13 @@ public class DealDamageRequirement : FeatRequirementTemplated<DamageEvent>
 public class TakeDamageRequirement : FeatRequirementTemplated<DamageEvent>
 {
 	public int RequiredAmount = 10;
+	public DamageKindFilter DamageKind = DamageKindFilter.Any;
 
 	protected override float EvaluateProgress(DamageEvent p_event)
 	{
 		if (p_event.Target == null) return 0f;
+		if (DamageKind == DamageKindFilter.Physical && p_event.DamageKind != MathFormula.DamageInput.Kind.Physical) return 0f;
+		if (DamageKind == DamageKindFilter.Magical && p_event.DamageKind != MathFormula.DamageInput.Kind.Magical) return 0f;
 		return ComputeLinearProgress(p_event.Amount, RequiredAmount);
 	}
 }
@@ -694,8 +704,17 @@ public class TurnEndPositionRequirement : FeatRequirementTemplated<TurnEndedEven
 [Serializable]
 public class CastAbilityCountRequirement : FeatRequirementTemplated<AbilityCastEvent>
 {
+	public enum RangeCondition
+	{
+		Either,
+		AtLeast,
+		Within
+	}
+
 	public List<Ability> Abilities = new();
 	public int RequiredCount = 1;
+	public RangeCondition TargetRangeCondition = RangeCondition.Either;
+	public int Range = 0;
 
 	protected override float EvaluateProgress(AbilityCastEvent p_event)
 	{
@@ -704,7 +723,22 @@ public class CastAbilityCountRequirement : FeatRequirementTemplated<AbilityCastE
 			return 0f;
 		}
 
+		if (!MeetsRangeCondition(p_event.TargetDistance))
+		{
+			return 0f;
+		}
+
 		return ComputeLinearProgress(1, RequiredCount);
+	}
+
+	private bool MeetsRangeCondition(int targetDistance)
+	{
+		return TargetRangeCondition switch
+		{
+			RangeCondition.AtLeast => targetDistance >= Range,
+			RangeCondition.Within => targetDistance <= Range,
+			_ => true
+		};
 	}
 }
 
@@ -713,6 +747,7 @@ public class CastAbilityCountRequirement : FeatRequirementTemplated<AbilityCastE
 [Serializable]
 public class AndRequirement : FeatRequirement
 {
+	[SerializeReference]
 	public List<FeatRequirement> Children = new();
 
 	public override Advancement EvaluateEvents(IReadOnlyList<BattleEvent> p_events, Advancement p_currentAdvancement)
@@ -753,6 +788,7 @@ public class AndRequirement : FeatRequirement
 [Serializable]
 public class OrRequirement : FeatRequirement
 {
+	[SerializeReference]
 	public List<FeatRequirement> Children = new();
 
 	public override Advancement EvaluateEvents(IReadOnlyList<BattleEvent> p_events, Advancement p_currentAdvancement)

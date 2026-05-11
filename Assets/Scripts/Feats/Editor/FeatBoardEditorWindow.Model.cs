@@ -231,23 +231,28 @@ public partial class FeatBoardEditorWindow
 
 	private string FormatRequirementSummary(FeatRequirement requirement)
 	{
+		if (requirement == null)
+		{
+			return "Missing requirement";
+		}
+
 		switch (requirement)
 		{
 			case DealDamageRequirement dealDamage:
-				return "Deal " + dealDamage.RequiredAmount + " damage " + FormatRequirementDuration(requirement);
+				return "Deal " + dealDamage.RequiredAmount + FormatDamageKindFilter(dealDamage.DamageKind) + " damage " + FormatRequirementDuration(requirement);
 
 			case HealHealthRequirement healHealth:
 				return "Heal " + healHealth.RequiredAmount + " " + FormatRequirementDuration(requirement);
 
 			case CastAbilityCountRequirement castAbility:
 				string abilitiesLabel = castAbility.Abilities.Count == 0 ? "any ability" : string.Join("/", castAbility.Abilities.ConvertAll(a => FormatAbilityName(a)));
-				return "Cast " + abilitiesLabel + " " + castAbility.RequiredCount + " times " + FormatRequirementDuration(requirement);
+				return "Cast " + abilitiesLabel + FormatTargetRangeCondition(castAbility) + " " + castAbility.RequiredCount + " times " + FormatRequirementDuration(requirement);
 
 			case TakeDamageRequirement takeDamage:
-				return "Take " + takeDamage.RequiredAmount + " damage " + FormatRequirementDuration(requirement);
+				return "Take " + takeDamage.RequiredAmount + FormatDamageKindFilter(takeDamage.DamageKind) + " damage " + FormatRequirementDuration(requirement);
 
 			default:
-				return "Unknown requirement";
+				return GetFeatRequirementLabel(requirement.GetType()) + " " + FormatRequirementDuration(requirement);
 		}
 	}
 
@@ -278,6 +283,27 @@ public partial class FeatBoardEditorWindow
 	private static string FormatAbilityName(Ability ability)
 	{
 		return ability != null ? ability.name : "any ability";
+	}
+
+	private static string FormatDamageKindFilter(DamageKindFilter filter)
+	{
+		return filter == DamageKindFilter.Any ? string.Empty : " " + filter.ToString().ToLowerInvariant();
+	}
+
+	private static string FormatTargetRangeCondition(CastAbilityCountRequirement requirement)
+	{
+		if (requirement == null ||
+			requirement.TargetRangeCondition == CastAbilityCountRequirement.RangeCondition.Either)
+		{
+			return string.Empty;
+		}
+
+		return requirement.TargetRangeCondition switch
+		{
+			CastAbilityCountRequirement.RangeCondition.AtLeast => " at range " + requirement.Range + "+",
+			CastAbilityCountRequirement.RangeCondition.Within => " within range " + requirement.Range,
+			_ => string.Empty
+		};
 	}
 
 	private string GetNodeLabel(FeatNode node)

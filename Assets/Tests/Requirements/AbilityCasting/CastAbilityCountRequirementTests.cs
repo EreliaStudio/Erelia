@@ -109,3 +109,116 @@ namespace Tests.Requirements.AbilityCasting.Events
 		}
 	}
 }
+
+namespace Tests.Requirements.AbilityCasting.TargetDistance
+{
+	public sealed class TargetDistanceTests
+	{
+		[Test]
+		public void AtLeastRange_TargetAtMinimumRange_CountsProgress()
+		{
+			Ability ability = ScriptableObject.CreateInstance<Ability>();
+			var req = new CastAbilityCountRequirement
+			{
+				RequiredCount = 1,
+				TargetRangeCondition = CastAbilityCountRequirement.RangeCondition.AtLeast,
+				Range = 3
+			};
+			var progress = new FeatRequirementProgress { Requirement = req };
+
+			progress.RegisterEvents(new List<BattleEvent>
+			{
+				new AbilityCastEvent { SourceAbility = ability, TargetDistance = 3 }
+			});
+
+			Assert.That(progress.IsCompleted, Is.True);
+			Object.DestroyImmediate(ability);
+		}
+
+		[Test]
+		public void AtLeastRange_TargetBelowMinimumRange_ZeroProgress()
+		{
+			Ability ability = ScriptableObject.CreateInstance<Ability>();
+			var req = new CastAbilityCountRequirement
+			{
+				RequiredCount = 1,
+				TargetRangeCondition = CastAbilityCountRequirement.RangeCondition.AtLeast,
+				Range = 3
+			};
+			var progress = new FeatRequirementProgress { Requirement = req };
+
+			progress.RegisterEvents(new List<BattleEvent>
+			{
+				new AbilityCastEvent { SourceAbility = ability, TargetDistance = 2 }
+			});
+
+			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
+			Assert.That(progress.IsCompleted, Is.False);
+			Object.DestroyImmediate(ability);
+		}
+
+		[Test]
+		public void WithinRange_TargetInsideRange_CountsProgress()
+		{
+			Ability ability = ScriptableObject.CreateInstance<Ability>();
+			var req = new CastAbilityCountRequirement
+			{
+				RequiredCount = 1,
+				TargetRangeCondition = CastAbilityCountRequirement.RangeCondition.Within,
+				Range = 3
+			};
+			var progress = new FeatRequirementProgress { Requirement = req };
+
+			progress.RegisterEvents(new List<BattleEvent>
+			{
+				new AbilityCastEvent { SourceAbility = ability, TargetDistance = 2 }
+			});
+
+			Assert.That(progress.IsCompleted, Is.True);
+			Object.DestroyImmediate(ability);
+		}
+
+		[Test]
+		public void WithinRange_TargetOutsideRange_ZeroProgress()
+		{
+			Ability ability = ScriptableObject.CreateInstance<Ability>();
+			var req = new CastAbilityCountRequirement
+			{
+				RequiredCount = 1,
+				TargetRangeCondition = CastAbilityCountRequirement.RangeCondition.Within,
+				Range = 3
+			};
+			var progress = new FeatRequirementProgress { Requirement = req };
+
+			progress.RegisterEvents(new List<BattleEvent>
+			{
+				new AbilityCastEvent { SourceAbility = ability, TargetDistance = 4 }
+			});
+
+			Assert.That(progress.CurrentProgress, Is.EqualTo(0f));
+			Assert.That(progress.IsCompleted, Is.False);
+			Object.DestroyImmediate(ability);
+		}
+
+		[Test]
+		public void EitherRange_DoesNotFilter()
+		{
+			Ability ability = ScriptableObject.CreateInstance<Ability>();
+			var req = new CastAbilityCountRequirement
+			{
+				RequiredCount = 1,
+				TargetRangeCondition = CastAbilityCountRequirement.RangeCondition.Either,
+				Range = 3
+			};
+			var progress = new FeatRequirementProgress { Requirement = req };
+
+			progress.RegisterEvents(new List<BattleEvent>
+			{
+				new AbilityCastEvent { SourceAbility = ability }
+			});
+
+			Assert.That(progress.IsCompleted, Is.True);
+			Object.DestroyImmediate(ability);
+		}
+	}
+}

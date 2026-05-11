@@ -10,30 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 38921d23aad9a804c8b45ca6376252b9, type: 3}
-  m_Name: Shoot
+  m_Name: QuickStep
   m_EditorClassIdentifier: Erelia.Runtime::Ability
-  Icon: {fileID: -630279166, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+  Icon: {fileID: -1499279301, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
   Cost:
-    Ability: 1
+    Ability: 2
     Movement: 0
   Range:
-    Type: 0
-    Value: 10
+    Type: 1
+    Value: 2
     RequireLineOfSight: 1
   AreaOfEffect:
     Type: 1
     Value: 0
-  TargetProfile: 0
+  TargetProfile: 3
   Effects:
-  - rid: 7055333592416649249
+  - rid: 7977957676956254244
   references:
     version: 2
     RefIds:
-    - rid: 7055333592416649249
-      type: {class: DamageTargetEffect, ns: , asm: Erelia.Runtime}
+    - rid: 7977957676956254244
+      type: {class: TeleportEffect, ns: , asm: Erelia.Runtime}
       data:
-        Input:
-          BaseDamage: 10
-          DamageKind: 0
-          AttackRatio: 1
-          MagicRatio: 0
+        Destination: {x: 0, y: 0, z: 0}
+        RelativeToCaster: 1

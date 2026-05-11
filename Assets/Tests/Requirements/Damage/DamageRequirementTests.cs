@@ -65,8 +65,7 @@ namespace Tests.Requirements.Damage.DealDamage
 		{
 			var req = new DealDamageRequirement
 			{
-				FilterByDamageKind = true,
-				RequiredDamageKind = MathFormula.DamageInput.Kind.Physical,
+				DamageKind = DamageKindFilter.Physical,
 				RequiredAmount = 100
 			};
 			var progress = new FeatRequirementProgress { Requirement = req };
@@ -84,8 +83,7 @@ namespace Tests.Requirements.Damage.DealDamage
 		{
 			var req = new DealDamageRequirement
 			{
-				FilterByDamageKind = true,
-				RequiredDamageKind = MathFormula.DamageInput.Kind.Physical,
+				DamageKind = DamageKindFilter.Physical,
 				RequiredAmount = 100
 			};
 			var progress = new FeatRequirementProgress { Requirement = req };
