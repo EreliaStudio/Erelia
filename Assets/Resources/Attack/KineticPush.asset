@@ -10,31 +10,37 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 38921d23aad9a804c8b45ca6376252b9, type: 3}
-  m_Name: WaterSpit
+  m_Name: KineticPush
   m_EditorClassIdentifier: Erelia.Runtime::Ability
-  Icon: {fileID: -2094776005, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+  Icon: {fileID: 0}
   Cost:
     Ability: 2
     Movement: 0
   Range:
-    Type: 0
+    Type: 1
     MinValue: 2
-    Value: 6
+    Value: 4
     RequireLineOfSight: 1
   AreaOfEffect:
     Type: 1
     Value: 0
-  TargetProfile: 0
+  TargetProfile: 2
   Effects:
-  - rid: 7977957676956254249
+  - rid: 7977957676956254321
+  - rid: 7977957676956254323
   references:
     version: 2
     RefIds:
-    - rid: 7977957676956254249
+    - rid: 7977957676956254321
+      type: {class: MoveStatus, ns: , asm: Erelia.Runtime}
+      data:
+        ForceOrientation: 1
+        Force: 1
+    - rid: 7977957676956254323
       type: {class: DamageTargetEffect, ns: , asm: Erelia.Runtime}
       data:
         Input:
-          BaseDamage: 5
+          BaseDamage: 1
           DamageKind: 1
-          AttackRatio: 0
-          MagicRatio: 1
+          AttackRatio: 0.2
+          MagicRatio: 0

@@ -10,31 +10,35 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 38921d23aad9a804c8b45ca6376252b9, type: 3}
-  m_Name: WaterSpit
+  m_Name: MysticFlash
   m_EditorClassIdentifier: Erelia.Runtime::Ability
-  Icon: {fileID: -2094776005, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+  Icon: {fileID: 0}
   Cost:
-    Ability: 2
+    Ability: 5
     Movement: 0
   Range:
     Type: 0
-    MinValue: 2
-    Value: 6
-    RequireLineOfSight: 1
+    MinValue: 1
+    Value: 5
+    RequireLineOfSight: 0
   AreaOfEffect:
-    Type: 1
-    Value: 0
-  TargetProfile: 0
+    Type: 2
+    Value: 2
+  TargetProfile: 3
   Effects:
-  - rid: 7977957676956254249
+  - rid: 7977957676956254260
+  - rid: 7977957676956254261
   references:
     version: 2
     RefIds:
-    - rid: 7977957676956254249
+    - rid: 7977957676956254260
+      type: {class: TeleportSelfEffect, ns: , asm: Erelia.Runtime}
+      data: 
+    - rid: 7977957676956254261
       type: {class: DamageTargetEffect, ns: , asm: Erelia.Runtime}
       data:
         Input:
-          BaseDamage: 5
-          DamageKind: 1
-          AttackRatio: 0
-          MagicRatio: 1
+          BaseDamage: 8
+          DamageKind: 0
+          AttackRatio: 1
+          MagicRatio: 0

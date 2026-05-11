@@ -192,7 +192,8 @@ public static class BattleActionResolver
 		for (int anchorIndex = 0; anchorIndex < action.TargetCells.Count; anchorIndex++)
 		{
 			Vector3Int anchorCell = action.TargetCells[anchorIndex];
-			IReadOnlyList<Vector3Int> affectedCells = BattleTargetingRules.GetAffectedCells(battleContext, action.Ability, action.TargetCells[anchorIndex]);
+			Vector3Int? casterCell = action.SourceUnit?.HasBoardPosition == true ? action.SourceUnit.BoardPosition : (Vector3Int?)null;
+			IReadOnlyList<Vector3Int> affectedCells = BattleTargetingRules.GetAffectedCells(battleContext, action.Ability, action.TargetCells[anchorIndex], casterCell);
 			for (int cellIndex = 0; cellIndex < affectedCells.Count; cellIndex++)
 			{
 				Vector3Int affectedCell = affectedCells[cellIndex];

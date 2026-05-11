@@ -845,6 +845,12 @@ public partial class FeatBoardEditorWindow : EditorWindow
 			return;
 		}
 
+		if (requirement.IsScopeLocked)
+		{
+			EditorGUILayout.LabelField("Scope", requirement.RequirementScope.ToString());
+			return;
+		}
+
 		EditorGUI.BeginChangeCheck();
 		FeatRequirement.Scope scope =
 			(FeatRequirement.Scope)EditorGUILayout.EnumPopup("Scope", requirement.RequirementScope);

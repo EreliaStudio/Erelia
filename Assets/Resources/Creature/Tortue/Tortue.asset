@@ -36,8 +36,17 @@ MonoBehaviour:
     Conditions:
     - rid: 7977957676956254251
   FeatBoard:
-    Nodes: []
-    RootNodeId: 
+    Nodes:
+    - rid: 7977957676956254252
+    - rid: 7977957676956254254
+    - rid: 7977957676956254255
+    - rid: 7977957676956254256
+    - rid: 7977957676956254265
+    - rid: 7977957676956254268
+    - rid: 7977957676956254272
+    - rid: 7977957676956254277
+    - rid: 7977957676956254284
+    RootNodeId: 49a878c31ca84e788dfda977aeac7c20
   Forms:
     _serializedList:
     - Key: BaseForm
@@ -48,7 +57,7 @@ MonoBehaviour:
         ModelPrefab: {fileID: 1320495866081010126, guid: dd87401dec8f4ac4db0b6798760ad68e, type: 3}
     - Key: SpitterForm
       Value:
-        DisplayName: TortueCracheuse
+        DisplayName: Spitter Tortue
         Tier: 1
         Avatar: {fileID: -1671842413, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
         ModelPrefab: {fileID: 8524976429635346462, guid: 2ca3e773657c88a46968ee7b0db88769, type: 3}
@@ -61,3 +70,247 @@ MonoBehaviour:
         RequirementScope: 2
         RequiredRepeatCount: 1
         RequiredAmount: 10
+        DamageKind: 0
+    - rid: 7977957676956254252
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 49a878c31ca84e788dfda977aeac7c20
+        DisplayName: New Feat
+        Position: {x: 10, y: 5}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 7e5fbe274fb04de29bc06e704de0aa54
+        - 0c11416b5e6a457abf874e091b7725c0
+        - 97abac8bb59940cbb42ce21e56c37311
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards:
+        - rid: 7977957676956254253
+    - rid: 7977957676956254253
+      type: {class: ChangeFormReward, ns: , asm: Erelia.Runtime}
+      data:
+        FormKey: BaseForm
+    - rid: 7977957676956254254
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 97abac8bb59940cbb42ce21e56c37311
+        DisplayName: 'Ability : Step'
+        Position: {x: 10, y: -1}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 49a878c31ca84e788dfda977aeac7c20
+        - 1721a47b-8ed6-490d-9217-e6083c3edf3a
+        - 30ea7a13f3184971b08348666abcb51f
+        NumberOfRepeatTime: 0
+        Requirements:
+        - rid: 7977957676956254259
+        Rewards:
+        - rid: 7977957676956254264
+    - rid: 7977957676956254255
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 7e5fbe274fb04de29bc06e704de0aa54
+        DisplayName: Health Augment
+        Position: {x: 3, y: -1}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 49a878c31ca84e788dfda977aeac7c20
+        - 3e524f7bc6e74f1c96154d4f807e6f86
+        NumberOfRepeatTime: 5
+        Requirements:
+        - rid: 7977957676956254257
+        Rewards:
+        - rid: 7977957676956254258
+    - rid: 7977957676956254256
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 0c11416b5e6a457abf874e091b7725c0
+        DisplayName: Attack Augment
+        Position: {x: 17, y: -1}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - aae7dc48-c511-431b-8b6e-6f86f34ef563
+        - 49a878c31ca84e788dfda977aeac7c20
+        - 0e21f19578c3497aba2bbb7ba95bc66e
+        NumberOfRepeatTime: 5
+        Requirements:
+        - rid: 7977957676956254262
+        Rewards:
+        - rid: 7977957676956254263
+    - rid: 7977957676956254257
+      type: {class: TakeDamageRequirement, ns: , asm: Erelia.Runtime}
+      data:
+        RequirementScope: 3
+        RequiredRepeatCount: 1
+        RequiredAmount: 10
+        DamageKind: 0
+    - rid: 7977957676956254258
+      type: {class: BonusStatsReward, ns: , asm: Erelia.Runtime}
+      data:
+        Attribute: 0
+        Value: 2
+    - rid: 7977957676956254259
+      type: {class: TotalDistanceTravelledRequirement, ns: , asm: Erelia.Runtime}
+      data:
+        RequirementScope: 2
+        RequiredRepeatCount: 1
+        RequiredDistance: 10
+    - rid: 7977957676956254262
+      type: {class: DealDamageRequirement, ns: , asm: Erelia.Runtime}
+      data:
+        RequirementScope: 2
+        RequiredRepeatCount: 1
+        RequiredAmount: 10
+        SourceAbilities: []
+        DamageKind: 1
+    - rid: 7977957676956254263
+      type: {class: BonusStatsReward, ns: , asm: Erelia.Runtime}
+      data:
+        Attribute: 3
+        Value: 1
+    - rid: 7977957676956254264
+      type: {class: AbilityReward, ns: , asm: Erelia.Runtime}
+      data:
+        Ability: {fileID: 11400000, guid: abc2bd10f75595748a820c7e8882b23b, type: 2}
+    - rid: 7977957676956254265
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 0e21f19578c3497aba2bbb7ba95bc66e
+        DisplayName: New Feat
+        Position: {x: 17, y: -7}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 0c11416b5e6a457abf874e091b7725c0
+        - f1392276dff3457a9ee73081ec1a9e6b
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards:
+        - rid: 7977957676956254266
+        - rid: 7977957676956254267
+    - rid: 7977957676956254266
+      type: {class: ChangeFormReward, ns: , asm: Erelia.Runtime}
+      data:
+        FormKey: SpitterForm
+    - rid: 7977957676956254267
+      type: {class: AbilityReward, ns: , asm: Erelia.Runtime}
+      data:
+        Ability: {fileID: 11400000, guid: fea234bf98991434184c416f962ab9f4, type: 2}
+    - rid: 7977957676956254268
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 3e524f7bc6e74f1c96154d4f807e6f86
+        DisplayName: Tank Augment
+        Position: {x: 3, y: -7}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 7e5fbe274fb04de29bc06e704de0aa54
+        - a923c1d6c3fd403198cca158c0d9b18e
+        NumberOfRepeatTime: 0
+        Requirements:
+        - rid: 7977957676956254271
+        Rewards:
+        - rid: 7977957676956254269
+    - rid: 7977957676956254269
+      type: {class: AbilityReward, ns: , asm: Erelia.Runtime}
+      data:
+        Ability: {fileID: 11400000, guid: 0151972b5ec160848a70791b94e60931, type: 2}
+    - rid: 7977957676956254271
+      type: {class: TakeDamageRequirement, ns: , asm: Erelia.Runtime}
+      data:
+        RequirementScope: 1
+        RequiredRepeatCount: 3
+        RequiredAmount: 5
+        DamageKind: 0
+    - rid: 7977957676956254272
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: f1392276dff3457a9ee73081ec1a9e6b
+        DisplayName: Bonus Range Augment
+        Position: {x: 17, y: -13}
+        Kind: 2
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 0e21f19578c3497aba2bbb7ba95bc66e
+        NumberOfRepeatTime: 0
+        Requirements:
+        - rid: 7977957676956254280
+        Rewards:
+        - rid: 7977957676956254283
+    - rid: 7977957676956254277
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 30ea7a13f3184971b08348666abcb51f
+        DisplayName: New Feat
+        Position: {x: 10, y: -7}
+        Kind: 2
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 97abac8bb59940cbb42ce21e56c37311
+        NumberOfRepeatTime: 0
+        Requirements:
+        - rid: 7977957676956254278
+        Rewards:
+        - rid: 7977957676956254279
+    - rid: 7977957676956254278
+      type: {class: CastAbilityCountRequirement, ns: , asm: Erelia.Runtime}
+      data:
+        RequirementScope: 2
+        RequiredRepeatCount: 1
+        Abilities:
+        - {fileID: 11400000, guid: abc2bd10f75595748a820c7e8882b23b, type: 2}
+        RequiredCount: 6
+        TargetRangeCondition: 0
+        Range: 0
+    - rid: 7977957676956254279
+      type: {class: BonusStatsReward, ns: , asm: Erelia.Runtime}
+      data:
+        Attribute: 2
+        Value: 1
+    - rid: 7977957676956254280
+      type: {class: CastAbilityCountRequirement, ns: , asm: Erelia.Runtime}
+      data:
+        RequirementScope: 2
+        RequiredRepeatCount: 1
+        Abilities: []
+        RequiredCount: 10
+        TargetRangeCondition: 0
+        Range: 0
+    - rid: 7977957676956254283
+      type: {class: BonusStatsReward, ns: , asm: Erelia.Runtime}
+      data:
+        Attribute: 9
+        Value: 1
+    - rid: 7977957676956254284
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: a923c1d6c3fd403198cca158c0d9b18e
+        DisplayName: New Feat
+        Position: {x: 3, y: -13}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 3e524f7bc6e74f1c96154d4f807e6f86
+        NumberOfRepeatTime: 0
+        Requirements:
+        - rid: 7977957676956254285
+        Rewards:
+        - rid: 7977957676956254288
+    - rid: 7977957676956254285
+      type: {class: TurnEndPositionRequirement, ns: , asm: Erelia.Runtime}
+      data:
+        RequirementScope: 2
+        RequiredRepeatCount: 10
+        Target: 1
+        Condition: 0
+        Distance: 1
+        MaximumDistance: 1
+    - rid: 7977957676956254288
+      type: {class: AbilityReward, ns: , asm: Erelia.Runtime}
+      data:
+        Ability: {fileID: 11400000, guid: 14aff7741bc29334585200e80dfbee7d, type: 2}

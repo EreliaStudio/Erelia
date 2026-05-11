@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1174450974978556751}
   - component: {fileID: 4195315772461763256}
   m_Layer: 0
-  m_Name: Model_Default
+  m_Name: BaseFox_Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -67,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: eb6e2ccf4a07b114d869468df5377d82, type: 2}
+  - {fileID: 2100000, guid: 5bfc7643cc41d2c4f909ff005cda7d07, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

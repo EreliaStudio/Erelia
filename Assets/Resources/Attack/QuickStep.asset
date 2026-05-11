@@ -30,7 +30,5 @@ MonoBehaviour:
     version: 2
     RefIds:
     - rid: 7977957676956254244
-      type: {class: TeleportEffect, ns: , asm: Erelia.Runtime}
-      data:
-        Destination: {x: 0, y: 0, z: 0}
-        RelativeToCaster: 1
+      type: {class: TeleportSelfEffect, ns: , asm: Erelia.Runtime}
+      data: {}

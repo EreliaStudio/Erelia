@@ -1,0 +1,298 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aae4753f3181e5f42a13212490c4ea7b, type: 3}
+  m_Name: Fox
+  m_EditorClassIdentifier: Erelia.Runtime::CreatureSpecies
+  guid: 389d37d1b952db24eaa6eb7243c9713f
+  Attributes:
+    Health: 10
+    ActionPoints: 6
+    Movement: 3
+    Attack: 0
+    Armor: 0
+    ArmorPenetration: 0
+    Magic: 0
+    Resistance: 0
+    ResistancePenetration: 0
+    BonusRange: 0
+    Recovery: 4
+    Stamina: 1
+    BonusHealing: 0
+    LifeSteal: 0
+    Omnivamprism: 0
+    TimeEffectResistance: 0
+  DefaultAbilities:
+  - {fileID: 11400000, guid: 14b6c78326473704c9a58f95c36cc231, type: 2}
+  TamingProfile:
+    Conditions: []
+  FeatBoard:
+    Nodes:
+    - rid: 7977957676956254296
+    - rid: 7977957676956254298
+    - rid: 7977957676956254299
+    - rid: 7977957676956254300
+    - rid: 7977957676956254308
+    - rid: 7977957676956254310
+    - rid: 7977957676956254315
+    - rid: 7977957676956254316
+    RootNodeId: 266ffdc8e6c94f5280790e134fb8d4e2
+  Forms:
+    _serializedList:
+    - Key: BaseForm
+      Value:
+        DisplayName: Fox
+        Tier: 0
+        Avatar: {fileID: 1930365693, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        ModelPrefab: {fileID: 1320495866081010126, guid: d3c11f71d07350849a42324fbf99693d, type: 3}
+    - Key: FierceForm
+      Value:
+        DisplayName: Fierce Fox
+        Tier: 1
+        Avatar: {fileID: 1107562854, guid: c5b7fe5610d54e14891296e4a8f8016a, type: 3}
+        ModelPrefab: {fileID: 8524976429635346462, guid: 9287cb0d55d7da847817c0aa168a8dac, type: 3}
+  references:
+    version: 2
+    RefIds:
+    - rid: 7977957676956254296
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 266ffdc8e6c94f5280790e134fb8d4e2
+        DisplayName: Root node
+        Position: {x: 10, y: 5}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 409ca3aea8d64a309e54964feeace782
+        - f09ce73f55b842b5b41557145615b621
+        - 5815477fa7da498f89dda979da3687b1
+        NumberOfRepeatTime: 0
+        Requirements: []
+        Rewards:
+        - rid: 7977957676956254297
+        - rid: 7977957676956254305
+    - rid: 7977957676956254297
+      type: {class: ChangeFormReward, ns: , asm: Erelia.Runtime}
+      data:
+        FormKey: BaseForm
+    - rid: 7977957676956254298
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: f09ce73f55b842b5b41557145615b621
+        DisplayName: New Feat
+        Position: {x: 10, y: -1}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 266ffdc8e6c94f5280790e134fb8d4e2
+        - 8afb7a52221649ff9c723e891fb121b9
+        NumberOfRepeatTime: 0
+        Requirements:
+        - rid: 7977957676956254304
+        Rewards:
+        - rid: 7977957676956254303
+    - rid: 7977957676956254299
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 409ca3aea8d64a309e54964feeace782
+        DisplayName: Attack Augment
+        Position: {x: 3, y: -1}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 266ffdc8e6c94f5280790e134fb8d4e2
+        NumberOfRepeatTime: 10
+        Requirements:
+        - rid: 7977957676956254302
+        Rewards:
+        - rid: 7977957676956254301
+    - rid: 7977957676956254300
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 5815477fa7da498f89dda979da3687b1
+        DisplayName: Action Augment
+        Position: {x: 17, y: -1}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 266ffdc8e6c94f5280790e134fb8d4e2
+        - 5cc6d64b308f48eda1a2ca1ae108c22a
+        NumberOfRepeatTime: 0
+        Requirements:
+        - rid: 7977957676956254307
+        Rewards:
+        - rid: 7977957676956254306
+    - rid: 7977957676956254301
+      type: {class: BonusStatsReward, ns: , asm: Erelia.Runtime}
+      data:
+        Attribute: 3
+        Value: 1
+    - rid: 7977957676956254302
+      type: {class: DealDamageRequirement, ns: , asm: Erelia.Runtime}
+      data:
+        RequirementScope: 2
+        RequiredRepeatCount: 3
+        RequiredAmount: 10
+        SourceAbilities: []
+        DamageKind: 1
+    - rid: 7977957676956254303
+      type: {class: AbilityReward, ns: , asm: Erelia.Runtime}
+      data:
+        Ability: {fileID: 11400000, guid: e8995bb20424f3b43be4f51b591db154, type: 2}
+    - rid: 7977957676956254304
+      type: {class: CastAbilityCountRequirement, ns: , asm: Erelia.Runtime}
+      data:
+        RequirementScope: 2
+        RequiredRepeatCount: 3
+        Abilities:
+        - {fileID: 11400000, guid: 14b6c78326473704c9a58f95c36cc231, type: 2}
+        RequiredCount: 3
+        TargetRangeCondition: 1
+        Range: 2
+    - rid: 7977957676956254305
+      type: {class: AbilityReward, ns: , asm: Erelia.Runtime}
+      data:
+        Ability: {fileID: 11400000, guid: 14b6c78326473704c9a58f95c36cc231, type: 2}
+    - rid: 7977957676956254306
+      type: {class: BonusStatsReward, ns: , asm: Erelia.Runtime}
+      data:
+        Attribute: 1
+        Value: 1
+    - rid: 7977957676956254307
+      type: {class: ConsumeResourcesRequirement, ns: , asm: Erelia.Runtime}
+      data:
+        RequirementScope: 1
+        RequiredRepeatCount: 1
+        RequiredResource: 0
+        RequiredAmount: 6
+    - rid: 7977957676956254308
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 8afb7a52221649ff9c723e891fb121b9
+        DisplayName: Fierce form Unlock
+        Position: {x: 10, y: -7}
+        Kind: 3
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - f09ce73f55b842b5b41557145615b621
+        - 5201d3f9c9684bf7a2ddadf26410d040
+        - 65cb7f6465a144c8b8b24ff7c7889404
+        NumberOfRepeatTime: 0
+        Requirements:
+        - rid: 7977957676956254313
+        Rewards:
+        - rid: 7977957676956254309
+        - rid: 7977957676956254324
+        - rid: 7977957676956254325
+    - rid: 7977957676956254309
+      type: {class: ChangeFormReward, ns: , asm: Erelia.Runtime}
+      data:
+        FormKey: FierceForm
+    - rid: 7977957676956254310
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 5cc6d64b308f48eda1a2ca1ae108c22a
+        DisplayName: New Feat
+        Position: {x: 17, y: -7}
+        Kind: 0
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 5815477fa7da498f89dda979da3687b1
+        NumberOfRepeatTime: 0
+        Requirements:
+        - rid: 7977957676956254311
+        Rewards:
+        - rid: 7977957676956254312
+    - rid: 7977957676956254311
+      type: {class: ConsumeResourcesRequirement, ns: , asm: Erelia.Runtime}
+      data:
+        RequirementScope: 1
+        RequiredRepeatCount: 4
+        RequiredResource: 1
+        RequiredAmount: 3
+    - rid: 7977957676956254312
+      type: {class: BonusStatsReward, ns: , asm: Erelia.Runtime}
+      data:
+        Attribute: 2
+        Value: 1
+    - rid: 7977957676956254313
+      type: {class: ConsumeResourcesRequirement, ns: , asm: Erelia.Runtime}
+      data:
+        RequirementScope: 1
+        RequiredRepeatCount: 1
+        RequiredResource: 1
+        RequiredAmount: 4
+    - rid: 7977957676956254315
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 65cb7f6465a144c8b8b24ff7c7889404
+        DisplayName: New Feat
+        Position: {x: 14, y: -13}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 8afb7a52221649ff9c723e891fb121b9
+        NumberOfRepeatTime: 0
+        Requirements:
+        - rid: 7977957676956254327
+        Rewards:
+        - rid: 7977957676956254328
+    - rid: 7977957676956254316
+      type: {class: FeatNode, ns: , asm: Erelia.Runtime}
+      data:
+        Id: 5201d3f9c9684bf7a2ddadf26410d040
+        DisplayName: New Feat
+        Position: {x: 6, y: -13}
+        Kind: 1
+        Icon: {fileID: 0}
+        NeighbourNodeIds:
+        - 8afb7a52221649ff9c723e891fb121b9
+        NumberOfRepeatTime: 0
+        Requirements:
+        - rid: 7977957676956254326
+        Rewards:
+        - rid: 7977957676956254317
+    - rid: 7977957676956254317
+      type: {class: AbilityReward, ns: , asm: Erelia.Runtime}
+      data:
+        Ability: {fileID: 11400000, guid: a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6, type: 2}
+    - rid: 7977957676956254324
+      type: {class: AbilityReward, ns: , asm: Erelia.Runtime}
+      data:
+        Ability: {fileID: 11400000, guid: d71804d75bc7ca44cb5cc7774d814181, type: 2}
+    - rid: 7977957676956254325
+      type: {class: AbilityReward, ns: , asm: Erelia.Runtime}
+      data:
+        Ability: {fileID: 11400000, guid: 71a39844c1b186d46956285761db2089, type: 2}
+    - rid: 7977957676956254326
+      type: {class: CastAbilityCountRequirement, ns: , asm: Erelia.Runtime}
+      data:
+        RequirementScope: 3
+        RequiredRepeatCount: 1
+        Abilities:
+        - {fileID: 11400000, guid: 71a39844c1b186d46956285761db2089, type: 2}
+        RequiredCount: 15
+        TargetRangeCondition: 0
+        Range: 0
+    - rid: 7977957676956254327
+      type: {class: CastAbilityCountRequirement, ns: , asm: Erelia.Runtime}
+      data:
+        RequirementScope: 2
+        RequiredRepeatCount: 1
+        Abilities:
+        - {fileID: 11400000, guid: 71a39844c1b186d46956285761db2089, type: 2}
+        RequiredCount: 15
+        TargetRangeCondition: 0
+        Range: 0
+    - rid: 7977957676956254328
+      type: {class: AbilityReward, ns: , asm: Erelia.Runtime}
+      data:
+        Ability: {fileID: 11400000, guid: 2745fbb08bdb18d43b7d30c8745f5b52, type: 2}

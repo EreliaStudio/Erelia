@@ -29,6 +29,8 @@ public abstract class FeatRequirement
 	public Scope RequirementScope = Scope.Fight;
 	public int RequiredRepeatCount = 1;
 
+	public virtual bool IsScopeLocked => false;
+
 	public virtual Advancement EvaluateEvents(
 		IReadOnlyList<BattleEvent> p_events,
 		Advancement p_currentAdvancement)
@@ -618,6 +620,8 @@ public class TurnStartPositionRequirement : FeatRequirementTemplated<TurnStarted
 	public int Distance = 3;
 	public int MaximumDistance = 3;
 
+	public override bool IsScopeLocked => true;
+
 	public TurnStartPositionRequirement()
 	{
 		RequirementScope = Scope.Action;
@@ -663,6 +667,8 @@ public class TurnEndPositionRequirement : FeatRequirementTemplated<TurnEndedEven
 	public DistanceKind Condition = DistanceKind.Within;
 	public int Distance = 3;
 	public int MaximumDistance = 3;
+
+	public override bool IsScopeLocked => true;
 
 	public TurnEndPositionRequirement()
 	{

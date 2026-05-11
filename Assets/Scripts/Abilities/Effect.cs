@@ -247,6 +247,38 @@ public class SwapPositionEffect : Effect
 	public override void Apply(BattleAbilityExecutionContext context)
 	{
 		if (context?.BattleContext == null ||
+			context.TargetUnit == null ||
+			context.AffectedCell == context.AnchorCell)
+		{
+			return;
+		}
+
+		IReadOnlyList<BattleObject> anchorObjects = BattleTargetingRules.GetObjectsAtCell(context.BattleContext, context.AnchorCell);
+		BattleUnit anchorUnit = anchorObjects.Count > 0 ? anchorObjects[0] as BattleUnit : null;
+		if (anchorUnit == null)
+		{
+			return;
+		}
+
+		bool swapped = context.BattleContext.TrySwapUnits(anchorUnit, context.TargetUnit);
+		if (swapped)
+		{
+			BattleEventReporter.Emit(new SwapPositionEvent
+				{
+					Caster = context.SourceUnit,
+					Target = context.TargetUnit,
+					SourceAbility = context.Ability
+				});
+		}
+	}
+}
+
+[Serializable]
+public class SwapPositionWithCasterEffect : Effect
+{
+	public override void Apply(BattleAbilityExecutionContext context)
+	{
+		if (context?.BattleContext == null ||
 			context.SourceUnit == null ||
 			context.TargetUnit == null)
 		{
@@ -270,7 +302,6 @@ public class SwapPositionEffect : Effect
 public class TeleportEffect : Effect
 {
 	public Vector3Int Destination = Vector3Int.zero;
-	public bool RelativeToCaster = true;
 
 	public override void Apply(BattleAbilityExecutionContext context)
 	{
@@ -279,29 +310,47 @@ public class TeleportEffect : Effect
 			return;
 		}
 
-		Vector3Int destination = Destination;
-
-		if (RelativeToCaster && context.SourceObject != null)
-		{
-			if (context.BattleContext.Board.Runtime.TryGetPosition(context.SourceObject, out Vector3Int casterPosition))
-			{
-				destination += casterPosition;
-			}
-		}
-		else if (!RelativeToCaster)
-		{
-			destination += context.AnchorCell;
-		}
-
 		context.BattleContext.Board.Runtime.TryGetPosition(context.TargetUnit, out Vector3Int fromPosition);
-		bool teleported = context.BattleContext.TryPlaceUnit(context.TargetUnit, destination);
+		bool teleported = context.BattleContext.TryPlaceUnit(context.TargetUnit, Destination);
 		if (teleported)
 		{
-			int distance = Math.Abs(destination.x - fromPosition.x) + Math.Abs(destination.z - fromPosition.z);
+			int distance = Math.Abs(Destination.x - fromPosition.x) + Math.Abs(Destination.z - fromPosition.z);
 			BattleEventReporter.Emit(new TeleportedEvent
 				{
 					Caster = context.SourceUnit,
 					Target = context.TargetUnit,
+					Distance = distance,
+					SourceAbility = context.Ability
+				});
+		}
+	}
+}
+
+[Serializable]
+public class TeleportSelfEffect : Effect
+{
+	public override void Apply(BattleAbilityExecutionContext context)
+	{
+		if (context?.BattleContext == null || context.SourceUnit == null)
+		{
+			return;
+		}
+
+		// Only execute once, at the anchor cell, to avoid re-teleporting for each AOE cell.
+		if (context.AffectedCell != context.AnchorCell)
+		{
+			return;
+		}
+
+		context.BattleContext.Board.Runtime.TryGetPosition(context.SourceUnit, out Vector3Int fromPosition);
+		bool teleported = context.BattleContext.TryPlaceUnit(context.SourceUnit, context.AnchorCell);
+		if (teleported)
+		{
+			int distance = Math.Abs(context.AnchorCell.x - fromPosition.x) + Math.Abs(context.AnchorCell.z - fromPosition.z);
+			BattleEventReporter.Emit(new TeleportedEvent
+				{
+					Caster = context.SourceUnit,
+					Target = context.SourceUnit,
 					Distance = distance,
 					SourceAbility = context.Ability
 				});

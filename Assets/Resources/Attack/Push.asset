@@ -18,6 +18,7 @@ MonoBehaviour:
     Movement: 1
   Range:
     Type: 1
+    MinValue: 1
     Value: 1
     RequireLineOfSight: 1
   AreaOfEffect:

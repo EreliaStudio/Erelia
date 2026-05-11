@@ -29,7 +29,8 @@ public class Ability : ScriptableObject
 		{
 			Square,
 			Cross,
-			Circle
+			Circle,
+			Line
 		};
 
 		public Shape Type;

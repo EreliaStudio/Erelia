@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2407254878807916662}
   - component: {fileID: 8009242071131815666}
   m_Layer: 0
-  m_Name: Model_DPS
+  m_Name: FierceFox_Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -67,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4a1ea42314d0a5a478f70776f04ee9e4, type: 2}
+  - {fileID: 2100000, guid: 79b4c215d9927304abdc1920ef1f49e8, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

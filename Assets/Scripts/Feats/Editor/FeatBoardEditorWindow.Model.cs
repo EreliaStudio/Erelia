@@ -236,24 +236,195 @@ public partial class FeatBoardEditorWindow
 			return "Missing requirement";
 		}
 
+		string duration = FormatRequirementDuration(requirement);
+
 		switch (requirement)
 		{
+			// ── Damage ──────────────────────────────────────────────────────────
 			case DealDamageRequirement dealDamage:
-				return "Deal " + dealDamage.RequiredAmount + FormatDamageKindFilter(dealDamage.DamageKind) + " damage " + FormatRequirementDuration(requirement);
-
-			case HealHealthRequirement healHealth:
-				return "Heal " + healHealth.RequiredAmount + " " + FormatRequirementDuration(requirement);
-
-			case CastAbilityCountRequirement castAbility:
-				string abilitiesLabel = castAbility.Abilities.Count == 0 ? "any ability" : string.Join("/", castAbility.Abilities.ConvertAll(a => FormatAbilityName(a)));
-				return "Cast " + abilitiesLabel + FormatTargetRangeCondition(castAbility) + " " + castAbility.RequiredCount + " times " + FormatRequirementDuration(requirement);
+				return "Deal " + dealDamage.RequiredAmount + FormatDamageKindFilter(dealDamage.DamageKind) + " damage " + duration;
 
 			case TakeDamageRequirement takeDamage:
-				return "Take " + takeDamage.RequiredAmount + FormatDamageKindFilter(takeDamage.DamageKind) + " damage " + FormatRequirementDuration(requirement);
+				return "Take " + takeDamage.RequiredAmount + FormatDamageKindFilter(takeDamage.DamageKind) + " damage " + duration;
+
+			case WinAfterDealingDamageRequirement winDamage:
+				return "Deal " + winDamage.RequiredAmount + " damage and win " + duration;
+
+			case SurviveHitRequirement surviveHit:
+				return "Survive a hit of " + surviveHit.RequiredAmount + "+ damage " + duration;
+
+			// ── Healing ─────────────────────────────────────────────────────────
+			case HealHealthRequirement healHealth:
+				return "Heal " + healHealth.RequiredAmount + " HP " + duration;
+
+			case HealTargetRequirement healTarget:
+				string healTargetLabel = healTarget.Target switch
+				{
+					HealTargetRequirement.TargetFilter.Self => "yourself",
+					HealTargetRequirement.TargetFilter.Ally => "an ally",
+					_ => "a target"
+				};
+				return "Heal " + healTarget.RequiredAmount + " HP to " + healTargetLabel + " " + duration;
+
+			case WinAfterHealingRequirement winHeal:
+				return "Heal " + winHeal.RequiredAmount + " HP and win " + duration;
+
+			// ── Shields ─────────────────────────────────────────────────────────
+			case ApplyShieldRequirement applyShield:
+				string shieldKindLabel = applyShield.Filter switch
+				{
+					ApplyShieldRequirement.KindFilter.Physical => " physical",
+					ApplyShieldRequirement.KindFilter.Magical => " magical",
+					_ => string.Empty
+				};
+				return "Apply " + applyShield.RequiredAmount + shieldKindLabel + " shield " + duration;
+
+			case ApplyShieldCountRequirement applyShieldCount:
+				return "Apply a shield " + applyShieldCount.RequiredCount + " times " + duration;
+
+			case AbsorbDamageWithShieldRequirement absorbDamage:
+				return "Absorb " + absorbDamage.RequiredAmount + " damage with a shield " + duration;
+
+			case MaxDamageAbsorbedInOneHitRequirement maxAbsorb:
+				return "Absorb " + maxAbsorb.RequiredAmount + "+ damage with a shield in one hit";
+
+			case ShieldBrokenRequirement shieldBroken:
+				string brokenKindLabel = shieldBroken.Filter switch
+				{
+					ShieldBrokenRequirement.KindFilter.Physical => " physical",
+					ShieldBrokenRequirement.KindFilter.Magical => " magical",
+					_ => string.Empty
+				};
+				return "Have " + shieldBroken.RequiredCount + brokenKindLabel + " shield(s) broken " + duration;
+
+			// ── Status ──────────────────────────────────────────────────────────
+			case ApplyStatusCountRequirement applyStatus:
+				string applyStatusLabel = applyStatus.RequiredStatus != null ? applyStatus.RequiredStatus.name : "a status";
+				return "Apply " + applyStatusLabel + " " + applyStatus.RequiredCount + " times " + duration;
+
+			case RemoveStatusCountRequirement removeStatus:
+				string removeStatusLabel = removeStatus.RequiredStatus != null ? removeStatus.RequiredStatus.name : "a status";
+				return "Remove " + removeStatusLabel + " " + removeStatus.RequiredCount + " times " + duration;
+
+			// ── Kills ────────────────────────────────────────────────────────────
+			case KillCountRequirement killCount:
+				return "Defeat " + killCount.RequiredCount + " enemies " + duration;
+
+			case LastHitRequirement lastHit:
+				return "Deliver the finishing blow " + lastHit.RequiredCount + " times " + duration;
+
+			// ── Battle outcome ───────────────────────────────────────────────────
+			case WinBattleCountRequirement winBattle:
+				return "Win a battle" + (winBattle.RequireUnitSurvival ? " without falling" : string.Empty) + " " + duration;
+
+			// ── Resources ────────────────────────────────────────────────────────
+			case ConsumeResourcesRequirement consumeRes:
+				string resourceLabel = consumeRes.RequiredResource switch
+				{
+					ResourceConsumedEvent.ResourceKind.ActionPoints => "action points",
+					_ => consumeRes.RequiredResource.ToString().ToLowerInvariant()
+				};
+				return "Spend " + consumeRes.RequiredAmount + " " + resourceLabel + " " + duration;
+
+			// ── Movement ─────────────────────────────────────────────────────────
+			case TotalDistanceTravelledRequirement distanceTravelled:
+				return "Move " + distanceTravelled.RequiredDistance + " tiles " + duration;
+
+			case DisplacementDealtRequirement displacementDealt:
+				string displaceDealtLabel = !displacementDealt.FilterByOrientation ? "displace" :
+					displacementDealt.RequiredOrientation == MoveStatus.Orientation.AwayFromCaster ? "push" : "pull";
+				return displacementDealt.RequiredDistance + " tiles of " + displaceDealtLabel + " dealt " + duration;
+
+			case DisplacementReceivedRequirement displacementReceived:
+				string displaceReceivedLabel = !displacementReceived.FilterByOrientation ? "displaced" :
+					displacementReceived.RequiredOrientation == MoveStatus.Orientation.AwayFromCaster ? "pushed" : "pulled";
+				return "Be " + displaceReceivedLabel + " " + displacementReceived.RequiredCount + " times " + duration;
+
+			// ── Teleport ─────────────────────────────────────────────────────────
+			case TeleportCountRequirement teleportCount:
+				return "Teleport " + teleportCount.RequiredCount + " times " + duration;
+
+			case TeleportDistanceRequirement teleportDistance:
+				return "Teleport " + teleportDistance.RequiredDistance + " tiles " + duration;
+
+			// ── Positional ───────────────────────────────────────────────────────
+			case TurnStartPositionRequirement turnStart:
+				return FormatPositionRequirement("Start turn", turnStart.Target, turnStart.Condition, turnStart.Distance, turnStart.MaximumDistance) + FormatRepeatCount(turnStart);
+
+			case TurnEndPositionRequirement turnEnd:
+				return FormatPositionRequirement("End turn", turnEnd.Target, turnEnd.Condition, turnEnd.Distance, turnEnd.MaximumDistance) + FormatRepeatCount(turnEnd);
+
+			// ── Ability casting ──────────────────────────────────────────────────
+			case CastAbilityCountRequirement castAbility:
+				string abilitiesLabel = castAbility.Abilities.Count == 0 ? "any ability" : string.Join("/", castAbility.Abilities.ConvertAll(a => FormatAbilityName(a)));
+				return "Cast " + abilitiesLabel + FormatTargetRangeCondition(castAbility) + " " + castAbility.RequiredCount + " times " + duration;
+
+			// ── Meta ─────────────────────────────────────────────────────────────
+			case AndRequirement andReq:
+				return "All of " + (andReq.Children?.Count ?? 0) + " conditions";
+
+			case OrRequirement orReq:
+				return "Any of " + (orReq.Children?.Count ?? 0) + " conditions";
 
 			default:
-				return GetFeatRequirementLabel(requirement.GetType()) + " " + FormatRequirementDuration(requirement);
+				return GetFeatRequirementLabel(requirement.GetType()) + " " + duration;
 		}
+	}
+
+	private static string FormatPositionRequirement(
+		string prefix,
+		TurnStartPositionRequirement.TargetKind target,
+		TurnStartPositionRequirement.DistanceKind condition,
+		int distance,
+		int maxDistance)
+	{
+		string targetLabel = target switch
+		{
+			TurnStartPositionRequirement.TargetKind.Ally => "an ally",
+			TurnStartPositionRequirement.TargetKind.Enemy => "an enemy",
+			_ => "any unit"
+		};
+		string conditionLabel = condition switch
+		{
+			TurnStartPositionRequirement.DistanceKind.Within => "within " + distance + " tiles of",
+			TurnStartPositionRequirement.DistanceKind.AtLeast => "at least " + distance + " tiles from",
+			TurnStartPositionRequirement.DistanceKind.Between => "between " + System.Math.Min(distance, maxDistance) + " and " + System.Math.Max(distance, maxDistance) + " tiles from",
+			_ => string.Empty
+		};
+		return prefix + " " + conditionLabel + " " + targetLabel;
+	}
+
+	private static string FormatPositionRequirement(
+		string prefix,
+		TurnEndPositionRequirement.TargetKind target,
+		TurnEndPositionRequirement.DistanceKind condition,
+		int distance,
+		int maxDistance)
+	{
+		string targetLabel = target switch
+		{
+			TurnEndPositionRequirement.TargetKind.Ally => "an ally",
+			TurnEndPositionRequirement.TargetKind.Enemy => "an enemy",
+			_ => "any unit"
+		};
+		string conditionLabel = condition switch
+		{
+			TurnEndPositionRequirement.DistanceKind.Within => "within " + distance + " tiles of",
+			TurnEndPositionRequirement.DistanceKind.AtLeast => "at least " + distance + " tiles from",
+			TurnEndPositionRequirement.DistanceKind.Between => "between " + System.Math.Min(distance, maxDistance) + " and " + System.Math.Max(distance, maxDistance) + " tiles from",
+			_ => string.Empty
+		};
+		return prefix + " " + conditionLabel + " " + targetLabel;
+	}
+
+	private static string FormatRepeatCount(FeatRequirement requirement)
+	{
+		if (requirement == null || requirement.RequiredRepeatCount <= 1)
+		{
+			return string.Empty;
+		}
+
+		return " x" + requirement.RequiredRepeatCount;
 	}
 
 	private static string FormatRequirementDuration(FeatRequirement requirement)

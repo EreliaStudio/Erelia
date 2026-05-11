@@ -17,7 +17,8 @@ MonoBehaviour:
     Ability: 3
     Movement: 1
   Range:
-    Type: 0
+    Type: 3
+    MinValue: 0
     Value: 0
     RequireLineOfSight: 0
   AreaOfEffect:

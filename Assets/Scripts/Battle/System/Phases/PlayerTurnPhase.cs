@@ -38,16 +38,24 @@ public sealed class PlayerTurnPhase : BattlePhase
 
 	public IReadOnlyList<Vector3Int> GetAffectedCells(Ability ability, Vector3Int targetCell)
 	{
-		return !CanTargetCellWithAbility(ability, targetCell)
-			? System.Array.Empty<Vector3Int>()
-			: BattleTargetingRules.GetAffectedCells(BattleContext, ability, targetCell);
+		if (!CanTargetCellWithAbility(ability, targetCell))
+		{
+			return System.Array.Empty<Vector3Int>();
+		}
+
+		Vector3Int? casterCell = TurnContext?.ActiveUnit?.HasBoardPosition == true ? TurnContext.ActiveUnit.BoardPosition : (Vector3Int?)null;
+		return BattleTargetingRules.GetAffectedCells(BattleContext, ability, targetCell, casterCell);
 	}
 
 	public IReadOnlyList<BattleObject> GetAffectedObjects(Ability ability, Vector3Int targetCell)
 	{
-		return !CanTargetCellWithAbility(ability, targetCell)
-			? System.Array.Empty<BattleObject>()
-			: BattleTargetingRules.GetAffectedObjects(BattleContext, ability, targetCell);
+		if (!CanTargetCellWithAbility(ability, targetCell))
+		{
+			return System.Array.Empty<BattleObject>();
+		}
+
+		Vector3Int? casterCell = TurnContext?.ActiveUnit?.HasBoardPosition == true ? TurnContext.ActiveUnit.BoardPosition : (Vector3Int?)null;
+		return BattleTargetingRules.GetAffectedObjects(BattleContext, ability, targetCell, casterCell);
 	}
 
 	public IReadOnlyList<Vector3Int> GetMovementRangeMaskCells()
