@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -28,47 +29,55 @@ namespace Tests.Services
 		}
 
 		[Test]
-		public void TrySave_WithGameSaveFileData_WritesGameFile()
+		public void TrySave_WithJson_WritesGameFile()
 		{
 			IOFileService ioFileService = CreateService();
-			GameSaveFileData saveData = CreateSaveFileData();
+			JObject saveJson = CreateSaveJson();
 
-			bool result = ioFileService.TrySave(saveData);
+			bool result = ioFileService.TrySave(saveJson);
 
 			Assert.That(result, Is.True);
 			Assert.That(File.Exists(ioFileService.SaveFilePath), Is.True);
-			Assert.That(File.ReadAllText(ioFileService.SaveFilePath), Does.Contain("\"WorldSeed\": 9876"));
+			Assert.That(File.ReadAllText(ioFileService.SaveFilePath), Does.Contain("\"worldSeed\": 9876"));
 		}
 
 		[Test]
 		public void TryLoad_FromSavedGameFile_RestoresSerializedPayload()
 		{
 			IOFileService ioFileService = CreateService();
-			GameSaveFileData saveData = CreateSaveFileData();
-			Assert.That(ioFileService.TrySave(saveData), Is.True);
+			JObject saveJson = CreateSaveJson();
+			Assert.That(ioFileService.TrySave(saveJson), Is.True);
 
-			bool result = ioFileService.TryLoad(out GameSaveFileData loadedSaveData);
+			bool result = ioFileService.TryLoad(out JObject loaded);
 
 			Assert.That(result, Is.True);
-			Assert.That(loadedSaveData, Is.Not.Null);
-			Assert.That(loadedSaveData.WorldSeed, Is.EqualTo(9876));
-			Assert.That(loadedSaveData.RespawnPoint.ToVector3Int(), Is.EqualTo(new Vector3Int(6, 7, 8)));
-			Assert.That(Vector3Int.FloorToInt(loadedSaveData.Player.Position), Is.EqualTo(new Vector3Int(3, 4, 5)));
-			Assert.That(loadedSaveData.Player.TeamSlots.Count, Is.EqualTo(GameRule.TeamMemberCount));
-			Assert.That(loadedSaveData.Player.TeamSlots[0].HasCreature, Is.True);
-			Assert.That(loadedSaveData.Player.TeamSlots[0].Creature.SpeciesResourceId, Is.EqualTo("Creature/CreatureA/CreatureA"));
-			Assert.That(loadedSaveData.Player.StoredCreatures.Count, Is.EqualTo(1));
+			Assert.That(loaded, Is.Not.Null);
+			Assert.That(loaded["worldSeed"]?.Value<int>(), Is.EqualTo(9876));
+			Assert.That(SaveHelper.ToVector3Int(loaded["respawnPoint"] as JObject), Is.EqualTo(new Vector3Int(6, 7, 8)));
+
+			JObject playerJson = loaded["player"] as JObject;
+			Assert.That(playerJson, Is.Not.Null);
+			Assert.That(Vector3Int.FloorToInt(SaveHelper.ToVector3(playerJson["position"] as JObject)), Is.EqualTo(new Vector3Int(3, 4, 5)));
+
+			JArray teamSlots = playerJson["team"] as JArray;
+			Assert.That(teamSlots, Is.Not.Null);
+			Assert.That(teamSlots.Count, Is.EqualTo(GameRule.TeamMemberCount));
+			Assert.That(teamSlots[0]["hasCreature"]?.Value<bool>(), Is.True);
+
+			JArray storage = playerJson["storage"] as JArray;
+			Assert.That(storage, Is.Not.Null);
+			Assert.That(storage.Count, Is.EqualTo(1));
 		}
 
 		[Test]
-		public void TryLoad_WithoutGameFile_ReturnsFalseAndNullSaveData()
+		public void TryLoad_WithoutGameFile_ReturnsFalseAndNullJson()
 		{
 			IOFileService ioFileService = CreateService();
 
-			bool result = ioFileService.TryLoad(out GameSaveFileData loadedSaveData);
+			bool result = ioFileService.TryLoad(out JObject loaded);
 
 			Assert.That(result, Is.False);
-			Assert.That(loadedSaveData, Is.Null);
+			Assert.That(loaded, Is.Null);
 		}
 
 		private IOFileService CreateService()
@@ -76,38 +85,45 @@ namespace Tests.Services
 			return new IOFileService(tempDirectory, "test-save.json");
 		}
 
-		private static GameSaveFileData CreateSaveFileData()
+		private static JObject CreateSaveJson()
 		{
-			var playerSaveData = new PlayerSaveData
-			{
-				Position = new Vector3(3.5f, 4f, 5.5f)
-			};
-
+			JArray teamArray = new JArray();
 			for (int index = 0; index < GameRule.TeamMemberCount; index++)
 			{
-				playerSaveData.TeamSlots.Add(new CreatureSlotSaveData());
+				teamArray.Add(new JObject { ["hasCreature"] = false });
 			}
 
-			playerSaveData.TeamSlots[0] = new CreatureSlotSaveData
+			teamArray[0] = new JObject
 			{
-				HasCreature = true,
-				Creature = new CreatureUnitSaveData
+				["hasCreature"] = true,
+				["creature"] = new JObject
 				{
-					SpeciesResourceId = "Creature/CreatureA/CreatureA",
-					CurrentFormId = "DPS"
+					["speciesGuid"] = "test-species-guid",
+					["formId"] = "DPS",
+					["featBoard"] = new JObject { ["nodes"] = new JArray() }
 				}
 			};
-			playerSaveData.StoredCreatures.Add(new CreatureUnitSaveData
-			{
-				SpeciesResourceId = "Creature/CreatureA/CreatureA",
-				CurrentFormId = "Default"
-			});
 
-			return new GameSaveFileData
+			JArray storageArray = new JArray
 			{
-				WorldSeed = 9876,
-				RespawnPoint = SerializableVector3Int.From(new Vector3Int(6, 7, 8)),
-				Player = playerSaveData
+				new JObject
+				{
+					["speciesGuid"] = "test-species-guid",
+					["formId"] = "Default",
+					["featBoard"] = new JObject { ["nodes"] = new JArray() }
+				}
+			};
+
+			return new JObject
+			{
+				["worldSeed"] = 9876,
+				["respawnPoint"] = SaveHelper.ToJson(new Vector3Int(6, 7, 8)),
+				["player"] = new JObject
+				{
+					["position"] = SaveHelper.ToJson(new Vector3(3.5f, 4f, 5.5f)),
+					["team"] = teamArray,
+					["storage"] = storageArray
+				}
 			};
 		}
 	}

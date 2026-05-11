@@ -27,7 +27,7 @@ public sealed class ServiceLocator
 	{
 		ReferenceRegistry = new ReferenceRegistry();
 		IOFileService = new IOFileService(p_saveDirectoryPath, p_saveFileName);
-		SaveService = new SaveService(IOFileService);
+		SaveService = new SaveService(IOFileService, ReferenceRegistry);
 		GameContext = SaveService.CreateGameContext(p_saveData);
 		PlayerService = new PlayerService(GameContext);
 		SaveService.BindRuntimeServices(GameContext, PlayerService);

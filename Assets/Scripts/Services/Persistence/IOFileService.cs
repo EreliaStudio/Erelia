@@ -1,11 +1,12 @@
 using System;
 using System.IO;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 public sealed class IOFileService
 {
-	public const int CurrentVersion = GameSaveFileData.CurrentVersion;
 	public const string DefaultSaveFileName = "savegame.json";
 
 	private readonly string saveDirectoryPath;
@@ -40,9 +41,9 @@ public sealed class IOFileService
 		return File.Exists(SaveFilePath);
 	}
 
-	public bool TrySave(GameSaveFileData p_saveData)
+	public bool TrySave(JObject p_json)
 	{
-		if (p_saveData == null)
+		if (p_json == null)
 		{
 			return false;
 		}
@@ -51,8 +52,7 @@ public sealed class IOFileService
 		{
 			Directory.CreateDirectory(saveDirectoryPath);
 
-			p_saveData.Version = CurrentVersion;
-			string json = JsonUtility.ToJson(p_saveData, true);
+			string json = p_json.ToString(Formatting.Indented);
 			string tempFilePath = SaveFilePath + ".tmp";
 
 			File.WriteAllText(tempFilePath, json, Encoding.UTF8);
@@ -73,9 +73,9 @@ public sealed class IOFileService
 		}
 	}
 
-	public bool TryLoad(out GameSaveFileData p_saveData)
+	public bool TryLoad(out JObject p_json)
 	{
-		p_saveData = null;
+		p_json = null;
 
 		if (!File.Exists(SaveFilePath))
 		{
@@ -84,14 +84,14 @@ public sealed class IOFileService
 
 		try
 		{
-			string json = File.ReadAllText(SaveFilePath, Encoding.UTF8);
-			if (string.IsNullOrWhiteSpace(json))
+			string text = File.ReadAllText(SaveFilePath, Encoding.UTF8);
+			if (string.IsNullOrWhiteSpace(text))
 			{
 				return false;
 			}
 
-			p_saveData = JsonUtility.FromJson<GameSaveFileData>(json);
-			return p_saveData != null;
+			p_json = JObject.Parse(text);
+			return p_json != null;
 		}
 		catch (Exception exception)
 		{

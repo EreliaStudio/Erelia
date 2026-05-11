@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 [Serializable]
 public class FeatNodeProgress
@@ -95,6 +96,46 @@ public class FeatNodeProgress
 		CompletionCount++;
 		ResetRequirementProgress();
 	}
+
+	public JObject ToJson()
+	{
+		JArray requirements = new JArray();
+		for (int index = 0; index < RequirementProgress.Count; index++)
+		{
+			FeatRequirementProgress req = RequirementProgress[index];
+			requirements.Add(req != null ? req.ToJson() : new JObject());
+		}
+
+		return new JObject
+		{
+			["nodeId"] = NodeId ?? string.Empty,
+			["completions"] = CompletionCount,
+			["requirements"] = requirements
+		};
+	}
+
+	public static FeatNodeProgress FromJson(JObject p_json, FeatNode p_node)
+	{
+		FeatNodeProgress progress = new FeatNodeProgress(p_node);
+		progress.CompletionCount = Math.Max(0, p_json["completions"]?.Value<int>() ?? 0);
+
+		JArray requirements = p_json["requirements"] as JArray;
+		if (requirements == null)
+		{
+			return progress;
+		}
+
+		int count = Math.Min(progress.RequirementProgress.Count, requirements.Count);
+		for (int index = 0; index < count; index++)
+		{
+			if (requirements[index] is JObject reqJson)
+			{
+				progress.RequirementProgress[index].LoadFromJson(reqJson);
+			}
+		}
+
+		return progress;
+	}
 }
 
 [Serializable]
@@ -151,5 +192,25 @@ public class FeatRequirementProgress
 		}
 
 		Advancement = Requirement.EvaluateEvents(p_featEvents, Advancement);
+	}
+
+	public JObject ToJson()
+	{
+		return new JObject
+		{
+			["progress"] = CurrentProgress,
+			["repeats"] = CompletedRepeatCount
+		};
+	}
+
+	public void LoadFromJson(JObject p_json)
+	{
+		if (p_json == null)
+		{
+			return;
+		}
+
+		CurrentProgress = p_json["progress"]?.Value<float>() ?? 0f;
+		CompletedRepeatCount = Math.Max(0, p_json["repeats"]?.Value<int>() ?? 0);
 	}
 }

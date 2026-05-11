@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 [Serializable]
 public class FeatBoardProgress
@@ -50,5 +51,50 @@ public class FeatBoardProgress
 				NodeProgress.RemoveAt(index);
 			}
 		}
+	}
+
+	public JObject ToJson()
+	{
+		JArray nodes = new JArray();
+		for (int index = 0; index < NodeProgress.Count; index++)
+		{
+			FeatNodeProgress nodeProgress = NodeProgress[index];
+			if (nodeProgress != null)
+			{
+				nodes.Add(nodeProgress.ToJson());
+			}
+		}
+
+		return new JObject { ["nodes"] = nodes };
+	}
+
+	public static FeatBoardProgress FromJson(JObject p_json, FeatBoard p_board)
+	{
+		FeatBoardProgress progress = new FeatBoardProgress();
+
+		JArray nodes = p_json?["nodes"] as JArray;
+		if (nodes == null || p_board == null)
+		{
+			return progress;
+		}
+
+		foreach (JObject nodeJson in nodes)
+		{
+			string nodeId = nodeJson["nodeId"]?.Value<string>();
+			if (string.IsNullOrWhiteSpace(nodeId))
+			{
+				continue;
+			}
+
+			FeatNode node = p_board.GetNode(nodeId);
+			if (node == null)
+			{
+				continue;
+			}
+
+			progress.NodeProgress.Add(FeatNodeProgress.FromJson(nodeJson, node));
+		}
+
+		return progress;
 	}
 }

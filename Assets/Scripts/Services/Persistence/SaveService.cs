@@ -1,14 +1,19 @@
+using Newtonsoft.Json.Linq;
+using UnityEngine;
+
 public sealed class SaveService
 {
 	private readonly IOFileService ioFileService;
+	private readonly ReferenceRegistry referenceRegistry;
 
 	private GameContext gameContext;
 	private PlayerService playerService;
 	private GameSaveData boundSaveData;
 
-	public SaveService(IOFileService p_ioFileService)
+	public SaveService(IOFileService p_ioFileService, ReferenceRegistry p_referenceRegistry)
 	{
 		ioFileService = p_ioFileService;
+		referenceRegistry = p_referenceRegistry;
 	}
 
 	public void Initialize()
@@ -51,56 +56,60 @@ public sealed class SaveService
 			return false;
 		}
 
-		GameSaveFileData saveFileData = CreateSaveFileData(target);
-		UpdateRuntimeSaveData(target, saveFileData);
+		JObject saveJson = BuildSaveJson(target);
+		bool success = ioFileService == null || ioFileService.TrySave(saveJson);
 
-		bool success = ioFileService == null || ioFileService.TrySave(saveFileData);
+		if (success)
+		{
+			UpdateRuntimeSaveData(target, saveJson);
+		}
+
 		EventCenter.EmitSaveCompleted(target, success);
 		return success;
 	}
 
 	public bool TryLoadFromFile(GameSaveData p_targetSaveData = null)
 	{
-		if (ioFileService == null ||
-			!ioFileService.TryLoad(out GameSaveFileData saveFileData))
+		if (ioFileService == null || !ioFileService.TryLoad(out JObject saveJson))
 		{
 			return false;
 		}
 
-		return TryLoad(saveFileData, p_targetSaveData);
+		return TryLoad(saveJson, p_targetSaveData);
 	}
 
-	public bool TryLoad(GameSaveFileData p_saveFileData, GameSaveData p_targetSaveData = null)
+	public bool TryLoad(JObject p_saveJson, GameSaveData p_targetSaveData = null)
 	{
 		GameSaveData target = p_targetSaveData ?? boundSaveData;
-		if (p_saveFileData == null ||
-			target == null ||
-			gameContext == null ||
-			playerService == null ||
-			p_saveFileData.Player == null)
+		if (p_saveJson == null || target == null || gameContext == null || playerService == null)
 		{
 			return false;
 		}
 
-		gameContext.World.ApplySeed(p_saveFileData.WorldSeed);
-		if (!playerService.LoadFromSaveData(p_saveFileData.Player))
+		int worldSeed = p_saveJson["worldSeed"]?.Value<int>() ?? 0;
+		gameContext.World.ApplySeed(worldSeed);
+
+		if (!playerService.LoadFromJson(p_saveJson["player"] as JObject, referenceRegistry))
 		{
 			return false;
 		}
 
-		UpdateRuntimeSaveData(target, p_saveFileData);
+		UpdateRuntimeSaveData(target, p_saveJson);
 		return true;
 	}
 
-	public GameSaveFileData CreateSaveFileData(GameSaveData p_targetSaveData = null)
+	public JObject CreateSaveJson(GameSaveData p_targetSaveData = null)
 	{
-		GameSaveData target = p_targetSaveData ?? boundSaveData;
-		return new GameSaveFileData
+		return BuildSaveJson(p_targetSaveData ?? boundSaveData);
+	}
+
+	private JObject BuildSaveJson(GameSaveData p_target)
+	{
+		return new JObject
 		{
-			Version = GameSaveFileData.CurrentVersion,
-			WorldSeed = gameContext?.World?.Seed ?? target?.WorldSeed ?? 0,
-			RespawnPoint = SerializableVector3Int.From(target?.RespawnPoint ?? default),
-			Player = playerService?.CreateSaveData() ?? new PlayerSaveData()
+			["worldSeed"] = gameContext?.World?.Seed ?? p_target?.WorldSeed ?? 0,
+			["respawnPoint"] = SaveHelper.ToJson(p_target?.RespawnPoint ?? default),
+			["player"] = playerService?.ToJson(referenceRegistry) ?? new JObject()
 		};
 	}
 
@@ -109,21 +118,25 @@ public sealed class SaveService
 		Save(p_targetSaveData);
 	}
 
-	private void UpdateRuntimeSaveData(GameSaveData p_targetSaveData, GameSaveFileData p_saveFileData)
+	private void UpdateRuntimeSaveData(GameSaveData p_target, JObject p_saveJson)
 	{
-		if (p_targetSaveData == null || p_saveFileData == null)
+		if (p_target == null || p_saveJson == null)
 		{
 			return;
 		}
 
-		p_targetSaveData.SetWorldSeed(p_saveFileData.WorldSeed);
-		p_targetSaveData.SetRespawnPoint(p_saveFileData.RespawnPoint.ToVector3Int());
+		p_target.SetWorldSeed(p_saveJson["worldSeed"]?.Value<int>() ?? 0);
+		p_target.SetRespawnPoint(SaveHelper.ToVector3Int(p_saveJson["respawnPoint"] as JObject));
+
 		if (gameContext?.Player != null)
 		{
-			p_targetSaveData.CopyPlayerFrom(gameContext.Player);
-			if (p_saveFileData.Player != null)
+			p_target.CopyPlayerFrom(gameContext.Player);
+
+			JObject playerJson = p_saveJson["player"] as JObject;
+			if (playerJson != null)
 			{
-				p_targetSaveData.Player?.SetPosition(p_saveFileData.Player.Position, true);
+				Vector3 position = SaveHelper.ToVector3(playerJson["position"] as JObject);
+				p_target.Player?.SetPosition(position, true);
 			}
 		}
 	}

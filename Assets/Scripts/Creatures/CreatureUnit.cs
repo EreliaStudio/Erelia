@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 [Serializable]
 public class CreatureUnit
@@ -155,6 +156,48 @@ public class CreatureUnit
 		{
 			RemoveAbility(p_abilities[index]);
 		}
+	}
+
+	public JObject ToJson()
+	{
+		return new JObject
+		{
+			["speciesGuid"] = Species?.Guid ?? string.Empty,
+			["formId"] = CurrentFormID ?? string.Empty,
+			["featBoard"] = FeatBoardProgress.ToJson()
+		};
+	}
+
+	public static CreatureUnit FromJson(JObject p_json, ReferenceRegistry p_registry)
+	{
+		if (p_json == null)
+		{
+			return null;
+		}
+
+		string speciesGuid = p_json["speciesGuid"]?.Value<string>();
+		if (string.IsNullOrEmpty(speciesGuid))
+		{
+			return null;
+		}
+
+		if (!p_registry.TryResolve<CreatureSpecies>(speciesGuid, out CreatureSpecies species))
+		{
+			Logger.LogError(
+				$"[CreatureUnit] Could not resolve species GUID [{speciesGuid}].",
+				Logger.Severity.Warning);
+			return null;
+		}
+
+		CreatureUnit unit = new CreatureUnit
+		{
+			Species = species,
+			CurrentFormID = p_json["formId"]?.Value<string>() ?? string.Empty,
+			FeatBoardProgress = FeatBoardProgress.FromJson(p_json["featBoard"] as JObject, species.FeatBoard)
+		};
+
+		FeatBoardService.ApplyProgress(unit);
+		return unit;
 	}
 
 	private void EnsureAbilityList()
