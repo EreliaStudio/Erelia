@@ -195,6 +195,7 @@
     <Compile Include="Assets\Scripts\Battle\Core\BattleInteractiveObject.cs" />
     <Compile Include="Assets\Scripts\Board\BoardPresenter.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMesher.cs" />
+    <Compile Include="Assets\Scripts\References\ReferenceableDatabase.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterUnit.cs" />
     <Compile Include="Assets\Scripts\Battle\Rules\BattleRangeRules.cs" />
     <Compile Include="Assets\Scripts\Movement\MovableTrait.cs" />
@@ -244,7 +245,9 @@
     <Compile Include="Assets\Scripts\Battle\Turns\TurnContext.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleAction.cs" />
     <Compile Include="Assets\Scripts\UI\ProgressBarView.cs" />
+    <Compile Include="Assets\Scripts\References\ReferenceableScriptableObject.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleUnitManager.cs" />
+    <Compile Include="Assets\Scripts\Services\Core\ReferenceRegistry.cs" />
     <Compile Include="Assets\Scripts\Bootstrap\MainMenuMock.cs" />
     <Compile Include="Assets\Scripts\Observables\ObservableValue.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMesher.Geometry.cs" />

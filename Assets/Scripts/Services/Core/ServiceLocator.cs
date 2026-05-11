@@ -2,6 +2,7 @@ public sealed class ServiceLocator
 {
 	public static ServiceLocator Instance { get; private set; }
 
+	public ReferenceRegistry ReferenceRegistry { get; }
 	public GameContext GameContext { get; }
 	public BattleService BattleService { get; }
 	public BattleActionCompositionService BattleActionCompositionService { get; }
@@ -24,6 +25,7 @@ public sealed class ServiceLocator
 		string p_saveDirectoryPath,
 		string p_saveFileName)
 	{
+		ReferenceRegistry = new ReferenceRegistry();
 		IOFileService = new IOFileService(p_saveDirectoryPath, p_saveFileName);
 		SaveService = new SaveService(IOFileService);
 		GameContext = SaveService.CreateGameContext(p_saveData);

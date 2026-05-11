@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Editor\ProgressBarViewFactory.cs" />
     <Compile Include="Assets\Scripts\Editor\CreatureCardViewFactory.cs" />
+    <Compile Include="Assets\Scripts\Editor\References\ReferenceableDatabaseBuilder.cs" />
     <Compile Include="Assets\Scripts\Editor\Utils\CreatureTeamEditorGui.cs" />
     <Compile Include="Assets\Scripts\Editor\BattleBackendTestRunnerWindow.cs" />
     <Compile Include="Assets\Scripts\Editor\Utils\ManagedReferenceTypePicker.cs" />

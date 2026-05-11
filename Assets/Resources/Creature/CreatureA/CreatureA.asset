@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aae4753f3181e5f42a13212490c4ea7b, type: 3}
   m_Name: CreatureA
   m_EditorClassIdentifier: Erelia.Runtime::CreatureSpecies
+  guid: 7b1c734936928f643bb8669259644588
   Attributes:
     Health: 10
     ActionPoints: 6

@@ -5,6 +5,7 @@ public class GameBootstrapper : MonoBehaviour
 {
 	[SerializeField] private ModeManager modeManager;
 	[SerializeField] private WorldPresenter worldPresenter;
+	[SerializeField] private ReferenceableDatabase referenceableDatabase;
 
 	private void Awake()
 	{
@@ -38,6 +39,7 @@ public class GameBootstrapper : MonoBehaviour
 		}
 
 		ServiceLocator.Create(p_gameSaveData);
+		ServiceLocator.Instance.ReferenceRegistry.Bind(referenceableDatabase != null ? referenceableDatabase.Entries : null);
 		GameContext gameContext = ServiceLocator.Instance.GameContext;
 		PlayerService playerService = ServiceLocator.Instance.PlayerService;
 

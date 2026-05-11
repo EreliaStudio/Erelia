@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "NewCreatureSpecies", menuName = "Game/Creature Species")]
-public class CreatureSpecies : ScriptableObject
+public class CreatureSpecies : ReferenceableScriptableObject
 {
 	public Attributes Attributes = new Attributes();
 	public List<Ability> DefaultAbilities = new List<Ability>();
