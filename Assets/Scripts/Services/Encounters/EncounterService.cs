@@ -20,6 +20,7 @@ public sealed class EncounterService
 	public void RequestBattle(
 		BoardConfiguration p_boardConfiguration,
 		UnityEngine.Vector3 p_battleOriginWorldPosition,
+		UnityEngine.Vector3Int? p_playerReturnWorldCell,
 		System.Collections.Generic.IReadOnlyList<EncounterUnit> p_enemyUnits,
 		PlacementStyle p_placementStyle,
 		bool p_allowsTaming)
@@ -32,6 +33,7 @@ public sealed class EncounterService
 		EventCenter.EmitBattleLaunchRequested(
 			p_boardConfiguration,
 			p_battleOriginWorldPosition,
+			p_playerReturnWorldCell,
 			p_enemyUnits,
 			p_placementStyle,
 			p_allowsTaming);

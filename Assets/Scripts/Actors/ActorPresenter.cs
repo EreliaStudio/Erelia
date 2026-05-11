@@ -7,15 +7,24 @@ public class ActorPresenter : MonoBehaviour
 
 	private ActorData actorData;
 
-	public event System.Action<ActorPresenter, Vector3Int> CellReached;
-
 	public ActorData ActorData => actorData;
 	public ActorView ActorView => actorView;
 	public float MovementSpeed => actorData != null ? actorData.MovementSpeed : 0f;
 
 	public void Bind(ActorData data)
 	{
+		if (actorData?.Position != null)
+		{
+			actorData.Position.Changed -= OnActorPositionChanged;
+		}
+
 		actorData = data;
+
+		if (actorData?.Position != null)
+		{
+			actorData.Position.Changed += OnActorPositionChanged;
+			OnActorPositionChanged(actorData.Position.Value);
+		}
 	}
 
 	protected virtual void Awake()
@@ -26,8 +35,16 @@ public class ActorPresenter : MonoBehaviour
 		}
 	}
 
-	public void NotifyCellReached(Vector3Int worldCellPosition)
+	protected virtual void OnDestroy()
 	{
-		CellReached?.Invoke(this, worldCellPosition);
+		if (actorData?.Position != null)
+		{
+			actorData.Position.Changed -= OnActorPositionChanged;
+		}
+	}
+
+	private void OnActorPositionChanged(Vector3 position)
+	{
+		transform.position = position;
 	}
 }

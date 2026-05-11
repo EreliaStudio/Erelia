@@ -6,7 +6,7 @@ namespace Tests.Feats.NonDamageEffect
 	public sealed class NonDamageEffectTests
 	{
 		[Test]
-		public void Apply_RecordsNoEvents()
+		public void Apply_RecordsTurnBarTimeAdjustedEvent()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(playerCount: 1, enemyCount: 1, defaultHealth: 100);
 			using BattleFeatEventCapture capture = new BattleFeatEventCapture();
@@ -23,8 +23,8 @@ namespace Tests.Feats.NonDamageEffect
 			var effect = new AdjustTurnBarTimeEffect { Delta = 1f };
 			effect.Apply(context);
 
-			Assert.That(capture.Count(sourceUnit), Is.Zero);
-			Assert.That(capture.Count(targetUnit), Is.Zero);
+			Assert.That(capture.Find<TurnBarTimeAdjustedEvent>(sourceUnit), Is.Not.Null);
+			Assert.That(capture.Find<TurnBarTimeAdjustedEvent>(targetUnit), Is.Not.Null);
 		}
 	}
 }

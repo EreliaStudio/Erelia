@@ -1,0 +1,98 @@
+@startuml Actor Position Spawn Sequence
+
+skinparam shadowing false
+hide footbox
+
+title Actor Position - Exploration Spawn and Binding
+
+actor Unity
+
+participant GameBootstrapper
+participant GameSaveData
+participant GameContext
+participant PlayerData
+participant ActorData
+participant "ActorData.Position" as Position
+participant ModeManager
+participant ExplorationMode
+participant ActorManager
+participant ActorPresenter
+participant ExplorationPlayerController
+participant WorldPresenter
+participant WorldService
+participant WorldPathfinder
+participant WorldTraversalGraphCache
+participant VoxelTraversalUtility
+participant EventCenter
+participant PlayerService
+
+note over ActorData, ActorPresenter
+  ActorData.Position is the authoritative runtime position.
+  ActorPresenter only mirrors Position.Changed into transform.position.
+end note
+
+Unity -> GameBootstrapper : Bootstrap(gameSaveData)
+GameBootstrapper -> GameContext : CreateFromSave(gameSaveData)
+GameContext -> GameContext : LoadFromSave(gameSaveData)
+GameContext -> PlayerData : CopyFrom(gameSaveData.Player)
+PlayerData -> PlayerData : WorldCell = saved grid cell
+
+GameBootstrapper -> WorldPresenter : Bind(gameContext.World)
+GameBootstrapper -> WorldService : ConfigureVoxelRegistry(worldPresenter.VoxelRegistry)
+
+GameBootstrapper -> PlayerService : PlayerWorldCell
+PlayerService -> PlayerService : TryGetRuntimeWorldCell()
+alt actor position provider is not bound yet
+    PlayerService -> PlayerData : WorldCell
+    PlayerData --> PlayerService : saved / initialized grid cell
+end
+
+GameBootstrapper -> WorldPresenter : LoadImmediatelyAroundWorldCell(playerWorldCell)
+WorldPresenter -> WorldPresenter : Load(center chunk)
+WorldPresenter -> WorldPresenter : ApplyLoadResult(...)
+
+alt new or empty save needs valid terrain spawn
+    GameBootstrapper -> GameSaveData : SetPlayerWorldCell(surface spawn cell)
+    GameBootstrapper -> GameSaveData : SetRespawnPoint(surface spawn cell)
+    GameBootstrapper -> GameContext : LoadFromSave(gameSaveData)
+end
+
+GameBootstrapper -> ModeManager : SetGameContext(gameContext)
+GameBootstrapper -> ModeManager : EnterExplorationMode(gameContext)
+ModeManager -> ExplorationMode : Enter(gameContext, worldCellOverride = null)
+
+ExplorationMode -> WorldPresenter : Bind(gameContext.World)
+ExplorationMode -> ActorManager : SpawnActor(PlayerData.WorldCell, PlayerData)
+
+ActorManager -> WorldPathfinder : TryResolveStandingCell(approximate point from WorldCell)
+WorldPathfinder -> WorldTraversalGraphCache : HasNode(candidate cell)
+WorldTraversalGraphCache --> WorldPathfinder : traversal node exists / missing
+WorldPathfinder --> ActorManager : resolvedWorldCell
+
+ActorManager -> VoxelTraversalUtility : TryGetStandingWorldPoint(resolvedWorldCell)
+VoxelTraversalUtility --> ActorManager : worldPosition
+
+ActorManager -> ActorData : SetPosition(worldPosition, forceNotify = true)
+ActorData -> Position : Set(worldPosition, true)
+Position --> ActorData : Changed(worldPosition)
+
+ActorManager -> ActorPresenter : Instantiate actor prefab at worldPosition
+ActorManager -> ActorPresenter : Bind(actorData)
+ActorPresenter -> Position : subscribe Changed
+ActorPresenter -> ActorPresenter : OnActorPositionChanged(Position.Value)
+ActorPresenter -> ActorPresenter : transform.position = Position.Value
+
+ExplorationMode -> ActorPresenter : subscribe CellReached
+ExplorationMode -> ActorManager : TryGetWorldCell(actor)
+ActorManager -> ActorData : read Position.Value
+ActorManager -> WorldPathfinder : TryResolveStandingCell(Position.Value)
+WorldPathfinder --> ActorManager : actorWorldCell
+
+ExplorationMode -> PlayerService : BindWorldCellProvider(TryGetSpawnedActorWorldCell)
+ExplorationMode -> ExplorationPlayerController : Bind(actor, camera, orbiting)
+ExplorationMode -> WorldPresenter : LoadImmediatelyAroundWorldCell(actorWorldCell)
+ExplorationMode -> EventCenter : EmitPlayerChunkChanged(currentChunk)
+EventCenter -> WorldPresenter : PlayerChunkChanged(currentChunk)
+WorldPresenter -> WorldPresenter : ApplyLoadResult(Load(currentChunk))
+
+@enduml

@@ -1,0 +1,88 @@
+@startuml Actor Position Battle Return Sequence
+
+skinparam shadowing false
+hide footbox
+
+title Actor Position - Encounter Snapshot and Battle Return
+
+participant ExplorationMode
+participant EventCenter
+participant EncounterEmitter
+participant EncounterService
+participant BattleService
+participant BattleContext
+participant ModeManager
+participant BattleMode
+participant ActorManager
+participant ActorPathDriver
+participant ActorData
+participant "ActorData.Position" as Position
+participant ActorPresenter
+participant WorldPathfinder
+participant VoxelTraversalUtility
+participant WorldPresenter
+
+== Encounter Captures Return Cell ==
+
+ExplorationMode -> EventCenter : EmitPlayerMoved(targetCell)
+EventCenter -> EncounterEmitter : PlayerMoved(targetCell)
+EncounterEmitter -> WorldPathfinder : TryResolveStandingCell(targetCell approximate point)
+WorldPathfinder --> EncounterEmitter : standingCell
+
+EncounterEmitter -> EncounterService : RequestBattle(boardConfiguration, standingCell, standingCell, team, placementStyle, true)
+EncounterService -> EventCenter : EmitBattleLaunchRequested(..., playerReturnWorldCell = standingCell, ...)
+EventCenter -> BattleService : BattleLaunchRequested(...)
+BattleService -> BattleContext : new BattleContext(..., returnWorldCell = standingCell)
+BattleService -> EventCenter : EmitBattleStarted(battleContext)
+
+EventCenter -> ModeManager : BattleStarted(battleContext)
+ModeManager -> BattleMode : Enter(battleContext)
+
+note right of BattleContext
+  ReturnWorldCell is only a transition snapshot.
+  It is not the live actor position source.
+  Live position remains ActorData.Position.
+end note
+
+== Battle Ends ==
+
+BattleService -> EventCenter : EmitBattleResolved(battleContext, winner)
+EventCenter -> ModeManager : BattleResolved(battleContext, winner)
+
+ModeManager -> BattleMode : Exit()
+ModeManager -> ExplorationMode : Enter(gameContext, battleContext.ReturnWorldCell)
+
+== Re-enter Exploration at Return Cell ==
+
+ExplorationMode -> ActorManager : TrySetWorldCell(actor, returnWorldCell)
+
+alt actor has a movement driver
+    ActorManager -> ActorPathDriver : Stop()
+end
+
+ActorManager -> WorldPathfinder : TryResolveStandingCell(approximate return cell point)
+WorldPathfinder --> ActorManager : resolvedReturnCell
+ActorManager -> VoxelTraversalUtility : TryGetStandingWorldPoint(resolvedReturnCell)
+VoxelTraversalUtility --> ActorManager : returnWorldPosition
+
+ActorManager -> ActorData : SetPosition(returnWorldPosition, forceNotify = true)
+ActorData -> Position : Set(returnWorldPosition, true)
+Position -> ActorPresenter : Changed(returnWorldPosition)
+ActorPresenter -> ActorPresenter : transform.position = returnWorldPosition
+
+ExplorationMode -> ActorManager : TryGetWorldCell(actor)
+ActorManager -> ActorData : read Position.Value
+ActorManager -> WorldPathfinder : TryResolveStandingCell(Position.Value)
+WorldPathfinder --> ActorManager : actorWorldCell
+
+ExplorationMode -> WorldPresenter : LoadImmediatelyAroundWorldCell(actorWorldCell)
+ExplorationMode -> EventCenter : EmitPlayerChunkChanged(currentChunk)
+EventCenter -> WorldPresenter : PlayerChunkChanged(currentChunk)
+WorldPresenter -> WorldPresenter : ApplyLoadResult(Load(currentChunk))
+
+note over ExplorationMode, EncounterEmitter
+  ExplorationMode does not emit PlayerMoved during Enter.
+  Returning to an encounter cell therefore does not immediately start the same fight again.
+end note
+
+@enduml

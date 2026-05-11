@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static partial class EventCenter
 {
-	public static event Action<BoardConfiguration, Vector3, IReadOnlyList<EncounterUnit>, PlacementStyle, bool> BattleLaunchRequested;
+	public static event Action<BoardConfiguration, Vector3, Vector3Int?, IReadOnlyList<EncounterUnit>, PlacementStyle, bool> BattleLaunchRequested;
 	public static event Action<BattleContext> BattleStarted;
 	public static event Action<BattleEvent> BattleEventOccurred;
 	public static event Action<BattleContext, BattleUnit> BattleAbilityResolved;
@@ -19,6 +19,7 @@ public static partial class EventCenter
 	public static void EmitBattleLaunchRequested(
 		BoardConfiguration p_boardConfiguration,
 		Vector3 p_battleOriginWorldPosition,
+		Vector3Int? p_playerReturnWorldCell,
 		IReadOnlyList<EncounterUnit> p_enemyUnits,
 		PlacementStyle p_placementStyle,
 		bool p_allowsTaming)
@@ -26,6 +27,7 @@ public static partial class EventCenter
 		BattleLaunchRequested?.Invoke(
 			p_boardConfiguration,
 			p_battleOriginWorldPosition,
+			p_playerReturnWorldCell,
 			p_enemyUnits,
 			p_placementStyle,
 			p_allowsTaming);
@@ -39,6 +41,16 @@ public static partial class EventCenter
 	public static void EmitBattleEventOccurred(BattleEvent p_featEvent)
 	{
 		BattleEventOccurred?.Invoke(p_featEvent);
+	}
+
+	public static void EmitBattleEventOccurred(BattleUnit p_unit, BattleEvent p_featEvent)
+	{
+		if (p_featEvent != null && p_featEvent.Caster == null)
+		{
+			p_featEvent.Caster = p_unit;
+		}
+
+		EmitBattleEventOccurred(p_featEvent);
 	}
 
 	public static void EmitBattleAbilityResolved(BattleContext p_battleContext, BattleUnit p_sourceUnit)

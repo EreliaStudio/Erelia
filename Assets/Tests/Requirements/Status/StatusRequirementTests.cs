@@ -6,6 +6,12 @@ namespace Tests.Requirements.Status.ApplyStatusCount
 {
 	public sealed class ApplyStatusCountTests
 	{
+		private static BattleUnit CreateBattleUnit()
+		{
+			CreatureSpecies species = ScriptableObject.CreateInstance<CreatureSpecies>();
+			return new BattleUnit(new CreatureUnit { Species = species }, BattleSide.Player);
+		}
+
 		[Test]
 		public void NoEvents_ZeroProgress()
 		{
@@ -25,7 +31,7 @@ namespace Tests.Requirements.Status.ApplyStatusCount
 
 			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new StatusAppliedEvent()
+				new StatusAppliedEvent { Caster = CreateBattleUnit() }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(20f).Within(0.01f));
@@ -39,9 +45,9 @@ namespace Tests.Requirements.Status.ApplyStatusCount
 
 			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new StatusAppliedEvent(),
-				new StatusAppliedEvent(),
-				new StatusAppliedEvent()
+				new StatusAppliedEvent { Caster = CreateBattleUnit() },
+				new StatusAppliedEvent { Caster = CreateBattleUnit() },
+				new StatusAppliedEvent { Caster = CreateBattleUnit() }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -56,7 +62,7 @@ namespace Tests.Requirements.Status.ApplyStatusCount
 
 			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new StatusAppliedEvent { Status = status }
+				new StatusAppliedEvent { Caster = CreateBattleUnit(), Status = status }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -72,7 +78,7 @@ namespace Tests.Requirements.Status.ApplyStatusCount
 
 			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new StatusAppliedEvent { Status = status }
+				new StatusAppliedEvent { Caster = CreateBattleUnit(), Status = status }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(50f).Within(0.01f));
@@ -106,8 +112,8 @@ namespace Tests.Requirements.Status.ApplyStatusCount
 
 			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new StatusAppliedEvent { Status = status },
-				new StatusAppliedEvent { Status = status }
+				new StatusAppliedEvent { Caster = CreateBattleUnit(), Status = status },
+				new StatusAppliedEvent { Caster = CreateBattleUnit(), Status = status }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);

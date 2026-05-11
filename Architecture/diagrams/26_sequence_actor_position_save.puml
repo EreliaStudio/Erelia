@@ -1,0 +1,61 @@
+@startuml Actor Position Save Sequence
+
+skinparam shadowing false
+hide footbox
+
+title Actor Position - Saving Current Exploration Cell
+
+actor Player
+
+participant EventCenter
+participant SaveService
+participant PlayerService
+participant ExplorationMode
+participant ActorManager
+participant ActorData
+participant WorldPathfinder
+participant GameContext
+participant PlayerData
+participant GameSaveData
+participant IOFileService
+
+Player -> EventCenter : EmitSaveRequested()
+EventCenter -> SaveService : SaveRequested(targetSaveData)
+SaveService -> PlayerService : CreateSaveData()
+
+PlayerService -> PlayerService : PlayerWorldCell
+PlayerService -> PlayerService : TryGetRuntimeWorldCell()
+
+alt exploration actor provider is bound
+    PlayerService -> ExplorationMode : TryGetSpawnedActorWorldCell()
+    ExplorationMode -> ActorManager : TryGetWorldCell(spawnedActor)
+    ActorManager -> ActorData : read Position.Value
+    ActorManager -> WorldPathfinder : TryResolveStandingCell(Position.Value)
+    WorldPathfinder --> ActorManager : currentWorldCell
+    ActorManager --> ExplorationMode : currentWorldCell
+    ExplorationMode --> PlayerService : currentWorldCell
+else no spawned actor provider is available
+    PlayerService -> PlayerData : WorldCell
+    PlayerData --> PlayerService : saved / loaded fallback cell
+end
+
+PlayerService -> PlayerService : ToSaveData(PlayerData, currentWorldCell)
+PlayerService --> SaveService : PlayerSaveData.WorldCell = currentWorldCell
+
+SaveService -> SaveService : CreateSaveFileData(targetSaveData)
+SaveService -> GameContext : World.Seed
+SaveService -> GameSaveData : RespawnPoint
+SaveService -> SaveService : compose GameSaveFileData
+
+SaveService -> GameSaveData : SetWorldSeed(saveFileData.WorldSeed)
+SaveService -> GameSaveData : SetRespawnPoint(saveFileData.RespawnPoint)
+SaveService -> GameContext : Player
+GameContext --> SaveService : runtime PlayerData
+SaveService -> GameSaveData : CopyPlayerFrom(gameContext.Player)
+SaveService -> GameSaveData : SetPlayerWorldCell(PlayerSaveData.WorldCell)
+
+SaveService -> IOFileService : TrySave(saveFileData)
+IOFileService --> SaveService : success / failure
+SaveService -> EventCenter : EmitSaveCompleted(targetSaveData, success)
+
+@enduml

@@ -27,7 +27,7 @@ namespace Tests.Feats.HealEffect
 
 			effect.Apply(context);
 
-			Assert.That(capture.Count(sourceUnit), Is.EqualTo(2));
+			Assert.That(capture.Count(sourceUnit), Is.EqualTo(1));
 			var healEvent = capture.Find<HealEvent>(sourceUnit);
 			Assert.That(healEvent, Is.Not.Null);
 			Assert.That(healEvent.Amount, Is.EqualTo(15));

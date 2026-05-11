@@ -47,7 +47,7 @@ namespace Tests.Services
         [Test]
         public void CreateSaveFileData_UsesWorldSeedAndPlayerServicePayload()
         {
-            ServiceLocator.Instance.PlayerService.PlayerData.WorldCell = new Vector3Int(1, 2, 3);
+            ServiceLocator.Instance.PlayerService.PlayerData.SetPosition(new Vector3(1.5f, 2f, 3.5f), true);
             ServiceLocator.Instance.WorldService.WorldContext.ApplySeed(42);
             GameSaveData saveData = new GameSaveData();
             saveData.SetRespawnPoint(new Vector3Int(4, 5, 6));
@@ -58,7 +58,7 @@ namespace Tests.Services
 
             Assert.That(fileData.WorldSeed, Is.EqualTo(42));
             Assert.That(fileData.RespawnPoint.ToVector3Int(), Is.EqualTo(new Vector3Int(4, 5, 6)));
-            Assert.That(fileData.Player.WorldCell.ToVector3Int(), Is.EqualTo(new Vector3Int(1, 2, 3)));
+            Assert.That(Vector3Int.FloorToInt(fileData.Player.Position), Is.EqualTo(new Vector3Int(1, 2, 3)));
         }
 
         [Test]
@@ -73,7 +73,7 @@ namespace Tests.Services
                 RespawnPoint = SerializableVector3Int.From(new Vector3Int(4, 5, 6)),
                 Player = new PlayerSaveData
                 {
-                    WorldCell = SerializableVector3Int.From(new Vector3Int(1, 2, 3))
+                    Position = new Vector3(1.5f, 2f, 3.5f)
                 }
             };
 
@@ -81,7 +81,7 @@ namespace Tests.Services
 
             Assert.That(result, Is.True);
             Assert.That(ServiceLocator.Instance.WorldService.WorldContext.Seed, Is.EqualTo(42));
-            Assert.That(ServiceLocator.Instance.PlayerService.PlayerData.WorldCell, Is.EqualTo(new Vector3Int(1, 2, 3)));
+            Assert.That(ServiceLocator.Instance.PlayerService.PlayerWorldCell, Is.EqualTo(new Vector3Int(1, 2, 3)));
             Assert.That(saveData.WorldSeed, Is.EqualTo(42));
             Assert.That(saveData.RespawnPoint, Is.EqualTo(new Vector3Int(4, 5, 6)));
         }

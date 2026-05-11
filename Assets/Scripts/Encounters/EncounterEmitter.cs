@@ -32,17 +32,14 @@ public class EncounterEmitter : MonoBehaviour
 		graphCache.Clear();
 	}
 
-	private void OnPlayerMoved(Vector3 worldPosition)
+	private void OnPlayerMoved(Vector3Int worldCell)
 	{
 		if (worldPresenter.WorldData == null || worldPresenter.VoxelRegistry == null)
 		{
 			return;
 		}
 
-		if (!WorldPathfinder.TryResolveStandingCell(worldPresenter.WorldData, worldPresenter.VoxelRegistry, graphCache, worldPosition, out Vector3Int standingCell))
-		{
-			return;
-		}
+		Vector3Int standingCell = ResolveStandingCell(worldCell);
 
 		if (!TryGetBiome(standingCell, out BiomeDefinition biome))
 		{
@@ -73,9 +70,23 @@ public class EncounterEmitter : MonoBehaviour
 		ServiceLocator.Instance?.EncounterService?.RequestBattle(
 			boardConfiguration,
 			battleOriginWorldPosition,
+			standingCell,
 			selectedTeam,
 			encounterRule.PlacementStyle,
 			true);
+	}
+
+	private Vector3Int ResolveStandingCell(Vector3Int worldCell)
+	{
+		Vector3 approximateWorldPosition = new Vector3(worldCell.x + 0.5f, worldCell.y, worldCell.z + 0.5f);
+		return WorldPathfinder.TryResolveStandingCell(
+			worldPresenter.WorldData,
+			worldPresenter.VoxelRegistry,
+			graphCache,
+			approximateWorldPosition,
+			out Vector3Int standingCell)
+			? standingCell
+			: worldCell;
 	}
 
 	private bool TryGetBiome(Vector3Int standingCell, out BiomeDefinition biome)

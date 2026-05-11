@@ -121,6 +121,10 @@ public sealed class SaveService
 		if (gameContext?.Player != null)
 		{
 			p_targetSaveData.CopyPlayerFrom(gameContext.Player);
+			if (p_saveFileData.Player != null)
+			{
+				p_targetSaveData.Player?.SetPosition(p_saveFileData.Player.Position, true);
+			}
 		}
 	}
 }

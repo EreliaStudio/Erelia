@@ -16,7 +16,7 @@ public sealed class GameSaveFileData
 [Serializable]
 public sealed class PlayerSaveData
 {
-	public SerializableVector3Int WorldCell;
+	public Vector3 Position;
 	public List<CreatureSlotSaveData> TeamSlots = new List<CreatureSlotSaveData>();
 	public List<CreatureUnitSaveData> StoredCreatures = new List<CreatureUnitSaveData>();
 }

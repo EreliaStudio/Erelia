@@ -1,0 +1,152 @@
+@startuml Actor Position Movement Sequence
+
+skinparam shadowing false
+hide footbox
+
+title Actor Position - Selection, Pathfinding, and Movement
+
+actor Unity
+actor Player
+
+participant ExplorationPlayerController
+participant WorldVoxelRaycaster
+participant WorldPathfinder
+participant WorldTraversalGraphCache
+participant VoxelTraversalUtility
+participant WorldPresenter
+participant EventCenter
+participant ActorManager
+participant ActorPathDriver
+participant ActorData
+participant "ActorData.Position" as Position
+participant ActorPresenter
+participant ExplorationMode
+participant EncounterEmitter
+participant EncounterService
+participant BattleService
+participant BattleContext
+
+== Pointer Selection ==
+
+Player -> ExplorationPlayerController : move pointer
+ExplorationPlayerController -> WorldVoxelRaycaster : TryRaycast(worldData, voxelRegistry, ray, ...)
+WorldVoxelRaycaster --> ExplorationPlayerController : hit.WorldPosition
+
+ExplorationPlayerController -> WorldPathfinder : TryResolveSelectableTarget(hit.WorldPosition)
+WorldPathfinder -> WorldTraversalGraphCache : HasNode(candidate cells)
+WorldTraversalGraphCache --> WorldPathfinder : reachable node
+WorldPathfinder --> ExplorationPlayerController : selected target worldCell
+
+ExplorationPlayerController -> WorldPresenter : TryAddMask(targetWorldCell, Selected)
+ExplorationPlayerController -> WorldPresenter : RebuildChunkOverlay(targetChunk)
+
+Player -> ExplorationPlayerController : validate selected target
+ExplorationPlayerController -> EventCenter : EmitActorMoveRequested(actor, targetWorldCell)
+EventCenter -> ActorManager : ActorMoveRequested(request)
+
+== Path Construction ==
+
+ActorManager -> ActorData : read Position.Value
+ActorManager -> WorldPathfinder : TryResolveStandingCell(Position.Value)
+WorldPathfinder -> WorldTraversalGraphCache : HasNode(current cell candidates)
+WorldTraversalGraphCache --> WorldPathfinder : actor standing cell
+WorldPathfinder --> ActorManager : startWorldCell
+
+ActorManager -> WorldPathfinder : TryFindPath(startWorldCell, targetWorldCell)
+WorldPathfinder -> WorldTraversalGraphCache : HasNode(start)
+WorldPathfinder -> WorldTraversalGraphCache : HasNode(target)
+
+loop search graph neighbours
+    WorldPathfinder -> WorldTraversalGraphCache : HasNode(neighbour candidate)
+    WorldTraversalGraphCache --> WorldPathfinder : node availability
+    WorldPathfinder -> VoxelTraversalUtility : TryGetWorldHeight(current, exit direction)
+    WorldPathfinder -> VoxelTraversalUtility : TryGetWorldHeight(neighbour, entry direction)
+    VoxelTraversalUtility --> WorldPathfinder : heights
+    WorldPathfinder -> WorldPathfinder : reject neighbour if vertical gap is too high
+end
+
+WorldPathfinder --> ActorManager : List<Vector3Int> path
+ActorManager -> ActorPathDriver : SetPath(path)
+ActorPathDriver -> ActorPathDriver : pathIndex = 1
+ActorPathDriver -> ActorPathDriver : movementPhase = MoveToTransitionPoint
+
+== Position Updates During Movement ==
+
+loop Unity Update while actor is moving
+    Unity -> ActorManager : Update()
+    ActorManager -> ActorPathDriver : Tick(worldData, voxelRegistry, deltaTime)
+
+    ActorPathDriver -> ActorPathDriver : previousCell = path[pathIndex - 1]
+    ActorPathDriver -> ActorPathDriver : targetCell = path[pathIndex]
+
+    alt moving toward edge transition point
+        ActorPathDriver -> VoxelTraversalUtility : TryGetTraversalWorldPoint(previousCell, exitDirection)
+        ActorPathDriver -> VoxelTraversalUtility : TryGetTraversalWorldPoint(targetCell, entryDirection)
+        VoxelTraversalUtility --> ActorPathDriver : transition target point
+    else moving toward target cell standing point
+        ActorPathDriver -> VoxelTraversalUtility : TryGetStandingWorldPoint(targetCell)
+        VoxelTraversalUtility --> ActorPathDriver : standing target point
+    end
+
+    ActorPathDriver -> ActorData : read Position.Value
+    ActorPathDriver -> ActorPathDriver : nextPosition = MoveTowards(Position.Value, targetPoint, speed * deltaTime)
+    ActorPathDriver -> ActorData : SetPosition(nextPosition)
+    ActorData -> Position : Set(nextPosition)
+    Position -> ActorPresenter : Changed(nextPosition)
+    ActorPresenter -> ActorPresenter : transform.position = nextPosition
+
+    alt target point not reached
+        ActorPathDriver --> ActorManager : continue moving
+    else target point reached
+        ActorPathDriver -> ActorData : SetPosition(targetPoint)
+        ActorData -> Position : Set(targetPoint)
+        Position -> ActorPresenter : Changed(targetPoint)
+        ActorPresenter -> ActorPresenter : transform.position = targetPoint
+
+        alt reached transition point
+            ActorPathDriver -> ActorPathDriver : movementPhase = MoveToStationaryPoint
+        else reached target cell standing point
+            ActorPathDriver -> ActorPresenter : NotifyCellReached(targetCell)
+            ActorPresenter -> ExplorationMode : CellReached(actor, targetCell)
+            ActorPathDriver -> ActorPathDriver : pathIndex++
+            ActorPathDriver -> ActorPathDriver : movementPhase = MoveToTransitionPoint
+
+            alt path is complete
+                ActorPathDriver -> ActorPathDriver : Stop()
+                ActorPathDriver --> ActorManager : finished
+                ActorManager -> ActorManager : remove completed driver
+            else more cells remain
+                ActorPathDriver --> ActorManager : continue next cell
+            end
+        end
+    end
+end
+
+== Cell Reached Events ==
+
+ExplorationMode -> EventCenter : EmitPlayerMoved(targetCell)
+EventCenter -> EncounterEmitter : PlayerMoved(targetCell)
+
+EncounterEmitter -> WorldPathfinder : TryResolveStandingCell(targetCell approximate point)
+WorldPathfinder --> EncounterEmitter : standingCell
+EncounterEmitter -> EncounterEmitter : TryGetBiome(standingCell)
+EncounterEmitter -> EncounterEmitter : TryFindEncounterRuleTagInActorColumn(...)
+EncounterEmitter -> EncounterEmitter : EncounterResolver.TryResolveEncounter(...)
+EncounterEmitter -> EncounterEmitter : encounterRule.TryPickBoardConfiguration(...)
+
+alt encounter selected
+    EncounterEmitter -> EncounterService : RequestBattle(boardConfiguration, standingCell, standingCell, team, placementStyle, true)
+    EncounterService -> EventCenter : EmitBattleLaunchRequested(..., playerReturnWorldCell = standingCell, ...)
+    EventCenter -> BattleService : BattleLaunchRequested(...)
+    BattleService -> BattleContext : new BattleContext(..., returnWorldCell = standingCell)
+end
+
+ExplorationMode -> ExplorationMode : newChunk = ChunkCoordinates.FromWorldVoxelPosition(targetCell)
+alt chunk changed
+    ExplorationMode -> EventCenter : EmitPlayerChunkChanged(newChunk)
+    EventCenter -> WorldPresenter : PlayerChunkChanged(newChunk)
+    WorldPresenter -> WorldPresenter : Load(newChunk)
+    WorldPresenter -> WorldPresenter : ApplyLoadResult(...)
+end
+
+@enduml

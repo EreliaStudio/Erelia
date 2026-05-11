@@ -51,6 +51,7 @@ public sealed class BattleService
 	private void OnBattleLaunchRequested(
 		BoardConfiguration p_boardConfiguration,
 		Vector3 p_battleOriginWorldPosition,
+		Vector3Int? p_playerReturnWorldCell,
 		IReadOnlyList<EncounterUnit> p_enemyUnits,
 		PlacementStyle p_placementStyle,
 		bool p_allowsTaming)
@@ -75,7 +76,8 @@ public sealed class BattleService
 			p_enemyUnits,
 			boardData,
 			p_placementStyle,
-			p_allowsTaming);
+			p_allowsTaming,
+			p_playerReturnWorldCell ?? Vector3Int.FloorToInt(p_battleOriginWorldPosition));
 
 		EventCenter.EmitBattleStarted(activeBattleContext);
 	}

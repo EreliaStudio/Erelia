@@ -15,6 +15,7 @@ public sealed class BattleContext
 
 	public BoardData Board { get; }
 	public PlacementStyle PlacementStyle { get; }
+	public Vector3Int? ReturnWorldCell { get; }
 	public TurnContext CurrentTurn { get; } = new();
 
 	public BattleContext(
@@ -22,7 +23,8 @@ public sealed class BattleContext
 		IReadOnlyList<EncounterUnit> p_enemyTeam,
 		BoardData p_board,
 		PlacementStyle p_placementStyle,
-		bool p_allowsTaming = true)
+		bool p_allowsTaming = true,
+		Vector3Int? p_returnWorldCell = null)
 	{
 		if (p_playerTeam == null)
 		{
@@ -36,6 +38,7 @@ public sealed class BattleContext
 
 		Board = p_board ?? throw new ArgumentNullException(nameof(p_board));
 		PlacementStyle = p_placementStyle;
+		ReturnWorldCell = p_returnWorldCell;
 
 		InitializeUnits(p_playerTeam, BattleSide.Player, PlayerUnits, false);
 		InitializeUnits(p_enemyTeam, BattleSide.Enemy, EnemyUnits, p_allowsTaming);

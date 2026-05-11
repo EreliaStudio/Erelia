@@ -6,7 +6,7 @@ namespace Tests.Requirements.Healing.HealSelf
 	public sealed class HealSelfTests
 	{
 		private static BattleUnit CreateTestUnit() => new BattleUnit(
-			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<global::Status>() },
 			BattleSide.Player);
 
 		[Test]
@@ -73,7 +73,7 @@ namespace Tests.Requirements.Healing.HealOther
 	public sealed class HealOtherTests
 	{
 		private static BattleUnit CreateTestUnit() => new BattleUnit(
-			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<global::Status>() },
 			BattleSide.Player);
 
 		[Test]
@@ -130,7 +130,7 @@ namespace Tests.Requirements.Healing.WinAfterHealing
 	public sealed class WinAfterHealingTests
 	{
 		private static BattleUnit CreateTestUnit() => new BattleUnit(
-			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<global::Status>() },
 			BattleSide.Player);
 
 		[Test]

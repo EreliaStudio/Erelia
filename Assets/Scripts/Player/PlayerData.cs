@@ -4,19 +4,11 @@ using UnityEngine;
 [Serializable]
 public class PlayerData : ActorData
 {
-	[SerializeField] private Vector3Int worldCell = Vector3Int.zero;
-
 	[SerializeReference]
 	private CreatureUnit[] team = new CreatureUnit[GameRule.TeamMemberCount];
 
 	[SerializeField]
 	private CreatureStorage creatureStorage = new CreatureStorage();
-
-	public Vector3Int WorldCell
-	{
-		get => worldCell;
-		set => worldCell = value;
-	}
 
 	public CreatureUnit[] Team => team;
 
@@ -29,19 +21,22 @@ public class PlayerData : ActorData
 		}
 	}
 
-	public Vector3 WorldPosition => worldCell;
+	protected override void OnCellReached(Vector3Int p_cellPosition)
+	{
+		EventCenter.EmitPlayerMoved(p_cellPosition);
+	}
 
 	public void CopyFrom(PlayerData p_other)
 	{
 		if (p_other == null)
 		{
-			worldCell = Vector3Int.zero;
+			SetPosition(default, true);
 			team = new CreatureUnit[GameRule.TeamMemberCount];
 			creatureStorage = new CreatureStorage();
 			return;
 		}
 
-		worldCell = p_other.WorldCell;
+		SetPosition(p_other.Position.Value, true);
 		team = CloneTeam(p_other.Team);
 		creatureStorage = p_other.CreatureStorage.Clone();
 	}

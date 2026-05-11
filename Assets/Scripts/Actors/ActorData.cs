@@ -1,9 +1,4 @@
-using UnityEngine;
-
 [System.Serializable]
-public class ActorData
+public class ActorData : MovableTrait
 {
-	[SerializeField, Min(0.01f)] private float movementSpeed = 4f;
-
-	public float MovementSpeed => movementSpeed;
 }

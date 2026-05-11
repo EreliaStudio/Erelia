@@ -54,7 +54,7 @@ public class ModeManager : MonoBehaviour
 		currentGameContext = gameContext;
 	}
 
-	public void EnterExplorationMode(GameContext gameContext = null)
+	public void EnterExplorationMode(GameContext gameContext = null, Vector3Int? worldCellOverride = null)
 	{
 		if (gameContext != null)
 		{
@@ -67,7 +67,7 @@ public class ModeManager : MonoBehaviour
 		}
 
 		SwitchTo(explorationMode);
-		explorationMode.Enter(currentGameContext);
+		explorationMode.Enter(currentGameContext, worldCellOverride);
 	}
 
 	public void EnterBattleMode(BattleContext context)
@@ -87,9 +87,9 @@ public class ModeManager : MonoBehaviour
 		battleMode.Enter(context);
 	}
 
-	public void EndBattle()
+	public void EndBattle(BattleContext battleContext)
 	{
-		EnterExplorationMode(currentGameContext);
+		EnterExplorationMode(currentGameContext, battleContext?.ReturnWorldCell);
 	}
 
 	private void OnBattleStarted(BattleContext p_battleContext)
@@ -99,7 +99,7 @@ public class ModeManager : MonoBehaviour
 
 	private void OnBattleResolved(BattleContext p_battleContext, BattleSide p_winner)
 	{
-		EndBattle();
+		EndBattle(p_battleContext);
 	}
 
 	private void SwitchTo(Mode nextMode)

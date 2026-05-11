@@ -10,7 +10,7 @@ public sealed class ExplorationMode : Mode
 
 	private ActorPresenter spawnedActor;
 	private GameObject spawnedCamera;
-	private PlayerData currentPlayerData;
+	private GameContext currentGameContext;
 	private ChunkCoordinates lastChunkCoordinates;
 
 	private void Awake()
@@ -36,26 +36,27 @@ public sealed class ExplorationMode : Mode
 		}
 	}
 
-	public void Enter(GameContext gameContext)
+	public void Enter(GameContext gameContext, Vector3Int? worldCellOverride = null)
 	{
 		if (gameContext == null)
 		{
 			return;
 		}
 
-		currentPlayerData = gameContext.Player;
+		currentGameContext = gameContext;
 
 		base.Enter();
 
 		worldPresenter.Bind(gameContext.World);
 
-		if (!EnsureActorInstance(out ActorPresenter actor))
+		Vector3Int playerCell = Vector3Int.FloorToInt(gameContext.Player.Position.Value);
+		if (!EnsureActorInstance(gameContext.Player, playerCell, out ActorPresenter actor))
 		{
 			return;
 		}
 
-		Vector3Int cell = currentPlayerData.WorldCell;
-		actor.transform.position = new Vector3(cell.x + 0.5f, cell.y, cell.z + 0.5f);
+		Vector3Int actorWorldCell = ResolveActorWorldCell(actor, playerCell, worldCellOverride);
+		ServiceLocator.Instance?.PlayerService?.BindWorldCellProvider(TryGetSpawnedActorWorldCell);
 
 		if (!EnsureCameraInstance(out Camera explorationCamera, out OrbitingObject orbiting))
 		{
@@ -64,22 +65,28 @@ public sealed class ExplorationMode : Mode
 
 		playerController.Bind(actor, explorationCamera, orbiting);
 
-		worldPresenter.LoadImmediatelyAroundWorldCell(currentPlayerData.WorldCell);
+		worldPresenter.LoadImmediatelyAroundWorldCell(actorWorldCell);
 
-		EmitInitialPlayerState();
+		EmitInitialPlayerState(actorWorldCell);
+	}
+
+	protected override void OnEnter()
+	{
+		EventCenter.PlayerMoved += OnPlayerMoved;
 	}
 
 	protected override void OnExit()
 	{
+		EventCenter.PlayerMoved -= OnPlayerMoved;
 		playerController.Unbind();
 		if (spawnedActor != null)
 		{
 			spawnedActor.gameObject.SetActive(false);
 		}
-		currentPlayerData = null;
+		currentGameContext = null;
 	}
 
-	private bool EnsureActorInstance(out ActorPresenter actor)
+	private bool EnsureActorInstance(ActorData actorData, Vector3Int initialWorldCell, out ActorPresenter actor)
 	{
 		if (spawnedActor != null)
 		{
@@ -88,14 +95,13 @@ public sealed class ExplorationMode : Mode
 			return true;
 		}
 
-		spawnedActor = actorManager.SpawnActor(currentPlayerData.WorldPosition, currentPlayerData);
+		spawnedActor = actorManager.SpawnActor(initialWorldCell, actorData);
 		if (spawnedActor == null)
 		{
 			actor = null;
 			return false;
 		}
 
-		spawnedActor.CellReached += OnActorCellReached;
 		actor = spawnedActor;
 		return true;
 	}
@@ -117,29 +123,50 @@ public sealed class ExplorationMode : Mode
 		return camera != null && orbiting != null;
 	}
 
-	private void EmitInitialPlayerState()
+	private Vector3Int ResolveActorWorldCell(ActorPresenter actor, Vector3Int fallbackWorldCell, Vector3Int? worldCellOverride)
 	{
-		if (currentPlayerData == null)
+		if (worldCellOverride.HasValue && actorManager.TrySetWorldCell(actor, worldCellOverride.Value))
 		{
-			return;
+			return actorManager.TryGetWorldCell(actor, out Vector3Int overrideResolvedWorldCell)
+				? overrideResolvedWorldCell
+				: worldCellOverride.Value;
 		}
 
-		lastChunkCoordinates = ChunkCoordinates.FromWorldPosition(currentPlayerData.WorldPosition);
-		EventCenter.EmitPlayerMoved(currentPlayerData.WorldPosition);
+		if (actorManager.TryGetWorldCell(actor, out Vector3Int currentWorldCell))
+		{
+			return currentWorldCell;
+		}
+
+		if (actorManager.TrySetWorldCell(actor, fallbackWorldCell) &&
+			actorManager.TryGetWorldCell(actor, out Vector3Int fallbackResolvedWorldCell))
+		{
+			return fallbackResolvedWorldCell;
+		}
+
+		return fallbackWorldCell;
+	}
+
+	private Vector3Int? TryGetSpawnedActorWorldCell()
+	{
+		if (spawnedActor != null &&
+			actorManager != null &&
+			actorManager.TryGetWorldCell(spawnedActor, out Vector3Int worldCell))
+		{
+			return worldCell;
+		}
+
+		return null;
+	}
+
+	private void EmitInitialPlayerState(Vector3Int worldCell)
+	{
+		lastChunkCoordinates = ChunkCoordinates.FromWorldVoxelPosition(worldCell);
 		EventCenter.EmitPlayerChunkChanged(lastChunkCoordinates);
 	}
 
-	private void OnActorCellReached(ActorPresenter presenter, Vector3Int worldCellPosition)
+	private void OnPlayerMoved(Vector3Int p_worldCellPosition)
 	{
-		if (currentPlayerData == null)
-		{
-			return;
-		}
-
-		currentPlayerData.WorldCell = worldCellPosition;
-		EventCenter.EmitPlayerMoved(presenter.transform.position);
-
-		ChunkCoordinates newChunk = ChunkCoordinates.FromWorldVoxelPosition(worldCellPosition);
+		ChunkCoordinates newChunk = ChunkCoordinates.FromWorldVoxelPosition(p_worldCellPosition);
 		if (newChunk.Equals(lastChunkCoordinates))
 		{
 			return;

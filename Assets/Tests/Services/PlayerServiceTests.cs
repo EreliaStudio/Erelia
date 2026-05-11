@@ -42,13 +42,13 @@ namespace Tests.Services
         {
             PlayerService playerService = ServiceLocator.Instance.PlayerService;
             CreatureSpecies species = LoadTestSpecies();
-            playerService.PlayerData.WorldCell = new Vector3Int(3, 4, 5);
+            playerService.PlayerData.SetPosition(new Vector3(3.5f, 4f, 5.5f), true);
             playerService.PlayerData.Team[0] = CreateCreature(species, "DPS");
             playerService.PlayerData.CreatureStorage.Add(CreateCreature(species, "Default"));
 
             PlayerSaveData saveData = playerService.CreateSaveData();
 
-            Assert.That(saveData.WorldCell.ToVector3Int(), Is.EqualTo(new Vector3Int(3, 4, 5)));
+            Assert.That(Vector3Int.FloorToInt(saveData.Position), Is.EqualTo(new Vector3Int(3, 4, 5)));
             Assert.That(saveData.TeamSlots.Count, Is.EqualTo(GameRule.TeamMemberCount));
             Assert.That(saveData.TeamSlots[0].HasCreature, Is.True);
             Assert.That(saveData.TeamSlots[0].Creature.SpeciesResourceId, Is.EqualTo("Creature/CreatureA/CreatureA"));
@@ -66,7 +66,7 @@ namespace Tests.Services
             bool result = playerService.LoadFromSaveData(saveData);
 
             Assert.That(result, Is.True);
-            Assert.That(playerService.PlayerData.WorldCell, Is.EqualTo(new Vector3Int(3, 4, 5)));
+            Assert.That(playerService.PlayerWorldCell, Is.EqualTo(new Vector3Int(3, 4, 5)));
             Assert.That(playerService.PlayerData.Team[0], Is.Not.Null);
             Assert.That(playerService.PlayerData.Team[0].Species.name, Is.EqualTo("CreatureA"));
             Assert.That(playerService.PlayerData.Team[0].CurrentFormID, Is.EqualTo("DPS"));
@@ -79,7 +79,7 @@ namespace Tests.Services
         public void PlayerWorldCell_WithPlayerData_ReturnsCurrentWorldCell()
         {
             PlayerService playerService = ServiceLocator.Instance.PlayerService;
-            playerService.PlayerData.WorldCell = new Vector3Int(7, 8, 9);
+            playerService.PlayerData.SetPosition(new Vector3(7.5f, 8f, 9.5f), true);
 
             Assert.That(playerService.PlayerWorldCell, Is.EqualTo(new Vector3Int(7, 8, 9)));
         }
@@ -88,7 +88,7 @@ namespace Tests.Services
         {
             var saveData = new PlayerSaveData
             {
-                WorldCell = SerializableVector3Int.From(new Vector3Int(3, 4, 5))
+                Position = new Vector3(3.5f, 4f, 5.5f)
             };
 
             for (int index = 0; index < GameRule.TeamMemberCount; index++)

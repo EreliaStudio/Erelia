@@ -31,7 +31,7 @@ namespace Tests.Taming.Progress
 
 			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new DamageEvent { Amount = 5 }
+				new DamageEvent { Amount = 5, Caster = CreateBattleUnit(BattleSide.Player) }
 			});
 
 			Assert.That(progress.IsImpressed, Is.False);
@@ -47,7 +47,7 @@ namespace Tests.Taming.Progress
 
 			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new DamageEvent { Amount = 10 }
+				new DamageEvent { Amount = 10, Caster = CreateBattleUnit(BattleSide.Player) }
 			});
 
 			Assert.That(progress.IsImpressed, Is.True);
@@ -67,7 +67,7 @@ namespace Tests.Taming.Progress
 
 			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new DamageEvent { Amount = 10 }
+				new DamageEvent { Amount = 10, Caster = CreateBattleUnit(BattleSide.Player) }
 			});
 
 			Assert.That(progress.IsImpressed, Is.False);
@@ -89,7 +89,7 @@ namespace Tests.Taming.Progress
 
 			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new DamageEvent { Amount = 4 }
+				new DamageEvent { Amount = 4, Caster = CreateBattleUnit(BattleSide.Player) }
 			});
 
 			Assert.That(progress.IsImpressed, Is.False);
@@ -97,7 +97,7 @@ namespace Tests.Taming.Progress
 
 			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new DamageEvent { Amount = 6 }
+				new DamageEvent { Amount = 6, Caster = CreateBattleUnit(BattleSide.Player) }
 			});
 
 			Assert.That(progress.IsImpressed, Is.True);
@@ -130,7 +130,7 @@ namespace Tests.Taming.Progress
 
 			progress.EvaluateEvents(new List<BattleEvent>
 			{
-				new DamageEvent { Amount = 10 }
+				new DamageEvent { Amount = 10, Caster = CreateBattleUnit(BattleSide.Player) }
 			});
 
 			progress.MarkFailed();

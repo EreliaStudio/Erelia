@@ -55,7 +55,7 @@ namespace Tests.Taming.BattleState
 		{
 			WildBattleUnit wildUnit = CreateWildBattleUnit(CreateProfileWithCondition());
 
-			wildUnit.EvaluateTamingEvent(new DamageEvent { Amount = 10 });
+			wildUnit.EvaluateTamingEvent(new DamageEvent { Amount = 10, Caster = CreateBattleUnit(BattleSide.Player) });
 
 			Assert.That(wildUnit.IsTamed, Is.True);
 			Assert.That(wildUnit.TamingProgress.IsImpressed, Is.True);
@@ -76,7 +76,7 @@ namespace Tests.Taming.BattleState
 			WildBattleUnit wildUnit = CreateWildBattleUnit(CreateProfileWithCondition());
 
 			wildUnit.MarkUntamable();
-			wildUnit.EvaluateTamingEvent(new DamageEvent { Amount = 10 });
+			wildUnit.EvaluateTamingEvent(new DamageEvent { Amount = 10, Caster = CreateBattleUnit(BattleSide.Player) });
 
 			Assert.That(wildUnit.IsTamed, Is.False);
 			Assert.That(wildUnit.TamingProgress.HasFailed, Is.True);
@@ -87,7 +87,7 @@ namespace Tests.Taming.BattleState
 		{
 			WildBattleUnit wildUnit = CreateWildBattleUnit(CreateProfileWithCondition());
 
-			wildUnit.EvaluateTamingEvent(new DamageEvent { Amount = 10 });
+			wildUnit.EvaluateTamingEvent(new DamageEvent { Amount = 10, Caster = CreateBattleUnit(BattleSide.Player) });
 			Assert.That(wildUnit.IsTamed, Is.True);
 
 			wildUnit.ResetBattleRuntimeState();
@@ -102,7 +102,7 @@ namespace Tests.Taming.BattleState
 		{
 			WildBattleUnit wildUnit = CreateWildBattleUnit(CreateProfileWithCondition());
 
-			wildUnit.EvaluateTamingEvent(new DamageEvent { Amount = 5 });
+			wildUnit.EvaluateTamingEvent(new DamageEvent { Amount = 5, Caster = CreateBattleUnit(BattleSide.Player) });
 
 			Assert.That(wildUnit.IsTamed, Is.False);
 			Assert.That(wildUnit.TamingProgress.ConditionAdvancements[0].Progress, Is.EqualTo(50f).Within(0.01f));

@@ -10,7 +10,7 @@ public sealed class GameSaveData
 
 	public int WorldSeed => worldSeed;
 	public PlayerData Player => player;
-	public Vector3Int PlayerWorldCell => player != null ? player.WorldCell : Vector3Int.zero;
+	public Vector3Int PlayerWorldCell => player != null ? Vector3Int.FloorToInt(player.Position.Value) : Vector3Int.zero;
 	public Vector3Int RespawnPoint => respawnPoint;
 
 	public void SetWorldSeed(int seed)
@@ -21,7 +21,7 @@ public sealed class GameSaveData
 	public void SetPlayerWorldCell(Vector3Int cell)
 	{
 		player ??= new PlayerData();
-		player.WorldCell = cell;
+		player.SetPosition(new Vector3(cell.x + 0.5f, cell.y, cell.z + 0.5f), true);
 	}
 
 	public void SetRespawnPoint(Vector3Int cell)

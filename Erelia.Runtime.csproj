@@ -48,7 +48,6 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.3.1f1\Editor\Data\Tools\BuildPipeline\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Battle\Rules\BattleFeatEventReporter.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMaskLayer.cs" />
     <Compile Include="Assets\Scripts\Data\GameSaveFileData.cs" />
     <Compile Include="Assets\Scripts\Battle\System\IBattlePhase.cs" />
@@ -104,6 +103,7 @@
     <Compile Include="Assets\Scripts\World\Navigation\WorldPathfinder.cs" />
     <Compile Include="Assets\Scripts\Battle\System\BattlePhase.cs" />
     <Compile Include="Assets\Scripts\Time\Duration.cs" />
+    <Compile Include="Assets\Scripts\Services\Battle\BattleLogService.cs" />
     <Compile Include="Assets\Scripts\Targeting\TargetProfile.cs" />
     <Compile Include="Assets\Scripts\Services\Encounters\EncounterService.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\VoxelCubeShape.cs" />
@@ -197,6 +197,7 @@
     <Compile Include="Assets\Scripts\Voxel\VoxelMesher.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterUnit.cs" />
     <Compile Include="Assets\Scripts\Battle\Rules\BattleRangeRules.cs" />
+    <Compile Include="Assets\Scripts\Movement\MovableTrait.cs" />
     <Compile Include="Assets\Scripts\World\MetaWorldGenerator.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelRegistry.cs" />
     <Compile Include="Assets\Scripts\Biomes\BiomeDefinition.cs" />
@@ -222,6 +223,7 @@
     <Compile Include="Assets\Scripts\Player\ExplorationPlayerController.cs" />
     <Compile Include="Assets\Scripts\World\ChunkData.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleUnit.cs" />
+    <Compile Include="Assets\Scripts\Battle\Rules\BattleEventReporter.cs" />
     <Compile Include="Assets\Scripts\World\WorldLoader.cs" />
     <Compile Include="Assets\Scripts\Actors\ActorPathDriver.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelData.cs" />

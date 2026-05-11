@@ -62,7 +62,28 @@ namespace Tests
 			return events;
 		}
 
-		private void OnBattleEventOccurred(BattleUnit p_unit, BattleEvent p_featEvent)
+		private void OnBattleEventOccurred(BattleEvent p_featEvent)
+		{
+			if (p_featEvent == null)
+			{
+				return;
+			}
+
+			if (p_featEvent is HitSurvivedEvent)
+			{
+				AddEntry(p_featEvent.Target, p_featEvent);
+				return;
+			}
+
+			AddEntry(p_featEvent.Caster, p_featEvent);
+
+			if (p_featEvent.Target != null && !ReferenceEquals(p_featEvent.Target, p_featEvent.Caster))
+			{
+				AddEntry(p_featEvent.Target, p_featEvent);
+			}
+		}
+
+		private void AddEntry(BattleUnit p_unit, BattleEvent p_featEvent)
 		{
 			if (p_unit != null && p_featEvent != null)
 			{

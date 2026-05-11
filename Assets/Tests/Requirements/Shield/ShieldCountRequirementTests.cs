@@ -1,10 +1,17 @@
 using System.Collections.Generic;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Tests.Requirements.Shield.ApplyShieldCount
 {
 	public sealed class ApplyShieldCountTests
 	{
+		private static BattleUnit CreateBattleUnit()
+		{
+			CreatureSpecies species = ScriptableObject.CreateInstance<CreatureSpecies>();
+			return new BattleUnit(new CreatureUnit { Species = species }, BattleSide.Player);
+		}
+
 		[Test]
 		public void NoEvents_ZeroProgress()
 		{
@@ -24,7 +31,7 @@ namespace Tests.Requirements.Shield.ApplyShieldCount
 
 			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new ShieldAppliedEvent()
+				new ShieldAppliedEvent { Caster = CreateBattleUnit() }
 			});
 
 			Assert.That(progress.CurrentProgress, Is.EqualTo(100f / 3f).Within(0.01f));
@@ -38,8 +45,8 @@ namespace Tests.Requirements.Shield.ApplyShieldCount
 
 			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new ShieldAppliedEvent(),
-				new ShieldAppliedEvent()
+				new ShieldAppliedEvent { Caster = CreateBattleUnit() },
+				new ShieldAppliedEvent { Caster = CreateBattleUnit() }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);
@@ -53,9 +60,9 @@ namespace Tests.Requirements.Shield.ApplyShieldCount
 
 			progress.RegisterEvents(new List<BattleEvent>
 			{
-				new ShieldAppliedEvent(),
-				new ShieldAppliedEvent(),
-				new ShieldAppliedEvent()
+				new ShieldAppliedEvent { Caster = CreateBattleUnit() },
+				new ShieldAppliedEvent { Caster = CreateBattleUnit() },
+				new ShieldAppliedEvent { Caster = CreateBattleUnit() }
 			});
 
 			Assert.That(progress.IsCompleted, Is.True);

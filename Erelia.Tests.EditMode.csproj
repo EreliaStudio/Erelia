@@ -113,6 +113,7 @@
     <Compile Include="Assets\Tests\Services\BattleActionCompositionServiceTests.cs" />
     <Compile Include="Assets\Tests\Effects\Shields\ApplyShieldEffectTests.cs" />
     <Compile Include="Assets\Tests\Battle\Fixtures\ServiceLocatorTestScope.cs" />
+    <Compile Include="Assets\Tests\Battle\Targeting\AbilityValidationBoundaryTests.cs" />
     <Compile Include="Assets\Tests\Taming\TamingProgressTests.cs" />
     <Compile Include="Assets\Tests\Services\GameInitializationServiceTests.cs" />
     <Compile Include="Assets\Tests\Encounters\EncounterTableTests.cs" />

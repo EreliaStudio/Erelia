@@ -8,7 +8,7 @@ namespace Tests.Requirements.MaxSingleHit
 	public sealed class MaxSingleHitTests
 	{
 		private static BattleUnit CreateTestUnit() => new BattleUnit(
-			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<global::Status>() },
 			BattleSide.Player);
 
 		[Test]

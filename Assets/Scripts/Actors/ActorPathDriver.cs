@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public sealed class ActorPathDriver
+public sealed class MovablePathDriver
 {
 	private const float PositionEpsilon = 0.0001f;
 
@@ -11,17 +11,16 @@ public sealed class ActorPathDriver
 		MoveToStationaryPoint
 	}
 
-	private readonly ActorPresenter presenter;
+	private readonly MovableTrait movable;
 	private readonly List<Vector3Int> path = new List<Vector3Int>();
 	private int pathIndex;
 	private MovementPhase movementPhase = MovementPhase.MoveToTransitionPoint;
 
-	public ActorPresenter Presenter => presenter;
-	public bool IsMoving => presenter != null && pathIndex > 0 && pathIndex < path.Count;
+	public bool IsMoving => movable != null && pathIndex > 0 && pathIndex < path.Count;
 
-	public ActorPathDriver(ActorPresenter p_presenter)
+	public MovablePathDriver(MovableTrait p_movable)
 	{
-		presenter = p_presenter;
+		movable = p_movable;
 	}
 
 	public void SetPath(IReadOnlyList<Vector3Int> p_path)
@@ -52,7 +51,7 @@ public sealed class ActorPathDriver
 
 	public bool Tick(WorldData p_worldData, VoxelRegistry p_voxelRegistry, float p_deltaTime)
 	{
-		if (presenter == null || !IsMoving)
+		if (movable == null || !IsMoving)
 		{
 			return false;
 		}
@@ -73,14 +72,14 @@ public sealed class ActorPathDriver
 			return false;
 		}
 
-		Transform presenterTransform = presenter.transform;
-		presenterTransform.position = Vector3.MoveTowards(presenterTransform.position, targetWorldPoint, presenter.MovementSpeed * p_deltaTime);
-		if ((presenterTransform.position - targetWorldPoint).sqrMagnitude > PositionEpsilon)
+		Vector3 nextWorldPosition = Vector3.MoveTowards(movable.Position.Value, targetWorldPoint, movable.MovementSpeed * p_deltaTime);
+		movable.SetPosition(nextWorldPosition);
+		if ((nextWorldPosition - targetWorldPoint).sqrMagnitude > PositionEpsilon)
 		{
 			return true;
 		}
 
-		presenterTransform.position = targetWorldPoint;
+		movable.SetPosition(targetWorldPoint);
 		if (movementPhase == MovementPhase.MoveToTransitionPoint)
 		{
 			movementPhase = MovementPhase.MoveToStationaryPoint;
@@ -118,7 +117,7 @@ public sealed class ActorPathDriver
 	{
 		// Cell-reached notifications must happen only after the actor snaps to the
 		// target cell's standing point, not when crossing the transition edge.
-		presenter.NotifyCellReached(p_targetCell);
+		movable.NotifyCellReached(p_targetCell);
 		pathIndex++;
 		movementPhase = MovementPhase.MoveToTransitionPoint;
 

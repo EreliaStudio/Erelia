@@ -61,7 +61,7 @@ namespace Tests.Feats.VictoryProgression
 		}
 
 		[Test]
-		public void EnemyVictory_FeatEventsStillAppliedToPlayerCreatureUnit()
+		public void EnemyVictory_FeatEventsNotAppliedToPlayerCreatureUnit()
 		{
 			using BattlePhaseTestFixture fixture = BattlePhaseTestFixture.Create(
 				playerCount: 1,
@@ -110,7 +110,7 @@ namespace Tests.Feats.VictoryProgression
 
 			FeatNodeProgress nodeProgress = FeatBoardService.FindNodeProgress(fixture.PlayerSources[0], damageNode);
 			bool wasCompleted = nodeProgress != null && nodeProgress.CompletionCount > 0;
-			Assert.That(wasCompleted, Is.True);
+			Assert.That(wasCompleted, Is.False);
 
 			orchestrator.Dispose();
 		}

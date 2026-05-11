@@ -10,6 +10,7 @@ using Object = UnityEngine.Object;
 public sealed class PlayerService
 {
 	private readonly GameContext gameContext;
+	private Func<Vector3Int?> worldCellProvider;
 
 	public PlayerService(GameContext p_gameContext)
 	{
@@ -17,7 +18,9 @@ public sealed class PlayerService
 	}
 
 	public PlayerData PlayerData => gameContext?.Player;
-	public Vector3Int PlayerWorldCell => PlayerData?.WorldCell ?? Vector3Int.zero;
+	public Vector3Int PlayerWorldCell => TryGetRuntimeWorldCell(out Vector3Int worldCell)
+		? worldCell
+		: PlayerData != null ? Vector3Int.FloorToInt(PlayerData.Position.Value) : Vector3Int.zero;
 
 	public void Initialize()
 	{
@@ -27,6 +30,12 @@ public sealed class PlayerService
 	public void Shutdown()
 	{
 		EventCenter.TamingResolved -= OnTamingResolved;
+		worldCellProvider = null;
+	}
+
+	public void BindWorldCellProvider(Func<Vector3Int?> p_worldCellProvider)
+	{
+		worldCellProvider = p_worldCellProvider;
 	}
 
 	public IReadOnlyList<CreatureUnit> GetActiveTeam()
@@ -36,7 +45,7 @@ public sealed class PlayerService
 
 	public PlayerSaveData CreateSaveData()
 	{
-		return ToSaveData(PlayerData);
+		return ToSaveData(PlayerData, PlayerWorldCell);
 	}
 
 	public bool LoadFromSaveData(PlayerSaveData p_saveData)
@@ -100,15 +109,34 @@ public sealed class PlayerService
 		return false;
 	}
 
-	private static PlayerSaveData ToSaveData(PlayerData p_player)
+	private bool TryGetRuntimeWorldCell(out Vector3Int p_worldCell)
+	{
+		p_worldCell = default;
+		if (worldCellProvider == null)
+		{
+			return false;
+		}
+
+		Vector3Int? candidate = worldCellProvider.Invoke();
+		if (!candidate.HasValue)
+		{
+			return false;
+		}
+
+		p_worldCell = candidate.Value;
+		return true;
+	}
+
+	private static PlayerSaveData ToSaveData(PlayerData p_player, Vector3Int p_worldCell)
 	{
 		var saveData = new PlayerSaveData();
 		if (p_player == null)
 		{
+			saveData.Position = new Vector3(p_worldCell.x + 0.5f, p_worldCell.y, p_worldCell.z + 0.5f);
 			return saveData;
 		}
 
-		saveData.WorldCell = SerializableVector3Int.From(p_player.WorldCell);
+		saveData.Position = p_player.Position.Value;
 		saveData.TeamSlots = BuildTeamSlots(p_player);
 		saveData.StoredCreatures = BuildStoredCreatures(p_player);
 		return saveData;
@@ -116,11 +144,8 @@ public sealed class PlayerService
 
 	private static PlayerData FromSaveData(PlayerSaveData p_saveData)
 	{
-		var player = new PlayerData
-		{
-			WorldCell = p_saveData.WorldCell.ToVector3Int()
-		};
-
+		var player = new PlayerData();
+		player.SetPosition(p_saveData.Position, true);
 		PopulateTeam(player, p_saveData.TeamSlots);
 		PopulateStorage(player, p_saveData.StoredCreatures);
 		return player;

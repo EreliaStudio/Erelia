@@ -6,7 +6,7 @@ namespace Tests.Requirements.Meta.And
 	public sealed class AndTests
 	{
 		private static readonly BattleUnit DummyUnit = new BattleUnit(
-			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<global::Status>() },
 			BattleSide.Player);
 
 		[Test]
@@ -79,7 +79,7 @@ namespace Tests.Requirements.Meta.Or
 	public sealed class OrTests
 	{
 		private static readonly BattleUnit DummyUnit = new BattleUnit(
-			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<Status>() },
+			new CreatureUnit { Attributes = new Attributes { Health = 100 }, Abilities = new List<Ability>(), PermanentPassives = new List<global::Status>() },
 			BattleSide.Player);
 
 		[Test]

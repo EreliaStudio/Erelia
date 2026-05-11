@@ -53,7 +53,7 @@ namespace Tests.Services
 			Assert.That(loadedSaveData, Is.Not.Null);
 			Assert.That(loadedSaveData.WorldSeed, Is.EqualTo(9876));
 			Assert.That(loadedSaveData.RespawnPoint.ToVector3Int(), Is.EqualTo(new Vector3Int(6, 7, 8)));
-			Assert.That(loadedSaveData.Player.WorldCell.ToVector3Int(), Is.EqualTo(new Vector3Int(3, 4, 5)));
+			Assert.That(Vector3Int.FloorToInt(loadedSaveData.Player.Position), Is.EqualTo(new Vector3Int(3, 4, 5)));
 			Assert.That(loadedSaveData.Player.TeamSlots.Count, Is.EqualTo(GameRule.TeamMemberCount));
 			Assert.That(loadedSaveData.Player.TeamSlots[0].HasCreature, Is.True);
 			Assert.That(loadedSaveData.Player.TeamSlots[0].Creature.SpeciesResourceId, Is.EqualTo("Creature/CreatureA/CreatureA"));
@@ -80,7 +80,7 @@ namespace Tests.Services
 		{
 			var playerSaveData = new PlayerSaveData
 			{
-				WorldCell = SerializableVector3Int.From(new Vector3Int(3, 4, 5))
+				Position = new Vector3(3.5f, 4f, 5.5f)
 			};
 
 			for (int index = 0; index < GameRule.TeamMemberCount; index++)
