@@ -14,11 +14,27 @@ public sealed class EnemyTurnPhase : BattlePhase
 			return;
 		}
 
-		if (!TryComposeAction() &&
-			!(ServiceLocator.Instance?.BattleActionCompositionService?.TryComposeEndTurn() ?? false))
+		bool composed = TryComposeAction();
+		if (!composed)
 		{
-			Coordinator.TransitionTo(BattlePhaseType.End);
+			bool endTurnComposed = ServiceLocator.Instance?.BattleActionCompositionService?.TryComposeEndTurn() ?? false;
+			if (!endTurnComposed)
+			{
+				ForceEndTurn();
+			}
 		}
+	}
+
+	private void ForceEndTurn()
+	{
+		BattleUnit activeUnit = TurnContext?.ActiveUnit;
+		if (activeUnit != null)
+		{
+			BattleTurnRules.EndTurn(BattleContext, activeUnit);
+		}
+
+		TurnContext?.End();
+		Coordinator.TransitionTo(BattlePhaseType.Idle);
 	}
 
 	private bool TryComposeAction()
@@ -26,6 +42,7 @@ public sealed class EnemyTurnPhase : BattlePhase
 		BattleUnit activeUnit = TurnContext.ActiveUnit;
 		if (activeUnit == null)
 		{
+			Logger.LogDebug("[EnemyTurn:TryComposeAction] ActiveUnit is null");
 			return false;
 		}
 

@@ -155,8 +155,10 @@ public sealed class BattleActionCompositionService
 
 	public bool TryComposeEndTurn()
 	{
-		if (!TryGetActiveUnit(out BattleUnit activeUnit) ||
-			!BattleActionValidator.CanEndTurn(battleContext, battleContext.CurrentTurn))
+		TurnContext turnContext = battleContext?.CurrentTurn;
+		BattleUnit activeUnit = turnContext?.ActiveUnit;
+
+		if (!BattleActionValidator.CanEndTurn(battleContext, turnContext))
 		{
 			return false;
 		}

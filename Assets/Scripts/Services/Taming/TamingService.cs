@@ -41,7 +41,7 @@ public sealed class TamingService
 		for (int index = 0; index < activeBattleContext.EnemyUnits.Count; index++)
 		{
 			if (activeBattleContext.EnemyUnits[index] is WildBattleUnit wildUnit &&
-				wildUnit.TamingProgress != null)
+				TamingRules.CanTrackTaming(wildUnit, wildUnit.TamingProgress?.Profile))
 			{
 				trackedWildUnits.Add(wildUnit);
 			}

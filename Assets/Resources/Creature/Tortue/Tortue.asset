@@ -33,8 +33,7 @@ MonoBehaviour:
   DefaultAbilities:
   - {fileID: 11400000, guid: 0dbf4e2d89b7a9c4c96417b8f7489631, type: 2}
   TamingProfile:
-    Conditions:
-    - rid: 7977957676956254251
+    Conditions: []
   FeatBoard:
     Nodes:
     - rid: 7977957676956254252
@@ -64,13 +63,6 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 7977957676956254251
-      type: {class: TakeDamageRequirement, ns: , asm: Erelia.Runtime}
-      data:
-        RequirementScope: 2
-        RequiredRepeatCount: 1
-        RequiredAmount: 10
-        DamageKind: 0
     - rid: 7977957676956254252
       type: {class: FeatNode, ns: , asm: Erelia.Runtime}
       data:

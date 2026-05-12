@@ -23,9 +23,10 @@ public sealed class ResolutionPhase : BattlePhase
 
 	private void TransitionAfterResolution(BattleAction action)
 	{
-		if (BattleContext == null ||
-			!BattleContext.HasLivingUnits(BattleSide.Player) ||
-			!BattleContext.HasLivingUnits(BattleSide.Enemy))
+		bool playerAlive = BattleContext?.HasLivingUnits(BattleSide.Player) ?? false;
+		bool enemyAlive = BattleContext?.HasLivingUnits(BattleSide.Enemy) ?? false;
+
+		if (BattleContext == null || !playerAlive || !enemyAlive)
 		{
 			TurnContext?.End();
 			Coordinator.TransitionTo(BattlePhaseType.End);
@@ -37,9 +38,8 @@ public sealed class ResolutionPhase : BattlePhase
 			Coordinator.TransitionTo(Orchestrator.GetCurrentTurnPhaseType());
 			return;
 		}
- 
-		TurnContext?.End();
 
+		TurnContext?.End();
 		Coordinator.TransitionTo(BattlePhaseType.Idle);
 	}
 }

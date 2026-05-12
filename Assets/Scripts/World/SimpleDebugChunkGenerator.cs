@@ -42,7 +42,7 @@ public class SimpleDebugChunkGenerator
 		for (int x = 0; x < ChunkData.FixedSizeX; x++)
 		{
 			chunkData.SetCell(x, 1, 0, new VoxelCell(borderNegativeZVoxelId));
-			chunkData.SetCell(x, 1, ChunkData.FixedSizeZ - 1, new VoxelCell(borderPositiveZVoxelId));
+			chunkData.SetCell(x, 1, ChunkData.FixedSizeZ - 3, new VoxelCell(borderPositiveZVoxelId));
 		}
 
 		for (int x = 5; x <= 9; x++)
