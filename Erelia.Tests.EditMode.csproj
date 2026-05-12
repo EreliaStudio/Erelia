@@ -52,6 +52,7 @@
     <Compile Include="Assets\Tests\Battle\Navigation\NavGraphTests.cs" />
     <Compile Include="Assets\Tests\Effects\Health\DamageTargetEffectTests.cs" />
     <Compile Include="Assets\Tests\Battle\Fixtures\TestBattleContextFactory.cs" />
+    <Compile Include="Assets\Tests\Creatures\CreatureUnitSaveTests.cs" />
     <Compile Include="Assets\Tests\Requirements\Kill\KillRequirementTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\Initiative\StaminaRatioTests.cs" />
     <Compile Include="Assets\Tests\Feats\VictoryProgressionTests.cs" />
@@ -60,6 +61,7 @@
     <Compile Include="Assets\Tests\Services\WorldServiceTests.cs" />
     <Compile Include="Assets\Tests\Services\BattleServiceTests.cs" />
     <Compile Include="Assets\Tests\Taming\TamingRulesTests.cs" />
+    <Compile Include="Assets\Tests\Data\GameSaveDataTests.cs" />
     <Compile Include="Assets\Tests\Feats\GameScopeTests.cs" />
     <Compile Include="Assets\Tests\Battle\LineOfSight\LineOfSightTests.cs" />
     <Compile Include="Assets\Tests\Services\ServiceLocatorTests.cs" />
@@ -93,11 +95,14 @@
     <Compile Include="Assets\Tests\Services\PlayerServiceTests.cs" />
     <Compile Include="Assets\Tests\Encounters\EncounterResolverTests.cs" />
     <Compile Include="Assets\Tests\Requirements\Meta\MetaRequirementTests.cs" />
+    <Compile Include="Assets\Tests\Feats\FeatBoardProgressSaveTests.cs" />
     <Compile Include="Assets\Tests\Battle\Backend\BackendBehaviorTests.cs" />
     <Compile Include="Assets\Tests\Effects\EffectTestBase.cs" />
+    <Compile Include="Assets\Tests\Data\SaveHelperTests.cs" />
     <Compile Include="Assets\Tests\Services\TamingServiceTests.cs" />
     <Compile Include="Assets\Tests\Effects\BoardObjects\RemoveInteractiveObjectEffectTests.cs" />
     <Compile Include="Assets\Tests\Feats\HealEffectTests.cs" />
+    <Compile Include="Assets\Tests\Player\PlayerDataSaveTests.cs" />
     <Compile Include="Assets\Tests\Battle\Phases\PlayerTurn\PlayerTurnPhaseCommandTests.cs" />
     <Compile Include="Assets\Tests\Encounters\BiomeDefinitionTests.cs" />
     <Compile Include="Assets\Tests\CreatureStorage\CreatureStorageTests.cs" />
@@ -113,6 +118,7 @@
     <Compile Include="Assets\Tests\Services\BattleActionCompositionServiceTests.cs" />
     <Compile Include="Assets\Tests\Effects\Shields\ApplyShieldEffectTests.cs" />
     <Compile Include="Assets\Tests\Battle\Fixtures\ServiceLocatorTestScope.cs" />
+    <Compile Include="Assets\Tests\Persistence\SaveTestDataFactory.cs" />
     <Compile Include="Assets\Tests\Battle\Targeting\AbilityValidationBoundaryTests.cs" />
     <Compile Include="Assets\Tests\Taming\TamingProgressTests.cs" />
     <Compile Include="Assets\Tests\Services\GameInitializationServiceTests.cs" />

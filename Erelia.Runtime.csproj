@@ -182,9 +182,9 @@
     <Compile Include="Assets\Scripts\Board\BoardOverlayState.cs" />
     <Compile Include="Assets\Scripts\Taming\TamingRules.cs" />
     <Compile Include="Assets\Scripts\Battle\System\PhaseControllers\PlayerTurnPhaseController.cs" />
+    <Compile Include="Assets\Scripts\Data\SaveHelper.cs" />
     <Compile Include="Assets\Scripts\Battle\System\IBattlePhaseAbilityShortcutHandler.cs" />
     <Compile Include="Assets\Scripts\Feats\FeatRequirement.cs" />
-    <Compile Include="Assets\Scripts\Data\SaveHelper.cs" />
     <Compile Include="Assets\Scripts\World\ChunkCoordinates.cs" />
     <Compile Include="Assets\Scripts\Voxel\Shape\VoxelSlabShape.cs" />
     <Compile Include="Assets\Scripts\World\WorldContext.cs" />
@@ -192,10 +192,10 @@
     <Compile Include="Assets\Scripts\UI\CreatureCardView.cs" />
     <Compile Include="Assets\Scripts\Creatures\CreatureStorage.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMaskRegistry.cs" />
+    <Compile Include="Assets\Scripts\References\ReferenceableDatabase.cs" />
     <Compile Include="Assets\Scripts\Battle\Core\BattleInteractiveObject.cs" />
     <Compile Include="Assets\Scripts\Board\BoardPresenter.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMesher.cs" />
-    <Compile Include="Assets\Scripts\References\ReferenceableDatabase.cs" />
     <Compile Include="Assets\Scripts\Encounters\EncounterUnit.cs" />
     <Compile Include="Assets\Scripts\Battle\Rules\BattleRangeRules.cs" />
     <Compile Include="Assets\Scripts\Movement\MovableTrait.cs" />
@@ -246,8 +246,8 @@
     <Compile Include="Assets\Scripts\Battle\Core\BattleAction.cs" />
     <Compile Include="Assets\Scripts\UI\ProgressBarView.cs" />
     <Compile Include="Assets\Scripts\References\ReferenceableScriptableObject.cs" />
-    <Compile Include="Assets\Scripts\Battle\Core\BattleUnitManager.cs" />
     <Compile Include="Assets\Scripts\Services\Core\ReferenceRegistry.cs" />
+    <Compile Include="Assets\Scripts\Battle\Core\BattleUnitManager.cs" />
     <Compile Include="Assets\Scripts\Bootstrap\MainMenuMock.cs" />
     <Compile Include="Assets\Scripts\Observables\ObservableValue.cs" />
     <Compile Include="Assets\Scripts\Voxel\VoxelMesher.Geometry.cs" />

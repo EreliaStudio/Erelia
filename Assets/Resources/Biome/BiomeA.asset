@@ -24,15 +24,15 @@ MonoBehaviour:
         EncounterTable:
           NoBadge:
             WeightedTeams:
-            - DisplayName: Default
+            - DisplayName: Fox
               Team:
-              - Species: {fileID: 11400000, guid: 7b1c734936928f643bb8669259644588, type: 2}
-                CurrentFormID: DPS
+              - Species: {fileID: 11400000, guid: 389d37d1b952db24eaa6eb7243c9713f, type: 2}
+                CurrentFormID: FierceForm
                 Attributes:
                   Health: 10
                   ActionPoints: 6
                   Movement: 3
-                  Attack: 0
+                  Attack: 2
                   Armor: 0
                   ArmorPenetration: 0
                   Magic: 0
@@ -40,30 +40,44 @@ MonoBehaviour:
                   ResistancePenetration: 0
                   BonusRange: 0
                   Recovery: 4
+                  Stamina: 1
                   BonusHealing: 0
                   LifeSteal: 0
                   Omnivamprism: 0
                   TimeEffectResistance: 0
-                Abilities: []
+                Abilities:
+                - {fileID: 11400000, guid: 14b6c78326473704c9a58f95c36cc231, type: 2}
+                - {fileID: 11400000, guid: e8995bb20424f3b43be4f51b591db154, type: 2}
+                - {fileID: 11400000, guid: d71804d75bc7ca44cb5cc7774d814181, type: 2}
+                - {fileID: 11400000, guid: 71a39844c1b186d46956285761db2089, type: 2}
                 PermanentPassives: []
                 FeatBoardProgress:
                   NodeProgress:
-                  - NodeId: f52d7aba9d2e4684b801ff1f5c80d7a0
+                  - NodeId: 266ffdc8e6c94f5280790e134fb8d4e2
                     CompletionCount: 1
                     RequirementProgress: []
-                  - NodeId: c69dd5f5a934458499bb830bfbff6015
+                  - NodeId: 409ca3aea8d64a309e54964feeace782
+                    CompletionCount: 2
+                    RequirementProgress:
+                    - Advancement:
+                        Progress: 0
+                        CompletedRepeatCount: 0
+                  - NodeId: f09ce73f55b842b5b41557145615b621
                     CompletionCount: 1
-                    RequirementProgress: []
-                  - NodeId: 008d92789b994496bac6b11b8d2f7818
+                    RequirementProgress:
+                    - Advancement:
+                        Progress: 0
+                        CompletedRepeatCount: 0
+                  - NodeId: 8afb7a52221649ff9c723e891fb121b9
                     CompletionCount: 1
-                    RequirementProgress: []
-                  - NodeId: fbbb59aa5d9546cf9be1ec8ebe92dd8f
-                    CompletionCount: 1
-                    RequirementProgress: []
+                    RequirementProgress:
+                    - Advancement:
+                        Progress: 0
+                        CompletedRepeatCount: 0
                 Behaviour:
                   rid: 7055333531646951500
-              - Species: {fileID: 11400000, guid: 7b1c734936928f643bb8669259644588, type: 2}
-                CurrentFormID: Default
+              - Species: {fileID: 11400000, guid: 389d37d1b952db24eaa6eb7243c9713f, type: 2}
+                CurrentFormID: BaseForm
                 Attributes:
                   Health: 10
                   ActionPoints: 6
@@ -76,30 +90,17 @@ MonoBehaviour:
                   ResistancePenetration: 0
                   BonusRange: 0
                   Recovery: 4
+                  Stamina: 1
                   BonusHealing: 0
                   LifeSteal: 0
                   Omnivamprism: 0
                   TimeEffectResistance: 0
-                Abilities: []
+                Abilities:
+                - {fileID: 11400000, guid: 14b6c78326473704c9a58f95c36cc231, type: 2}
                 PermanentPassives: []
                 FeatBoardProgress:
                   NodeProgress:
-                  - NodeId: f52d7aba9d2e4684b801ff1f5c80d7a0
-                    CompletionCount: 1
-                    RequirementProgress: []
-                  - NodeId: fbbb59aa5d9546cf9be1ec8ebe92dd8f
-                    CompletionCount: 1
-                    RequirementProgress: []
-                  - NodeId: 0adb5cac9f7540c7b493ecc022a265e5
-                    CompletionCount: 1
-                    RequirementProgress: []
-                  - NodeId: c69dd5f5a934458499bb830bfbff6015
-                    CompletionCount: 1
-                    RequirementProgress: []
-                  - NodeId: 1bce35fc5a8a490eacb2eb7458b50a03
-                    CompletionCount: 1
-                    RequirementProgress: []
-                  - NodeId: dffd36e3cf144bc5a3961517575674f5
+                  - NodeId: 266ffdc8e6c94f5280790e134fb8d4e2
                     CompletionCount: 1
                     RequirementProgress: []
                 Behaviour:
@@ -118,6 +119,7 @@ MonoBehaviour:
                   ResistancePenetration: 0
                   BonusRange: 0
                   Recovery: 4
+                  Stamina: 1
                   BonusHealing: 0
                   LifeSteal: 0
                   Omnivamprism: 0
@@ -142,6 +144,7 @@ MonoBehaviour:
                   ResistancePenetration: 0
                   BonusRange: 0
                   Recovery: 4
+                  Stamina: 1
                   BonusHealing: 0
                   LifeSteal: 0
                   Omnivamprism: 0
@@ -166,6 +169,7 @@ MonoBehaviour:
                   ResistancePenetration: 0
                   BonusRange: 0
                   Recovery: 4
+                  Stamina: 1
                   BonusHealing: 0
                   LifeSteal: 0
                   Omnivamprism: 0
@@ -190,6 +194,7 @@ MonoBehaviour:
                   ResistancePenetration: 0
                   BonusRange: 0
                   Recovery: 4
+                  Stamina: 1
                   BonusHealing: 0
                   LifeSteal: 0
                   Omnivamprism: 0
@@ -201,34 +206,215 @@ MonoBehaviour:
                 Behaviour:
                   rid: 7055333531646951505
               Weight: 1
-          OneBadge:
-            WeightedTeams: []
-          TwoBadges:
-            WeightedTeams: []
-          ThreeBadges:
-            WeightedTeams: []
-          FourBadges:
-            WeightedTeams: []
-          FiveBadges:
-            WeightedTeams: []
-          SixBadges:
-            WeightedTeams: []
-          SevenBadges:
-            WeightedTeams: []
-          EightBadges:
-            WeightedTeams: []
-          PostGame:
-            WeightedTeams: []
-    - Key: normal_custom
-      Value:
-        BaseChancePerStep: 0.1
-        BoardConfigurations:
-        - size: {x: 9, y: 9}
-          shape: 0
-        PlacementStyle: 0
-        EncounterTable:
-          NoBadge:
-            WeightedTeams: []
+            - DisplayName: Tortue
+              Team:
+              - Species: {fileID: 11400000, guid: d8846787a265ed34ebf31b7421604333, type: 2}
+                CurrentFormID: BaseForm
+                Attributes:
+                  Health: 12
+                  ActionPoints: 6
+                  Movement: 4
+                  Attack: 0
+                  Armor: 0
+                  ArmorPenetration: 0
+                  Magic: 0
+                  Resistance: 0
+                  ResistancePenetration: 0
+                  BonusRange: 0
+                  Recovery: 4
+                  Stamina: 1
+                  BonusHealing: 0
+                  LifeSteal: 0
+                  Omnivamprism: 0
+                  TimeEffectResistance: 0
+                Abilities:
+                - {fileID: 11400000, guid: 0dbf4e2d89b7a9c4c96417b8f7489631, type: 2}
+                - {fileID: 11400000, guid: abc2bd10f75595748a820c7e8882b23b, type: 2}
+                PermanentPassives: []
+                FeatBoardProgress:
+                  NodeProgress:
+                  - NodeId: 49a878c31ca84e788dfda977aeac7c20
+                    CompletionCount: 1
+                    RequirementProgress: []
+                  - NodeId: 7e5fbe274fb04de29bc06e704de0aa54
+                    CompletionCount: 1
+                    RequirementProgress:
+                    - Advancement:
+                        Progress: 0
+                        CompletedRepeatCount: 0
+                  - NodeId: 97abac8bb59940cbb42ce21e56c37311
+                    CompletionCount: 1
+                    RequirementProgress:
+                    - Advancement:
+                        Progress: 0
+                        CompletedRepeatCount: 0
+                  - NodeId: 30ea7a13f3184971b08348666abcb51f
+                    CompletionCount: 1
+                    RequirementProgress:
+                    - Advancement:
+                        Progress: 0
+                        CompletedRepeatCount: 0
+                Behaviour:
+                  rid: 7977957694666702882
+              - Species: {fileID: 11400000, guid: d8846787a265ed34ebf31b7421604333, type: 2}
+                CurrentFormID: SpitterForm
+                Attributes:
+                  Health: 12
+                  ActionPoints: 6
+                  Movement: 4
+                  Attack: 1
+                  Armor: 0
+                  ArmorPenetration: 0
+                  Magic: 0
+                  Resistance: 0
+                  ResistancePenetration: 0
+                  BonusRange: 0
+                  Recovery: 4
+                  Stamina: 1
+                  BonusHealing: 0
+                  LifeSteal: 0
+                  Omnivamprism: 0
+                  TimeEffectResistance: 0
+                Abilities:
+                - {fileID: 11400000, guid: 0dbf4e2d89b7a9c4c96417b8f7489631, type: 2}
+                - {fileID: 11400000, guid: abc2bd10f75595748a820c7e8882b23b, type: 2}
+                - {fileID: 11400000, guid: fea234bf98991434184c416f962ab9f4, type: 2}
+                PermanentPassives: []
+                FeatBoardProgress:
+                  NodeProgress:
+                  - NodeId: 49a878c31ca84e788dfda977aeac7c20
+                    CompletionCount: 1
+                    RequirementProgress: []
+                  - NodeId: 97abac8bb59940cbb42ce21e56c37311
+                    CompletionCount: 1
+                    RequirementProgress:
+                    - Advancement:
+                        Progress: 0
+                        CompletedRepeatCount: 0
+                  - NodeId: 30ea7a13f3184971b08348666abcb51f
+                    CompletionCount: 1
+                    RequirementProgress:
+                    - Advancement:
+                        Progress: 0
+                        CompletedRepeatCount: 0
+                  - NodeId: 0c11416b5e6a457abf874e091b7725c0
+                    CompletionCount: 1
+                    RequirementProgress:
+                    - Advancement:
+                        Progress: 0
+                        CompletedRepeatCount: 0
+                  - NodeId: 0e21f19578c3497aba2bbb7ba95bc66e
+                    CompletionCount: 1
+                    RequirementProgress: []
+                  - NodeId: 7e5fbe274fb04de29bc06e704de0aa54
+                    CompletionCount: 1
+                    RequirementProgress:
+                    - Advancement:
+                        Progress: 0
+                        CompletedRepeatCount: 0
+                Behaviour:
+                  rid: 7977957694666702883
+              - Species: {fileID: 0}
+                CurrentFormID: 
+                Attributes:
+                  Health: 10
+                  ActionPoints: 6
+                  Movement: 3
+                  Attack: 0
+                  Armor: 0
+                  ArmorPenetration: 0
+                  Magic: 0
+                  Resistance: 0
+                  ResistancePenetration: 0
+                  BonusRange: 0
+                  Recovery: 4
+                  Stamina: 1
+                  BonusHealing: 0
+                  LifeSteal: 0
+                  Omnivamprism: 0
+                  TimeEffectResistance: 0
+                Abilities: []
+                PermanentPassives: []
+                FeatBoardProgress:
+                  NodeProgress: []
+                Behaviour:
+                  rid: 7977957694666702884
+              - Species: {fileID: 0}
+                CurrentFormID: 
+                Attributes:
+                  Health: 10
+                  ActionPoints: 6
+                  Movement: 3
+                  Attack: 0
+                  Armor: 0
+                  ArmorPenetration: 0
+                  Magic: 0
+                  Resistance: 0
+                  ResistancePenetration: 0
+                  BonusRange: 0
+                  Recovery: 4
+                  Stamina: 1
+                  BonusHealing: 0
+                  LifeSteal: 0
+                  Omnivamprism: 0
+                  TimeEffectResistance: 0
+                Abilities: []
+                PermanentPassives: []
+                FeatBoardProgress:
+                  NodeProgress: []
+                Behaviour:
+                  rid: 7977957694666702885
+              - Species: {fileID: 0}
+                CurrentFormID: 
+                Attributes:
+                  Health: 10
+                  ActionPoints: 6
+                  Movement: 3
+                  Attack: 0
+                  Armor: 0
+                  ArmorPenetration: 0
+                  Magic: 0
+                  Resistance: 0
+                  ResistancePenetration: 0
+                  BonusRange: 0
+                  Recovery: 4
+                  Stamina: 1
+                  BonusHealing: 0
+                  LifeSteal: 0
+                  Omnivamprism: 0
+                  TimeEffectResistance: 0
+                Abilities: []
+                PermanentPassives: []
+                FeatBoardProgress:
+                  NodeProgress: []
+                Behaviour:
+                  rid: 7977957694666702886
+              - Species: {fileID: 0}
+                CurrentFormID: 
+                Attributes:
+                  Health: 10
+                  ActionPoints: 6
+                  Movement: 3
+                  Attack: 0
+                  Armor: 0
+                  ArmorPenetration: 0
+                  Magic: 0
+                  Resistance: 0
+                  ResistancePenetration: 0
+                  BonusRange: 0
+                  Recovery: 4
+                  Stamina: 1
+                  BonusHealing: 0
+                  LifeSteal: 0
+                  Omnivamprism: 0
+                  TimeEffectResistance: 0
+                Abilities: []
+                PermanentPassives: []
+                FeatBoardProgress:
+                  NodeProgress: []
+                Behaviour:
+                  rid: 7977957694666702887
+              Weight: 1
           OneBadge:
             WeightedTeams: []
           TwoBadges:
@@ -281,6 +467,42 @@ MonoBehaviour:
         RulesByModes:
           _serializedList: []
     - rid: 7055333531646951505
+      type: {class: AIBehaviour, ns: , asm: Erelia.Runtime}
+      data:
+        ActiveMode: 
+        RulesByModes:
+          _serializedList: []
+    - rid: 7977957694666702882
+      type: {class: AIBehaviour, ns: , asm: Erelia.Runtime}
+      data:
+        ActiveMode: 
+        RulesByModes:
+          _serializedList: []
+    - rid: 7977957694666702883
+      type: {class: AIBehaviour, ns: , asm: Erelia.Runtime}
+      data:
+        ActiveMode: 
+        RulesByModes:
+          _serializedList: []
+    - rid: 7977957694666702884
+      type: {class: AIBehaviour, ns: , asm: Erelia.Runtime}
+      data:
+        ActiveMode: 
+        RulesByModes:
+          _serializedList: []
+    - rid: 7977957694666702885
+      type: {class: AIBehaviour, ns: , asm: Erelia.Runtime}
+      data:
+        ActiveMode: 
+        RulesByModes:
+          _serializedList: []
+    - rid: 7977957694666702886
+      type: {class: AIBehaviour, ns: , asm: Erelia.Runtime}
+      data:
+        ActiveMode: 
+        RulesByModes:
+          _serializedList: []
+    - rid: 7977957694666702887
       type: {class: AIBehaviour, ns: , asm: Erelia.Runtime}
       data:
         ActiveMode: 
