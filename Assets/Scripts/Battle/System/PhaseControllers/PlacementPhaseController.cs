@@ -8,12 +8,6 @@ public sealed class PlacementPhaseController : BattlePhaseController, IBattlePha
 
 	[SerializeField] private Button confirmButton;
 
-	[Header("Card Colors")]
-	[SerializeField] private Color emptySlotColor = new Color(0.12f, 0.12f, 0.12f, 0.90f);
-	[SerializeField] private Color unplacedColor = new Color(0.30f, 0.30f, 0.30f, 0.90f);
-	[SerializeField] private Color placedColor = new Color(0.50f, 0.50f, 0.50f, 0.90f);
-	[SerializeField] private Color selectedColor = new Color(0.80f, 0.50f, 0.10f, 0.90f);
-
 	private PlacementPhase placementPhase;
 
 	public override BattlePhaseType PhaseType => BattlePhaseType.Placement;
@@ -189,16 +183,16 @@ public sealed class PlacementPhaseController : BattlePhaseController, IBattlePha
 			CreatureCardView card = teamView.GetCard(i);
 			if (card == null) continue;
 			BattleUnit unit = units != null && i < units.Count ? units[i] : null;
-			card.SetBackgroundColor(GetCardColor(unit, selectedUnit));
+			card.SetColorMode(GetCardState(unit, selectedUnit));
 		}
 	}
 
-	private Color GetCardColor(BattleUnit unit, BattleUnit selectedUnit)
+	private static CreatureCardView.State GetCardState(BattleUnit unit, BattleUnit selectedUnit)
 	{
-		if (unit == null) return emptySlotColor;
-		if (ReferenceEquals(unit, selectedUnit)) return selectedColor;
-		if (unit.HasBoardPosition) return placedColor;
-		return unplacedColor;
+		if (unit == null) return CreatureCardView.State.Empty;
+		if (ReferenceEquals(unit, selectedUnit)) return CreatureCardView.State.Selected;
+		if (unit.HasBoardPosition) return CreatureCardView.State.Placed;
+		return CreatureCardView.State.Idle;
 	}
 
 	private void ApplyPlacementCardStaminaOverrides()

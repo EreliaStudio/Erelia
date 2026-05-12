@@ -31,6 +31,7 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 	{
 		actionShortcutBar?.Bind(TurnContext?.ActiveUnit);
 		activeUnitHud?.Bind(TurnContext?.ActiveUnit);
+		HighlightActiveUnitCard(CreatureCardView.State.ActiveAlly);
 		RestartMovementTargeting();
 	}
 
@@ -40,6 +41,7 @@ public sealed class PlayerTurnPhaseController : BattlePhaseController, IBattlePh
 		selectedAbility = null;
 		hoveredCell = null;
 		ClearPreviewOverlay();
+		RefreshCardAliveStates();
 		actionShortcutBar?.Bind(null);
 		activeUnitHud?.Bind(null);
 	}

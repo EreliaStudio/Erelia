@@ -8,11 +8,33 @@ using UnityEngine.UI;
 [ExecuteAlways]
 public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 {
+	public enum State
+	{
+		Default,
+		Empty,
+		Idle,
+		Placed,
+		Selected,
+		ActiveAlly,
+		ActiveEnemy,
+		Alive,
+		Defeated,
+	}
+
 	private enum PortraitSide
 	{
 		Left,
 		Right
 	}
+
+	private static readonly Color ColorEmpty       = new(0.12f, 0.12f, 0.12f, 0.90f);
+	private static readonly Color ColorIdle        = new(0.30f, 0.30f, 0.30f, 0.90f);
+	private static readonly Color ColorPlaced      = new(0.50f, 0.50f, 0.50f, 0.90f);
+	private static readonly Color ColorSelected    = new(0.80f, 0.50f, 0.10f, 0.90f);
+	private static readonly Color ColorActiveAlly  = new(0.20f, 0.55f, 0.90f, 0.90f);
+	private static readonly Color ColorActiveEnemy = new(0.85f, 0.25f, 0.20f, 0.90f);
+	private static readonly Color ColorAlive      = new(0.50f, 0.50f, 0.50f, 0.90f);
+	private static readonly Color ColorDefeated    = new(0.20f, 0.20f, 0.20f, 0.70f);
 
 	private const string DefaultStaminaLabelFormat = "{1:0.##} sec";
 
@@ -147,6 +169,17 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 		ApplySerializedState();
 	}
 
+	public void SetColorMode(State state)
+	{
+		if (state == State.Default)
+		{
+			ClearBackgroundColorOverride();
+			return;
+		}
+
+		SetBackgroundColor(StateToColor(state));
+	}
+
 	public void SetBackgroundColor(Color color)
 	{
 		backgroundColorOverride = color;
@@ -164,6 +197,19 @@ public sealed class CreatureCardView : ExecuteAlwaysView, IPointerClickHandler
 			backgroundImage.color = backgroundColor;
 		}
 	}
+
+	private static Color StateToColor(State state) => state switch
+	{
+		State.Empty       => ColorEmpty,
+		State.Idle        => ColorIdle,
+		State.Placed      => ColorPlaced,
+		State.Selected    => ColorSelected,
+		State.ActiveAlly  => ColorActiveAlly,
+		State.ActiveEnemy => ColorActiveEnemy,
+		State.Alive       => ColorAlive,
+		State.Defeated    => ColorDefeated,
+		_                 => ColorIdle,
+	};
 
 	public void ClearClickListeners()
 	{
