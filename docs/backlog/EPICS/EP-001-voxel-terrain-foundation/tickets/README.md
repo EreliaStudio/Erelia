@@ -10,7 +10,7 @@ The tickets are ordered by dependency, not by implementation status.
 | --- | --- | --- |
 | [ST-001-01 — Shared terrain coordinate conversion](ST-001-01-shared-terrain-coordinate-conversion.md) | **Done** | — |
 | [ST-001-02 — Packed Voxel::Cell value type](ST-001-02-packed-voxel-cell.md) | **Done** | Cell portion of OQ-035 resolved |
-| [ST-001-03 — Owning Voxel::Volume](ST-001-03-owning-voxel-volume.md) | **Blocked** | ST-001-02; OQ-035 |
+| [ST-001-03 — Owning Voxel::Volume](ST-001-03-owning-voxel-volume.md) | **Ready** | ST-001-02; OQ-035 resolved |
 | [ST-001-04 — First terrain Definition and Shape contract](ST-001-04-first-terrain-definition-shape-contract.md) | **Draft** | ST-001-02; OQ-039 + Definition/Shape specification gap |
 | [ST-001-05 — Voxel::Volume Message serialization](ST-001-05-voxel-volume-message-serialization.md) | **Blocked** | ST-001-02, ST-001-03; OQ-037 |
 | [ST-001-06 — Deterministic validation terrain generator](ST-001-06-deterministic-validation-terrain-generator.md) | **Blocked** | ST-001-01 through ST-001-04; OQ-039 |
@@ -29,13 +29,14 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-01 — Shared terrain coordinate conversion** is **Done**. PR #7 was merged into the planning branch on 22 September 2026 after the required implementation, headless CI evidence, and human review/approval.
 
-**ST-001-02 — Packed Voxel::Cell value type** is **Done** on `feat/st-001-02-packed-voxel-cell` after CI run #59 passed the required headless matrix and the project owner approved the final implementation on 22 September 2026. PR #8 remains open against the planning branch. The remaining OQ-035 ambiguity belongs to ST-001-03 and later Volume work.
+**ST-001-02 — Packed Voxel::Cell value type** is **Done** and was merged through PR #8 into the planning branch at `f03894f76fc996d5fba3241e2e51ead848783cad` after CI run #59 and project-owner approval.
+
+**ST-001-03 — Owning Voxel::Volume** is **Ready** after the project owner resolved the remaining OQ-035 Volume storage, validation, editor/versioning, view-lifetime, and copy/move contracts on 23 September 2026.
 
 ## Remaining blockers
 
 Existing OQs:
 
-- OQ-035 — remaining Volume storage/indexing, validation/editor and lifetime behavior; the Cell portion is complete and does not affect the Done ST-001-02 ticket;
 - OQ-036 — missing-neighbor/remesh policy;
 - OQ-037 — scalar wire portability and remaining decode contract;
 - OQ-038 — duplicate/outstanding request, limits, cache/retention, retry and partial-response semantics;
