@@ -46,7 +46,8 @@ The protocol should allow that policy to change without changing Server terrain 
 - the protocol is coordinate-based, not player-object-based;
 - Server does not need to know why the Client wants a Chunk in order to return canonical terrain data;
 - Client-side loading-radius policy is not part of the Server contract;
-- exact transport backend, framing, byte order, duplicate-coordinate handling, partial-success/rejection semantics, and cache/eviction policy remain unresolved detailed contracts.
+- transport/framing uses Sparkle Version-0.1.3 networking; Erelia still owns the payload byte layout;
+- duplicate-coordinate handling, partial-success/rejection semantics, cache/eviction policy, and exact payload encoding remain unresolved detailed contracts.
 
 ## Required tests
 
@@ -64,7 +65,7 @@ When exact protocol encoding is resolved:
 
 ## Resolution provenance
 
-Resolved directly by the project owner on 2026-09-22 while answering Q-037 and Q-038.
+Resolved directly by the project owner on 2026-09-22 while answering Q-037 and Q-038. Transport selection was subsequently narrowed to Sparkle Version-0.1.3 networking by DR-016.
 
 ## Supersession
 
