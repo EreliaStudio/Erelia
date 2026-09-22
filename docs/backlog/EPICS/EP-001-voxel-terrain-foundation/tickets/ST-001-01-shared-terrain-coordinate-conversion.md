@@ -72,15 +72,16 @@ namespace Voxel
     struct Volume
     {
         using LocalCoordinate = spk::Vector3Int;
+        using VoxelSize = float;
     };
 }
 
-struct Chunk
+struct Chunk : public Voxel::Volume
 {
     using Coordinate = spk::Vector3Int;
 
     inline static constexpr std::int32_t Extent = 16;
-    inline static constexpr float CellWorldExtent = 1.0F;
+    inline static constexpr VoxelSize CellSize = 1.0F;
 
     [[nodiscard]] static Coordinate toCoordinate(
         const Voxel::Cell::Coordinate &globalCell) noexcept;
@@ -217,7 +218,7 @@ No unresolved question blocks this ticket.
 
 - Initial production implementation commit: `e67032414ece0c7c00018ee29db03bc1ad842cd4` on `feat/st-001-01-shared-terrain-coordinate-conversion`.
 - Namespace follow-up: the project-owned API does not use a redundant top-level `erelia::` namespace, per explicit project-owner direction.
-- Domain-structure follow-up: coordinate aliases live on `Voxel::Cell`, `Voxel::Volume`, and `Chunk`; the conversion helpers/constants live on `Chunk`. This does not implement the blocked Cell packing or Volume storage contracts.
+- Domain-structure follow-up: coordinate aliases live on `Voxel::Cell`, `Voxel::Volume`, and `Chunk`; `Voxel::Volume` also owns the `VoxelSize` scalar alias. `Chunk` inherits `Voxel::Volume`, exposes the fixed terrain voxel size as `Chunk::CellSize`, and owns the conversion helpers/constants. This does not implement the blocked Cell packing or Volume storage contracts.
 - Draft validation PR: #7, targeting `backlog/ep-001-implementation-tickets`.
 - GitHub Actions CI run `35775258869` / run #32:
   - `clang-format`: passed;

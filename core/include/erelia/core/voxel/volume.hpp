@@ -7,5 +7,6 @@ namespace Voxel
 	struct Volume
 	{
 		using LocalCoordinate = spk::Vector3Int;
+		using VoxelSize = float;
 	};
 }
