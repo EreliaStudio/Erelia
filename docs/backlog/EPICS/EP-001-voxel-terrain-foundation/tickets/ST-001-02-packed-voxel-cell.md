@@ -1,6 +1,6 @@
 # ST-001-02 — Packed Voxel::Cell value type
 
-**Status:** Blocked
+**Status:** Ready
 **Epic:** EP-001
 **Production target(s):** Core
 **Test suite(s):** EreliaCoreTestSuite
@@ -15,8 +15,8 @@ Server and Client need one compact, shared semantic voxel value before they can 
 
 ## Starting state / prerequisites
 
-- DR-012 fixes the 32-bit packing direction.
-- OQ-035 is still partially resolved.
+- DR-012 fixes the complete Cell packing/validation direction needed by this ticket.
+- OQ-035 remains partially resolved only for later `Voxel::Volume` details; those remaining questions do not block this ticket.
 
 ## Product ownership
 
@@ -24,7 +24,7 @@ Core owns the shared value type.
 
 ## Allowed dependencies
 
-C++ standard library and headless-safe Sparkle Core where useful.
+C++ standard library and headless-safe Sparkle Core.
 
 ## Forbidden dependencies
 
@@ -32,16 +32,22 @@ Server, Client, graphics-only Sparkle facilities, and archived code as a require
 
 ## Owned behavior
 
-Known approved behavior:
-
 - complete logical representation fits exactly in one `std::uint32_t`;
 - trivially copyable;
 - lower 29 bits: Definition ID;
-- next 2 bits: horizontal Orientation;
-- highest bit: vertical Flip;
-- Definition ID 0 denotes empty;
+- bits 29-30: horizontal `Voxel::Cell::Orientation`;
+- bit 31: `Voxel::Cell::FlipOrientation`;
+- `Orientation` exact values are `PositiveX = 0`, `NegativeX = 1`, `PositiveZ = 2`, `NegativeZ = 3`;
+- `FlipOrientation` exact values are `PositiveY = 0`, `NegativeY = 1`;
+- Definition ID 0 denotes semantic emptiness;
+- Orientation/FlipOrientation are still valid and preserved when Definition ID is 0;
+- default construction produces packed `0x00000000`;
+- `Voxel::Cell::Empty` is the explicit static packed-zero empty value;
+- construction from any packed `std::uint32_t` is valid and preserves it exactly;
+- construction from logical fields validates their domains;
 - packed representation can be retrieved as `std::uint32_t`;
-- maximum packed Definition ID is `0x1FFFFFFF`.
+- maximum packed Definition ID is `0x1FFFFFFF`;
+- the Cell is immutable after construction.
 
 ## Explicitly not owned
 
@@ -52,22 +58,41 @@ Known approved behavior:
 
 ## Public contract
 
-The exact final Cell construction/mutation API must preserve the approved packed semantics. Exact source-level signatures are not fixed here.
+`Voxel::Cell` owns one private packed `std::uint32_t`, avoiding C++ bitfields and their implementation-defined physical layout.
+
+The type provides:
+
+- default construction to packed zero;
+- explicit construction from a raw packed `std::uint32_t`;
+- construction from Definition ID + `Orientation` + `FlipOrientation`;
+- read-only getters for Definition ID, Orientation, FlipOrientation, and packed value;
+- static `Voxel::Cell::Empty`, declared on the type and defined out-of-line in the Cell source file.
+
+Exact getter/constructor spelling may be selected during implementation as long as the complete observable contract above is preserved.
 
 ## Invariants
 
 - `sizeof(Voxel::Cell) == sizeof(std::uint32_t)`.
 - `std::is_trivially_copyable_v<Voxel::Cell>`.
-- Definition ID, Orientation, and Flip round-trip through the packed value without overlap.
-- ID 0 is semantically empty.
+- Definition ID, Orientation, and FlipOrientation round-trip through the packed value without overlap.
+- Definition ID 0 is semantically empty regardless of Orientation/FlipOrientation bits.
+- raw packed construction never canonicalizes or rejects a `std::uint32_t`.
 
 ## State transitions
 
-Construction or controlled mutation changes the logical packed fields atomically.
+The Cell is immutable after construction. There are no mutation operations in this ticket.
 
 ## Failure behavior
 
-**Blocked:** OQ-035 must define canonical empty representation and remaining validation behavior, including how invalid/capacity-exceeding values are rejected and whether non-ID bits are canonicalized when Definition ID is 0.
+Raw packed construction cannot fail.
+
+Logical-field construction throws `spk::Exception` when:
+
+- Definition ID is greater than `0x1FFFFFFF`;
+- Orientation is outside its four-value domain, including invalid values manufactured through an explicit cast;
+- FlipOrientation is outside its two-value domain, including invalid values manufactured through an explicit cast.
+
+Because construction either succeeds or throws before an object becomes observable, there is no mutable partial state to preserve.
 
 ## Determinism / ordering
 
@@ -87,44 +112,55 @@ Shared data only; no authority semantics.
 
 ## Implementation constraints
 
-Do not widen the Cell beyond 32 bits. Do not copy archived APIs blindly.
+- Do not widen the Cell beyond 32 bits.
+- Do not use C++ bitfields for the stored representation.
+- Store one private `std::uint32_t` and use masks/shifts for field extraction/packing.
+- Use `spk::Exception` for logical-construction validation failures.
+- Keep the Cell immutable after construction.
+- Declare `Voxel::Cell::Empty` in the header and define it in the Cell source file.
+- Do not copy archived APIs blindly.
 
 ## Exact test fixtures
 
-Known fixtures can include:
+Required fixtures:
 
-- default Cell is semantically empty;
-- ID `1`, each Orientation value, each Flip value;
-- maximum ID `0x1FFFFFFF`;
-- packed round-trip for combinations of ID/Orientation/Flip.
-
-Exact empty packed bits and invalid-value rejection fixtures remain blocked by OQ-035.
+- default Cell: packed `0x00000000`, Definition ID `0`, `PositiveX`, `PositiveY`;
+- `Voxel::Cell::Empty`: same packed/getter values as the default Cell;
+- Definition ID `1` with each Orientation value;
+- Definition ID `1` with each FlipOrientation value;
+- raw `0x60000000`: Definition ID `0`, `NegativeZ`, `PositiveY`, packed value preserved exactly;
+- raw `0xFFFFFFFF`: maximum Definition ID, `NegativeZ`, `NegativeY`, packed value preserved exactly;
+- maximum logical Definition ID `0x1FFFFFFF`;
+- logical Definition ID `0x20000000`: rejected with `spk::Exception`;
+- `static_cast<Orientation>(4)`: rejected with `spk::Exception`;
+- `static_cast<FlipOrientation>(2)`: rejected with `spk::Exception`;
+- packed round-trip for representative Definition ID/Orientation/FlipOrientation combinations.
 
 ## Acceptance tests
 
 ### Nominal
 
-Exact field packing/unpacking tests once OQ-035 closes the remaining contract.
+Exact field packing/unpacking for the fixtures above, including the approved enum-to-bit mapping.
 
 ### Boundaries
 
-Minimum/non-empty ID and maximum ID.
+Definition ID `0`, ID `1`, and maximum ID `0x1FFFFFFF`; all four Orientation values; both FlipOrientation values; raw `0x00000000` and `0xFFFFFFFF`.
 
 ### Invalid / rejected operations
 
-Blocked by OQ-035.
+Logical construction rejects Definition ID overflow and invalid enum-domain values with `spk::Exception`.
 
 ### Failure atomicity
 
-Rejected field updates, if the chosen API permits mutation, must leave the prior Cell unchanged; exact cases are blocked by OQ-035.
+Not applicable to mutation because the type is immutable. Failed construction does not expose a partially constructed Cell.
 
 ### Determinism
 
-Same logical fields produce the same packed value.
+Same logical fields produce the same packed value; raw packed construction preserves the raw value exactly.
 
 ### Lifecycle / ownership
 
-Trivial value semantics.
+Compile-time size and trivial-copyability assertions; ordinary value copy semantics.
 
 ### Serialization / persistence
 
@@ -136,7 +172,7 @@ Not applicable.
 
 ### Concurrency / cancellation
 
-Not applicable.
+Not applicable; immutable value semantics introduce no mutation/concurrency contract.
 
 ### Authority / trust boundary
 
@@ -152,7 +188,7 @@ Deferred to Volume/protocol/mesher tickets.
 
 ### Performance
 
-Compile-time size/trivial-copyability assertions are required; no timing threshold.
+Compile-time size/trivial-copyability assertions are required. Getter implementations are constant-time integer mask/shift operations; no timing threshold is required.
 
 ### Client-visible / golden-image validation
 
@@ -161,8 +197,12 @@ Not applicable.
 ## Decisions / unresolved questions
 
 - [DR-012](../../../DECISIONS/DR-012-PACKED-CELL-AND-VOLUME-DIRECTION.md)
-- [OQ-035](../../../OPEN_QUESTIONS/OQ-035-TERRAIN-VOXEL-CELL-REPRESENTATION.md) — blocking.
+- [OQ-035](../../../OPEN_QUESTIONS/OQ-035-TERRAIN-VOXEL-CELL-REPRESENTATION.md) — Cell portion resolved; OQ remains partially resolved for later Volume details.
+
+## Definition-of-Ready review
+
+Ready: another implementation agent can write the required acceptance tests before production code without selecting any remaining Cell behavior. The unresolved Volume portions of OQ-035 belong to ST-001-03 and later work.
 
 ## Completion evidence
 
-Ticket may become Ready only after OQ-035 fixes the remaining Cell validation/canonical-empty contract and exact tests are updated accordingly.
+To leave In Progress and become Done, the implementation must exist on its dedicated feature branch, every acceptance test above must pass in the relevant Core/headless regression suites, documentation must remain consistent with the implemented Cell contract, and required human approval must be recorded.
