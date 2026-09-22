@@ -20,4 +20,4 @@ Do not create an architecture document merely because one implementation ticket 
 
 ## Approved architecture documents
 
-None yet.
+- [ARCH-001 — Product boundaries and authority model](ARCH-001-PRODUCT-BOUNDARIES.md)
