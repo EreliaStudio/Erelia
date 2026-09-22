@@ -73,11 +73,11 @@ None.
 
 ### Next Ready ticket
 
-None currently. OQ-035 is the immediate decision blocker before ST-001-02 / ST-001-03 can be promoted according to the Definition of Ready.
+**ST-001-02 — Packed Voxel::Cell value type** is Ready. The Cell-specific OQ-035 decisions now define exact packing, enum mapping, empty semantics, raw packed acceptance, logical-input validation, immutability, and acceptance fixtures. The remaining OQ-035 decisions apply to ST-001-03 and later Volume work.
 
 ### Existing OQ blockers
 
-- OQ-035 — Cell/Volume canonical empty, storage/indexing, validation/editor/lifetime details.
+- OQ-035 — remaining Volume storage/indexing, validation/editor/lifetime details. Its Cell-specific portion is sufficiently resolved for ST-001-02.
 - OQ-036 — missing-neighbor/remesh behavior.
 - OQ-037 — scalar wire portability and remaining decode contract.
 - OQ-038 — duplicate/outstanding requests, request limits, cache/retention, partial responses/rejections/retry.
@@ -97,9 +97,8 @@ See EP-001 `tickets/README.md` for the full status/dependency table.
 
 ## Next
 
-1. Resolve the remaining OQ-035 decisions interactively with the project owner; do not invent the missing Cell/Volume contracts.
-2. Once OQ-035 supplies the exact ST-001-02 contract, update its acceptance fixtures/status and promote it to Ready only if the Definition of Ready is satisfied.
-3. Implement ST-001-02 on a dedicated feature branch cut from the current planning baseline.
+1. Implement ST-001-02 on a dedicated feature branch cut from the current planning baseline; its Cell contract now satisfies the Definition of Ready.
+2. Keep OQ-035 partially resolved and defer its remaining Volume storage/index/editor/lifetime decisions to ST-001-03 rather than inventing them.
 4. Resolve the minimal Definition/Shape specification gap and OQ-039 before generator/mesher fixtures become Ready.
 5. Resolve OQ-037 / OQ-038 before Chunk codec, Server handler, and Client cache/request coordination become Ready.
 6. Resolve OQ-036 before Client boundary meshing and adjacent-Chunk integration become Ready.
@@ -117,6 +116,6 @@ EP-001 is constrained by DR-001 through DR-004, DR-007, DR-009 through DR-017 an
 
 ## First Epic
 
-EP-001 — Voxel Terrain Delivery and Visual Validation remains Draft, with 16 materialized implementation tickets, ST-001-01 Done, and no Ready follow-on ticket because OQ-035 still blocks ST-001-02 / ST-001-03.
+EP-001 — Voxel Terrain Delivery and Visual Validation remains Draft, with 16 materialized implementation tickets, ST-001-01 Done, and ST-001-02 Ready. OQ-035 remains partially resolved because its remaining Volume decisions still block ST-001-03.
 
 It intentionally excludes production Hero movement, collision, followers, combat, resources, and production world generation. The temporary free-flight controller exists only to inspect rendered terrain.
