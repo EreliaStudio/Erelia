@@ -8,7 +8,7 @@ The tickets are ordered by dependency, not by implementation status.
 
 | Ticket | Status | Depends on |
 | --- | --- | --- |
-| [ST-001-01 — Shared terrain coordinate conversion](ST-001-01-shared-terrain-coordinate-conversion.md) | **In Progress** | — |
+| [ST-001-01 — Shared terrain coordinate conversion](ST-001-01-shared-terrain-coordinate-conversion.md) | **Done** | — |
 | [ST-001-02 — Packed Voxel::Cell value type](ST-001-02-packed-voxel-cell.md) | **Blocked** | OQ-035 |
 | [ST-001-03 — Owning Voxel::Volume](ST-001-03-owning-voxel-volume.md) | **Blocked** | ST-001-02; OQ-035 |
 | [ST-001-04 — First terrain Definition and Shape contract](ST-001-04-first-terrain-definition-shape-contract.md) | **Draft** | ST-001-02; OQ-039 + Definition/Shape specification gap |
@@ -27,7 +27,7 @@ The tickets are ordered by dependency, not by implementation status.
 
 ## Current implementation state
 
-**ST-001-01 — Shared terrain coordinate conversion** has production implementation and required headless CI evidence on `feat/st-001-01-shared-terrain-coordinate-conversion` / draft PR #7. It remains **In Progress** until human completion approval is recorded.
+**ST-001-01 — Shared terrain coordinate conversion** is **Done**. PR #7 was merged into the planning branch on 22 September 2026 after the required implementation, headless CI evidence, and human review/approval.
 
 There is currently **no Ready follow-on ticket**. OQ-035 is the immediate blocker for ST-001-02 / ST-001-03; later tickets retain the blockers listed below.
 
@@ -50,4 +50,4 @@ Additional Draft-ticket specification gaps exposed by decomposition:
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
-The planning branch remains the backlog baseline. Production implementation for ST-001-01 is isolated on its dedicated implementation branch.
+The planning branch remains the backlog baseline and now contains the merged ST-001-01 production implementation. Future implementation tickets should continue to use dedicated feature branches cut from the current planning baseline.

@@ -1,6 +1,6 @@
 # ST-001-01 — Shared terrain coordinate conversion
 
-**Status:** In Progress
+**Status:** Done
 **Epic:** EP-001
 **Production target(s):** Core
 **Test suite(s):** EreliaCoreTestSuite
@@ -218,7 +218,7 @@ No unresolved question blocks this ticket.
 - Initial production implementation commit: `e67032414ece0c7c00018ee29db03bc1ad842cd4` on `feat/st-001-01-shared-terrain-coordinate-conversion`.
 - Namespace follow-up: the project-owned API does not use a redundant top-level `erelia::` namespace, per explicit project-owner direction.
 - Domain-structure follow-up: coordinate aliases live on `Voxel::Cell`, `Voxel::Volume`, and `Chunk`; `Voxel::Volume` also owns the `UnitSize` scalar alias. `Chunk` inherits `Voxel::Volume` and owns the conversion helpers/constants. No per-instance Volume unit-size storage/accessor is introduced by this ticket; that remains part of the blocked Volume implementation contract.
-- Draft validation PR: #7, targeting `backlog/ep-001-implementation-tickets`.
+- PR #7 was merged into `backlog/ep-001-implementation-tickets` on 22 September 2026 as merge commit `22a599a281ea435444bacdc1912cd3125f96a817`.
 - GitHub Actions CI run `35775258869` / run #32:
   - `clang-format`: passed;
   - Ubuntu 24.04 headless Debug: Erelia build passed; `EreliaCoreTestSuite`, `EreliaServerTestSuite`, and `EreliaServerSmoke` all passed (3/3);
@@ -228,4 +228,4 @@ No unresolved question blocks this ticket.
 - `terrain_coordinate_test.cpp` covers the exact DR-011 3D fixtures, every required scalar boundary on X/Y/Z, mixed signs, deterministic repeatability, local range, reconstruction, and representable `std::int32_t` extremes.
 - Core still depends only on the standard library plus `sparkle::core`; no Server, Client, graphics, networking, voxel-storage, generation, meshing, or rendering dependency was introduced.
 - The conversion implementation is scalar arithmetic only and performs no dynamic allocation.
-- Human completion approval/review has not yet been recorded. The ticket therefore remains **In Progress**, not Done.
+- Human completion approval is recorded by the project owner's merge of PR #7 on 22 September 2026. With implementation, automated validation, and human approval satisfied, the ticket is **Done**.
