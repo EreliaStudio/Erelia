@@ -15,7 +15,7 @@ The project owner explicitly identified the archived packed Cell prototype and g
 
 ### Cell
 
-Use a compact `Voxel::Cell` whose complete logical representation fits in one `std::uint32_t`.
+Use a compact `Voxel::Cell` whose complete logical representation fits in one `Voxel::Cell::PackedType`, with `PackedType` aliasing `std::uint32_t`.
 
 The approved packed concepts are:
 
@@ -23,12 +23,14 @@ The approved packed concepts are:
 - horizontal Orientation;
 - vertical Flip;
 - ID 0 represents empty;
-- packed representation is directly retrievable as a `std::uint32_t`;
+- packed representation is directly retrievable as `Voxel::Cell::PackedType`;
 - the type must remain exactly 32 bits and trivially copyable.
+
+`Voxel::Definition::ID` is the semantic identifier type for voxel definitions and aliases `std::uint32_t`.
 
 The exact packed layout is:
 
-- lower 29 bits: Definition ID;
+- lower 29 bits: `Voxel::Definition::ID`;
 - bits 29-30: `Voxel::Cell::Orientation`;
 - bit 31: `Voxel::Cell::FlipOrientation`.
 
@@ -43,11 +45,11 @@ The exact enum mapping is:
 
 This provides a maximum packed Definition ID of `0x1FFFFFFF` (536,870,911).
 
-A Cell stores one private `std::uint32_t` rather than C++ bitfields. The value is immutable after construction and logical fields are retrieved through read-only mask/shift getters. Default construction and the explicit static `Voxel::Cell::Empty` value both use packed `0x00000000`.
+A Cell stores one private `Voxel::Cell::PackedType` rather than C++ bitfields. The value is immutable after construction and logical fields are retrieved through read-only mask/shift getters. Default construction and the explicit static `Voxel::Cell::Empty` value both use packed `0x00000000`.
 
 Definition ID 0 alone determines semantic emptiness. Orientation and FlipOrientation remain valid when the Definition ID is 0; for example `0x60000000` is a valid semantically empty Cell and is preserved exactly.
 
-Every raw `std::uint32_t` is a valid packed Cell representation. Logical-field construction validates Definition ID capacity and enum domains and throws `spk::Exception` for values outside those domains.
+Every raw `Voxel::Cell::PackedType` is a valid packed Cell representation. Logical-field construction validates Definition ID capacity and enum domains and throws `spk::Exception` for values outside those domains.
 
 ### Volume
 
@@ -79,13 +81,14 @@ This abstraction is intended to represent groups of voxel cells generically, inc
 
 Once the remaining exact contracts are resolved:
 
-- `sizeof(Voxel::Cell) == sizeof(std::uint32_t)`;
+- `std::is_same_v<Voxel::Cell::PackedType, std::uint32_t>`;
+- `sizeof(Voxel::Cell) == sizeof(Voxel::Cell::PackedType)`;
 - `std::is_trivially_copyable_v<Voxel::Cell>`;
 - exact ID/orientation/flip packing fixtures using the approved enum mapping;
 - ID-capacity boundary and invalid logical enum rejection through `spk::Exception`;
 - default Cell and `Voxel::Cell::Empty` are packed zero;
 - ID-0 Cells with non-zero orientation/flip bits remain semantically empty and preserve their packed value;
-- every raw `std::uint32_t` packed value round-trips exactly;
+- every raw `Voxel::Cell::PackedType` value round-trips exactly;
 - Volume construction/access/bounds/storage-order tests;
 - invalid dimension/coordinate/voxel-size tests;
 - mutation/versioning tests if versioning is retained.

@@ -112,7 +112,7 @@ The Epic will require deliberate contracts for:
 | Promised capability | Implementation owner |
 | --- | --- |
 | Shared terrain coordinate/address conversion | [ST-001-01](tickets/ST-001-01-shared-terrain-coordinate-conversion.md) — Done |
-| Packed shared voxel Cell | [ST-001-02](tickets/ST-001-02-packed-voxel-cell.md) |
+| Packed shared voxel Cell | [ST-001-02](tickets/ST-001-02-packed-voxel-cell.md) — Done |
 | Shared owning Voxel::Volume | [ST-001-03](tickets/ST-001-03-owning-voxel-volume.md) |
 | Shared first terrain Definition/Shape contract | [ST-001-04](tickets/ST-001-04-first-terrain-definition-shape-contract.md) |
 | Shared Volume Message serialization | [ST-001-05](tickets/ST-001-05-voxel-volume-message-serialization.md) |
@@ -131,13 +131,13 @@ The Epic will require deliberate contracts for:
 
 The complete dependency-ordered table is maintained in [tickets/README.md](tickets/README.md).
 
-- **Done:** ST-001-01.
+- **Done:** ST-001-01, ST-001-02.
 - **In Progress:** none.
-- **Ready:** ST-001-02.
+- **Ready:** none.
 - **Blocked:** ST-001-03, ST-001-05, ST-001-06, ST-001-08, ST-001-09, ST-001-11, ST-001-12, ST-001-15, ST-001-16.
 - **Draft:** ST-001-04, ST-001-07, ST-001-10, ST-001-13, ST-001-14.
 
-The first implementation ticket, **ST-001-01 — Shared terrain coordinate conversion**, is Done after PR #7 was merged on 22 September 2026. The Cell-specific portion of OQ-035 is now resolved sufficiently for **ST-001-02 — Packed Voxel::Cell value type** to be Ready. OQ-035 remains partially resolved because its remaining Volume storage/editor/lifetime decisions still block ST-001-03.
+The first two implementation tickets are now complete: **ST-001-01 — Shared terrain coordinate conversion** was merged through PR #7 on 22 September 2026, and **ST-001-02 — Packed Voxel::Cell value type** is Done on its dedicated feature branch after CI run #59 and explicit project-owner approval on 22 September 2026. PR #8 remains open against the planning branch. OQ-035 remains partially resolved because its remaining Volume storage/editor/lifetime decisions still block ST-001-03.
 
 ## Epic-level integration scenarios
 
