@@ -69,7 +69,7 @@ The Epic remains Draft overall because most later contracts still depend on unre
 
 **ST-001-02 — Packed Voxel::Cell value type** is **In Progress** on `feat/st-001-02-packed-voxel-cell`.
 
-Its acceptance tests were added before production code. The current implementation uses one private packed `std::uint32_t`, immutable logical/raw constructors, mask/shift getters, out-of-line `Voxel::Cell::Empty`, and `spk::Exception` validation for invalid logical fields. Regression/CI evidence and required human approval are still pending, so the ticket is not Done.
+Its acceptance tests were added before production code. The current implementation uses one private packed `std::uint32_t`, immutable logical/raw constructors, mask/shift getters, out-of-line `Voxel::Cell::Empty`, and `spk::Exception` validation for invalid logical fields. PR #8 CI run #43 passed clang-format and the Linux/Windows headless Core/Server Debug + Release matrix, including CTest. Required human approval is still pending, so the ticket is not Done.
 
 **ST-001-01 — Shared terrain coordinate conversion** remains **Done**. Its implementation and acceptance tests were validated by the required headless CI matrix, and the project owner's merge of PR #7 on 22 September 2026 records the required human completion approval.
 
