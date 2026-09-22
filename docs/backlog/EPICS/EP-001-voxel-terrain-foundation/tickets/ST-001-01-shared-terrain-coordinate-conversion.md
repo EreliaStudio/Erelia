@@ -1,6 +1,6 @@
 # ST-001-01 — Shared terrain coordinate conversion
 
-**Status:** Ready
+**Status:** In Progress
 **Epic:** EP-001
 **Production target(s):** Core
 **Test suite(s):** EreliaCoreTestSuite
@@ -37,26 +37,60 @@ Core owns the reusable coordinate conversion helpers and fixed terrain-Chunk coo
 ## Owned behavior
 
 - The fixed terrain Chunk extent of 16 cells on X/Y/Z.
-- One terrain cell equals one world unit.
+- One terrain cell equals one world unit as the terrain convention; concrete per-Volume unit-size instance state is deferred to ST-001-03.
 - Global-cell -> Chunk coordinate conversion.
 - Global-cell -> local-Chunk coordinate conversion.
 - Correct mathematical floor behavior for positive and negative coordinates.
 
 ## Explicitly not owned
 
-- `Voxel::Cell` packing.
-- `Voxel::Volume` storage.
+- `Voxel::Cell` packing or runtime Cell state beyond the coordinate type shell.
+- `Voxel::Volume` dimensions, storage, validation, access, or mutation beyond the local-coordinate type shell.
 - World-position floating-point conversion.
 - Chunk generation, networking, caching, meshing, or rendering.
 
 ## Public contract
 
-The Core contract accepts a global terrain-cell `spk::Vector3Int` and exposes both:
+The Core contract uses semantic domain types backed by `spk::Vector3Int`:
 
-- the containing Chunk coordinate as `spk::Vector3Int`;
-- the local cell coordinate as `spk::Vector3Int`.
+- `Voxel::Cell::Coordinate` for a global terrain-cell coordinate;
+- `Chunk::Coordinate` for a Chunk-grid coordinate;
+- `Voxel::Volume::LocalCoordinate` for a coordinate local to a voxel Volume.
 
-Exact helper names/signatures are implementation-level naming choices unless an existing project convention requires otherwise. Observable behavior is fixed by DR-011.
+ST-001-01 introduces `Voxel::Cell` and `Voxel::Volume` only as structural shells for these nested coordinate aliases. Their packed Cell state and owning Volume behavior remain explicitly deferred to ST-001-02 and ST-001-03.
+
+The coordinate behavior is owned by the `Chunk` structure:
+
+```cpp
+namespace Voxel
+{
+    struct Cell
+    {
+        using Coordinate = spk::Vector3Int;
+    };
+
+    struct Volume
+    {
+        using LocalCoordinate = spk::Vector3Int;
+        using UnitSize = float;
+    };
+}
+
+struct Chunk : public Voxel::Volume
+{
+    using Coordinate = spk::Vector3Int;
+
+    inline static constexpr std::int32_t Extent = 16;
+
+    [[nodiscard]] static Coordinate toCoordinate(
+        const Voxel::Cell::Coordinate &globalCell) noexcept;
+
+    [[nodiscard]] static Voxel::Volume::LocalCoordinate toLocalCoordinate(
+        const Voxel::Cell::Coordinate &globalCell) noexcept;
+};
+```
+
+The semantic type organization is an explicit project-owner direction. Observable conversion behavior remains fixed by DR-011.
 
 ## Invariants
 
@@ -93,7 +127,7 @@ Not applicable directly. The shared semantics are later consumed by network cont
 ## Implementation constraints
 
 - Use mathematical floor division/modulo semantics from DR-011.
-- Do not restore the archived `Chunk::Coordinate` wrapper merely because it existed historically.
+- `Chunk::Coordinate` is a semantic alias of `spk::Vector3Int`; do not restore the archived wrapper implementation.
 - Keep the implementation headless-safe in Core.
 
 ## Exact test fixtures
@@ -181,6 +215,17 @@ No unresolved question blocks this ticket.
 
 ## Completion evidence
 
-- New Core acceptance tests pass in `EreliaCoreTestSuite`.
-- Core/Server headless CI remains green.
-- No Server/Client/graphics dependency is introduced into Core.
+- Initial production implementation commit: `e67032414ece0c7c00018ee29db03bc1ad842cd4` on `feat/st-001-01-shared-terrain-coordinate-conversion`.
+- Namespace follow-up: the project-owned API does not use a redundant top-level `erelia::` namespace, per explicit project-owner direction.
+- Domain-structure follow-up: coordinate aliases live on `Voxel::Cell`, `Voxel::Volume`, and `Chunk`; `Voxel::Volume` also owns the `UnitSize` scalar alias. `Chunk` inherits `Voxel::Volume` and owns the conversion helpers/constants. No per-instance Volume unit-size storage/accessor is introduced by this ticket; that remains part of the blocked Volume implementation contract.
+- Draft validation PR: #7, targeting `backlog/ep-001-implementation-tickets`.
+- GitHub Actions CI run `35775258869` / run #32:
+  - `clang-format`: passed;
+  - Ubuntu 24.04 headless Debug: Erelia build passed; `EreliaCoreTestSuite`, `EreliaServerTestSuite`, and `EreliaServerSmoke` all passed (3/3);
+  - Ubuntu 24.04 headless Release: Erelia build passed; the same 3/3 tests passed;
+  - Windows Server 2022 headless Debug: Erelia build passed; the same 3/3 tests passed;
+  - Windows Server 2022 headless Release: Erelia build passed; the same 3/3 tests passed.
+- `terrain_coordinate_test.cpp` covers the exact DR-011 3D fixtures, every required scalar boundary on X/Y/Z, mixed signs, deterministic repeatability, local range, reconstruction, and representable `std::int32_t` extremes.
+- Core still depends only on the standard library plus `sparkle::core`; no Server, Client, graphics, networking, voxel-storage, generation, meshing, or rendering dependency was introduced.
+- The conversion implementation is scalar arithmetic only and performs no dynamic allocation.
+- Human completion approval/review has not yet been recorded. The ticket therefore remains **In Progress**, not Done.

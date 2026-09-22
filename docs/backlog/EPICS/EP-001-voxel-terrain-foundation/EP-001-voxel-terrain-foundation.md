@@ -111,7 +111,7 @@ The Epic will require deliberate contracts for:
 
 | Promised capability | Implementation owner |
 | --- | --- |
-| Shared terrain coordinate/address conversion | [ST-001-01](tickets/ST-001-01-shared-terrain-coordinate-conversion.md) |
+| Shared terrain coordinate/address conversion | [ST-001-01](tickets/ST-001-01-shared-terrain-coordinate-conversion.md) — implemented; human completion approval pending |
 | Packed shared voxel Cell | [ST-001-02](tickets/ST-001-02-packed-voxel-cell.md) |
 | Shared owning Voxel::Volume | [ST-001-03](tickets/ST-001-03-owning-voxel-volume.md) |
 | Shared first terrain Definition/Shape contract | [ST-001-04](tickets/ST-001-04-first-terrain-definition-shape-contract.md) |
@@ -131,11 +131,12 @@ The Epic will require deliberate contracts for:
 
 The complete dependency-ordered table is maintained in [tickets/README.md](tickets/README.md).
 
-- **Ready:** ST-001-01.
+- **In Progress:** ST-001-01 (implementation and required headless CI evidence complete; human completion approval pending).
+- **Ready:** none.
 - **Blocked:** ST-001-02, ST-001-03, ST-001-05, ST-001-06, ST-001-08, ST-001-09, ST-001-11, ST-001-12, ST-001-15, ST-001-16.
 - **Draft:** ST-001-04, ST-001-07, ST-001-10, ST-001-13, ST-001-14.
 
-The first implementation ticket is **ST-001-01 — Shared terrain coordinate conversion**. No Ready ticket depends on a later ticket.
+The first implementation ticket, **ST-001-01 — Shared terrain coordinate conversion**, is implemented and validated by the required headless CI matrix but remains In Progress until human completion approval is recorded. No follow-on ticket is currently Ready; OQ-035 is the immediate blocker for ST-001-02 / ST-001-03.
 
 ## Epic-level integration scenarios
 

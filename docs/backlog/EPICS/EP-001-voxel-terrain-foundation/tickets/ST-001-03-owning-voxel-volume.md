@@ -36,11 +36,11 @@ Server authority code, Client presentation code, graphics-only dependencies, ter
 Known approved responsibilities:
 
 - runtime dimensions;
-- uniform voxel size;
+- uniform per-instance unit size of type `Voxel::Volume::UnitSize`;
 - contiguous owning `std::vector<Voxel::Cell>` storage;
 - checked coordinate lookup;
 - read-only contiguous cell access;
-- local bounds derived from dimensions and voxel size;
+- local bounds derived from dimensions and unit size;
 - controlled mutation rather than unrestricted writable storage.
 
 ## Explicitly not owned
@@ -54,14 +54,14 @@ Known approved responsibilities:
 
 ## Public contract
 
-Logical state is `dimensions + voxelSize + contiguous Cells`. DR-017 later requires friend Message operators, but their encoding belongs to ST-001-05.
+Logical state is `dimensions + unitSize + contiguous Cells`. `Voxel::Volume::UnitSize` is the scalar type for the per-instance unit size. The Volume exposes that stored value through a read-only accessor; the exact accessor name remains an implementation-level choice until this ticket becomes Ready. DR-017 later requires friend Message operators, but their encoding belongs to ST-001-05.
 
 ## Invariants
 
 - Cell count exactly matches the approved dimensions product.
 - Storage is contiguous and owning.
 - Checked access never returns an unrelated cell for an invalid coordinate.
-- Voxel size is uniform for the complete Volume.
+- Unit size is uniform for the complete Volume.
 
 ## State transitions
 
@@ -69,7 +69,7 @@ Construction establishes a valid Volume. Controlled edits may change cells accor
 
 ## Failure behavior
 
-**Blocked by OQ-035:** invalid dimensions, invalid voxel size, coordinate failure behavior, storage order, mutation/editor/versioning behavior, and canonical empty initialization are not fully fixed.
+**Blocked by OQ-035:** invalid dimensions, invalid unit size, coordinate failure behavior, storage order, mutation/editor/versioning behavior, and canonical empty initialization are not fully fixed.
 
 ## Determinism / ordering
 
@@ -95,7 +95,7 @@ Not applicable beyond shared representation.
 
 ## Exact test fixtures
 
-Blocked until OQ-035 fixes storage order and validation. At minimum, the final Ready version must include small asymmetric dimensions that expose index order, checked in/out-of-bounds coordinates, valid/invalid voxel sizes, empty/default Cell initialization, and local bounds.
+Blocked until OQ-035 fixes storage order and validation. At minimum, the final Ready version must include small asymmetric dimensions that expose index order, checked in/out-of-bounds coordinates, valid/invalid unit sizes, empty/default Cell initialization, and local bounds.
 
 ## Acceptance tests
 
