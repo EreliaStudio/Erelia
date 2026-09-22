@@ -241,9 +241,9 @@ Confirm whether:
 
 ### Q-037 — What networking transport and serialization/framing should EP-001 use?
 
-**Status:** Transport resolved — use Sparkle Version-0.1.3 networking (`spk::Client`, `spk::Server` / `spk::NodeRouter`, `spk::Message`). Erelia payload byte layout remains to be fixed. See DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md.
+**Status:** Mostly resolved — use Sparkle Version-0.1.3 networking and direct shared `spk::Message << Voxel::Volume` / read-equivalent serialization. The serializer writes Volume logical state, not the C++ object representation. See DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md and DR-017-VOXEL-VOLUME-MESSAGE-SERIALIZATION.md.
 
-The remaining interoperability question is the Erelia-owned payload encoding for counts, `spk::Vector3Int` coordinates, packed cells, and Volume metadata. Sparkle's generic trivially-copyable message helpers copy object representation directly, so using those helpers blindly would make host object representation part of Erelia's wire contract.
+One portability detail remains open: whether Erelia requires a fixed endian/platform-independent scalar wire representation, or whether Sparkle/native representation compatibility across the project's supported Client/Server platforms is sufficient for the first milestone.
 
 ### Q-038 — What are the first Chunk request/streaming semantics?
 
@@ -276,13 +276,10 @@ The chosen generator and exact fixture values must be explicit before its implem
 
 ### Q-040 — Should EP-001 use NodeRouter from the first Server implementation?
 
+**Status:** Resolved — router-first from EP-001, with one terrain `LocalNode`; see DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md and ARCHITECTURE/ARCH-004-SERVER-NODE-ROUTING.md.
+
 Long-term direction is resolved: the dedicated Server is planned as a router to logical nodes responsible for coherent subsections/families of the game, using Sparkle networking.
 
-Two viable EP-001 starts remain:
-
-- **Router-first:** `spk::NodeRouter` owns the public Server endpoint immediately and routes Chunk request message types to one in-process terrain `spk::LocalNode`. Later families add more LocalNodes, and selected nodes can become `RemoteNode` endpoints.
-- **Bare-Server-first:** EP-001 handles Chunk messages directly from `spk::Server`, then introduces NodeRouter when the second Server subsystem appears.
-
-Recommendation: router-first. It adds one routing layer but avoids a later ownership/message-dispatch migration and directly exercises the architecture intended for the final product.
+EP-001 uses `spk::NodeRouter` immediately and routes Chunk request message types to one in-process terrain `spk::LocalNode`. Later capability families may add more LocalNodes, and selected nodes may become `RemoteNode` endpoints when justified.
 
 Important limitation: Sparkle NodeRouter currently routes by `Message::Type`, not by World/Region/instance key. Capability-family routing fits directly; future sharding within one message family would require dispatch inside the owning node or a later routing extension.
