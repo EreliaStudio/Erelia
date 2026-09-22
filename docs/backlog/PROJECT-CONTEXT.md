@@ -234,3 +234,32 @@ As of 22 September 2026:
 - Core may depend directly on Sparkle Core where the dependency is suitable for both Client and headless Server use.
 - The first playable uses a real dedicated Server process and separate Client process; no in-process authoritative-host stage is planned.
 - See DECISIONS/DR-001 through DR-003 and ARCHITECTURE/ARCH-001.
+
+
+## 19. Current near-term implementation focus — EP-001
+
+The first implementation Epic is EP-001 — Voxel Terrain Delivery and Visual Validation.
+
+Its purpose is to prove the first foundational end-to-end path before production movement/gameplay systems:
+
+- Core defines shared terrain Chunk/voxel contracts.
+- Server deterministically constructs simple 16×16×16 terrain Chunks.
+- Client connects to the real dedicated Server process.
+- Client requests nearby Chunks through the network boundary.
+- Server returns canonical Chunk data.
+- Client meshes/renders received terrain.
+- A temporary free-flight 3D inspection controller provides keyboard/camera movement for human visual validation.
+
+Production Hero locomotion, movement prediction implementation, collision, followers, combat, resource nodes, and production world generation are explicitly outside EP-001.
+
+Movement prediction remains an approved future requirement (DR-005), but its exact reconciliation mechanics are deferred until the exploration-movement Epic.
+
+Additional approved decisions:
+
+- Client sends intent; Server validates/decides/mutates and may reject stale/conflicting requests (DR-004).
+- Encounter Time, discrete World Time, and Real Time are separate domains (DR-006).
+- Semantic determinism is required rather than universal cross-platform floating-point bit identity (DR-007).
+- Server serializes conflicting authoritative mutations (DR-008).
+- Epics directly contain ST-XXX-YY tickets; no mandatory Story level; near-term planning is preferred (DR-010).
+
+Immediate EP-001 blockers are Q-021 and Q-035 through Q-039, plus visual-validation policy Q-029 through Q-031.
