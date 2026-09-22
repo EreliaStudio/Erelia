@@ -8,7 +8,7 @@ The tickets are ordered by dependency, not by implementation status.
 
 | Ticket | Status | Depends on |
 | --- | --- | --- |
-| [ST-001-01 — Shared terrain coordinate conversion](ST-001-01-shared-terrain-coordinate-conversion.md) | **Ready** | — |
+| [ST-001-01 — Shared terrain coordinate conversion](ST-001-01-shared-terrain-coordinate-conversion.md) | **In Progress** | — |
 | [ST-001-02 — Packed Voxel::Cell value type](ST-001-02-packed-voxel-cell.md) | **Blocked** | OQ-035 |
 | [ST-001-03 — Owning Voxel::Volume](ST-001-03-owning-voxel-volume.md) | **Blocked** | ST-001-02; OQ-035 |
 | [ST-001-04 — First terrain Definition and Shape contract](ST-001-04-first-terrain-definition-shape-contract.md) | **Draft** | ST-001-02; OQ-039 + Definition/Shape specification gap |
@@ -25,11 +25,11 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-15 — Adjacent-Chunk cross-process integration](ST-001-15-adjacent-chunk-cross-process-integration.md) | **Blocked** | ST-001-06, ST-001-09 through ST-001-13; OQ-036, OQ-038, OQ-039 |
 | [ST-001-16 — Visual and performance validation evidence](ST-001-16-visual-performance-validation.md) | **Blocked** | ST-001-14, ST-001-15; OQ-029, OQ-030, OQ-031, OQ-039 |
 
-## First Ready implementation ticket
+## Current implementation state
 
-**ST-001-01 — Shared terrain coordinate conversion** is the first dependency-satisfied Ready implementation ticket.
+**ST-001-01 — Shared terrain coordinate conversion** has production implementation and required headless CI evidence on `feat/st-001-01-shared-terrain-coordinate-conversion` / draft PR #7. It remains **In Progress** until human completion approval is recorded.
 
-It is intentionally small and independent of the unresolved Cell/Volume, networking, generator, meshing, rendering, and visual-policy choices.
+There is currently **no Ready follow-on ticket**. OQ-035 is the immediate blocker for ST-001-02 / ST-001-03; later tickets retain the blockers listed below.
 
 ## Remaining blockers
 
@@ -50,4 +50,4 @@ Additional Draft-ticket specification gaps exposed by decomposition:
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
-No production source file is changed by this planning work.
+The planning branch remains the backlog baseline. Production implementation for ST-001-01 is isolated on its dedicated implementation branch.

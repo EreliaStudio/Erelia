@@ -1,6 +1,6 @@
 # ST-001-01 — Shared terrain coordinate conversion
 
-**Status:** Ready
+**Status:** In Progress
 **Epic:** EP-001
 **Production target(s):** Core
 **Test suite(s):** EreliaCoreTestSuite
@@ -56,7 +56,17 @@ The Core contract accepts a global terrain-cell `spk::Vector3Int` and exposes bo
 - the containing Chunk coordinate as `spk::Vector3Int`;
 - the local cell coordinate as `spk::Vector3Int`.
 
-Exact helper names/signatures are implementation-level naming choices unless an existing project convention requires otherwise. Observable behavior is fixed by DR-011.
+The implemented public API lives in `core/include/erelia/core/terrain/coordinate.hpp` under `erelia::core::terrain`:
+
+```cpp
+inline constexpr std::int32_t chunkExtent = 16;
+inline constexpr float cellWorldExtent = 1.0F;
+
+[[nodiscard]] spk::Vector3Int toChunkCoordinate(const spk::Vector3Int &globalCell) noexcept;
+[[nodiscard]] spk::Vector3Int toLocalCoordinate(const spk::Vector3Int &globalCell) noexcept;
+```
+
+These names are implementation-level choices; observable behavior remains fixed by DR-011.
 
 ## Invariants
 
@@ -181,6 +191,15 @@ No unresolved question blocks this ticket.
 
 ## Completion evidence
 
-- New Core acceptance tests pass in `EreliaCoreTestSuite`.
-- Core/Server headless CI remains green.
-- No Server/Client/graphics dependency is introduced into Core.
+- Production implementation commit: `e67032414ece0c7c00018ee29db03bc1ad842cd4` on `feat/st-001-01-shared-terrain-coordinate-conversion`.
+- Draft validation PR: #7, targeting `backlog/ep-001-implementation-tickets`.
+- GitHub Actions CI run `35775258869` / run #32:
+  - `clang-format`: passed;
+  - Ubuntu 24.04 headless Debug: Erelia build passed; `EreliaCoreTestSuite`, `EreliaServerTestSuite`, and `EreliaServerSmoke` all passed (3/3);
+  - Ubuntu 24.04 headless Release: Erelia build passed; the same 3/3 tests passed;
+  - Windows Server 2022 headless Debug: Erelia build passed; the same 3/3 tests passed;
+  - Windows Server 2022 headless Release: Erelia build passed; the same 3/3 tests passed.
+- `terrain_coordinate_test.cpp` covers the exact DR-011 3D fixtures, every required scalar boundary on X/Y/Z, mixed signs, deterministic repeatability, local range, reconstruction, and representable `std::int32_t` extremes.
+- Core still depends only on the standard library plus `sparkle::core`; no Server, Client, graphics, networking, voxel-storage, generation, meshing, or rendering dependency was introduced.
+- The conversion implementation is scalar arithmetic only and performs no dynamic allocation.
+- Human completion approval/review has not yet been recorded. The ticket therefore remains **In Progress**, not Done.

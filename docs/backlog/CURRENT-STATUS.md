@@ -2,13 +2,15 @@
 
 **Updated:** 22 September 2026
 **Planning branch:** backlog/ep-001-implementation-tickets
-**Active implementation branch observed:** master
+**Active implementation branch observed:** feat/st-001-01-shared-terrain-coordinate-conversion
 
 ## Branch state
 
 Erelia currently uses master as its default branch.
 
-The active ticket-materialization work is isolated on `backlog/ep-001-implementation-tickets`, cut from master. This branch contains backlog/documentation changes only; no production source code is part of the planning task.
+The ticket-materialization baseline remains isolated on `backlog/ep-001-implementation-tickets`, cut from master.
+
+ST-001-01 implementation is isolated on `feat/st-001-01-shared-terrain-coordinate-conversion`, cut from that planning branch so it includes the exact ticket decomposition/backlog state. Draft PR #7 targets the planning branch for CI/review. The planning branch itself remains documentation-only.
 
 No main branch is assumed.
 
@@ -32,7 +34,7 @@ The project was restarted on 22 September 2026. The active codebase is a deliber
 - current GDD and its 34 illustration assets under docs/gdd/;
 - historical source and historical backlog isolated under archive/.
 
-The current status implementations/tests are smoke scaffolding only. They verify project wiring, linking, and test discovery rather than established gameplay architecture.
+The original status functions remain smoke scaffolding. Core now additionally contains the first production EP-001 contract: shared terrain coordinate conversion with acceptance coverage in `EreliaCoreTestSuite`.
 
 ## What was just implemented
 
@@ -41,6 +43,7 @@ After restart commit ba32a17771b123fd3ebda2009daa3cca6fb5f8d0:
 1. a08c8d0d3e8cef7a26db519a4475c10561e5e33d — base folder architecture for the new Erelia project.
 2. 3a37ff2cd3b69024a8098bc9dbf6fc4d443f9f6d — tests moved under their owning layers, with CMake/CI/VS Code paths updated.
 3. fa27429734a406fc4cfaea43207e0ac7f5e68b88 — current GDD and its illustration assets added to the active repository.
+4. e67032414ece0c7c00018ee29db03bc1ad842cd4 — ST-001-01 Core terrain coordinate conversion and acceptance tests on the dedicated implementation branch.
 
 ## Backlog work completed on this branch
 
@@ -52,19 +55,26 @@ After restart commit ba32a17771b123fd3ebda2009daa3cca6fb5f8d0:
 - Kept OQ-035 through OQ-039 and OQ-029 through OQ-031 as blockers only for the tickets they materially affect.
 - Recorded four additional Draft-ticket specification gaps rather than inventing contracts: first Definition/Shape geometry/resources; Server/Client endpoint lifecycle/configuration; deterministic render fixture/material/lifecycle; full temporary inspection input/numeric camera semantics.
 - Updated the EP-001 capability coverage and ticket index.
-- Did not modify any production source file or OQ status.
+- The planning branch itself remains documentation-only and no OQ status was changed.
+- ST-001-01 production work is isolated on its dedicated implementation branch rather than being mixed into the planning branch.
 
-## Current planning phase
+## Current implementation phase
 
-EP-001 ticket decomposition is materialized.
+EP-001 ticket decomposition is materialized and implementation has begun.
 
-The Epic remains Draft overall because most later contracts still depend on unresolved questions/specification gaps, but implementation can begin with the independent coordinate foundation.
+The Epic remains Draft overall because most later contracts still depend on unresolved questions/specification gaps.
 
-### First Ready implementation ticket
+### Active implementation ticket
 
-**ST-001-01 — Shared terrain coordinate conversion**
+**ST-001-01 — Shared terrain coordinate conversion** is **In Progress**.
 
-It has no ST prerequisite and is fully constrained by DR-011: 16×16×16 Chunks, one world unit per terrain cell, `spk::Vector3Int` coordinates, mathematical floor division/modulo, exact positive/negative fixtures, and reconstruction/local-range invariants.
+Its production implementation and acceptance tests exist on the dedicated branch. GitHub Actions run `35775258869` passed formatting plus the complete required headless matrix on Ubuntu 24.04 and Windows Server 2022 in Debug and Release. In each headless job, `EreliaCoreTestSuite`, `EreliaServerTestSuite`, and `EreliaServerSmoke` passed.
+
+Human completion approval has not yet been recorded, so the ticket is not marked Done.
+
+### Next Ready ticket
+
+None currently. OQ-035 is the immediate decision blocker before ST-001-02 / ST-001-03 can be promoted according to the Definition of Ready.
 
 ### Existing OQ blockers
 
@@ -88,7 +98,7 @@ See EP-001 `tickets/README.md` for the full status/dependency table.
 
 ## Next
 
-1. Implement **ST-001-01 — Shared terrain coordinate conversion**.
+1. Human-review/approve **ST-001-01 — Shared terrain coordinate conversion**; mark it Done only after the required approval is actually recorded.
 2. Resolve OQ-035 before promoting ST-001-02 / ST-001-03.
 3. Resolve the minimal Definition/Shape specification gap and OQ-039 before generator/mesher fixtures become Ready.
 4. Resolve OQ-037 / OQ-038 before Chunk codec, Server handler, and Client cache/request coordination become Ready.
@@ -107,6 +117,6 @@ EP-001 is constrained by DR-001 through DR-004, DR-007, DR-009 through DR-017 an
 
 ## First Epic
 
-EP-001 — Voxel Terrain Delivery and Visual Validation remains Draft, with 16 materialized implementation tickets and one currently Ready ticket (ST-001-01).
+EP-001 — Voxel Terrain Delivery and Visual Validation remains Draft, with 16 materialized implementation tickets, ST-001-01 currently In Progress, and no Ready follow-on ticket.
 
 It intentionally excludes production Hero movement, collision, followers, combat, resources, and production world generation. The temporary free-flight controller exists only to inspect rendered terrain.
