@@ -58,21 +58,21 @@ After restart commit ba32a17771b123fd3ebda2009daa3cca6fb5f8d0:
 
 Initial Epic decomposition — EP-001 voxel terrain foundation.
 
-Q-001 through Q-008, Q-019, Q-020, Q-028, Q-032, and Q-034 have approved direction. Q-009 and Q-017/Q-018 have approved architectural direction with detailed mechanics intentionally deferred.
+OQ-001 through OQ-008, OQ-019, OQ-020, OQ-021, OQ-028, OQ-032, OQ-034, and OQ-040 are resolved. OQ-009 and OQ-017/OQ-018 have approved architectural direction with detailed mechanics intentionally deferred. OQ-035 through OQ-039 are partially resolved and contain the remaining EP-001 implementation details.
 
 EP-001 now defines the first implementation milestone: deterministic basic Server terrain Chunks -> real network delivery -> Client meshing/rendering -> temporary free-flight visual inspection.
 
-The immediate blockers are now narrow and technical: terrain coordinates/data representation, Client meshing neighbor rules, first transport/serialization choice, Chunk request/streaming semantics, exact deterministic terrain fixture, and visual/performance validation policy.
+The remaining EP-001 decisions are narrow and technical: final Cell/Volume details, Client meshing neighbor rules, scalar wire portability, Chunk request/cache semantics, exact deterministic terrain fixtures, and visual/performance validation policy. These do not necessarily block every early foundational ticket; each ticket must apply the Definition of Ready independently.
 
 See OPEN_QUESTIONS/, DECISIONS/, and ARCHITECTURE/.
 
 ## Next
 
-1. Resolve the remaining EP-001 voxel/network questions tracked as OQ-035 through OQ-039.
-2. Resolve visual/performance validation policy OQ-029 through OQ-031 before final visual acceptance tickets become Ready.
-3. Materialize the first ST-001 implementation tickets as each contract becomes sufficiently explicit.
-4. Keep unrelated future architecture questions deferred until their owning Epic approaches.
-5. Create detailed tickets only when they satisfy the Definition of Ready.
+1. Decompose EP-001 into small ST-001 implementation tickets using the approved contracts and the small-ticket rules in IMPLEMENTATION-CONTEXT.md.
+2. Mark only independently specified tickets Ready; keep tickets affected by OQ-035 through OQ-039 Draft/Blocked until their exact contract is resolved.
+3. Resolve visual/performance validation policy OQ-029 through OQ-031 before the corresponding visual acceptance tickets become Ready.
+4. Make the first dependency-satisfied Ready ticket explicit in this file once tickets are materialized.
+5. Keep unrelated future architecture questions deferred until their owning Epic approaches.
 
 ## Explicit non-goal
 
