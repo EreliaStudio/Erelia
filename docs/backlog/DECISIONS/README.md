@@ -36,3 +36,9 @@ Resolved greenfield decisions are indexed below. Remaining unresolved questions 
 | DR-008 | [Server serializes conflicting authoritative mutations](DR-008-AUTHORITATIVE-OPERATION-ORDERING.md) | Resolved | Concurrency, shared state | — |
 | DR-009 | [First milestone is end-to-end voxel terrain pipeline](DR-009-FIRST-VOXEL-TERRAIN-MILESTONE.md) | Resolved | Initial roadmap, voxel terrain | — |
 | DR-010 | [Small Epics with direct implementation tickets](DR-010-BACKLOG-GRANULARITY.md) | Resolved | Backlog workflow | — |
+| DR-011 | [Voxel and Chunk coordinate conventions](DR-011-VOXEL-COORDINATES.md) | Resolved | Voxel/world coordinates | — |
+| DR-012 | [Packed Voxel::Cell and generic Voxel::Volume direction](DR-012-PACKED-CELL-AND-VOLUME-DIRECTION.md) | Resolved | Core voxel representation | — |
+| DR-013 | [Terrain meshes are Client-owned](DR-013-CLIENT-TERRAIN-MESHING.md) | Resolved | Terrain meshing/rendering | — |
+| DR-014 | [Batched Client-driven Chunk request protocol](DR-014-BATCHED-CHUNK-PROTOCOL-DIRECTION.md) | Resolved | Chunk networking semantics | — |
+| DR-015 | [First deterministic terrain validation scene](DR-015-FIRST-TERRAIN-VALIDATION-SCENE.md) | Resolved | Terrain validation fixture | — |
+| DR-016 | [Use Sparkle networking and plan Server as a node router](DR-016-SPARKLE-NETWORK-NODE-ROUTER.md) | Resolved | Networking, Server topology | Q-040 |
