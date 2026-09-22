@@ -45,7 +45,7 @@ Voxel::Volume::VoxelSize
 Chunk::Coordinate
 ```
 
-`Voxel::Cell::Coordinate`, `Voxel::Volume::LocalCoordinate`, and `Chunk::Coordinate` are aliases of `spk::Vector3Int`. `Voxel::Volume::VoxelSize` is the scalar voxel-size type and is currently `float`. Terrain `Chunk` inherits `Voxel::Volume`, exposes its fixed one-world-unit voxel size as `Chunk::CellSize`, and owns the Chunk coordinate conversion behavior/constants. A Volume validates its own local-coordinate bounds once the Volume contract is implemented; do not encode those runtime bounds by narrowing `LocalCoordinate` to `std::uint8_t`.
+`Voxel::Cell::Coordinate`, `Voxel::Volume::LocalCoordinate`, and `Chunk::Coordinate` are aliases of `spk::Vector3Int`. `Voxel::Volume::VoxelSize` is the scalar voxel-size type and is currently `float`. Terrain `Chunk` inherits `Voxel::Volume`, exposes its fixed one-world-unit voxel size as `Chunk::UnitSize`, and owns the Chunk coordinate conversion behavior/constants. A Volume validates its own local-coordinate bounds once the Volume contract is implemented; do not encode those runtime bounds by narrowing `LocalCoordinate` to `std::uint8_t`.
 
 Use established project terminology consistently: Core, Server, Client, Chunk, World, Hero, Encounter, Definition, Shape, `Voxel::Cell`, and `Voxel::Volume`.
 

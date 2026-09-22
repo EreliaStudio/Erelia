@@ -89,7 +89,7 @@ namespace
 TEST(TerrainCoordinate, ExposesFixedTerrainScale)
 {
 	EXPECT_EQ(Chunk::Extent, 16);
-	EXPECT_FLOAT_EQ(Chunk::CellSize, 1.0F);
+	EXPECT_FLOAT_EQ(Chunk::UnitSize, 1.0F);
 }
 
 TEST(TerrainCoordinate, ConvertsExactThreeDimensionalFixtures)
