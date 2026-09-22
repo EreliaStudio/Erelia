@@ -23,7 +23,7 @@ It was first read from EreliaStudio/Playground/main while the restarted Erelia r
 
 The GDD is treated as gameplay and visual intent, not as a complete software architecture specification.
 
-If the GDD changes, update this baseline and review PROJECT-CONTEXT.md, QUESTIONS.md, traceability, decisions, epics, and affected tickets before treating the backlog as current.
+If the GDD changes, update this baseline and review PROJECT-CONTEXT.md, OPEN_QUESTIONS/, traceability, decisions, epics, and affected tickets before treating the backlog as current.
 
 ## Repository source
 
