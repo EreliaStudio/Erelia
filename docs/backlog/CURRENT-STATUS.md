@@ -1,9 +1,9 @@
 # Current Status
 
 **Updated:** 22 September 2026
-**Planning branch:** backlog/greenfield-planning
+**Planning branch:** backlog/decision-gates-and-initial-epics
 **Active implementation branch observed:** master
-**Observed master HEAD:** fa27429734a406fc4cfaea43207e0ac7f5e68b88
+**Observed master HEAD at branch creation:** 65a5842c22bf12bd02b9046027758431e504f536
 
 ## Branch state
 
@@ -56,22 +56,30 @@ After restart commit ba32a17771b123fd3ebda2009daa3cca6fb5f8d0:
 
 ## Current planning phase
 
-Architecture discovery.
+Architecture decision gates and initial Epic decomposition.
 
-The GDD is detailed enough to identify gameplay capabilities, but major implementation contracts remain unresolved: ownership, identity, persistence, semantic client/server commands, time and determinism, module boundaries, concurrency, serialization, content schemas, and visual-testing infrastructure.
+Q-001 through Q-006 are resolved. The first approved architecture establishes deliberate Core / Server / Client boundaries, Server-only authority for shared/persistent outcomes, direct headless-safe Sparkle Core use from Core, optional non-authoritative Client prediction, and a real dedicated Server process from the first playable.
 
-See QUESTIONS.md.
+Major contracts still unresolved include semantic Client/Server commands, prediction/reconciliation details, identity, persistence, time/determinism, concurrency, serialization, content schemas, and visual-testing infrastructure.
+
+See QUESTIONS.md, DECISIONS/, and ARCHITECTURE/.
 
 ## Next
 
-1. Resolve the highest-impact architecture questions with the user.
-2. Record real choices in DECISIONS/.
-3. Create architecture documents only for approved durable cross-cutting contracts.
-4. Propose high-level system boundaries and roadmap.
-5. Challenge/correct the decomposition with the user.
-6. Create the first Epic only when boundaries are sufficiently understood.
-7. Create detailed tickets only when they satisfy the Definition of Ready.
+1. Resolve the next protocol/simulation decision batch with the user.
+2. Record real choices in DECISIONS/ and durable rules in ARCHITECTURE/.
+3. Materialize the first high-level Epics as soon as their ownership and contracts are sufficiently stable.
+4. Resolve remaining questions just-in-time around the Epic they block.
+5. Create detailed tickets only when they satisfy the Definition of Ready.
 
 ## Explicit non-goal
 
 Do not fill this branch with a full game backlog yet. Far-future work should remain at capability/roadmap level until its architecture is understood.
+
+
+## Decisions resolved on the current branch
+
+- DR-001 — Long-term Core / Server / Client boundaries.
+- DR-002 — Core may depend on Sparkle Core.
+- DR-003 — Dedicated authoritative Server from the first playable.
+- ARCH-001 — Product boundaries and authority model.
