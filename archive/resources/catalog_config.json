@@ -1,0 +1,8 @@
+{
+	"atlas": {
+		"texture": "resources/textures/meshSpriteSheet.png",
+		"grid": [4, 4]
+	},
+	"shapes": "resources/voxels/shapes.json",
+	"definitions": "resources/voxels/definitions.json"
+}
