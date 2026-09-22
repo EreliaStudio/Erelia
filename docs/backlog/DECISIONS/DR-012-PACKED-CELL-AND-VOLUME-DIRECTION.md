@@ -53,19 +53,31 @@ Every raw `Voxel::Cell::PackedType` is a valid packed Cell representation. Logic
 
 ### Volume
 
-Introduce a reusable owning voxel container concept named **`Voxel::Volume`**, rather than the prefixed `VoxelVolume` naming style.
+Introduce a reusable owning voxel container named **`Voxel::Volume`**.
 
-Its intended responsibilities are:
+The approved Volume contract is:
 
-- runtime dimensions;
-- uniform voxel size;
-- contiguous owning storage of `Voxel::Cell`;
-- checked coordinate lookup;
-- read-only contiguous cell access;
-- local bounds derived from dimensions and voxel size;
-- controlled mutation rather than unrestricted external writable storage.
+- derive from `spk::VersionedTrait`;
+- `LocalCoordinate` is `spk::Vector3Int`;
+- dimensions are `spk::Vector3UInt`;
+- `UnitSize` is `float`;
+- default construction creates the sole valid empty Volume: zero dimensions, zero unit size, and zero Cells;
+- explicit construction requires all dimensions > 0 and a finite unit size > 0;
+- the Cell count must be representable by `std::size_t`; overflow is rejected with `spk::Exception`, while representable allocation failure may propagate the standard allocation exception;
+- own contiguous `std::vector<Voxel::Cell>` storage initialized with default/empty Cells;
+- use Y-fastest, then X, then Z storage order:
+  `index = y + sizeY * (x + sizeX * z)`;
+- checked access returns a `Voxel::Cell` copy and throws `spk::Exception` outside the Volume;
+- expose read-only contiguous access as `std::span<const Voxel::Cell>`;
+- mutate only through a nested Editor that batches effective writes and publishes one `VersionedTrait` invalidation when committed;
+- no-op Editor batches publish no invalidation; Editor destruction commits; explicit commit is idempotent; use after commit throws `spk::Exception`;
+- copy construction produces an independent logical copy with a fresh version state and no copied subscriptions;
+- copy assignment preserves destination subscriptions and invalidates the destination once after successful replacement;
+- move construction/assignment reset the source to the valid default-empty state and invalidate/notify the source once; the moved-to object has a fresh version state on move construction, while move assignment preserves destination subscriptions and invalidates the destination once;
+- ordinary Editor writes do not invalidate a previously returned Cell span because the storage size is fixed after construction; destruction and state-replacing assignment invalidate such views, and pre-move source views are invalid after move construction;
+- no local-bounds API is part of this first Volume contract.
 
-This abstraction is intended to represent groups of voxel cells generically, including fixed-size terrain Chunk payloads and later runtime-sized voxel models where applicable.
+The abstraction represents groups of voxel cells generically, including fixed-size terrain Chunk payloads and later runtime-sized voxel models where applicable.
 
 ## Consequences
 
@@ -74,7 +86,7 @@ This abstraction is intended to represent groups of voxel cells generically, inc
 - Server and Client share the same Cell semantics in Core.
 - `Voxel::Volume` is not inherently a world Chunk: world position/Chunk coordinate remains separate semantic information.
 - EP-001 network responses may therefore naturally contain `{chunkCoordinate, volumeData}`.
-- The exact Volume storage order and editor/versioning behavior, plus wire byte-order, remain explicit follow-up contracts and are not inferred from the archive.
+- The Volume storage/indexing, validation, editor/versioning, contiguous-view, and copy/move contracts are fixed by this record; wire byte-order remains a separate follow-up contract.
 - `spk::Message << Voxel::Volume` / `>>` is the approved ergonomic serialization direction; see DR-017.
 
 ## Required tests
@@ -89,9 +101,11 @@ Once the remaining exact contracts are resolved:
 - default Cell and `Voxel::Cell::Empty` are packed zero;
 - ID-0 Cells with non-zero orientation/flip bits remain semantically empty and preserve their packed value;
 - every raw `Voxel::Cell::PackedType` value round-trips exactly;
-- Volume construction/access/bounds/storage-order tests;
-- invalid dimension/coordinate/voxel-size tests;
-- mutation/versioning tests if versioning is retained.
+- Volume default/explicit construction, Y-X-Z storage-order, checked-access, and span tests;
+- invalid dimension/product-overflow/coordinate/unit-size tests;
+- Editor batching/no-op/commit/use-after-commit/version-notification tests;
+- copy/move construction and assignment ownership/version/subscriber tests;
+- contiguous-view lifetime tests across ordinary edits and state replacement.
 
 ## Resolution provenance
 
