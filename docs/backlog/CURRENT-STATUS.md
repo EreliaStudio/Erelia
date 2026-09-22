@@ -2,7 +2,7 @@
 
 **Updated:** 23 September 2026
 **Planning branch:** backlog/ep-001-implementation-tickets
-**Active implementation branch observed:** none before ST-001-03 implementation branch creation
+**Active implementation branch observed:** `feat/st-001-03-owning-voxel-volume` via draft PR #9
 
 ## Branch state
 
@@ -10,7 +10,7 @@ Erelia currently uses master as its default branch.
 
 The ticket-materialization baseline remains isolated on `backlog/ep-001-implementation-tickets`, cut from master.
 
-ST-001-01 was merged through PR #7 on 22 September 2026. ST-001-02 was merged through PR #8 into the planning branch at `f03894f76fc996d5fba3241e2e51ead848783cad` on 23 September 2026. ST-001-03 has now passed the Definition of Ready after OQ-035 was fully resolved.
+ST-001-01 was merged through PR #7 on 22 September 2026. ST-001-02 was merged through PR #8 into the planning branch at `f03894f76fc996d5fba3241e2e51ead848783cad` on 23 September 2026. OQ-035 is Resolved. ST-001-03 passed the Definition of Ready, has been implemented on `feat/st-001-03-owning-voxel-volume`, and is under review in draft PR #9.
 
 No main branch is assumed.
 
@@ -70,7 +70,13 @@ The Epic remains Draft overall because most later contracts still depend on unre
 
 ### Active implementation ticket
 
-**ST-001-03 — Owning Voxel::Volume** is the next Ready ticket; its dedicated implementation branch has not yet been created at this planning-status commit.
+**ST-001-03 — Owning Voxel::Volume** is **In Progress** on `feat/st-001-03-owning-voxel-volume` through draft PR #9.
+
+The implementation now provides the approved owning `Voxel::Volume`: positive validated explicit dimensions/unit size, default-empty construction, contiguous Y-fastest/X/Z Cell storage, checked copy access, read-only `std::span<const Voxel::Cell>`, nested Editor batching through `spk::VersionedTrait`, and the approved copy/move/version semantics.
+
+CI run #66 (run ID `35793568648`) passed clang-format, Linux/Windows Core+Server Debug/Release builds and CTest, plus Windows Client Debug/Release regression builds and CTest.
+
+Human project-owner review/approval has not yet been recorded, so the ticket is not Done.
 
 **ST-001-02 — Packed Voxel::Cell value type** is **Done** on `feat/st-001-02-packed-voxel-cell`. The implementation exposes `Voxel::Definition::ID` and `Voxel::Cell::PackedType` as semantic aliases of `std::uint32_t`, keeps the Cell exactly one packed value, and places constructors/masks/getters/validation in `cell.cpp`. PR #8 CI run #59 (run ID `35789150331`) passed clang-format and the Linux/Windows headless Core/Server Debug + Release matrix, including CTest. The project owner explicitly approved the final implementation on 22 September 2026. PR #8 is merged into the planning branch.
 
@@ -78,7 +84,7 @@ The Epic remains Draft overall because most later contracts still depend on unre
 
 ### Next Ready ticket
 
-**ST-001-03 — Owning Voxel::Volume** is Ready. OQ-035 is Resolved. ST-001-04 remains Draft because its Definition/Shape contract and OQ-039 fixture details are not yet sufficiently specified.
+None while ST-001-03 is In Progress. ST-001-04 remains Draft because its Definition/Shape contract and OQ-039 fixture details are not yet sufficiently specified.
 
 ### Existing OQ blockers
 
@@ -101,8 +107,8 @@ See EP-001 `tickets/README.md` for the full status/dependency table.
 
 ## Next
 
-1. Implement ST-001-03 on `feat/st-001-03-owning-voxel-volume` from the current planning baseline.
-2. Resolve the minimal Definition/Shape specification gap and OQ-039 before generator/mesher fixtures become Ready.
+1. Project owner reviews PR #9; if approved, record approval, mark ST-001-03 Done, and merge it into the planning branch.
+2. Resolve the minimal Definition/Shape specification gap and OQ-039 before ST-001-04 / generator fixtures become Ready.
 3. Resolve OQ-037 / OQ-038 before Chunk codec, Server handler, and Client cache/request coordination become Ready.
 4. Resolve OQ-036 before Client boundary meshing and adjacent-Chunk integration become Ready.
 5. Resolve endpoint/connection lifecycle, render-fixture/material, and inspection-control Draft gaps when those tickets approach implementation.
@@ -119,6 +125,6 @@ EP-001 is constrained by DR-001 through DR-004, DR-007, DR-009 through DR-017 an
 
 ## First Epic
 
-EP-001 — Voxel Terrain Delivery and Visual Validation remains Draft, with 16 materialized implementation tickets, ST-001-01 / ST-001-02 Done, and ST-001-03 Ready. OQ-035 is Resolved.
+EP-001 — Voxel Terrain Delivery and Visual Validation remains Draft, with 16 materialized implementation tickets, ST-001-01 / ST-001-02 Done, and ST-001-03 In Progress awaiting project-owner approval on PR #9. OQ-035 is Resolved.
 
 It intentionally excludes production Hero movement, collision, followers, combat, resources, and production world generation. The temporary free-flight controller exists only to inspect rendered terrain.

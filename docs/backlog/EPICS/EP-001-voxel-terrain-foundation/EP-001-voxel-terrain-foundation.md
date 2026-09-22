@@ -132,12 +132,12 @@ The Epic will require deliberate contracts for:
 The complete dependency-ordered table is maintained in [tickets/README.md](tickets/README.md).
 
 - **Done:** ST-001-01, ST-001-02.
-- **In Progress:** none.
-- **Ready:** ST-001-03.
+- **In Progress:** ST-001-03.
+- **Ready:** none.
 - **Blocked:** ST-001-05, ST-001-06, ST-001-08, ST-001-09, ST-001-11, ST-001-12, ST-001-15, ST-001-16.
 - **Draft:** ST-001-04, ST-001-07, ST-001-10, ST-001-13, ST-001-14.
 
-The first two implementation tickets are now complete: **ST-001-01 — Shared terrain coordinate conversion** was merged through PR #7 on 22 September 2026, and **ST-001-02 — Packed Voxel::Cell value type** is Done on its dedicated feature branch after CI run #59 and explicit project-owner approval on 22 September 2026. PR #8 is merged into the planning branch. OQ-035 is Resolved, and ST-001-03 is Ready after its Volume storage/editor/lifetime/copy-move contract was approved.
+The first two implementation tickets are complete and merged: **ST-001-01 — Shared terrain coordinate conversion** through PR #7 and **ST-001-02 — Packed Voxel::Cell value type** through PR #8. OQ-035 is Resolved. **ST-001-03 — Owning Voxel::Volume** is implemented on its feature branch; CI run #66 passed the full repository matrix, and draft PR #9 is awaiting required project-owner review/approval before the ticket can be Done.
 
 ## Epic-level integration scenarios
 

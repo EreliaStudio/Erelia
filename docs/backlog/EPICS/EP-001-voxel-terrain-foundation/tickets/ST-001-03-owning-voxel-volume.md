@@ -1,6 +1,6 @@
 # ST-001-03 — Owning Voxel::Volume
 
-**Status:** Ready
+**Status:** In Progress
 **Epic:** EP-001
 **Production target(s):** Core
 **Test suite(s):** EreliaCoreTestSuite
@@ -314,13 +314,35 @@ Not applicable.
 
 ## Completion evidence
 
-Before Done, record:
+Implementation branch: `feat/st-001-03-owning-voxel-volume`.
 
-- production files changed;
-- exact acceptance-test files;
-- local/CI build and CTest commands/results;
-- required headless regression matrix;
-- confirmation that no forbidden dependency was introduced;
-- human project-owner approval.
+Review PR: #9 — `ST-001-03 — Owning Voxel::Volume` (draft while human approval remains outstanding).
 
-Until human approval is recorded after implementation review, the ticket must remain In Progress rather than Done.
+Production changes:
+
+- `core/include/erelia/core/voxel/volume.hpp` — owning Volume and nested Editor public contract;
+- `core/src/voxel/volume.cpp` — validation, Y-X-Z indexing, checked access, Editor/versioning, span access, and copy/move behavior;
+- `core/CMakeLists.txt` — Volume source registration.
+
+Acceptance coverage:
+
+- `core/tests/voxel_volume_test.cpp`;
+- `core/tests/CMakeLists.txt` registers the tests in `EreliaCoreTestSuite`.
+
+CI run #66, run ID `35793568648`, passed on implementation head `dbeee5a8bae80714218ce2e9ed40e463deb11296`:
+
+- clang-format — success;
+- Linux Core/Server Debug — build + CTest success;
+- Linux Core/Server Release — build + CTest success;
+- Windows Core/Server Debug — build + CTest success;
+- Windows Core/Server Release — build + CTest success;
+- Windows Client Debug regression — build + CTest success;
+- Windows Client Release regression — build + CTest success.
+
+No Server/Client authority code, graphics dependency, networking serialization, Definition/Shape behavior, generation, meshing, or rendering behavior was added by this ticket.
+
+### Definition of Done status
+
+All automated implementation/test/dependency/documentation requirements applicable at this stage are satisfied.
+
+**Human project-owner review/approval is still outstanding.** Therefore ST-001-03 remains **In Progress** and must not be marked Done yet.

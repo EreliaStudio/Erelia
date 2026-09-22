@@ -10,7 +10,7 @@ The tickets are ordered by dependency, not by implementation status.
 | --- | --- | --- |
 | [ST-001-01 — Shared terrain coordinate conversion](ST-001-01-shared-terrain-coordinate-conversion.md) | **Done** | — |
 | [ST-001-02 — Packed Voxel::Cell value type](ST-001-02-packed-voxel-cell.md) | **Done** | Cell portion of OQ-035 resolved |
-| [ST-001-03 — Owning Voxel::Volume](ST-001-03-owning-voxel-volume.md) | **Ready** | ST-001-02; OQ-035 resolved |
+| [ST-001-03 — Owning Voxel::Volume](ST-001-03-owning-voxel-volume.md) | **In Progress** | ST-001-02; OQ-035 resolved |
 | [ST-001-04 — First terrain Definition and Shape contract](ST-001-04-first-terrain-definition-shape-contract.md) | **Draft** | ST-001-02; OQ-039 + Definition/Shape specification gap |
 | [ST-001-05 — Voxel::Volume Message serialization](ST-001-05-voxel-volume-message-serialization.md) | **Blocked** | ST-001-02, ST-001-03; OQ-037 |
 | [ST-001-06 — Deterministic validation terrain generator](ST-001-06-deterministic-validation-terrain-generator.md) | **Blocked** | ST-001-01 through ST-001-04; OQ-039 |
@@ -31,7 +31,7 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-02 — Packed Voxel::Cell value type** is **Done** and was merged through PR #8 into the planning branch at `f03894f76fc996d5fba3241e2e51ead848783cad` after CI run #59 and project-owner approval.
 
-**ST-001-03 — Owning Voxel::Volume** is **Ready** after the project owner resolved the remaining OQ-035 Volume storage, validation, editor/versioning, view-lifetime, and copy/move contracts on 23 September 2026.
+**ST-001-03 — Owning Voxel::Volume** is **In Progress** on `feat/st-001-03-owning-voxel-volume`. The implementation and acceptance tests are complete, and CI run #66 (`35793568648`) passed the complete format, Linux/Windows headless Debug/Release, and Windows Client regression matrix. Draft PR #9 is open against the planning branch. Human project-owner review/approval remains required before Done.
 
 ## Remaining blockers
 
@@ -51,4 +51,4 @@ Additional Draft-ticket specification gaps exposed by decomposition:
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
-The planning branch remains the backlog baseline and now contains the merged ST-001-01 production implementation. Future implementation tickets should continue to use dedicated feature branches cut from the current planning baseline.
+The planning branch remains the backlog baseline and contains ST-001-01 / ST-001-02. ST-001-03 is implemented on its dedicated feature branch and is awaiting project-owner approval through PR #9 before it can become Done and be merged.
