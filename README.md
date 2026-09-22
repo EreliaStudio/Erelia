@@ -21,6 +21,6 @@ The status functions and tests are deliberately small. They verify that the thre
 
 ## Formatting and CI
 
-Erelia uses the same `.clang-format` file as Sparkle. VS Code formats C++ files on save. To check the active source tree locally, run `clang-format --style=file --dry-run --Werror` on the `.cpp` and `.hpp` files under `core/`, `server/`, `client/`, and `tests/`. The archived code is excluded from formatting checks.
+Erelia uses the same `.clang-format` file as Sparkle. VS Code formats C++ files on save. To check the active source tree locally, run `clang-format --style=file --dry-run --Werror` on the `.cpp` and `.hpp` files under `core/`, `server/`, and `client/`. Each layer keeps its own test suite in a `tests/` subfolder. The archived code is excluded from formatting checks.
 
 CI builds Core and Server without graphics on Linux and Windows, and builds the Client on Windows in both Debug and Release. The Windows Client job installs the same Mesa software OpenGL package used by Sparkle's tests so future OpenGL tests can use it.
