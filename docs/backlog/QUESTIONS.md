@@ -52,15 +52,21 @@ The GDD permits local authoritative hosting as an implementation stage but does 
 
 ### Q-007 — What are the first command/response/event semantics?
 
+**Status:** Resolved at the semantic level — see DECISIONS/DR-004-COMMAND-AUTHORITY-SEMANTICS.md and ARCHITECTURE/ARCH-002-AUTHORITATIVE-PROTOCOL.md.
+
 Before choosing a networking library, which player intentions must cross the trust boundary as Commands, and which results return as Responses, Rejections, Events, or Snapshots?
 
 Examples needing decisions: exploration movement, inventory changes, roster/loadout edits, crafting, marketplace operations, encounter actions, targeting, and Flee.
 
 ### Q-008 — What may the Client assert versus request?
 
+**Status:** Resolved — Client sends intent, Server derives authoritative result; see DECISIONS/DR-004-COMMAND-AUTHORITY-SEMANTICS.md.
+
 For authoritative systems, should the Client send intent only and let the Server derive all resulting state, or are some client-computed values permitted when the Server validates them?
 
 ### Q-009 — What local prediction/reconciliation is required for third-person movement?
+
+**Status:** Direction resolved — local movement prediction is required; exact reconciliation mechanics are deferred to the future exploration-movement Epic. See DECISIONS/DR-005-CLIENT-MOVEMENT-PREDICTION.md.
 
 The GDD requires responsive continuous exploration and server authority but does not define prediction, rewind, reconciliation, or tolerated divergence.
 
@@ -104,17 +110,25 @@ For example, if a client retries a marketplace purchase or crafting request afte
 
 ### Q-017 — What time representation is authoritative?
 
+**Status:** Partially resolved — Encounter, World, and Real Time are separate domains; exact units/storage representations remain open. See DECISIONS/DR-006-THREE-TIME-DOMAINS.md.
+
 We need deliberate units/types for World time, Encounter time, cooldowns, outpost upkeep, resource respawns, dungeon rotation, and persistent timestamps.
 
 ### Q-018 — Fixed-step or variable-step simulation?
+
+**Status:** Partially resolved — World Time advances in discrete ticks; exact tick frequency and Encounter advancement mechanics remain open. See DECISIONS/DR-006-THREE-TIME-DOMAINS.md.
 
 Do World/Region and Encounter simulation use fixed ticks, variable delta time, or different models? Does an Encounter Clock advance only on discrete simulation steps?
 
 ### Q-019 — What determinism is required across platforms?
 
+**Status:** Resolved — semantic determinism rather than universal bit-for-bit runtime determinism; see DECISIONS/DR-007-SEMANTIC-DETERMINISM.md.
+
 Should identical inputs and seeds produce bit-for-bit/semantic-equivalent simulation on Windows and Linux, or is deterministic content generation sufficient while runtime simulation can vary within controlled tolerances?
 
 ### Q-020 — How are concurrent authoritative operations ordered?
+
+**Status:** Resolved at the architectural level — Server serializes conflicting authoritative mutations; exact subsystem concurrency primitives remain local implementation choices. See DECISIONS/DR-008-AUTHORITATIVE-OPERATION-ORDERING.md.
 
 Examples: two players gather the same node; two buyers select the same marketplace listing; an outpost upkeep tick races a deposit; a reinforcement joins while an Encounter pauses.
 
@@ -156,6 +170,8 @@ The GDD prefers shared formats where practical, but the moderation/publishing ed
 
 ### Q-028 — Is the GDD's visual-validation prerequisite the actual first milestone?
 
+**Status:** Resolved — first implementation milestone is the end-to-end voxel terrain pipeline; see DECISIONS/DR-009-FIRST-VOXEL-TERRAIN-MILESTONE.md and EPICS/EP-001-voxel-terrain-foundation/.
+
 The GDD recommends unified voxel visual validation before broad gameplay production. Do we adopt that ordering, or is there an earlier architecture/test milestone?
 
 ### Q-029 — What is the golden-image platform policy?
@@ -174,6 +190,8 @@ The GDD asks for performance measurements but does not define acceptable structu
 
 ### Q-032 — Do you want Story as a separate backlog level?
 
+**Status:** Resolved — no mandatory Story layer; Epic directly owns ST-XXX-YY implementation tickets. See DECISIONS/DR-010-BACKLOG-GRANULARITY.md.
+
 The supplied planning rules define Epics and detailed ST-XXX-YY implementation tickets. Should Story be synonymous with an implementation ticket, a capability slice between Epic and implementation Ticket, or not used as a distinct level?
 
 No separate Story hierarchy is active until this is answered.
@@ -184,4 +202,63 @@ The repository currently has master and no main branch. Should the eventual back
 
 ### Q-034 — How much long-term roadmap should be materialized initially?
 
+**Status:** Resolved — keep planning near-term and just-in-time; do not detail far-future Epics prematurely. See DECISIONS/DR-010-BACKLOG-GRANULARITY.md.
+
 Should we create high-level capability/roadmap coverage for the whole GDD but detail only near-term Epics; only the first-playable roadmap initially; or another horizon model?
+
+
+## J. EP-001 voxel terrain foundation — immediate blockers
+
+### Q-035 — What is the first terrain voxel/cell representation?
+
+EP-001 needs an exact shared contract for one terrain cell and one 16×16×16 Chunk.
+
+Questions include:
+
+- does each occupied cell reference a voxel Definition ID, or directly store Shape/material properties;
+- how is empty/air represented;
+- how is Shape orientation represented;
+- what information must be sufficient for Client meshing without Server-only state;
+- which representation belongs in Core and crosses the network unchanged versus through a serialized DTO.
+
+This must be resolved before the shared Chunk representation ticket can become Ready.
+
+### Q-036 — Does the Client own all terrain meshing, and what neighbor data may meshing require?
+
+The current Epic assumes Server sends canonical voxel/Chunk data and Client produces render meshes.
+
+Confirm whether:
+
+- Server never sends render meshes for ordinary terrain;
+- Client mesher may require neighboring Chunk/cell data to correctly remove faces or resolve shapes at boundaries;
+- a Chunk may be rendered temporarily before all neighbors arrive, or must wait for required neighbor information.
+
+### Q-037 — What networking transport and serialization/framing should EP-001 use?
+
+The semantic protocol is decided, but the first concrete transport is not.
+
+We need the initial Client/Server connection technology and framing/serialization approach for Chunk requests/responses. This is an implementation interoperability decision, not a change to Server authority semantics.
+
+### Q-038 — What are the first Chunk request/streaming semantics?
+
+For the inspection milestone, define:
+
+- how the Client selects Chunks around its inspection position;
+- initial request radius/shape or whether it is configurable;
+- whether requests are one-Chunk-at-a-time or batched;
+- whether duplicate outstanding requests are suppressed;
+- Client cache/eviction expectations for the milestone;
+- response behavior for unavailable/invalid coordinates.
+
+### Q-039 — What exact basic terrain generator should be the first deterministic fixture?
+
+The first generator should be intentionally simple, but tests need exact expected terrain.
+
+Candidate examples include:
+
+- flat plane at a fixed height;
+- flat layers with one or more materials;
+- deterministic height field from a seed;
+- another deliberately small fixture.
+
+The chosen generator and exact fixture values must be explicit before its implementation ticket becomes Ready.
