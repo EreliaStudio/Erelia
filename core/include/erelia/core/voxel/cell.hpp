@@ -37,15 +37,36 @@ namespace Voxel
 		static const Cell Empty;
 
 		Cell() noexcept = default;
-		explicit Cell(std::uint32_t packed) noexcept;
+		explicit Cell(std::uint32_t packed) noexcept :
+			_packed(packed)
+		{
+		}
+
 		Cell(
 			std::uint32_t definitionId,
 			Orientation orientation,
 			FlipOrientation flipOrientation);
 
-		[[nodiscard]] std::uint32_t definitionId() const noexcept;
-		[[nodiscard]] Orientation orientation() const noexcept;
-		[[nodiscard]] FlipOrientation flipOrientation() const noexcept;
-		[[nodiscard]] std::uint32_t packed() const noexcept;
+		[[nodiscard]] std::uint32_t definitionId() const noexcept
+		{
+			return _packed & DefinitionMask;
+		}
+
+		[[nodiscard]] Orientation orientation() const noexcept
+		{
+			return static_cast<Orientation>(
+				(_packed & OrientationMask) >> OrientationShift);
+		}
+
+		[[nodiscard]] FlipOrientation flipOrientation() const noexcept
+		{
+			return static_cast<FlipOrientation>(
+				(_packed & FlipOrientationMask) >> FlipOrientationShift);
+		}
+
+		[[nodiscard]] std::uint32_t packed() const noexcept
+		{
+			return _packed;
+		}
 	};
 }
