@@ -27,8 +27,24 @@ EP-001 needs a compact shared cell value and a reusable owning Volume that both 
 
 ## Remaining ambiguity
 
-Canonical empty representation, exact contiguous storage/index order, Editor/versioning behavior and any remaining validation details still need explicit decisions.
+The Cell contract is now sufficiently resolved for ST-001-02. Remaining OQ-035 ambiguity belongs to the later `Voxel::Volume` ticket: exact contiguous storage/index order, invalid dimensions/unit-size behavior, controlled editor/versioning behavior, coordinate-failure behavior, and contiguous-view lifetime/invalidation.
 
 ## Chosen solution
 
-Use a 32-bit packed `Voxel::Cell` carrying Definition ID + Orientation + Flip, and a generic `Voxel::Volume` owning dimensions, voxel size and contiguous cells. `Voxel::Volume` declares friend `spk::Message` insertion/extraction operators for direct `message << volume` / `message >> volume` use. Remaining representation details are still open.
+Use a 32-bit packed `Voxel::Cell` carrying Definition ID + Orientation + FlipOrientation, and a generic `Voxel::Volume` owning dimensions, voxel size and contiguous cells.
+
+For `Voxel::Cell` specifically:
+
+- the complete instance state is one private `std::uint32_t`;
+- lower 29 bits store Definition ID;
+- bits 29-30 store `Voxel::Cell::Orientation` with exact values `PositiveX = 0`, `NegativeX = 1`, `PositiveZ = 2`, `NegativeZ = 3`;
+- bit 31 stores `Voxel::Cell::FlipOrientation` with exact values `PositiveY = 0`, `NegativeY = 1`;
+- default construction produces packed value `0x00000000`;
+- `Voxel::Cell::Empty` is the explicit static empty value and is also packed `0x00000000`;
+- semantic emptiness depends only on Definition ID being 0. Orientation/FlipOrientation bits are still valid for an ID-0 Cell, so values such as `0x60000000` are accepted and preserved rather than canonicalized;
+- construction from any packed `std::uint32_t` is valid and preserves that value exactly;
+- construction from logical fields validates the 29-bit Definition capacity and the enum domains, throwing `spk::Exception` for invalid logical input;
+- the Cell is immutable after construction and exposes read-only getters for Definition ID, Orientation, FlipOrientation, plus the packed `std::uint32_t` representation;
+- bit extraction uses masks/shifts against the stored integer rather than C++ bitfields, avoiding implementation-defined bitfield layout while keeping the object exactly 32 bits and trivially copyable.
+
+`Voxel::Volume` declares friend `spk::Message` insertion/extraction operators for direct `message << volume` / `message >> volume` use. Its remaining representation details stay open for ST-001-03, so OQ-035 remains Partially resolved.
