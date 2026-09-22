@@ -26,7 +26,7 @@ namespace Voxel
 	}
 
 	Cell::Cell(
-		std::uint32_t definitionId,
+		Definition::ID definitionId,
 		Orientation orientation,
 		FlipOrientation flipOrientation)
 	{
@@ -54,7 +54,7 @@ namespace Voxel
 			((flipOrientationValue << FlipOrientationShift) & FlipOrientationMask);
 	}
 
-	std::uint32_t Cell::definitionId() const noexcept
+	Definition::ID Cell::definitionId() const noexcept
 	{
 		return _packed & DefinitionMask;
 	}
