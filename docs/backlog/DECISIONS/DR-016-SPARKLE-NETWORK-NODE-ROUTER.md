@@ -44,23 +44,25 @@ Routing by `Message::Type` through Sparkle's `NodeRouter` is the initial mechani
 
 ### Initial EP-001 shape
 
-EP-001 should begin with:
+Whether EP-001 itself starts directly on `spk::NodeRouter` or temporarily uses a bare `spk::Server` remains open as Q-040.
+
+The recommended option is:
 
 - one `spk::NodeRouter` as the public Client-facing Server endpoint;
 - one in-process `spk::LocalNode` responsible for the EP-001 terrain/Chunk request family;
 - Chunk request message types routed to that node;
 - the node returning responses through the router to the originating Client.
 
-This deliberately keeps the first implementation simple while avoiding a later architectural rewrite from a monolithic `spk::Server` loop into a routed Server.
+This recommendation keeps the first implementation simple while avoiding a later architectural rewrite from a monolithic `spk::Server` loop into a routed Server.
 
-A future node may be replaced by `spk::RemoteNode` / `RemoteNode::Endpoint` when process separation becomes justified without changing the Client-facing Server address or the Erelia message semantics.
+If selected, a future local node may later be replaced by `spk::RemoteNode` / `RemoteNode::Endpoint` when process separation becomes justified without changing the Client-facing Server address or the Erelia message semantics.
 
 ## Consequences
 
 - Erelia does not implement raw WinSock/BSD socket wrappers.
 - Sparkle's public networking API is an approved Core/Server/Client dependency.
-- The Server entry point should not directly accumulate all game-specific message handling.
-- EP-001's first node may be called/structured as a terrain or world-terrain service, but exact source-level class naming remains ticket-level design.
+- The long-term Server entry point must not accumulate all game-specific message handling.
+- If Q-040 selects router-first EP-001, its first local node may be called/structured as a terrain or world-terrain service, but exact source-level class naming remains ticket-level design.
 - Client code connects through `spk::Client`.
 - Erelia message payloads must be deliberately serialized; trivially-copyable Sparkle `Message` support does not by itself define a cross-platform wire contract.
 - Sparkle's current TCP transport is acceptable for EP-001. Future movement/prediction requirements may justify extending Sparkle networking later, but EP-001 does not invent a second transport.
@@ -70,8 +72,8 @@ A future node may be replaced by `spk::RemoteNode` / `RemoteNode::Endpoint` when
 
 EP-001 must include:
 
-- real `spk::Client` -> `spk::NodeRouter` connection;
-- Chunk request message routed to the terrain `LocalNode`;
+- real `spk::Client` -> dedicated Server connection using Sparkle networking;
+- if Q-040 selects router-first implementation, Chunk request routing through `spk::NodeRouter` to the terrain `LocalNode`;
 - response returned to the originating Client;
 - two-Client correlation test;
 - malformed/unknown message type behavior;
@@ -84,7 +86,7 @@ Future node-remoting work must prove that replacing a local node with `RemoteNod
 
 Resolved from the project owner's explicit requirement to use only Sparkle/standard facilities, the provided Sparkle Version-0.1.3 network API, and the project owner's stated direction that the Server should ultimately act as a router to nodes responsible for subsections of the game.
 
-The initial router + one LocalNode approach is selected because it preserves that long-term boundary without requiring distributed services in EP-001.
+The initial router + one LocalNode approach is recommended but remains pending Q-040 because the project owner explicitly left the first implementation choice open.
 
 ## Supersession
 
