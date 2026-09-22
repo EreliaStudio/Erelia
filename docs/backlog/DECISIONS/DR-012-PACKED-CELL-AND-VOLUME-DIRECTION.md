@@ -26,9 +26,11 @@ The approved packed concepts are:
 - packed representation is directly retrievable as a `std::uint32_t`;
 - the type must remain exactly 32 bits and trivially copyable.
 
+`Voxel::Definition::ID` is the semantic identifier type for voxel definitions and aliases `std::uint32_t`.
+
 The exact packed layout is:
 
-- lower 29 bits: Definition ID;
+- lower 29 bits: `Voxel::Definition::ID`;
 - bits 29-30: `Voxel::Cell::Orientation`;
 - bit 31: `Voxel::Cell::FlipOrientation`.
 
