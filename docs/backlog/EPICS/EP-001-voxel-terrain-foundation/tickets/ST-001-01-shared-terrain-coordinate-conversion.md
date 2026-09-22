@@ -44,29 +44,53 @@ Core owns the reusable coordinate conversion helpers and fixed terrain-Chunk coo
 
 ## Explicitly not owned
 
-- `Voxel::Cell` packing.
-- `Voxel::Volume` storage.
+- `Voxel::Cell` packing or runtime Cell state beyond the coordinate type shell.
+- `Voxel::Volume` dimensions, storage, validation, access, or mutation beyond the local-coordinate type shell.
 - World-position floating-point conversion.
 - Chunk generation, networking, caching, meshing, or rendering.
 
 ## Public contract
 
-The Core contract accepts a global terrain-cell `spk::Vector3Int` and exposes both:
+The Core contract uses semantic domain types backed by `spk::Vector3Int`:
 
-- the containing Chunk coordinate as `spk::Vector3Int`;
-- the local cell coordinate as `spk::Vector3Int`.
+- `Voxel::Cell::Coordinate` for a global terrain-cell coordinate;
+- `Chunk::Coordinate` for a Chunk-grid coordinate;
+- `Voxel::Volume::LocalCoordinate` for a coordinate local to a voxel Volume.
 
-The implemented public API lives in `core/include/erelia/core/terrain/coordinate.hpp` under `core::terrain`:
+ST-001-01 introduces `Voxel::Cell` and `Voxel::Volume` only as structural shells for these nested coordinate aliases. Their packed Cell state and owning Volume behavior remain explicitly deferred to ST-001-02 and ST-001-03.
+
+The coordinate behavior is owned by the `Chunk` structure:
 
 ```cpp
-inline constexpr std::int32_t chunkExtent = 16;
-inline constexpr float cellWorldExtent = 1.0F;
+namespace Voxel
+{
+    struct Cell
+    {
+        using Coordinate = spk::Vector3Int;
+    };
 
-[[nodiscard]] spk::Vector3Int toChunkCoordinate(const spk::Vector3Int &globalCell) noexcept;
-[[nodiscard]] spk::Vector3Int toLocalCoordinate(const spk::Vector3Int &globalCell) noexcept;
+    struct Volume
+    {
+        using LocalCoordinate = spk::Vector3Int;
+    };
+}
+
+struct Chunk
+{
+    using Coordinate = spk::Vector3Int;
+
+    inline static constexpr std::int32_t Extent = 16;
+    inline static constexpr float CellWorldExtent = 1.0F;
+
+    [[nodiscard]] static Coordinate toCoordinate(
+        const Voxel::Cell::Coordinate &globalCell) noexcept;
+
+    [[nodiscard]] static Voxel::Volume::LocalCoordinate toLocalCoordinate(
+        const Voxel::Cell::Coordinate &globalCell) noexcept;
+};
 ```
 
-These names are implementation-level choices; observable behavior remains fixed by DR-011.
+The semantic type organization is an explicit project-owner direction. Observable conversion behavior remains fixed by DR-011.
 
 ## Invariants
 
@@ -103,7 +127,7 @@ Not applicable directly. The shared semantics are later consumed by network cont
 ## Implementation constraints
 
 - Use mathematical floor division/modulo semantics from DR-011.
-- Do not restore the archived `Chunk::Coordinate` wrapper merely because it existed historically.
+- `Chunk::Coordinate` is a semantic alias of `spk::Vector3Int`; do not restore the archived wrapper implementation.
 - Keep the implementation headless-safe in Core.
 
 ## Exact test fixtures
@@ -192,7 +216,8 @@ No unresolved question blocks this ticket.
 ## Completion evidence
 
 - Initial production implementation commit: `e67032414ece0c7c00018ee29db03bc1ad842cd4` on `feat/st-001-01-shared-terrain-coordinate-conversion`.
-- Namespace follow-up: the project-owned API uses `core::terrain` rather than a redundant top-level `erelia::` namespace, per explicit project-owner direction.
+- Namespace follow-up: the project-owned API does not use a redundant top-level `erelia::` namespace, per explicit project-owner direction.
+- Domain-structure follow-up: coordinate aliases live on `Voxel::Cell`, `Voxel::Volume`, and `Chunk`; the conversion helpers/constants live on `Chunk`. This does not implement the blocked Cell packing or Volume storage contracts.
 - Draft validation PR: #7, targeting `backlog/ep-001-implementation-tickets`.
 - GitHub Actions CI run `35775258869` / run #32:
   - `clang-format`: passed;

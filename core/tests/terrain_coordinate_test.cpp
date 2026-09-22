@@ -1,4 +1,4 @@
-#include "erelia/core/terrain/coordinate.hpp"
+#include "erelia/core/chunk.hpp"
 
 #include <gtest/gtest.h>
 
@@ -6,14 +6,19 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <type_traits>
+
+static_assert(std::is_same_v<Voxel::Cell::Coordinate, spk::Vector3Int>);
+static_assert(std::is_same_v<Voxel::Volume::LocalCoordinate, spk::Vector3Int>);
+static_assert(std::is_same_v<Chunk::Coordinate, spk::Vector3Int>);
 
 namespace
 {
 	struct ConversionFixture
 	{
-		spk::Vector3Int global;
-		spk::Vector3Int chunk;
-		spk::Vector3Int local;
+		Voxel::Cell::Coordinate global;
+		Chunk::Coordinate chunk;
+		Voxel::Volume::LocalCoordinate local;
 	};
 
 	struct ScalarFixture
@@ -58,9 +63,9 @@ namespace
 	}
 
 	void expectLocalRangeAndReconstruction(
-		const spk::Vector3Int &global,
-		const spk::Vector3Int &chunk,
-		const spk::Vector3Int &local)
+		const Voxel::Cell::Coordinate &global,
+		const Chunk::Coordinate &chunk,
+		const Voxel::Volume::LocalCoordinate &local)
 	{
 		const std::array<std::int32_t, 3> globalComponents = {global.x, global.y, global.z};
 		const std::array<std::int32_t, 3> chunkComponents = {chunk.x, chunk.y, chunk.z};
@@ -69,10 +74,10 @@ namespace
 		for (std::size_t axis = 0; axis < globalComponents.size(); ++axis)
 		{
 			EXPECT_GE(localComponents[axis], 0);
-			EXPECT_LT(localComponents[axis], core::terrain::chunkExtent);
+			EXPECT_LT(localComponents[axis], Chunk::Extent);
 
 			const auto reconstructed =
-				static_cast<std::int64_t>(chunkComponents[axis]) * core::terrain::chunkExtent +
+				static_cast<std::int64_t>(chunkComponents[axis]) * Chunk::Extent +
 				localComponents[axis];
 			EXPECT_EQ(reconstructed, globalComponents[axis]);
 		}
@@ -81,8 +86,8 @@ namespace
 
 TEST(TerrainCoordinate, ExposesFixedTerrainScale)
 {
-	EXPECT_EQ(core::terrain::chunkExtent, 16);
-	EXPECT_FLOAT_EQ(core::terrain::cellWorldExtent, 1.0F);
+	EXPECT_EQ(Chunk::Extent, 16);
+	EXPECT_FLOAT_EQ(Chunk::CellWorldExtent, 1.0F);
 }
 
 TEST(TerrainCoordinate, ConvertsExactThreeDimensionalFixtures)
@@ -91,13 +96,13 @@ TEST(TerrainCoordinate, ConvertsExactThreeDimensionalFixtures)
 	{
 		SCOPED_TRACE(::testing::Message() << "global=" << fixture.global);
 
-		const auto chunk = core::terrain::toChunkCoordinate(fixture.global);
-		const auto local = core::terrain::toLocalCoordinate(fixture.global);
+		const auto chunk = Chunk::toCoordinate(fixture.global);
+		const auto local = Chunk::toLocalCoordinate(fixture.global);
 
 		EXPECT_EQ(chunk, fixture.chunk);
 		EXPECT_EQ(local, fixture.local);
-		EXPECT_EQ(core::terrain::toChunkCoordinate(fixture.global), chunk);
-		EXPECT_EQ(core::terrain::toLocalCoordinate(fixture.global), local);
+		EXPECT_EQ(Chunk::toCoordinate(fixture.global), chunk);
+		EXPECT_EQ(Chunk::toLocalCoordinate(fixture.global), local);
 		expectLocalRangeAndReconstruction(fixture.global, chunk, local);
 	}
 }
@@ -114,8 +119,8 @@ TEST(TerrainCoordinate, ConvertsEachAxisIndependentlyAcrossBoundaries)
 			const auto global = onAxis(axis, fixture.global);
 			const auto expectedChunk = onAxis(axis, fixture.chunk);
 			const auto expectedLocal = onAxis(axis, fixture.local);
-			const auto chunk = core::terrain::toChunkCoordinate(global);
-			const auto local = core::terrain::toLocalCoordinate(global);
+			const auto chunk = Chunk::toCoordinate(global);
+			const auto local = Chunk::toLocalCoordinate(global);
 
 			EXPECT_EQ(chunk, expectedChunk);
 			EXPECT_EQ(local, expectedLocal);
@@ -126,12 +131,12 @@ TEST(TerrainCoordinate, ConvertsEachAxisIndependentlyAcrossBoundaries)
 
 TEST(TerrainCoordinate, ConvertsMixedSignsIndependently)
 {
-	constexpr spk::Vector3Int global{-17, 16, -1};
-	constexpr spk::Vector3Int expectedChunk{-2, 1, -1};
-	constexpr spk::Vector3Int expectedLocal{15, 0, 15};
+	constexpr Voxel::Cell::Coordinate global{-17, 16, -1};
+	constexpr Chunk::Coordinate expectedChunk{-2, 1, -1};
+	constexpr Voxel::Volume::LocalCoordinate expectedLocal{15, 0, 15};
 
-	const auto chunk = core::terrain::toChunkCoordinate(global);
-	const auto local = core::terrain::toLocalCoordinate(global);
+	const auto chunk = Chunk::toCoordinate(global);
+	const auto local = Chunk::toLocalCoordinate(global);
 
 	EXPECT_EQ(chunk, expectedChunk);
 	EXPECT_EQ(local, expectedLocal);
@@ -142,12 +147,12 @@ TEST(TerrainCoordinate, HandlesRepresentableIntegerExtremesWithoutOverflow)
 {
 	constexpr auto minimum = std::numeric_limits<std::int32_t>::min();
 	constexpr auto maximum = std::numeric_limits<std::int32_t>::max();
-	constexpr spk::Vector3Int global{minimum, maximum, minimum + 1};
-	constexpr spk::Vector3Int expectedChunk{-134217728, 134217727, -134217728};
-	constexpr spk::Vector3Int expectedLocal{0, 15, 1};
+	constexpr Voxel::Cell::Coordinate global{minimum, maximum, minimum + 1};
+	constexpr Chunk::Coordinate expectedChunk{-134217728, 134217727, -134217728};
+	constexpr Voxel::Volume::LocalCoordinate expectedLocal{0, 15, 1};
 
-	const auto chunk = core::terrain::toChunkCoordinate(global);
-	const auto local = core::terrain::toLocalCoordinate(global);
+	const auto chunk = Chunk::toCoordinate(global);
+	const auto local = Chunk::toLocalCoordinate(global);
 
 	EXPECT_EQ(chunk, expectedChunk);
 	EXPECT_EQ(local, expectedLocal);

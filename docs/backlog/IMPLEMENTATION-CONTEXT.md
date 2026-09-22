@@ -36,6 +36,16 @@ The intent is to let namespaces communicate the domain and keep individual type 
 
 Do not introduce a prefixed name merely because an archived implementation used one if a clean nested/domain-scoped name expresses the concept better.
 
+Coordinate vocabulary follows the same semantic ownership:
+
+```cpp
+Voxel::Cell::Coordinate
+Voxel::Volume::LocalCoordinate
+Chunk::Coordinate
+```
+
+These are currently aliases of `spk::Vector3Int`. Chunk coordinate conversion behavior and fixed terrain-Chunk constants belong on the `Chunk` structure. A Volume validates its own local-coordinate bounds once the Volume contract is implemented; do not encode those runtime bounds by narrowing `LocalCoordinate` to `std::uint8_t`.
+
 Use established project terminology consistently: Core, Server, Client, Chunk, World, Hero, Encounter, Definition, Shape, `Voxel::Cell`, and `Voxel::Volume`.
 
 ## 3. Product/module ownership taste
