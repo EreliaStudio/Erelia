@@ -2,23 +2,28 @@
 
 **Planning branch:** backlog/greenfield-planning
 **Repository:** EreliaStudio/Erelia
-**Planning branch base:** master at 3a37ff2cd3b69024a8098bc9dbf6fc4d443f9f6d
+**Initial planning branch base:** master at 3a37ff2cd3b69024a8098bc9dbf6fc4d443f9f6d
+**Master synchronized through:** fa27429734a406fc4cfaea43207e0ac7f5e68b88
 **Baseline date:** 22 September 2026
 
 ## Gameplay source
 
-The working GDD read for this planning pass is:
+The current in-repository GDD is the working gameplay source for this planning pass:
 
-- Repository: EreliaStudio/Playground
-- Branch: main
+- Repository: EreliaStudio/Erelia
+- Branch: master
 - Path: docs/gdd/Erelia_GDD_Current.md
-- Blob SHA: 4d9552b96123deb4af8e7519c0869c993da64e5b
+- Blob SHA: 7c0c5e3341dcb429e113721361528a4523ca3b73
 - Document revision stated in the file: 18 September 2026
 - Length at this snapshot: 2,136 lines
 
+The complete GDD was read before backlog decomposition.
+
+It was first read from EreliaStudio/Playground/main while the restarted Erelia repository did not yet contain the GDD. After commit fa27429734a406fc4cfaea43207e0ac7f5e68b88 imported the GDD into Erelia, both copies were compared line-by-line. They have the same 2,136 lines and differ on only four lines, all of which are backlog-link/provenance wording. No gameplay/system requirement differs.
+
 The GDD is treated as gameplay and visual intent, not as a complete software architecture specification.
 
-If the GDD changes, update this baseline and review context, questions, traceability, decisions, epics, and affected tickets.
+If the GDD changes, update this baseline and review PROJECT-CONTEXT.md, QUESTIONS.md, traceability, decisions, epics, and affected tickets before treating the backlog as current.
 
 ## Repository source
 
