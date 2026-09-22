@@ -39,7 +39,7 @@ $toolchain = Join-Path $env:VCPKG_ROOT 'scripts/buildsystems/vcpkg.cmake'
     "-DCMAKE_INSTALL_PREFIX=$installDir" `
     "-DSPARKLE_BUILD_GRAPHICS=$graphics" `
     '-DSPARKLE_BUILD_TESTS=OFF' `
-    '-DSPARKLE_BUILD_TEST_LIBRARY=OFF'
+    "-DSPARKLE_BUILD_TEST_LIBRARY=$graphics"
 if ($LASTEXITCODE -ne 0) { throw 'Sparkle configuration failed.' }
 
 & cmake --build $buildDir --parallel 4
