@@ -22,9 +22,10 @@ If only one solution follows from already-approved constraints, record the resul
 
 ## Index
 
-No greenfield Decision Record exists yet.
-
-Initial unresolved questions are tracked in ../QUESTIONS.md. As the user resolves them, create DR files from the template and link them here.
+Resolved greenfield decisions are indexed below. Remaining unresolved questions are tracked in ../QUESTIONS.md.
 
 | ID | Title | Status | Applies to | Supersedes |
 | --- | --- | --- | --- | --- |
+| DR-001 | [Long-term Core / Server / Client boundaries](DR-001-PRODUCT-BOUNDARIES.md) | Resolved | Core, Server, Client, authority | — |
+| DR-002 | [Core may depend on Sparkle Core](DR-002-SPARKLE-CORE-DEPENDENCY.md) | Resolved | Core, dependency policy | — |
+| DR-003 | [Dedicated authoritative server from the first playable](DR-003-DEDICATED-SERVER-FIRST.md) | Resolved | Runtime topology, networking boundary | — |
