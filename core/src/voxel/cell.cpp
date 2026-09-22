@@ -6,10 +6,6 @@ namespace Voxel
 {
 	const Cell Cell::Empty{};
 
-	Cell::Cell(std::uint32_t packed) noexcept :
-		_packed(packed)
-	{
-	}
 
 	Cell::Cell(
 		std::uint32_t definitionId,
@@ -40,25 +36,4 @@ namespace Voxel
 			((flipOrientationValue << FlipOrientationShift) & FlipOrientationMask);
 	}
 
-	std::uint32_t Cell::definitionId() const noexcept
-	{
-		return _packed & DefinitionMask;
-	}
-
-	Cell::Orientation Cell::orientation() const noexcept
-	{
-		return static_cast<Orientation>(
-			(_packed & OrientationMask) >> OrientationShift);
-	}
-
-	Cell::FlipOrientation Cell::flipOrientation() const noexcept
-	{
-		return static_cast<FlipOrientation>(
-			(_packed & FlipOrientationMask) >> FlipOrientationShift);
-	}
-
-	std::uint32_t Cell::packed() const noexcept
-	{
-		return _packed;
-	}
 }
