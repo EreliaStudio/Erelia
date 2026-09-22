@@ -34,14 +34,36 @@ The cell storage should be appended/read as one contiguous block where practical
 
 The deserializer must reconstruct an owning `Voxel::Volume`; it must never restore `std::vector` object representation from the network.
 
-Exact source-level overload placement and the Volume construction/deserialization helper are implementation-ticket details, but the public ergonomic contract is:
+The operators are part of the `Voxel::Volume` public contract and are declared as friends directly on the class so they may access the owning Volume state without exposing mutable serialization-only accessors:
 
 ```cpp
-spk::Message &operator<<(spk::Message &, const Voxel::Volume &);
-const spk::Message &operator>>(const spk::Message &, Voxel::Volume &);
+namespace Voxel
+{
+	class Volume : public spk::VersionedTrait
+	{
+		// ...
+
+		friend spk::Message &operator<<(
+			spk::Message &message,
+			const Volume &volume);
+
+		friend const spk::Message &operator>>(
+			const spk::Message &message,
+			Volume &volume);
+	};
+}
 ```
 
-or an equivalent API preserving `message << volume` / `message >> volume` usage.
+The corresponding free-function definitions belong to namespace `Voxel`, allowing argument-dependent lookup to resolve:
+
+```cpp
+message << volume;
+message >> volume;
+```
+
+This friend-operator form is the required public API for EP-001; an alternative `volume.serialize(message)`-style interface does not satisfy this decision.
+
+The exact internal deserialization construction helper remains an implementation-ticket detail.
 
 ## Consequences
 
@@ -50,6 +72,8 @@ or an equivalent API preserving `message << volume` / `message >> volume` usage.
 - `Voxel::Volume` does **not** need to be trivially copyable.
 - `Voxel::Cell` retaining a fixed 32-bit packed representation remains useful for compact contiguous transfer.
 - Serialization belongs in shared Core code because both Client and Server require it.
+- Serialization operators are friends of `Voxel::Volume`; Volume does not expose mutable internals merely to support networking.
+- Operator definitions live in namespace `Voxel`, not namespace `spk`.
 - A malformed Volume payload must be rejected before creating inconsistent dimensions/storage.
 - The exact byte-order/platform-compatibility policy is not decided by this record and remains part of Q-037 until explicitly resolved.
 
@@ -62,13 +86,17 @@ or an equivalent API preserving `message << volume` / `message >> volume` usage.
 - malformed/truncated payload is rejected.
 - impossible/unrepresentable dimensions are rejected.
 - payload whose cell data cannot satisfy the declared dimensions is rejected.
-- serialization never depends on `sizeof(Voxel::Volume)` or the object representation of `std::vector`.
+- serialization never depends on `sizeof(Voxel::Volume)` or the object representation of `std::vector`;
+- compile/use test proves `spk::Message message; message << volume;` resolves without explicit serializer calls;
+- deserialize-use test proves `message >> volume;` resolves through the friend operator contract.
 
 ## Resolution provenance
 
 Resolved directly by the project owner on 2026-09-22: prefer sending a complete `Voxel::Volume` through a simple `MyMessage << myVoxelVolume`-style API, with sending just the contiguous cells also considered acceptable internally.
 
 The implementation distinction that `Voxel::Volume` itself is not trivially copyable follows from its owning `std::vector<Voxel::Cell>` member and does not alter the requested call-site API.
+
+The project owner subsequently clarified that the exact desired API is the friend-operator form declared directly inside `Voxel::Volume`; this clarification is incorporated into the resolved decision.
 
 ## Supersession
 
