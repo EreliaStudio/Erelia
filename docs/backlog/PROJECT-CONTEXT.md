@@ -3,6 +3,7 @@
 **Purpose:** give a future planning session a high-density understanding of Erelia without re-reading the entire repository.
 **Authority:** summary only. The GDD and later explicit decisions remain authoritative.
 **GDD snapshot:** see SOURCE-BASELINE.md.
+**Implementation companion:** see IMPLEMENTATION-CONTEXT.md for coding/API taste and project working conventions.
 
 ## 1. Product identity
 
@@ -262,4 +263,4 @@ Additional approved decisions:
 - Server serializes conflicting authoritative mutations (DR-008).
 - Epics directly contain ST-XXX-YY tickets; no mandatory Story level; near-term planning is preferred (DR-010).
 
-Immediate EP-001 blockers are Q-021 and Q-035 through Q-039, plus visual-validation policy Q-029 through Q-031.
+Immediate EP-001 questions are tracked under OPEN_QUESTIONS/: OQ-035 through OQ-039 contain the remaining voxel/network details, while OQ-029 through OQ-031 cover visual/performance validation. OQ-021 is resolved.
