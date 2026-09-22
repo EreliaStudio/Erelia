@@ -6,7 +6,8 @@ This file is the navigation layer over the folder tree.
 
 | Need | Document |
 | --- | --- |
-| Fast project understanding | PROJECT-CONTEXT.md |
+| Fast product/gameplay understanding | PROJECT-CONTEXT.md |
+| Implementation taste and conventions | IMPLEMENTATION-CONTEXT.md |
 | Current code/planning state | CURRENT-STATUS.md |
 | Gameplay source provenance | SOURCE-BASELINE.md |
 | Architecture/design questions | OPEN_QUESTIONS/README.md |
