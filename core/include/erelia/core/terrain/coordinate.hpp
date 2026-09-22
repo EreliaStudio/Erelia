@@ -4,7 +4,7 @@
 
 #include <math/vector3.hpp>
 
-namespace erelia::core::terrain
+namespace core::terrain
 {
 	inline constexpr std::int32_t chunkExtent = 16;
 	inline constexpr float cellWorldExtent = 1.0F;

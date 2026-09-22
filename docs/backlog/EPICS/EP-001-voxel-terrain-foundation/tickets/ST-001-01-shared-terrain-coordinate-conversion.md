@@ -56,7 +56,7 @@ The Core contract accepts a global terrain-cell `spk::Vector3Int` and exposes bo
 - the containing Chunk coordinate as `spk::Vector3Int`;
 - the local cell coordinate as `spk::Vector3Int`.
 
-The implemented public API lives in `core/include/erelia/core/terrain/coordinate.hpp` under `erelia::core::terrain`:
+The implemented public API lives in `core/include/erelia/core/terrain/coordinate.hpp` under `core::terrain`:
 
 ```cpp
 inline constexpr std::int32_t chunkExtent = 16;
@@ -191,7 +191,8 @@ No unresolved question blocks this ticket.
 
 ## Completion evidence
 
-- Production implementation commit: `e67032414ece0c7c00018ee29db03bc1ad842cd4` on `feat/st-001-01-shared-terrain-coordinate-conversion`.
+- Initial production implementation commit: `e67032414ece0c7c00018ee29db03bc1ad842cd4` on `feat/st-001-01-shared-terrain-coordinate-conversion`.
+- Namespace follow-up: the project-owned API uses `core::terrain` rather than a redundant top-level `erelia::` namespace, per explicit project-owner direction.
 - Draft validation PR: #7, targeting `backlog/ep-001-implementation-tickets`.
 - GitHub Actions CI run `35775258869` / run #32:
   - `clang-format`: passed;

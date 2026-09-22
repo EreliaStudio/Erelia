@@ -16,6 +16,8 @@ Historical code under `archive/` may be inspected as inspiration or evidence of 
 
 Prefer semantic namespace/type composition over repeating a domain prefix in every class name.
 
+Do not add a redundant top-level `erelia` C++ namespace inside the Erelia project. Start from the relevant semantic/module namespace instead, for example `core::terrain` or `Voxel`.
+
 Preferred:
 
 ```cpp

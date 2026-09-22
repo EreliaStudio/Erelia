@@ -69,10 +69,10 @@ namespace
 		for (std::size_t axis = 0; axis < globalComponents.size(); ++axis)
 		{
 			EXPECT_GE(localComponents[axis], 0);
-			EXPECT_LT(localComponents[axis], erelia::core::terrain::chunkExtent);
+			EXPECT_LT(localComponents[axis], core::terrain::chunkExtent);
 
 			const auto reconstructed =
-				static_cast<std::int64_t>(chunkComponents[axis]) * erelia::core::terrain::chunkExtent +
+				static_cast<std::int64_t>(chunkComponents[axis]) * core::terrain::chunkExtent +
 				localComponents[axis];
 			EXPECT_EQ(reconstructed, globalComponents[axis]);
 		}
@@ -81,8 +81,8 @@ namespace
 
 TEST(TerrainCoordinate, ExposesFixedTerrainScale)
 {
-	EXPECT_EQ(erelia::core::terrain::chunkExtent, 16);
-	EXPECT_FLOAT_EQ(erelia::core::terrain::cellWorldExtent, 1.0F);
+	EXPECT_EQ(core::terrain::chunkExtent, 16);
+	EXPECT_FLOAT_EQ(core::terrain::cellWorldExtent, 1.0F);
 }
 
 TEST(TerrainCoordinate, ConvertsExactThreeDimensionalFixtures)
@@ -91,13 +91,13 @@ TEST(TerrainCoordinate, ConvertsExactThreeDimensionalFixtures)
 	{
 		SCOPED_TRACE(::testing::Message() << "global=" << fixture.global);
 
-		const auto chunk = erelia::core::terrain::toChunkCoordinate(fixture.global);
-		const auto local = erelia::core::terrain::toLocalCoordinate(fixture.global);
+		const auto chunk = core::terrain::toChunkCoordinate(fixture.global);
+		const auto local = core::terrain::toLocalCoordinate(fixture.global);
 
 		EXPECT_EQ(chunk, fixture.chunk);
 		EXPECT_EQ(local, fixture.local);
-		EXPECT_EQ(erelia::core::terrain::toChunkCoordinate(fixture.global), chunk);
-		EXPECT_EQ(erelia::core::terrain::toLocalCoordinate(fixture.global), local);
+		EXPECT_EQ(core::terrain::toChunkCoordinate(fixture.global), chunk);
+		EXPECT_EQ(core::terrain::toLocalCoordinate(fixture.global), local);
 		expectLocalRangeAndReconstruction(fixture.global, chunk, local);
 	}
 }
@@ -114,8 +114,8 @@ TEST(TerrainCoordinate, ConvertsEachAxisIndependentlyAcrossBoundaries)
 			const auto global = onAxis(axis, fixture.global);
 			const auto expectedChunk = onAxis(axis, fixture.chunk);
 			const auto expectedLocal = onAxis(axis, fixture.local);
-			const auto chunk = erelia::core::terrain::toChunkCoordinate(global);
-			const auto local = erelia::core::terrain::toLocalCoordinate(global);
+			const auto chunk = core::terrain::toChunkCoordinate(global);
+			const auto local = core::terrain::toLocalCoordinate(global);
 
 			EXPECT_EQ(chunk, expectedChunk);
 			EXPECT_EQ(local, expectedLocal);
@@ -130,8 +130,8 @@ TEST(TerrainCoordinate, ConvertsMixedSignsIndependently)
 	constexpr spk::Vector3Int expectedChunk{-2, 1, -1};
 	constexpr spk::Vector3Int expectedLocal{15, 0, 15};
 
-	const auto chunk = erelia::core::terrain::toChunkCoordinate(global);
-	const auto local = erelia::core::terrain::toLocalCoordinate(global);
+	const auto chunk = core::terrain::toChunkCoordinate(global);
+	const auto local = core::terrain::toLocalCoordinate(global);
 
 	EXPECT_EQ(chunk, expectedChunk);
 	EXPECT_EQ(local, expectedLocal);
@@ -146,8 +146,8 @@ TEST(TerrainCoordinate, HandlesRepresentableIntegerExtremesWithoutOverflow)
 	constexpr spk::Vector3Int expectedChunk{-134217728, 134217727, -134217728};
 	constexpr spk::Vector3Int expectedLocal{0, 15, 1};
 
-	const auto chunk = erelia::core::terrain::toChunkCoordinate(global);
-	const auto local = erelia::core::terrain::toLocalCoordinate(global);
+	const auto chunk = core::terrain::toChunkCoordinate(global);
+	const auto local = core::terrain::toLocalCoordinate(global);
 
 	EXPECT_EQ(chunk, expectedChunk);
 	EXPECT_EQ(local, expectedLocal);
