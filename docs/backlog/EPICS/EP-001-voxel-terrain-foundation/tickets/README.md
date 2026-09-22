@@ -6,7 +6,7 @@ Implementation tickets for EP-001 live in this folder and use names such as:
 
 No ST-001 ticket is Ready yet.
 
-The Epic is intentionally blocked on the voxel/network contracts tracked as Q-021 and Q-035 through Q-039, plus the visual-validation policy questions Q-029 through Q-031. Tickets should be created only when their owned public behavior can satisfy the Definition of Ready.
+The Epic still has unresolved details tracked under OPEN_QUESTIONS/: OQ-035 through OQ-039 for voxel/network behavior and OQ-029 through OQ-031 for visual/performance validation. OQ-021 is resolved. Tickets should be created only when their owned public behavior can satisfy the Definition of Ready.
 
 The expected near-term implementation slices are:
 
