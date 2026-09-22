@@ -56,20 +56,22 @@ After restart commit ba32a17771b123fd3ebda2009daa3cca6fb5f8d0:
 
 ## Current planning phase
 
-Architecture decision gates and initial Epic decomposition.
+Initial Epic decomposition — EP-001 voxel terrain foundation.
 
-Q-001 through Q-006 are resolved. The first approved architecture establishes deliberate Core / Server / Client boundaries, Server-only authority for shared/persistent outcomes, direct headless-safe Sparkle Core use from Core, optional non-authoritative Client prediction, and a real dedicated Server process from the first playable.
+Q-001 through Q-008, Q-019, Q-020, Q-028, Q-032, and Q-034 have approved direction. Q-009 and Q-017/Q-018 have approved architectural direction with detailed mechanics intentionally deferred.
 
-Major contracts still unresolved include semantic Client/Server commands, prediction/reconciliation details, identity, persistence, time/determinism, concurrency, serialization, content schemas, and visual-testing infrastructure.
+EP-001 now defines the first implementation milestone: deterministic basic Server terrain Chunks -> real network delivery -> Client meshing/rendering -> temporary free-flight visual inspection.
+
+The immediate blockers are now narrow and technical: terrain coordinates/data representation, Client meshing neighbor rules, first transport/serialization choice, Chunk request/streaming semantics, exact deterministic terrain fixture, and visual/performance validation policy.
 
 See QUESTIONS.md, DECISIONS/, and ARCHITECTURE/.
 
 ## Next
 
-1. Resolve the next protocol/simulation decision batch with the user.
-2. Record real choices in DECISIONS/ and durable rules in ARCHITECTURE/.
-3. Materialize the first high-level Epics as soon as their ownership and contracts are sufficiently stable.
-4. Resolve remaining questions just-in-time around the Epic they block.
+1. Resolve EP-001 voxel/network blockers Q-021 and Q-035 through Q-039.
+2. Resolve visual/performance validation policy Q-029 through Q-031 before final visual acceptance tickets become Ready.
+3. Materialize the first ST-001 implementation tickets as each contract becomes sufficiently explicit.
+4. Keep unrelated future architecture questions deferred until their owning Epic approaches.
 5. Create detailed tickets only when they satisfy the Definition of Ready.
 
 ## Explicit non-goal
@@ -83,3 +85,10 @@ Do not fill this branch with a full game backlog yet. Far-future work should rem
 - DR-002 — Core may depend on Sparkle Core.
 - DR-003 — Dedicated authoritative Server from the first playable.
 - ARCH-001 — Product boundaries and authority model.
+
+
+## First Epic
+
+EP-001 — Voxel Terrain Delivery and Visual Validation is now Draft.
+
+It intentionally excludes production Hero movement, collision, followers, combat, resources, and production world generation. The temporary free-flight controller exists only to inspect rendered terrain.
