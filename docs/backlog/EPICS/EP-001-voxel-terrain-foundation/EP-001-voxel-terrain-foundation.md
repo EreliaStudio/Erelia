@@ -51,7 +51,7 @@ Key rules:
 - shared terrain Chunk/value representation;
 - Chunk coordinate/address representation;
 - shared voxel cell/definition representation required by both Server and Client;
-- shared `spk::Message` serialization for `Voxel::Volume`, exposing direct `message << volume` ergonomics while serializing logical fields/cell storage rather than raw `std::vector` internals;
+- shared `spk::Message` serialization for `Voxel::Volume`, with friend `operator<<` / `operator>>` declarations on `Voxel::Volume` so callers use direct `message << volume` / `message >> volume` syntax while serializing logical fields/cell storage rather than raw `std::vector` internals;
 - deterministic helpers required by generation/serialization/meshing contracts;
 - protocol data structures that both processes need.
 
@@ -101,6 +101,7 @@ The Epic will require deliberate contracts for:
 - voxel cell/definition data sufficient for first rendering;
 - deterministic Chunk generation input/output;
 - Client Chunk request;
+- `Voxel::Volume` friend serialization operators against `spk::Message`;
 - Server Chunk response/rejection;
 - Client Chunk lifetime/cache identity;
 - voxel-data-to-render-mesh conversion.
