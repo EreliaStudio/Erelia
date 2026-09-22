@@ -11,6 +11,7 @@ namespace Voxel
 	struct Cell
 	{
 		using Coordinate = spk::Vector3Int;
+		using PackedType = std::uint32_t;
 
 		enum class Orientation : std::uint8_t
 		{
@@ -27,13 +28,13 @@ namespace Voxel
 		};
 
 	private:
-		std::uint32_t _packed;
+		PackedType _packed;
 
 	public:
 		static const Cell Empty;
 
 		Cell() noexcept;
-		explicit Cell(std::uint32_t packed) noexcept;
+		explicit Cell(PackedType packed) noexcept;
 		Cell(
 			Definition::ID definitionId,
 			Orientation orientation,
@@ -42,6 +43,6 @@ namespace Voxel
 		[[nodiscard]] Definition::ID definitionId() const noexcept;
 		[[nodiscard]] Orientation orientation() const noexcept;
 		[[nodiscard]] FlipOrientation flipOrientation() const noexcept;
-		[[nodiscard]] std::uint32_t packed() const noexcept;
+		[[nodiscard]] PackedType packed() const noexcept;
 	};
 }
