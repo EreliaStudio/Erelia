@@ -134,9 +134,7 @@ namespace Voxel
 
 	bool Volume::contains(const LocalCoordinate &coordinate) const noexcept
 	{
-		return coordinate.x >= 0 &&
-			coordinate.y >= 0 &&
-			coordinate.z >= 0 &&
+		return coordinate.x >= 0 && coordinate.y >= 0 && coordinate.z >= 0 &&
 			static_cast<std::uint32_t>(coordinate.x) < _dimensions.x &&
 			static_cast<std::uint32_t>(coordinate.y) < _dimensions.y &&
 			static_cast<std::uint32_t>(coordinate.z) < _dimensions.z;
