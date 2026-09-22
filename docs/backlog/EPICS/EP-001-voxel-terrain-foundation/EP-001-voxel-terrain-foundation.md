@@ -2,7 +2,7 @@
 
 **Status:** Draft
 **Roadmap phase:** Foundation — first implementation milestone
-**Dependencies:** DR-001, DR-002, DR-003, DR-004, DR-007, DR-009, DR-010; ARCH-001, ARCH-002, ARCH-003
+**Dependencies:** DR-001, DR-002, DR-003, DR-004, DR-007, DR-009, DR-010, DR-011, DR-012, DR-013, DR-014, DR-015, DR-016; ARCH-001, ARCH-002, ARCH-003
 **Primary ownership:** Core + Server + Client
 
 ## Purpose
@@ -58,7 +58,7 @@ Key rules:
 - own the basic deterministic terrain Chunk generator;
 - accept valid Chunk data requests from connected Clients;
 - generate/obtain canonical requested Chunk data;
-- return canonical Chunk data through the selected network transport;
+- return canonical Chunk data through Sparkle Version-0.1.3 networking;
 - reject invalid requests according to the protocol contract.
 
 ### Client
@@ -187,7 +187,6 @@ The Epic requires:
 
 Existing:
 
-- Q-021 — coordinate conventions;
 - Q-029 — golden-image platform;
 - Q-030 — image comparison policy;
 - Q-031 — performance evidence methodology.
@@ -196,11 +195,12 @@ Epic-specific questions added to QUESTIONS.md:
 
 - Q-035 — first terrain voxel/cell representation;
 - Q-036 — Chunk meshing ownership and boundary-neighbor contract;
-- Q-037 — first networking transport and serialization framing;
+- Q-037 — Erelia payload encoding details over the selected Sparkle transport;
 - Q-038 — Chunk request/streaming semantics;
-- Q-039 — exact basic terrain generator fixture.
+- Q-039 — exact basic terrain generator fixture;
+- Q-040 — router-first versus bare-Server-first initial composition.
 
-Q-022 character collision and Q-023 asset import do not block this Epic.
+Q-022 character collision and Q-023 asset import do not block this Epic. Sparkle Version-0.1.3 is the selected networking dependency; no third-party network library is required.
 
 ## Required user decisions
 
