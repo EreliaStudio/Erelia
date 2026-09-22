@@ -1,6 +1,6 @@
 # ST-001-02 — Packed Voxel::Cell value type
 
-**Status:** In Progress
+**Status:** Done
 **Epic:** EP-001
 **Production target(s):** Core
 **Test suite(s):** EreliaCoreTestSuite
@@ -223,10 +223,10 @@ Implemented so far:
 Validation evidence:
 
 - draft PR #8 targets `backlog/ep-001-implementation-tickets`;
-- CI run #55 / run ID `35788589950` passed `clang-format`;
+- CI run #59 / run ID `35789150331` passed `clang-format`;
 - Linux headless Core/Server Debug passed, including configure/build/CTest;
 - Linux headless Core/Server Release passed, including configure/build/CTest;
 - Windows headless Core/Server Debug passed, including configure/build/CTest;
 - Windows headless Core/Server Release passed, including configure/build/CTest.
 
-Required human approval is still outstanding. The ticket remains In Progress and must not be marked Done until the project owner records that approval.
+Human approval was explicitly recorded by the project owner on 22 September 2026 after reviewing the implementation and approving the final `Voxel::Cell::PackedType` naming. All Definition-of-Done requirements owned by this ticket are satisfied, so ST-001-02 is Done. PR #8 remains open against the planning branch until it is merged.
