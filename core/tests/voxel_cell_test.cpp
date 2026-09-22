@@ -8,7 +8,8 @@
 #include <type_traits>
 
 static_assert(std::is_same_v<Voxel::Definition::ID, std::uint32_t>);
-static_assert(sizeof(Voxel::Cell) == sizeof(std::uint32_t));
+static_assert(std::is_same_v<Voxel::Cell::PackedType, std::uint32_t>);
+static_assert(sizeof(Voxel::Cell) == sizeof(Voxel::Cell::PackedType));
 static_assert(std::is_trivially_copyable_v<Voxel::Cell>);
 static_assert(static_cast<std::uint8_t>(Voxel::Cell::Orientation::PositiveX) == 0);
 static_assert(static_cast<std::uint8_t>(Voxel::Cell::Orientation::NegativeX) == 1);
@@ -24,7 +25,7 @@ namespace
 		Voxel::Definition::ID definitionId;
 		Voxel::Cell::Orientation orientation;
 		Voxel::Cell::FlipOrientation flipOrientation;
-		std::uint32_t packed;
+		Voxel::Cell::PackedType packed;
 	};
 
 	constexpr std::array<PackingFixture, 8> packingFixtures = {{
@@ -79,7 +80,7 @@ TEST(VoxelCell, PreservesOrientedEmptyPackedValue)
 
 TEST(VoxelCell, AcceptsAndPreservesAnyRawPackedBits)
 {
-	constexpr std::array<std::uint32_t, 4> packedValues = {
+	constexpr std::array<Voxel::Cell::PackedType, 4> packedValues = {
 		0x00000000u,
 		0x60000000u,
 		0xA1234567u,
