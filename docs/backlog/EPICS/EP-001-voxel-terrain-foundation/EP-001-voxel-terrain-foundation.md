@@ -133,11 +133,11 @@ The complete dependency-ordered table is maintained in [tickets/README.md](ticke
 
 - **Done:** ST-001-01.
 - **In Progress:** none.
-- **Ready:** none.
-- **Blocked:** ST-001-02, ST-001-03, ST-001-05, ST-001-06, ST-001-08, ST-001-09, ST-001-11, ST-001-12, ST-001-15, ST-001-16.
+- **Ready:** ST-001-02.
+- **Blocked:** ST-001-03, ST-001-05, ST-001-06, ST-001-08, ST-001-09, ST-001-11, ST-001-12, ST-001-15, ST-001-16.
 - **Draft:** ST-001-04, ST-001-07, ST-001-10, ST-001-13, ST-001-14.
 
-The first implementation ticket, **ST-001-01 — Shared terrain coordinate conversion**, is Done after PR #7 was merged on 22 September 2026. No follow-on ticket is currently Ready; OQ-035 is the immediate blocker for ST-001-02 / ST-001-03.
+The first implementation ticket, **ST-001-01 — Shared terrain coordinate conversion**, is Done after PR #7 was merged on 22 September 2026. The Cell-specific portion of OQ-035 is now resolved sufficiently for **ST-001-02 — Packed Voxel::Cell value type** to be Ready. OQ-035 remains partially resolved because its remaining Volume storage/editor/lifetime decisions still block ST-001-03.
 
 ## Epic-level integration scenarios
 
