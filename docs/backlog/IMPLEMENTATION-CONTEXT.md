@@ -93,10 +93,16 @@ The active direction intentionally keeps the voxel data representation small and
 
 ### `Voxel::Cell`
 
-- one Cell fits in exactly one `std::uint32_t`;
-- it remains trivially copyable;
-- packed concepts are Definition ID + horizontal Orientation + vertical Flip;
-- Definition ID 0 means empty;
+- one Cell stores exactly one private `std::uint32_t` and remains exactly 32 bits;
+- it remains trivially copyable and immutable after construction;
+- lower 29 bits are Definition ID, bits 29-30 are `Orientation`, and bit 31 is `FlipOrientation`;
+- `Orientation` is exactly `PositiveX = 0`, `NegativeX = 1`, `PositiveZ = 2`, `NegativeZ = 3`;
+- `FlipOrientation` is exactly `PositiveY = 0`, `NegativeY = 1`;
+- Definition ID 0 means semantically empty, but its Orientation/FlipOrientation bits remain valid and are not canonicalized away;
+- default construction and `Voxel::Cell::Empty` use packed zero;
+- every raw `std::uint32_t` is a valid packed Cell and is preserved exactly;
+- logical-field construction rejects Definition IDs above `0x1FFFFFFF` or invalid enum-domain values with `spk::Exception`;
+- expose logical fields through mask/shift getters rather than C++ bitfields so the packed layout is explicit and portable;
 - the packed representation is useful for compact storage/network transfer.
 
 ### `Voxel::Volume`
@@ -231,7 +237,7 @@ Before implementation code assumes an answer, check the corresponding files unde
 
 For EP-001 in particular, the still-partial questions include:
 
-- OQ-035 — remaining `Voxel::Cell` / `Voxel::Volume` details such as canonical empty/storage/editor behavior;
+- OQ-035 — remaining `Voxel::Volume` storage/index/editor/lifetime details; the `Voxel::Cell` contract needed by ST-001-02 is resolved;
 - OQ-036 — missing-neighbor/remesh policy for terrain meshing;
 - OQ-037 — remaining scalar wire portability policy;
 - OQ-038 — request/cache/eviction/partial-response details;
