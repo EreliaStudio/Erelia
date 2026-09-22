@@ -31,6 +31,8 @@ The Server resolves/generates requested Chunks and returns a response containing
 
 for Chunks successfully supplied.
 
+`Voxel::Volume` is serialized through the shared direct `spk::Message << volume` / `>> volume` contract from DR-017.
+
 The Client alone owns its view/loading-region policy. The Server does not dictate the Client render/view radius.
 
 For the first milestone the Client view policy may be:
@@ -47,7 +49,8 @@ The protocol should allow that policy to change without changing Server terrain 
 - Server does not need to know why the Client wants a Chunk in order to return canonical terrain data;
 - Client-side loading-radius policy is not part of the Server contract;
 - transport/framing uses Sparkle Version-0.1.3 networking; Erelia still owns the payload byte layout;
-- duplicate-coordinate handling, partial-success/rejection semantics, cache/eviction policy, and exact payload encoding remain unresolved detailed contracts.
+- duplicate-coordinate handling, partial-success/rejection semantics, and cache/eviction policy remain unresolved detailed contracts;
+- Volume payload encoding is centralized behind DR-017 rather than repeated manually at each Chunk call site.
 
 ## Required tests
 
