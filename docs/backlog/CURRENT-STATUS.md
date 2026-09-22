@@ -34,7 +34,7 @@ The project was restarted on 22 September 2026. The active codebase is a deliber
 - current GDD and its 34 illustration assets under docs/gdd/;
 - historical source and historical backlog isolated under archive/.
 
-The original status functions remain smoke scaffolding. Core now additionally contains the first production EP-001 contract: shared terrain coordinate conversion with acceptance coverage in `EreliaCoreTestSuite`.
+The original status functions remain smoke scaffolding. Core now contains the first two completed EP-001 contracts on the active implementation history: shared terrain coordinate conversion, plus the packed `Voxel::Cell` / `Voxel::Definition::ID` representation with acceptance coverage in `EreliaCoreTestSuite`. ST-001-02 remains on its feature branch until PR #8 is merged into the planning baseline.
 
 ## What was just implemented
 
@@ -57,6 +57,7 @@ After restart commit ba32a17771b123fd3ebda2009daa3cca6fb5f8d0:
 - Recorded four additional Draft-ticket specification gaps rather than inventing contracts: first Definition/Shape geometry/resources; Server/Client endpoint lifecycle/configuration; deterministic render fixture/material/lifecycle; full temporary inspection input/numeric camera semantics.
 - Updated the EP-001 capability coverage and ticket index.
 - ST-001-01 is merged into the planning baseline and marked Done; no OQ status was changed by the merge.
+- ST-001-02 is Done after CI run #59 and explicit project-owner approval; PR #8 remains open against the planning baseline, and OQ-035 stays partially resolved only for the remaining Volume questions.
 - Future implementation tickets should continue to use dedicated feature branches cut from the current planning baseline.
 
 ## Current implementation phase
@@ -101,11 +102,11 @@ See EP-001 `tickets/README.md` for the full status/dependency table.
 
 1. Merge completed PR #8 into `backlog/ep-001-implementation-tickets` when desired; ST-001-02 itself is already Done by its Definition of Done.
 2. Resolve the remaining Volume storage/index/editor/lifetime decisions in OQ-035 before promoting ST-001-03 to Ready; do not infer them from the completed Cell contract.
-4. Resolve the minimal Definition/Shape specification gap and OQ-039 before generator/mesher fixtures become Ready.
-5. Resolve OQ-037 / OQ-038 before Chunk codec, Server handler, and Client cache/request coordination become Ready.
-6. Resolve OQ-036 before Client boundary meshing and adjacent-Chunk integration become Ready.
-7. Resolve endpoint/connection lifecycle, render-fixture/material, and inspection-control Draft gaps when those tickets approach implementation.
-8. Resolve OQ-029 through OQ-031 before final visual/performance validation.
+3. Resolve the minimal Definition/Shape specification gap and OQ-039 before generator/mesher fixtures become Ready.
+4. Resolve OQ-037 / OQ-038 before Chunk codec, Server handler, and Client cache/request coordination become Ready.
+5. Resolve OQ-036 before Client boundary meshing and adjacent-Chunk integration become Ready.
+6. Resolve endpoint/connection lifecycle, render-fixture/material, and inspection-control Draft gaps when those tickets approach implementation.
+7. Resolve OQ-029 through OQ-031 before final visual/performance validation.
 
 ## Explicit non-goal
 
