@@ -10,7 +10,7 @@
 
 static_assert(std::is_same_v<Voxel::Cell::Coordinate, spk::Vector3Int>);
 static_assert(std::is_same_v<Voxel::Volume::LocalCoordinate, spk::Vector3Int>);
-static_assert(std::is_same_v<Voxel::Volume::VoxelSize, float>);
+static_assert(std::is_same_v<Voxel::Volume::UnitSize, float>);
 static_assert(std::is_base_of_v<Voxel::Volume, Chunk>);
 static_assert(std::is_same_v<Chunk::Coordinate, spk::Vector3Int>);
 
@@ -86,10 +86,9 @@ namespace
 	}
 }
 
-TEST(TerrainCoordinate, ExposesFixedTerrainScale)
+TEST(TerrainCoordinate, ExposesFixedChunkExtent)
 {
 	EXPECT_EQ(Chunk::Extent, 16);
-	EXPECT_FLOAT_EQ(Chunk::UnitSize, 1.0F);
 }
 
 TEST(TerrainCoordinate, ConvertsExactThreeDimensionalFixtures)
