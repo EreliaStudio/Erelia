@@ -1,6 +1,6 @@
 # ST-001-02 — Packed Voxel::Cell value type
 
-**Status:** Ready
+**Status:** In Progress
 **Epic:** EP-001
 **Production target(s):** Core
 **Test suite(s):** EreliaCoreTestSuite
@@ -205,4 +205,16 @@ Ready: another implementation agent can write the required acceptance tests befo
 
 ## Completion evidence
 
-To leave In Progress and become Done, the implementation must exist on its dedicated feature branch, every acceptance test above must pass in the relevant Core/headless regression suites, documentation must remain consistent with the implemented Cell contract, and required human approval must be recorded.
+Implementation branch: `feat/st-001-02-packed-voxel-cell`.
+
+Implemented so far:
+
+- acceptance tests added first in `core/tests/voxel_cell_test.cpp`;
+- `Voxel::Cell` implemented as one private packed `std::uint32_t`;
+- `Voxel::Cell::Empty` declared in the header and defined in `core/src/voxel/cell.cpp`;
+- exact Orientation / FlipOrientation mappings and mask/shift getters implemented;
+- raw packed construction preserves every `std::uint32_t`;
+- logical construction rejects capacity/enum-domain violations with `spk::Exception`;
+- Core CMake/test registration updated.
+
+Validation and required human approval remain outstanding. The ticket must not be marked Done until the relevant Core/headless regression evidence passes and the project owner records approval.
