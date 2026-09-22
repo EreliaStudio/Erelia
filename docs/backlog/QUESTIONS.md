@@ -241,7 +241,7 @@ Confirm whether:
 
 ### Q-037 — What networking transport and serialization/framing should EP-001 use?
 
-**Status:** Mostly resolved — use Sparkle Version-0.1.3 networking and direct shared `spk::Message << Voxel::Volume` / read-equivalent serialization. The serializer writes Volume logical state, not the C++ object representation. See DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md and DR-017-VOXEL-VOLUME-MESSAGE-SERIALIZATION.md.
+**Status:** Mostly resolved — use Sparkle Version-0.1.3 networking and friend `spk::Message` insertion/extraction operators declared directly on `Voxel::Volume`, giving `message << volume` / `message >> volume` syntax. The operators serialize Volume logical state, not the C++ object representation. See DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md and DR-017-VOXEL-VOLUME-MESSAGE-SERIALIZATION.md.
 
 One portability detail remains open: whether Erelia requires a fixed endian/platform-independent scalar wire representation, or whether Sparkle/native representation compatibility across the project's supported Client/Server platforms is sufficient for the first milestone.
 
