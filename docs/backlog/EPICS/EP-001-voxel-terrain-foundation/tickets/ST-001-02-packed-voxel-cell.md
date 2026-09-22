@@ -34,6 +34,7 @@ Server, Client, graphics-only Sparkle facilities, and archived code as a require
 
 - complete logical representation fits exactly in one `std::uint32_t`;
 - trivially copyable;
+- `Voxel::Definition::ID` is the semantic Definition identifier type and is an alias of `std::uint32_t`;
 - lower 29 bits: Definition ID;
 - bits 29-30: horizontal `Voxel::Cell::Orientation`;
 - bit 31: `Voxel::Cell::FlipOrientation`;
@@ -64,7 +65,7 @@ The type provides:
 
 - default construction to packed zero;
 - explicit construction from a raw packed `std::uint32_t`;
-- construction from Definition ID + `Orientation` + `FlipOrientation`;
+- construction from `Voxel::Definition::ID` + `Orientation` + `FlipOrientation`;
 - read-only getters for Definition ID, Orientation, FlipOrientation, and packed value;
 - static `Voxel::Cell::Empty`, declared on the type and defined out-of-line in the Cell source file.
 
@@ -214,7 +215,7 @@ Implemented so far:
 - `Voxel::Cell::Empty` declared in the header and defined in `core/src/voxel/cell.cpp`;
 - exact Orientation / FlipOrientation mappings and mask/shift getters implemented in `cell.cpp`;
 - raw packed construction preserves every `std::uint32_t` and is implemented in `cell.cpp`;
-- logical construction rejects capacity/enum-domain violations with `spk::Exception`;
+- logical construction takes `Voxel::Definition::ID` and rejects capacity/enum-domain violations with `spk::Exception`;
 - Core CMake/test registration updated.
 
 Validation evidence:
