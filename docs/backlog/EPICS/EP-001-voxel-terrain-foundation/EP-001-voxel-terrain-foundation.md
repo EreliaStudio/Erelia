@@ -2,7 +2,7 @@
 
 **Status:** Draft
 **Roadmap phase:** Foundation — first implementation milestone
-**Dependencies:** DR-001, DR-002, DR-003, DR-004, DR-007, DR-009, DR-010, DR-011, DR-012, DR-013, DR-014, DR-015, DR-016; ARCH-001, ARCH-002, ARCH-003
+**Dependencies:** DR-001, DR-002, DR-003, DR-004, DR-007, DR-009, DR-010, DR-011, DR-012, DR-013, DR-014, DR-015, DR-016, DR-017; ARCH-001, ARCH-002, ARCH-003, ARCH-004
 **Primary ownership:** Core + Server + Client
 
 ## Purpose
@@ -38,6 +38,7 @@ Key rules:
 
 - Core owns shared Chunk/voxel representations and generic algorithms that both Server and Client require.
 - Server owns Chunk generation and the canonical terrain data returned to a Client.
+- EreliaServer starts on `spk::NodeRouter`; EP-001 Chunk handling belongs to the first in-process terrain `spk::LocalNode`.
 - Client never generates authoritative terrain as a substitute for Server data.
 - Client owns meshing/rendering unless a later explicit decision changes that boundary.
 - the inspection controller is temporary validation tooling, not the production exploration movement controller;
@@ -50,6 +51,7 @@ Key rules:
 - shared terrain Chunk/value representation;
 - Chunk coordinate/address representation;
 - shared voxel cell/definition representation required by both Server and Client;
+- shared `spk::Message` serialization for `Voxel::Volume`, exposing direct `message << volume` ergonomics while serializing logical fields/cell storage rather than raw `std::vector` internals;
 - deterministic helpers required by generation/serialization/meshing contracts;
 - protocol data structures that both processes need.
 
@@ -58,6 +60,7 @@ Key rules:
 - own the basic deterministic terrain Chunk generator;
 - accept valid Chunk data requests from connected Clients;
 - generate/obtain canonical requested Chunk data;
+- receive Chunk request messages through the Server `spk::NodeRouter` terrain route;
 - return canonical Chunk data through Sparkle Version-0.1.3 networking;
 - reject invalid requests according to the protocol contract.
 
@@ -195,12 +198,11 @@ Epic-specific questions added to QUESTIONS.md:
 
 - Q-035 — first terrain voxel/cell representation;
 - Q-036 — Chunk meshing ownership and boundary-neighbor contract;
-- Q-037 — Erelia payload encoding details over the selected Sparkle transport;
+- Q-037 — only the remaining scalar byte-order/platform-compatibility policy for Erelia payloads;
 - Q-038 — Chunk request/streaming semantics;
 - Q-039 — exact basic terrain generator fixture;
-- Q-040 — router-first versus bare-Server-first initial composition.
 
-Q-022 character collision and Q-023 asset import do not block this Epic. Sparkle Version-0.1.3 is the selected networking dependency; no third-party network library is required.
+Q-040 is resolved: EP-001 is router-first with one terrain `LocalNode`. Q-022 character collision and Q-023 asset import do not block this Epic. Sparkle Version-0.1.3 is the selected networking dependency; no third-party network library is required.
 
 ## Required user decisions
 
