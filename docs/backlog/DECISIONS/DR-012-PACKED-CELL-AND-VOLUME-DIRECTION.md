@@ -53,10 +53,12 @@ This abstraction is intended to represent groups of voxel cells generically, inc
 ## Consequences
 
 - Terrain network payloads can represent cells compactly as 32-bit packed values.
+- `Voxel::Volume` is an owning type containing `std::vector<Voxel::Cell>` and therefore is not itself trivially copyable; direct network use is provided by explicit logical serialization, not raw object copying. See DR-017.
 - Server and Client share the same Cell semantics in Core.
 - `Voxel::Volume` is not inherently a world Chunk: world position/Chunk coordinate remains separate semantic information.
 - EP-001 network responses may therefore naturally contain `{chunkCoordinate, volumeData}`.
 - The exact storage order, empty-cell canonicalization, editor/versioning behavior, and wire byte-order remain explicit follow-up contracts and are not inferred from the archive.
+- `spk::Message << Voxel::Volume` / `>>` is the approved ergonomic serialization direction; see DR-017.
 
 ## Required tests
 
