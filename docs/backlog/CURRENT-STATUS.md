@@ -2,7 +2,7 @@
 
 **Updated:** 22 September 2026
 **Planning branch:** backlog/ep-001-implementation-tickets
-**Active implementation branch observed:** feat/st-001-02-packed-voxel-cell
+**Active implementation branch observed:** none; completed ST-001-02 branch `feat/st-001-02-packed-voxel-cell` remains open via PR #8
 
 ## Branch state
 
@@ -10,7 +10,7 @@ Erelia currently uses master as its default branch.
 
 The ticket-materialization baseline remains isolated on `backlog/ep-001-implementation-tickets`, cut from master.
 
-ST-001-01 was implemented on `feat/st-001-01-shared-terrain-coordinate-conversion` and merged through PR #7 into the planning branch on 22 September 2026. The planning branch is now the current implementation/backlog baseline for the next ticket. There is no active implementation feature branch at this status point.
+ST-001-01 was implemented on `feat/st-001-01-shared-terrain-coordinate-conversion` and merged through PR #7 into the planning branch on 22 September 2026. ST-001-02 is complete on `feat/st-001-02-packed-voxel-cell`; PR #8 remains open against the planning branch. There is no active implementation ticket at this status point.
 
 No main branch is assumed.
 
@@ -67,19 +67,19 @@ The Epic remains Draft overall because most later contracts still depend on unre
 
 ### Active implementation ticket
 
-**ST-001-02 — Packed Voxel::Cell value type** is **In Progress** on `feat/st-001-02-packed-voxel-cell`.
+None.
 
-Its acceptance tests were added before production code. The current implementation keeps only the public type contract and single private `Voxel::Cell::PackedType` (`std::uint32_t`) in the header; constructors, masks/shifts, getters, `Voxel::Cell::Empty`, and `spk::Exception` validation live in `cell.cpp`. PR #8 CI run #55 (run ID `35788589950`) passed clang-format and the Linux/Windows headless Core/Server Debug + Release matrix, including CTest, with `Voxel::Definition::ID` as the Cell Definition identity type. Required human approval is still pending, so the ticket is not Done.
+**ST-001-02 — Packed Voxel::Cell value type** is **Done** on `feat/st-001-02-packed-voxel-cell`. The implementation exposes `Voxel::Definition::ID` and `Voxel::Cell::PackedType` as semantic aliases of `std::uint32_t`, keeps the Cell exactly one packed value, and places constructors/masks/getters/validation in `cell.cpp`. PR #8 CI run #59 (run ID `35789150331`) passed clang-format and the Linux/Windows headless Core/Server Debug + Release matrix, including CTest. The project owner explicitly approved the final implementation on 22 September 2026. PR #8 remains open against the planning branch.
 
 **ST-001-01 — Shared terrain coordinate conversion** remains **Done**. Its implementation and acceptance tests were validated by the required headless CI matrix, and the project owner's merge of PR #7 on 22 September 2026 records the required human completion approval.
 
 ### Next Ready ticket
 
-None while ST-001-02 is actively being implemented. The remaining OQ-035 decisions apply to ST-001-03 and later Volume work.
+None currently. ST-001-03 remains blocked by the unresolved Volume-specific portions of OQ-035; ST-001-04 remains Draft because its Definition/Shape contract and OQ-039 fixture details are not yet sufficiently specified.
 
 ### Existing OQ blockers
 
-- OQ-035 — remaining Volume storage/indexing, validation/editor/lifetime details. Its Cell-specific portion is sufficiently resolved for ST-001-02.
+- OQ-035 — remaining Volume storage/indexing, validation/editor/lifetime details. Its Cell-specific portion is complete in Done ticket ST-001-02.
 - OQ-036 — missing-neighbor/remesh behavior.
 - OQ-037 — scalar wire portability and remaining decode contract.
 - OQ-038 — duplicate/outstanding requests, request limits, cache/retention, partial responses/rejections/retry.
@@ -99,8 +99,8 @@ See EP-001 `tickets/README.md` for the full status/dependency table.
 
 ## Next
 
-1. Implement ST-001-02 on a dedicated feature branch cut from the current planning baseline; its Cell contract now satisfies the Definition of Ready.
-2. Keep OQ-035 partially resolved and defer its remaining Volume storage/index/editor/lifetime decisions to ST-001-03 rather than inventing them.
+1. Merge completed PR #8 into `backlog/ep-001-implementation-tickets` when desired; ST-001-02 itself is already Done by its Definition of Done.
+2. Resolve the remaining Volume storage/index/editor/lifetime decisions in OQ-035 before promoting ST-001-03 to Ready; do not infer them from the completed Cell contract.
 4. Resolve the minimal Definition/Shape specification gap and OQ-039 before generator/mesher fixtures become Ready.
 5. Resolve OQ-037 / OQ-038 before Chunk codec, Server handler, and Client cache/request coordination become Ready.
 6. Resolve OQ-036 before Client boundary meshing and adjacent-Chunk integration become Ready.
@@ -118,6 +118,6 @@ EP-001 is constrained by DR-001 through DR-004, DR-007, DR-009 through DR-017 an
 
 ## First Epic
 
-EP-001 — Voxel Terrain Delivery and Visual Validation remains Draft, with 16 materialized implementation tickets, ST-001-01 Done, and ST-001-02 Ready. OQ-035 remains partially resolved because its remaining Volume decisions still block ST-001-03.
+EP-001 — Voxel Terrain Delivery and Visual Validation remains Draft, with 16 materialized implementation tickets and ST-001-01 / ST-001-02 Done. No follow-on ticket is currently Ready. OQ-035 remains partially resolved because its remaining Volume decisions still block ST-001-03.
 
 It intentionally excludes production Hero movement, collision, followers, combat, resources, and production world generation. The temporary free-flight controller exists only to inspect rendered terrain.
