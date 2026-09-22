@@ -19,15 +19,17 @@ This file is the navigation layer over the folder tree.
 
 ## Architecture documents
 
-None approved yet.
+- [ARCH-001 — Product boundaries and authority model](ARCHITECTURE/ARCH-001-PRODUCT-BOUNDARIES.md)
 
 Architecture documents should be added only after a durable cross-cutting invariant has been explicitly decided.
 
 ## Decision records
 
-None resolved yet in the greenfield backlog.
+- [DR-001 — Long-term Core / Server / Client boundaries](DECISIONS/DR-001-PRODUCT-BOUNDARIES.md)
+- [DR-002 — Core may depend on Sparkle Core](DECISIONS/DR-002-SPARKLE-CORE-DEPENDENCY.md)
+- [DR-003 — Dedicated authoritative server from the first playable](DECISIONS/DR-003-DEDICATED-SERVER-FIRST.md)
 
-QUESTIONS.md contains the initial question register. Create a DR only when a real choice has concrete alternatives that need durable resolution.
+QUESTIONS.md contains the remaining question register. Create a DR only when a real choice has concrete alternatives that need durable resolution.
 
 ## Epics
 
