@@ -4,6 +4,8 @@
 
 #include <math/vector3.hpp>
 
+#include "erelia/core/voxel/definition.hpp"
+
 namespace Voxel
 {
 	struct Cell
@@ -33,11 +35,11 @@ namespace Voxel
 		Cell() noexcept;
 		explicit Cell(std::uint32_t packed) noexcept;
 		Cell(
-			std::uint32_t definitionId,
+			Definition::ID definitionId,
 			Orientation orientation,
 			FlipOrientation flipOrientation);
 
-		[[nodiscard]] std::uint32_t definitionId() const noexcept;
+		[[nodiscard]] Definition::ID definitionId() const noexcept;
 		[[nodiscard]] Orientation orientation() const noexcept;
 		[[nodiscard]] FlipOrientation flipOrientation() const noexcept;
 		[[nodiscard]] std::uint32_t packed() const noexcept;
