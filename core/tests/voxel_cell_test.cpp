@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <type_traits>
 
+static_assert(std::is_same_v<Voxel::Definition::ID, std::uint32_t>);
 static_assert(sizeof(Voxel::Cell) == sizeof(std::uint32_t));
 static_assert(std::is_trivially_copyable_v<Voxel::Cell>);
 static_assert(static_cast<std::uint8_t>(Voxel::Cell::Orientation::PositiveX) == 0);
@@ -20,7 +21,7 @@ namespace
 {
 	struct PackingFixture
 	{
-		std::uint32_t definitionId;
+		Voxel::Definition::ID definitionId;
 		Voxel::Cell::Orientation orientation;
 		Voxel::Cell::FlipOrientation flipOrientation;
 		std::uint32_t packed;
