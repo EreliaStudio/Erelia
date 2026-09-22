@@ -32,7 +32,8 @@ Server, Client, graphics-only Sparkle facilities, and archived code as a require
 
 ## Owned behavior
 
-- complete logical representation fits exactly in one `std::uint32_t`;
+- `Voxel::Cell::PackedType` is the semantic packed representation type and aliases `std::uint32_t`;
+- complete logical representation fits exactly in one `PackedType`;
 - trivially copyable;
 - `Voxel::Definition::ID` is the semantic Definition identifier type and is an alias of `std::uint32_t`;
 - lower 29 bits: Definition ID;
@@ -44,9 +45,9 @@ Server, Client, graphics-only Sparkle facilities, and archived code as a require
 - Orientation/FlipOrientation are still valid and preserved when Definition ID is 0;
 - default construction produces packed `0x00000000`;
 - `Voxel::Cell::Empty` is the explicit static packed-zero empty value;
-- construction from any packed `std::uint32_t` is valid and preserves it exactly;
+- construction from any packed `PackedType` is valid and preserves it exactly;
 - construction from logical fields validates their domains;
-- packed representation can be retrieved as `std::uint32_t`;
+- packed representation can be retrieved as `PackedType`;
 - maximum packed Definition ID is `0x1FFFFFFF`;
 - the Cell is immutable after construction.
 
@@ -59,12 +60,12 @@ Server, Client, graphics-only Sparkle facilities, and archived code as a require
 
 ## Public contract
 
-`Voxel::Cell` owns one private packed `std::uint32_t`, avoiding C++ bitfields and their implementation-defined physical layout.
+`Voxel::Cell` owns one private `PackedType`, avoiding C++ bitfields and their implementation-defined physical layout.
 
 The type provides:
 
 - default construction to packed zero;
-- explicit construction from a raw packed `std::uint32_t`;
+- explicit construction from a raw packed `PackedType`;
 - construction from `Voxel::Definition::ID` + `Orientation` + `FlipOrientation`;
 - read-only getters for Definition ID, Orientation, FlipOrientation, and packed value;
 - static `Voxel::Cell::Empty`, declared on the type and defined out-of-line in the Cell source file.
@@ -73,11 +74,12 @@ Exact getter/constructor spelling may be selected during implementation as long 
 
 ## Invariants
 
-- `sizeof(Voxel::Cell) == sizeof(std::uint32_t)`.
+- `std::is_same_v<Voxel::Cell::PackedType, std::uint32_t>`.
+- `sizeof(Voxel::Cell) == sizeof(Voxel::Cell::PackedType)`.
 - `std::is_trivially_copyable_v<Voxel::Cell>`.
 - Definition ID, Orientation, and FlipOrientation round-trip through the packed value without overlap.
 - Definition ID 0 is semantically empty regardless of Orientation/FlipOrientation bits.
-- raw packed construction never canonicalizes or rejects a `std::uint32_t`.
+- raw packed construction never canonicalizes or rejects a `PackedType`.
 
 ## State transitions
 
@@ -115,7 +117,7 @@ Shared data only; no authority semantics.
 
 - Do not widen the Cell beyond 32 bits.
 - Do not use C++ bitfields for the stored representation.
-- Store one private `std::uint32_t` and use masks/shifts for field extraction/packing.
+- Store one private `Voxel::Cell::PackedType` and use masks/shifts for field extraction/packing.
 - Use `spk::Exception` for logical-construction validation failures.
 - Keep the Cell immutable after construction.
 - Declare `Voxel::Cell::Empty` in the header and define it in the Cell source file.
@@ -211,10 +213,10 @@ Implementation branch: `feat/st-001-02-packed-voxel-cell`.
 Implemented so far:
 
 - acceptance tests added first in `core/tests/voxel_cell_test.cpp`;
-- `Voxel::Cell` implemented as one private packed `std::uint32_t`;
+- `Voxel::Cell::PackedType` aliases `std::uint32_t`, and `Voxel::Cell` stores exactly one private `PackedType`;
 - `Voxel::Cell::Empty` declared in the header and defined in `core/src/voxel/cell.cpp`;
 - exact Orientation / FlipOrientation mappings and mask/shift getters implemented in `cell.cpp`;
-- raw packed construction preserves every `std::uint32_t` and is implemented in `cell.cpp`;
+- raw packed construction preserves every `PackedType` value and is implemented in `cell.cpp`;
 - logical construction takes `Voxel::Definition::ID` and rejects capacity/enum-domain violations with `spk::Exception`;
 - Core CMake/test registration updated.
 
