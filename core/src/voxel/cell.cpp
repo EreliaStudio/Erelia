@@ -4,11 +4,11 @@
 
 namespace
 {
-	constexpr std::uint32_t DefinitionMask = 0x1FFFFFFFu;
-	constexpr std::uint32_t OrientationMask = 0x60000000u;
-	constexpr std::uint32_t FlipOrientationMask = 0x80000000u;
-	constexpr std::uint32_t OrientationShift = 29u;
-	constexpr std::uint32_t FlipOrientationShift = 31u;
+	constexpr Voxel::Cell::PackedType DefinitionMask = 0x1FFFFFFFu;
+	constexpr Voxel::Cell::PackedType OrientationMask = 0x60000000u;
+	constexpr Voxel::Cell::PackedType FlipOrientationMask = 0x80000000u;
+	constexpr Voxel::Cell::PackedType OrientationShift = 29u;
+	constexpr Voxel::Cell::PackedType FlipOrientationShift = 31u;
 }
 
 namespace Voxel
@@ -20,7 +20,7 @@ namespace Voxel
 	{
 	}
 
-	Cell::Cell(std::uint32_t packed) noexcept :
+	Cell::Cell(PackedType packed) noexcept :
 		_packed(packed)
 	{
 	}
@@ -71,7 +71,7 @@ namespace Voxel
 			(_packed & FlipOrientationMask) >> FlipOrientationShift);
 	}
 
-	std::uint32_t Cell::packed() const noexcept
+	Cell::PackedType Cell::packed() const noexcept
 	{
 		return _packed;
 	}
