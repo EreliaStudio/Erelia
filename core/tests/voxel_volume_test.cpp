@@ -16,9 +16,8 @@ static_assert(std::is_copy_constructible_v<Voxel::Volume>);
 static_assert(std::is_copy_assignable_v<Voxel::Volume>);
 static_assert(std::is_move_constructible_v<Voxel::Volume>);
 static_assert(std::is_move_assignable_v<Voxel::Volume>);
-static_assert(std::is_same_v<
-	decltype(std::declval<const Voxel::Volume &>().cells()),
-	std::span<const Voxel::Cell>>);
+static_assert(
+	std::is_same_v<decltype(std::declval<const Voxel::Volume &>().cells()), std::span<const Voxel::Cell>>);
 
 namespace
 {
