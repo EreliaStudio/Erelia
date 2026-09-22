@@ -6,8 +6,7 @@ namespace Voxel
 {
 	const Cell Cell::Empty{};
 
-	Cell::Cell(std::uint32_t packed) noexcept
-		: _packed(packed)
+	Cell::Cell(std::uint32_t packed) noexcept : _packed(packed)
 	{
 	}
 
