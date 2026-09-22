@@ -15,19 +15,16 @@ namespace Voxel
 		}
 
 		constexpr auto maximum = std::numeric_limits<std::size_t>::max();
-		std::size_t count = 1;
+		const auto sizeX = static_cast<std::size_t>(dimensions.x);
+		const auto sizeY = static_cast<std::size_t>(dimensions.y);
+		const auto sizeZ = static_cast<std::size_t>(dimensions.z);
 
-		for (const auto dimension : {dimensions.x, dimensions.y, dimensions.z})
+		if (sizeY > maximum / sizeX || sizeZ > maximum / (sizeX * sizeY))
 		{
-			const auto value = static_cast<std::size_t>(dimension);
-			if (value > maximum / count)
-			{
-				throw spk::Exception("Voxel::Volume cell count exceeds std::size_t capacity");
-			}
-			count *= value;
+			throw spk::Exception("Voxel::Volume cell count exceeds std::size_t capacity");
 		}
 
-		return count;
+		return sizeX * sizeY * sizeZ;
 	}
 
 	Volume::UnitSize Volume::_validatedUnitSize(UnitSize unitSize)
