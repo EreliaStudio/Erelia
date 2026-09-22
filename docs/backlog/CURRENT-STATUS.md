@@ -3,13 +3,15 @@
 **Updated:** 22 September 2026
 **Planning branch:** backlog/greenfield-planning
 **Active implementation branch observed:** master
-**Observed master HEAD:** 3a37ff2cd3b69024a8098bc9dbf6fc4d443f9f6d
+**Observed master HEAD:** fa27429734a406fc4cfaea43207e0ac7f5e68b88
 
 ## Branch state
 
 Erelia currently uses master as its default branch.
 
 No main branch existed when backlog/greenfield-planning was created. The eventual merge target therefore needs an explicit decision if the repository is intended to move from master to main.
+
+The planning branch was initially cut from master at 3a37ff2cd3b69024a8098bc9dbf6fc4d443f9f6d. When master later advanced with the GDD import, the planning branch was synchronized through fa27429734a406fc4cfaea43207e0ac7f5e68b88 without force-updating either branch.
 
 ## What exists now
 
@@ -28,6 +30,7 @@ The project was restarted on 22 September 2026. The active codebase is a deliber
 - Linux/Windows headless CI for Core/Server;
 - Windows graphical Client CI in Debug and Release;
 - formatting checks;
+- current GDD and its 34 illustration assets under docs/gdd/;
 - historical source and historical backlog isolated under archive/.
 
 The current status implementations/tests are smoke scaffolding only. They verify project wiring, linking, and test discovery rather than established gameplay architecture.
@@ -38,12 +41,26 @@ After restart commit ba32a17771b123fd3ebda2009daa3cca6fb5f8d0:
 
 1. a08c8d0d3e8cef7a26db519a4475c10561e5e33d — base folder architecture for the new Erelia project.
 2. 3a37ff2cd3b69024a8098bc9dbf6fc4d443f9f6d — tests moved under their owning layers, with CMake/CI/VS Code paths updated.
+3. fa27429734a406fc4cfaea43207e0ac7f5e68b88 — current GDD and its illustration assets added to the active repository.
+
+## Backlog work completed on this branch
+
+- Read the complete current GDD.
+- Created the greenfield backlog planning structure.
+- Created a high-density PROJECT-CONTEXT.md.
+- Recorded separate Definitions of Ready and Done.
+- Added navigation, glossary, GDD traceability, question tracking, and reusable templates.
+- Kept Architecture, Decisions, and Epics intentionally empty pending explicit design decisions.
+- Did not create detailed implementation tickets.
+- Did not adopt archived architecture or old backlog numbering.
 
 ## Current planning phase
 
 Architecture discovery.
 
 The GDD is detailed enough to identify gameplay capabilities, but major implementation contracts remain unresolved: ownership, identity, persistence, semantic client/server commands, time and determinism, module boundaries, concurrency, serialization, content schemas, and visual-testing infrastructure.
+
+See QUESTIONS.md.
 
 ## Next
 
