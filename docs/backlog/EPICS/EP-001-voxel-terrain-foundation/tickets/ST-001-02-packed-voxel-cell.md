@@ -217,4 +217,13 @@ Implemented so far:
 - logical construction rejects capacity/enum-domain violations with `spk::Exception`;
 - Core CMake/test registration updated.
 
-Validation and required human approval remain outstanding. The ticket must not be marked Done until the relevant Core/headless regression evidence passes and the project owner records approval.
+Validation evidence:
+
+- draft PR #8 targets `backlog/ep-001-implementation-tickets`;
+- CI run #43 / run ID `35785977783` passed `clang-format`;
+- Linux headless Core/Server Debug passed, including configure/build/CTest;
+- Linux headless Core/Server Release passed, including configure/build/CTest;
+- Windows headless Core/Server Debug passed, including configure/build/CTest;
+- Windows headless Core/Server Release passed, including configure/build/CTest.
+
+Required human approval is still outstanding. The ticket remains In Progress and must not be marked Done until the project owner records that approval.
