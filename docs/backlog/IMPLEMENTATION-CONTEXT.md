@@ -116,14 +116,18 @@ The active direction intentionally keeps the voxel data representation small and
 
 `Voxel::Volume` is a generic owning container for groups of voxel cells, not inherently a terrain Chunk.
 
-Its intended shape includes:
+Its approved first contract includes:
 
-- runtime dimensions;
-- a uniform voxel size;
-- contiguous owning `std::vector<Voxel::Cell>` storage;
-- checked cell access;
-- read-only contiguous cell access;
-- controlled editing rather than arbitrary external writable storage.
+- `spk::Vector3UInt` runtime dimensions and `Voxel::Volume::UnitSize` (`float`);
+- default construction as the sole valid empty Volume (`{0,0,0}`, `0.0f`, zero Cells);
+- explicit positive dimensions and finite positive unit size, with `spk::Exception` for contract-invalid inputs;
+- contiguous owning `std::vector<Voxel::Cell>` storage initialized with empty/default Cells;
+- Y-fastest, then X, then Z storage order: `y + sizeY * (x + sizeX * z)`;
+- checked Cell access returning copies;
+- read-only contiguous access through `std::span<const Voxel::Cell>`;
+- `spk::VersionedTrait` inheritance and nested Editor batching, with one invalidation for each effective committed batch;
+- copyable and movable ownership with fresh version state on copy/move construction, preserved destination subscriptions on assignment, and source invalidation/reset after moves;
+- no local-bounds API in ST-001-03.
 
 A terrain Chunk is one semantic use of a Volume. Terrain Chunks are fixed at 16×16×16 cells and one world unit per cell.
 
@@ -244,7 +248,6 @@ Before implementation code assumes an answer, check the corresponding files unde
 
 For EP-001 in particular, the still-partial questions include:
 
-- OQ-035 — remaining `Voxel::Volume` storage/index/editor/lifetime details; the `Voxel::Cell` contract needed by ST-001-02 is resolved;
 - OQ-036 — missing-neighbor/remesh policy for terrain meshing;
 - OQ-037 — remaining scalar wire portability policy;
 - OQ-038 — request/cache/eviction/partial-response details;
