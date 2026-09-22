@@ -138,6 +138,8 @@ Do we require a single deterministic serialized order per owning aggregate/regio
 
 ### Q-021 — What coordinate conventions become architectural contracts?
 
+**Status:** Resolved — see DECISIONS/DR-011-VOXEL-COORDINATES.md.
+
 We need explicit axis orientation, handedness, unit scale, integer voxel coordinates, Chunk origin convention, World/Region coordinates, model-local coordinates, and conversion rules.
 
 ### Q-022 — What is the authoritative gameplay collision representation for articulated voxel entities?
@@ -211,6 +213,8 @@ Should we create high-level capability/roadmap coverage for the whole GDD but de
 
 ### Q-035 — What is the first terrain voxel/cell representation?
 
+**Status:** Direction resolved — packed 32-bit `Voxel::Cell` plus generic `Voxel::Volume`; exact canonical-empty/storage/editor/wire details remain open. See DECISIONS/DR-012-PACKED-CELL-AND-VOLUME-DIRECTION.md.
+
 EP-001 needs an exact shared contract for one terrain cell and one 16×16×16 Chunk.
 
 Questions include:
@@ -225,6 +229,8 @@ This must be resolved before the shared Chunk representation ticket can become R
 
 ### Q-036 — Does the Client own all terrain meshing, and what neighbor data may meshing require?
 
+**Status:** Partially resolved — Server never emits terrain meshes and Client owns meshing/rendering; missing-neighbor/remesh policy remains open. See DECISIONS/DR-013-CLIENT-TERRAIN-MESHING.md.
+
 The current Epic assumes Server sends canonical voxel/Chunk data and Client produces render meshes.
 
 Confirm whether:
@@ -235,11 +241,13 @@ Confirm whether:
 
 ### Q-037 — What networking transport and serialization/framing should EP-001 use?
 
-The semantic protocol is decided, but the first concrete transport is not.
+**Status:** Transport resolved — use Sparkle Version-0.1.3 networking (`spk::Client`, `spk::Server` / `spk::NodeRouter`, `spk::Message`). Erelia payload byte layout remains to be fixed. See DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md.
 
-We need the initial Client/Server connection technology and framing/serialization approach for Chunk requests/responses. This is an implementation interoperability decision, not a change to Server authority semantics.
+The remaining interoperability question is the Erelia-owned payload encoding for counts, `spk::Vector3Int` coordinates, packed cells, and Volume metadata. Sparkle's generic trivially-copyable message helpers copy object representation directly, so using those helpers blindly would make host object representation part of Erelia's wire contract.
 
 ### Q-038 — What are the first Chunk request/streaming semantics?
+
+**Status:** Partially resolved — requests are batched lists of Chunk coordinates; Client alone owns its view/loading radius policy. Duplicate outstanding request, cache/eviction, and partial-response details remain open. See DECISIONS/DR-014-BATCHED-CHUNK-PROTOCOL-DIRECTION.md.
 
 For the inspection milestone, define:
 
@@ -252,6 +260,8 @@ For the inspection milestone, define:
 
 ### Q-039 — What exact basic terrain generator should be the first deterministic fixture?
 
+**Status:** Direction resolved — flat baseline + X=0/Z=0 walls + elevated stairs/slabs/slopes across orientations/flips; exact fixture coordinates/Definitions remain open. See DECISIONS/DR-015-FIRST-TERRAIN-VALIDATION-SCENE.md.
+
 The first generator should be intentionally simple, but tests need exact expected terrain.
 
 Candidate examples include:
@@ -262,3 +272,17 @@ Candidate examples include:
 - another deliberately small fixture.
 
 The chosen generator and exact fixture values must be explicit before its implementation ticket becomes Ready.
+
+
+### Q-040 — Should EP-001 use NodeRouter from the first Server implementation?
+
+Long-term direction is resolved: the dedicated Server is planned as a router to logical nodes responsible for coherent subsections/families of the game, using Sparkle networking.
+
+Two viable EP-001 starts remain:
+
+- **Router-first:** `spk::NodeRouter` owns the public Server endpoint immediately and routes Chunk request message types to one in-process terrain `spk::LocalNode`. Later families add more LocalNodes, and selected nodes can become `RemoteNode` endpoints.
+- **Bare-Server-first:** EP-001 handles Chunk messages directly from `spk::Server`, then introduces NodeRouter when the second Server subsystem appears.
+
+Recommendation: router-first. It adds one routing layer but avoids a later ownership/message-dispatch migration and directly exercises the architecture intended for the final product.
+
+Important limitation: Sparkle NodeRouter currently routes by `Message::Type`, not by World/Region/instance key. Capability-family routing fits directly; future sharding within one message family would require dispatch inside the owning node or a later routing extension.
