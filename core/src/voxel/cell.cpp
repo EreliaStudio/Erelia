@@ -6,7 +6,6 @@ namespace Voxel
 {
 	const Cell Cell::Empty{};
 
-
 	Cell::Cell(
 		std::uint32_t definitionId,
 		Orientation orientation,
@@ -35,5 +34,4 @@ namespace Voxel
 			((orientationValue << OrientationShift) & OrientationMask) |
 			((flipOrientationValue << FlipOrientationShift) & FlipOrientationMask);
 	}
-
 }
