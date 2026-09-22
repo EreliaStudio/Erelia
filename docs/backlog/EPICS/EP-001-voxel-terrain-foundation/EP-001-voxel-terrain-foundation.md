@@ -174,7 +174,7 @@ Exact observable failure behavior remains to be specified by the owning tickets 
 
 This Epic must collect structural/performance evidence sufficient to discover obvious voxel-pipeline problems, but numeric performance budgets are not invented here.
 
-Q-031 remains open for deliberate benchmark methodology/targets.
+[OQ-031](../../OPEN_QUESTIONS/OQ-031-FIRST-MILESTONE-PERFORMANCE-EVIDENCE.md) remains open for deliberate benchmark methodology/targets.
 
 ## Visual-validation requirements
 
@@ -191,19 +191,19 @@ The Epic requires:
 
 Existing:
 
-- Q-029 — golden-image platform;
-- Q-030 — image comparison policy;
-- Q-031 — performance evidence methodology.
+- [OQ-029](../../OPEN_QUESTIONS/OQ-029-GOLDEN-IMAGE-PLATFORM.md) — golden-image platform;
+- [OQ-030](../../OPEN_QUESTIONS/OQ-030-IMAGE-COMPARISON-POLICY.md) — image comparison policy;
+- [OQ-031](../../OPEN_QUESTIONS/OQ-031-FIRST-MILESTONE-PERFORMANCE-EVIDENCE.md) — performance evidence methodology.
 
-Epic-specific questions added to QUESTIONS.md:
+Epic-specific questions tracked in OPEN_QUESTIONS/:
 
-- Q-035 — first terrain voxel/cell representation;
-- Q-036 — Chunk meshing ownership and boundary-neighbor contract;
-- Q-037 — only the remaining scalar byte-order/platform-compatibility policy for Erelia payloads;
-- Q-038 — Chunk request/streaming semantics;
-- Q-039 — exact basic terrain generator fixture;
+- [OQ-035](../../OPEN_QUESTIONS/OQ-035-TERRAIN-VOXEL-CELL-REPRESENTATION.md) — first terrain voxel/cell representation;
+- [OQ-036](../../OPEN_QUESTIONS/OQ-036-TERRAIN-MESHING-NEIGHBOR-POLICY.md) — Chunk meshing ownership and boundary-neighbor contract;
+- [OQ-037](../../OPEN_QUESTIONS/OQ-037-EP001-NETWORK-SERIALIZATION.md) — remaining scalar byte-order/platform-compatibility policy;
+- [OQ-038](../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — Chunk request/streaming semantics;
+- [OQ-039](../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — exact basic terrain generator fixture;
 
-Q-040 is resolved: EP-001 is router-first with one terrain `LocalNode`. Q-022 character collision and Q-023 asset import do not block this Epic. Sparkle Version-0.1.3 is the selected networking dependency; no third-party network library is required.
+[OQ-040](../../OPEN_QUESTIONS/OQ-040-EP001-SERVER-NODE-ROUTER.md) is resolved: EP-001 is router-first with one terrain `LocalNode`. [OQ-022](../../OPEN_QUESTIONS/OQ-022-ARTICULATED-ENTITY-COLLISION.md) character collision and [OQ-023](../../OPEN_QUESTIONS/OQ-023-ASSET-AUTHORING-IMPORT.md) asset import do not block this Epic. Sparkle Version-0.1.3 is the selected networking dependency; no third-party network library is required.
 
 ## Required user decisions
 

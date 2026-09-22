@@ -9,7 +9,7 @@ This file is the navigation layer over the folder tree.
 | Fast project understanding | PROJECT-CONTEXT.md |
 | Current code/planning state | CURRENT-STATUS.md |
 | Gameplay source provenance | SOURCE-BASELINE.md |
-| Open architecture questions | QUESTIONS.md |
+| Architecture/design questions | OPEN_QUESTIONS/README.md |
 | Decision rules/index | DECISIONS/README.md |
 | Ready standard | DEFINITION-OF-READY.md |
 | Done standard | DEFINITION-OF-DONE.md |
@@ -46,7 +46,7 @@ Architecture documents should be added only after a durable cross-cutting invari
 - [DR-016 — Sparkle networking and Server node router](DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md)
 - [DR-017 — Direct Voxel::Volume message serialization](DECISIONS/DR-017-VOXEL-VOLUME-MESSAGE-SERIALIZATION.md)
 
-QUESTIONS.md contains the remaining question register. Create a DR only when a real choice has concrete alternatives that need durable resolution.
+OPEN_QUESTIONS/ contains the question register, including resolved questions for traceability. Create a DR only when a real choice has concrete alternatives that need durable resolution.
 
 ## Epics
 
@@ -58,7 +58,7 @@ EP-001 is the active near-term planning focus.
 
 No ST-001 implementation ticket is Ready yet.
 
-EP-001 has a ticket workspace, but its detailed tickets are intentionally waiting on the voxel/network contracts listed in QUESTIONS.md. A detailed ticket should not become Ready until its surrounding architecture is sufficiently understood and it satisfies the Definition of Ready.
+EP-001 has a ticket workspace, but its detailed tickets are intentionally waiting on the voxel/network contracts tracked in OPEN_QUESTIONS/. A detailed ticket should not become Ready until its surrounding architecture is sufficiently understood and it satisfies the Definition of Ready.
 
 ## Keyword navigation
 

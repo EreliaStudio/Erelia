@@ -64,12 +64,12 @@ EP-001 now defines the first implementation milestone: deterministic basic Serve
 
 The immediate blockers are now narrow and technical: terrain coordinates/data representation, Client meshing neighbor rules, first transport/serialization choice, Chunk request/streaming semantics, exact deterministic terrain fixture, and visual/performance validation policy.
 
-See QUESTIONS.md, DECISIONS/, and ARCHITECTURE/.
+See OPEN_QUESTIONS/, DECISIONS/, and ARCHITECTURE/.
 
 ## Next
 
-1. Resolve EP-001 voxel/network blockers Q-021 and Q-035 through Q-039.
-2. Resolve visual/performance validation policy Q-029 through Q-031 before final visual acceptance tickets become Ready.
+1. Resolve the remaining EP-001 voxel/network questions tracked as OQ-035 through OQ-039.
+2. Resolve visual/performance validation policy OQ-029 through OQ-031 before final visual acceptance tickets become Ready.
 3. Materialize the first ST-001 implementation tickets as each contract becomes sufficiently explicit.
 4. Keep unrelated future architecture questions deferred until their owning Epic approaches.
 5. Create detailed tickets only when they satisfy the Definition of Ready.

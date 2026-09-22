@@ -22,7 +22,7 @@ Current code is evidence of repository state, not automatic evidence of desired 
 
 1. PROJECT-CONTEXT.md — dense fast-start note.
 2. CURRENT-STATUS.md — what exists now, what just changed, and what comes next.
-3. QUESTIONS.md — unresolved architecture questions.
+3. OPEN_QUESTIONS/README.md — architecture/design questions, their status, alternatives, and chosen resolutions.
 4. DECISIONS/README.md — decision rules and index.
 5. DEFINITION-OF-READY.md and DEFINITION-OF-DONE.md.
 6. INDEX.md and GLOSSARY.md.
@@ -33,6 +33,7 @@ Current code is evidence of repository state, not automatic evidence of desired 
 
 - ARCHITECTURE/ — durable cross-cutting architecture contracts.
 - DECISIONS/ — explicit decision records for real alternatives.
+- OPEN_QUESTIONS/ — one traceable OQ document per architecture/design question.
 - EPICS/ — coherent capabilities and later implementation-ticket folders.
 - TRACEABILITY/ — GDD capability ownership and later dependency views.
 - templates/ — reusable planning templates.

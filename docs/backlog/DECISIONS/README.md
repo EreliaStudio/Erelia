@@ -22,7 +22,7 @@ If only one solution follows from already-approved constraints, record the resul
 
 ## Index
 
-Resolved greenfield decisions are indexed below. Remaining unresolved questions are tracked in ../QUESTIONS.md.
+Resolved greenfield decisions are indexed below. Questions and their resolution status are tracked in ../OPEN_QUESTIONS/README.md.
 
 | ID | Title | Status | Applies to | Supersedes |
 | --- | --- | --- | --- | --- |
