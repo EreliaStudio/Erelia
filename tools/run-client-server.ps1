@@ -98,20 +98,20 @@ function Start-EreliaConsole {
     $exitMessagePrefixLiteral = ConvertTo-PowerShellLiteral "[Erelia] $Name exited with code "
 
     $commands = @(
-        "$Host.UI.RawUI.WindowTitle = $titleLiteral"
-        "Set-Location -LiteralPath $repoLiteral"
+        '$Host.UI.RawUI.WindowTitle = ' + $titleLiteral
+        'Set-Location -LiteralPath ' + $repoLiteral
     )
 
     if ($AdditionalPath) {
         $pathLiteral = ConvertTo-PowerShellLiteral $AdditionalPath
-        $commands += "$env:PATH = $pathLiteral + ';' + $env:PATH"
+        $commands += '$env:PATH = ' + $pathLiteral + " + ';' + " + '$env:PATH'
     }
 
     $commands += @(
-        "Write-Host $startMessageLiteral"
-        "& $executableLiteral"
-        "$processExitCode = $LASTEXITCODE"
-        "Write-Host ($exitMessagePrefixLiteral + $processExitCode)"
+        'Write-Host ' + $startMessageLiteral
+        '& ' + $executableLiteral
+        '$processExitCode = $LASTEXITCODE'
+        'Write-Host (' + $exitMessagePrefixLiteral + ' + $processExitCode)'
     )
 
     $command = $commands -join [Environment]::NewLine
@@ -122,9 +122,7 @@ function Start-EreliaConsole {
         $powerShellHost = 'powershell.exe'
     }
 
-    Start-Process -FilePath $powerShellHost `
-        -ArgumentList @('-NoExit', '-NoProfile', '-EncodedCommand', $encodedCommand) `
-        -WorkingDirectory $repoRoot | Out-Null
+    Start-Process -FilePath $powerShellHost -ArgumentList @('-NoExit', '-NoProfile', '-EncodedCommand', $encodedCommand) -WorkingDirectory $repoRoot | Out-Null
 }
 
 Write-Host '[Erelia] Launching server and client in separate PowerShell consoles...'
