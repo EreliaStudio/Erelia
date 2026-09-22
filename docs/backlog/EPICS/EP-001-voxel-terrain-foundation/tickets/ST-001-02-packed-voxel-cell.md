@@ -222,7 +222,7 @@ Implemented so far:
 
 Validation evidence:
 
-- draft PR #8 targets `backlog/ep-001-implementation-tickets`;
+- PR #8 targets `backlog/ep-001-implementation-tickets`;
 - CI run #59 / run ID `35789150331` passed `clang-format`;
 - Linux headless Core/Server Debug passed, including configure/build/CTest;
 - Linux headless Core/Server Release passed, including configure/build/CTest;
