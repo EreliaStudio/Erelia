@@ -22,6 +22,7 @@ This file is the navigation layer over the folder tree.
 - [ARCH-001 — Product boundaries and authority model](ARCHITECTURE/ARCH-001-PRODUCT-BOUNDARIES.md)
 - [ARCH-002 — Client/Server authoritative protocol semantics](ARCHITECTURE/ARCH-002-AUTHORITATIVE-PROTOCOL.md)
 - [ARCH-003 — Time, determinism, and authoritative ordering](ARCHITECTURE/ARCH-003-TIME-DETERMINISM-ORDERING.md)
+- [ARCH-004 — Server node-routing topology](ARCHITECTURE/ARCH-004-SERVER-NODE-ROUTING.md)
 
 Architecture documents should be added only after a durable cross-cutting invariant has been explicitly decided.
 
@@ -37,6 +38,13 @@ Architecture documents should be added only after a durable cross-cutting invari
 - [DR-008 — Authoritative operation ordering](DECISIONS/DR-008-AUTHORITATIVE-OPERATION-ORDERING.md)
 - [DR-009 — First voxel terrain milestone](DECISIONS/DR-009-FIRST-VOXEL-TERRAIN-MILESTONE.md)
 - [DR-010 — Backlog granularity and planning horizon](DECISIONS/DR-010-BACKLOG-GRANULARITY.md)
+- [DR-011 — Voxel and Chunk coordinate conventions](DECISIONS/DR-011-VOXEL-COORDINATES.md)
+- [DR-012 — Packed Voxel::Cell and generic Voxel::Volume direction](DECISIONS/DR-012-PACKED-CELL-AND-VOLUME-DIRECTION.md)
+- [DR-013 — Terrain meshes are Client-owned](DECISIONS/DR-013-CLIENT-TERRAIN-MESHING.md)
+- [DR-014 — Batched Client-driven Chunk request protocol](DECISIONS/DR-014-BATCHED-CHUNK-PROTOCOL-DIRECTION.md)
+- [DR-015 — First deterministic terrain validation scene](DECISIONS/DR-015-FIRST-TERRAIN-VALIDATION-SCENE.md)
+- [DR-016 — Sparkle networking and Server node router](DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md)
+- [DR-017 — Direct Voxel::Volume message serialization](DECISIONS/DR-017-VOXEL-VOLUME-MESSAGE-SERIALIZATION.md)
 
 QUESTIONS.md contains the remaining question register. Create a DR only when a real choice has concrete alternatives that need durable resolution.
 
