@@ -16,6 +16,7 @@ Server generation and Client meshing must assign the same meaning to a non-empty
 ## Starting state / prerequisites
 
 - Depends on ST-001-02.
+- `Voxel::Definition` already exists as the semantic owner of `Voxel::Definition::ID`, which is an alias of `std::uint32_t`; this ticket must extend that type rather than replace its identity contract.
 - EP-001 requires cubes/slabs/slopes/stairs for visual validation.
 - OQ-039 still lacks exact fixture Definition IDs/material choices.
 - The active greenfield backlog does not yet specify the minimal first Definition/Shape representation or normalized geometry in enough detail for tests-first implementation.
