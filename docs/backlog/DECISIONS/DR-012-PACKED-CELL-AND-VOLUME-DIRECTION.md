@@ -26,13 +26,28 @@ The approved packed concepts are:
 - packed representation is directly retrievable as a `std::uint32_t`;
 - the type must remain exactly 32 bits and trivially copyable.
 
-The archived bit allocation is the approved starting layout:
+The exact packed layout is:
 
-- upper 2 bits below the sign/high bit: Orientation;
-- highest bit: Flip;
-- remaining lower 29 bits: Definition ID.
+- lower 29 bits: Definition ID;
+- bits 29-30: `Voxel::Cell::Orientation`;
+- bit 31: `Voxel::Cell::FlipOrientation`.
+
+The exact enum mapping is:
+
+- `Orientation::PositiveX = 0`;
+- `Orientation::NegativeX = 1`;
+- `Orientation::PositiveZ = 2`;
+- `Orientation::NegativeZ = 3`;
+- `FlipOrientation::PositiveY = 0`;
+- `FlipOrientation::NegativeY = 1`.
 
 This provides a maximum packed Definition ID of `0x1FFFFFFF` (536,870,911).
+
+A Cell stores one private `std::uint32_t` rather than C++ bitfields. The value is immutable after construction and logical fields are retrieved through read-only mask/shift getters. Default construction and the explicit static `Voxel::Cell::Empty` value both use packed `0x00000000`.
+
+Definition ID 0 alone determines semantic emptiness. Orientation and FlipOrientation remain valid when the Definition ID is 0; for example `0x60000000` is a valid semantically empty Cell and is preserved exactly.
+
+Every raw `std::uint32_t` is a valid packed Cell representation. Logical-field construction validates Definition ID capacity and enum domains and throws `spk::Exception` for values outside those domains.
 
 ### Volume
 
@@ -57,7 +72,7 @@ This abstraction is intended to represent groups of voxel cells generically, inc
 - Server and Client share the same Cell semantics in Core.
 - `Voxel::Volume` is not inherently a world Chunk: world position/Chunk coordinate remains separate semantic information.
 - EP-001 network responses may therefore naturally contain `{chunkCoordinate, volumeData}`.
-- The exact storage order, empty-cell canonicalization, editor/versioning behavior, and wire byte-order remain explicit follow-up contracts and are not inferred from the archive.
+- The exact Volume storage order and editor/versioning behavior, plus wire byte-order, remain explicit follow-up contracts and are not inferred from the archive.
 - `spk::Message << Voxel::Volume` / `>>` is the approved ergonomic serialization direction; see DR-017.
 
 ## Required tests
@@ -66,10 +81,11 @@ Once the remaining exact contracts are resolved:
 
 - `sizeof(Voxel::Cell) == sizeof(std::uint32_t)`;
 - `std::is_trivially_copyable_v<Voxel::Cell>`;
-- exact ID/orientation/flip packing fixtures;
-- ID-capacity boundary and overflow rejection;
-- default Cell is empty;
-- packed round trip;
+- exact ID/orientation/flip packing fixtures using the approved enum mapping;
+- ID-capacity boundary and invalid logical enum rejection through `spk::Exception`;
+- default Cell and `Voxel::Cell::Empty` are packed zero;
+- ID-0 Cells with non-zero orientation/flip bits remain semantically empty and preserve their packed value;
+- every raw `std::uint32_t` packed value round-trips exactly;
 - Volume construction/access/bounds/storage-order tests;
 - invalid dimension/coordinate/voxel-size tests;
 - mutation/versioning tests if versioning is retained.
