@@ -188,7 +188,11 @@ Voxel geometry may be deterministic from seeds while dynamic entities synchroniz
 
 Gameplay simulation determines movement, collision, combat occupancy, and effect timing. Animation and visual geometry do not authoritatively determine damage or other outcomes.
 
-A local authoritative host may be used for early validation if it preserves the same command boundary as the later dedicated server.
+The GDD permits a local authoritative host for early validation, but the greenfield architecture decision is stricter: Erelia will use a real dedicated Server process and a separate Client process from the first playable. Core is shared by both programs but is not an authority layer.
+
+The approved ownership rule is: Server decides authoritative outcomes; Client owns input/presentation and may perform explicitly speculative prediction; Core provides shared reusable tools, algorithms, types, and representations. Client prediction must yield to Server state.
+
+Core may directly depend on Sparkle Core for shared/headless-safe foundations such as math/vector types and generic algorithms. This does not authorize graphics/presentation-only dependencies in Core.
 
 Telemetry should be authoritative-server driven where practical and event-oriented.
 
@@ -217,3 +221,16 @@ Whether this recommendation becomes the actual implementation roadmap is still a
 The active Erelia repository currently contains only a fresh Core/Server/Client scaffold, build configuration, smoke/status functions, per-layer GoogleTest suites, CI, and Sparkle dependency wiring.
 
 Do not infer future architecture from those placeholder status functions or archived code.
+
+
+## 18. Approved greenfield architecture decisions
+
+As of 22 September 2026:
+
+- Core / Server / Client are deliberate long-term product boundaries.
+- Core is the common reusable library for code and representations useful to both Server and Client.
+- Server owns every authoritative shared/persistent gameplay decision and state transition.
+- Client owns input and presentation and may run explicitly speculative/predictive logic, but Server state always wins.
+- Core may depend directly on Sparkle Core where the dependency is suitable for both Client and headless Server use.
+- The first playable uses a real dedicated Server process and separate Client process; no in-process authoritative-host stage is planned.
+- See DECISIONS/DR-001 through DR-003 and ARCHITECTURE/ARCH-001.
