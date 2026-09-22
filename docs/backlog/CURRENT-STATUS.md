@@ -1,17 +1,16 @@
 # Current Status
 
 **Updated:** 22 September 2026
-**Planning branch:** backlog/decision-gates-and-initial-epics
+**Planning branch:** backlog/ep-001-implementation-tickets
 **Active implementation branch observed:** master
-**Observed master HEAD at branch creation:** 65a5842c22bf12bd02b9046027758431e504f536
 
 ## Branch state
 
 Erelia currently uses master as its default branch.
 
-No main branch existed when backlog/greenfield-planning was created. The eventual merge target therefore needs an explicit decision if the repository is intended to move from master to main.
+The active ticket-materialization work is isolated on `backlog/ep-001-implementation-tickets`, cut from master. This branch contains backlog/documentation changes only; no production source code is part of the planning task.
 
-The planning branch was initially cut from master at 3a37ff2cd3b69024a8098bc9dbf6fc4d443f9f6d. When master later advanced with the GDD import, the planning branch was synchronized through fa27429734a406fc4cfaea43207e0ac7f5e68b88 without force-updating either branch.
+No main branch is assumed.
 
 ## What exists now
 
@@ -45,50 +44,69 @@ After restart commit ba32a17771b123fd3ebda2009daa3cca6fb5f8d0:
 
 ## Backlog work completed on this branch
 
-- Read the complete current GDD.
-- Created the greenfield backlog planning structure.
-- Created high-density PROJECT-CONTEXT.md and IMPLEMENTATION-CONTEXT.md companion notes.
-- Recorded separate Definitions of Ready and Done.
-- Added navigation, glossary, GDD traceability, one-file-per-question OQ tracking, reusable planning templates, IMPLEMENTATION-CONTEXT.md, and AI prompts for ticket planning / next-ticket implementation / specific-ticket implementation.
-- Kept Architecture, Decisions, and Epics intentionally empty pending explicit design decisions.
-- Did not create detailed implementation tickets.
-- Did not adopt archived architecture or old backlog numbering.
+- Read the active EP-001 context, implementation conventions, Definition of Ready/Done, relevant OQs/DRs/ARCH documents, and the current Core/Server/Client scaffold/tests.
+- Materialized 16 small ST-001 implementation tickets under the EP-001 `tickets/` folder.
+- Ordered every ticket by explicit ST dependency.
+- Applied Definition of Ready independently rather than promoting implementation-capable but underspecified work.
+- Identified **ST-001-01 — Shared terrain coordinate conversion** as the first Ready implementation ticket.
+- Kept OQ-035 through OQ-039 and OQ-029 through OQ-031 as blockers only for the tickets they materially affect.
+- Recorded four additional Draft-ticket specification gaps rather than inventing contracts: first Definition/Shape geometry/resources; Server/Client endpoint lifecycle/configuration; deterministic render fixture/material/lifecycle; full temporary inspection input/numeric camera semantics.
+- Updated the EP-001 capability coverage and ticket index.
+- Did not modify any production source file or OQ status.
 
 ## Current planning phase
 
-Initial Epic decomposition — EP-001 voxel terrain foundation.
+EP-001 ticket decomposition is materialized.
 
-OQ-001 through OQ-008, OQ-019, OQ-020, OQ-021, OQ-028, OQ-032, OQ-034, and OQ-040 are resolved. OQ-009 and OQ-017/OQ-018 have approved architectural direction with detailed mechanics intentionally deferred. OQ-035 through OQ-039 are partially resolved and contain the remaining EP-001 implementation details.
+The Epic remains Draft overall because most later contracts still depend on unresolved questions/specification gaps, but implementation can begin with the independent coordinate foundation.
 
-EP-001 now defines the first implementation milestone: deterministic basic Server terrain Chunks -> real network delivery -> Client meshing/rendering -> temporary free-flight visual inspection.
+### First Ready implementation ticket
 
-The remaining EP-001 decisions are narrow and technical: final Cell/Volume details, Client meshing neighbor rules, scalar wire portability, Chunk request/cache semantics, exact deterministic terrain fixtures, and visual/performance validation policy. These do not necessarily block every early foundational ticket; each ticket must apply the Definition of Ready independently.
+**ST-001-01 — Shared terrain coordinate conversion**
 
-See OPEN_QUESTIONS/, DECISIONS/, and ARCHITECTURE/.
+It has no ST prerequisite and is fully constrained by DR-011: 16×16×16 Chunks, one world unit per terrain cell, `spk::Vector3Int` coordinates, mathematical floor division/modulo, exact positive/negative fixtures, and reconstruction/local-range invariants.
+
+### Existing OQ blockers
+
+- OQ-035 — Cell/Volume canonical empty, storage/indexing, validation/editor/lifetime details.
+- OQ-036 — missing-neighbor/remesh behavior.
+- OQ-037 — scalar wire portability and remaining decode contract.
+- OQ-038 — duplicate/outstanding requests, request limits, cache/retention, partial responses/rejections/retry.
+- OQ-039 — exact validation generator/Definition fixture.
+- OQ-029 — golden-image platform.
+- OQ-030 — image comparison metric/tolerances.
+- OQ-031 — performance evidence methodology.
+
+### Draft-only specification gaps exposed by decomposition
+
+- minimal active-greenfield Definition/Shape geometry and resource-availability contract;
+- exact EP-001 Server endpoint and Client connection lifecycle/configuration;
+- deterministic render fixture/material binding plus render-resource failure/lifecycle behavior;
+- complete temporary ZQSD/free-flight input map and numeric camera/movement semantics.
+
+See EP-001 `tickets/README.md` for the full status/dependency table.
 
 ## Next
 
-1. Decompose EP-001 into small ST-001 implementation tickets using the approved contracts and the small-ticket rules in IMPLEMENTATION-CONTEXT.md.
-2. Mark only independently specified tickets Ready; keep tickets affected by OQ-035 through OQ-039 Draft/Blocked until their exact contract is resolved.
-3. Resolve visual/performance validation policy OQ-029 through OQ-031 before the corresponding visual acceptance tickets become Ready.
-4. Make the first dependency-satisfied Ready ticket explicit in this file once tickets are materialized.
-5. Keep unrelated future architecture questions deferred until their owning Epic approaches.
+1. Implement **ST-001-01 — Shared terrain coordinate conversion**.
+2. Resolve OQ-035 before promoting ST-001-02 / ST-001-03.
+3. Resolve the minimal Definition/Shape specification gap and OQ-039 before generator/mesher fixtures become Ready.
+4. Resolve OQ-037 / OQ-038 before Chunk codec, Server handler, and Client cache/request coordination become Ready.
+5. Resolve OQ-036 before Client boundary meshing and adjacent-Chunk integration become Ready.
+6. Resolve endpoint/connection lifecycle, render-fixture/material, and inspection-control Draft gaps when those tickets approach implementation.
+7. Resolve OQ-029 through OQ-031 before final visual/performance validation.
 
 ## Explicit non-goal
 
 Do not fill this branch with a full game backlog yet. Far-future work should remain at capability/roadmap level until its architecture is understood.
 
 
-## Decisions resolved on the current branch
+## Relevant approved planning constraints
 
-- DR-001 — Long-term Core / Server / Client boundaries.
-- DR-002 — Core may depend on Sparkle Core.
-- DR-003 — Dedicated authoritative Server from the first playable.
-- ARCH-001 — Product boundaries and authority model.
-
+EP-001 is constrained by DR-001 through DR-004, DR-007, DR-009 through DR-017 and ARCH-001 through ARCH-004 as listed in the Epic. The canonical indexes remain `DECISIONS/README.md` and `ARCHITECTURE/README.md`.
 
 ## First Epic
 
-EP-001 — Voxel Terrain Delivery and Visual Validation is now Draft.
+EP-001 — Voxel Terrain Delivery and Visual Validation remains Draft, with 16 materialized implementation tickets and one currently Ready ticket (ST-001-01).
 
 It intentionally excludes production Hero movement, collision, followers, combat, resources, and production world generation. The temporary free-flight controller exists only to inspect rendered terrain.
