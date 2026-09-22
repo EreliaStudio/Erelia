@@ -33,6 +33,7 @@ Constrained by:
 - ../../ARCHITECTURE/ARCH-001-PRODUCT-BOUNDARIES.md
 - ../../ARCHITECTURE/ARCH-002-AUTHORITATIVE-PROTOCOL.md
 - ../../ARCHITECTURE/ARCH-003-TIME-DETERMINISM-ORDERING.md
+- ../../ARCHITECTURE/ARCH-004-SERVER-NODE-ROUTING.md
 
 Key rules:
 
@@ -110,22 +111,31 @@ The Epic will require deliberate contracts for:
 
 | Promised capability | Implementation owner |
 | --- | --- |
-| Shared terrain Chunk representation | TBD after voxel contract decisions |
-| Deterministic basic Server Chunk generation | TBD |
-| Dedicated Server accepts Client connection | TBD |
-| Client Chunk request / Server response protocol | TBD |
-| Client Chunk cache/request coordination | TBD |
-| Client voxel terrain meshing | TBD |
-| Client terrain rendering | TBD |
-| Temporary 3D free-flight inspection controls | TBD |
-| Adjacent-Chunk integration validation | TBD |
-| Golden-image / human visual validation | TBD after visual-test decisions |
+| Shared terrain coordinate/address conversion | [ST-001-01](tickets/ST-001-01-shared-terrain-coordinate-conversion.md) |
+| Packed shared voxel Cell | [ST-001-02](tickets/ST-001-02-packed-voxel-cell.md) |
+| Shared owning Voxel::Volume | [ST-001-03](tickets/ST-001-03-owning-voxel-volume.md) |
+| Shared first terrain Definition/Shape contract | [ST-001-04](tickets/ST-001-04-first-terrain-definition-shape-contract.md) |
+| Shared Volume Message serialization | [ST-001-05](tickets/ST-001-05-voxel-volume-message-serialization.md) |
+| Deterministic basic Server Chunk generation | [ST-001-06](tickets/ST-001-06-deterministic-validation-terrain-generator.md) |
+| Server NodeRouter + terrain LocalNode runtime | [ST-001-07](tickets/ST-001-07-server-node-router-terrain-node-bootstrap.md) |
+| Client Chunk request / Server response protocol | [ST-001-08](tickets/ST-001-08-batched-chunk-protocol-contract.md) + [ST-001-09](tickets/ST-001-09-server-chunk-request-handler.md) |
+| Dedicated Client -> Server connection | [ST-001-10](tickets/ST-001-10-client-dedicated-server-connection.md) |
+| Client Chunk cache/request coordination | [ST-001-11](tickets/ST-001-11-client-chunk-request-cache-coordinator.md) |
+| Client voxel terrain meshing | [ST-001-12](tickets/ST-001-12-client-terrain-mesher.md) |
+| Client terrain rendering | [ST-001-13](tickets/ST-001-13-client-terrain-rendering-integration.md) |
+| Temporary 3D free-flight inspection controls | [ST-001-14](tickets/ST-001-14-temporary-free-flight-inspection-controller.md) |
+| Adjacent-Chunk cross-process integration validation | [ST-001-15](tickets/ST-001-15-adjacent-chunk-cross-process-integration.md) |
+| Golden-image / human visual / performance validation | [ST-001-16](tickets/ST-001-16-visual-performance-validation.md) |
 
 ## Ticket index
 
-No implementation ticket is Ready yet.
+The complete dependency-ordered table is maintained in [tickets/README.md](tickets/README.md).
 
-The first ST-001-YY tickets will be materialized after the blocking voxel/network contracts below are resolved. Ticket documents will live in `tickets/`.
+- **Ready:** ST-001-01.
+- **Blocked:** ST-001-02, ST-001-03, ST-001-05, ST-001-06, ST-001-08, ST-001-09, ST-001-11, ST-001-12, ST-001-15, ST-001-16.
+- **Draft:** ST-001-04, ST-001-07, ST-001-10, ST-001-13, ST-001-14.
+
+The first implementation ticket is **ST-001-01 — Shared terrain coordinate conversion**. No Ready ticket depends on a later ticket.
 
 ## Epic-level integration scenarios
 
@@ -208,6 +218,8 @@ Epic-specific questions tracked in OPEN_QUESTIONS/:
 ## Required user decisions
 
 Resolve the blocking questions above before promoting the corresponding implementation tickets to Ready.
+
+The decomposition also exposed four Draft-only specification gaps that are not yet represented by a dedicated OQ: the minimal first Definition/Shape geometry/resource contract; the EP-001 Server endpoint + Client connection lifecycle/configuration; the deterministic first render fixture/material binding/resource-failure contract; and the complete temporary free-flight input/numeric camera semantics. These tickets remain Draft rather than silently choosing those contracts.
 
 ## Exit criteria
 
