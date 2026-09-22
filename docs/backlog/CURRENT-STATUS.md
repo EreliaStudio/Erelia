@@ -47,9 +47,9 @@ After restart commit ba32a17771b123fd3ebda2009daa3cca6fb5f8d0:
 
 - Read the complete current GDD.
 - Created the greenfield backlog planning structure.
-- Created a high-density PROJECT-CONTEXT.md.
+- Created high-density PROJECT-CONTEXT.md and IMPLEMENTATION-CONTEXT.md companion notes.
 - Recorded separate Definitions of Ready and Done.
-- Added navigation, glossary, GDD traceability, question tracking, and reusable templates.
+- Added navigation, glossary, GDD traceability, one-file-per-question OQ tracking, reusable planning templates, IMPLEMENTATION-CONTEXT.md, and AI prompts for ticket planning / next-ticket implementation / specific-ticket implementation.
 - Kept Architecture, Decisions, and Epics intentionally empty pending explicit design decisions.
 - Did not create detailed implementation tickets.
 - Did not adopt archived architecture or old backlog numbering.
