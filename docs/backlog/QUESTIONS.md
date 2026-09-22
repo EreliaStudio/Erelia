@@ -8,11 +8,15 @@ The first conversation should focus on the highest-impact questions that constra
 
 ### Q-001 — Are Core / Server / Client deliberate long-term product boundaries?
 
+**Status:** Resolved — see DECISIONS/DR-001-PRODUCT-BOUNDARIES.md.
+
 The current repository scaffold has Core, Server, and Client. Should this remain the intended high-level product split, or is it only a bootstrap layout that may change?
 
 Consequence: ownership rules, allowed dependencies, test placement, and public contracts.
 
 ### Q-002 — What is Core allowed to own?
+
+**Status:** Resolved — see DECISIONS/DR-001-PRODUCT-BOUNDARIES.md.
 
 Candidate interpretations include pure deterministic/shared game-domain rules; domain rules plus shared data/serialization; or broader engine-facing gameplay services.
 
@@ -20,19 +24,27 @@ Which responsibilities must explicitly remain out of Core?
 
 ### Q-003 — What may Core depend on?
 
+**Status:** Resolved — see DECISIONS/DR-002-SPARKLE-CORE-DEPENDENCY.md.
+
 Core currently links Sparkle Core. Is that an approved long-term dependency, or should the game-domain portion be independent from Sparkle except through adapters?
 
 ### Q-004 — What is the Server's ownership boundary?
 
+**Status:** Resolved — see DECISIONS/DR-001-PRODUCT-BOUNDARIES.md and ARCHITECTURE/ARCH-001-PRODUCT-BOUNDARIES.md.
+
 Which behaviors must exist only on the authoritative Server versus reusable deterministic domain code in Core?
 
 ### Q-005 — What is the Client's ownership boundary?
+
+**Status:** Resolved — see DECISIONS/DR-001-PRODUCT-BOUNDARIES.md and ARCHITECTURE/ARCH-001-PRODUCT-BOUNDARIES.md.
 
 Should Client own only input/presentation/rendering, or may it run predictive/speculative copies of domain simulation? If prediction is allowed, which systems may predict?
 
 ## B. Authority and semantic protocol — highest priority
 
 ### Q-006 — What is the first authoritative runtime topology?
+
+**Status:** Resolved — dedicated Server process from the first playable; see DECISIONS/DR-003-DEDICATED-SERVER-FIRST.md.
 
 For the first implementation, should we target dedicated server from the start, a local authoritative host with the same semantic command boundary, or both from the first milestone?
 
