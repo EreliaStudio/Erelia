@@ -212,15 +212,15 @@ Implemented so far:
 - acceptance tests added first in `core/tests/voxel_cell_test.cpp`;
 - `Voxel::Cell` implemented as one private packed `std::uint32_t`;
 - `Voxel::Cell::Empty` declared in the header and defined in `core/src/voxel/cell.cpp`;
-- exact Orientation / FlipOrientation mappings and mask/shift getters implemented;
-- raw packed construction preserves every `std::uint32_t`;
+- exact Orientation / FlipOrientation mappings and header-defined mask/shift getters implemented;
+- raw packed construction preserves every `std::uint32_t` and is header-defined for hot-path inlining;
 - logical construction rejects capacity/enum-domain violations with `spk::Exception`;
 - Core CMake/test registration updated.
 
 Validation evidence:
 
 - draft PR #8 targets `backlog/ep-001-implementation-tickets`;
-- CI run #43 / run ID `35785977783` passed `clang-format`;
+- CI run #47 / run ID `35786571712` passed `clang-format`;
 - Linux headless Core/Server Debug passed, including configure/build/CTest;
 - Linux headless Core/Server Release passed, including configure/build/CTest;
 - Windows headless Core/Server Debug passed, including configure/build/CTest;
