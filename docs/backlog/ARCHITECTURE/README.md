@@ -21,3 +21,5 @@ Do not create an architecture document merely because one implementation ticket 
 ## Approved architecture documents
 
 - [ARCH-001 — Product boundaries and authority model](ARCH-001-PRODUCT-BOUNDARIES.md)
+- [ARCH-002 — Client/Server authoritative protocol semantics](ARCH-002-AUTHORITATIVE-PROTOCOL.md)
+- [ARCH-003 — Time, determinism, and authoritative ordering](ARCH-003-TIME-DETERMINISM-ORDERING.md)
