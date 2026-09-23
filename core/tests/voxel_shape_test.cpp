@@ -10,11 +10,8 @@
 #include <cmath>
 #include <cstdint>
 #include <thread>
-#include <type_traits>
 #include <vector>
 
-static_assert(std::is_trivially_copyable_v<spk::UUID>);
-static_assert(std::is_same_v<std::atomic<spk::UUID>::value_type, spk::UUID>);
 
 namespace
 {
@@ -167,7 +164,7 @@ TEST(VoxelShape, AppliesAllEightOrientationAndFlipVariantsExactly)
 		for (const auto orientation : orientations)
 		{
 			const auto &array = shape.orientedPolygons(orientation, flip);
-			ASSERT_FALSE(array.uuid.load(std::memory_order_acquire).isNull());
+			ASSERT_FALSE(array.uuid.isNull());
 			ASSERT_EQ(array.polygons.size(), 1u);
 			const auto &polygon = array.polygons.front();
 			EXPECT_EQ(polygon.slot, canonical.slot);
@@ -197,20 +194,20 @@ TEST(VoxelShape, CanonicalVariantIsMaterializedAndLazyVariantKeepsOneUuid)
 	const auto &canonical = shape.orientedPolygons(
 		Voxel::Cell::Orientation::PositiveX,
 		Voxel::Cell::FlipOrientation::PositiveY);
-	EXPECT_FALSE(canonical.uuid.load(std::memory_order_acquire).isNull());
+	EXPECT_FALSE(canonical.uuid.isNull());
 	EXPECT_EQ(&canonical.polygons, &shape.polygons());
 
 	const auto &first = shape.orientedPolygons(
 		Voxel::Cell::Orientation::NegativeX,
 		Voxel::Cell::FlipOrientation::NegativeY);
-	const spk::UUID uuid = first.uuid.load(std::memory_order_acquire);
+	const spk::UUID uuid = first.uuid;
 	ASSERT_FALSE(uuid.isNull());
 
 	const auto &second = shape.orientedPolygons(
 		Voxel::Cell::Orientation::NegativeX,
 		Voxel::Cell::FlipOrientation::NegativeY);
 	EXPECT_EQ(&first, &second);
-	EXPECT_EQ(second.uuid.load(std::memory_order_acquire), uuid);
+	EXPECT_EQ(second.uuid, uuid);
 }
 
 TEST(VoxelShape, ConcurrentFirstAccessPublishesOneImmutableVariant)
@@ -236,7 +233,7 @@ TEST(VoxelShape, ConcurrentFirstAccessPublishesOneImmutableVariant)
 			arrays[index] = &shape.orientedPolygons(
 				Voxel::Cell::Orientation::PositiveZ,
 				Voxel::Cell::FlipOrientation::NegativeY);
-			uuids[index] = arrays[index]->uuid.load(std::memory_order_acquire);
+			uuids[index] = arrays[index]->uuid;
 		});
 	}
 	start.store(true, std::memory_order_release);
