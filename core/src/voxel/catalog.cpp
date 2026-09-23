@@ -53,9 +53,9 @@ namespace Voxel
 		return id;
 	}
 
-	std::shared_ptr<const Shape> Shape::Catalog::_parseElement(const spk::JSON::Reader &reader) const
+	Shape Shape::Catalog::_parseElement(const spk::JSON::Reader &reader) const
 	{
-		return std::shared_ptr<const Shape>(new Shape(reader));
+		return Shape(reader);
 	}
 
 	std::shared_ptr<const Shape> Shape::Catalog::_sharedShape(const Shape::ID &id) const
@@ -71,7 +71,7 @@ namespace Voxel
 	Definition::Catalog::Catalog(const Shape::Catalog &shapes) :
 		_shapes(&shapes)
 	{
-		Base::_insert(0u, std::shared_ptr<const Definition>(new Definition()));
+		Base::_insert(0u, Definition());
 	}
 
 	Definition::ID Definition::Catalog::_parseKey(const spk::JSON::Reader &reader) const
@@ -90,7 +90,7 @@ namespace Voxel
 		return static_cast<Definition::ID>(authoredID);
 	}
 
-	std::shared_ptr<const Definition> Definition::Catalog::_parseElement(const spk::JSON::Reader &dataReader) const
+	Definition Definition::Catalog::_parseElement(const spk::JSON::Reader &dataReader) const
 	{
 		dataReader.forbidUnknown({"shape", "slots"});
 		const Shape::ID shapeID = dataReader.require<Shape::ID>("shape");
@@ -137,7 +137,7 @@ namespace Voxel
 			slots.emplace(slot, Material::InvalidID);
 		}
 
-		return std::shared_ptr<const Definition>(new Definition(shape, std::move(slots)));
+		return Definition(shape, std::move(slots));
 	}
 
 	void Definition::Catalog::_load(const std::filesystem::path &path)
