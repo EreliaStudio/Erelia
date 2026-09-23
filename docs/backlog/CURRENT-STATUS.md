@@ -56,7 +56,7 @@ DR-018 now fixes the first shared voxel Shape/Definition/Catalog contract, inclu
 - revised Cell Orientation ordering `PositiveX=0, NegativeZ=1, NegativeX=2, PositiveZ=3`, directly representing CCW quarter-turn count;
 - `NegativeY` mirroring around `Y=0.5` with polygon rewinding;
 - lazy, mutex-protected eight-way oriented polygon caching with atomic `spk::UUID` publication and lock-free published reads;
-- aggregate `Voxel::Catalog` JSON loading and typed Shape/Definition lookup behavior;
+- aggregate `Voxel::Catalog` JSON loading and typed Shape/Definition lookup behavior through the Erelia-local `spk::JSON::Catalog<TElement>` abstract base;
 - catalog-created Definition ID 0 Air;
 - incremental load/failure behavior;
 - first cube/slab/slope/stair resources derived from the validated archive fixtures;
@@ -78,27 +78,23 @@ EP-001 is still Draft overall, but implementation is active.
 
 **ST-001-04 — First terrain Definition and Shape contract** is **In Progress** on PR #11.
 
-The branch contains the first shared `Voxel::Shape` / `Voxel::Definition` / `Voxel::Catalog` implementation, `Voxel::Material::ID`, the revised Cell Orientation ordering, JSON catalog loading, immutable Definition-to-Shape ownership, exact eight-way Orientation/Flip geometry transforms, the lazy UUID-published oriented polygon cache, focused tests, and active cube/slab/slope/stair Shape resources.
+The branch contains the first shared `Voxel::Shape` / `Voxel::Definition` / `Voxel::Catalog` implementation, `Voxel::Material::ID`, the revised Cell Orientation ordering, JSON catalog loading, immutable Definition-to-Shape ownership, exact eight-way Orientation/Flip geometry transforms, the lazy UUID-published oriented polygon cache, focused tests, and active cube/slab/slope/stair Shape resources. Shape and Definition catalogs now derive from an Erelia-local `spk::JSON::Catalog<TElement>` base that owns JSON envelope iteration/storage and delegates only key/element parsing through two pure virtual Reader-based methods. No Erelia `detail` namespace is used for this abstraction.
 
 The Shape loader preserves polygon vertex order authored in JSON and derives normals from that order. It validates polygon geometry without inventing an outward-facing direction; only the required `NegativeY` mirror reverses transformed polygon winding.
 
 Current validation evidence is **not sufficient for Done**:
 
 - PR #11 is open.
-- CI run #122 completed with failure.
-- Windows Core/Server Debug and Release passed.
-- Windows Client Debug and Release passed.
-- `clang-format` failed.
-- Linux Core/Server Debug and Release failed during the Erelia build.
+- CI run #127 passed the complete matrix for the implementation before the catalog-abstraction redesign.
+- The current virtual `spk::JSON::Catalog<TElement>` redesign is being revalidated on the current branch head.
 - Required project-owner approval has not yet been recorded.
 
-The next implementation agent must diagnose those remaining CI failures, correct only ST-001-04-owned issues, rerun the required validation, finalize completion evidence, and mark the ticket Done only after every Definition-of-Done requirement and human approval are satisfied.
+ST-001-04 remains In Progress until the redesigned catalog implementation receives a fresh complete CI pass and the project owner explicitly approves the ticket.
 
 ### Next
 
-1. Finish ST-001-04 validation and corrections on the existing `feat/st-001-04-definition-shape-contract` branch and PR #11; do not recreate it from `master`.
-2. Resolve the current clang-format and Linux Core/Server CI failures, then rerun the required regression/build matrix.
-3. Record project-owner approval and mark ST-001-04 Done only after its Definition of Done is actually satisfied.
+1. Finish fresh validation of the virtual `spk::JSON::Catalog<TElement>` ST-001-04 implementation on the existing `feat/st-001-04-definition-shape-contract` branch and PR #11.
+2. Record project-owner approval and mark ST-001-04 Done only after its Definition of Done is actually satisfied.
 4. After ST-001-04, reassess the dependency order rather than skipping unresolved gates.
 5. Resolve OQ-039's remaining generator-scene details before ST-001-06.
 6. Resolve OQ-037/OQ-038 before the dependent Chunk networking/request tickets.
