@@ -67,14 +67,50 @@ namespace
 
 namespace Voxel
 {
-	Shape::Catalog::Catalog() :
-		Base("Shape")
+	Shape::Catalog::Catalog() = default;
+
+	const std::shared_ptr<const Shape> &Shape::Catalog::_sharedAt(const Shape::ID &id) const
 	{
+		const auto found = _elements.find(id);
+		if (found == _elements.end())
+		{
+			throw spk::Exception("unknown voxel Shape ID '" + id + "'");
+		}
+		return found->second;
+	}
+
+	void Shape::Catalog::_insert(Shape::ID id, std::shared_ptr<const Shape> shape)
+	{
+		if (!_elements.emplace(std::move(id), std::move(shape)).second)
+		{
+			throw spk::Exception("duplicate voxel Shape ID");
+		}
 	}
 
 	std::shared_ptr<const Shape> Shape::Catalog::_sharedShape(const Shape::ID &id) const
 	{
-		return Base::_sharedAt(id);
+		return _sharedAt(id);
+	}
+
+	const Shape &Shape::Catalog::at(const Shape::ID &id) const
+	{
+		return *_sharedAt(id);
+	}
+
+	const Shape &Shape::Catalog::operator[](const Shape::ID &id) const
+	{
+		return at(id);
+	}
+
+	bool Shape::Catalog::contains(const Shape::ID &id) const noexcept
+	{
+		return _elements.contains(id);
+	}
+
+	const Shape *Shape::Catalog::tryGet(const Shape::ID &id) const noexcept
+	{
+		const auto found = _elements.find(id);
+		return found == _elements.end() ? nullptr : found->second.get();
 	}
 
 	void Shape::Catalog::_load(const std::filesystem::path &path)
@@ -94,15 +130,53 @@ namespace Voxel
 
 			const spk::JSON::Reader dataReader = elementReader.child("data");
 			std::shared_ptr<const Shape> shape(new Shape(dataReader));
-			Base::_insert(id, std::move(shape));
+			_insert(id, std::move(shape));
 		});
 	}
 
 	Definition::Catalog::Catalog(const Shape::Catalog &shapes) :
-		Base("Definition"),
 		_shapes(&shapes)
 	{
-		Base::_insert(0u, std::shared_ptr<const Definition>(new Definition()));
+		_insert(0u, std::shared_ptr<const Definition>(new Definition()));
+	}
+
+	const std::shared_ptr<const Definition> &Definition::Catalog::_sharedAt(const Definition::ID &id) const
+	{
+		const auto found = _elements.find(id);
+		if (found == _elements.end())
+		{
+			throw spk::Exception("unknown voxel Definition ID '" + std::to_string(id) + "'");
+		}
+		return found->second;
+	}
+
+	void Definition::Catalog::_insert(Definition::ID id, std::shared_ptr<const Definition> definition)
+	{
+		if (!_elements.emplace(id, std::move(definition)).second)
+		{
+			throw spk::Exception("duplicate voxel Definition ID");
+		}
+	}
+
+	const Definition &Definition::Catalog::at(const Definition::ID &id) const
+	{
+		return *_sharedAt(id);
+	}
+
+	const Definition &Definition::Catalog::operator[](const Definition::ID &id) const
+	{
+		return at(id);
+	}
+
+	bool Definition::Catalog::contains(const Definition::ID &id) const noexcept
+	{
+		return _elements.contains(id);
+	}
+
+	const Definition *Definition::Catalog::tryGet(const Definition::ID &id) const noexcept
+	{
+		const auto found = _elements.find(id);
+		return found == _elements.end() ? nullptr : found->second.get();
 	}
 
 	void Definition::Catalog::_load(const std::filesystem::path &path)
@@ -175,7 +249,7 @@ namespace Voxel
 			}
 
 			std::shared_ptr<const Definition> definition(new Definition(shape, std::move(slots)));
-			Base::_insert(id, std::move(definition));
+			_insert(id, std::move(definition));
 		});
 	}
 
