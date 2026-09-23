@@ -3,14 +3,11 @@
 #include <cmath>
 #include <limits>
 #include <map>
-#include <span>
 #include <utility>
 
-#include <container/pool.hpp>
 #include <exception.hpp>
 
 #include "erelia/core/chunk.hpp"
-#include "volume_content.hpp"
 
 namespace
 {
@@ -97,21 +94,12 @@ namespace
 		const spk::Vector3UInt &dimensions,
 		std::size_t expectedSize)
 	{
-		return cellBufferPoolFor(dimensions, expectedSize).obtain([](CellBuffer &buffer, std::size_t size) {
-			buffer.clear();
-			buffer.resize(size);
-		},
+		return cellBufferPoolFor(dimensions, expectedSize).obtain(
+			[](CellBuffer &buffer, std::size_t size) {
+				buffer.clear();
+				buffer.resize(size);
+			},
 			expectedSize);
-	}
-
-	[[nodiscard]] CellBufferLease obtainCopiedCellBuffer(
-		const spk::Vector3UInt &dimensions,
-		std::span<const Voxel::Cell> source)
-	{
-		return cellBufferPoolFor(dimensions, source.size()).obtain([](CellBuffer &buffer, std::span<const Voxel::Cell> cells) {
-			buffer.assign(cells.begin(), cells.end());
-		},
-			source);
 	}
 
 	[[nodiscard]] std::size_t checkedIndex(
@@ -145,49 +133,24 @@ namespace Voxel
 {
 	Volume::Builder::Builder(
 		const spk::Vector3UInt &dimensions,
-		UnitSize unitSize)
+		UnitSize unitSize) :
+		_dimensions(dimensions),
+		_unitSize(validatedUnitSize(unitSize)),
+		_cells(obtainEmptyCellBuffer(dimensions, cellCount(dimensions)))
 	{
-		const auto expectedCellCount = cellCount(dimensions);
-		const auto validUnitSize = validatedUnitSize(unitSize);
-		auto cells = obtainEmptyCellBuffer(dimensions, expectedCellCount);
-
-		_content = std::make_shared<Content>(
-			dimensions,
-			validUnitSize,
-			std::move(cells));
 	}
 
-	Volume::Builder::Builder(Volume &&volume)
+	Volume::Builder::Builder(Volume &&volume) noexcept :
+		_dimensions(std::exchange(volume._dimensions, {})),
+		_unitSize(std::exchange(volume._unitSize, 0.0f)),
+		_cells(std::move(volume._cells))
 	{
-		auto sourceContent = std::move(volume._content);
-		if (sourceContent == nullptr)
-		{
-			return;
-		}
-
-		if (sourceContent.use_count() == 1)
-		{
-			_content = std::move(sourceContent);
-			return;
-		}
-
-		const auto sourceCells = std::span<const Cell>(
-			sourceContent->cells->data(),
-			sourceContent->cells->size());
-		auto cells = obtainCopiedCellBuffer(sourceContent->dimensions, sourceCells);
-
-		_content = std::make_shared<Content>(
-			sourceContent->dimensions,
-			sourceContent->unitSize,
-			std::move(cells));
 	}
 
 	bool Volume::Builder::set(const LocalCoordinate &coordinate, Cell value)
 	{
-		const auto dimensionsValue =
-			_content != nullptr ? _content->dimensions : spk::Vector3UInt{};
-		const auto index = checkedIndex(dimensionsValue, coordinate);
-		auto &cell = (*_content->cells)[index];
+		const auto index = checkedIndex(_dimensions, coordinate);
+		auto &cell = (*_cells)[index];
 
 		if (cell.packed() == value.packed())
 		{
@@ -200,6 +163,9 @@ namespace Voxel
 
 	Volume Volume::Builder::build() && noexcept
 	{
-		return Volume(std::move(_content));
+		return Volume(
+			std::exchange(_dimensions, {}),
+			std::exchange(_unitSize, 0.0f),
+			std::move(_cells));
 	}
 }
