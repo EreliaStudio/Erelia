@@ -34,7 +34,7 @@ The project was restarted on 22 September 2026. The active codebase is a deliber
 - current GDD and its 34 illustration assets under docs/gdd/;
 - historical source and historical backlog isolated under archive/.
 
-The original status functions remain smoke scaffolding. Core now contains the first two completed EP-001 contracts on the active implementation history: shared terrain coordinate conversion, plus the packed `Voxel::Cell` / `Voxel::Definition::ID` representation with acceptance coverage in `EreliaCoreTestSuite`. ST-001-02 is merged into the planning baseline through PR #8.
+The original status functions remain smoke scaffolding. The planning baseline contains the first two completed EP-001 contracts: shared terrain coordinate conversion, plus the packed `Voxel::Cell` / `Voxel::Definition::ID` representation with acceptance coverage in `EreliaCoreTestSuite`. ST-001-03 is also complete on its feature branch and is awaiting merge through PR #9.
 
 ## What was just implemented
 
