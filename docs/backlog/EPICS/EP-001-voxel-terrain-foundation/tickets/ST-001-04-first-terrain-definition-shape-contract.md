@@ -339,7 +339,7 @@ myVoxelCatalog.definitions().at(definitionId);
 
 Paths are `std::filesystem::path`.
 
-The Shape and Definition subcatalogs derive privately from an Erelia-local prototype named `spk::JSON::Catalog<TElement>`. This prototype deliberately lives under the Sparkle namespace while it is exercised in Erelia; promotion into the Sparkle repository is deferred until the API has proven useful.
+The Shape and Definition subcatalogs derive publicly from an Erelia-local prototype named `spk::JSON::Catalog<TElement>`. This prototype deliberately lives under the Sparkle namespace while it is exercised in Erelia; promotion into the Sparkle repository is deferred until the API has proven useful.
 
 `spk::JSON::Catalog<TElement>` owns the common JSON catalog machinery: file/root parsing, the `elements` array envelope, wrapper validation, iteration order, duplicate detection, owned value storage, incremental failure behavior, and lookup. `TElement` provides `TElement::ID`; the base does not require Sparkle's `json_readable` concept. Derived parsing code produces plain `TElement` values. The base stores those values directly in `std::unordered_map<TElement::ID, TElement>`; no `shared_ptr` participates in catalog element ownership. `TElement` must therefore be move-constructible. References/pointers returned by lookup remain stable across unordered-map rehash and later insertions, and no erase operation is exposed.
 
@@ -350,11 +350,12 @@ virtual TElement::ID _parseKey(const spk::JSON::Reader& reader) const = 0;
 virtual TElement _parseElement(const spk::JSON::Reader& reader) const = 0;
 ```
 
-The key hook receives the element wrapper reader so domain code can parse/validate `id` with normal Reader diagnostics. The element hook receives only the corresponding `data` reader and returns a movable value. The base catalog moves that value into its internal immutable storage, keeping storage/ownership policy invisible to derived catalogs. `Voxel::Shape::Catalog` and `Voxel::Definition::Catalog` implement those two hooks and contain only their domain-specific parsing rules. `Voxel::Shape` is move-constructible for this purpose, remains non-copyable, and remains non-move-assignable. Do not introduce a `detail` / `details` namespace for this machinery.
+The key hook receives the element wrapper reader so domain code can parse/validate `id` with normal Reader diagnostics. The element hook receives only the corresponding `data` reader and returns a movable value. The base catalog moves that value into its internal immutable storage, keeping storage/ownership policy invisible to derived catalogs. `Voxel::Shape::Catalog` and `Voxel::Definition::Catalog` implement those two hooks and otherwise inherit the base public API directly. `Definition::Catalog` additionally stores its required `const Shape::Catalog&` dependency; no no-op forwarding methods are introduced. `Voxel::Shape` is move-constructible for this purpose, remains non-copyable, and remains non-move-assignable. Do not introduce a `detail` / `details` namespace for this machinery.
 
-The observable subcatalog API includes:
+The base catalog API is inherited publicly by both voxel subcatalogs. They do not add forwarding wrappers for base behavior. The observable subcatalog API includes:
 
 ```cpp
+void load(const std::filesystem::path&);
 const T& at(const ID&) const;
 const T& operator[](const ID&) const;
 bool contains(const ID&) const noexcept;
@@ -715,7 +716,7 @@ The public behavior, ownership, lifecycle, loading/error behavior, deterministic
 
 ## Completion evidence
 
-**Implementation state:** Technically complete; project-owner approval pending.
+**Implementation state:** Implementation revised; fresh validation and project-owner approval pending.
 
 Implementation remains on:
 
@@ -766,4 +767,4 @@ CI run #127 validated implementation head `44aaf1d509c231bb5f69ad9775a97349af959
 
 The concurrent cache test uses 12 threads racing the same previously unmaterialized Orientation/Flip entry and verifies that all callers observe the same entry, UUID, and immutable geometry after publication.
 
-CI run #198 (run ID `35924701600`) validated complete direct-value catalog code head `104ad99c20f67dae6e40ae1aec65288e93acff5d` successfully across clang-format, Linux Core/Server Debug + Release, Windows Core/Server Debug + Release, and Windows Client Debug + Release. This includes the dedicated generic JSON Catalog tests and Definition/Shape reference-stability regression. Subsequent commits only synchronize decision/management documentation with that validated code. The ticket remains **In Progress**, not Done, solely because explicit project-owner approval required by `DEFINITION-OF-DONE.md` has not yet been recorded. PR #11 must not be merged until separately authorized.
+CI run #198 (run ID `35924701600`) validated the direct-value storage design before the public-inheritance/API simplification. The current removal of voxel forwarding methods and direct inheritance of `load`/lookup behavior requires a fresh complete CI pass. The ticket remains **In Progress**. Explicit project-owner approval required by `DEFINITION-OF-DONE.md` is also still pending, and PR #11 must not be merged until separately authorized.
