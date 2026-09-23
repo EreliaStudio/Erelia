@@ -216,6 +216,19 @@ namespace Voxel
 		return result;
 	}
 
+	Shape::Shape(Shape &&other) noexcept
+	{
+		for (std::size_t index = 0; index < _orientedPolygons.size(); ++index)
+		{
+			OrientedPolygonArray &source = other._orientedPolygons[index];
+			OrientedPolygonArray &destination = _orientedPolygons[index];
+
+			destination.polygons = std::move(source.polygons);
+			destination.uuid.store(source.uuid.load(std::memory_order_relaxed), std::memory_order_relaxed);
+			source.uuid.store(spk::UUID::null(), std::memory_order_relaxed);
+		}
+	}
+
 	Shape::Shape(const spk::JSON::Reader &reader)
 	{
 		reader.forbidUnknown({"polygons"});
