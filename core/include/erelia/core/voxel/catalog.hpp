@@ -2,95 +2,50 @@
 
 #include <filesystem>
 #include <memory>
-#include <sstream>
-#include <string>
-#include <unordered_map>
-#include <utility>
 
-#include <exception.hpp>
+#include <container/json/catalog.hpp>
 
 #include "erelia/core/voxel/definition.hpp"
 #include "erelia/core/voxel/shape.hpp"
-
-template <typename TElement>
-class Catalog
-{
-protected:
-	using ID = typename TElement::ID;
-
-	std::unordered_map<ID, std::shared_ptr<const TElement>> _elements;
-	std::string _elementName;
-
-	explicit Catalog(std::string elementName) :
-		_elementName(std::move(elementName))
-	{
-	}
-
-	[[nodiscard]] const std::shared_ptr<const TElement> &_sharedAt(const ID &id) const
-	{
-		const auto found = _elements.find(id);
-		if (found == _elements.end())
-		{
-			std::ostringstream stream;
-			stream << "unknown voxel " << _elementName << " ID '" << id << "'";
-			throw spk::Exception(stream.str());
-		}
-		return found->second;
-	}
-
-	void _insert(ID id, std::shared_ptr<const TElement> element)
-	{
-		if (!_elements.emplace(std::move(id), std::move(element)).second)
-		{
-			throw spk::Exception("duplicate voxel " + _elementName + " ID");
-		}
-	}
-
-public:
-	[[nodiscard]] const TElement &at(const ID &id) const
-	{
-		return *_sharedAt(id);
-	}
-
-	[[nodiscard]] const TElement &operator[](const ID &id) const
-	{
-		return at(id);
-	}
-
-	[[nodiscard]] bool contains(const ID &id) const noexcept
-	{
-		return _elements.contains(id);
-	}
-
-	[[nodiscard]] const TElement *tryGet(const ID &id) const noexcept
-	{
-		const auto found = _elements.find(id);
-		return found == _elements.end() ? nullptr : found->second.get();
-	}
-};
 
 namespace Voxel
 {
 	class Catalog;
 
-	class Shape::Catalog final : public ::Catalog<Shape>
+	class Shape::Catalog final : private spk::JSON::Catalog<Shape>
 	{
+		using Base = spk::JSON::Catalog<Shape>;
+
 		friend class Voxel::Catalog;
 		friend class Definition::Catalog;
 
 		Catalog();
 		void _load(const std::filesystem::path &path);
 		[[nodiscard]] std::shared_ptr<const Shape> _sharedShape(const Shape::ID &id) const;
+
+	public:
+		using Base::at;
+		using Base::contains;
+		using Base::operator[];
+		using Base::tryGet;
 	};
 
-	class Definition::Catalog final : public ::Catalog<Definition>
+	class Definition::Catalog final : private spk::JSON::Catalog<Definition>
 	{
+		using Base = spk::JSON::Catalog<Definition>;
+
 		friend class Voxel::Catalog;
 
 		const Shape::Catalog *_shapes;
 
 		explicit Catalog(const Shape::Catalog &shapes);
 		void _load(const std::filesystem::path &path);
+
+	public:
+		using Base::at;
+		using Base::contains;
+		using Base::operator[];
+		using Base::tryGet;
 	};
 
 	class Catalog final
