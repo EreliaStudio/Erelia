@@ -22,7 +22,7 @@ namespace Voxel
 		Catalog();
 		void _load(const std::filesystem::path &path);
 		[[nodiscard]] Shape::ID _parseKey(const spk::JSON::Reader &reader) const override;
-		[[nodiscard]] std::shared_ptr<const Shape> _parseElement(const spk::JSON::Reader &reader) const override;
+		[[nodiscard]] Shape _parseElement(const spk::JSON::Reader &reader) const override;
 		[[nodiscard]] std::shared_ptr<const Shape> _sharedShape(const Shape::ID &id) const;
 
 	public:
@@ -43,7 +43,7 @@ namespace Voxel
 		explicit Catalog(const Shape::Catalog &shapes);
 		void _load(const std::filesystem::path &path);
 		[[nodiscard]] Definition::ID _parseKey(const spk::JSON::Reader &reader) const override;
-		[[nodiscard]] std::shared_ptr<const Definition> _parseElement(const spk::JSON::Reader &reader) const override;
+		[[nodiscard]] Definition _parseElement(const spk::JSON::Reader &reader) const override;
 
 	public:
 		using Base::at;
