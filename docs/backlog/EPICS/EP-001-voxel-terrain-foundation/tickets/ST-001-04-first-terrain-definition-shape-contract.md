@@ -337,7 +337,18 @@ myVoxelCatalog.definitions().at(definitionId);
 
 Paths are `std::filesystem::path`.
 
-The Shape and Definition subcatalogs share generic typed catalog behavior. The exact internal reusable-template/helper type name is **not** a public contract and must not conflict with the public aggregate name `Voxel::Catalog`.
+The Shape and Definition subcatalogs derive privately from an Erelia-local prototype named `spk::JSON::Catalog<TElement>`. This prototype deliberately lives under the Sparkle namespace while it is exercised in Erelia; promotion into the Sparkle repository is deferred until the API has proven useful.
+
+`spk::JSON::Catalog<TElement>` owns the common JSON catalog machinery: file/root parsing, the `elements` array envelope, wrapper validation, iteration order, duplicate detection, immutable shared storage, incremental failure behavior, and lookup. `TElement` provides `TElement::ID`; the base does not require Sparkle's `json_readable` concept.
+
+The base exposes exactly two protected pure-virtual parsing hooks:
+
+```cpp
+virtual TElement::ID _parseKey(const spk::JSON::Reader& reader) const = 0;
+virtual std::shared_ptr<const TElement> _parseElement(const spk::JSON::Reader& reader) const = 0;
+```
+
+The key hook receives the element wrapper reader so domain code can parse/validate `id` with normal Reader diagnostics. The element hook receives only the corresponding `data` reader. `Voxel::Shape::Catalog` and `Voxel::Definition::Catalog` implement those two hooks and contain only their domain-specific parsing rules. Do not introduce a `detail` / `details` namespace for this machinery.
 
 The observable subcatalog API includes:
 
@@ -385,7 +396,7 @@ Both resource kinds use the same outer envelope:
 }
 ```
 
-The catalog layer owns `id` parsing and passes the corresponding `data` reader to the element constructor.
+The shared JSON catalog base owns envelope validation and iteration, dispatches key parsing to the derived catalog with the element wrapper reader, and dispatches element parsing with only the corresponding `data` reader.
 
 Shape example:
 
@@ -702,7 +713,7 @@ The public behavior, ownership, lifecycle, loading/error behavior, deterministic
 
 ## Completion evidence
 
-**Implementation state:** Technically complete; project-owner approval pending.
+**Implementation state:** Implementation revised; fresh validation and project-owner approval pending.
 
 Implementation remains on:
 
@@ -711,9 +722,10 @@ Implementation remains on:
 - main implementation commit: `c85f7e82360d79a79ac25d39cba6df71b0b1ea59`;
 - authored-winding/correctness follow-up: `6423e789b69770f8f15df1e16bacda23f54a17fb`;
 - Linux atomic-link fix: `5adc37e319fe2725d4d153fed9f5186ff9562457`;
-- final formatting corrections: `0407a8081499acc4b6380702b066a8b0480dce36`, `a67fbf89c88322d2e6e0417a78d7a62da14d94d4`, and `44aaf1d509c231bb5f69ad9775a97349af959ba3`.
+- final formatting corrections before the catalog redesign: `0407a8081499acc4b6380702b066a8b0480dce36`, `a67fbf89c88322d2e6e0417a78d7a62da14d94d4`, and `44aaf1d509c231bb5f69ad9775a97349af959ba3`;
+- current virtual JSON-catalog design: `19d2efe8768bef36c01da07877e448afb13153af`, `1fd28eeaf84d67242fc263c600e62b3af3b6642c`, and `33768efcd45427bd182e7bbc8094e8af2bd3c061`.
 
-The implementation preserves authored JSON polygon vertex order, derives normals from that order, validates the required structural polygon properties, and reverses transformed vertex order only for the specified `NegativeY` mirror. The lazy eight-way cache retains the approved acquire-load / mutex re-check / complete construction / release-store UUID publication contract. Linux now links `libatomic` transitively through `EreliaCore` because `std::atomic<spk::UUID>` requires the platform atomic runtime there; the synchronization contract itself was not changed.
+The implementation preserves authored JSON polygon vertex order, derives normals from that order, validates the required structural polygon properties, and reverses transformed vertex order only for the specified `NegativeY` mirror. The lazy eight-way cache retains the approved acquire-load / mutex re-check / complete construction / release-store UUID publication contract. Linux links `libatomic` transitively through `EreliaCore` because `std::atomic<spk::UUID>` requires the platform atomic runtime there. The catalog implementation now uses an Erelia-local `spk::JSON::Catalog<TElement>` abstract base with two pure virtual Reader-based parsing hooks and no `detail` namespace.
 
 Active Shape resources are checked in at `resources/voxels/shapes.json` and contain only `cube`, `slab`, `slope`, and `stair`.
 
@@ -747,4 +759,4 @@ CI run #127 validated implementation head `44aaf1d509c231bb5f69ad9775a97349af959
 
 The concurrent cache test uses 12 threads racing the same previously unmaterialized Orientation/Flip entry and verifies that all callers observe the same entry, UUID, and immutable geometry after publication.
 
-All ST-001-04 technical acceptance requirements are satisfied. The ticket remains **In Progress**, not Done, solely because explicit project-owner approval required by `DEFINITION-OF-DONE.md` has not yet been recorded. PR #11 must not be merged until separately authorized.
+CI run #127 remains evidence for the pre-redesign implementation. Because the catalog abstraction changed afterward, the current head requires a fresh complete CI pass before technical completion can be re-recorded. The ticket remains **In Progress**. Explicit project-owner approval required by `DEFINITION-OF-DONE.md` is also still pending, and PR #11 must not be merged until separately authorized.
