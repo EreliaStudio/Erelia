@@ -35,7 +35,7 @@ namespace spk::JSON
 		using Element = TElement;
 		using ID = typename Element::ID;
 		using KeyParser = std::function<ID(const Reader &, TArgs...)>;
-		using ElementParser = std::function<std::shared_ptr<const Element>(const Reader &, TArgs...)>;
+		using ElementParser = std::function<std::shared_ptr<const Element>(const Reader &, const ID &, TArgs...)>;
 
 	private:
 		std::unordered_map<ID, std::shared_ptr<const Element>> _elements;
@@ -55,7 +55,7 @@ namespace spk::JSON
 			return reader.template require<ID>("id");
 		}
 
-		[[nodiscard]] static std::shared_ptr<const Element> _defaultElementParser(const Reader &reader, TArgs...)
+		[[nodiscard]] static std::shared_ptr<const Element> _defaultElementParser(const Reader &reader, const ID &, TArgs...)
 			requires json_readable<Element>
 		{
 			return std::shared_ptr<const Element>(new Element(reader.value().template as<Element>()));
@@ -129,7 +129,7 @@ namespace spk::JSON
 				}
 
 				const Reader dataReader = elementReader.child("data");
-				std::shared_ptr<const Element> element = _elementParser(dataReader, args...);
+				std::shared_ptr<const Element> element = _elementParser(dataReader, id, args...);
 				if (element == nullptr)
 				{
 					_throwAt(file, dataReader.path(), "catalog element parser returned null");
