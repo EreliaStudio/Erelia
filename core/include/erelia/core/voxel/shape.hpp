@@ -39,6 +39,7 @@ namespace Voxel
 		mutable std::array<OrientedPolygonArray, 8> _orientedPolygons;
 		mutable std::mutex _orientedPolygonMutex;
 
+		Shape();
 		explicit Shape(const spk::JSON::Reader &reader);
 
 		[[nodiscard]] static Polygon _loadPolygon(const spk::JSON::Reader &reader);
