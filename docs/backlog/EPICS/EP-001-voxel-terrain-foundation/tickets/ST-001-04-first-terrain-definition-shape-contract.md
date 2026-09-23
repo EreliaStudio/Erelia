@@ -339,16 +339,16 @@ Paths are `std::filesystem::path`.
 
 The Shape and Definition subcatalogs derive privately from an Erelia-local prototype named `spk::JSON::Catalog<TElement>`. This prototype deliberately lives under the Sparkle namespace while it is exercised in Erelia; promotion into the Sparkle repository is deferred until the API has proven useful.
 
-`spk::JSON::Catalog<TElement>` owns the common JSON catalog machinery: file/root parsing, the `elements` array envelope, wrapper validation, iteration order, duplicate detection, immutable shared storage, incremental failure behavior, and lookup. `TElement` provides `TElement::ID`; the base does not require Sparkle's `json_readable` concept.
+`spk::JSON::Catalog<TElement>` owns the common JSON catalog machinery: file/root parsing, the `elements` array envelope, wrapper validation, iteration order, duplicate detection, immutable shared storage, incremental failure behavior, and lookup. `TElement` provides `TElement::ID`; the base does not require Sparkle's `json_readable` concept. Derived parsing code produces plain `TElement` values and does not depend on the catalog's internal ownership/storage representation; `TElement` must therefore be move-constructible.
 
 The base exposes exactly two protected pure-virtual parsing hooks:
 
 ```cpp
 virtual TElement::ID _parseKey(const spk::JSON::Reader& reader) const = 0;
-virtual std::shared_ptr<const TElement> _parseElement(const spk::JSON::Reader& reader) const = 0;
+virtual TElement _parseElement(const spk::JSON::Reader& reader) const = 0;
 ```
 
-The key hook receives the element wrapper reader so domain code can parse/validate `id` with normal Reader diagnostics. The element hook receives only the corresponding `data` reader. `Voxel::Shape::Catalog` and `Voxel::Definition::Catalog` implement those two hooks and contain only their domain-specific parsing rules. Do not introduce a `detail` / `details` namespace for this machinery.
+The key hook receives the element wrapper reader so domain code can parse/validate `id` with normal Reader diagnostics. The element hook receives only the corresponding `data` reader and returns a movable value. The base catalog moves that value into its internal immutable storage, keeping storage/ownership policy invisible to derived catalogs. `Voxel::Shape::Catalog` and `Voxel::Definition::Catalog` implement those two hooks and contain only their domain-specific parsing rules. `Voxel::Shape` is move-constructible for this purpose, remains non-copyable, and remains non-move-assignable. Do not introduce a `detail` / `details` namespace for this machinery.
 
 The observable subcatalog API includes:
 
