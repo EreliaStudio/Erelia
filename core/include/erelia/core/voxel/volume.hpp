@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 #include <span>
 #include <vector>
 
@@ -51,7 +52,7 @@ namespace Voxel
 		[[nodiscard]] spk::Vector3UInt dimensions() const noexcept;
 		[[nodiscard]] UnitSize unitSize() const noexcept;
 		[[nodiscard]] bool contains(const LocalCoordinate &coordinate) const noexcept;
-		[[nodiscard]] bool contains(const LocalCoordinate &coordinate, Cell &destination) const noexcept;
+		[[nodiscard]] std::optional<Cell> tryGet(const LocalCoordinate &coordinate) const noexcept;
 		[[nodiscard]] Cell at(const LocalCoordinate &coordinate) const;
 		[[nodiscard]] Cell operator[](const LocalCoordinate &coordinate) const;
 		[[nodiscard]] std::span<const Cell> cells() const noexcept;
