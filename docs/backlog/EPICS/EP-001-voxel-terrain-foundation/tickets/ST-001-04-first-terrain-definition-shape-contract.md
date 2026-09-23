@@ -702,33 +702,49 @@ The public behavior, ownership, lifecycle, loading/error behavior, deterministic
 
 ## Completion evidence
 
-**Implementation state:** In Progress.
+**Implementation state:** Technically complete; project-owner approval pending.
 
-Current implementation work is on:
+Implementation remains on:
 
 - branch: `feat/st-001-04-definition-shape-contract`;
 - pull request: PR #11;
 - main implementation commit: `c85f7e82360d79a79ac25d39cba6df71b0b1ea59`;
-- follow-up correctness/build-fix commit: `6423e789b69770f8f15df1e16bacda23f54a17fb`.
+- authored-winding/correctness follow-up: `6423e789b69770f8f15df1e16bacda23f54a17fb`;
+- Linux atomic-link fix: `5adc37e319fe2725d4d153fed9f5186ff9562457`;
+- final formatting corrections: `0407a8081499acc4b6380702b066a8b0480dce36`, `a67fbf89c88322d2e6e0417a78d7a62da14d94d4`, and `44aaf1d509c231bb5f69ad9775a97349af959ba3`.
 
-The branch currently contains the owned production implementation and focused tests for Shape, Definition, Catalog, Orientation/Flip transforms, lazy cache publication/concurrency, malformed resources, catalog loading, slot binding, Air, and revised Cell Orientation semantics.
+The implementation preserves authored JSON polygon vertex order, derives normals from that order, validates the required structural polygon properties, and reverses transformed vertex order only for the specified `NegativeY` mirror. The lazy eight-way cache retains the approved acquire-load / mutex re-check / complete construction / release-store UUID publication contract. Linux now links `libatomic` transitively through `EreliaCore` because `std::atomic<spk::UUID>` requires the platform atomic runtime there; the synchronization contract itself was not changed.
 
-The latest contract correction removes an implementation-invented outward-facing winding check. Authored JSON vertex order is preserved and used to derive polygon normals; polygon geometry is validated for the ticket's structural requirements, and winding is reversed only for the specified `NegativeY` mirrored variant.
+Active Shape resources are checked in at `resources/voxels/shapes.json` and contain only `cube`, `slab`, `slope`, and `stair`.
 
-Active Shape resources are checked in at `resources/voxels/shapes.json` for `cube`, `slab`, `slope`, and `stair`.
+### Tests and validation
 
-### Validation still pending
+The focused Core tests cover:
 
-CI run #122 for commit `6423e789b69770f8f15df1e16bacda23f54a17fb` completed with failure:
+- active Shape loading and normalized JSON-to-discrete conversion;
+- polygon slots and normals;
+- exact four-way Orientation transforms and both Flip orientations;
+- `NegativeY` mirroring, winding reversal, and final-normal recomputation;
+- slot preservation through transforms;
+- canonical cache publication, lazy reuse, and concurrent first access;
+- Definition-to-Shape retained ownership;
+- Air, catalog lookup behavior, complete/missing/extra slots, duplicate IDs, repeated loads, and incremental failure semantics;
+- aggregate Shape-before-Definition loading;
+- malformed JSON/schema and malformed polygon geometry;
+- maximum/overflowing Definition IDs;
+- deterministic semantic loading;
+- revised packed Cell Orientation fixtures.
 
-- Windows Core/Server Debug: passed;
-- Windows Core/Server Release: passed;
-- Windows Client Debug: passed;
-- Windows Client Release: passed;
-- clang-format: failed;
-- Linux Core/Server Debug: failed during the Erelia build;
-- Linux Core/Server Release: failed during the Erelia build.
+CI run #127 validated implementation head `44aaf1d509c231bb5f69ad9775a97349af959ba3` successfully:
 
-The ticket must remain **In Progress** until the remaining CI failures are diagnosed and fixed, all ticket acceptance/regression evidence is green, documentation reflects the final implementation, and project-owner approval required by `DEFINITION-OF-DONE.md` is explicitly recorded.
+- clang-format: passed;
+- Linux Core/Server Debug: passed; CTest 3/3 (`EreliaCoreTestSuite`, `EreliaServerTestSuite`, `EreliaServerSmoke`);
+- Linux Core/Server Release: passed; CTest 3/3;
+- Windows Core/Server Debug: passed; CTest 3/3;
+- Windows Core/Server Release: passed; CTest 3/3;
+- Windows Client Debug: passed; CTest 5/5 including `EreliaCoreTestSuite`, `EreliaServerTestSuite`, `EreliaServerSmoke`, `EreliaClientTestSuite`, and `EreliaClientSmoke`;
+- Windows Client Release: passed; CTest 5/5.
 
-Do not mark this ticket Done merely because the current implementation exists.
+The concurrent cache test uses 12 threads racing the same previously unmaterialized Orientation/Flip entry and verifies that all callers observe the same entry, UUID, and immutable geometry after publication.
+
+All ST-001-04 technical acceptance requirements are satisfied. The ticket remains **In Progress**, not Done, solely because explicit project-owner approval required by `DEFINITION-OF-DONE.md` has not yet been recorded. PR #11 must not be merged until separately authorized.
