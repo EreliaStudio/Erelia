@@ -35,7 +35,7 @@ namespace spk::JSON
 		virtual ~Catalog() = default;
 
 		[[nodiscard]] virtual ID _parseKey(const Reader &reader) const = 0;
-		[[nodiscard]] virtual std::shared_ptr<const Element> _parseElement(const Reader &reader) const = 0;
+		[[nodiscard]] virtual Element _parseElement(const Reader &reader) const = 0;
 
 		[[nodiscard]] const std::shared_ptr<const Element> &_sharedAt(const ID &id) const
 		{
@@ -47,12 +47,15 @@ namespace spk::JSON
 			return found->second;
 		}
 
-		void _insert(ID id, std::shared_ptr<const Element> element)
+		void _insert(ID id, Element element)
 		{
-			if (!_elements.emplace(std::move(id), std::move(element)).second)
+			if (contains(id))
 			{
 				throw spk::Exception("duplicate JSON catalog ID");
 			}
+			_elements.emplace(
+				std::move(id),
+				std::make_shared<const Element>(std::move(element)));
 		}
 
 		void _load(const std::filesystem::path &file)
@@ -86,13 +89,10 @@ namespace spk::JSON
 				}
 
 				const Reader dataReader = elementReader.child("data");
-				std::shared_ptr<const Element> element = _parseElement(dataReader);
-				if (element == nullptr)
-				{
-					_throwAt(file, dataReader.path(), "catalog element parser returned null");
-				}
-
-				_elements.emplace(std::move(id), std::move(element));
+				Element element = _parseElement(dataReader);
+				_elements.emplace(
+					std::move(id),
+					std::make_shared<const Element>(std::move(element)));
 			}
 		}
 
