@@ -1,9 +1,7 @@
 #pragma once
 
-#include <concepts>
 #include <cstddef>
 #include <filesystem>
-#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -14,33 +12,15 @@
 
 namespace spk::JSON
 {
-	template <typename TType>
-	concept value_readable =
-		native_integer<TType> ||
-		native_floating<TType> ||
-		std::same_as<clean_type<TType>, bool> ||
-		std::same_as<clean_type<TType>, std::string> ||
-		json_readable<TType>;
-
 	template <typename TElement>
-	concept catalog_element =
-		requires {
-			typename TElement::ID;
-		} && value_readable<typename TElement::ID>;
-
-	template <catalog_element TElement, typename... TArgs>
 	class Catalog
 	{
 	public:
 		using Element = TElement;
 		using ID = typename Element::ID;
-		using KeyParser = std::function<ID(const Reader &, TArgs...)>;
-		using ElementParser = std::function<std::shared_ptr<const Element>(const Reader &, const ID &, TArgs...)>;
 
 	private:
 		std::unordered_map<ID, std::shared_ptr<const Element>> _elements;
-		KeyParser _keyParser;
-		ElementParser _elementParser;
 
 		[[noreturn]] static void _throwAt(
 			const std::filesystem::path &file,
@@ -50,35 +30,12 @@ namespace spk::JSON
 			throw spk::Exception(file.generic_string() + ":" + path + ": " + message);
 		}
 
-		[[nodiscard]] static ID _defaultKeyParser(const Reader &reader, TArgs...)
-		{
-			return reader.template require<ID>("id");
-		}
-
-		[[nodiscard]] static std::shared_ptr<const Element> _defaultElementParser(const Reader &reader, const ID &, TArgs...)
-			requires json_readable<Element>
-		{
-			return std::shared_ptr<const Element>(new Element(reader.value().template as<Element>()));
-		}
-
 	protected:
-		Catalog(KeyParser keyParser, ElementParser elementParser) :
-			_keyParser(std::move(keyParser)),
-			_elementParser(std::move(elementParser))
-		{
-		}
+		Catalog() = default;
+		virtual ~Catalog() = default;
 
-		explicit Catalog(ElementParser elementParser) :
-			Catalog(_defaultKeyParser, std::move(elementParser))
-		{
-		}
-
-		Catalog()
-			requires json_readable<Element>
-			:
-			Catalog(_defaultKeyParser, _defaultElementParser)
-		{
-		}
+		[[nodiscard]] virtual ID _parseKey(const Reader &reader) const = 0;
+		[[nodiscard]] virtual std::shared_ptr<const Element> _parseElement(const Reader &reader) const = 0;
 
 		[[nodiscard]] const std::shared_ptr<const Element> &_sharedAt(const ID &id) const
 		{
@@ -98,7 +55,7 @@ namespace spk::JSON
 			}
 		}
 
-		void _load(const std::filesystem::path &file, TArgs... args)
+		void _load(const std::filesystem::path &file)
 		{
 			const Value document = Loader::parseFile(file);
 			const Reader root(document, file);
@@ -122,14 +79,14 @@ namespace spk::JSON
 				const Reader elementReader(array[index], file, path);
 				elementReader.forbidUnknown({"id", "data"});
 
-				ID id = _keyParser(elementReader, args...);
+				ID id = _parseKey(elementReader);
 				if (contains(id))
 				{
 					_throwAt(file, elementReader.pathFor("id"), "duplicate catalog ID");
 				}
 
 				const Reader dataReader = elementReader.child("data");
-				std::shared_ptr<const Element> element = _elementParser(dataReader, id, args...);
+				std::shared_ptr<const Element> element = _parseElement(dataReader);
 				if (element == nullptr)
 				{
 					_throwAt(file, dataReader.path(), "catalog element parser returned null");
