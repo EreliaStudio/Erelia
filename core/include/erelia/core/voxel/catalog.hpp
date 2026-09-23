@@ -21,6 +21,8 @@ namespace Voxel
 
 		Catalog();
 		void _load(const std::filesystem::path &path);
+		[[nodiscard]] Shape::ID _parseKey(const spk::JSON::Reader &reader) const override;
+		[[nodiscard]] std::shared_ptr<const Shape> _parseElement(const spk::JSON::Reader &reader) const override;
 		[[nodiscard]] std::shared_ptr<const Shape> _sharedShape(const Shape::ID &id) const;
 
 	public:
@@ -30,9 +32,9 @@ namespace Voxel
 		using Base::tryGet;
 	};
 
-	class Definition::Catalog final : private spk::JSON::Catalog<Definition, const Shape::Catalog &>
+	class Definition::Catalog final : private spk::JSON::Catalog<Definition>
 	{
-		using Base = spk::JSON::Catalog<Definition, const Shape::Catalog &>;
+		using Base = spk::JSON::Catalog<Definition>;
 
 		friend class Voxel::Catalog;
 
@@ -40,6 +42,8 @@ namespace Voxel
 
 		explicit Catalog(const Shape::Catalog &shapes);
 		void _load(const std::filesystem::path &path);
+		[[nodiscard]] Definition::ID _parseKey(const spk::JSON::Reader &reader) const override;
+		[[nodiscard]] std::shared_ptr<const Definition> _parseElement(const spk::JSON::Reader &reader) const override;
 
 	public:
 		using Base::at;
