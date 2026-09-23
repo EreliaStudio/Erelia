@@ -19,11 +19,13 @@ namespace Voxel
 		friend class Voxel::Catalog;
 		friend class Definition::Catalog;
 
+		Shape _empty;
+
 		Catalog();
 		void _load(const std::filesystem::path &path);
 		[[nodiscard]] Shape::ID _parseKey(const spk::JSON::Reader &reader) const override;
 		[[nodiscard]] Shape _parseElement(const spk::JSON::Reader &reader) const override;
-		[[nodiscard]] std::shared_ptr<const Shape> _sharedShape(const Shape::ID &id) const;
+		[[nodiscard]] const Shape &_emptyShape() const noexcept;
 
 	public:
 		using Base::at;
@@ -38,7 +40,7 @@ namespace Voxel
 
 		friend class Voxel::Catalog;
 
-		const Shape::Catalog *_shapes;
+		const Shape::Catalog &_shapes;
 
 		explicit Catalog(const Shape::Catalog &shapes);
 		void _load(const std::filesystem::path &path);
