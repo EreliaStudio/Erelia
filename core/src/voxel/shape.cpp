@@ -216,6 +216,11 @@ namespace Voxel
 		return result;
 	}
 
+	Shape::Shape()
+	{
+		_orientedPolygons[0].uuid.store(spk::UUID::generate(), std::memory_order_release);
+	}
+
 	Shape::Shape(Shape &&other) noexcept
 	{
 		for (std::size_t index = 0; index < _orientedPolygons.size(); ++index)
