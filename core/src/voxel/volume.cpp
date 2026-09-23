@@ -45,12 +45,7 @@ namespace Voxel
 			return false;
 		}
 
-		return coordinate.x >= 0 &&
-			coordinate.y >= 0 &&
-			coordinate.z >= 0 &&
-			static_cast<std::uint32_t>(coordinate.x) < _content->dimensions.x &&
-			static_cast<std::uint32_t>(coordinate.y) < _content->dimensions.y &&
-			static_cast<std::uint32_t>(coordinate.z) < _content->dimensions.z;
+		return coordinate.x >= 0 && coordinate.y >= 0 && coordinate.z >= 0 && static_cast<std::uint32_t>(coordinate.x) < _content->dimensions.x && static_cast<std::uint32_t>(coordinate.y) < _content->dimensions.y && static_cast<std::uint32_t>(coordinate.z) < _content->dimensions.z;
 	}
 
 	Cell Volume::at(const LocalCoordinate &coordinate) const
