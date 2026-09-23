@@ -1,7 +1,8 @@
 # Current Status
 
 **Updated:** 23 September 2026
-**Default / active baseline:** `master`
+**Default baseline:** `master`
+**Active ticket branch:** `feat/st-001-04-definition-shape-contract`
 
 ## Branch state
 
@@ -13,7 +14,7 @@ The first three EP-001 implementation tickets are merged into `master`:
 - ST-001-02 through PR #8;
 - ST-001-03 through PR #9 after project-owner approval and green CI run #105.
 
-The former planning branch is no longer the active implementation baseline.
+The former planning branch is no longer the active implementation baseline. The resolved ST-001-04 planning/decision updates and its forthcoming implementation live on `feat/st-001-04-definition-shape-contract` until that ticket is completed and merged.
 
 ## What exists now
 
@@ -97,7 +98,7 @@ The implementation must follow DR-018 and the complete ticket contract. In parti
 
 ## Next
 
-1. Implement ST-001-04 on a dedicated feature branch cut from current `master`.
+1. Continue ST-001-04 implementation on the existing `feat/st-001-04-definition-shape-contract` branch; do not recreate it from `master`, because this branch already contains the approved Ready contract and DR-018.
 2. After ST-001-04, reassess the dependency order rather than skipping unresolved gates.
 3. Resolve OQ-039's remaining generator-scene details before ST-001-06.
 4. Resolve OQ-037/OQ-038 before the dependent Chunk networking/request tickets.
