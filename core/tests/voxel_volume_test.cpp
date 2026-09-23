@@ -57,7 +57,7 @@ TEST(VoxelVolume, DefaultConstructionIsEmpty)
 	const Voxel::Volume volume;
 
 	expectDefaultVolume(volume);
-	EXPECT_THROW(volume.at({0, 0, 0}), spk::Exception);
+	EXPECT_THROW((void)volume.at({0, 0, 0}), spk::Exception);
 }
 
 TEST(VoxelVolumeBuilder, ExplicitConstructionOwnsDefaultEmptyCells)
@@ -121,7 +121,7 @@ TEST(VoxelVolume, BracketAccessMatchesAtAndIsChecked)
 
 	EXPECT_EQ(volume[coordinate].packed(), volume.at(coordinate).packed());
 	EXPECT_THROW(
-		volume[Voxel::Volume::LocalCoordinate{2, 0, 0}],
+		((void)volume[Voxel::Volume::LocalCoordinate{2, 0, 0}]),
 		spk::Exception);
 }
 
@@ -174,19 +174,19 @@ TEST(VoxelVolume, RejectsInvalidCheckedCoordinates)
 {
 	const auto volume = makeVolume({2, 3, 4}, 1.0f);
 
-	EXPECT_THROW(volume.at({-1, 0, 0}), spk::Exception);
-	EXPECT_THROW(volume.at({0, -1, 0}), spk::Exception);
-	EXPECT_THROW(volume.at({0, 0, -1}), spk::Exception);
-	EXPECT_THROW(volume.at({2, 0, 0}), spk::Exception);
-	EXPECT_THROW(volume.at({0, 3, 0}), spk::Exception);
-	EXPECT_THROW(volume.at({0, 0, 4}), spk::Exception);
+	EXPECT_THROW((void)volume.at({-1, 0, 0}), spk::Exception);
+	EXPECT_THROW((void)volume.at({0, -1, 0}), spk::Exception);
+	EXPECT_THROW((void)volume.at({0, 0, -1}), spk::Exception);
+	EXPECT_THROW((void)volume.at({2, 0, 0}), spk::Exception);
+	EXPECT_THROW((void)volume.at({0, 3, 0}), spk::Exception);
+	EXPECT_THROW((void)volume.at({0, 0, 4}), spk::Exception);
 }
 
 TEST(VoxelVolumeBuilder, RejectsInvalidCoordinatesWithoutMutatingOtherCells)
 {
 	Voxel::Volume::Builder builder({2, 1, 1}, 1.0f);
 
-	EXPECT_THROW(builder.set({2, 0, 0}, Voxel::Cell(7u)), spk::Exception);
+	EXPECT_THROW((void)builder.set({2, 0, 0}, Voxel::Cell(7u)), spk::Exception);
 	EXPECT_TRUE(builder.set({1, 0, 0}, Voxel::Cell(9u)));
 
 	const auto volume = std::move(builder).build();
