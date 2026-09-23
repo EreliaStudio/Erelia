@@ -78,11 +78,6 @@ namespace
 		}
 
 	public:
-		void load(const std::filesystem::path &path)
-		{
-			_load(path);
-		}
-
 		void insert(ID id, Element element)
 		{
 			_insert(id, std::move(element));
