@@ -11,26 +11,24 @@
 
 namespace
 {
-	using CellBuffer = std::vector<Voxel::Cell>;
-	using CellBufferPool = spk::Pool<CellBuffer>;
-	using CellBufferLease = CellBufferPool::Lease;
+	using Buffer = Voxel::Volume::Buffer;
 
 	constexpr std::size_t ChunkCellCount =
 		static_cast<std::size_t>(Chunk::Extent) *
 		static_cast<std::size_t>(Chunk::Extent) *
 		static_cast<std::size_t>(Chunk::Extent);
 
-	[[nodiscard]] CellBufferPool::Factory makeCellBufferFactory(std::size_t capacity)
+	[[nodiscard]] Buffer::Pool::Factory makeCellBufferFactory(std::size_t capacity)
 	{
 		return [capacity]() {
-			auto *buffer = new CellBuffer();
+			auto *buffer = new Buffer();
 			buffer->reserve(capacity);
 			return buffer;
 		};
 	}
 
-	CellBufferPool chunkCellBufferPool(makeCellBufferFactory(ChunkCellCount));
-	std::map<std::size_t, CellBufferPool> cellBufferPools;
+	Buffer::Pool chunkCellBufferPool(makeCellBufferFactory(ChunkCellCount));
+	std::map<std::size_t, Buffer::Pool> cellBufferPools;
 
 	[[nodiscard]] std::size_t cellCount(const spk::Vector3UInt &dimensions)
 	{
@@ -67,7 +65,7 @@ namespace
 		return dimensions.x == Chunk::Extent && dimensions.y == Chunk::Extent && dimensions.z == Chunk::Extent;
 	}
 
-	[[nodiscard]] CellBufferPool &cellBufferPoolFor(
+	[[nodiscard]] Buffer::Pool &cellBufferPoolFor(
 		const spk::Vector3UInt &dimensions,
 		std::size_t expectedSize)
 	{
@@ -90,12 +88,12 @@ namespace
 		return insertedIterator->second;
 	}
 
-	[[nodiscard]] CellBufferLease obtainEmptyCellBuffer(
+	[[nodiscard]] Buffer::Lease obtainEmptyCellBuffer(
 		const spk::Vector3UInt &dimensions,
 		std::size_t expectedSize)
 	{
 		return cellBufferPoolFor(dimensions, expectedSize).obtain(
-			[](CellBuffer &buffer, std::size_t size) {
+			[](Buffer &buffer, std::size_t size) {
 				buffer.clear();
 				buffer.resize(size);
 			},
