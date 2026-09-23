@@ -24,8 +24,6 @@ namespace Voxel
 		UnitSize _unitSize = 0.0f;
 		std::vector<Cell> _cells;
 
-		[[nodiscard]] static std::size_t _cellCount(const spk::Vector3UInt &dimensions);
-		[[nodiscard]] static UnitSize _validatedUnitSize(UnitSize unitSize);
 		[[nodiscard]] std::size_t _index(const LocalCoordinate &coordinate) const;
 		void _resetToDefault() noexcept;
 

@@ -5,9 +5,9 @@
 #include <limits>
 #include <utility>
 
-namespace Voxel
+namespace
 {
-	std::size_t Volume::_cellCount(const spk::Vector3UInt &dimensions)
+	std::size_t cellCount(const spk::Vector3UInt &dimensions)
 	{
 		if (dimensions.x == 0 || dimensions.y == 0 || dimensions.z == 0)
 		{
@@ -27,7 +27,7 @@ namespace Voxel
 		return sizeX * sizeY * sizeZ;
 	}
 
-	Volume::UnitSize Volume::_validatedUnitSize(UnitSize unitSize)
+	Voxel::Volume::UnitSize validatedUnitSize(Voxel::Volume::UnitSize unitSize)
 	{
 		if (!std::isfinite(unitSize) || unitSize <= 0.0f)
 		{
@@ -36,6 +36,10 @@ namespace Voxel
 
 		return unitSize;
 	}
+}
+
+namespace Voxel
+{
 
 	std::size_t Volume::_index(const LocalCoordinate &coordinate) const
 	{
@@ -62,8 +66,8 @@ namespace Voxel
 
 	Volume::Volume(const spk::Vector3UInt &dimensions, UnitSize unitSize) :
 		_dimensions(dimensions),
-		_unitSize(_validatedUnitSize(unitSize)),
-		_cells(_cellCount(dimensions))
+		_unitSize(validatedUnitSize(unitSize)),
+		_cells(cellCount(dimensions))
 	{
 	}
 
