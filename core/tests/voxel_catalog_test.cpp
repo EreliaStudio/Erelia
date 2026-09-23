@@ -76,6 +76,42 @@ TEST(VoxelCatalog, LoadsDefinitionsResolvesShapeAndPreservesBindings)
 	EXPECT_EQ(&catalog.definitions()[1u], &definition);
 }
 
+TEST(VoxelCatalog, DefinitionShapeReferenceSurvivesShapeCatalogGrowth)
+{
+	const voxel_test::TemporaryJsonFile shape(
+		voxel_test::shapeFile("anchor", R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]})"));
+	const voxel_test::TemporaryJsonFile definition(
+		voxel_test::definitionFile(1u, "anchor", R"({"face":"stone"})"));
+
+	Voxel::Catalog catalog;
+	catalog.load(shape.path(), definition.path());
+
+	const Voxel::Definition &loadedDefinition = catalog.definitions().at(1u);
+	const Voxel::Shape *resolvedShape = &loadedDefinition.shape();
+
+	std::ostringstream additionalShapes;
+	additionalShapes << R"({"elements":[)";
+	for (std::size_t index = 0; index < 512u; ++index)
+	{
+		if (index != 0u)
+		{
+			additionalShapes << ',';
+		}
+		additionalShapes
+			<< R"({"id":"extra-)" << index
+			<< R"(","data":{"polygons":[{"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]}]}})";
+	}
+	additionalShapes << "]}";
+
+	const voxel_test::TemporaryJsonFile additional(additionalShapes.str(), "many-shapes");
+	catalog.loadShape(additional.path());
+
+	EXPECT_EQ(&loadedDefinition.shape(), resolvedShape);
+	EXPECT_EQ(&catalog.shapes().at("anchor"), resolvedShape);
+	EXPECT_EQ(loadedDefinition.shape().polygons().size(), 1u);
+	EXPECT_EQ(loadedDefinition.slots().at("face"), "stone");
+}
+
 TEST(VoxelCatalog, MissingShapeSlotLogsWarningAndBindsInvalidMaterial)
 {
 	const voxel_test::TemporaryJsonFile definitions(
