@@ -715,7 +715,7 @@ The public behavior, ownership, lifecycle, loading/error behavior, deterministic
 
 ## Completion evidence
 
-**Implementation state:** Implementation revised; fresh validation and project-owner approval pending.
+**Implementation state:** Technically complete; project-owner approval pending.
 
 Implementation remains on:
 
@@ -763,4 +763,4 @@ CI run #127 validated implementation head `44aaf1d509c231bb5f69ad9775a97349af959
 
 The concurrent cache test uses 12 threads racing the same previously unmaterialized Orientation/Flip entry and verifies that all callers observe the same entry, UUID, and immutable geometry after publication.
 
-CI run #127 remains evidence for the pre-redesign implementation. Because the catalog and Definition/Shape lifetime contracts changed afterward, current complete code head `0ced9a3c0d84ce055e1341e00734b9f56ae9709c` requires a fresh complete CI pass before technical completion can be re-recorded. CI run #182 (run ID `35901607987`) is the first run containing that complete code state. The ticket remains **In Progress**. Explicit project-owner approval required by `DEFINITION-OF-DONE.md` is also still pending, and PR #11 must not be merged until separately authorized.
+CI run #182 (run ID `35901607987`) validated complete code head `0ced9a3c0d84ce055e1341e00734b9f56ae9709c` successfully across clang-format, Linux Core/Server Debug + Release, Windows Core/Server Debug + Release, and Windows Client Debug + Release. Subsequent commits only synchronize ticket/decision/status documentation with that validated code. The ticket remains **In Progress**, not Done, solely because explicit project-owner approval required by `DEFINITION-OF-DONE.md` has not yet been recorded. PR #11 must not be merged until separately authorized.
