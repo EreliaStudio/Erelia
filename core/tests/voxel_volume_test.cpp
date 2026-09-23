@@ -137,6 +137,20 @@ TEST(VoxelVolume, SupportsSingleCellBoundary)
 	EXPECT_EQ(volume.at({0, 0, 0}).packed(), 0u);
 }
 
+TEST(VoxelVolume, ContainsCanRetrieveCellWithoutChangingDestinationOnFailure)
+{
+	const auto volume = makeVolumeWithCell({2, 1, 1}, 1.0f, {1, 0, 0}, 42u);
+	Voxel::Cell destination(7u);
+
+	EXPECT_TRUE(volume.contains({1, 0, 0}, destination));
+	EXPECT_EQ(destination.packed(), 42u);
+
+	destination = Voxel::Cell(9u);
+
+	EXPECT_FALSE(volume.contains({2, 0, 0}, destination));
+	EXPECT_EQ(destination.packed(), 9u);
+}
+
 TEST(VoxelVolumeBuilder, RejectsInvalidExplicitDimensions)
 {
 	EXPECT_THROW((Voxel::Volume::Builder({0, 1, 1}, 1.0f)), spk::Exception);
