@@ -118,6 +118,21 @@ TEST(JsonCatalog, ProtectedInsertUsesCatalogStorageAndRejectsDuplicate)
 	EXPECT_EQ(catalog.at(7u).value, 70);
 }
 
+TEST(JsonCatalog, ElementReferencesRemainStableAcrossInsertions)
+{
+	Catalog catalog;
+	catalog.insert(1u, Element(10));
+	const Element *first = &catalog.at(1u);
+
+	for (std::uint32_t id = 2u; id <= 1024u; ++id)
+	{
+		catalog.insert(id, Element(static_cast<int>(id)));
+	}
+
+	EXPECT_EQ(&catalog.at(1u), first);
+	EXPECT_EQ(first->value, 10);
+}
+
 TEST(JsonCatalog, DuplicateWithinLoadPreservesEarlierElement)
 {
 	const TemporaryJsonFile file(
