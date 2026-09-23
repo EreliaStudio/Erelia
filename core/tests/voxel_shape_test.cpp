@@ -12,7 +12,6 @@
 #include <thread>
 #include <vector>
 
-
 namespace
 {
 	constexpr std::int32_t VertexScale = 1000;
