@@ -737,6 +737,8 @@ Active Shape resources are checked in at `resources/voxels/shapes.json` and cont
 
 The focused Core tests cover:
 
+- direct `spk::JSON::Catalog<TElement>` unit coverage for move-only elements, lookup APIs, protected insertion, duplicate IDs, incremental failure, and malformed envelope diagnostics;
+- direct `Voxel::Definition` unit coverage for Air's empty Shape, exact Shape-reference identity, copy/move construction, and non-assignable reference semantics;
 - active Shape loading and normalized JSON-to-discrete conversion;
 - polygon slots and normals;
 - exact four-way Orientation transforms and both Flip orientations;
