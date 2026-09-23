@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include <atomic>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -36,7 +35,6 @@ namespace Voxel
 
 	private:
 		mutable std::array<OrientedPolygonArray, 8> _orientedPolygons;
-		mutable std::array<std::atomic_flag, 8> _orientedPolygonPublished{};
 		mutable std::mutex _orientedPolygonMutex;
 
 		explicit Shape(const spk::JSON::Reader &reader);
