@@ -30,9 +30,9 @@ namespace Voxel
 		using Base::tryGet;
 	};
 
-	class Definition::Catalog final : private spk::JSON::Catalog<Definition>
+	class Definition::Catalog final : private spk::JSON::Catalog<Definition, const Shape::Catalog &>
 	{
-		using Base = spk::JSON::Catalog<Definition>;
+		using Base = spk::JSON::Catalog<Definition, const Shape::Catalog &>;
 
 		friend class Voxel::Catalog;
 
