@@ -7,73 +7,59 @@
 
 ## Intent
 
-Introduce the reusable owning `Voxel::Volume` container consumed by terrain generation, networking, and Client meshing.
-
-## User / system value
-
-Core needs one shared runtime-sized voxel container rather than separate Server/Client or terrain/model storage formats.
+Introduce the reusable immutable built `Voxel::Volume` representation and its mutable `Voxel::Volume::Builder`, with pooled Cell-buffer reuse suitable for both fixed terrain Chunks and later runtime-sized voxel models.
 
 ## Starting state / prerequisites
 
-- ST-001-02 is Done and merged through PR #8.
+- ST-001-02 is Done and merged.
 - OQ-035 is Resolved.
-- DR-012 fixes the Volume representation/editor/versioning contract.
+- DR-012 fixes the packed Cell and current Volume/Builder direction.
+- Sparkle Version-0.1.3 now provides the reusable `spk::Pool<TElement>` used by the Builder.
 - DR-017 fixes the later `spk::Message` friend-operator direction; encoding remains ST-001-05.
 
 ## Product ownership
 
-Core owns the generic container.
-
-## Allowed dependencies
-
-C++ standard library; headless-safe Sparkle Core.
-
-## Forbidden dependencies
-
-Server authority code, Client presentation code, graphics-only dependencies, terrain streaming logic.
+Core owns the generic representation.
 
 ## Public contract
 
-`Voxel::Volume` derives from `spk::VersionedTrait`.
+### Voxel::Volume
 
 Semantic aliases:
 
 - `Voxel::Volume::LocalCoordinate = spk::Vector3Int`;
 - `Voxel::Volume::UnitSize = float`.
 
-Required API shape:
+Required API:
 
-- default constructor;
-- explicit logical constructor from `spk::Vector3UInt dimensions` and `UnitSize unitSize`;
-- copy constructor and copy assignment;
-- move constructor and move assignment;
+- default construction;
+- cheap copy/move construction and assignment;
 - read-only `dimensions()`;
 - read-only `unitSize()`;
 - `contains(LocalCoordinate)`;
 - checked `at(LocalCoordinate)` returning a `Voxel::Cell` copy;
-- checked `operator[](LocalCoordinate)` returning the same `Voxel::Cell` copy semantics as `at()`;
-- read-only contiguous `cells()` returning `std::span<const Voxel::Cell>`;
-- `edit()` returning a nested `Voxel::Volume::Editor`;
-- Editor `set(LocalCoordinate, Voxel::Cell)` returning whether the Cell changed;
-- Editor `commit()`.
+- checked `operator[](LocalCoordinate)` with the same copy semantics;
+- read-only contiguous `cells()` returning `std::span<const Voxel::Cell>`.
 
-No local-bounds API is introduced by this ticket.
+Default construction is the valid empty Volume: dimensions `{0,0,0}`, unit size `0.0f`, and zero Cells.
 
-## Owned state and invariants
+A non-empty Volume is immutable after build.
 
-Logical state is `dimensions + unitSize + contiguous Cells`.
+### Voxel::Volume::Builder
 
-- default construction is the sole valid empty Volume: dimensions `{0,0,0}`, unit size `0.0f`, zero Cells;
-- explicit construction requires `x > 0`, `y > 0`, and `z > 0`;
-- explicit unit size must be finite and strictly positive;
-- explicit Cell count is exactly `x * y * z` and must be representable by `std::size_t`;
-- there is no other project-defined maximum;
-- all explicitly constructed Cells are default-constructed and therefore equal to `Voxel::Cell::Empty`;
-- storage is owning, contiguous `std::vector<Voxel::Cell>`;
-- storage size never changes during ordinary Editor mutation;
-- unit size is uniform for the whole Volume.
+The complete nested Builder declaration lives in `volume_builder.hpp`.
 
-## Determinism / storage order
+Required API:
+
+- `Builder(spk::Vector3UInt dimensions, UnitSize unitSize)`;
+- `Builder(Volume &&volume)`;
+- move-only Builder semantics;
+- checked `set(LocalCoordinate, Cell)`, returning true only when the packed Cell value changes;
+- rvalue-qualified `std::move(builder).build()` producing a Volume.
+
+Explicit Builder construction requires every dimension to be positive, finite positive unit size, and a Cell-count product representable by `std::size_t`.
+
+## Storage and determinism
 
 Storage order is **Y fastest, then X, then Z**:
 
@@ -81,271 +67,140 @@ Storage order is **Y fastest, then X, then Z**:
 index = y + sizeY * (x + sizeX * z)
 ```
 
-For dimensions `{2,3,4}`:
+The Builder owns exact logical Cell count. Pool reuse may provide a vector whose retained capacity is larger than its current logical size.
 
-| Coordinate | Index |
-| --- | ---: |
-| `{0,0,0}` | 0 |
-| `{0,1,0}` | 1 |
-| `{0,2,0}` | 2 |
-| `{1,0,0}` | 3 |
-| `{1,2,0}` | 5 |
-| `{0,0,1}` | 6 |
-| `{1,2,3}` | 23 |
+## Immutable sharing and destructive rebuild
 
-This exact mapping is part of the public representation contract.
+A built Volume owns a shared backing Content object.
+
+- Volume copy construction/assignment shares that immutable Content and does not duplicate Cells.
+- Volume move transfers Content and leaves the source default-empty.
+- `Builder(std::move(volume))` consumes the source Volume.
+- If the consumed Content is uniquely owned, Builder reuses that same Content and Cell-buffer lease.
+- If other Volume copies share the Content, Builder obtains another pooled buffer and copies Cells before mutation.
+- This guarantees that rebuilding one moved Volume never mutates another immutable copy.
+
+## Pooled Cell buffers
+
+Backing Content owns a `spk::Pool<std::vector<Voxel::Cell>>::Lease`.
+
+Pool objects are source-file implementation details in `core/src/voxel/volume_builder.cpp`.
+
+### Chunk pool
+
+Exact `16×16×16` dimensions use one dedicated process-lifetime Chunk Cell-buffer pool.
+
+Another Volume shape with the same total Cell count does **not** use the Chunk pool.
+
+### General pool registry
+
+Other dimensions use:
+
+```cpp
+std::map<std::size_t, spk::Pool<std::vector<Voxel::Cell>>>
+```
+
+The key is the pool's intended capacity size class.
+
+Selection uses `lower_bound(requestedCellCount)`:
+
+1. use an exact existing class when present;
+2. otherwise use the smallest existing higher class;
+3. when no equal-or-higher class exists, create a new pool at the requested size.
+
+Each pool factory creates a vector and reserves its size-class capacity. The per-obtain callback resets or copy-fills the vector logical contents while retaining reusable capacity.
+
+The Pool implementation is intentionally single-threaded; this ticket introduces no concurrent Builder/pool access contract.
 
 ## Checked access and failure behavior
 
-- `contains()` returns false for every coordinate on a default-empty Volume;
-- `at()` and `operator[]` outside the Volume throw `spk::Exception`;
-- Editor `set()` outside the Volume throws `spk::Exception`;
-- explicit construction with any zero dimension throws `spk::Exception`;
-- explicit construction with zero, negative, NaN, positive infinity, or negative infinity unit size throws `spk::Exception`;
-- dimension products not representable by `std::size_t` throw `spk::Exception`;
-- representable allocation failure is not translated and may propagate the standard allocation exception;
-- rejected construction exposes no partially constructed Volume;
-- rejected Editor operations do not mutate Cells and do not publish a version.
-
-## Editor / version behavior
-
-`Voxel::Volume` uses the inherited `spk::VersionedTrait` provider for edition subscriptions.
-
-- `edit()` creates one Editor batch;
-- `Editor::set()` returns `true` only when the stored packed Cell value actually changes;
-- multiple effective writes in one Editor publish exactly one `invalidate()` when the Editor commits;
-- a no-op Editor batch publishes no invalidation;
-- Editor destruction automatically commits;
-- explicit `commit()` is idempotent;
-- `set()` after commit throws `spk::Exception`;
-- an invalid `set()` does not alias another Cell, does not publish a version, and leaves the Editor usable for later valid operations unless it was already committed.
+- `contains()` is false for every coordinate on the default-empty Volume;
+- Volume `at()` / `operator[]` outside dimensions throw `spk::Exception`;
+- Builder `set()` outside dimensions throws `spk::Exception`;
+- invalid Builder dimensions or unit size throw `spk::Exception`;
+- Cell-count overflow throws `spk::Exception`;
+- failed checked operations do not alias another Cell;
+- Pool preparation failures follow the Sparkle Pool exception contract.
 
 ## Copy / move behavior
 
-### Copy construction
+### Volume copy
 
-Copies dimensions, unit size, and all Cells into independent storage.
+Copies share immutable Content, including the same Cell data address.
 
-The new object has a fresh `VersionedTrait` state:
+### Volume move
 
-- version starts at 0;
-- subscriptions are not copied.
+Transfers Content and leaves the source default-empty.
 
-The source is unchanged.
+### Builder move
 
-### Copy assignment
+Builder is move-only.
 
-Self-assignment is a no-op.
+### Builder from Volume
 
-Otherwise:
+Consumes the source Volume and applies the unique/shared Content rules above.
 
-- prepare the replacement logical state before changing the destination;
-- on successful replacement, preserve destination subscriptions;
-- replace dimensions, unit size, and Cells;
-- invalidate/notify the destination exactly once;
-- source state/version/subscriptions are unchanged.
+## Explicitly removed from the prior review implementation
 
-If preparation fails, the destination remains unchanged and publishes no invalidation.
-
-### Move construction
-
-Self-move construction is not applicable.
-
-- transfer dimensions, unit size, and Cell ownership to the new object;
-- the destination has a fresh version state starting at 0 and no source subscriptions;
-- reset the source to the valid default-empty state;
-- invalidate/notify the source exactly once;
-- any Cell span obtained from the source before the move is invalid after the move.
-
-### Move assignment
-
-Self-move-assignment is a no-op.
-
-Otherwise:
-
-- preserve destination subscriptions;
-- transfer dimensions, unit size, and Cell ownership;
-- invalidate/notify the destination exactly once;
-- reset the source to the valid default-empty state;
-- invalidate/notify the source exactly once.
-
-## Read-only contiguous view lifetime
-
-`cells()` returns `std::span<const Voxel::Cell>`.
-
-- callers can iterate/read but cannot mutate Cells through the view;
-- ordinary Editor mutation does not resize storage, so an existing span remains valid and observes subsequent committed or uncommitted Cell writes;
-- destruction invalidates every span;
-- copy assignment and move assignment are state-replacing operations and invalidate spans previously obtained from the destination;
-- move construction invalidates spans previously obtained from the source;
-- no API promises view validity after one of those invalidating operations.
+- `spk::VersionedTrait` inheritance;
+- `Voxel::Volume::Editor`;
+- `volume_editor.hpp`;
+- mutation/version subscriptions on built Volumes.
 
 ## Explicitly not owned
 
 - world/Chunk coordinate identity;
-- generation;
-- caching/streaming;
+- terrain generation;
+- streaming/cache policy;
 - Definition/Shape catalog semantics;
-- rendering resources;
-- network framing;
-- Volume wire encoding;
+- graphics resources;
+- network framing or Volume wire encoding;
 - local bounds.
 
-## Serialization / persistence
+## Acceptance coverage
 
-Not implemented by this ticket. ST-001-05 implements the DR-017 `spk::Message` logical serialization contract after this representation exists.
+Core tests cover:
 
-## Networking / authority
+- default empty Volume;
+- Builder construction and default-empty Cells;
+- exact Y-X-Z storage order;
+- effective/no-op Builder writes;
+- checked Volume and Builder coordinates;
+- invalid dimensions, unit sizes, and Cell-count overflow;
+- read-only contiguous Cell view;
+- cheap shared immutable Volume copies;
+- move-to-empty Volume behavior;
+- unique Content reuse when constructing Builder from a moved Volume;
+- shared Content copy-before-mutation behavior;
+- dedicated 16×16×16 Chunk pool reuse and isolation from another 4096-cell shape;
+- ordered general pool reuse where a smaller request consumes the smallest available higher size class.
 
-No authoritative behavior is owned here. Volume is shared Core representation.
+## Serialization / networking
 
-## Implementation constraints
-
-- use domain-scoped name `Voxel::Volume`;
-- keep declarations in headers and move implementation into source files where practical;
-- keep the complete nested Editor declaration outside `volume.hpp`; consumers that actually edit a Volume include `volume_editor.hpp` explicitly;
-- do not expose mutable storage;
-- keep Core headless-safe;
-- do not copy archived APIs beyond the explicitly approved contract;
-- do not implement ST-001-04 or ST-001-05 behavior.
-
-## Exact test fixtures
-
-Use explicit constructor fixture `dimensions = {2,3,4}`, `unitSize = 0.25f`.
-
-Storage-order fixture writes distinct Cells so the exact Y-X-Z indices above are observable. At minimum use distinct packed values at:
-
-- `{0,0,0}` -> index 0;
-- `{0,1,0}` -> index 1;
-- `{1,0,0}` -> index 3;
-- `{0,0,1}` -> index 6;
-- `{1,2,3}` -> index 23.
-
-Boundary fixture `{1,1,1}` with unit size `1.0f`.
-
-Invalid dimensions include `{0,1,1}`, `{1,0,1}`, `{1,1,0}`, and a dimension triple whose product exceeds `std::size_t` capacity.
-
-Invalid unit sizes include `0.0f`, a negative finite value, `NaN`, `+infinity`, and `-infinity`.
-
-Invalid coordinates include negative coordinates and coordinates exactly equal to a dimension.
-
-## Acceptance tests
-
-### Nominal
-
-- default Volume has zero dimensions, zero unit size, zero Cells, and version 0;
-- explicit `{2,3,4}` construction stores dimensions/unit size and owns 24 default-empty Cells;
-- `contains()`, `at()`, `operator[]`, and `cells()` agree on the exact Y-X-Z storage fixture;
-- `at()` and `operator[]` return Cell copies;
-- Cell span is read-only and contiguous.
-
-### Boundaries
-
-- `{1,1,1}` is valid;
-- maximum representable Cell-count policy is enforced through overflow detection rather than an arbitrary project limit;
-- zero dimensions are valid only through default construction.
-
-### Invalid / rejected operations
-
-- every zero explicit dimension is rejected with `spk::Exception`;
-- invalid unit-size fixtures are rejected with `spk::Exception`;
-- negative/out-of-range access through both `at()` and `operator[]` is rejected with `spk::Exception`;
-- Editor use after commit is rejected with `spk::Exception`.
-
-### Failure atomicity
-
-- invalid Editor writes leave all Cells/version unchanged;
-- failed copy-assignment preparation leaves destination state/version unchanged;
-- invalid explicit construction never exposes a partially valid object.
-
-### Determinism / ordering
-
-- exact `{2,3,4}` Y-X-Z index fixtures pass.
-
-### Lifecycle / ownership
-
-- ordinary Editor writes preserve an existing span and the span observes the updated Cells;
-- copied Volumes own independent Cell storage;
-- copy construction starts at version 0 without copied subscriptions;
-- copy assignment preserves destination subscriptions and emits one destination invalidation;
-- move construction leaves destination with transferred state/version 0, resets source to default-empty, and emits one source invalidation;
-- move assignment preserves destination subscriptions, emits one destination invalidation, resets source to default-empty, and emits one source invalidation;
-- self-copy and self-move assignment are no-ops.
-
-### Serialization / persistence
-
-Not applicable: ST-001-05.
-
-### Retry / idempotency
-
-Editor `commit()` is explicitly idempotent; no network retry contract applies.
-
-### Concurrency / cancellation
-
-Not applicable: no concurrent mutation contract is provided by this container.
-
-### Authority / trust boundary
-
-Not applicable: this is shared Core representation.
-
-### Dependency failure
-
-Only allocation failure is relevant; representable allocation failure propagates the standard allocation exception.
-
-### Cross-system integration
-
-Deferred to later generator/network/mesher tickets.
-
-### Performance
-
-Structural invariant only: owned Cell storage is contiguous. No timing budget is introduced.
-
-### Client-visible / golden-image validation
-
-Not applicable.
+Not implemented here. ST-001-05 owns DR-017 logical `spk::Message` serialization.
 
 ## Decisions
 
 - [DR-012](../../../DECISIONS/DR-012-PACKED-CELL-AND-VOLUME-DIRECTION.md)
 - [DR-017](../../../DECISIONS/DR-017-VOXEL-VOLUME-MESSAGE-SERIALIZATION.md)
-- [OQ-035](../../../OPEN_QUESTIONS/OQ-035-TERRAIN-VOXEL-CELL-REPRESENTATION.md) — Resolved.
-
-## Definition of Ready review
-
-**Pass.** Another coding agent can write the failing acceptance tests above before touching production code without deciding observable behavior.
+- [OQ-035](../../../OPEN_QUESTIONS/OQ-035-TERRAIN-VOXEL-CELL-REPRESENTATION.md)
 
 ## Completion evidence
 
 Implementation branch: `feat/st-001-03-owning-voxel-volume`.
 
-Review PR: #9 — `ST-001-03 — Owning Voxel::Volume` (draft while human approval remains outstanding).
+Review PR: #9 — `ST-001-03 — Owning Voxel::Volume`.
 
-Production changes:
+Production changes include:
 
-- `core/include/erelia/core/voxel/volume.hpp` — owning Volume public contract with only a nested Editor forward declaration;
-- `core/include/erelia/core/voxel/volume_editor.hpp` — complete `Voxel::Volume::Editor` declaration for code that edits Volumes;
-- `core/src/voxel/volume.cpp` — validation, Y-X-Z indexing, checked access, Editor/versioning, span access, and copy/move behavior;
-- `core/CMakeLists.txt` — Volume source registration.
+- `core/include/erelia/core/voxel/volume.hpp`;
+- `core/include/erelia/core/voxel/volume_builder.hpp`;
+- `core/src/voxel/volume.cpp`;
+- `core/src/voxel/volume_builder.cpp`;
+- private `core/src/voxel/volume_content.hpp`;
+- removal of `volume_editor.hpp`;
+- `core/CMakeLists.txt`.
 
-Acceptance coverage:
+Acceptance coverage is in `core/tests/voxel_volume_test.cpp`.
 
-- `core/tests/voxel_volume_test.cpp`;
-- `core/tests/CMakeLists.txt` registers the tests in `EreliaCoreTestSuite`.
-
-CI run #66, run ID `35793568648`, passed on implementation head `dbeee5a8bae80714218ce2e9ed40e463deb11296`:
-
-- clang-format — success;
-- Linux Core/Server Debug — build + CTest success;
-- Linux Core/Server Release — build + CTest success;
-- Windows Core/Server Debug — build + CTest success;
-- Windows Core/Server Release — build + CTest success;
-- Windows Client Debug regression — build + CTest success;
-- Windows Client Release regression — build + CTest success.
-
-No Server/Client authority code, graphics dependency, networking serialization, Definition/Shape behavior, generation, meshing, or rendering behavior was added by this ticket.
-
-### Definition of Done status
-
-All automated implementation/test/dependency/documentation requirements applicable at this stage are satisfied.
-
-**Human project-owner review/approval is still outstanding.** Therefore ST-001-03 remains **In Progress** and must not be marked Done yet.
+The revised implementation remains under project-owner review. It must remain **In Progress** until explicit approval is recorded.
