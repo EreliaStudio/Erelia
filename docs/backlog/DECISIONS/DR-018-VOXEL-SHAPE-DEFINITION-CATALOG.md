@@ -142,16 +142,16 @@ Public resource paths use `std::filesystem::path`.
 
 The two typed subcatalogs derive privately from an Erelia-local prototype `spk::JSON::Catalog<TElement>`. The prototype intentionally lives in namespace `spk::JSON` while it is exercised in Erelia; moving it into Sparkle itself is deferred until the API has been validated in real use.
 
-The shared base owns the JSON catalog envelope and common machinery: root/file parsing, `elements` array validation and iteration, wrapper validation, duplicate detection, immutable shared storage, incremental failure behavior, and lookup. `TElement` supplies `TElement::ID`; the base does not require `json_readable`.
+The shared base owns the JSON catalog envelope and common machinery: root/file parsing, `elements` array validation and iteration, wrapper validation, duplicate detection, immutable shared storage, incremental failure behavior, and lookup. `TElement` supplies `TElement::ID`; the base does not require `json_readable`. Derived parsing returns plain `TElement` values so the storage/ownership strategy remains entirely internal to the base; catalog elements must therefore be move-constructible.
 
 Derived catalogs supply only two protected pure-virtual Reader-based operations:
 
 ```cpp
 virtual TElement::ID _parseKey(const spk::JSON::Reader& reader) const = 0;
-virtual std::shared_ptr<const TElement> _parseElement(const spk::JSON::Reader& reader) const = 0;
+virtual TElement _parseElement(const spk::JSON::Reader& reader) const = 0;
 ```
 
-The key parser receives the element wrapper reader. The element parser receives its `data` reader. No `detail` / `details` namespace is introduced for the catalog abstraction.
+The key parser receives the element wrapper reader. The element parser receives its `data` reader and returns a value that the base moves into its internal immutable storage. Derived catalogs do not construct or expose the base storage pointer type. `Voxel::Shape` is move-constructible for this path while remaining non-copyable and non-move-assignable. No `detail` / `details` namespace is introduced for the catalog abstraction.
 
 Their observable read API is:
 
