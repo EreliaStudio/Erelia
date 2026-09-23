@@ -87,16 +87,15 @@ Current validation evidence is **not sufficient for Done**:
 - PR #11 is open.
 - CI run #127 passed the complete matrix for the implementation before the catalog-abstraction redesign.
 - The catalog uses direct `std::unordered_map<ID, Element>` storage with no `shared_ptr`, with dedicated tests for the generic catalog and reference stability across insertion growth/rehash.
-- CI run #198 (run ID `35924701600`) passed the complete matrix before the latest public-inheritance/API simplification.
-- The current removal of voxel catalog forwarding wrappers requires fresh validation.
+- Shape/Definition subcatalogs publicly inherit the base `load`/lookup API directly, with no no-op forwarding wrappers.
+- CI run #209 (run ID `35926707908`) passed the complete matrix for code head `2b9cad9e9803cb6e4cc6c81f9ef1a8f3610e85d9`.
 - Required project-owner approval has not yet been recorded.
 
-ST-001-04 remains In Progress until the simplified catalog inheritance/API passes the full matrix and the project owner explicitly approves the ticket.
+ST-001-04 is technically complete and remains In Progress only until the project owner explicitly approves the ticket.
 
 ### Next
 
-1. Finish fresh validation of the public-inheritance/no-forwarding catalog simplification.
-2. Record project-owner approval and mark ST-001-04 Done only after its Definition of Done is actually satisfied.
+1. Record project-owner approval and mark ST-001-04 Done only after its Definition of Done is actually satisfied.
 4. After ST-001-04, reassess the dependency order rather than skipping unresolved gates.
 5. Resolve OQ-039's remaining generator-scene details before ST-001-06.
 6. Resolve OQ-037/OQ-038 before the dependent Chunk networking/request tickets.
