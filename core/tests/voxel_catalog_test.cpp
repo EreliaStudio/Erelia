@@ -92,7 +92,8 @@ TEST(VoxelCatalog, MissingShapeSlotLogsWarningAndBindsInvalidMaterial)
 {
 	const voxel_test::TemporaryJsonFile definitions(
 		voxel_test::definitionFile(1u, "cube", R"({"side":"dirt","bottom":"stone"})"));
-	const std::filesystem::path logPath = std::filesystem::temp_directory_path() /
+	const std::filesystem::path logPath =
+		std::filesystem::temp_directory_path() /
 		("erelia-warning-" + spk::UUID::generate().toString() + ".log");
 
 	Voxel::Catalog catalog;
@@ -116,7 +117,8 @@ TEST(VoxelCatalog, MissingShapeSlotLogsWarningAndBindsInvalidMaterial)
 
 TEST(VoxelCatalog, RepeatedShapeSlotNeedsOnlyOneDefinitionBinding)
 {
-	const voxel_test::TemporaryJsonFile shapeFile(voxel_test::shapeFile(
+	const voxel_test::TemporaryJsonFile shapeFile(
+		voxel_test::shapeFile(
 		"double-face",
 		R"({"slot":"same","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]},
 		   {"slot":"same","vertices":[{"x":1,"y":0,"z":1},{"x":1,"y":1,"z":1},{"x":0,"y":1,"z":1},{"x":0,"y":0,"z":1}]})"));
@@ -162,9 +164,11 @@ TEST(VoxelCatalog, AcceptsMaximumPackedDefinitionId)
 
 TEST(VoxelCatalog, RepeatedLoadsAppendUniqueShapeAndDefinitionIds)
 {
-	const voxel_test::TemporaryJsonFile shapeOne(voxel_test::shapeFile(
+	const voxel_test::TemporaryJsonFile shapeOne(
+		voxel_test::shapeFile(
 		"one", R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]})"));
-	const voxel_test::TemporaryJsonFile shapeTwo(voxel_test::shapeFile(
+	const voxel_test::TemporaryJsonFile shapeTwo(
+		voxel_test::shapeFile(
 		"two", R"({"slot":"face","vertices":[{"x":1,"y":0,"z":1},{"x":1,"y":1,"z":1},{"x":0,"y":1,"z":1},{"x":0,"y":0,"z":1}]})"));
 	const voxel_test::TemporaryJsonFile definitionOne(voxel_test::definitionFile(1u, "one", R"({"face":"stone"})"));
 	const voxel_test::TemporaryJsonFile definitionTwo(voxel_test::definitionFile(2u, "two", R"({"face":"grass"})"));
@@ -190,7 +194,8 @@ TEST(VoxelCatalog, RejectsDuplicateIdsInCurrentAndPreviousLoads)
 	EXPECT_THROW(catalog.loadShape(sameShapeFile.path()), spk::Exception);
 	EXPECT_TRUE(catalog.shapes().contains("dup"));
 
-	const voxel_test::TemporaryJsonFile previousShape(voxel_test::shapeFile(
+	const voxel_test::TemporaryJsonFile previousShape(
+		voxel_test::shapeFile(
 		"existing", R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]})"));
 	catalog.loadShape(previousShape.path());
 	EXPECT_THROW(catalog.loadShape(previousShape.path()), spk::Exception);
@@ -275,8 +280,7 @@ TEST(VoxelCatalog, MalformedCatalogEnvelopeAndShapeSchemaThrowWithContext)
 		{
 			catalog.loadShape(file.path());
 			FAIL() << "Expected malformed fixture to throw";
-		}
-		catch (const spk::Exception &exception)
+		} catch (const spk::Exception &exception)
 		{
 			const std::string message = exception.what();
 			EXPECT_NE(message.find(file.path().generic_string()), std::string::npos);
@@ -287,9 +291,11 @@ TEST(VoxelCatalog, MalformedCatalogEnvelopeAndShapeSchemaThrowWithContext)
 
 TEST(VoxelCatalog, EquivalentResourcesProduceEquivalentSemanticData)
 {
-	const voxel_test::TemporaryJsonFile firstShape(voxel_test::shapeFile(
+	const voxel_test::TemporaryJsonFile firstShape(
+		voxel_test::shapeFile(
 		"shape", R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]})"));
-	const voxel_test::TemporaryJsonFile secondShape(voxel_test::shapeFile(
+	const voxel_test::TemporaryJsonFile secondShape(
+		voxel_test::shapeFile(
 		"shape", R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]})"));
 	const voxel_test::TemporaryJsonFile firstDefinition(voxel_test::definitionFile(1u, "shape", R"({"face":"stone"})"));
 	const voxel_test::TemporaryJsonFile secondDefinition(voxel_test::definitionFile(1u, "shape", R"({"face":"stone"})"));

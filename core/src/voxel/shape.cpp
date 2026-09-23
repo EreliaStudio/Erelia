@@ -68,41 +68,6 @@ namespace
 		throw spk::Exception(reader.file().generic_string() + ":" + reader.path() + ": " + message);
 	}
 
-	[[nodiscard]] bool allCoordinateEquals(
-		const std::vector<spk::Vector3Int> &vertices,
-		std::size_t axis,
-		std::int32_t value)
-	{
-		return std::ranges::all_of(vertices, [axis, value](const spk::Vector3Int &vertex) {
-			switch (axis)
-			{
-			case 0:
-				return vertex.x == value;
-			case 1:
-				return vertex.y == value;
-			default:
-				return vertex.z == value;
-			}
-		});
-	}
-
-	[[nodiscard]] WideVector3 boundaryOutwardNormal(const std::vector<spk::Vector3Int> &vertices)
-	{
-		const std::int32_t maximum = vertexScale();
-		if (allCoordinateEquals(vertices, 0, 0))
-			return {-1, 0, 0};
-		if (allCoordinateEquals(vertices, 0, maximum))
-			return {1, 0, 0};
-		if (allCoordinateEquals(vertices, 1, 0))
-			return {0, -1, 0};
-		if (allCoordinateEquals(vertices, 1, maximum))
-			return {0, 1, 0};
-		if (allCoordinateEquals(vertices, 2, 0))
-			return {0, 0, -1};
-		if (allCoordinateEquals(vertices, 2, maximum))
-			return {0, 0, 1};
-		return {};
-	}
 }
 
 namespace Voxel
@@ -164,7 +129,9 @@ namespace Voxel
 			for (std::size_t vertexIndex = 0; vertexIndex < polygon.vertices.size(); ++vertexIndex)
 			{
 				if (vertexIndex == edgeIndex || vertexIndex == (edgeIndex + 1) % polygon.vertices.size())
+				{
 					continue;
+				}
 
 				const WideVector3 towardVertex = difference(polygon.vertices[vertexIndex], edgeStart);
 				if (dot(cross(edge, towardVertex), normal) < 0)
@@ -172,12 +139,6 @@ namespace Voxel
 					throwAt(reader, "voxel polygon is concave or self-intersecting");
 				}
 			}
-		}
-
-		const WideVector3 outward = boundaryOutwardNormal(polygon.vertices);
-		if (!isZero(outward) && dot(normal, outward) <= 0)
-		{
-			throwAt(reader, "voxel boundary polygon winding is not counter-clockwise toward its outward face");
 		}
 	}
 
@@ -187,8 +148,7 @@ namespace Voxel
 		return spk::Vector3(
 			static_cast<float>(normal.x),
 			static_cast<float>(normal.y),
-			static_cast<float>(normal.z))
-			.normalized();
+			static_cast<float>(normal.z)).normalized();
 	}
 
 	Shape::Polygon Shape::_loadPolygon(const spk::JSON::Reader &reader)

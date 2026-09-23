@@ -17,7 +17,8 @@ namespace voxel_test
 
 	public:
 		explicit TemporaryJsonFile(std::string content, const std::string &label = "resource") :
-			_path(std::filesystem::temp_directory_path() /
+			_path(
+				std::filesystem::temp_directory_path() /
 				("erelia-" + label + "-" + spk::UUID::generate().toString() + ".json"))
 		{
 			std::ofstream stream(_path, std::ios::binary);

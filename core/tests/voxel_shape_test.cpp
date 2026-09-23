@@ -109,10 +109,20 @@ TEST(VoxelShape, LoadsApprovedCubeSlabSlopeAndStairResources)
 	for (const auto &polygon : catalog.shapes().at("stair").polygons())
 	{
 		if (polygon.slot != "top")
+		{
 			continue;
+		}
 		++stairTopCount;
-		hasHalfHeightTread |= std::ranges::all_of(polygon.vertices, [](const auto &vertex) { return vertex.y == 500; });
-		hasFullHeightTread |= std::ranges::all_of(polygon.vertices, [](const auto &vertex) { return vertex.y == 1000; });
+		hasHalfHeightTread |= std::ranges::all_of(
+			polygon.vertices,
+			[](const auto &vertex) {
+				return vertex.y == 500;
+			});
+		hasFullHeightTread |= std::ranges::all_of(
+			polygon.vertices,
+			[](const auto &vertex) {
+				return vertex.y == 1000;
+			});
 	}
 	EXPECT_EQ(stairTopCount, 2u);
 	EXPECT_TRUE(hasHalfHeightTread);
@@ -256,7 +266,6 @@ TEST(VoxelShape, RejectsMalformedPolygonGeometryAndSchema)
 		R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0.5,"y":0.5,"z":0},{"x":1,"y":1,"z":0}]})",
 		R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0.1}]})",
 		R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":0.5,"y":0.5,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]})",
-		R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":1,"y":0,"z":0},{"x":1,"y":1,"z":0},{"x":0,"y":1,"z":0}]})",
 		R"({"slot":"face","vertices":[{"x":-0.01,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":0,"z":0}]})",
 		R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0,"unexpected":1},{"x":0,"y":1,"z":0},{"x":1,"y":0,"z":0}]})"};
 

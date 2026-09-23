@@ -56,8 +56,7 @@ namespace
 		try
 		{
 			return value.as<std::string>();
-		}
-		catch (...)
+		} catch (...)
 		{
 			throw spk::Exception(
 				slotsReader.file().generic_string() + ":" + slotsReader.pathFor(slot) + ": invalid value",
@@ -164,7 +163,9 @@ namespace Voxel
 			for (const std::string &slot : shapeSlots)
 			{
 				if (slots.contains(slot))
+				{
 					continue;
+				}
 
 				SPK_LOG(Warning)
 					<< dataReader.file().generic_string() << ':' << dataReader.path()
