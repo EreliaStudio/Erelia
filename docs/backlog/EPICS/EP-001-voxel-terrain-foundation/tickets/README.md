@@ -10,7 +10,7 @@ The tickets are ordered by dependency, not by implementation status.
 | --- | --- | --- |
 | [ST-001-01 — Shared terrain coordinate conversion](ST-001-01-shared-terrain-coordinate-conversion.md) | **Done** | — |
 | [ST-001-02 — Packed Voxel::Cell value type](ST-001-02-packed-voxel-cell.md) | **Done** | Cell portion of OQ-035 resolved |
-| [ST-001-03 — Owning Voxel::Volume](ST-001-03-owning-voxel-volume.md) | **In Progress** | ST-001-02; OQ-035 resolved |
+| [ST-001-03 — Owning Voxel::Volume](ST-001-03-owning-voxel-volume.md) | **Done** | ST-001-02; OQ-035 resolved |
 | [ST-001-04 — First terrain Definition and Shape contract](ST-001-04-first-terrain-definition-shape-contract.md) | **Draft** | ST-001-02; OQ-039 + Definition/Shape specification gap |
 | [ST-001-05 — Voxel::Volume Message serialization](ST-001-05-voxel-volume-message-serialization.md) | **Blocked** | ST-001-02, ST-001-03; OQ-037 |
 | [ST-001-06 — Deterministic validation terrain generator](ST-001-06-deterministic-validation-terrain-generator.md) | **Blocked** | ST-001-01 through ST-001-04; OQ-039 |
@@ -31,7 +31,7 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-02 — Packed Voxel::Cell value type** is **Done** and was merged through PR #8 into the planning branch at `f03894f76fc996d5fba3241e2e51ead848783cad` after CI run #59 and project-owner approval.
 
-**ST-001-03 — Owning Voxel::Volume** is **In Progress** on `feat/st-001-03-owning-voxel-volume` through PR #9. The final review design is an immutable built Volume plus mutable Builder with direct pooled storage: `Voxel::Volume::Buffer` exposes `Buffer::Pool` / `Buffer::Lease`; every Volume owns its own Lease; Volume copies deep-copy into independent pooled Buffers; moves and `Builder(std::move(volume))` transfer/reuse the existing Lease. `contains()` remains the boolean bounds query and `tryGet()` provides optional non-throwing Cell retrieval. Exact 16×16×16 dimensions use a dedicated Chunk pool, while other sizes use an ordered `std::map<std::size_t, Buffer::Pool>` registry selected through `lower_bound()`. The ticket remains In Progress only until PR #9 is merged and completion is recorded.
+**ST-001-03 — Owning Voxel::Volume** is **Done** on `feat/st-001-03-owning-voxel-volume` through PR #9 after project-owner approval and green CI run #105. The final design is an immutable built Volume plus mutable Builder with direct pooled storage: `Voxel::Volume::Buffer` exposes `Buffer::Pool` / `Buffer::Lease`; every Volume owns its own Lease; Volume copies deep-copy into independent pooled Buffers; moves and `Builder(std::move(volume))` transfer/reuse the existing Lease. `contains()` remains the boolean bounds query and `tryGet()` provides optional non-throwing Cell retrieval. Exact 16×16×16 dimensions use a dedicated Chunk pool, while other sizes use an ordered `std::map<std::size_t, Buffer::Pool>` registry selected through `lower_bound()`.
 
 ## Remaining blockers
 
@@ -51,4 +51,4 @@ Additional Draft-ticket specification gaps exposed by decomposition:
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
-The planning branch remains the backlog baseline and contains ST-001-01 / ST-001-02. ST-001-03 is implemented on its dedicated feature branch and is awaiting merge through PR #9 before it can be recorded as Done on the planning baseline.
+The planning branch remains the backlog baseline and contains ST-001-01 / ST-001-02. ST-001-03 is Done on its dedicated feature branch and PR #9 is awaiting the final merge into that planning baseline.
