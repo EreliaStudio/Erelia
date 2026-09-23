@@ -203,6 +203,7 @@ No authoritative behavior is owned here. Volume is shared Core representation.
 
 - use domain-scoped name `Voxel::Volume`;
 - keep declarations in headers and move implementation into source files where practical;
+- keep the complete nested Editor declaration outside `volume.hpp`; consumers that actually edit a Volume include `volume_editor.hpp` explicitly;
 - do not expose mutable storage;
 - keep Core headless-safe;
 - do not copy archived APIs beyond the explicitly approved contract;
@@ -321,7 +322,8 @@ Review PR: #9 — `ST-001-03 — Owning Voxel::Volume` (draft while human approv
 
 Production changes:
 
-- `core/include/erelia/core/voxel/volume.hpp` — owning Volume and nested Editor public contract;
+- `core/include/erelia/core/voxel/volume.hpp` — owning Volume public contract with only a nested Editor forward declaration;
+- `core/include/erelia/core/voxel/volume_editor.hpp` — complete `Voxel::Volume::Editor` declaration for code that edits Volumes;
 - `core/src/voxel/volume.cpp` — validation, Y-X-Z indexing, checked access, Editor/versioning, span access, and copy/move behavior;
 - `core/CMakeLists.txt` — Volume source registration.
 

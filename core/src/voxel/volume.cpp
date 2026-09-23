@@ -1,4 +1,5 @@
 #include "erelia/core/voxel/volume.hpp"
+#include "erelia/core/voxel/volume_editor.hpp"
 
 #include <cmath>
 #include <exception.hpp>

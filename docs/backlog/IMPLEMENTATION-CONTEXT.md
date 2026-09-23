@@ -126,6 +126,7 @@ Its approved first contract includes:
 - checked Cell access returning copies through both `at()` and `operator[]`;
 - read-only contiguous access through `std::span<const Voxel::Cell>`;
 - `spk::VersionedTrait` inheritance and nested Editor batching, with one invalidation for each effective committed batch;
+- `volume.hpp` only forward-declares the nested Editor; its complete declaration lives in `volume_editor.hpp`, which is included only by code that actually needs to construct/use an Editor;
 - copyable and movable ownership with fresh version state on copy/move construction, preserved destination subscriptions on assignment, and source invalidation/reset after moves;
 - no local-bounds API in ST-001-03.
 
