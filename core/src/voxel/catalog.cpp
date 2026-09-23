@@ -40,21 +40,22 @@ namespace
 
 namespace Voxel
 {
-	Shape::Catalog::Catalog() :
-		Base(
-			[](const spk::JSON::Reader &elementReader) -> Shape::ID {
-				const Shape::ID id = elementReader.require<Shape::ID>("id");
-				if (id.empty())
-				{
-					throw spk::Exception(
-						elementReader.file().generic_string() + ":" + elementReader.pathFor("id") + ": voxel Shape ID cannot be empty");
-				}
-				return id;
-			},
-			[](const spk::JSON::Reader &dataReader, const Shape::ID &) -> std::shared_ptr<const Shape> {
-				return std::shared_ptr<const Shape>(new Shape(dataReader));
-			})
+	Shape::Catalog::Catalog() = default;
+
+	Shape::ID Shape::Catalog::_parseKey(const spk::JSON::Reader &reader) const
 	{
+		const Shape::ID id = reader.require<Shape::ID>("id");
+		if (id.empty())
+		{
+			throw spk::Exception(
+				reader.file().generic_string() + ":" + reader.pathFor("id") + ": voxel Shape ID cannot be empty");
+		}
+		return id;
+	}
+
+	std::shared_ptr<const Shape> Shape::Catalog::_parseElement(const spk::JSON::Reader &reader) const
+	{
+		return std::shared_ptr<const Shape>(new Shape(reader));
 	}
 
 	std::shared_ptr<const Shape> Shape::Catalog::_sharedShape(const Shape::ID &id) const
@@ -68,78 +69,80 @@ namespace Voxel
 	}
 
 	Definition::Catalog::Catalog(const Shape::Catalog &shapes) :
-		Base(
-			[](const spk::JSON::Reader &elementReader, const Shape::Catalog &) -> Definition::ID {
-				const std::uint64_t authoredID = elementReader.require<std::uint64_t>("id");
-				if (authoredID == 0u)
-				{
-					throw spk::Exception(
-						elementReader.file().generic_string() + ":" + elementReader.pathFor("id") + ": voxel Definition ID 0 is reserved for Air");
-				}
-				if (authoredID > MaximumDefinitionID)
-				{
-					throw spk::Exception(
-						elementReader.file().generic_string() + ":" + elementReader.pathFor("id") + ": voxel Definition ID exceeds its 29-bit capacity");
-				}
-				return static_cast<Definition::ID>(authoredID);
-			},
-			[](const spk::JSON::Reader &dataReader, const Definition::ID &id, const Shape::Catalog &shapes)
-				-> std::shared_ptr<const Definition> {
-				dataReader.forbidUnknown({"shape", "slots"});
-				const Shape::ID shapeID = dataReader.require<Shape::ID>("shape");
-				if (!shapes.contains(shapeID))
-				{
-					throw spk::Exception(
-						dataReader.file().generic_string() + ":" + dataReader.pathFor("shape") + ": unknown voxel Shape ID '" + shapeID + "'");
-				}
-
-				const std::shared_ptr<const Shape> shape = shapes._sharedShape(shapeID);
-				std::set<std::string> shapeSlots;
-				for (const Shape::Polygon &polygon : shape->polygons())
-				{
-					shapeSlots.insert(polygon.slot);
-				}
-
-				const spk::JSON::Reader slotsReader = dataReader.child("slots");
-				Definition::SlotBindings slots;
-				for (const auto &[slot, value] : slotsReader.value().asObject())
-				{
-					if (slot.empty())
-					{
-						throwAt(slotsReader.file(), slotsReader.path(), "voxel Definition slot cannot be empty");
-					}
-					if (!shapeSlots.contains(slot))
-					{
-						throw spk::Exception(
-							slotsReader.file().generic_string() + ":" + slotsReader.pathFor(slot) + ": voxel Definition has extra slot '" + slot + "'");
-					}
-					slots.emplace(slot, readMaterialID(slotsReader, slot, value));
-				}
-
-				for (const std::string &slot : shapeSlots)
-				{
-					if (slots.contains(slot))
-					{
-						continue;
-					}
-
-					SPK_LOG(Warning)
-						<< dataReader.file().generic_string() << ':' << dataReader.path()
-						<< ": voxel Definition " << id << " is missing slot '" << slot
-						<< "'; binding Material::InvalidID" << std::endl;
-					slots.emplace(slot, Material::InvalidID);
-				}
-
-				return std::shared_ptr<const Definition>(new Definition(shape, std::move(slots)));
-			}),
 		_shapes(&shapes)
 	{
 		Base::_insert(0u, std::shared_ptr<const Definition>(new Definition()));
 	}
 
+	Definition::ID Definition::Catalog::_parseKey(const spk::JSON::Reader &reader) const
+	{
+		const std::uint64_t authoredID = reader.require<std::uint64_t>("id");
+		if (authoredID == 0u)
+		{
+			throw spk::Exception(
+				reader.file().generic_string() + ":" + reader.pathFor("id") + ": voxel Definition ID 0 is reserved for Air");
+		}
+		if (authoredID > MaximumDefinitionID)
+		{
+			throw spk::Exception(
+				reader.file().generic_string() + ":" + reader.pathFor("id") + ": voxel Definition ID exceeds its 29-bit capacity");
+		}
+		return static_cast<Definition::ID>(authoredID);
+	}
+
+	std::shared_ptr<const Definition> Definition::Catalog::_parseElement(const spk::JSON::Reader &dataReader) const
+	{
+		dataReader.forbidUnknown({"shape", "slots"});
+		const Shape::ID shapeID = dataReader.require<Shape::ID>("shape");
+		if (!_shapes->contains(shapeID))
+		{
+			throw spk::Exception(
+				dataReader.file().generic_string() + ":" + dataReader.pathFor("shape") + ": unknown voxel Shape ID '" + shapeID + "'");
+		}
+
+		const std::shared_ptr<const Shape> shape = _shapes->_sharedShape(shapeID);
+		std::set<std::string> shapeSlots;
+		for (const Shape::Polygon &polygon : shape->polygons())
+		{
+			shapeSlots.insert(polygon.slot);
+		}
+
+		const spk::JSON::Reader slotsReader = dataReader.child("slots");
+		Definition::SlotBindings slots;
+		for (const auto &[slot, value] : slotsReader.value().asObject())
+		{
+			if (slot.empty())
+			{
+				throwAt(slotsReader.file(), slotsReader.path(), "voxel Definition slot cannot be empty");
+			}
+			if (!shapeSlots.contains(slot))
+			{
+				throw spk::Exception(
+					slotsReader.file().generic_string() + ":" + slotsReader.pathFor(slot) + ": voxel Definition has extra slot '" + slot + "'");
+			}
+			slots.emplace(slot, readMaterialID(slotsReader, slot, value));
+		}
+
+		for (const std::string &slot : shapeSlots)
+		{
+			if (slots.contains(slot))
+			{
+				continue;
+			}
+
+			SPK_LOG(Warning)
+				<< dataReader.file().generic_string() << ':' << dataReader.path()
+				<< ": voxel Definition is missing slot '" << slot
+				<< "'; binding Material::InvalidID" << std::endl;
+			slots.emplace(slot, Material::InvalidID);
+		}
+
+		return std::shared_ptr<const Definition>(new Definition(shape, std::move(slots)));
+	}
+
 	void Definition::Catalog::_load(const std::filesystem::path &path)
 	{
-		Base::_load(path, *_shapes);
+		Base::_load(path);
 	}
 
 	Catalog::Catalog() :
