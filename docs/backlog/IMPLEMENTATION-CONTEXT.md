@@ -1,4 +1,4 @@
-# Implementation Context — Taste, Conventions, and Working Knowledge
+# Implementation Context  Taste, Conventions, and Working Knowledge
 
 **Purpose:** give a future implementation/planning session a high-density view of how Erelia should be built, not just what the game should do.
 **Authority:** summary only. The user's latest explicit direction, resolved Decision Records, Architecture documents, and the GDD remain authoritative.
@@ -35,6 +35,8 @@ VoxelVolume
 The intent is to let namespaces communicate the domain and keep individual type names short and precise.
 
 Do not introduce a prefixed name merely because an archived implementation used one if a clean nested/domain-scoped name expresses the concept better.
+
+Do not introduce `detail` / `details` namespaces in public Erelia code. Prefer explicit private members/types or source-local anonymous namespaces instead. A `detail`-style namespace is acceptable only as a last resort inside a private header or source-only implementation area, and should still be avoided when a clearer structure is available.
 
 Coordinate vocabulary follows the same semantic ownership:
 
@@ -145,12 +147,12 @@ Its approved first contract includes:
 - Volume copy construction/assignment deep-copies Cell contents through the Sparkle Pool Lease copy semantics, producing independent pooled storage;
 - Volume move transfers the existing Lease and leaves the source in the default-empty state;
 - `Builder(std::move(volume))` destructively consumes a Volume and directly reuses/transfers its existing Lease without copying;
-- pool instances are implementation details in `volume_builder.cpp`: one dedicated `Buffer::Pool` is used only for exact 16×16×16 Chunk dimensions, while other sizes use a source-local ordered `std::map<std::size_t, Buffer::Pool>`;
+- pool instances are implementation details in `volume_builder.cpp`: one dedicated `Buffer::Pool` is used only for exact 16�16�16 Chunk dimensions, while other sizes use a source-local ordered `std::map<std::size_t, Buffer::Pool>`;
 - general pool lookup uses `lower_bound(expectedCellCount)`, selecting the exact size class or the smallest existing higher class; when none exists, a new pool is created for the requested size;
 - pooled Buffers retain capacity while their logical size is reset through the Pool per-obtain callback;
 - no `VersionedTrait` inheritance or mutable Editor remains in the Volume contract.
 
-A terrain Chunk is one semantic use of a Volume. Terrain Chunks are fixed at 16×16×16 cells and one world unit per cell.
+A terrain Chunk is one semantic use of a Volume. Terrain Chunks are fixed at 16�16�16 cells and one world unit per cell.
 
 
 ## 7. Serialization/API ergonomics
@@ -169,7 +171,7 @@ friend spk::Message &operator<<(spk::Message &message, const Volume &volume);
 friend const spk::Message &operator>>(const spk::Message &message, Volume &volume);
 ```
 
-The operators serialize the logical Volume contents—dimensions, voxel size, and contiguous Cell data. They must never raw-copy the C++ object representation of `Voxel::Volume`, because it owns a `std::vector`.
+The operators serialize the logical Volume contentsdimensions, voxel size, and contiguous Cell data. They must never raw-copy the C++ object representation of `Voxel::Volume`, because it owns a `std::vector`.
 
 Do not expose otherwise-unnecessary mutable internals merely to make serialization possible.
 
@@ -190,7 +192,7 @@ Follow Sparkle's 3D convention directly:
 - terrain cells use integer coordinates;
 - Chunk coordinates use integer coordinates;
 - one terrain cell equals one world unit;
-- Chunks are 16×16×16;
+- Chunks are 16�16�16;
 - global-cell to Chunk conversion uses mathematical floor division/modulo so negative coordinates work correctly.
 
 Do not introduce an unnecessary Erelia-specific axis-remapping layer.
@@ -203,7 +205,7 @@ The approved direction is:
 
 - flat baseline;
 - vertical wall-like geometry around X = 0 and Z = 0;
-- elevated stairs, slabs, and slopes around Y ≈ 3;
+- elevated stairs, slabs, and slopes around Y H 3;
 - varied Orientation/Flip combinations;
 - enough empty space to inspect geometry from above and below.
 
@@ -248,7 +250,7 @@ When an OQ still blocks a public contract, do not mark the corresponding ticket 
 
 ## 14. Current implementation focus
 
-The active near-term Epic is EP-001 — Voxel Terrain Delivery and Visual Validation.
+The active near-term Epic is EP-001  Voxel Terrain Delivery and Visual Validation.
 
 The intended progressive path is roughly:
 
@@ -270,10 +272,10 @@ Before implementation code assumes an answer, check the corresponding files unde
 
 For EP-001 in particular, the still-partial questions include:
 
-- OQ-036 — missing-neighbor/remesh policy for terrain meshing;
-- OQ-037 — remaining scalar wire portability policy;
-- OQ-038 — request/cache/eviction/partial-response details;
-- OQ-039 — exact terrain-generator fixture coordinates/Definitions;
-- OQ-029 through OQ-031 — golden-image and performance-validation policy.
+- OQ-036  missing-neighbor/remesh policy for terrain meshing;
+- OQ-037  remaining scalar wire portability policy;
+- OQ-038  request/cache/eviction/partial-response details;
+- OQ-039  exact terrain-generator fixture coordinates/Definitions;
+- OQ-029 through OQ-031  golden-image and performance-validation policy.
 
 Do not hide one of these unresolved choices inside a coding ticket.
