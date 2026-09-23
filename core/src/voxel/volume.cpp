@@ -1,14 +1,60 @@
 #include "erelia/core/voxel/volume.hpp"
 
-#include <exception.hpp>
+#include <utility>
 
-#include "volume_content.hpp"
+#include <exception.hpp>
 
 namespace Voxel
 {
-	Volume::Volume(std::shared_ptr<Content> content) noexcept :
-		_content(std::move(content))
+	Volume::Volume(
+		const spk::Vector3UInt &dimensions,
+		UnitSize unitSize,
+		CellBufferLease cells) noexcept :
+		_dimensions(dimensions),
+		_unitSize(unitSize),
+		_cells(std::move(cells))
 	{
+	}
+
+	Volume::Volume(const Volume &other) :
+		_dimensions(other._dimensions),
+		_unitSize(other._unitSize),
+		_cells(other._cells)
+	{
+	}
+
+	Volume::Volume(Volume &&other) noexcept :
+		_dimensions(std::exchange(other._dimensions, {})),
+		_unitSize(std::exchange(other._unitSize, 0.0f)),
+		_cells(std::move(other._cells))
+	{
+	}
+
+	Volume &Volume::operator=(const Volume &other)
+	{
+		if (this == &other)
+		{
+			return *this;
+		}
+
+		Volume replacement(other);
+		*this = std::move(replacement);
+
+		return *this;
+	}
+
+	Volume &Volume::operator=(Volume &&other) noexcept
+	{
+		if (this == &other)
+		{
+			return *this;
+		}
+
+		_dimensions = std::exchange(other._dimensions, {});
+		_unitSize = std::exchange(other._unitSize, 0.0f);
+		_cells = std::move(other._cells);
+
+		return *this;
 	}
 
 	std::size_t Volume::_index(const LocalCoordinate &coordinate) const
@@ -18,39 +64,33 @@ namespace Voxel
 			throw spk::Exception("Voxel::Volume coordinate is out of range");
 		}
 
-		const auto dimensionsValue = dimensions();
 		const auto x = static_cast<std::size_t>(coordinate.x);
 		const auto y = static_cast<std::size_t>(coordinate.y);
 		const auto z = static_cast<std::size_t>(coordinate.z);
-		const auto sizeX = static_cast<std::size_t>(dimensionsValue.x);
-		const auto sizeY = static_cast<std::size_t>(dimensionsValue.y);
+		const auto sizeX = static_cast<std::size_t>(_dimensions.x);
+		const auto sizeY = static_cast<std::size_t>(_dimensions.y);
 
 		return y + sizeY * (x + sizeX * z);
 	}
 
 	spk::Vector3UInt Volume::dimensions() const noexcept
 	{
-		return _content != nullptr ? _content->dimensions : spk::Vector3UInt{};
+		return _dimensions;
 	}
 
 	Volume::UnitSize Volume::unitSize() const noexcept
 	{
-		return _content != nullptr ? _content->unitSize : 0.0f;
+		return _unitSize;
 	}
 
 	bool Volume::contains(const LocalCoordinate &coordinate) const noexcept
 	{
-		if (_content == nullptr)
-		{
-			return false;
-		}
-
-		return coordinate.x >= 0 && coordinate.y >= 0 && coordinate.z >= 0 && static_cast<std::uint32_t>(coordinate.x) < _content->dimensions.x && static_cast<std::uint32_t>(coordinate.y) < _content->dimensions.y && static_cast<std::uint32_t>(coordinate.z) < _content->dimensions.z;
+		return coordinate.x >= 0 && coordinate.y >= 0 && coordinate.z >= 0 && static_cast<std::uint32_t>(coordinate.x) < _dimensions.x && static_cast<std::uint32_t>(coordinate.y) < _dimensions.y && static_cast<std::uint32_t>(coordinate.z) < _dimensions.z;
 	}
 
 	Cell Volume::at(const LocalCoordinate &coordinate) const
 	{
-		return (*_content->cells)[_index(coordinate)];
+		return (*_cells)[_index(coordinate)];
 	}
 
 	Cell Volume::operator[](const LocalCoordinate &coordinate) const
@@ -60,13 +100,13 @@ namespace Voxel
 
 	std::span<const Cell> Volume::cells() const noexcept
 	{
-		if (_content == nullptr)
+		if (!_cells)
 		{
 			return {};
 		}
 
 		return std::span<const Cell>(
-			_content->cells->data(),
-			_content->cells->size());
+			_cells->data(),
+			_cells->size());
 	}
 }
