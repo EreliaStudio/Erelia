@@ -1,5 +1,5 @@
 #include "erelia/core/voxel/volume.hpp"
-#include "erelia/core/voxel/volume_editor.hpp"
+#include "erelia/core/voxel/volume_builder.hpp"
 
 #include <exception.hpp>
 #include <gtest/gtest.h>
@@ -12,11 +12,12 @@
 
 static_assert(std::is_same_v<Voxel::Volume::LocalCoordinate, spk::Vector3Int>);
 static_assert(std::is_same_v<Voxel::Volume::UnitSize, float>);
-static_assert(std::is_base_of_v<spk::VersionedTrait, Voxel::Volume>);
 static_assert(std::is_copy_constructible_v<Voxel::Volume>);
 static_assert(std::is_copy_assignable_v<Voxel::Volume>);
 static_assert(std::is_move_constructible_v<Voxel::Volume>);
 static_assert(std::is_move_assignable_v<Voxel::Volume>);
+static_assert(!std::is_copy_constructible_v<Voxel::Volume::Builder>);
+static_assert(std::is_move_constructible_v<Voxel::Volume::Builder>);
 static_assert(
 	std::is_same_v<decltype(std::declval<const Voxel::Volume &>().cells()), std::span<const Voxel::Cell>>);
 
@@ -31,57 +32,62 @@ namespace
 		EXPECT_FALSE(volume.contains({-1, 0, 0}));
 	}
 
-	void setCell(
-		Voxel::Volume &volume,
+	Voxel::Volume makeVolume(
+		const spk::Vector3UInt &dimensions,
+		Voxel::Volume::UnitSize unitSize)
+	{
+		Voxel::Volume::Builder builder(dimensions, unitSize);
+		return std::move(builder).build();
+	}
+
+	Voxel::Volume makeVolumeWithCell(
+		const spk::Vector3UInt &dimensions,
+		Voxel::Volume::UnitSize unitSize,
 		const Voxel::Volume::LocalCoordinate &coordinate,
 		Voxel::Cell::PackedType packed)
 	{
-		auto editor = volume.edit();
-		EXPECT_TRUE(editor.set(coordinate, Voxel::Cell(packed)));
-		editor.commit();
+		Voxel::Volume::Builder builder(dimensions, unitSize);
+		EXPECT_TRUE(builder.set(coordinate, Voxel::Cell(packed)));
+		return std::move(builder).build();
 	}
 }
 
-TEST(VoxelVolume, DefaultConstructionIsTheOnlyEmptyState)
+TEST(VoxelVolume, DefaultConstructionIsEmpty)
 {
-	Voxel::Volume volume;
+	const Voxel::Volume volume;
 
 	expectDefaultVolume(volume);
-	EXPECT_EQ(volume.version(), spk::VersionedTrait::Version{0});
 	EXPECT_THROW(volume.at({0, 0, 0}), spk::Exception);
-
-	auto editor = volume.edit();
-	EXPECT_THROW(editor.set({0, 0, 0}, Voxel::Cell(1u)), spk::Exception);
-	EXPECT_EQ(volume.version(), spk::VersionedTrait::Version{0});
 }
 
-TEST(VoxelVolume, ExplicitConstructionOwnsDefaultEmptyCells)
+TEST(VoxelVolumeBuilder, ExplicitConstructionOwnsDefaultEmptyCells)
 {
-	const Voxel::Volume volume({2, 3, 4}, 0.25f);
+	Voxel::Volume::Builder builder({2, 3, 4}, 0.25f);
+	const auto volume = std::move(builder).build();
 
 	EXPECT_EQ(volume.dimensions(), (spk::Vector3UInt{2, 3, 4}));
 	EXPECT_EQ(volume.unitSize(), 0.25f);
 	ASSERT_EQ(volume.cells().size(), 24u);
+
 	for (const auto &cell : volume.cells())
 	{
 		EXPECT_EQ(cell.packed(), Voxel::Cell::Empty.packed());
 	}
-	EXPECT_EQ(volume.version(), spk::VersionedTrait::Version{0});
 }
 
-TEST(VoxelVolume, UsesYThenXThenZStorageOrder)
+TEST(VoxelVolumeBuilder, UsesYThenXThenZStorageOrder)
 {
-	Voxel::Volume volume({2, 3, 4}, 0.25f);
-	auto editor = volume.edit();
+	Voxel::Volume::Builder builder({2, 3, 4}, 0.25f);
 
-	EXPECT_TRUE(editor.set({0, 0, 0}, Voxel::Cell(11u)));
-	EXPECT_TRUE(editor.set({0, 1, 0}, Voxel::Cell(12u)));
-	EXPECT_TRUE(editor.set({1, 0, 0}, Voxel::Cell(13u)));
-	EXPECT_TRUE(editor.set({0, 0, 1}, Voxel::Cell(14u)));
-	EXPECT_TRUE(editor.set({1, 2, 3}, Voxel::Cell(15u)));
-	editor.commit();
+	EXPECT_TRUE(builder.set({0, 0, 0}, Voxel::Cell(11u)));
+	EXPECT_TRUE(builder.set({0, 1, 0}, Voxel::Cell(12u)));
+	EXPECT_TRUE(builder.set({1, 0, 0}, Voxel::Cell(13u)));
+	EXPECT_TRUE(builder.set({0, 0, 1}, Voxel::Cell(14u)));
+	EXPECT_TRUE(builder.set({1, 2, 3}, Voxel::Cell(15u)));
 
+	const auto volume = std::move(builder).build();
 	const auto cells = volume.cells();
+
 	ASSERT_EQ(cells.size(), 24u);
 	EXPECT_EQ(cells[0].packed(), 11u);
 	EXPECT_EQ(cells[1].packed(), 12u);
@@ -96,22 +102,32 @@ TEST(VoxelVolume, UsesYThenXThenZStorageOrder)
 	EXPECT_EQ(volume.at({1, 2, 3}).packed(), 15u);
 }
 
+TEST(VoxelVolumeBuilder, SetReportsOnlyEffectiveChanges)
+{
+	Voxel::Volume::Builder builder({1, 1, 1}, 1.0f);
+
+	EXPECT_FALSE(builder.set({0, 0, 0}, Voxel::Cell::Empty));
+	EXPECT_TRUE(builder.set({0, 0, 0}, Voxel::Cell(7u)));
+	EXPECT_FALSE(builder.set({0, 0, 0}, Voxel::Cell(7u)));
+
+	const auto volume = std::move(builder).build();
+	EXPECT_EQ(volume.at({0, 0, 0}).packed(), 7u);
+}
+
 TEST(VoxelVolume, BracketAccessMatchesAtAndIsChecked)
 {
-	Voxel::Volume volume({2, 1, 1}, 1.0f);
-	setCell(volume, {1, 0, 0}, 42u);
-	const auto &readOnlyVolume = volume;
+	const auto volume = makeVolumeWithCell({2, 1, 1}, 1.0f, {1, 0, 0}, 42u);
 	const Voxel::Volume::LocalCoordinate coordinate{1, 0, 0};
 
-	EXPECT_EQ(readOnlyVolume[coordinate].packed(), readOnlyVolume.at(coordinate).packed());
+	EXPECT_EQ(volume[coordinate].packed(), volume.at(coordinate).packed());
 	EXPECT_THROW(
-		readOnlyVolume[Voxel::Volume::LocalCoordinate{2, 0, 0}],
+		volume[Voxel::Volume::LocalCoordinate{2, 0, 0}],
 		spk::Exception);
 }
 
 TEST(VoxelVolume, SupportsSingleCellBoundary)
 {
-	Voxel::Volume volume({1, 1, 1}, 1.0f);
+	const auto volume = makeVolume({1, 1, 1}, 1.0f);
 
 	EXPECT_TRUE(volume.contains({0, 0, 0}));
 	EXPECT_FALSE(volume.contains({1, 0, 0}));
@@ -121,34 +137,42 @@ TEST(VoxelVolume, SupportsSingleCellBoundary)
 	EXPECT_EQ(volume.at({0, 0, 0}).packed(), 0u);
 }
 
-TEST(VoxelVolume, RejectsInvalidExplicitDimensions)
+TEST(VoxelVolumeBuilder, RejectsInvalidExplicitDimensions)
 {
-	EXPECT_THROW((Voxel::Volume({0, 1, 1}, 1.0f)), spk::Exception);
-	EXPECT_THROW((Voxel::Volume({1, 0, 1}, 1.0f)), spk::Exception);
-	EXPECT_THROW((Voxel::Volume({1, 1, 0}, 1.0f)), spk::Exception);
+	EXPECT_THROW((Voxel::Volume::Builder({0, 1, 1}, 1.0f)), spk::Exception);
+	EXPECT_THROW((Voxel::Volume::Builder({1, 0, 1}, 1.0f)), spk::Exception);
+	EXPECT_THROW((Voxel::Volume::Builder({1, 1, 0}, 1.0f)), spk::Exception);
 
 	constexpr auto maximum = std::numeric_limits<std::uint32_t>::max();
-	EXPECT_THROW((Voxel::Volume({maximum, maximum, maximum}, 1.0f)), spk::Exception);
+	EXPECT_THROW(
+		(Voxel::Volume::Builder({maximum, maximum, maximum}, 1.0f)),
+		spk::Exception);
 }
 
-TEST(VoxelVolume, RejectsInvalidUnitSize)
+TEST(VoxelVolumeBuilder, RejectsInvalidUnitSize)
 {
-	EXPECT_THROW((Voxel::Volume({1, 1, 1}, 0.0f)), spk::Exception);
-	EXPECT_THROW((Voxel::Volume({1, 1, 1}, -1.0f)), spk::Exception);
+	EXPECT_THROW((Voxel::Volume::Builder({1, 1, 1}, 0.0f)), spk::Exception);
+	EXPECT_THROW((Voxel::Volume::Builder({1, 1, 1}, -1.0f)), spk::Exception);
 	EXPECT_THROW(
-		(Voxel::Volume({1, 1, 1}, std::numeric_limits<float>::quiet_NaN())),
+		(Voxel::Volume::Builder(
+			{1, 1, 1},
+			std::numeric_limits<float>::quiet_NaN())),
 		spk::Exception);
 	EXPECT_THROW(
-		(Voxel::Volume({1, 1, 1}, std::numeric_limits<float>::infinity())),
+		(Voxel::Volume::Builder(
+			{1, 1, 1},
+			std::numeric_limits<float>::infinity())),
 		spk::Exception);
 	EXPECT_THROW(
-		(Voxel::Volume({1, 1, 1}, -std::numeric_limits<float>::infinity())),
+		(Voxel::Volume::Builder(
+			{1, 1, 1},
+			-std::numeric_limits<float>::infinity())),
 		spk::Exception);
 }
 
 TEST(VoxelVolume, RejectsInvalidCheckedCoordinates)
 {
-	const Voxel::Volume volume({2, 3, 4}, 1.0f);
+	const auto volume = makeVolume({2, 3, 4}, 1.0f);
 
 	EXPECT_THROW(volume.at({-1, 0, 0}), spk::Exception);
 	EXPECT_THROW(volume.at({0, -1, 0}), spk::Exception);
@@ -158,219 +182,120 @@ TEST(VoxelVolume, RejectsInvalidCheckedCoordinates)
 	EXPECT_THROW(volume.at({0, 0, 4}), spk::Exception);
 }
 
-TEST(VoxelVolumeEditor, BatchesEffectiveWritesIntoOneVersion)
+TEST(VoxelVolumeBuilder, RejectsInvalidCoordinatesWithoutMutatingOtherCells)
 {
-	Voxel::Volume volume({2, 1, 1}, 1.0f);
-	int notifications = 0;
-	auto contract = volume.subscribeToVersionEdition([&](spk::VersionedTrait *versioned) {
-		++notifications;
-		EXPECT_EQ(versioned, &volume);
-	});
+	Voxel::Volume::Builder builder({2, 1, 1}, 1.0f);
 
-	auto editor = volume.edit();
-	EXPECT_TRUE(editor.set({0, 0, 0}, Voxel::Cell(7u)));
-	EXPECT_FALSE(editor.set({0, 0, 0}, Voxel::Cell(7u)));
-	EXPECT_TRUE(editor.set({1, 0, 0}, Voxel::Cell(9u)));
-	editor.commit();
-	editor.commit();
+	EXPECT_THROW(builder.set({2, 0, 0}, Voxel::Cell(7u)), spk::Exception);
+	EXPECT_TRUE(builder.set({1, 0, 0}, Voxel::Cell(9u)));
 
-	EXPECT_EQ(volume.version(), spk::VersionedTrait::Version{1});
-	EXPECT_EQ(notifications, 1);
-	EXPECT_THROW(editor.set({0, 0, 0}, Voxel::Cell(3u)), spk::Exception);
-}
-
-TEST(VoxelVolumeEditor, DestructionCommitsChangedBatch)
-{
-	Voxel::Volume volume({1, 1, 1}, 1.0f);
-	int notifications = 0;
-	auto contract = volume.subscribeToVersionEdition([&](spk::VersionedTrait *) {
-		++notifications;
-	});
-
-	{
-		auto editor = volume.edit();
-		EXPECT_TRUE(editor.set({0, 0, 0}, Voxel::Cell(7u)));
-	}
-
-	EXPECT_EQ(volume.version(), spk::VersionedTrait::Version{1});
-	EXPECT_EQ(notifications, 1);
-	EXPECT_EQ(volume.at({0, 0, 0}).packed(), 7u);
-}
-
-TEST(VoxelVolumeEditor, NoOpBatchDoesNotInvalidate)
-{
-	Voxel::Volume volume({1, 1, 1}, 1.0f);
-	int notifications = 0;
-	auto contract = volume.subscribeToVersionEdition([&](spk::VersionedTrait *) {
-		++notifications;
-	});
-
-	auto editor = volume.edit();
-	EXPECT_FALSE(editor.set({0, 0, 0}, Voxel::Cell::Empty));
-	editor.commit();
-
-	EXPECT_EQ(volume.version(), spk::VersionedTrait::Version{0});
-	EXPECT_EQ(notifications, 0);
-}
-
-TEST(VoxelVolumeEditor, InvalidWriteDoesNotAliasAndEditorRemainsUsable)
-{
-	Voxel::Volume volume({2, 1, 1}, 1.0f);
-	int notifications = 0;
-	auto contract = volume.subscribeToVersionEdition([&](spk::VersionedTrait *) {
-		++notifications;
-	});
-
-	auto editor = volume.edit();
-	EXPECT_THROW(editor.set({2, 0, 0}, Voxel::Cell(7u)), spk::Exception);
-	EXPECT_EQ(volume.at({0, 0, 0}).packed(), 0u);
-	EXPECT_EQ(volume.at({1, 0, 0}).packed(), 0u);
-	EXPECT_EQ(volume.version(), spk::VersionedTrait::Version{0});
-	EXPECT_EQ(notifications, 0);
-
-	EXPECT_TRUE(editor.set({1, 0, 0}, Voxel::Cell(9u)));
-	editor.commit();
-
+	const auto volume = std::move(builder).build();
 	EXPECT_EQ(volume.at({0, 0, 0}).packed(), 0u);
 	EXPECT_EQ(volume.at({1, 0, 0}).packed(), 9u);
-	EXPECT_EQ(volume.version(), spk::VersionedTrait::Version{1});
-	EXPECT_EQ(notifications, 1);
 }
 
-TEST(VoxelVolume, CellSpanSurvivesOrdinaryEdits)
+TEST(VoxelVolume, CopiesShareImmutableContent)
 {
-	Voxel::Volume volume({2, 1, 1}, 1.0f);
-	const auto cells = volume.cells();
-	const auto *data = cells.data();
-
-	setCell(volume, {1, 0, 0}, 42u);
-
-	EXPECT_EQ(cells.data(), data);
-	EXPECT_EQ(cells[1].packed(), 42u);
-}
-
-TEST(VoxelVolume, CopyConstructionCreatesIndependentFreshVersion)
-{
-	Voxel::Volume source({2, 1, 1}, 0.5f);
-	setCell(source, {1, 0, 0}, 17u);
-	int sourceNotifications = 0;
-	auto sourceContract = source.subscribeToVersionEdition([&](spk::VersionedTrait *) {
-		++sourceNotifications;
-	});
-
-	Voxel::Volume copy(source);
+	const auto source = makeVolumeWithCell({2, 1, 1}, 0.5f, {1, 0, 0}, 17u);
+	const Voxel::Volume copy(source);
 
 	EXPECT_EQ(copy.dimensions(), source.dimensions());
 	EXPECT_EQ(copy.unitSize(), source.unitSize());
 	EXPECT_EQ(copy.cells()[1].packed(), 17u);
-	EXPECT_NE(copy.cells().data(), source.cells().data());
-	EXPECT_EQ(copy.version(), spk::VersionedTrait::Version{0});
-
-	setCell(copy, {0, 0, 0}, 33u);
-	EXPECT_EQ(source.at({0, 0, 0}).packed(), 0u);
-	EXPECT_EQ(sourceNotifications, 0);
+	EXPECT_EQ(copy.cells().data(), source.cells().data());
 }
 
-TEST(VoxelVolume, CopyAssignmentPreservesDestinationSubscriptions)
+TEST(VoxelVolume, CopyAssignmentSharesImmutableContent)
 {
-	Voxel::Volume source({2, 1, 1}, 0.5f);
-	setCell(source, {1, 0, 0}, 17u);
-	const auto sourceVersion = source.version();
-
-	Voxel::Volume destination({1, 1, 1}, 1.0f);
-	int notifications = 0;
-	auto contract = destination.subscribeToVersionEdition([&](spk::VersionedTrait *versioned) {
-		++notifications;
-		EXPECT_EQ(versioned, &destination);
-	});
+	const auto source = makeVolumeWithCell({2, 1, 1}, 0.5f, {1, 0, 0}, 17u);
+	Voxel::Volume destination = makeVolume({1, 1, 1}, 1.0f);
 
 	destination = source;
 
 	EXPECT_EQ(destination.dimensions(), source.dimensions());
 	EXPECT_EQ(destination.unitSize(), source.unitSize());
+	EXPECT_EQ(destination.cells().data(), source.cells().data());
 	EXPECT_EQ(destination.cells()[1].packed(), 17u);
-	EXPECT_NE(destination.cells().data(), source.cells().data());
-	EXPECT_EQ(destination.version(), spk::VersionedTrait::Version{1});
-	EXPECT_EQ(notifications, 1);
-	EXPECT_EQ(source.version(), sourceVersion);
 }
 
-TEST(VoxelVolume, MoveConstructionTransfersStorageAndInvalidatesSource)
+TEST(VoxelVolume, MoveTransfersContentAndLeavesSourceEmpty)
 {
-	Voxel::Volume source({2, 1, 1}, 0.5f);
-	setCell(source, {1, 0, 0}, 17u);
-	const auto sourceVersion = source.version();
+	auto source = makeVolumeWithCell({2, 1, 1}, 0.5f, {1, 0, 0}, 17u);
 	const auto *sourceData = source.cells().data();
-	int sourceNotifications = 0;
-	auto sourceContract = source.subscribeToVersionEdition([&](spk::VersionedTrait *versioned) {
-		++sourceNotifications;
-		EXPECT_EQ(versioned, &source);
-	});
 
 	Voxel::Volume moved(std::move(source));
 
 	EXPECT_EQ(moved.dimensions(), (spk::Vector3UInt{2, 1, 1}));
 	EXPECT_EQ(moved.unitSize(), 0.5f);
-	EXPECT_EQ(moved.cells()[1].packed(), 17u);
 	EXPECT_EQ(moved.cells().data(), sourceData);
-	EXPECT_EQ(moved.version(), spk::VersionedTrait::Version{0});
-
+	EXPECT_EQ(moved.cells()[1].packed(), 17u);
 	expectDefaultVolume(source);
-	EXPECT_EQ(source.version(), sourceVersion + 1);
-	EXPECT_EQ(sourceNotifications, 1);
 }
 
-TEST(VoxelVolume, MoveAssignmentInvalidatesBothObjects)
+TEST(VoxelVolumeBuilder, MovingUniqueVolumeIntoBuilderReusesItsBuffer)
 {
-	Voxel::Volume source({2, 1, 1}, 0.5f);
-	setCell(source, {1, 0, 0}, 17u);
-	const auto sourceVersion = source.version();
-	int sourceNotifications = 0;
-	auto sourceContract = source.subscribeToVersionEdition([&](spk::VersionedTrait *versioned) {
-		++sourceNotifications;
-		EXPECT_EQ(versioned, &source);
-	});
+	auto volume = makeVolumeWithCell({2, 1, 1}, 0.5f, {1, 0, 0}, 17u);
+	const auto *originalData = volume.cells().data();
 
-	Voxel::Volume destination({1, 1, 1}, 1.0f);
-	const auto destinationVersion = destination.version();
-	int destinationNotifications = 0;
-	auto destinationContract = destination.subscribeToVersionEdition([&](spk::VersionedTrait *versioned) {
-		++destinationNotifications;
-		EXPECT_EQ(versioned, &destination);
-	});
+	Voxel::Volume::Builder builder(std::move(volume));
+	expectDefaultVolume(volume);
 
-	destination = std::move(source);
+	EXPECT_TRUE(builder.set({0, 0, 0}, Voxel::Cell(23u)));
+	const auto rebuilt = std::move(builder).build();
 
-	EXPECT_EQ(destination.dimensions(), (spk::Vector3UInt{2, 1, 1}));
-	EXPECT_EQ(destination.unitSize(), 0.5f);
-	EXPECT_EQ(destination.cells()[1].packed(), 17u);
-	EXPECT_EQ(destination.version(), destinationVersion + 1);
-	EXPECT_EQ(destinationNotifications, 1);
-
-	expectDefaultVolume(source);
-	EXPECT_EQ(source.version(), sourceVersion + 1);
-	EXPECT_EQ(sourceNotifications, 1);
+	EXPECT_EQ(rebuilt.cells().data(), originalData);
+	EXPECT_EQ(rebuilt.at({0, 0, 0}).packed(), 23u);
+	EXPECT_EQ(rebuilt.at({1, 0, 0}).packed(), 17u);
 }
 
-TEST(VoxelVolume, SelfAssignmentIsANoOp)
+TEST(VoxelVolumeBuilder, MovingSharedVolumeIntoBuilderCopiesItsBuffer)
 {
-	Voxel::Volume volume({1, 1, 1}, 1.0f);
-	setCell(volume, {0, 0, 0}, 7u);
-	const auto initialVersion = volume.version();
-	const auto *initialData = volume.cells().data();
-	int notifications = 0;
-	auto contract = volume.subscribeToVersionEdition([&](spk::VersionedTrait *) {
-		++notifications;
-	});
+	auto volume = makeVolumeWithCell({2, 1, 1}, 0.5f, {1, 0, 0}, 17u);
+	const Voxel::Volume sharedCopy(volume);
+	const auto *sharedData = sharedCopy.cells().data();
 
-	volume = volume;
-	EXPECT_EQ(volume.version(), initialVersion);
-	EXPECT_EQ(volume.cells().data(), initialData);
-	EXPECT_EQ(notifications, 0);
+	Voxel::Volume::Builder builder(std::move(volume));
+	expectDefaultVolume(volume);
 
-	volume = std::move(volume);
-	EXPECT_EQ(volume.version(), initialVersion);
-	EXPECT_EQ(volume.cells().data(), initialData);
-	EXPECT_EQ(volume.at({0, 0, 0}).packed(), 7u);
-	EXPECT_EQ(notifications, 0);
+	EXPECT_TRUE(builder.set({0, 0, 0}, Voxel::Cell(23u)));
+	const auto rebuilt = std::move(builder).build();
+
+	EXPECT_NE(rebuilt.cells().data(), sharedData);
+	EXPECT_EQ(rebuilt.at({0, 0, 0}).packed(), 23u);
+	EXPECT_EQ(rebuilt.at({1, 0, 0}).packed(), 17u);
+	EXPECT_EQ(sharedCopy.at({0, 0, 0}).packed(), 0u);
+	EXPECT_EQ(sharedCopy.at({1, 0, 0}).packed(), 17u);
+}
+
+TEST(VoxelVolumeBuilder, ChunkSizedBuffersUseTheirDedicatedPool)
+{
+	const Voxel::Cell *chunkData = nullptr;
+
+	{
+		auto chunkVolume = makeVolume({16, 16, 16}, 1.0f);
+		chunkData = chunkVolume.cells().data();
+		ASSERT_NE(chunkData, nullptr);
+	}
+
+	const auto nonChunkVolume = makeVolume({10, 10, 40}, 1.0f);
+	EXPECT_NE(nonChunkVolume.cells().data(), chunkData);
+
+	const auto reusedChunkVolume = makeVolume({16, 16, 16}, 1.0f);
+	EXPECT_EQ(reusedChunkVolume.cells().data(), chunkData);
+}
+
+TEST(VoxelVolumeBuilder, GeneralPoolUsesSmallestAvailableHigherSizeClass)
+{
+	const Voxel::Cell *largerBufferData = nullptr;
+
+	{
+		auto largerVolume = makeVolume({10, 10, 50}, 1.0f);
+		largerBufferData = largerVolume.cells().data();
+		ASSERT_NE(largerBufferData, nullptr);
+	}
+
+	const auto smallerVolume = makeVolume({9, 10, 50}, 1.0f);
+
+	ASSERT_EQ(smallerVolume.cells().size(), 4500u);
+	EXPECT_EQ(smallerVolume.cells().data(), largerBufferData);
 }
