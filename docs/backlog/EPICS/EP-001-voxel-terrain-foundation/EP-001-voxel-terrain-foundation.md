@@ -2,7 +2,7 @@
 
 **Status:** Draft
 **Roadmap phase:** Foundation — first implementation milestone
-**Dependencies:** DR-001, DR-002, DR-003, DR-004, DR-007, DR-009, DR-010, DR-011, DR-012, DR-013, DR-014, DR-015, DR-016, DR-017; ARCH-001, ARCH-002, ARCH-003, ARCH-004
+**Dependencies:** DR-001, DR-002, DR-003, DR-004, DR-007, DR-009, DR-010, DR-011, DR-012, DR-013, DR-014, DR-015, DR-016, DR-017, DR-018; ARCH-001, ARCH-002, ARCH-003, ARCH-004
 **Primary ownership:** Core + Server + Client
 
 ## Purpose
@@ -131,13 +131,12 @@ The Epic will require deliberate contracts for:
 
 The complete dependency-ordered table is maintained in [tickets/README.md](tickets/README.md).
 
-- **Done:** ST-001-01, ST-001-02.
 - **Done:** ST-001-01, ST-001-02, ST-001-03.
-- **Ready:** none.
+- **Ready:** ST-001-04.
 - **Blocked:** ST-001-05, ST-001-06, ST-001-08, ST-001-09, ST-001-11, ST-001-12, ST-001-15, ST-001-16.
-- **Draft:** ST-001-04, ST-001-07, ST-001-10, ST-001-13, ST-001-14.
+- **Draft:** ST-001-07, ST-001-10, ST-001-13, ST-001-14.
 
-The first three implementation tickets are complete: **ST-001-01 — Shared terrain coordinate conversion** through PR #7, **ST-001-02 — Packed Voxel::Cell value type** through PR #8, and **ST-001-03 — Owning Voxel::Volume** through PR #9. ST-001-03 uses the finalized immutable Builder + direct pooled `Voxel::Volume::Buffer::Lease` design, deep-copy Volume semantics, optional `tryGet()` lookup, dedicated Chunk pooling, and ordered general size-class pooling. Project-owner approval is recorded and CI run #105 passed; PR #9 remains open only for the final merge into the planning baseline. OQ-035 is Resolved.
+The first three implementation tickets are complete and merged into `master`: **ST-001-01 — Shared terrain coordinate conversion** through PR #7, **ST-001-02 — Packed Voxel::Cell value type** through PR #8, and **ST-001-03 — Owning Voxel::Volume** through PR #9. ST-001-03 uses the finalized immutable Builder + direct pooled `Voxel::Volume::Buffer::Lease` design, deep-copy Volume semantics, optional `tryGet()` lookup, dedicated Chunk pooling, and ordered general size-class pooling. Project-owner approval is recorded and CI run #105 passed. OQ-035 is Resolved. DR-018 now resolves the first shared Shape/Definition/Catalog contract and makes ST-001-04 Ready.
 
 ## Epic-level integration scenarios
 
@@ -221,7 +220,7 @@ Epic-specific questions tracked in OPEN_QUESTIONS/:
 
 Resolve the blocking questions above before promoting the corresponding implementation tickets to Ready.
 
-The decomposition also exposed four Draft-only specification gaps that are not yet represented by a dedicated OQ: the minimal first Definition/Shape geometry/resource contract; the EP-001 Server endpoint + Client connection lifecycle/configuration; the deterministic first render fixture/material binding/resource-failure contract; and the complete temporary free-flight input/numeric camera semantics. These tickets remain Draft rather than silently choosing those contracts.
+The decomposition also exposed Draft-only specification gaps that are not yet represented by a dedicated OQ: the EP-001 Server endpoint + Client connection lifecycle/configuration; the deterministic first render fixture/material binding/resource-failure contract; and the complete temporary free-flight input/numeric camera semantics. The former Definition/Shape gap is resolved by DR-018 and ST-001-04.
 
 ## Exit criteria
 
