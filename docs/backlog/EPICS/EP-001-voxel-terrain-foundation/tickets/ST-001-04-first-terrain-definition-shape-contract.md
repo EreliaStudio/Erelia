@@ -186,7 +186,7 @@ Define the oriented cached representation:
 ```cpp
 struct OrientedPolygonArray
 {
-    spk::UUID uuid{spk::UUID::null()};
+    std::atomic<spk::UUID> uuid{spk::UUID::null()};
     std::vector<Polygon> polygons;
 };
 ```
@@ -194,16 +194,14 @@ struct OrientedPolygonArray
 A Shape stores:
 
 - a mutable fixed array of exactly eight `OrientedPolygonArray` entries;
-- one private `std::atomic_flag` publication marker per oriented entry;
 - an internal mutable mutex protecting first-time cache population.
 
 The eight indices represent the Cartesian product of four `Orientation` values and two `FlipOrientation` values. The implementation may derive the index directly from the enum values, e.g. orientation quarter-turn index plus four times the flip value.
 
-The canonical `PositiveX + PositiveY` entry is created during Shape JSON construction, receives a non-null generated UUID, and is published before construction completes.
+The canonical `PositiveX + PositiveY` entry is created during Shape JSON construction and receives a non-null generated UUID.
 
 The other seven entries start with:
 
-- clear publication flag;
 - null UUID;
 - empty polygon vector.
 
@@ -221,19 +219,18 @@ The exact qualification/nesting may follow the final header organization, but th
 
 On access:
 
-1. test the selected entry publication flag with acquire semantics;
-2. when set, immediately return the already-immutable entry without taking the mutex;
-3. when clear, lock the Shape cache mutex;
-4. re-check the publication flag after acquiring the mutex;
-5. if still clear, completely generate the transformed polygon vector;
+1. load the selected entry UUID with acquire semantics;
+2. when non-null, immediately return the already-immutable entry without taking the mutex;
+3. when null, lock the Shape cache mutex;
+4. re-check the UUID after acquiring the mutex;
+5. if still null, completely generate the transformed polygon vector;
 6. move/store the completed polygons into the entry;
-7. generate and assign a new non-null `spk::UUID`;
-8. set the publication `std::atomic_flag` **last**, with release semantics;
-9. return the entry.
+7. generate and store a new non-null `spk::UUID` **last**, with release semantics;
+8. return the entry.
 
 Once published, neither the UUID nor polygons of that oriented entry may change.
 
-The publication primitive must remain `std::atomic_flag`, which is guaranteed lock-free by the C++ standard. Do not make the 16-byte `spk::UUID` atomic and do not add a platform `libatomic` dependency for this cache.
+Require at compile time that `spk::UUID` satisfies the requirements for `std::atomic<spk::UUID>`, including trivial copyability.
 
 Repeated access to the same variant returns the same cached entry/UUID for the remaining lifetime of the Shape.
 
@@ -508,7 +505,7 @@ Resource loading appends immutable valid entries in file order. Failure preserve
 
 An oriented Shape cache entry transitions exactly once:
 
-`unpublished (clear flag, null UUID, empty polygons) -> generated -> UUID assigned -> publication flag set`.
+`unpublished (null UUID, empty polygons) -> generated -> published non-null UUID`.
 
 There is no transition back and no replacement after publication.
 
@@ -609,7 +606,7 @@ Test-local nonzero Definition IDs/material strings are fixtures only and do not 
 - Repeated request returns the same entry/UUID and does not regenerate it.
 - Concurrent first requests for the same missing orientation publish exactly one final immutable entry and all callers observe the same UUID/geometry.
 - After publication, normal reads take no mutex-dependent slow path observable through behavior.
-- The implementation uses `std::atomic_flag` as the publication primitive and introduces no `libatomic` dependency.
+- Compile-time evidence confirms `spk::UUID` can be used with `std::atomic<spk::UUID>`.
 
 ### Catalog lookup
 
@@ -713,11 +710,10 @@ Implementation remains on:
 - pull request: PR #11;
 - main implementation commit: `c85f7e82360d79a79ac25d39cba6df71b0b1ea59`;
 - authored-winding/correctness follow-up: `6423e789b69770f8f15df1e16bacda23f54a17fb`;
-- superseded Linux atomic-link experiment: `5adc37e319fe2725d4d153fed9f5186ff9562457` (later removed by project-owner direction);
-- final formatting corrections before the publication redesign: `0407a8081499acc4b6380702b066a8b0480dce36`, `a67fbf89c88322d2e6e0417a78d7a62da14d94d4`, and `44aaf1d509c231bb5f69ad9775a97349af959ba3`;
-- no-`libatomic` publication redesign commits: `f052f583e08266a372eddd9cf6cc784c97d06d1e`, `c9f0b6603b21e9d351f38888deb497e8e0bbee9b`, `e8e98be4195443b5d2aa4856141f442c2cc3c1d7`, and `128f4961c5903a0a8f5c6909235982950b1451a7`.
+- Linux atomic-link fix: `5adc37e319fe2725d4d153fed9f5186ff9562457`;
+- final formatting corrections: `0407a8081499acc4b6380702b066a8b0480dce36`, `a67fbf89c88322d2e6e0417a78d7a62da14d94d4`, and `44aaf1d509c231bb5f69ad9775a97349af959ba3`.
 
-The implementation preserves authored JSON polygon vertex order, derives normals from that order, validates the required structural polygon properties, and reverses transformed vertex order only for the specified `NegativeY` mirror. Following project-owner direction, the lazy eight-way cache now publishes completed entries through a guaranteed lock-free `std::atomic_flag`: readers acquire-test the flag, first construction is mutex-protected, polygons and UUID are written completely, then the flag is set with release semantics. `spk::UUID` remains immutable ordinary data, and no `libatomic` dependency is added.
+The implementation preserves authored JSON polygon vertex order, derives normals from that order, validates the required structural polygon properties, and reverses transformed vertex order only for the specified `NegativeY` mirror. The lazy eight-way cache retains the approved acquire-load / mutex re-check / complete construction / release-store UUID publication contract. Linux now links `libatomic` transitively through `EreliaCore` because `std::atomic<spk::UUID>` requires the platform atomic runtime there; the synchronization contract itself was not changed.
 
 Active Shape resources are checked in at `resources/voxels/shapes.json` and contain only `cube`, `slab`, `slope`, and `stair`.
 
@@ -739,7 +735,7 @@ The focused Core tests cover:
 - deterministic semantic loading;
 - revised packed Cell Orientation fixtures.
 
-CI run #127 validated the immediately preceding atomic-UUID implementation head `44aaf1d509c231bb5f69ad9775a97349af959ba3` successfully:
+CI run #127 validated implementation head `44aaf1d509c231bb5f69ad9775a97349af959ba3` successfully:
 
 - clang-format: passed;
 - Linux Core/Server Debug: passed; CTest 3/3 (`EreliaCoreTestSuite`, `EreliaServerTestSuite`, `EreliaServerSmoke`);
@@ -751,4 +747,4 @@ CI run #127 validated the immediately preceding atomic-UUID implementation head 
 
 The concurrent cache test uses 12 threads racing the same previously unmaterialized Orientation/Flip entry and verifies that all callers observe the same entry, UUID, and immutable geometry after publication.
 
-The no-`libatomic` publication redesign is now implemented and requires a fresh complete CI pass before technical completion can be re-recorded. The ticket remains **In Progress**. Explicit project-owner approval required by `DEFINITION-OF-DONE.md` is also still pending, and PR #11 must not be merged until separately authorized.
+All ST-001-04 technical acceptance requirements are satisfied. The ticket remains **In Progress**, not Done, solely because explicit project-owner approval required by `DEFINITION-OF-DONE.md` has not yet been recorded. PR #11 must not be merged until separately authorized.
