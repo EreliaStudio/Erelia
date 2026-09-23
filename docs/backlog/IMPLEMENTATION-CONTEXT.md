@@ -110,7 +110,7 @@ The active direction intentionally keeps the voxel data representation small and
   - missing required Definition slots warn and bind InvalidID; extra slots throw;
   - Definition ID 0 is catalog-created Air with no Shape/slots;
   - the owning aggregate is `Voxel::Catalog`, loaded from filesystem JSON resources;
-  - shared Shape/Definition catalog machinery currently uses an Erelia-local prototype `spk::JSON::Catalog<TElement>`: the base owns JSON envelope parsing, iteration, duplicate detection, immutable shared storage, and lookup, while derived catalogs implement only `_parseKey(const spk::JSON::Reader&)` and `_parseElement(const spk::JSON::Reader&)` pure virtual hooks; this prototype may be proposed to Sparkle after it has been exercised in Erelia;
+  - shared Shape/Definition catalog machinery currently uses an Erelia-local prototype `spk::JSON::Catalog<TElement>`: the base owns JSON envelope parsing, iteration, duplicate detection, immutable shared storage, and lookup, while derived catalogs implement only `_parseKey(const spk::JSON::Reader&) -> TElement::ID` and `_parseElement(const spk::JSON::Reader&) -> TElement` pure virtual hooks; parsing returns values so derived catalogs do not depend on the base's internal ownership representation, which requires catalog elements to be move-constructible; this prototype may be proposed to Sparkle after it has been exercised in Erelia;
   - occlusion algorithms/metadata are deliberately not part of ST-001-04.
 
 ### `Voxel::Cell`
