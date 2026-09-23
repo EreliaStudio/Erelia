@@ -2,12 +2,8 @@
 
 #include <filesystem>
 #include <memory>
-#include <sstream>
 #include <string>
 #include <unordered_map>
-#include <utility>
-
-#include <exception.hpp>
 
 #include "erelia/core/voxel/definition.hpp"
 #include "erelia/core/voxel/shape.hpp"
@@ -16,100 +12,43 @@ namespace Voxel
 {
 	class Catalog;
 
-	namespace Detail
+	class Shape::Catalog final
 	{
-		template <typename TElement>
-		class ImmutableCatalogStorage
-		{
-		protected:
-			using ID = typename TElement::ID;
-
-			std::unordered_map<ID, std::shared_ptr<const TElement>> _elements;
-			std::string _elementName;
-
-			explicit ImmutableCatalogStorage(std::string elementName) :
-				_elementName(std::move(elementName))
-			{
-			}
-
-			[[nodiscard]] const std::shared_ptr<const TElement> &_sharedAt(const ID &id) const
-			{
-				const auto found = _elements.find(id);
-				if (found == _elements.end())
-				{
-					std::ostringstream stream;
-					stream << "unknown voxel " << _elementName << " ID '" << id << "'";
-					throw spk::Exception(stream.str());
-				}
-				return found->second;
-			}
-
-			void _insert(ID id, std::shared_ptr<const TElement> element)
-			{
-				if (!_elements.emplace(std::move(id), std::move(element)).second)
-				{
-					throw spk::Exception("duplicate voxel " + _elementName + " ID");
-				}
-			}
-
-		public:
-			[[nodiscard]] const TElement &at(const ID &id) const
-			{
-				return *_sharedAt(id);
-			}
-
-			[[nodiscard]] const TElement &operator[](const ID &id) const
-			{
-				return at(id);
-			}
-
-			[[nodiscard]] bool contains(const ID &id) const noexcept
-			{
-				return _elements.contains(id);
-			}
-
-			[[nodiscard]] const TElement *tryGet(const ID &id) const noexcept
-			{
-				const auto found = _elements.find(id);
-				return found == _elements.end() ? nullptr : found->second.get();
-			}
-		};
-	}
-
-	class Shape::Catalog final : public Detail::ImmutableCatalogStorage<Shape>
-	{
-		using Base = Detail::ImmutableCatalogStorage<Shape>;
-
 		friend class Voxel::Catalog;
 		friend class Definition::Catalog;
 
+		std::unordered_map<Shape::ID, std::shared_ptr<const Shape>> _elements;
+
 		Catalog();
 		void _load(const std::filesystem::path &path);
+		void _insert(Shape::ID id, std::shared_ptr<const Shape> shape);
+		[[nodiscard]] const std::shared_ptr<const Shape> &_sharedAt(const Shape::ID &id) const;
 		[[nodiscard]] std::shared_ptr<const Shape> _sharedShape(const Shape::ID &id) const;
 
 	public:
-		using Base::at;
-		using Base::contains;
-		using Base::operator[];
-		using Base::tryGet;
+		[[nodiscard]] const Shape &at(const Shape::ID &id) const;
+		[[nodiscard]] const Shape &operator[](const Shape::ID &id) const;
+		[[nodiscard]] bool contains(const Shape::ID &id) const noexcept;
+		[[nodiscard]] const Shape *tryGet(const Shape::ID &id) const noexcept;
 	};
 
-	class Definition::Catalog final : public Detail::ImmutableCatalogStorage<Definition>
+	class Definition::Catalog final
 	{
-		using Base = Detail::ImmutableCatalogStorage<Definition>;
-
 		friend class Voxel::Catalog;
 
 		const Shape::Catalog *_shapes;
+		std::unordered_map<Definition::ID, std::shared_ptr<const Definition>> _elements;
 
 		explicit Catalog(const Shape::Catalog &shapes);
 		void _load(const std::filesystem::path &path);
+		void _insert(Definition::ID id, std::shared_ptr<const Definition> definition);
+		[[nodiscard]] const std::shared_ptr<const Definition> &_sharedAt(const Definition::ID &id) const;
 
 	public:
-		using Base::at;
-		using Base::contains;
-		using Base::operator[];
-		using Base::tryGet;
+		[[nodiscard]] const Definition &at(const Definition::ID &id) const;
+		[[nodiscard]] const Definition &operator[](const Definition::ID &id) const;
+		[[nodiscard]] bool contains(const Definition::ID &id) const noexcept;
+		[[nodiscard]] const Definition *tryGet(const Definition::ID &id) const noexcept;
 	};
 
 	class Catalog final
