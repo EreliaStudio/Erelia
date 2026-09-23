@@ -114,21 +114,26 @@ The active direction intentionally keeps the voxel data representation small and
 
 ### `Voxel::Volume`
 
-`Voxel::Volume` is a generic owning container for groups of voxel cells, not inherently a terrain Chunk.
+`Voxel::Volume` is a generic immutable built value for groups of voxel cells, not inherently a terrain Chunk.
 
 Its approved first contract includes:
 
 - `spk::Vector3UInt` runtime dimensions and `Voxel::Volume::UnitSize` (`float`);
-- default construction as the sole valid empty Volume (`{0,0,0}`, `0.0f`, zero Cells);
-- explicit positive dimensions and finite positive unit size, with `spk::Exception` for contract-invalid inputs;
-- contiguous owning `std::vector<Voxel::Cell>` storage initialized with empty/default Cells;
+- default construction as the valid empty Volume (`{0,0,0}`, `0.0f`, zero Cells);
+- read-only dimensions, unit size, checked Cell access, and contiguous `std::span<const Voxel::Cell>`;
 - Y-fastest, then X, then Z storage order: `y + sizeY * (x + sizeX * z)`;
-- checked Cell access returning copies through both `at()` and `operator[]`;
-- read-only contiguous access through `std::span<const Voxel::Cell>`;
-- `spk::VersionedTrait` inheritance and nested Editor batching, with one invalidation for each effective committed batch;
-- `volume.hpp` only forward-declares the nested Editor; its complete declaration lives in `volume_editor.hpp`, which is included only by code that actually needs to construct/use an Editor;
-- copyable and movable ownership with fresh version state on copy/move construction, preserved destination subscriptions on assignment, and source invalidation/reset after moves;
-- no local-bounds API in ST-001-03.
+- a nested mutable `Voxel::Volume::Builder`, declared separately in `volume_builder.hpp`;
+- Builder construction from positive dimensions + finite positive unit size;
+- `Builder::set()` for checked mutation before build;
+- `std::move(builder).build()` to produce an immutable Volume;
+- cheap Volume copy/assignment through shared immutable backing Content;
+- Volume move leaves the source in the default-empty state;
+- `Builder(std::move(volume))` destructively consumes a Volume: when backing Content is uniquely owned it reuses the same pooled Cell buffer, otherwise it obtains another pooled buffer and copies the Cells so other immutable Volume copies remain unchanged;
+- Cell buffers are held through `spk::Pool<std::vector<Voxel::Cell>>::Lease`, so destruction of the last backing Content automatically returns storage to its originating pool;
+- pool instances are implementation details in `volume_builder.cpp`: one dedicated pool is used only for exact 16×16×16 Chunk dimensions, while other sizes use a source-local ordered `std::map<std::size_t, spk::Pool<...>>`;
+- general pool lookup uses `lower_bound(expectedCellCount)`, selecting the exact size class or the smallest existing higher class; when none exists, a new pool is created for the requested size;
+- pooled vectors retain capacity while their logical size is reset/copy-filled through the Pool per-obtain callback;
+- no `VersionedTrait` inheritance or mutable Editor remains in the Volume contract.
 
 A terrain Chunk is one semantic use of a Volume. Terrain Chunks are fixed at 16×16×16 cells and one world unit per cell.
 
