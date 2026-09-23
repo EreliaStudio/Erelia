@@ -95,7 +95,20 @@ The active direction intentionally keeps the voxel data representation small and
 
 - `Voxel::Definition` is the semantic owner of voxel Definition identity;
 - `Voxel::Definition::ID` is an alias of `std::uint32_t`;
-- only the ID type is established by ST-001-02; Definition data/catalog/Shape behavior remains owned by ST-001-04 and must not be inferred early.
+- ST-001-04 / DR-018 establish the first shared Definition/Shape/Catalog contract:
+  - Shape IDs are strings owned by the Shape catalog; Definition IDs remain `std::uint32_t` owned by the Definition catalog;
+  - Shape/Definition objects do not store their own catalog IDs;
+  - Shape polygons store discrete `spk::Vector3Int` vertices, a semantic string slot, and a derived cached normal;
+  - JSON vertices remain normalized floats in `[0,1]`, quantized with `Voxel::Shape::VertexPrecision = 0.001f`;
+  - base Shape polygons are convex, planar, non-degenerate and authored CCW;
+  - every Shape is authored as `PositiveX + PositiveY` and lazily caches the other seven Orientation/Flip polygon arrays;
+  - `NegativeY` mirrors around `Y=0.5`, reverses polygon order, and recomputes the final normal;
+  - semantic slots move with their polygons through transforms;
+  - `Voxel::Material::ID` is a string and `Voxel::Material::InvalidID` is `"InvalidID"`;
+  - missing required Definition slots warn and bind InvalidID; extra slots throw;
+  - Definition ID 0 is catalog-created Air with no Shape/slots;
+  - the owning aggregate is `Voxel::Catalog`, loaded from filesystem JSON resources;
+  - occlusion algorithms/metadata are deliberately not part of ST-001-04.
 
 ### `Voxel::Cell`
 
@@ -103,7 +116,7 @@ The active direction intentionally keeps the voxel data representation small and
 - one Cell stores exactly one private `PackedType` and remains exactly 32 bits;
 - it remains trivially copyable and immutable after construction;
 - lower 29 bits are `Voxel::Definition::ID`, bits 29-30 are `Orientation`, and bit 31 is `FlipOrientation`;
-- `Orientation` is exactly `PositiveX = 0`, `NegativeX = 1`, `PositiveZ = 2`, `NegativeZ = 3`;
+- `Orientation` is exactly `PositiveX = 0`, `NegativeZ = 1`, `NegativeX = 2`, `PositiveZ = 3`; the numeric value is the counter-clockwise quarter-turn count around +Y from canonical +X;
 - `FlipOrientation` is exactly `PositiveY = 0`, `NegativeY = 1`;
 - Definition ID 0 means semantically empty, but its Orientation/FlipOrientation bits remain valid and are not canonicalized away;
 - default construction and `Voxel::Cell::Empty` use packed zero;
