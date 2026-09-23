@@ -30,41 +30,35 @@ Use a 32-bit packed `Voxel::Cell` carrying Definition ID + Orientation + FlipOri
 
 ### Voxel::Volume
 
-- `Voxel::Volume` is a generic owning container and derives from `spk::VersionedTrait`;
+- `Voxel::Volume` is a generic immutable built container;
 - `Voxel::Volume::LocalCoordinate` aliases `spk::Vector3Int`;
-- dimensions are represented by `spk::Vector3UInt`;
+- dimensions are `spk::Vector3UInt`;
 - `Voxel::Volume::UnitSize` aliases `float`;
-- default construction is the sole valid empty Volume: dimensions `{0,0,0}`, unit size `0.0f`, and zero Cells;
-- explicit construction requires every dimension to be strictly greater than zero and unit size to be finite and strictly greater than zero;
-- invalid explicit dimensions, cell-count overflow, invalid unit size, invalid checked access, and invalid editor use throw `spk::Exception`;
-- there is no project-defined maximum dimension beyond the requirement that `x * y * z` is representable by `std::size_t`; a representable allocation failure is allowed to propagate the standard allocation exception;
-- explicit construction default-constructs every owned Cell, therefore every initial Cell is `Voxel::Cell::Empty`;
-- storage is an owning contiguous `std::vector<Voxel::Cell>`;
-- storage order is **Y fastest, then X, then Z**, with
-  `index = y + sizeY * (x + sizeX * z)`;
-- checked `at(LocalCoordinate)` returns a `Voxel::Cell` copy;
-- read-only contiguous access is exposed as `std::span<const Voxel::Cell>`;
-- the span remains valid across ordinary Editor mutations because storage is not resized; it is invalidated by destruction or any copy/move assignment that replaces the Volume state, and a span obtained from a source before move construction is invalid after the move;
-- mutable storage is not exposed directly;
-- mutation uses nested `Voxel::Volume::Editor` objects returned by `edit()`;
-- `Editor::set()` returns `true` only when the Cell actually changes;
-- one Editor batches all effective changes into exactly one `VersionedTrait::invalidate()` on commit;
-- an Editor containing only no-op writes does not invalidate;
-- destroying an uncommitted Editor commits it;
-- explicit `commit()` is idempotent;
-- using an Editor after commit throws `spk::Exception`;
-- rejected Editor operations do not change Cells or publish a version;
-- Volume copy construction copies dimensions, unit size, and Cells into an independent Volume with a fresh version state starting at 0 and no copied subscribers;
-- copy assignment preserves the destination's subscriptions, replaces its logical state atomically, and invalidates the destination exactly once; self-assignment is a no-op;
-- move construction transfers the logical state into an independent destination with a fresh version state, resets the source to the valid default-empty state, and invalidates/notifies the source exactly once;
-- move assignment preserves the destination's subscriptions, transfers the logical state, invalidates the destination exactly once, resets the source to the valid default-empty state, and invalidates/notifies the source exactly once; self-move-assignment is a no-op;
-- local-bounds API is deliberately not part of ST-001-03.
+- default construction is the valid empty Volume: dimensions `{0,0,0}`, unit size `0.0f`, and zero Cells;
+- non-empty construction goes through nested `Voxel::Volume::Builder`;
+- Builder requires positive dimensions and finite positive unit size and rejects Cell-count overflow with `spk::Exception`;
+- Builder owns a pooled contiguous `std::vector<Voxel::Cell>` and exposes checked `set()`;
+- storage order is Y fastest, then X, then Z: `y + sizeY * (x + sizeX * z)`;
+- `std::move(builder).build()` produces the immutable Volume;
+- built Volumes expose checked copy access and a read-only contiguous `std::span<const Voxel::Cell>`;
+- Volume copies/assignments share immutable backing Content rather than copying Cell storage;
+- Volume moves transfer Content and leave the source default-empty;
+- `Builder(std::move(volume))` consumes the source Volume;
+- when the consumed backing Content is uniquely owned, Builder directly reuses its existing pooled buffer;
+- when backing Content is shared, Builder obtains a different pooled buffer and copies Cells before allowing mutation;
+- backing Content owns a `spk::Pool<std::vector<Voxel::Cell>>::Lease`, so the vector returns to its originating pool when the final Content owner is destroyed;
+- the pool registry is private to `volume_builder.cpp`;
+- exact 16×16×16 dimensions use a dedicated Chunk buffer pool;
+- other dimensions use an ordered `std::map<std::size_t, spk::Pool<...>>`, selecting with `lower_bound(requestedSize)` and creating a new exact size class only when no equal-or-larger class exists;
+- vectors are reset/copy-filled through the Pool per-obtain callback without intentionally discarding retained capacity;
+- `VersionedTrait` and the previous Editor mutation model are no longer part of Volume.
+
 
 `Voxel::Volume` later declares/uses the friend `spk::Message` insertion/extraction contract required by DR-017. The wire encoding itself belongs to ST-001-05 and is not decided here.
 
 ## Resolution provenance
 
-The Cell portion was resolved by the project owner on 22 September 2026. The remaining Volume storage, validation, editor/versioning, contiguous-view, copy/move, and failure contracts were resolved by the project owner on 23 September 2026.
+The Cell portion was resolved by the project owner on 22 September 2026. The Volume storage, validation, immutable Builder model, pooled-buffer reuse, contiguous-view, and copy/move contracts were finalized by the project owner on 23 September 2026.
 
 ## Remaining ambiguity
 
