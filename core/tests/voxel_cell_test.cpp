@@ -12,9 +12,9 @@ static_assert(std::is_same_v<Voxel::Cell::PackedType, std::uint32_t>);
 static_assert(sizeof(Voxel::Cell) == sizeof(Voxel::Cell::PackedType));
 static_assert(std::is_trivially_copyable_v<Voxel::Cell>);
 static_assert(static_cast<std::uint8_t>(Voxel::Cell::Orientation::PositiveX) == 0);
-static_assert(static_cast<std::uint8_t>(Voxel::Cell::Orientation::NegativeX) == 1);
-static_assert(static_cast<std::uint8_t>(Voxel::Cell::Orientation::PositiveZ) == 2);
-static_assert(static_cast<std::uint8_t>(Voxel::Cell::Orientation::NegativeZ) == 3);
+static_assert(static_cast<std::uint8_t>(Voxel::Cell::Orientation::NegativeZ) == 1);
+static_assert(static_cast<std::uint8_t>(Voxel::Cell::Orientation::NegativeX) == 2);
+static_assert(static_cast<std::uint8_t>(Voxel::Cell::Orientation::PositiveZ) == 3);
 static_assert(static_cast<std::uint8_t>(Voxel::Cell::FlipOrientation::PositiveY) == 0);
 static_assert(static_cast<std::uint8_t>(Voxel::Cell::FlipOrientation::NegativeY) == 1);
 
@@ -30,13 +30,13 @@ namespace
 
 	constexpr std::array<PackingFixture, 8> packingFixtures = {{
 		{1u, Voxel::Cell::Orientation::PositiveX, Voxel::Cell::FlipOrientation::PositiveY, 0x00000001u},
-		{1u, Voxel::Cell::Orientation::NegativeX, Voxel::Cell::FlipOrientation::PositiveY, 0x20000001u},
-		{1u, Voxel::Cell::Orientation::PositiveZ, Voxel::Cell::FlipOrientation::PositiveY, 0x40000001u},
-		{1u, Voxel::Cell::Orientation::NegativeZ, Voxel::Cell::FlipOrientation::PositiveY, 0x60000001u},
+		{1u, Voxel::Cell::Orientation::NegativeZ, Voxel::Cell::FlipOrientation::PositiveY, 0x20000001u},
+		{1u, Voxel::Cell::Orientation::NegativeX, Voxel::Cell::FlipOrientation::PositiveY, 0x40000001u},
+		{1u, Voxel::Cell::Orientation::PositiveZ, Voxel::Cell::FlipOrientation::PositiveY, 0x60000001u},
 		{1u, Voxel::Cell::Orientation::PositiveX, Voxel::Cell::FlipOrientation::NegativeY, 0x80000001u},
-		{1u, Voxel::Cell::Orientation::NegativeX, Voxel::Cell::FlipOrientation::NegativeY, 0xA0000001u},
-		{1u, Voxel::Cell::Orientation::PositiveZ, Voxel::Cell::FlipOrientation::NegativeY, 0xC0000001u},
-		{1u, Voxel::Cell::Orientation::NegativeZ, Voxel::Cell::FlipOrientation::NegativeY, 0xE0000001u},
+		{1u, Voxel::Cell::Orientation::NegativeZ, Voxel::Cell::FlipOrientation::NegativeY, 0xA0000001u},
+		{1u, Voxel::Cell::Orientation::NegativeX, Voxel::Cell::FlipOrientation::NegativeY, 0xC0000001u},
+		{1u, Voxel::Cell::Orientation::PositiveZ, Voxel::Cell::FlipOrientation::NegativeY, 0xE0000001u},
 	}};
 }
 
@@ -73,7 +73,7 @@ TEST(VoxelCell, PreservesOrientedEmptyPackedValue)
 	const Voxel::Cell cell(0x60000000u);
 
 	EXPECT_EQ(cell.definitionId(), 0u);
-	EXPECT_EQ(cell.orientation(), Voxel::Cell::Orientation::NegativeZ);
+	EXPECT_EQ(cell.orientation(), Voxel::Cell::Orientation::PositiveZ);
 	EXPECT_EQ(cell.flipOrientation(), Voxel::Cell::FlipOrientation::PositiveY);
 	EXPECT_EQ(cell.packed(), 0x60000000u);
 }
@@ -99,7 +99,7 @@ TEST(VoxelCell, DecodesMaximumPackedValue)
 	const Voxel::Cell cell(0xFFFFFFFFu);
 
 	EXPECT_EQ(cell.definitionId(), 0x1FFFFFFFu);
-	EXPECT_EQ(cell.orientation(), Voxel::Cell::Orientation::NegativeZ);
+	EXPECT_EQ(cell.orientation(), Voxel::Cell::Orientation::PositiveZ);
 	EXPECT_EQ(cell.flipOrientation(), Voxel::Cell::FlipOrientation::NegativeY);
 	EXPECT_EQ(cell.packed(), 0xFFFFFFFFu);
 }
@@ -108,7 +108,7 @@ TEST(VoxelCell, PacksMaximumLogicalDefinitionId)
 {
 	const Voxel::Cell cell(
 		0x1FFFFFFFu,
-		Voxel::Cell::Orientation::NegativeZ,
+		Voxel::Cell::Orientation::PositiveZ,
 		Voxel::Cell::FlipOrientation::NegativeY);
 
 	EXPECT_EQ(cell.packed(), 0xFFFFFFFFu);
@@ -148,11 +148,11 @@ TEST(VoxelCell, LogicalPackingIsDeterministic)
 {
 	const Voxel::Cell first(
 		0x01234567u,
-		Voxel::Cell::Orientation::PositiveZ,
+		Voxel::Cell::Orientation::NegativeX,
 		Voxel::Cell::FlipOrientation::NegativeY);
 	const Voxel::Cell second(
 		0x01234567u,
-		Voxel::Cell::Orientation::PositiveZ,
+		Voxel::Cell::Orientation::NegativeX,
 		Voxel::Cell::FlipOrientation::NegativeY);
 
 	EXPECT_EQ(first.packed(), second.packed());

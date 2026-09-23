@@ -16,9 +16,9 @@ namespace Voxel
 		enum class Orientation : std::uint8_t
 		{
 			PositiveX = 0,
-			NegativeX = 1,
-			PositiveZ = 2,
-			NegativeZ = 3
+			NegativeZ = 1,
+			NegativeX = 2,
+			PositiveZ = 3
 		};
 
 		enum class FlipOrientation : std::uint8_t
