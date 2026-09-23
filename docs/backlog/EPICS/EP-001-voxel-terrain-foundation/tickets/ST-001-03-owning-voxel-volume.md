@@ -1,6 +1,6 @@
 # ST-001-03 — Owning Voxel::Volume
 
-**Status:** In Progress
+**Status:** Done
 **Epic:** EP-001
 **Production target(s):** Core
 **Test suite(s):** EreliaCoreTestSuite
@@ -217,4 +217,4 @@ Production changes include:
 
 Acceptance coverage is in `core/tests/voxel_volume_test.cpp`.
 
-The project-owner review has driven the final API/ownership revisions recorded above. The ticket remains **In Progress** until the implementation branch is merged; it must not be marked Done before that merge is recorded.
+Project-owner approval was explicitly recorded on 23 September 2026. CI run #105 passed clang-format, Linux/Windows Core+Server Debug/Release builds and CTest, plus Windows Client Debug/Release regression builds and CTest. The ticket is **Done**; PR #9 remains open only for the final merge into the planning baseline.
