@@ -143,7 +143,7 @@ Public resource paths use `std::filesystem::path`.
 
 The two typed subcatalogs derive privately from an Erelia-local prototype `spk::JSON::Catalog<TElement>`. The prototype intentionally lives in namespace `spk::JSON` while it is exercised in Erelia; moving it into Sparkle itself is deferred until the API has been validated in real use.
 
-The shared base owns the JSON catalog envelope and common machinery: root/file parsing, `elements` array validation and iteration, wrapper validation, duplicate detection, immutable shared storage, incremental failure behavior, and lookup. `TElement` supplies `TElement::ID`; the base does not require `json_readable`. Derived parsing returns plain `TElement` values so the storage/ownership strategy remains entirely internal to the base; catalog elements must therefore be move-constructible.
+The shared base owns the JSON catalog envelope and common machinery: root/file parsing, `elements` array validation and iteration, wrapper validation, duplicate detection, owned value storage, incremental failure behavior, and lookup. `TElement` supplies `TElement::ID`; the base does not require `json_readable`. Derived parsing returns plain `TElement` values. The base stores those values directly in `std::unordered_map<TElement::ID, TElement>`; no shared ownership wrapper is used. Catalog elements must therefore be move-constructible. The catalog exposes no erase operation, and references/pointers to stored elements remain valid across unordered-map rehash and later insertions.
 
 Derived catalogs supply only two protected pure-virtual Reader-based operations:
 
