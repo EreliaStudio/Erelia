@@ -228,7 +228,7 @@ namespace Voxel
 		{
 			throwAt(reader, "voxel shape has no polygons");
 		}
-		canonical.uuid = spk::UUID::generate();
+		canonical.uuid.store(spk::UUID::generate(), std::memory_order_release);
 	}
 
 	const std::vector<Shape::Polygon> &Shape::polygons() const noexcept
@@ -252,9 +252,14 @@ namespace Voxel
 		}
 
 		const std::size_t index = static_cast<std::size_t>(orientationValue) + 4u * static_cast<std::size_t>(flipValue);
-		std::scoped_lock lock(_orientedPolygonMutex);
 		OrientedPolygonArray &entry = _orientedPolygons[index];
-		if (!entry.uuid.isNull())
+		if (!entry.uuid.load(std::memory_order_acquire).isNull())
+		{
+			return entry;
+		}
+
+		std::scoped_lock lock(_orientedPolygonMutex);
+		if (!entry.uuid.load(std::memory_order_acquire).isNull())
 		{
 			return entry;
 		}
@@ -267,7 +272,7 @@ namespace Voxel
 		}
 
 		entry.polygons = std::move(transformed);
-		entry.uuid = spk::UUID::generate();
+		entry.uuid.store(spk::UUID::generate(), std::memory_order_release);
 		return entry;
 	}
 }
