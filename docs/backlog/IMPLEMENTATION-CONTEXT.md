@@ -121,21 +121,24 @@ Its approved first contract includes:
 - `spk::Vector3UInt` runtime dimensions and `Voxel::Volume::UnitSize` (`float`);
 - default construction as the valid empty Volume (`{0,0,0}`, `0.0f`, zero Cells);
 - read-only dimensions, unit size, checked Cell access, and contiguous `std::span<const Voxel::Cell>`;
+- `contains(LocalCoordinate)` for a pure bounds query and `tryGet(LocalCoordinate)` returning `std::optional<Voxel::Cell>` for non-throwing lookup;
 - Y-fastest, then X, then Z storage order: `y + sizeY * (x + sizeX * z)`;
 - a nested mutable `Voxel::Volume::Builder`, declared separately in `volume_builder.hpp`;
 - Builder construction from positive dimensions + finite positive unit size;
 - `Builder::set()` for checked mutation before build;
 - `std::move(builder).build()` to produce an immutable Volume;
-- cheap Volume copy/assignment through shared immutable backing Content;
-- Volume move leaves the source in the default-empty state;
-- `Builder(std::move(volume))` destructively consumes a Volume: when backing Content is uniquely owned it reuses the same pooled Cell buffer, otherwise it obtains another pooled buffer and copies the Cells so other immutable Volume copies remain unchanged;
-- Cell buffers are held through `spk::Pool<std::vector<Voxel::Cell>>::Lease`, so destruction of the last backing Content automatically returns storage to its originating pool;
-- pool instances are implementation details in `volume_builder.cpp`: one dedicated pool is used only for exact 16×16×16 Chunk dimensions, while other sizes use a source-local ordered `std::map<std::size_t, spk::Pool<...>>`;
+- a nested `Voxel::Volume::Buffer` semantic wrapper over `std::vector<Voxel::Cell>`, exposing `Buffer::Pool` and `Buffer::Lease`;
+- each Volume directly owns dimensions, unit size, and one `Buffer::Lease`; no shared backing Content object is used;
+- Volume copy construction/assignment deep-copies Cell contents through the Sparkle Pool Lease copy semantics, producing independent pooled storage;
+- Volume move transfers the existing Lease and leaves the source in the default-empty state;
+- `Builder(std::move(volume))` destructively consumes a Volume and directly reuses/transfers its existing Lease without copying;
+- pool instances are implementation details in `volume_builder.cpp`: one dedicated `Buffer::Pool` is used only for exact 16×16×16 Chunk dimensions, while other sizes use a source-local ordered `std::map<std::size_t, Buffer::Pool>`;
 - general pool lookup uses `lower_bound(expectedCellCount)`, selecting the exact size class or the smallest existing higher class; when none exists, a new pool is created for the requested size;
-- pooled vectors retain capacity while their logical size is reset/copy-filled through the Pool per-obtain callback;
+- pooled Buffers retain capacity while their logical size is reset through the Pool per-obtain callback;
 - no `VersionedTrait` inheritance or mutable Editor remains in the Volume contract.
 
 A terrain Chunk is one semantic use of a Volume. Terrain Chunks are fixed at 16×16×16 cells and one world unit per cell.
+
 
 ## 7. Serialization/API ergonomics
 
