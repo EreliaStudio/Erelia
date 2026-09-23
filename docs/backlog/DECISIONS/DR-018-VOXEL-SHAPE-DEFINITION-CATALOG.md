@@ -72,20 +72,20 @@ The public concept is:
 ```cpp
 struct OrientedPolygonArray
 {
-    spk::UUID uuid{spk::UUID::null()};
+    std::atomic<spk::UUID> uuid{spk::UUID::null()};
     std::vector<Polygon> polygons;
 };
 ```
 
-The Shape stores a mutable fixed array of eight of these entries, one private `std::atomic_flag` publication marker per entry, and an internal mutex.
+and the Shape stores a mutable fixed array of eight of these entries plus an internal mutex.
 
 - `PositiveX + PositiveY` is materialized during Shape construction.
 - The other seven entries are generated lazily on first request.
-- A clear publication flag means that oriented entry has not yet been published; its UUID remains null until construction completes.
-- Readers test the publication flag with acquire semantics. A set flag allows immediate lock-free return of the immutable entry.
-- On a cache miss, the Shape locks its orientation-cache mutex, re-checks the publication flag, completely builds the polygon vector, stores the completed polygons, assigns a newly-generated non-null UUID, then sets the publication flag last with release semantics.
-- Once published, the UUID and polygons are immutable and subsequent access does not take the mutex.
-- The publication primitive is `std::atomic_flag`, which is guaranteed lock-free by the C++ standard and does not require making the 16-byte Sparkle UUID atomic.
+- `spk::UUID::null()` means that oriented entry has not yet been published.
+- On a cache miss, the Shape locks its orientation-cache mutex, checks the UUID again, completely builds the polygon vector, stores the completed polygons, then publishes a newly-generated UUID last with release semantics.
+- Readers load the UUID with acquire semantics.
+- Once a UUID is non-null, that oriented polygon array is immutable and subsequent access does not take the mutex.
+- `std::atomic<spk::UUID>` requires `spk::UUID` to be trivially copyable; the implementation must enforce that expectation at compile time.
 - `Shape::orientedPolygons(orientation, flip)` returns `const OrientedPolygonArray&`.
 - The returned reference is non-owning and is valid only while the originating Shape remains alive; callers must not retain it beyond a lifetime they can guarantee.
 - The UUID is stable for the lifetime of the materialized oriented entry and may later be used as identity by separate caches. ST-001-04 does not implement those later caches.
@@ -242,7 +242,7 @@ ST-001-04 must cover:
 - all eight oriented variants for an asymmetric Shape;
 - mirror rewinding and final normal correctness;
 - slot preservation through every transform;
-- lazy-cache publication-flag behavior, stable repeated UUID/reference behavior, and concurrent first access;
+- lazy-cache UUID publication, stable repeated UUID/reference behavior, and concurrent first access;
 - valid/invalid Shape polygon rules;
 - Air Definition ID 0;
 - Definition Shape resolution and retained lifetime;
