@@ -341,7 +341,7 @@ Paths are `std::filesystem::path`.
 
 The Shape and Definition subcatalogs derive privately from an Erelia-local prototype named `spk::JSON::Catalog<TElement>`. This prototype deliberately lives under the Sparkle namespace while it is exercised in Erelia; promotion into the Sparkle repository is deferred until the API has proven useful.
 
-`spk::JSON::Catalog<TElement>` owns the common JSON catalog machinery: file/root parsing, the `elements` array envelope, wrapper validation, iteration order, duplicate detection, immutable shared storage, incremental failure behavior, and lookup. `TElement` provides `TElement::ID`; the base does not require Sparkle's `json_readable` concept. Derived parsing code produces plain `TElement` values and does not depend on the catalog's internal ownership/storage representation; `TElement` must therefore be move-constructible.
+`spk::JSON::Catalog<TElement>` owns the common JSON catalog machinery: file/root parsing, the `elements` array envelope, wrapper validation, iteration order, duplicate detection, owned value storage, incremental failure behavior, and lookup. `TElement` provides `TElement::ID`; the base does not require Sparkle's `json_readable` concept. Derived parsing code produces plain `TElement` values. The base stores those values directly in `std::unordered_map<TElement::ID, TElement>`; no `shared_ptr` participates in catalog element ownership. `TElement` must therefore be move-constructible. References/pointers returned by lookup remain stable across unordered-map rehash and later insertions, and no erase operation is exposed.
 
 The base exposes exactly two protected pure-virtual parsing hooks:
 
@@ -715,7 +715,7 @@ The public behavior, ownership, lifecycle, loading/error behavior, deterministic
 
 ## Completion evidence
 
-**Implementation state:** Technically complete; project-owner approval pending.
+**Implementation state:** Implementation revised; fresh validation and project-owner approval pending.
 
 Implementation remains on:
 
@@ -737,7 +737,7 @@ Active Shape resources are checked in at `resources/voxels/shapes.json` and cont
 
 The focused Core tests cover:
 
-- direct `spk::JSON::Catalog<TElement>` unit coverage for move-only elements, lookup APIs, protected insertion, duplicate IDs, incremental failure, and malformed envelope diagnostics;
+- direct `spk::JSON::Catalog<TElement>` unit coverage for move-only elements, direct value storage, lookup APIs, protected insertion, duplicate IDs, reference stability across large insertion growth/rehash, incremental failure, and malformed envelope diagnostics;
 - direct `Voxel::Definition` unit coverage for Air's empty Shape, exact Shape-reference identity, copy/move construction, and non-assignable reference semantics;
 - active Shape loading and normalized JSON-to-discrete conversion;
 - polygon slots and normals;
@@ -765,4 +765,4 @@ CI run #127 validated implementation head `44aaf1d509c231bb5f69ad9775a97349af959
 
 The concurrent cache test uses 12 threads racing the same previously unmaterialized Orientation/Flip entry and verifies that all callers observe the same entry, UUID, and immutable geometry after publication.
 
-CI run #182 (run ID `35901607987`) validated complete code head `0ced9a3c0d84ce055e1341e00734b9f56ae9709c` successfully across clang-format, Linux Core/Server Debug + Release, Windows Core/Server Debug + Release, and Windows Client Debug + Release. Subsequent commits only synchronize ticket/decision/status documentation with that validated code. The ticket remains **In Progress**, not Done, solely because explicit project-owner approval required by `DEFINITION-OF-DONE.md` has not yet been recorded. PR #11 must not be merged until separately authorized.
+CI run #182 (run ID `35901607987`) validated the prior value-returning/reference-based implementation before direct-value catalog storage was introduced. The current direct-storage refactor and expanded catalog/reference-stability tests require a fresh complete CI pass before technical completion can be re-recorded. The ticket remains **In Progress**. Explicit project-owner approval required by `DEFINITION-OF-DONE.md` is also still pending, and PR #11 must not be merged until separately authorized.
