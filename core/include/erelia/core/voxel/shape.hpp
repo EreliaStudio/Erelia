@@ -1,8 +1,10 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <mutex>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <container/json/reader.hpp>
@@ -27,7 +29,7 @@ namespace Voxel
 
 		struct OrientedPolygonArray
 		{
-			spk::UUID uuid{spk::UUID::null()};
+			std::atomic<spk::UUID> uuid{spk::UUID::null()};
 			std::vector<Polygon> polygons;
 		};
 
@@ -63,4 +65,6 @@ namespace Voxel
 			Cell::FlipOrientation flipOrientation) const;
 	};
 
+	static_assert(std::is_trivially_copyable_v<spk::UUID>);
+	static_assert(std::is_same_v<std::atomic<spk::UUID>::value_type, spk::UUID>);
 }
