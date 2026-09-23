@@ -53,40 +53,44 @@ Every raw `Voxel::Cell::PackedType` is a valid packed Cell representation. Logic
 
 ### Volume
 
-Introduce a reusable owning voxel container named **`Voxel::Volume`**.
+Introduce a reusable immutable built voxel container named **`Voxel::Volume`** with a nested mutable **`Voxel::Volume::Builder`**.
 
 The approved Volume contract is:
 
-- derive from `spk::VersionedTrait`;
 - `LocalCoordinate` is `spk::Vector3Int`;
 - dimensions are `spk::Vector3UInt`;
 - `UnitSize` is `float`;
-- default construction creates the sole valid empty Volume: zero dimensions, zero unit size, and zero Cells;
-- explicit construction requires all dimensions > 0 and a finite unit size > 0;
-- the Cell count must be representable by `std::size_t`; overflow is rejected with `spk::Exception`, while representable allocation failure may propagate the standard allocation exception;
-- own contiguous `std::vector<Voxel::Cell>` storage initialized with default/empty Cells;
-- use Y-fastest, then X, then Z storage order:
-  `index = y + sizeY * (x + sizeX * z)`;
-- checked access returns a `Voxel::Cell` copy and throws `spk::Exception` outside the Volume;
-- expose read-only contiguous access as `std::span<const Voxel::Cell>`;
-- mutate only through a nested Editor that batches effective writes and publishes one `VersionedTrait` invalidation when committed;
-- no-op Editor batches publish no invalidation; Editor destruction commits; explicit commit is idempotent; use after commit throws `spk::Exception`;
-- copy construction produces an independent logical copy with a fresh version state and no copied subscriptions;
-- copy assignment preserves destination subscriptions and invalidates the destination once after successful replacement;
-- move construction/assignment reset the source to the valid default-empty state and invalidate/notify the source once; the moved-to object has a fresh version state on move construction, while move assignment preserves destination subscriptions and invalidates the destination once;
-- ordinary Editor writes do not invalidate a previously returned Cell span because the storage size is fixed after construction; destruction and state-replacing assignment invalidate such views, and pre-move source views are invalid after move construction;
+- default Volume construction creates the valid empty value: zero dimensions, zero unit size, and zero Cells;
+- non-empty Volumes are produced through `Voxel::Volume::Builder(dimensions, unitSize)`;
+- Builder construction requires all dimensions > 0 and a finite unit size > 0;
+- Cell count must be representable by `std::size_t`;
+- `Voxel::Volume::Buffer` is the semantic Cell-buffer type, derives from `std::vector<Voxel::Cell>`, and exposes nested `Buffer::Pool` and `Buffer::Lease` aliases;
+- each built Volume directly owns dimensions, unit size, and one `Buffer::Lease`;
+- storage order is Y-fastest, then X, then Z: `index = y + sizeY * (x + sizeX * z)`;
+- `Builder::set()` is checked and returns true only when the packed Cell value changes;
+- `std::move(builder).build()` transfers the Builder's dimensions, unit size, and pooled Buffer lease into an immutable Volume;
+- built Volume exposes only read operations: dimensions, unit size, `contains()`, non-throwing `tryGet()` returning `std::optional<Cell>`, checked `at()` / `operator[]` returning Cell copies, and read-only contiguous `cells()`;
+- Volume copy construction/assignment performs a deep Cell copy through `Buffer::Lease` copy semantics, producing independent pooled storage;
+- Volume move transfers the existing Buffer lease and leaves the source default-empty;
+- constructing a Builder from `std::move(volume)` consumes the source and directly transfers/reuses its existing Buffer lease without copying;
+- destroying/replacing the final Lease returns the Buffer to its originating Pool;
+- Pool instances are source-file implementation details of the Builder;
+- exact 16×16×16 dimensions use a dedicated Chunk `Buffer::Pool`;
+- all other dimensions use an ordered `std::map<std::size_t, Buffer::Pool>` keyed by size class;
+- general selection uses `lower_bound(requestedCellCount)`: exact class when present, otherwise the smallest higher class, otherwise a newly-created class at the requested size;
+- pool factories reserve their size-class capacity; per-obtain preparation resets the Buffer logical contents while preserving reusable capacity;
+- `Voxel::Volume` no longer derives from `spk::VersionedTrait` and no Editor API is part of the contract;
 - no local-bounds API is part of this first Volume contract.
-
-The abstraction represents groups of voxel cells generically, including fixed-size terrain Chunk payloads and later runtime-sized voxel models where applicable.
 
 ## Consequences
 
 - Terrain network payloads can represent cells compactly as 32-bit packed values.
-- `Voxel::Volume` is an owning type containing `std::vector<Voxel::Cell>` and therefore is not itself trivially copyable; direct network use is provided by explicit logical serialization, not raw object copying. See DR-017.
+- `Voxel::Volume` owns pooled dynamic Cell storage and therefore is not itself trivially copyable; direct network use is provided by explicit logical serialization, not raw object copying. See DR-017.
+- Volume copies are value copies with independent Cell storage; moves and the Volume-to-Builder path transfer pooled storage without copying.
 - Server and Client share the same Cell semantics in Core.
 - `Voxel::Volume` is not inherently a world Chunk: world position/Chunk coordinate remains separate semantic information.
 - EP-001 network responses may therefore naturally contain `{chunkCoordinate, volumeData}`.
-- The Volume storage/indexing, validation, editor/versioning, contiguous-view, and copy/move contracts are fixed by this record; wire byte-order remains a separate follow-up contract.
+- The Volume storage/indexing, Builder, pooled-buffer, deep-copy, contiguous-view, and copy/move contracts are fixed by this record; wire byte-order remains a separate follow-up contract.
 - `spk::Message << Voxel::Volume` / `>>` is the approved ergonomic serialization direction; see DR-017.
 
 ## Required tests
@@ -101,15 +105,16 @@ Once the remaining exact contracts are resolved:
 - default Cell and `Voxel::Cell::Empty` are packed zero;
 - ID-0 Cells with non-zero orientation/flip bits remain semantically empty and preserve their packed value;
 - every raw `Voxel::Cell::PackedType` value round-trips exactly;
-- Volume default/explicit construction, Y-X-Z storage-order, checked-access, and span tests;
+- Volume default construction, Builder construction, Y-X-Z storage-order, checked-access, `tryGet()`, and span tests;
 - invalid dimension/product-overflow/coordinate/unit-size tests;
-- Editor batching/no-op/commit/use-after-commit/version-notification tests;
-- copy/move construction and assignment ownership/version/subscriber tests;
-- contiguous-view lifetime tests across ordinary edits and state replacement.
+- Builder mutation, checked-rejection, build, and moved-Volume reconstruction tests;
+- deep-copy Volume construction/assignment tests proving independent Cell-buffer addresses;
+- Volume move and Volume-to-Builder tests proving pooled Buffer transfer/reuse;
+- dedicated Chunk-pool and ordered general size-class reuse tests.
 
 ## Resolution provenance
 
-Resolved directly by the project owner on 2026-09-22 while answering Q-035 and providing the archived prototype as the preferred design basis.
+Resolved directly by the project owner on 2026-09-22 and refined during ST-001-03 review on 2026-09-23 after introducing the reusable Sparkle Pool.
 
 ## Supersession
 
