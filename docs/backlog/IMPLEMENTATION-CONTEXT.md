@@ -110,6 +110,7 @@ The active direction intentionally keeps the voxel data representation small and
   - missing required Definition slots warn and bind InvalidID; extra slots throw;
   - Definition ID 0 is catalog-created Air with no Shape/slots;
   - the owning aggregate is `Voxel::Catalog`, loaded from filesystem JSON resources;
+  - shared Shape/Definition catalog machinery currently uses an Erelia-local prototype `spk::JSON::Catalog<TElement>`: the base owns JSON envelope parsing, iteration, duplicate detection, immutable shared storage, and lookup, while derived catalogs implement only `_parseKey(const spk::JSON::Reader&)` and `_parseElement(const spk::JSON::Reader&)` pure virtual hooks; this prototype may be proposed to Sparkle after it has been exercised in Erelia;
   - occlusion algorithms/metadata are deliberately not part of ST-001-04.
 
 ### `Voxel::Cell`
@@ -147,12 +148,12 @@ Its approved first contract includes:
 - Volume copy construction/assignment deep-copies Cell contents through the Sparkle Pool Lease copy semantics, producing independent pooled storage;
 - Volume move transfers the existing Lease and leaves the source in the default-empty state;
 - `Builder(std::move(volume))` destructively consumes a Volume and directly reuses/transfers its existing Lease without copying;
-- pool instances are implementation details in `volume_builder.cpp`: one dedicated `Buffer::Pool` is used only for exact 16×16×16 Chunk dimensions, while other sizes use a source-local ordered `std::map<std::size_t, Buffer::Pool>`;
+- pool instances are implementation details in `volume_builder.cpp`: one dedicated `Buffer::Pool` is used only for exact 16Ã—16Ã—16 Chunk dimensions, while other sizes use a source-local ordered `std::map<std::size_t, Buffer::Pool>`;
 - general pool lookup uses `lower_bound(expectedCellCount)`, selecting the exact size class or the smallest existing higher class; when none exists, a new pool is created for the requested size;
 - pooled Buffers retain capacity while their logical size is reset through the Pool per-obtain callback;
 - no `VersionedTrait` inheritance or mutable Editor remains in the Volume contract.
 
-A terrain Chunk is one semantic use of a Volume. Terrain Chunks are fixed at 16×16×16 cells and one world unit per cell.
+A terrain Chunk is one semantic use of a Volume. Terrain Chunks are fixed at 16Ã—16Ã—16 cells and one world unit per cell.
 
 
 ## 7. Serialization/API ergonomics
@@ -192,7 +193,7 @@ Follow Sparkle's 3D convention directly:
 - terrain cells use integer coordinates;
 - Chunk coordinates use integer coordinates;
 - one terrain cell equals one world unit;
-- Chunks are 16×16×16;
+- Chunks are 16Ã—16Ã—16;
 - global-cell to Chunk conversion uses mathematical floor division/modulo so negative coordinates work correctly.
 
 Do not introduce an unnecessary Erelia-specific axis-remapping layer.
