@@ -145,10 +145,7 @@ namespace Voxel
 	spk::Vector3 Shape::_normalOf(const std::vector<spk::Vector3Int> &vertices)
 	{
 		const WideVector3 normal = polygonNormal(vertices);
-		return spk::Vector3(
-			static_cast<float>(normal.x),
-			static_cast<float>(normal.y),
-			static_cast<float>(normal.z)).normalized();
+		return spk::Vector3(static_cast<float>(normal.x), static_cast<float>(normal.y), static_cast<float>(normal.z)).normalized();
 	}
 
 	Shape::Polygon Shape::_loadPolygon(const spk::JSON::Reader &reader)
