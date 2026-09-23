@@ -86,17 +86,15 @@ Current validation evidence is **not sufficient for Done**:
 
 - PR #11 is open.
 - CI run #127 passed the complete matrix for the implementation before the catalog-abstraction redesign.
-- CI run #182 (run ID `35901607987`) passed the complete matrix for the prior reference-based implementation.
-- The catalog has since been simplified to direct `std::unordered_map<ID, Element>` storage with no `shared_ptr`, with dedicated tests for the generic catalog and reference stability across insertion growth/rehash.
-- Fresh CI validation of that current code is pending.
+- The catalog uses direct `std::unordered_map<ID, Element>` storage with no `shared_ptr`, with dedicated tests for the generic catalog and reference stability across insertion growth/rehash.
+- CI run #198 (run ID `35924701600`) passed the complete matrix for code head `104ad99c20f67dae6e40ae1aec65288e93acff5d`.
 - Required project-owner approval has not yet been recorded.
 
-ST-001-04 remains In Progress until the direct-storage refactor passes the full matrix and the project owner explicitly approves the ticket.
+ST-001-04 is technically complete and remains In Progress only until the project owner explicitly approves the ticket.
 
 ### Next
 
-1. Finish fresh validation of the direct-value `spk::JSON::Catalog<TElement>` storage refactor and expanded TU set.
-2. Record project-owner approval and mark ST-001-04 Done only after its Definition of Done is actually satisfied.
+1. Record project-owner approval and mark ST-001-04 Done only after its Definition of Done is actually satisfied.
 4. After ST-001-04, reassess the dependency order rather than skipping unresolved gates.
 5. Resolve OQ-039's remaining generator-scene details before ST-001-06.
 6. Resolve OQ-037/OQ-038 before the dependent Chunk networking/request tickets.
