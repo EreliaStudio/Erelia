@@ -65,9 +65,16 @@ namespace
 		return unitSize;
 	}
 
-	[[nodiscard]] CellBufferPool &cellBufferPoolFor(std::size_t expectedSize)
+	[[nodiscard]] bool areChunkDimensions(const spk::Vector3UInt &dimensions) noexcept
 	{
-		if (expectedSize == ChunkCellCount)
+		return dimensions.x == Chunk::Extent && dimensions.y == Chunk::Extent && dimensions.z == Chunk::Extent;
+	}
+
+	[[nodiscard]] CellBufferPool &cellBufferPoolFor(
+		const spk::Vector3UInt &dimensions,
+		std::size_t expectedSize)
+	{
+		if (areChunkDimensions(dimensions))
 		{
 			return chunkCellBufferPool;
 		}
@@ -86,18 +93,22 @@ namespace
 		return insertedIterator->second;
 	}
 
-	[[nodiscard]] CellBufferLease obtainEmptyCellBuffer(std::size_t expectedSize)
+	[[nodiscard]] CellBufferLease obtainEmptyCellBuffer(
+		const spk::Vector3UInt &dimensions,
+		std::size_t expectedSize)
 	{
-		return cellBufferPoolFor(expectedSize).obtain([](CellBuffer &buffer, std::size_t size) {
+		return cellBufferPoolFor(dimensions, expectedSize).obtain([](CellBuffer &buffer, std::size_t size) {
 			buffer.clear();
 			buffer.resize(size);
 		},
 			expectedSize);
 	}
 
-	[[nodiscard]] CellBufferLease obtainCopiedCellBuffer(std::span<const Voxel::Cell> source)
+	[[nodiscard]] CellBufferLease obtainCopiedCellBuffer(
+		const spk::Vector3UInt &dimensions,
+		std::span<const Voxel::Cell> source)
 	{
-		return cellBufferPoolFor(source.size()).obtain([](CellBuffer &buffer, std::span<const Voxel::Cell> cells) {
+		return cellBufferPoolFor(dimensions, source.size()).obtain([](CellBuffer &buffer, std::span<const Voxel::Cell> cells) {
 			buffer.assign(cells.begin(), cells.end());
 		},
 			source);
@@ -138,7 +149,7 @@ namespace Voxel
 	{
 		const auto expectedCellCount = cellCount(dimensions);
 		const auto validUnitSize = validatedUnitSize(unitSize);
-		auto cells = obtainEmptyCellBuffer(expectedCellCount);
+		auto cells = obtainEmptyCellBuffer(dimensions, expectedCellCount);
 
 		_content = std::make_shared<Content>(
 			dimensions,
@@ -163,7 +174,7 @@ namespace Voxel
 		const auto sourceCells = std::span<const Cell>(
 			sourceContent->cells->data(),
 			sourceContent->cells->size());
-		auto cells = obtainCopiedCellBuffer(sourceCells);
+		auto cells = obtainCopiedCellBuffer(sourceContent->dimensions, sourceCells);
 
 		_content = std::make_shared<Content>(
 			sourceContent->dimensions,
