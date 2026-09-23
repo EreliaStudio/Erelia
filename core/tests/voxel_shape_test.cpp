@@ -15,6 +15,9 @@
 
 static_assert(std::is_trivially_copyable_v<spk::UUID>);
 static_assert(std::is_same_v<std::atomic<spk::UUID>::value_type, spk::UUID>);
+static_assert(std::is_move_constructible_v<Voxel::Shape>);
+static_assert(!std::is_copy_constructible_v<Voxel::Shape>);
+static_assert(!std::is_move_assignable_v<Voxel::Shape>);
 
 namespace
 {
