@@ -88,15 +88,14 @@ namespace Voxel
 		return coordinate.x >= 0 && coordinate.y >= 0 && coordinate.z >= 0 && static_cast<std::uint32_t>(coordinate.x) < _dimensions.x && static_cast<std::uint32_t>(coordinate.y) < _dimensions.y && static_cast<std::uint32_t>(coordinate.z) < _dimensions.z;
 	}
 
-	bool Volume::contains(const LocalCoordinate &coordinate, Cell &destination) const noexcept
+	std::optional<Cell> Volume::tryGet(const LocalCoordinate &coordinate) const noexcept
 	{
 		if (!contains(coordinate))
 		{
-			return false;
+			return std::nullopt;
 		}
 
-		destination = (*_cells)[_index(coordinate)];
-		return true;
+		return (*_cells)[_index(coordinate)];
 	}
 
 	Cell Volume::at(const LocalCoordinate &coordinate) const
