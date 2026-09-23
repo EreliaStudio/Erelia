@@ -194,7 +194,7 @@ TEST(VoxelVolumeBuilder, RejectsInvalidCoordinatesWithoutMutatingOtherCells)
 	EXPECT_EQ(volume.at({1, 0, 0}).packed(), 9u);
 }
 
-TEST(VoxelVolume, CopiesShareImmutableContent)
+TEST(VoxelVolume, CopyConstructionCreatesIndependentPooledStorage)
 {
 	const auto source = makeVolumeWithCell({2, 1, 1}, 0.5f, {1, 0, 0}, 17u);
 	const Voxel::Volume copy(source);
@@ -202,10 +202,10 @@ TEST(VoxelVolume, CopiesShareImmutableContent)
 	EXPECT_EQ(copy.dimensions(), source.dimensions());
 	EXPECT_EQ(copy.unitSize(), source.unitSize());
 	EXPECT_EQ(copy.cells()[1].packed(), 17u);
-	EXPECT_EQ(copy.cells().data(), source.cells().data());
+	EXPECT_NE(copy.cells().data(), source.cells().data());
 }
 
-TEST(VoxelVolume, CopyAssignmentSharesImmutableContent)
+TEST(VoxelVolume, CopyAssignmentCreatesIndependentPooledStorage)
 {
 	const auto source = makeVolumeWithCell({2, 1, 1}, 0.5f, {1, 0, 0}, 17u);
 	Voxel::Volume destination = makeVolume({1, 1, 1}, 1.0f);
@@ -214,7 +214,7 @@ TEST(VoxelVolume, CopyAssignmentSharesImmutableContent)
 
 	EXPECT_EQ(destination.dimensions(), source.dimensions());
 	EXPECT_EQ(destination.unitSize(), source.unitSize());
-	EXPECT_EQ(destination.cells().data(), source.cells().data());
+	EXPECT_NE(destination.cells().data(), source.cells().data());
 	EXPECT_EQ(destination.cells()[1].packed(), 17u);
 }
 
@@ -248,11 +248,14 @@ TEST(VoxelVolumeBuilder, MovingUniqueVolumeIntoBuilderReusesItsBuffer)
 	EXPECT_EQ(rebuilt.at({1, 0, 0}).packed(), 17u);
 }
 
-TEST(VoxelVolumeBuilder, MovingSharedVolumeIntoBuilderCopiesItsBuffer)
+TEST(VoxelVolumeBuilder, MovingCopiedVolumeIntoBuilderReusesOnlyMovedVolumesBuffer)
 {
 	auto volume = makeVolumeWithCell({2, 1, 1}, 0.5f, {1, 0, 0}, 17u);
-	const Voxel::Volume sharedCopy(volume);
-	const auto *sharedData = sharedCopy.cells().data();
+	const Voxel::Volume copy(volume);
+	const auto *volumeData = volume.cells().data();
+	const auto *copyData = copy.cells().data();
+
+	ASSERT_NE(volumeData, copyData);
 
 	Voxel::Volume::Builder builder(std::move(volume));
 	expectDefaultVolume(volume);
@@ -260,11 +263,12 @@ TEST(VoxelVolumeBuilder, MovingSharedVolumeIntoBuilderCopiesItsBuffer)
 	EXPECT_TRUE(builder.set({0, 0, 0}, Voxel::Cell(23u)));
 	const auto rebuilt = std::move(builder).build();
 
-	EXPECT_NE(rebuilt.cells().data(), sharedData);
+	EXPECT_EQ(rebuilt.cells().data(), volumeData);
+	EXPECT_NE(rebuilt.cells().data(), copyData);
 	EXPECT_EQ(rebuilt.at({0, 0, 0}).packed(), 23u);
 	EXPECT_EQ(rebuilt.at({1, 0, 0}).packed(), 17u);
-	EXPECT_EQ(sharedCopy.at({0, 0, 0}).packed(), 0u);
-	EXPECT_EQ(sharedCopy.at({1, 0, 0}).packed(), 17u);
+	EXPECT_EQ(copy.at({0, 0, 0}).packed(), 0u);
+	EXPECT_EQ(copy.at({1, 0, 0}).packed(), 17u);
 }
 
 TEST(VoxelVolumeBuilder, ChunkSizedBuffersUseTheirDedicatedPool)
