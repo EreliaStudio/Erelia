@@ -132,12 +132,12 @@ The Epic will require deliberate contracts for:
 The complete dependency-ordered table is maintained in [tickets/README.md](tickets/README.md).
 
 - **Done:** ST-001-01, ST-001-02.
-- **In Progress:** ST-001-03.
+- **Done:** ST-001-01, ST-001-02, ST-001-03.
 - **Ready:** none.
 - **Blocked:** ST-001-05, ST-001-06, ST-001-08, ST-001-09, ST-001-11, ST-001-12, ST-001-15, ST-001-16.
 - **Draft:** ST-001-04, ST-001-07, ST-001-10, ST-001-13, ST-001-14.
 
-The first two implementation tickets are complete and merged: **ST-001-01 — Shared terrain coordinate conversion** through PR #7 and **ST-001-02 — Packed Voxel::Cell value type** through PR #8. OQ-035 is Resolved. **ST-001-03 — Owning Voxel::Volume** is implemented on its feature branch with the finalized immutable Builder + direct pooled `Voxel::Volume::Buffer::Lease` design, deep-copy Volume semantics, optional `tryGet()` lookup, dedicated Chunk pooling, and ordered general size-class pooling. PR #9 is awaiting final green CI and merge before the ticket can be recorded as Done.
+The first three implementation tickets are complete: **ST-001-01 — Shared terrain coordinate conversion** through PR #7, **ST-001-02 — Packed Voxel::Cell value type** through PR #8, and **ST-001-03 — Owning Voxel::Volume** through PR #9. ST-001-03 uses the finalized immutable Builder + direct pooled `Voxel::Volume::Buffer::Lease` design, deep-copy Volume semantics, optional `tryGet()` lookup, dedicated Chunk pooling, and ordered general size-class pooling. Project-owner approval is recorded and CI run #105 passed; PR #9 remains open only for the final merge into the planning baseline. OQ-035 is Resolved.
 
 ## Epic-level integration scenarios
 
