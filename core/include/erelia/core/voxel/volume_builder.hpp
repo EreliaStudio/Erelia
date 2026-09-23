@@ -9,7 +9,7 @@ namespace Voxel
 	private:
 		spk::Vector3UInt _dimensions{};
 		UnitSize _unitSize = 0.0f;
-		CellBufferLease _cells;
+		Buffer::Lease _cells;
 
 	public:
 		Builder(const spk::Vector3UInt &dimensions, UnitSize unitSize);
