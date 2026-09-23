@@ -31,7 +31,7 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-02 — Packed Voxel::Cell value type** is **Done** and was merged through PR #8 into the planning branch at `f03894f76fc996d5fba3241e2e51ead848783cad` after CI run #59 and project-owner approval.
 
-**ST-001-03 — Owning Voxel::Volume** is **In Progress** on `feat/st-001-03-owning-voxel-volume` through draft PR #9. During project-owner review, the original VersionedTrait/Editor design was replaced with an immutable shared-Content Volume plus mutable Builder. Cell storage now uses the merged Sparkle `spk::Pool`: exact 16×16×16 dimensions use a dedicated Chunk pool, other sizes use an ordered `std::map` registry with `lower_bound()`, unique moved Volumes reuse their existing lease, and shared moved Volumes copy into another pooled buffer. Revised CI and human approval are still required before Done.
+**ST-001-03 — Owning Voxel::Volume** is **In Progress** on `feat/st-001-03-owning-voxel-volume` through PR #9. The final review design is an immutable built Volume plus mutable Builder with direct pooled storage: `Voxel::Volume::Buffer` exposes `Buffer::Pool` / `Buffer::Lease`; every Volume owns its own Lease; Volume copies deep-copy into independent pooled Buffers; moves and `Builder(std::move(volume))` transfer/reuse the existing Lease. `contains()` remains the boolean bounds query and `tryGet()` provides optional non-throwing Cell retrieval. Exact 16×16×16 dimensions use a dedicated Chunk pool, while other sizes use an ordered `std::map<std::size_t, Buffer::Pool>` registry selected through `lower_bound()`. The ticket remains In Progress only until PR #9 is merged and completion is recorded.
 
 ## Remaining blockers
 
@@ -51,4 +51,4 @@ Additional Draft-ticket specification gaps exposed by decomposition:
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
-The planning branch remains the backlog baseline and contains ST-001-01 / ST-001-02. ST-001-03 is implemented on its dedicated feature branch and is awaiting project-owner approval through PR #9 before it can become Done and be merged.
+The planning branch remains the backlog baseline and contains ST-001-01 / ST-001-02. ST-001-03 is implemented on its dedicated feature branch and is awaiting merge through PR #9 before it can be recorded as Done on the planning baseline.
