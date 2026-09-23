@@ -45,7 +45,8 @@ namespace spk::JSON
 			_elements.emplace(std::move(id), std::move(element));
 		}
 
-		void _load(const std::filesystem::path &file)
+	public:
+		void load(const std::filesystem::path &file)
 		{
 			const Value document = Loader::parseFile(file);
 			const Reader root(document, file);
@@ -81,7 +82,6 @@ namespace spk::JSON
 			}
 		}
 
-	public:
 		[[nodiscard]] const Element &at(const ID &id) const
 		{
 			const auto found = _elements.find(id);
