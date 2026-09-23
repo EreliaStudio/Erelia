@@ -1,9 +1,10 @@
 #pragma once
 
 #include <cstddef>
-#include <memory>
 #include <span>
+#include <vector>
 
+#include <container/pool.hpp>
 #include <math/vector3.hpp>
 
 #include "erelia/core/voxel/cell.hpp"
@@ -16,24 +17,33 @@ namespace Voxel
 		using LocalCoordinate = spk::Vector3Int;
 		using UnitSize = float;
 
+	private:
+		using CellBuffer = std::vector<Cell>;
+		using CellBufferPool = spk::Pool<CellBuffer>;
+		using CellBufferLease = CellBufferPool::Lease;
+
+	public:
 		class Builder;
 
 	private:
-		struct Content;
+		spk::Vector3UInt _dimensions{};
+		UnitSize _unitSize = 0.0f;
+		CellBufferLease _cells;
 
-		std::shared_ptr<Content> _content;
-
-		explicit Volume(std::shared_ptr<Content> content) noexcept;
+		Volume(
+			const spk::Vector3UInt &dimensions,
+			UnitSize unitSize,
+			CellBufferLease cells) noexcept;
 		[[nodiscard]] std::size_t _index(const LocalCoordinate &coordinate) const;
 
 	public:
 		Volume() = default;
-		Volume(const Volume &) = default;
-		Volume(Volume &&) noexcept = default;
+		Volume(const Volume &other);
+		Volume(Volume &&other) noexcept;
 		~Volume() = default;
 
-		Volume &operator=(const Volume &) = default;
-		Volume &operator=(Volume &&) noexcept = default;
+		Volume &operator=(const Volume &other);
+		Volume &operator=(Volume &&other) noexcept;
 
 		[[nodiscard]] spk::Vector3UInt dimensions() const noexcept;
 		[[nodiscard]] UnitSize unitSize() const noexcept;
