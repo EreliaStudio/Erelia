@@ -55,7 +55,7 @@ namespace Voxel
 	public:
 		Shape(const Shape &) = delete;
 		Shape &operator=(const Shape &) = delete;
-		Shape(Shape &&) = delete;
+		Shape(Shape &&other) noexcept;
 		Shape &operator=(Shape &&) = delete;
 		~Shape() = default;
 
