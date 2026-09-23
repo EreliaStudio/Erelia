@@ -277,7 +277,7 @@ TEST(VoxelVolumeBuilder, ChunkSizedBuffersUseTheirDedicatedPool)
 		ASSERT_NE(chunkData, nullptr);
 	}
 
-	const auto nonChunkVolume = makeVolume({10, 10, 40}, 1.0f);
+	const auto nonChunkVolume = makeVolume({8, 8, 64}, 1.0f);
 	EXPECT_NE(nonChunkVolume.cells().data(), chunkData);
 
 	const auto reusedChunkVolume = makeVolume({16, 16, 16}, 1.0f);
