@@ -64,34 +64,33 @@ The approved Volume contract is:
 - non-empty Volumes are produced through `Voxel::Volume::Builder(dimensions, unitSize)`;
 - Builder construction requires all dimensions > 0 and a finite unit size > 0;
 - Cell count must be representable by `std::size_t`;
-- Builder storage is contiguous `std::vector<Voxel::Cell>` obtained through a Sparkle Pool lease and initialized with default/empty Cells;
+- `Voxel::Volume::Buffer` is the semantic Cell-buffer type, derives from `std::vector<Voxel::Cell>`, and exposes nested `Buffer::Pool` and `Buffer::Lease` aliases;
+- each built Volume directly owns dimensions, unit size, and one `Buffer::Lease`;
 - storage order is Y-fastest, then X, then Z: `index = y + sizeY * (x + sizeX * z)`;
 - `Builder::set()` is checked and returns true only when the packed Cell value changes;
-- `std::move(builder).build()` transfers the Builder backing Content into an immutable Volume;
-- built Volume exposes only read operations: dimensions, unit size, `contains()`, checked `at()` / `operator[]` returning Cell copies, and read-only contiguous `cells()`;
-- Volume copies share the same immutable backing Content and therefore do not duplicate Cell storage;
-- Volume moves transfer the backing Content and leave the source default-empty;
-- constructing a Builder from `std::move(volume)` consumes that Volume;
-- if the consumed Volume backing Content is uniquely owned, Builder reuses that Content and its existing Pool lease without copying;
-- if the backing Content is shared by other Volume copies, Builder obtains another pooled Cell buffer and copies the logical Cells before mutation;
-- the last Content owner returning/destroying its lease returns the vector to its originating Pool;
+- `std::move(builder).build()` transfers the Builder's dimensions, unit size, and pooled Buffer lease into an immutable Volume;
+- built Volume exposes only read operations: dimensions, unit size, `contains()`, non-throwing `tryGet()` returning `std::optional<Cell>`, checked `at()` / `operator[]` returning Cell copies, and read-only contiguous `cells()`;
+- Volume copy construction/assignment performs a deep Cell copy through `Buffer::Lease` copy semantics, producing independent pooled storage;
+- Volume move transfers the existing Buffer lease and leaves the source default-empty;
+- constructing a Builder from `std::move(volume)` consumes the source and directly transfers/reuses its existing Buffer lease without copying;
+- destroying/replacing the final Lease returns the Buffer to its originating Pool;
 - Pool instances are source-file implementation details of the Builder;
-- exact 16×16×16 dimensions use a dedicated Chunk Cell-buffer Pool;
-- all other dimensions use an ordered `std::map<std::size_t, spk::Pool<std::vector<Voxel::Cell>>>` keyed by size class;
+- exact 16×16×16 dimensions use a dedicated Chunk `Buffer::Pool`;
+- all other dimensions use an ordered `std::map<std::size_t, Buffer::Pool>` keyed by size class;
 - general selection uses `lower_bound(requestedCellCount)`: exact class when present, otherwise the smallest higher class, otherwise a newly-created class at the requested size;
-- pool factories reserve their size-class capacity; per-obtain preparation resets the vector logical contents while preserving reusable capacity;
+- pool factories reserve their size-class capacity; per-obtain preparation resets the Buffer logical contents while preserving reusable capacity;
 - `Voxel::Volume` no longer derives from `spk::VersionedTrait` and no Editor API is part of the contract;
 - no local-bounds API is part of this first Volume contract.
-
 
 ## Consequences
 
 - Terrain network payloads can represent cells compactly as 32-bit packed values.
-- `Voxel::Volume` is an owning type containing `std::vector<Voxel::Cell>` and therefore is not itself trivially copyable; direct network use is provided by explicit logical serialization, not raw object copying. See DR-017.
+- `Voxel::Volume` owns pooled dynamic Cell storage and therefore is not itself trivially copyable; direct network use is provided by explicit logical serialization, not raw object copying. See DR-017.
+- Volume copies are value copies with independent Cell storage; moves and the Volume-to-Builder path transfer pooled storage without copying.
 - Server and Client share the same Cell semantics in Core.
 - `Voxel::Volume` is not inherently a world Chunk: world position/Chunk coordinate remains separate semantic information.
 - EP-001 network responses may therefore naturally contain `{chunkCoordinate, volumeData}`.
-- The Volume storage/indexing, Builder, pooled-buffer, immutable-sharing, contiguous-view, and copy/move contracts are fixed by this record; wire byte-order remains a separate follow-up contract.
+- The Volume storage/indexing, Builder, pooled-buffer, deep-copy, contiguous-view, and copy/move contracts are fixed by this record; wire byte-order remains a separate follow-up contract.
 - `spk::Message << Voxel::Volume` / `>>` is the approved ergonomic serialization direction; see DR-017.
 
 ## Required tests
@@ -106,11 +105,11 @@ Once the remaining exact contracts are resolved:
 - default Cell and `Voxel::Cell::Empty` are packed zero;
 - ID-0 Cells with non-zero orientation/flip bits remain semantically empty and preserve their packed value;
 - every raw `Voxel::Cell::PackedType` value round-trips exactly;
-- Volume default/explicit construction, Y-X-Z storage-order, checked-access, and span tests;
+- Volume default construction, Builder construction, Y-X-Z storage-order, checked-access, `tryGet()`, and span tests;
 - invalid dimension/product-overflow/coordinate/unit-size tests;
 - Builder mutation, checked-rejection, build, and moved-Volume reconstruction tests;
-- cheap shared Volume copy/assignment tests;
-- unique-Content Builder reuse and shared-Content copy-on-build tests;
+- deep-copy Volume construction/assignment tests proving independent Cell-buffer addresses;
+- Volume move and Volume-to-Builder tests proving pooled Buffer transfer/reuse;
 - dedicated Chunk-pool and ordered general size-class reuse tests.
 
 ## Resolution provenance
