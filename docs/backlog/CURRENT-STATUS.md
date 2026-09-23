@@ -78,7 +78,7 @@ EP-001 is still Draft overall, but implementation is active.
 
 **ST-001-04 — First terrain Definition and Shape contract** is **In Progress** on PR #11.
 
-The branch contains the first shared `Voxel::Shape` / `Voxel::Definition` / `Voxel::Catalog` implementation, `Voxel::Material::ID`, the revised Cell Orientation ordering, JSON catalog loading, exact eight-way Orientation/Flip geometry transforms, the lazy UUID-published oriented polygon cache, focused tests, and active cube/slab/slope/stair Shape resources. Shape and Definition catalogs derive from an Erelia-local `spk::JSON::Catalog<TElement>` base that owns JSON envelope iteration and direct element-value storage and delegates only key/element parsing through two pure virtual Reader-based methods returning plain values. `Voxel::Definition` stores a non-owning `const Shape&`; Air references a private catalog-owned empty Shape sentinel with zero polygons. No Erelia `detail` namespace is used for this abstraction.
+The branch contains the first shared `Voxel::Shape` / `Voxel::Definition` / `Voxel::Catalog` implementation, `Voxel::Material::ID`, the revised Cell Orientation ordering, JSON catalog loading, exact eight-way Orientation/Flip geometry transforms, the lazy UUID-published oriented polygon cache, focused tests, and active cube/slab/slope/stair Shape resources. Shape and Definition catalogs derive publicly from an Erelia-local `spk::JSON::Catalog<TElement>` base that owns JSON envelope iteration and direct element-value storage; they inherit `load` and lookup behavior directly and override only key/element parsing, with `Definition::Catalog` additionally retaining its Shape-catalog reference. `Voxel::Definition` stores a non-owning `const Shape&`; Air references a private catalog-owned empty Shape sentinel with zero polygons. No Erelia `detail` namespace is used for this abstraction.
 
 The Shape loader preserves polygon vertex order authored in JSON and derives normals from that order. It validates polygon geometry without inventing an outward-facing direction; only the required `NegativeY` mirror reverses transformed polygon winding.
 
@@ -87,14 +87,16 @@ Current validation evidence is **not sufficient for Done**:
 - PR #11 is open.
 - CI run #127 passed the complete matrix for the implementation before the catalog-abstraction redesign.
 - The catalog uses direct `std::unordered_map<ID, Element>` storage with no `shared_ptr`, with dedicated tests for the generic catalog and reference stability across insertion growth/rehash.
-- CI run #198 (run ID `35924701600`) passed the complete matrix for code head `104ad99c20f67dae6e40ae1aec65288e93acff5d`.
+- CI run #198 (run ID `35924701600`) passed the complete matrix before the latest public-inheritance/API simplification.
+- The current removal of voxel catalog forwarding wrappers requires fresh validation.
 - Required project-owner approval has not yet been recorded.
 
-ST-001-04 is technically complete and remains In Progress only until the project owner explicitly approves the ticket.
+ST-001-04 remains In Progress until the simplified catalog inheritance/API passes the full matrix and the project owner explicitly approves the ticket.
 
 ### Next
 
-1. Record project-owner approval and mark ST-001-04 Done only after its Definition of Done is actually satisfied.
+1. Finish fresh validation of the public-inheritance/no-forwarding catalog simplification.
+2. Record project-owner approval and mark ST-001-04 Done only after its Definition of Done is actually satisfied.
 4. After ST-001-04, reassess the dependency order rather than skipping unresolved gates.
 5. Resolve OQ-039's remaining generator-scene details before ST-001-06.
 6. Resolve OQ-037/OQ-038 before the dependent Chunk networking/request tickets.
