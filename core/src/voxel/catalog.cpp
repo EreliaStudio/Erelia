@@ -40,8 +40,6 @@ namespace
 
 namespace Voxel
 {
-	Shape::Catalog::Catalog() = default;
-
 	Shape::ID Shape::Catalog::_parseKey(const spk::JSON::Reader &reader) const
 	{
 		const Shape::ID id = reader.require<Shape::ID>("id");
@@ -58,20 +56,10 @@ namespace Voxel
 		return Shape(reader);
 	}
 
-	const Shape &Shape::Catalog::_emptyShape() const noexcept
-	{
-		return _empty;
-	}
-
-	void Shape::Catalog::_load(const std::filesystem::path &path)
-	{
-		Base::_load(path);
-	}
-
 	Definition::Catalog::Catalog(const Shape::Catalog &shapes) :
 		_shapes(shapes)
 	{
-		Base::_insert(0u, Definition(_shapes._emptyShape(), {}));
+		_insert(0u, Definition(_shapes._empty, {}));
 	}
 
 	Definition::ID Definition::Catalog::_parseKey(const spk::JSON::Reader &reader) const
@@ -140,11 +128,6 @@ namespace Voxel
 		return Definition(shape, std::move(slots));
 	}
 
-	void Definition::Catalog::_load(const std::filesystem::path &path)
-	{
-		Base::_load(path);
-	}
-
 	Catalog::Catalog() :
 		_shapes(),
 		_definitions(_shapes)
@@ -159,12 +142,12 @@ namespace Voxel
 
 	void Catalog::loadShape(const std::filesystem::path &path)
 	{
-		_shapes._load(path);
+		_shapes.load(path);
 	}
 
 	void Catalog::loadDefinition(const std::filesystem::path &path)
 	{
-		_definitions._load(path);
+		_definitions.load(path);
 	}
 
 	const Shape::Catalog &Catalog::shapes() const noexcept
