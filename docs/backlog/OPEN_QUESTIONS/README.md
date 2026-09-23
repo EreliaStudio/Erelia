@@ -46,7 +46,7 @@ Statuses:
 | OQ-032 | [Do we use Story as a separate backlog level?](OQ-032-BACKLOG-STORY-HIERARCHY.md) | Resolved | DR-010 |
 | OQ-033 | [What branch will receive the completed backlog?](OQ-033-BACKLOG-MERGE-BRANCH.md) | Open | — |
 | OQ-034 | [How much long-term roadmap should be materialized initially?](OQ-034-ROADMAP-PLANNING-HORIZON.md) | Resolved | DR-010 |
-| OQ-035 | [What is the first terrain voxel / cell representation?](OQ-035-TERRAIN-VOXEL-CELL-REPRESENTATION.md) | Partially resolved | DR-012, DR-017 |
+| OQ-035 | [What is the first terrain voxel / cell representation?](OQ-035-TERRAIN-VOXEL-CELL-REPRESENTATION.md) | Resolved | DR-012, DR-017 |
 | OQ-036 | [Does the Client own terrain meshing, and what neighbor policy applies?](OQ-036-TERRAIN-MESHING-NEIGHBOR-POLICY.md) | Partially resolved | DR-013 |
 | OQ-037 | [What networking transport and serialization / framing should EP-001 use?](OQ-037-EP001-NETWORK-SERIALIZATION.md) | Partially resolved | DR-016, DR-017 |
 | OQ-038 | [What are the first Chunk request / streaming semantics?](OQ-038-CHUNK-REQUEST-STREAMING.md) | Partially resolved | DR-014 |
