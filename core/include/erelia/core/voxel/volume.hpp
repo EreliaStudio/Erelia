@@ -17,23 +17,26 @@ namespace Voxel
 		using LocalCoordinate = spk::Vector3Int;
 		using UnitSize = float;
 
-	private:
-		using CellBuffer = std::vector<Cell>;
-		using CellBufferPool = spk::Pool<CellBuffer>;
-		using CellBufferLease = CellBufferPool::Lease;
+		struct Buffer final : public std::vector<Cell>
+		{
+			using Base = std::vector<Cell>;
+			using Pool = spk::Pool<Buffer>;
+			using Lease = Pool::Lease;
 
-	public:
+			using Base::Base;
+		};
+
 		class Builder;
 
 	private:
 		spk::Vector3UInt _dimensions{};
 		UnitSize _unitSize = 0.0f;
-		CellBufferLease _cells;
+		Buffer::Lease _cells;
 
 		Volume(
 			const spk::Vector3UInt &dimensions,
 			UnitSize unitSize,
-			CellBufferLease cells) noexcept;
+			Buffer::Lease cells) noexcept;
 		[[nodiscard]] std::size_t _index(const LocalCoordinate &coordinate) const;
 
 	public:
