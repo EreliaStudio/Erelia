@@ -31,7 +31,7 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-02 — Packed Voxel::Cell value type** is **Done** and was merged through PR #8 into the planning branch at `f03894f76fc996d5fba3241e2e51ead848783cad` after CI run #59 and project-owner approval.
 
-**ST-001-03 — Owning Voxel::Volume** is **In Progress** on `feat/st-001-03-owning-voxel-volume`. The implementation and acceptance tests are complete, and CI run #66 (`35793568648`) passed the complete format, Linux/Windows headless Debug/Release, and Windows Client regression matrix. Draft PR #9 is open against the planning branch. Human project-owner review/approval remains required before Done.
+**ST-001-03 — Owning Voxel::Volume** is **In Progress** on `feat/st-001-03-owning-voxel-volume` through draft PR #9. During project-owner review, the original VersionedTrait/Editor design was replaced with an immutable shared-Content Volume plus mutable Builder. Cell storage now uses the merged Sparkle `spk::Pool`: exact 16×16×16 dimensions use a dedicated Chunk pool, other sizes use an ordered `std::map` registry with `lower_bound()`, unique moved Volumes reuse their existing lease, and shared moved Volumes copy into another pooled buffer. Revised CI and human approval are still required before Done.
 
 ## Remaining blockers
 
