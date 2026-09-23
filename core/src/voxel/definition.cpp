@@ -4,13 +4,13 @@
 
 namespace Voxel
 {
-	Definition::Definition(std::shared_ptr<const Shape> shape, SlotBindings slots) :
-		_shape(std::move(shape)),
+	Definition::Definition(const Shape &shape, SlotBindings slots) :
+		_shape(shape),
 		_slots(std::move(slots))
 	{
 	}
 
-	const std::shared_ptr<const Shape> &Definition::shape() const noexcept
+	const Shape &Definition::shape() const noexcept
 	{
 		return _shape;
 	}
