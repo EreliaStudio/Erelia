@@ -97,7 +97,7 @@ and the Shape stores a mutable fixed array of eight of these entries plus an int
 A non-air Definition:
 
 - resolves a Shape string ID once during loading;
-- retains a fast immutable shared reference to that Shape;
+- stores a non-owning immutable `const Shape&` to that catalog-owned Shape;
 - maps Shape slot names to semantic `Voxel::Material::ID` values.
 
 `Voxel::Material::ID` is a string identifier. The first shared material sentinel is:
@@ -118,14 +118,15 @@ For Definition slot validation:
 
 Definition ID 0 is reserved for Air.
 
-- The Definition catalog creates ID 0 automatically on construction.
-- Air has no Shape and no slot bindings.
+- The Shape catalog owns one private empty Shape sentinel with zero polygons and no authored/catalog Shape ID.
+- The Definition catalog creates ID 0 automatically on construction and binds Air to that empty Shape by `const Shape&`.
+- Air has no slot bindings.
 - `at(0)`, `operator[](0)`, `contains(0)`, and `tryGet(0)` treat Air as a valid existing Definition.
 - Authored JSON may not declare Definition ID 0.
 
 ### Voxel::Catalog and resource loading
 
-The owning aggregate is `Voxel::Catalog`. It owns the Shape and Definition catalogs and keeps the Shape catalog alive for every Definition that references a Shape.
+The owning aggregate is `Voxel::Catalog`. It owns the Shape and Definition catalogs. Definitions hold non-owning references into the Shape catalog, so a Definition may not outlive its owning aggregate/Shape catalog.
 
 The required usage includes:
 
@@ -258,7 +259,7 @@ ST-001-04 must cover:
 - lazy-cache UUID publication, stable repeated UUID/reference behavior, and concurrent first access;
 - valid/invalid Shape polygon rules;
 - Air Definition ID 0;
-- Definition Shape resolution and retained lifetime;
+- Definition Shape reference identity and owner-lifetime constraints;
 - missing slot warning + `Material::InvalidID`;
 - extra slot rejection;
 - checked/missing/optional catalog lookup;
