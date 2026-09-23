@@ -89,7 +89,9 @@ namespace
 	[[nodiscard]] CellBufferLease obtainEmptyCellBuffer(std::size_t expectedSize)
 	{
 		return cellBufferPoolFor(expectedSize).obtain(
-			[](CellBuffer &buffer, std::size_t size) {
+			[](
+				CellBuffer &buffer,
+				std::size_t size) {
 				buffer.clear();
 				buffer.resize(size);
 			},
@@ -99,8 +101,12 @@ namespace
 	[[nodiscard]] CellBufferLease obtainCopiedCellBuffer(std::span<const Voxel::Cell> source)
 	{
 		return cellBufferPoolFor(source.size()).obtain(
-			[](CellBuffer &buffer, std::span<const Voxel::Cell> cells) {
-				buffer.assign(cells.begin(), cells.end());
+			[](
+				CellBuffer &buffer,
+				std::span<const Voxel::Cell> cells) {
+				buffer.assign(
+					cells.begin(),
+					cells.end());
 			},
 			source);
 	}
