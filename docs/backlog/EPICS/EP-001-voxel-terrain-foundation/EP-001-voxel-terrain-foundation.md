@@ -132,11 +132,11 @@ The Epic will require deliberate contracts for:
 The complete dependency-ordered table is maintained in [tickets/README.md](tickets/README.md).
 
 - **Done:** ST-001-01, ST-001-02, ST-001-03.
-- **Ready:** ST-001-04.
+- **In Progress:** ST-001-04.
 - **Blocked:** ST-001-05, ST-001-06, ST-001-08, ST-001-09, ST-001-11, ST-001-12, ST-001-15, ST-001-16.
 - **Draft:** ST-001-07, ST-001-10, ST-001-13, ST-001-14.
 
-The first three implementation tickets are complete and merged into `master`: **ST-001-01 — Shared terrain coordinate conversion** through PR #7, **ST-001-02 — Packed Voxel::Cell value type** through PR #8, and **ST-001-03 — Owning Voxel::Volume** through PR #9. ST-001-03 uses the finalized immutable Builder + direct pooled `Voxel::Volume::Buffer::Lease` design, deep-copy Volume semantics, optional `tryGet()` lookup, dedicated Chunk pooling, and ordered general size-class pooling. Project-owner approval is recorded and CI run #105 passed. OQ-035 is Resolved. DR-018 now resolves the first shared Shape/Definition/Catalog contract and makes ST-001-04 Ready.
+The first three implementation tickets are complete and merged into `master`: **ST-001-01 — Shared terrain coordinate conversion** through PR #7, **ST-001-02 — Packed Voxel::Cell value type** through PR #8, and **ST-001-03 — Owning Voxel::Volume** through PR #9. ST-001-03 uses the finalized immutable Builder + direct pooled `Voxel::Volume::Buffer::Lease` design, deep-copy Volume semantics, optional `tryGet()` lookup, dedicated Chunk pooling, and ordered general size-class pooling. Project-owner approval is recorded and CI run #105 passed. OQ-035 is Resolved. DR-018 resolves the first shared Shape/Definition/Catalog contract. ST-001-04 is now In Progress on `feat/st-001-04-definition-shape-contract` / PR #11; implementation exists but CI run #122 still has clang-format and Linux Core/Server build failures, so the ticket is not Done.
 
 ## Epic-level integration scenarios
 

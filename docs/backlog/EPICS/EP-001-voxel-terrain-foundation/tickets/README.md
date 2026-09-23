@@ -11,7 +11,7 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-01 — Shared terrain coordinate conversion](ST-001-01-shared-terrain-coordinate-conversion.md) | **Done** | — |
 | [ST-001-02 — Packed Voxel::Cell value type](ST-001-02-packed-voxel-cell.md) | **Done** | Cell portion of OQ-035 resolved |
 | [ST-001-03 — Owning Voxel::Volume](ST-001-03-owning-voxel-volume.md) | **Done** | ST-001-02; OQ-035 resolved |
-| [ST-001-04 — First terrain Definition and Shape contract](ST-001-04-first-terrain-definition-shape-contract.md) | **Ready** | ST-001-02; DR-018 |
+| [ST-001-04 — First terrain Definition and Shape contract](ST-001-04-first-terrain-definition-shape-contract.md) | **In Progress** | ST-001-02; DR-018 |
 | [ST-001-05 — Voxel::Volume Message serialization](ST-001-05-voxel-volume-message-serialization.md) | **Blocked** | ST-001-02, ST-001-03; OQ-037 |
 | [ST-001-06 — Deterministic validation terrain generator](ST-001-06-deterministic-validation-terrain-generator.md) | **Blocked** | ST-001-01 through ST-001-04; OQ-039 |
 | [ST-001-07 — Server NodeRouter terrain-node bootstrap](ST-001-07-server-node-router-terrain-node-bootstrap.md) | **Draft** | Server endpoint/lifecycle specification |
@@ -50,4 +50,6 @@ Additional Draft-ticket specification gaps exposed by decomposition:
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
-The completed ST-001-01 / ST-001-02 / ST-001-03 implementation baseline is merged into `master`. ST-001-04 is the next Ready implementation ticket.
+The completed ST-001-01 / ST-001-02 / ST-001-03 implementation baseline is merged into `master`.
+
+**ST-001-04 — First terrain Definition and Shape contract** is **In Progress** on `feat/st-001-04-definition-shape-contract` / PR #11. The branch contains the production implementation and focused tests, including the corrected authored-winding behavior where JSON vertex order is preserved and normals are derived from it. CI run #122 passed Windows Core/Server Debug + Release and Windows Client Debug + Release, but failed clang-format and Linux Core/Server Debug + Release. The ticket remains open until those failures are resolved, all required validation passes, completion evidence is finalized, and project-owner approval is recorded.

@@ -1,6 +1,6 @@
 # ST-001-04 — First terrain Definition and Shape contract
 
-**Status:** Ready
+**Status:** In Progress
 **Epic:** EP-001
 **Production target(s):** Core
 **Test suite(s):** EreliaCoreTestSuite
@@ -702,14 +702,33 @@ The public behavior, ownership, lifecycle, loading/error behavior, deterministic
 
 ## Completion evidence
 
-Not implemented yet.
+**Implementation state:** In Progress.
 
-When completing this ticket, record:
+Current implementation work is on:
 
-- implementation branch/commit/PR;
-- exact Core tests added;
-- narrow and regression builds/tests run;
-- evidence for concurrent lazy-cache behavior;
-- final checked-in Shape resource paths;
-- documentation updates;
-- project-owner approval required by the Definition of Done.
+- branch: `feat/st-001-04-definition-shape-contract`;
+- pull request: PR #11;
+- main implementation commit: `c85f7e82360d79a79ac25d39cba6df71b0b1ea59`;
+- follow-up correctness/build-fix commit: `6423e789b69770f8f15df1e16bacda23f54a17fb`.
+
+The branch currently contains the owned production implementation and focused tests for Shape, Definition, Catalog, Orientation/Flip transforms, lazy cache publication/concurrency, malformed resources, catalog loading, slot binding, Air, and revised Cell Orientation semantics.
+
+The latest contract correction removes an implementation-invented outward-facing winding check. Authored JSON vertex order is preserved and used to derive polygon normals; polygon geometry is validated for the ticket's structural requirements, and winding is reversed only for the specified `NegativeY` mirrored variant.
+
+Active Shape resources are checked in at `resources/voxels/shapes.json` for `cube`, `slab`, `slope`, and `stair`.
+
+### Validation still pending
+
+CI run #122 for commit `6423e789b69770f8f15df1e16bacda23f54a17fb` completed with failure:
+
+- Windows Core/Server Debug: passed;
+- Windows Core/Server Release: passed;
+- Windows Client Debug: passed;
+- Windows Client Release: passed;
+- clang-format: failed;
+- Linux Core/Server Debug: failed during the Erelia build;
+- Linux Core/Server Release: failed during the Erelia build.
+
+The ticket must remain **In Progress** until the remaining CI failures are diagnosed and fixed, all ticket acceptance/regression evidence is green, documentation reflects the final implementation, and project-owner approval required by `DEFINITION-OF-DONE.md` is explicitly recorded.
+
+Do not mark this ticket Done merely because the current implementation exists.

@@ -14,7 +14,7 @@ The first three EP-001 implementation tickets are merged into `master`:
 - ST-001-02 through PR #8;
 - ST-001-03 through PR #9 after project-owner approval and green CI run #105.
 
-The former planning branch is no longer the active implementation baseline. The resolved ST-001-04 planning/decision updates and its forthcoming implementation live on `feat/st-001-04-definition-shape-contract` until that ticket is completed and merged.
+The former planning branch is no longer the active implementation baseline. ST-001-04 is actively being implemented and validated on `feat/st-001-04-definition-shape-contract` through PR #11. The latest implementation commit before this status update is `6423e789b69770f8f15df1e16bacda23f54a17fb`.
 
 ## What exists now
 
@@ -74,37 +74,36 @@ EP-001 is still Draft overall, but implementation is active.
 - **ST-001-02 — Packed Voxel::Cell value type:** Done.
 - **ST-001-03 — Owning Voxel::Volume:** Done.
 
-### Next Ready ticket
+### In progress
 
-**ST-001-04 — First terrain Definition and Shape contract** is **Ready**.
+**ST-001-04 — First terrain Definition and Shape contract** is **In Progress** on PR #11.
 
-The implementation must follow DR-018 and the complete ticket contract. In particular, it must update the existing Cell Orientation enum/tests to the new quarter-turn ordering while preserving the 32-bit packed layout.
+The branch contains the first shared `Voxel::Shape` / `Voxel::Definition` / `Voxel::Catalog` implementation, `Voxel::Material::ID`, the revised Cell Orientation ordering, JSON catalog loading, immutable Definition-to-Shape ownership, exact eight-way Orientation/Flip geometry transforms, the lazy UUID-published oriented polygon cache, focused tests, and active cube/slab/slope/stair Shape resources.
 
-### Existing later blockers
+The Shape loader preserves polygon vertex order authored in JSON and derives normals from that order. It validates polygon geometry without inventing an outward-facing direction; only the required `NegativeY` mirror reverses transformed polygon winding.
 
-- OQ-036 — missing-neighbor/remesh behavior for terrain meshing;
-- OQ-037 — remaining scalar wire portability/decode contract;
-- OQ-038 — request/cache/retention/partial-response/retry semantics;
-- OQ-039 — exact deterministic generator-scene coordinates/Definition IDs/material choices;
-- OQ-029 — golden-image platform;
-- OQ-030 — image comparison metric/tolerances;
-- OQ-031 — performance evidence methodology.
+Current validation evidence is **not sufficient for Done**:
 
-### Remaining Draft-only specification gaps
+- PR #11 is open.
+- CI run #122 completed with failure.
+- Windows Core/Server Debug and Release passed.
+- Windows Client Debug and Release passed.
+- `clang-format` failed.
+- Linux Core/Server Debug and Release failed during the Erelia build.
+- Required project-owner approval has not yet been recorded.
 
-- exact EP-001 Server endpoint and Client connection lifecycle/configuration;
-- deterministic render fixture/material realization plus render-resource failure/lifecycle behavior;
-- complete temporary ZQSD/free-flight input map and numeric camera/movement semantics.
+The next implementation agent must diagnose those remaining CI failures, correct only ST-001-04-owned issues, rerun the required validation, finalize completion evidence, and mark the ticket Done only after every Definition-of-Done requirement and human approval are satisfied.
 
-## Next
+### Next
 
-1. Continue ST-001-04 implementation on the existing `feat/st-001-04-definition-shape-contract` branch; do not recreate it from `master`, because this branch already contains the approved Ready contract and DR-018.
-2. After ST-001-04, reassess the dependency order rather than skipping unresolved gates.
-3. Resolve OQ-039's remaining generator-scene details before ST-001-06.
-4. Resolve OQ-037/OQ-038 before the dependent Chunk networking/request tickets.
-5. Resolve OQ-036 before boundary-aware Client meshing.
-6. Resolve OQ-029 through OQ-031 before final visual/performance validation.
-
+1. Finish ST-001-04 validation and corrections on the existing `feat/st-001-04-definition-shape-contract` branch and PR #11; do not recreate it from `master`.
+2. Resolve the current clang-format and Linux Core/Server CI failures, then rerun the required regression/build matrix.
+3. Record project-owner approval and mark ST-001-04 Done only after its Definition of Done is actually satisfied.
+4. After ST-001-04, reassess the dependency order rather than skipping unresolved gates.
+5. Resolve OQ-039's remaining generator-scene details before ST-001-06.
+6. Resolve OQ-037/OQ-038 before the dependent Chunk networking/request tickets.
+7. Resolve OQ-036 before boundary-aware Client meshing.
+8. Resolve OQ-029 through OQ-031 before final visual/performance validation.
 ## Relevant approved planning constraints
 
 EP-001 is constrained by DR-001 through DR-004, DR-007, DR-009 through DR-018 and ARCH-001 through ARCH-004 as listed in the Epic.
