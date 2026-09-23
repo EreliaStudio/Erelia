@@ -1,22 +1,23 @@
 # Current Status
 
 **Updated:** 23 September 2026
-**Planning branch:** backlog/ep-001-implementation-tickets
-**Completed implementation branch observed:** `feat/st-001-03-owning-voxel-volume` via PR #9
+**Default / active baseline:** `master`
 
 ## Branch state
 
-Erelia currently uses master as its default branch.
+Erelia uses `master` as its default branch.
 
-The ticket-materialization baseline remains isolated on `backlog/ep-001-implementation-tickets`, cut from master.
+The first three EP-001 implementation tickets are merged into `master`:
 
-ST-001-01 was merged through PR #7 on 22 September 2026. ST-001-02 was merged through PR #8 into the planning branch at `f03894f76fc996d5fba3241e2e51ead848783cad` on 23 September 2026. OQ-035 is Resolved. ST-001-03 is Done on `feat/st-001-03-owning-voxel-volume` after project-owner approval and green CI run #105; PR #9 remains open only for the final merge into the planning baseline.
+- ST-001-01 through PR #7;
+- ST-001-02 through PR #8;
+- ST-001-03 through PR #9 after project-owner approval and green CI run #105.
 
-No main branch is assumed.
+The former planning branch is no longer the active implementation baseline.
 
 ## What exists now
 
-The project was restarted on 22 September 2026. The active codebase is a deliberately small scaffold:
+The project was restarted on 22 September 2026 and currently contains:
 
 - top-level CMake project version 0.1.0;
 - C++23;
@@ -31,102 +32,84 @@ The project was restarted on 22 September 2026. The active codebase is a deliber
 - Linux/Windows headless CI for Core/Server;
 - Windows graphical Client CI in Debug and Release;
 - formatting checks;
-- current GDD and its 34 illustration assets under docs/gdd/;
-- historical source and historical backlog isolated under archive/.
+- current GDD and illustration assets under `docs/gdd/`;
+- historical source/backlog isolated under `archive/`.
 
-The original status functions remain smoke scaffolding. The planning baseline contains the first two completed EP-001 contracts: shared terrain coordinate conversion, plus the packed `Voxel::Cell` / `Voxel::Definition::ID` representation with acceptance coverage in `EreliaCoreTestSuite`. ST-001-03 is also complete on its feature branch and is awaiting merge through PR #9.
+Implemented EP-001 foundations now include:
 
-## What was just implemented
+- shared terrain coordinate conversion;
+- packed 32-bit `Voxel::Cell` / `Voxel::Definition::ID`;
+- immutable owning `Voxel::Volume` + Builder + pooled Buffer/Lease storage.
 
-After restart commit ba32a17771b123fd3ebda2009daa3cca6fb5f8d0:
+## What was just resolved
 
-1. a08c8d0d3e8cef7a26db519a4475c10561e5e33d — base folder architecture for the new Erelia project.
-2. 3a37ff2cd3b69024a8098bc9dbf6fc4d443f9f6d — tests moved under their owning layers, with CMake/CI/VS Code paths updated.
-3. fa27429734a406fc4cfaea43207e0ac7f5e68b88 — current GDD and its illustration assets added to the active repository.
-4. e67032414ece0c7c00018ee29db03bc1ad842cd4 — initial ST-001-01 Core terrain coordinate conversion and acceptance tests.
-5. 22a599a281ea435444bacdc1912cd3125f96a817 — PR #7 merged the completed ST-001-01 implementation into the planning baseline.
+The ST-001-04 contract review is complete.
 
-## Backlog work completed on this branch
+DR-018 now fixes the first shared voxel Shape/Definition/Catalog contract, including:
 
-- Read the active EP-001 context, implementation conventions, Definition of Ready/Done, relevant OQs/DRs/ARCH documents, and the current Core/Server/Client scaffold/tests.
-- Materialized 16 small ST-001 implementation tickets under the EP-001 `tickets/` folder.
-- Ordered every ticket by explicit ST dependency.
-- Applied Definition of Ready independently rather than promoting implementation-capable but underspecified work.
-- Identified **ST-001-01 — Shared terrain coordinate conversion** as the first Ready implementation ticket.
-- Kept OQ-035 through OQ-039 and OQ-029 through OQ-031 as blockers only for the tickets they materially affect.
-- Recorded four additional Draft-ticket specification gaps rather than inventing contracts: first Definition/Shape geometry/resources; Server/Client endpoint lifecycle/configuration; deterministic render fixture/material/lifecycle; full temporary inspection input/numeric camera semantics.
-- Updated the EP-001 capability coverage and ticket index.
-- ST-001-01 is merged into the planning baseline and marked Done; no OQ status was changed by the merge.
-- ST-001-02 is Done and merged through PR #8 after CI run #59 and explicit project-owner approval.
-- OQ-035 is Resolved and was refined during ST-001-03 review to the immutable Builder + pooled-buffer contract.
-- ST-001-03 is Done after final project-owner approval and CI run #105; PR #9 remains to be merged into the planning baseline.
-- Future implementation tickets should continue to use dedicated feature branches cut from the current planning baseline.
+- shared semantic Shape and Definition resources for Server and Client;
+- string Shape IDs and numeric Definition IDs;
+- `Voxel::Material::ID` string identity with `Material::InvalidID == "InvalidID"`;
+- discrete `spk::Vector3Int` Shape vertices quantized from normalized JSON with `Voxel::Shape::VertexPrecision = 0.001f`;
+- convex planar CCW polygons with semantic slots and derived normals;
+- revised Cell Orientation ordering `PositiveX=0, NegativeZ=1, NegativeX=2, PositiveZ=3`, directly representing CCW quarter-turn count;
+- `NegativeY` mirroring around `Y=0.5` with polygon rewinding;
+- lazy, mutex-protected eight-way oriented polygon caching with atomic `spk::UUID` publication and lock-free published reads;
+- aggregate `Voxel::Catalog` JSON loading and typed Shape/Definition lookup behavior;
+- catalog-created Definition ID 0 Air;
+- incremental load/failure behavior;
+- first cube/slab/slope/stair resources derived from the validated archive fixtures;
+- explicit exclusion of occlusion algorithms from ST-001-04.
+
+OQ-039 remains Partially resolved, but its remaining exact generator-scene coordinates, Definition IDs, and material choices now block ST-001-06 rather than ST-001-04.
 
 ## Current implementation phase
 
-EP-001 ticket decomposition is materialized and implementation has begun.
+EP-001 is still Draft overall, but implementation is active.
 
-The Epic remains Draft overall because most later contracts still depend on unresolved questions/specification gaps.
+### Completed
 
-### Active implementation ticket
-
-**ST-001-03 — Owning Voxel::Volume** is **Done** on `feat/st-001-03-owning-voxel-volume` through PR #9.
-
-The final implementation direction replaces the superseded `spk::VersionedTrait` / Editor and shared-Content approaches with an immutable built value plus mutable `Voxel::Volume::Builder`. `Voxel::Volume::Buffer` is the semantic Cell-buffer type and exposes `Buffer::Pool` / `Buffer::Lease`; each Volume directly owns dimensions, unit size, and its own Lease. Volume copies deep-copy through Lease copy semantics, moves transfer the Lease, and `Builder(std::move(volume))` reuses the moved Volume's Buffer directly. Read APIs include `contains()`, optional `tryGet()`, checked `at()` / `operator[]`, and read-only contiguous `cells()`.
-
-Pool instances remain private to `volume_builder.cpp`: exact 16×16×16 dimensions use a dedicated Chunk `Buffer::Pool`; other sizes use an ordered `std::map<std::size_t, Buffer::Pool>` with `lower_bound()` to select the exact or smallest higher size class and create an exact new class only when no suitable class exists.
-
-CI run #105 passed clang-format, Linux/Windows Core+Server Debug/Release builds and CTest, plus Windows Client Debug/Release regression builds and CTest on the finalized implementation/documentation state.
-
-The project owner explicitly approved ST-001-03 on 23 September 2026. The ticket is Done; PR #9 remains open only for the final merge into the planning baseline.
-
-**ST-001-02 — Packed Voxel::Cell value type** is **Done** on `feat/st-001-02-packed-voxel-cell`. The implementation exposes `Voxel::Definition::ID` and `Voxel::Cell::PackedType` as semantic aliases of `std::uint32_t`, keeps the Cell exactly one packed value, and places constructors/masks/getters/validation in `cell.cpp`. PR #8 CI run #59 (run ID `35789150331`) passed clang-format and the Linux/Windows headless Core/Server Debug + Release matrix, including CTest. The project owner explicitly approved the final implementation on 22 September 2026. PR #8 is merged into the planning branch.
-
-**ST-001-01 — Shared terrain coordinate conversion** remains **Done**. Its implementation and acceptance tests were validated by the required headless CI matrix, and the project owner's merge of PR #7 on 22 September 2026 records the required human completion approval.
+- **ST-001-01 — Shared terrain coordinate conversion:** Done.
+- **ST-001-02 — Packed Voxel::Cell value type:** Done.
+- **ST-001-03 — Owning Voxel::Volume:** Done.
 
 ### Next Ready ticket
 
-None. ST-001-04 remains Draft because its Definition/Shape contract and OQ-039 fixture details are not yet sufficiently specified.
+**ST-001-04 — First terrain Definition and Shape contract** is **Ready**.
 
-### Existing OQ blockers
+The implementation must follow DR-018 and the complete ticket contract. In particular, it must update the existing Cell Orientation enum/tests to the new quarter-turn ordering while preserving the 32-bit packed layout.
 
-- OQ-036 — missing-neighbor/remesh behavior.
-- OQ-037 — scalar wire portability and remaining decode contract.
-- OQ-038 — duplicate/outstanding requests, request limits, cache/retention, partial responses/rejections/retry.
-- OQ-039 — exact validation generator/Definition fixture.
-- OQ-029 — golden-image platform.
-- OQ-030 — image comparison metric/tolerances.
+### Existing later blockers
+
+- OQ-036 — missing-neighbor/remesh behavior for terrain meshing;
+- OQ-037 — remaining scalar wire portability/decode contract;
+- OQ-038 — request/cache/retention/partial-response/retry semantics;
+- OQ-039 — exact deterministic generator-scene coordinates/Definition IDs/material choices;
+- OQ-029 — golden-image platform;
+- OQ-030 — image comparison metric/tolerances;
 - OQ-031 — performance evidence methodology.
 
-### Draft-only specification gaps exposed by decomposition
+### Remaining Draft-only specification gaps
 
-- minimal active-greenfield Definition/Shape geometry and resource-availability contract;
 - exact EP-001 Server endpoint and Client connection lifecycle/configuration;
-- deterministic render fixture/material binding plus render-resource failure/lifecycle behavior;
+- deterministic render fixture/material realization plus render-resource failure/lifecycle behavior;
 - complete temporary ZQSD/free-flight input map and numeric camera/movement semantics.
-
-See EP-001 `tickets/README.md` for the full status/dependency table.
 
 ## Next
 
-1. Merge the completed ST-001-03 PR #9 into the planning baseline and record the resulting merge commit.
-2. Resolve the minimal Definition/Shape specification gap and OQ-039 before ST-001-04 / generator fixtures become Ready.
-3. Resolve OQ-037 / OQ-038 before Chunk codec, Server handler, and Client cache/request coordination become Ready.
-4. Resolve OQ-036 before Client boundary meshing and adjacent-Chunk integration become Ready.
-5. Resolve endpoint/connection lifecycle, render-fixture/material, and inspection-control Draft gaps when those tickets approach implementation.
+1. Implement ST-001-04 on a dedicated feature branch cut from current `master`.
+2. After ST-001-04, reassess the dependency order rather than skipping unresolved gates.
+3. Resolve OQ-039's remaining generator-scene details before ST-001-06.
+4. Resolve OQ-037/OQ-038 before the dependent Chunk networking/request tickets.
+5. Resolve OQ-036 before boundary-aware Client meshing.
 6. Resolve OQ-029 through OQ-031 before final visual/performance validation.
-
-## Explicit non-goal
-
-Do not fill this branch with a full game backlog yet. Far-future work should remain at capability/roadmap level until its architecture is understood.
-
 
 ## Relevant approved planning constraints
 
-EP-001 is constrained by DR-001 through DR-004, DR-007, DR-009 through DR-017 and ARCH-001 through ARCH-004 as listed in the Epic. The canonical indexes remain `DECISIONS/README.md` and `ARCHITECTURE/README.md`.
+EP-001 is constrained by DR-001 through DR-004, DR-007, DR-009 through DR-018 and ARCH-001 through ARCH-004 as listed in the Epic.
 
-## First Epic
+The canonical decision/architecture indexes remain `DECISIONS/README.md` and `ARCHITECTURE/README.md`.
 
-EP-001 — Voxel Terrain Delivery and Visual Validation remains Draft, with 16 materialized implementation tickets and ST-001-01 / ST-001-02 / ST-001-03 Done. PR #9 for ST-001-03 is awaiting final merge into the planning baseline. OQ-035 is Resolved.
+## Explicit non-goal
 
-It intentionally excludes production Hero movement, collision, followers, combat, resources, and production world generation. The temporary free-flight controller exists only to inspect rendered terrain.
+Do not materialize broad speculative game implementation while near-term architectural contracts remain unresolved.
