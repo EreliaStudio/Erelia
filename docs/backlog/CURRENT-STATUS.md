@@ -76,7 +76,7 @@ The final implementation direction replaces the superseded `spk::VersionedTrait`
 
 Pool instances remain private to `volume_builder.cpp`: exact 16×16×16 dimensions use a dedicated Chunk `Buffer::Pool`; other sizes use an ordered `std::map<std::size_t, Buffer::Pool>` with `lower_bound()` to select the exact or smallest higher size class and create an exact new class only when no suitable class exists.
 
-CI run #96 passed every Linux/Windows Core+Server and Windows Client build/test job; its only failure was clang-format in `volume_builder.cpp`. That formatting issue was corrected on production-code head `9a3365450cedaa47d4e7bbcca9e53cf783b785d0`, and follow-up PR CI is validating the finalized code/documentation state.
+CI run #96 passed every Linux/Windows Core+Server and Windows Client build/test job; its only failure was clang-format in `volume_builder.cpp`. The formatting issue has since been corrected, and follow-up PR CI validates the finalized code/documentation state before merge.
 
 The ticket remains In Progress until PR #9 is merged and that merge is recorded in the planning baseline.
 
