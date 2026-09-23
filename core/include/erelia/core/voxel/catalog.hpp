@@ -9,48 +9,27 @@
 
 namespace Voxel
 {
-	class Catalog;
-
-	class Shape::Catalog final : private spk::JSON::Catalog<Shape>
+	class Shape::Catalog final : public spk::JSON::Catalog<Shape>
 	{
-		using Base = spk::JSON::Catalog<Shape>;
-
-		friend class Voxel::Catalog;
 		friend class Definition::Catalog;
 
+	private:
 		Shape _empty;
 
-		Catalog();
-		void _load(const std::filesystem::path &path);
 		[[nodiscard]] Shape::ID _parseKey(const spk::JSON::Reader &reader) const override;
 		[[nodiscard]] Shape _parseElement(const spk::JSON::Reader &reader) const override;
-		[[nodiscard]] const Shape &_emptyShape() const noexcept;
-
-	public:
-		using Base::at;
-		using Base::contains;
-		using Base::operator[];
-		using Base::tryGet;
 	};
 
-	class Definition::Catalog final : private spk::JSON::Catalog<Definition>
+	class Definition::Catalog final : public spk::JSON::Catalog<Definition>
 	{
-		using Base = spk::JSON::Catalog<Definition>;
-
-		friend class Voxel::Catalog;
-
+	private:
 		const Shape::Catalog &_shapes;
 
-		explicit Catalog(const Shape::Catalog &shapes);
-		void _load(const std::filesystem::path &path);
 		[[nodiscard]] Definition::ID _parseKey(const spk::JSON::Reader &reader) const override;
 		[[nodiscard]] Definition _parseElement(const spk::JSON::Reader &reader) const override;
 
 	public:
-		using Base::at;
-		using Base::contains;
-		using Base::operator[];
-		using Base::tryGet;
+		explicit Catalog(const Shape::Catalog &shapes);
 	};
 
 	class Catalog final
