@@ -140,7 +140,20 @@ myVoxelCatalog.definitions().at(definitionId);
 
 Public resource paths use `std::filesystem::path`.
 
-The two typed subcatalogs share generic catalog behavior. Exact internal helper-template naming is not a public contract. Their observable read API is:
+The two typed subcatalogs derive privately from an Erelia-local prototype `spk::JSON::Catalog<TElement>`. The prototype intentionally lives in namespace `spk::JSON` while it is exercised in Erelia; moving it into Sparkle itself is deferred until the API has been validated in real use.
+
+The shared base owns the JSON catalog envelope and common machinery: root/file parsing, `elements` array validation and iteration, wrapper validation, duplicate detection, immutable shared storage, incremental failure behavior, and lookup. `TElement` supplies `TElement::ID`; the base does not require `json_readable`.
+
+Derived catalogs supply only two protected pure-virtual Reader-based operations:
+
+```cpp
+virtual TElement::ID _parseKey(const spk::JSON::Reader& reader) const = 0;
+virtual std::shared_ptr<const TElement> _parseElement(const spk::JSON::Reader& reader) const = 0;
+```
+
+The key parser receives the element wrapper reader. The element parser receives its `data` reader. No `detail` / `details` namespace is introduced for the catalog abstraction.
+
+Their observable read API is:
 
 - checked `at(ID)` returning `const T&`;
 - checked `operator[](ID)` returning `const T&`;
@@ -205,7 +218,7 @@ Definition files use:
 }
 ```
 
-The outer catalog layer owns `id` parsing and passes only the `data` reader to the final object constructor.
+The shared JSON catalog base owns the outer envelope and iteration. It dispatches key parsing to the derived catalog using the element wrapper reader and element parsing using only the `data` reader.
 
 Malformed schema/content throws `spk::Exception` with useful source/path context. This includes unknown fields, missing/wrong-type `elements`, empty Shape IDs, Definition ID 0, Definition IDs above the Cell 29-bit capacity, duplicate IDs, unknown Shape references, empty polygon slots, missing/wrong-type vertices, missing x/y/z components, coordinates outside `[0,1]`, fewer than three vertices, duplicate adjacent vertices, zero-area/degenerate polygons, non-planar polygons, and concave polygons.
 
