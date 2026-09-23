@@ -88,15 +88,18 @@ namespace
 		return insertedIterator->second;
 	}
 
+	void resetCellBuffer(Buffer &buffer, std::size_t size)
+	{
+		buffer.clear();
+		buffer.resize(size);
+	}
+
 	[[nodiscard]] Buffer::Lease obtainEmptyCellBuffer(
 		const spk::Vector3UInt &dimensions,
 		std::size_t expectedSize)
 	{
 		return cellBufferPoolFor(dimensions, expectedSize).obtain(
-			[](Buffer &buffer, std::size_t size) {
-				buffer.clear();
-				buffer.resize(size);
-			},
+			resetCellBuffer,
 			expectedSize);
 	}
 
