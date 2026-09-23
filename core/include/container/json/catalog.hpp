@@ -2,7 +2,6 @@
 
 #include <cstddef>
 #include <filesystem>
-#include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -20,7 +19,7 @@ namespace spk::JSON
 		using ID = typename Element::ID;
 
 	private:
-		std::unordered_map<ID, std::shared_ptr<const Element>> _elements;
+		std::unordered_map<ID, Element> _elements;
 
 		[[noreturn]] static void _throwAt(
 			const std::filesystem::path &file,
@@ -37,25 +36,13 @@ namespace spk::JSON
 		[[nodiscard]] virtual ID _parseKey(const Reader &reader) const = 0;
 		[[nodiscard]] virtual Element _parseElement(const Reader &reader) const = 0;
 
-		[[nodiscard]] const std::shared_ptr<const Element> &_sharedAt(const ID &id) const
-		{
-			const auto found = _elements.find(id);
-			if (found == _elements.end())
-			{
-				throw spk::Exception("unknown JSON catalog ID");
-			}
-			return found->second;
-		}
-
 		void _insert(ID id, Element element)
 		{
 			if (contains(id))
 			{
 				throw spk::Exception("duplicate JSON catalog ID");
 			}
-			_elements.emplace(
-				std::move(id),
-				std::make_shared<const Element>(std::move(element)));
+			_elements.emplace(std::move(id), std::move(element));
 		}
 
 		void _load(const std::filesystem::path &file)
@@ -90,16 +77,19 @@ namespace spk::JSON
 
 				const Reader dataReader = elementReader.child("data");
 				Element element = _parseElement(dataReader);
-				_elements.emplace(
-					std::move(id),
-					std::make_shared<const Element>(std::move(element)));
+				_elements.emplace(std::move(id), std::move(element));
 			}
 		}
 
 	public:
 		[[nodiscard]] const Element &at(const ID &id) const
 		{
-			return *_sharedAt(id);
+			const auto found = _elements.find(id);
+			if (found == _elements.end())
+			{
+				throw spk::Exception("unknown JSON catalog ID");
+			}
+			return found->second;
 		}
 
 		[[nodiscard]] const Element &operator[](const ID &id) const
@@ -115,7 +105,7 @@ namespace spk::JSON
 		[[nodiscard]] const Element *tryGet(const ID &id) const noexcept
 		{
 			const auto found = _elements.find(id);
-			return found == _elements.end() ? nullptr : found->second.get();
+			return found == _elements.end() ? nullptr : &found->second;
 		}
 	};
 }
