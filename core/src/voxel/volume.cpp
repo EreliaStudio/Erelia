@@ -9,7 +9,7 @@ namespace Voxel
 	Volume::Volume(
 		const spk::Vector3UInt &dimensions,
 		UnitSize unitSize,
-		CellBufferLease cells) noexcept :
+		Buffer::Lease cells) noexcept :
 		_dimensions(dimensions),
 		_unitSize(unitSize),
 		_cells(std::move(cells))
