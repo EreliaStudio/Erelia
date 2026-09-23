@@ -8,9 +8,14 @@
 
 #include <filesystem>
 #include <fstream>
-#include <optional>
 #include <sstream>
 #include <string>
+#include <type_traits>
+
+static_assert(std::is_copy_constructible_v<Voxel::Definition>);
+static_assert(std::is_move_constructible_v<Voxel::Definition>);
+static_assert(!std::is_copy_assignable_v<Voxel::Definition>);
+static_assert(!std::is_move_assignable_v<Voxel::Definition>);
 
 namespace
 {
@@ -37,7 +42,7 @@ TEST(VoxelCatalog, AirExistsImmediatelyAndLookupApisHaveExactMissingBehavior)
 	ASSERT_TRUE(catalog.definitions().contains(0u));
 	ASSERT_NE(catalog.definitions().tryGet(0u), nullptr);
 	EXPECT_EQ(&catalog.definitions().at(0u), &catalog.definitions()[0u]);
-	EXPECT_EQ(catalog.definitions().at(0u).shape(), nullptr);
+	EXPECT_TRUE(catalog.definitions().at(0u).shape().polygons().empty());
 	EXPECT_TRUE(catalog.definitions().at(0u).slots().empty());
 
 	EXPECT_FALSE(catalog.shapes().contains("missing"));
@@ -62,30 +67,13 @@ TEST(VoxelCatalog, LoadsDefinitionsResolvesShapeAndPreservesBindings)
 	EXPECT_EQ(&catalog.shapes()["cube"], &catalog.shapes().at("cube"));
 
 	const auto &definition = catalog.definitions().at(1u);
-	ASSERT_NE(definition.shape(), nullptr);
-	EXPECT_EQ(definition.shape().get(), &catalog.shapes().at("cube"));
+	EXPECT_EQ(&definition.shape(), &catalog.shapes().at("cube"));
 	EXPECT_EQ(definition.slots().at("top"), "grass");
 	EXPECT_EQ(definition.slots().at("side"), "dirt");
 	EXPECT_EQ(definition.slots().at("bottom"), "stone");
 	EXPECT_TRUE(catalog.definitions().contains(1u));
 	EXPECT_EQ(catalog.definitions().tryGet(1u), &definition);
 	EXPECT_EQ(&catalog.definitions()[1u], &definition);
-}
-
-TEST(VoxelCatalog, DefinitionRetainsResolvedShapeLifetime)
-{
-	std::optional<Voxel::Definition> retainedDefinition;
-	{
-		const voxel_test::TemporaryJsonFile definitions(voxel_test::definitionFile(1u, "cube", CompleteCubeSlots));
-		Voxel::Catalog catalog;
-		catalog.load(voxel_test::shapeResourcePath(), definitions.path());
-		retainedDefinition = catalog.definitions().at(1u);
-	}
-
-	ASSERT_TRUE(retainedDefinition.has_value());
-	ASSERT_NE(retainedDefinition->shape(), nullptr);
-	EXPECT_EQ(retainedDefinition->shape()->polygons().size(), 6u);
-	EXPECT_EQ(retainedDefinition->slots().at("side"), "dirt");
 }
 
 TEST(VoxelCatalog, MissingShapeSlotLogsWarningAndBindsInvalidMaterial)
