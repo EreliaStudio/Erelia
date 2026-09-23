@@ -6,7 +6,6 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <type_traits>
 #include <unordered_map>
 #include <utility>
 
@@ -24,17 +23,24 @@ namespace spk::JSON
 		json_readable<TType>;
 
 	template <typename TElement>
-		requires requires {
+	concept catalog_element =
+		requires {
 			typename TElement::ID;
-		} && value_readable<typename TElement::ID>
+		} && value_readable<typename TElement::ID>;
+
+	template <catalog_element TElement, typename... TArgs>
 	class Catalog
 	{
 	public:
 		using Element = TElement;
 		using ID = typename Element::ID;
+		using KeyParser = std::function<ID(const Reader &, TArgs...)>;
+		using ElementParser = std::function<std::shared_ptr<const Element>(const Reader &, TArgs...)>;
 
 	private:
 		std::unordered_map<ID, std::shared_ptr<const Element>> _elements;
+		KeyParser _keyParser;
+		ElementParser _elementParser;
 
 		[[noreturn]] static void _throwAt(
 			const std::filesystem::path &file,
@@ -44,19 +50,35 @@ namespace spk::JSON
 			throw spk::Exception(file.generic_string() + ":" + path + ": " + message);
 		}
 
-		[[nodiscard]] static ID _defaultKeyParser(const Reader &reader)
+		[[nodiscard]] static ID _defaultKeyParser(const Reader &reader, TArgs...)
 		{
 			return reader.template require<ID>("id");
 		}
 
-		[[nodiscard]] static std::shared_ptr<const Element> _defaultElementParser(const Reader &reader)
+		[[nodiscard]] static std::shared_ptr<const Element> _defaultElementParser(const Reader &reader, TArgs...)
 			requires json_readable<Element>
 		{
 			return std::shared_ptr<const Element>(new Element(reader.value().template as<Element>()));
 		}
 
 	protected:
-		Catalog() = default;
+		Catalog(KeyParser keyParser, ElementParser elementParser) :
+			_keyParser(std::move(keyParser)),
+			_elementParser(std::move(elementParser))
+		{
+		}
+
+		explicit Catalog(ElementParser elementParser) :
+			Catalog(_defaultKeyParser, std::move(elementParser))
+		{
+		}
+
+		Catalog()
+			requires json_readable<Element>
+			:
+			Catalog(_defaultKeyParser, _defaultElementParser)
+		{
+		}
 
 		[[nodiscard]] const std::shared_ptr<const Element> &_sharedAt(const ID &id) const
 		{
@@ -76,11 +98,7 @@ namespace spk::JSON
 			}
 		}
 
-		template <typename TKeyParser, typename TElementParser>
-		void _load(
-			const std::filesystem::path &file,
-			TKeyParser &&keyParser,
-			TElementParser &&elementParser)
+		void _load(const std::filesystem::path &file, TArgs... args)
 		{
 			const Value document = Loader::parseFile(file);
 			const Reader root(document, file);
@@ -104,14 +122,14 @@ namespace spk::JSON
 				const Reader elementReader(array[index], file, path);
 				elementReader.forbidUnknown({"id", "data"});
 
-				ID id = std::invoke(keyParser, elementReader);
+				ID id = _keyParser(elementReader, args...);
 				if (contains(id))
 				{
 					_throwAt(file, elementReader.pathFor("id"), "duplicate catalog ID");
 				}
 
 				const Reader dataReader = elementReader.child("data");
-				std::shared_ptr<const Element> element = std::invoke(elementParser, dataReader);
+				std::shared_ptr<const Element> element = _elementParser(dataReader, args...);
 				if (element == nullptr)
 				{
 					_throwAt(file, dataReader.path(), "catalog element parser returned null");
@@ -119,18 +137,6 @@ namespace spk::JSON
 
 				_elements.emplace(std::move(id), std::move(element));
 			}
-		}
-
-		template <typename TElementParser>
-		void _load(const std::filesystem::path &file, TElementParser &&elementParser)
-		{
-			_load(file, _defaultKeyParser, std::forward<TElementParser>(elementParser));
-		}
-
-		void _load(const std::filesystem::path &file)
-			requires json_readable<Element>
-		{
-			_load(file, _defaultKeyParser, _defaultElementParser);
 		}
 
 	public:
