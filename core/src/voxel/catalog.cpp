@@ -58,9 +58,9 @@ namespace Voxel
 		return Shape(reader);
 	}
 
-	std::shared_ptr<const Shape> Shape::Catalog::_sharedShape(const Shape::ID &id) const
+	const Shape &Shape::Catalog::_emptyShape() const noexcept
 	{
-		return Base::_sharedAt(id);
+		return _empty;
 	}
 
 	void Shape::Catalog::_load(const std::filesystem::path &path)
@@ -69,9 +69,9 @@ namespace Voxel
 	}
 
 	Definition::Catalog::Catalog(const Shape::Catalog &shapes) :
-		_shapes(&shapes)
+		_shapes(shapes)
 	{
-		Base::_insert(0u, Definition());
+		Base::_insert(0u, Definition(_shapes._emptyShape(), {}));
 	}
 
 	Definition::ID Definition::Catalog::_parseKey(const spk::JSON::Reader &reader) const
@@ -94,15 +94,15 @@ namespace Voxel
 	{
 		dataReader.forbidUnknown({"shape", "slots"});
 		const Shape::ID shapeID = dataReader.require<Shape::ID>("shape");
-		if (!_shapes->contains(shapeID))
+		if (!_shapes.contains(shapeID))
 		{
 			throw spk::Exception(
 				dataReader.file().generic_string() + ":" + dataReader.pathFor("shape") + ": unknown voxel Shape ID '" + shapeID + "'");
 		}
 
-		const std::shared_ptr<const Shape> shape = _shapes->_sharedShape(shapeID);
+		const Shape &shape = _shapes.at(shapeID);
 		std::set<std::string> shapeSlots;
-		for (const Shape::Polygon &polygon : shape->polygons())
+		for (const Shape::Polygon &polygon : shape.polygons())
 		{
 			shapeSlots.insert(polygon.slot);
 		}
