@@ -58,7 +58,7 @@ After restart commit ba32a17771b123fd3ebda2009daa3cca6fb5f8d0:
 - Updated the EP-001 capability coverage and ticket index.
 - ST-001-01 is merged into the planning baseline and marked Done; no OQ status was changed by the merge.
 - ST-001-02 is Done and merged through PR #8 after CI run #59 and explicit project-owner approval.
-- OQ-035 is Resolved after the project owner fixed the complete ST-001-03 Volume contract.
+- OQ-035 is Resolved and was refined during ST-001-03 review to the immutable Builder + pooled-buffer contract.
 - ST-001-03 passes the Definition of Ready and is the next implementation ticket.
 - Future implementation tickets should continue to use dedicated feature branches cut from the current planning baseline.
 
@@ -72,11 +72,11 @@ The Epic remains Draft overall because most later contracts still depend on unre
 
 **ST-001-03 — Owning Voxel::Volume** is **In Progress** on `feat/st-001-03-owning-voxel-volume` through draft PR #9.
 
-The implementation now provides the approved owning `Voxel::Volume`: positive validated explicit dimensions/unit size, default-empty construction, contiguous Y-fastest/X/Z Cell storage, checked copy access, read-only `std::span<const Voxel::Cell>`, nested Editor batching through `spk::VersionedTrait`, and the approved copy/move/version semantics.
+The implementation has been revised during project-owner review. `Voxel::Volume` is now an immutable built value backed by shared Content rather than `spk::VersionedTrait`/Editor mutation. `Voxel::Volume::Builder` owns the mutable construction path, with checked writes and destructive reconstruction from a moved Volume. Cell vectors are held through the merged Sparkle `spk::Pool` lease type: exact 16×16×16 dimensions use a dedicated Chunk pool; other shapes use an ordered source-local `std::map<std::size_t, spk::Pool<...>>` with `lower_bound()` to select the exact or smallest higher size class. Unique moved Volumes reuse their existing buffer lease; shared moved Volumes copy into another pooled buffer before mutation.
 
-CI run #66 (run ID `35793568648`) passed clang-format, Linux/Windows Core+Server Debug/Release builds and CTest, plus Windows Client Debug/Release regression builds and CTest.
+The previous CI run #66 covered the superseded Editor implementation. Revised CI for the Builder/pooling implementation is running on the current PR #9 head and must pass before the ticket can be considered complete.
 
-Human project-owner review/approval has not yet been recorded, so the ticket is not Done.
+Human project-owner review/approval has not yet been recorded, so the ticket remains In Progress.
 
 **ST-001-02 — Packed Voxel::Cell value type** is **Done** on `feat/st-001-02-packed-voxel-cell`. The implementation exposes `Voxel::Definition::ID` and `Voxel::Cell::PackedType` as semantic aliases of `std::uint32_t`, keeps the Cell exactly one packed value, and places constructors/masks/getters/validation in `cell.cpp`. PR #8 CI run #59 (run ID `35789150331`) passed clang-format and the Linux/Windows headless Core/Server Debug + Release matrix, including CTest. The project owner explicitly approved the final implementation on 22 September 2026. PR #8 is merged into the planning branch.
 
