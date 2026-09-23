@@ -51,6 +51,7 @@ Required API shape:
 - read-only `unitSize()`;
 - `contains(LocalCoordinate)`;
 - checked `at(LocalCoordinate)` returning a `Voxel::Cell` copy;
+- checked `operator[](LocalCoordinate)` returning the same `Voxel::Cell` copy semantics as `at()`;
 - read-only contiguous `cells()` returning `std::span<const Voxel::Cell>`;
 - `edit()` returning a nested `Voxel::Volume::Editor`;
 - Editor `set(LocalCoordinate, Voxel::Cell)` returning whether the Cell changed;
@@ -97,7 +98,7 @@ This exact mapping is part of the public representation contract.
 ## Checked access and failure behavior
 
 - `contains()` returns false for every coordinate on a default-empty Volume;
-- `at()` outside the Volume throws `spk::Exception`;
+- `at()` and `operator[]` outside the Volume throw `spk::Exception`;
 - Editor `set()` outside the Volume throws `spk::Exception`;
 - explicit construction with any zero dimension throws `spk::Exception`;
 - explicit construction with zero, negative, NaN, positive infinity, or negative infinity unit size throws `spk::Exception`;
@@ -233,8 +234,8 @@ Invalid coordinates include negative coordinates and coordinates exactly equal t
 
 - default Volume has zero dimensions, zero unit size, zero Cells, and version 0;
 - explicit `{2,3,4}` construction stores dimensions/unit size and owns 24 default-empty Cells;
-- `contains()`, `at()`, and `cells()` agree on the exact Y-X-Z storage fixture;
-- `at()` returns a Cell copy;
+- `contains()`, `at()`, `operator[]`, and `cells()` agree on the exact Y-X-Z storage fixture;
+- `at()` and `operator[]` return Cell copies;
 - Cell span is read-only and contiguous.
 
 ### Boundaries
@@ -247,7 +248,7 @@ Invalid coordinates include negative coordinates and coordinates exactly equal t
 
 - every zero explicit dimension is rejected with `spk::Exception`;
 - invalid unit-size fixtures are rejected with `spk::Exception`;
-- negative/out-of-range access is rejected with `spk::Exception`;
+- negative/out-of-range access through both `at()` and `operator[]` is rejected with `spk::Exception`;
 - Editor use after commit is rejected with `spk::Exception`.
 
 ### Failure atomicity

@@ -41,6 +41,7 @@ namespace Voxel
 		[[nodiscard]] UnitSize unitSize() const noexcept;
 		[[nodiscard]] bool contains(const LocalCoordinate &coordinate) const noexcept;
 		[[nodiscard]] Cell at(const LocalCoordinate &coordinate) const;
+		[[nodiscard]] Cell operator[](const LocalCoordinate &coordinate) const;
 		[[nodiscard]] std::span<const Cell> cells() const noexcept;
 		[[nodiscard]] Editor edit();
 	};

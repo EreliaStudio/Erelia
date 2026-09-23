@@ -123,7 +123,7 @@ Its approved first contract includes:
 - explicit positive dimensions and finite positive unit size, with `spk::Exception` for contract-invalid inputs;
 - contiguous owning `std::vector<Voxel::Cell>` storage initialized with empty/default Cells;
 - Y-fastest, then X, then Z storage order: `y + sizeY * (x + sizeX * z)`;
-- checked Cell access returning copies;
+- checked Cell access returning copies through both `at()` and `operator[]`;
 - read-only contiguous access through `std::span<const Voxel::Cell>`;
 - `spk::VersionedTrait` inheritance and nested Editor batching, with one invalidation for each effective committed batch;
 - copyable and movable ownership with fresh version state on copy/move construction, preserved destination subscriptions on assignment, and source invalidation/reset after moves;

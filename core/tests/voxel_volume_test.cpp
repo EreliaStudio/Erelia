@@ -95,6 +95,19 @@ TEST(VoxelVolume, UsesYThenXThenZStorageOrder)
 	EXPECT_EQ(volume.at({1, 2, 3}).packed(), 15u);
 }
 
+TEST(VoxelVolume, BracketAccessMatchesAtAndIsChecked)
+{
+	Voxel::Volume volume({2, 1, 1}, 1.0f);
+	setCell(volume, {1, 0, 0}, 42u);
+	const auto &readOnlyVolume = volume;
+	const Voxel::Volume::LocalCoordinate coordinate{1, 0, 0};
+
+	EXPECT_EQ(readOnlyVolume[coordinate].packed(), readOnlyVolume.at(coordinate).packed());
+	EXPECT_THROW(
+		readOnlyVolume[Voxel::Volume::LocalCoordinate{2, 0, 0}],
+		spk::Exception);
+}
+
 TEST(VoxelVolume, SupportsSingleCellBoundary)
 {
 	Voxel::Volume volume({1, 1, 1}, 1.0f);

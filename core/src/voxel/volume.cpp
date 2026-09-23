@@ -146,6 +146,11 @@ namespace Voxel
 		return _cells[_index(coordinate)];
 	}
 
+	Cell Volume::operator[](const LocalCoordinate &coordinate) const
+	{
+		return at(coordinate);
+	}
+
 	std::span<const Cell> Volume::cells() const noexcept
 	{
 		return _cells;
