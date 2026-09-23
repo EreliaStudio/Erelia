@@ -4,7 +4,6 @@
 #include <atomic>
 #include <mutex>
 #include <string>
-#include <type_traits>
 #include <vector>
 
 #include <container/json/reader.hpp>
@@ -29,7 +28,7 @@ namespace Voxel
 
 		struct OrientedPolygonArray
 		{
-			std::atomic<spk::UUID> uuid{spk::UUID::null()};
+			spk::UUID uuid{spk::UUID::null()};
 			std::vector<Polygon> polygons;
 		};
 
@@ -37,6 +36,7 @@ namespace Voxel
 
 	private:
 		mutable std::array<OrientedPolygonArray, 8> _orientedPolygons;
+		mutable std::array<std::atomic_flag, 8> _orientedPolygonPublished{};
 		mutable std::mutex _orientedPolygonMutex;
 
 		explicit Shape(const spk::JSON::Reader &reader);
@@ -65,6 +65,4 @@ namespace Voxel
 			Cell::FlipOrientation flipOrientation) const;
 	};
 
-	static_assert(std::is_trivially_copyable_v<spk::UUID>);
-	static_assert(std::is_same_v<std::atomic<spk::UUID>::value_type, spk::UUID>);
 }
