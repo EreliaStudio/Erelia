@@ -2,7 +2,7 @@
 
 **Updated:** 23 September 2026
 **Planning branch:** backlog/ep-001-implementation-tickets
-**Active implementation branch observed:** `feat/st-001-03-owning-voxel-volume` via draft PR #9
+**Active implementation branch observed:** `feat/st-001-03-owning-voxel-volume` via PR #9
 
 ## Branch state
 
@@ -10,7 +10,7 @@ Erelia currently uses master as its default branch.
 
 The ticket-materialization baseline remains isolated on `backlog/ep-001-implementation-tickets`, cut from master.
 
-ST-001-01 was merged through PR #7 on 22 September 2026. ST-001-02 was merged through PR #8 into the planning branch at `f03894f76fc996d5fba3241e2e51ead848783cad` on 23 September 2026. OQ-035 is Resolved. ST-001-03 passed the Definition of Ready, has been implemented on `feat/st-001-03-owning-voxel-volume`, and is under review in draft PR #9.
+ST-001-01 was merged through PR #7 on 22 September 2026. ST-001-02 was merged through PR #8 into the planning branch at `f03894f76fc996d5fba3241e2e51ead848783cad` on 23 September 2026. OQ-035 is Resolved. ST-001-03 passed the Definition of Ready, has been implemented on `feat/st-001-03-owning-voxel-volume`, and is awaiting merge through PR #9 after final CI validation.
 
 No main branch is assumed.
 
@@ -59,7 +59,7 @@ After restart commit ba32a17771b123fd3ebda2009daa3cca6fb5f8d0:
 - ST-001-01 is merged into the planning baseline and marked Done; no OQ status was changed by the merge.
 - ST-001-02 is Done and merged through PR #8 after CI run #59 and explicit project-owner approval.
 - OQ-035 is Resolved and was refined during ST-001-03 review to the immutable Builder + pooled-buffer contract.
-- ST-001-03 passes the Definition of Ready and is the next implementation ticket.
+- ST-001-03 passes the Definition of Ready and is the current implementation ticket; its final design has been established during project-owner review and the remaining repository action is merge/completion recording.
 - Future implementation tickets should continue to use dedicated feature branches cut from the current planning baseline.
 
 ## Current implementation phase
@@ -70,13 +70,15 @@ The Epic remains Draft overall because most later contracts still depend on unre
 
 ### Active implementation ticket
 
-**ST-001-03 — Owning Voxel::Volume** is **In Progress** on `feat/st-001-03-owning-voxel-volume` through draft PR #9.
+**ST-001-03 — Owning Voxel::Volume** is **In Progress** on `feat/st-001-03-owning-voxel-volume` through PR #9.
 
-The implementation has been revised during project-owner review. `Voxel::Volume` is now an immutable built value backed by shared Content rather than `spk::VersionedTrait`/Editor mutation. `Voxel::Volume::Builder` owns the mutable construction path, with checked writes and destructive reconstruction from a moved Volume. Cell vectors are held through the merged Sparkle `spk::Pool` lease type: exact 16×16×16 dimensions use a dedicated Chunk pool; other shapes use an ordered source-local `std::map<std::size_t, spk::Pool<...>>` with `lower_bound()` to select the exact or smallest higher size class. Unique moved Volumes reuse their existing buffer lease; shared moved Volumes copy into another pooled buffer before mutation.
+The final implementation direction replaces the superseded `spk::VersionedTrait` / Editor and shared-Content approaches with an immutable built value plus mutable `Voxel::Volume::Builder`. `Voxel::Volume::Buffer` is the semantic Cell-buffer type and exposes `Buffer::Pool` / `Buffer::Lease`; each Volume directly owns dimensions, unit size, and its own Lease. Volume copies deep-copy through Lease copy semantics, moves transfer the Lease, and `Builder(std::move(volume))` reuses the moved Volume's Buffer directly. Read APIs include `contains()`, optional `tryGet()`, checked `at()` / `operator[]`, and read-only contiguous `cells()`.
 
-The previous CI run #66 covered the superseded Editor implementation. Revised CI for the Builder/pooling implementation is running on the current PR #9 head and must pass before the ticket can be considered complete.
+Pool instances remain private to `volume_builder.cpp`: exact 16×16×16 dimensions use a dedicated Chunk `Buffer::Pool`; other sizes use an ordered `std::map<std::size_t, Buffer::Pool>` with `lower_bound()` to select the exact or smallest higher size class and create an exact new class only when no suitable class exists.
 
-Human project-owner review/approval has not yet been recorded, so the ticket remains In Progress.
+CI run #96 passed every Linux/Windows Core+Server and Windows Client build/test job; its only failure was clang-format in `volume_builder.cpp`. That formatting issue was corrected on production-code head `9a3365450cedaa47d4e7bbcca9e53cf783b785d0`, and follow-up PR CI is validating the finalized code/documentation state.
+
+The ticket remains In Progress until PR #9 is merged and that merge is recorded in the planning baseline.
 
 **ST-001-02 — Packed Voxel::Cell value type** is **Done** on `feat/st-001-02-packed-voxel-cell`. The implementation exposes `Voxel::Definition::ID` and `Voxel::Cell::PackedType` as semantic aliases of `std::uint32_t`, keeps the Cell exactly one packed value, and places constructors/masks/getters/validation in `cell.cpp`. PR #8 CI run #59 (run ID `35789150331`) passed clang-format and the Linux/Windows headless Core/Server Debug + Release matrix, including CTest. The project owner explicitly approved the final implementation on 22 September 2026. PR #8 is merged into the planning branch.
 
@@ -107,7 +109,7 @@ See EP-001 `tickets/README.md` for the full status/dependency table.
 
 ## Next
 
-1. Project owner reviews PR #9; if approved, record approval, mark ST-001-03 Done, and merge it into the planning branch.
+1. Merge PR #9 after final CI is green; then record the merge on the planning baseline and mark ST-001-03 Done.
 2. Resolve the minimal Definition/Shape specification gap and OQ-039 before ST-001-04 / generator fixtures become Ready.
 3. Resolve OQ-037 / OQ-038 before Chunk codec, Server handler, and Client cache/request coordination become Ready.
 4. Resolve OQ-036 before Client boundary meshing and adjacent-Chunk integration become Ready.
@@ -125,6 +127,6 @@ EP-001 is constrained by DR-001 through DR-004, DR-007, DR-009 through DR-017 an
 
 ## First Epic
 
-EP-001 — Voxel Terrain Delivery and Visual Validation remains Draft, with 16 materialized implementation tickets, ST-001-01 / ST-001-02 Done, and ST-001-03 In Progress awaiting project-owner approval on PR #9. OQ-035 is Resolved.
+EP-001 — Voxel Terrain Delivery and Visual Validation remains Draft, with 16 materialized implementation tickets, ST-001-01 / ST-001-02 Done, and ST-001-03 In Progress awaiting merge through PR #9. OQ-035 is Resolved.
 
 It intentionally excludes production Hero movement, collision, followers, combat, resources, and production world generation. The temporary free-flight controller exists only to inspect rendered terrain.
