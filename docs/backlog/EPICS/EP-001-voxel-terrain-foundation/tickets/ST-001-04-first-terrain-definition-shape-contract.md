@@ -715,7 +715,7 @@ The public behavior, ownership, lifecycle, loading/error behavior, deterministic
 
 ## Completion evidence
 
-**Implementation state:** Implementation revised; fresh validation and project-owner approval pending.
+**Implementation state:** Technically complete; project-owner approval pending.
 
 Implementation remains on:
 
@@ -727,7 +727,8 @@ Implementation remains on:
 - final formatting corrections before the catalog redesign: `0407a8081499acc4b6380702b066a8b0480dce36`, `a67fbf89c88322d2e6e0417a78d7a62da14d94d4`, and `44aaf1d509c231bb5f69ad9775a97349af959ba3`;
 - virtual JSON-catalog foundation: `19d2efe8768bef36c01da07877e448afb13153af`, `1fd28eeaf84d67242fc263c600e62b3af3b6642c`, and `33768efcd45427bd182e7bbc8094e8af2bd3c061`;
 - value-returning catalog parsing / movable Shape: `b2f8cc97b95c8f4842c2c67830e069f3fd1b053f` through `97151c24c550205d46ea5a6f6a70df97d0ba2cfd`;
-- Definition `const Shape&` ownership and Air empty-Shape sentinel: `afb350ca5cce99d1d206d301002df4d0ceb1feec` through `0ced9a3c0d84ce055e1341e00734b9f56ae9709c`.
+- Definition `const Shape&` ownership and Air empty-Shape sentinel: `afb350ca5cce99d1d206d301002df4d0ceb1feec` through `0ced9a3c0d84ce055e1341e00734b9f56ae9709c`;
+- direct-value JSON catalog storage and reference-stability coverage: `8d8331bf60b8c598eb078c1a4a7c06f45db09c30`, `feffb7800175de091b4fdd2e58f4c49acc64724a`, and `104ad99c20f67dae6e40ae1aec65288e93acff5d`.
 
 The implementation preserves authored JSON polygon vertex order, derives normals from that order, validates the required structural polygon properties, and reverses transformed vertex order only for the specified `NegativeY` mirror. The lazy eight-way cache retains the approved acquire-load / mutex re-check / complete construction / release-store UUID publication contract. Linux links `libatomic` transitively through `EreliaCore` because `std::atomic<spk::UUID>` requires the platform atomic runtime there. The catalog implementation now uses an Erelia-local `spk::JSON::Catalog<TElement>` abstract base with two pure virtual Reader-based parsing hooks returning plain values and no `detail` namespace. `Voxel::Definition` holds a non-owning `const Shape&`; Air references a private Shape-catalog sentinel with zero polygons.
 
@@ -765,4 +766,4 @@ CI run #127 validated implementation head `44aaf1d509c231bb5f69ad9775a97349af959
 
 The concurrent cache test uses 12 threads racing the same previously unmaterialized Orientation/Flip entry and verifies that all callers observe the same entry, UUID, and immutable geometry after publication.
 
-CI run #182 (run ID `35901607987`) validated the prior value-returning/reference-based implementation before direct-value catalog storage was introduced. The current direct-storage refactor and expanded catalog/reference-stability tests require a fresh complete CI pass before technical completion can be re-recorded. The ticket remains **In Progress**. Explicit project-owner approval required by `DEFINITION-OF-DONE.md` is also still pending, and PR #11 must not be merged until separately authorized.
+CI run #198 (run ID `35924701600`) validated complete direct-value catalog code head `104ad99c20f67dae6e40ae1aec65288e93acff5d` successfully across clang-format, Linux Core/Server Debug + Release, Windows Core/Server Debug + Release, and Windows Client Debug + Release. This includes the dedicated generic JSON Catalog tests and Definition/Shape reference-stability regression. Subsequent commits only synchronize decision/management documentation with that validated code. The ticket remains **In Progress**, not Done, solely because explicit project-owner approval required by `DEFINITION-OF-DONE.md` has not yet been recorded. PR #11 must not be merged until separately authorized.
