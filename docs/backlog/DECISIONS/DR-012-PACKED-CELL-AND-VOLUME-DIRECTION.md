@@ -53,31 +53,36 @@ Every raw `Voxel::Cell::PackedType` is a valid packed Cell representation. Logic
 
 ### Volume
 
-Introduce a reusable owning voxel container named **`Voxel::Volume`**.
+Introduce a reusable immutable built voxel container named **`Voxel::Volume`** with a nested mutable **`Voxel::Volume::Builder`**.
 
 The approved Volume contract is:
 
-- derive from `spk::VersionedTrait`;
 - `LocalCoordinate` is `spk::Vector3Int`;
 - dimensions are `spk::Vector3UInt`;
 - `UnitSize` is `float`;
-- default construction creates the sole valid empty Volume: zero dimensions, zero unit size, and zero Cells;
-- explicit construction requires all dimensions > 0 and a finite unit size > 0;
-- the Cell count must be representable by `std::size_t`; overflow is rejected with `spk::Exception`, while representable allocation failure may propagate the standard allocation exception;
-- own contiguous `std::vector<Voxel::Cell>` storage initialized with default/empty Cells;
-- use Y-fastest, then X, then Z storage order:
-  `index = y + sizeY * (x + sizeX * z)`;
-- checked access returns a `Voxel::Cell` copy and throws `spk::Exception` outside the Volume;
-- expose read-only contiguous access as `std::span<const Voxel::Cell>`;
-- mutate only through a nested Editor that batches effective writes and publishes one `VersionedTrait` invalidation when committed;
-- no-op Editor batches publish no invalidation; Editor destruction commits; explicit commit is idempotent; use after commit throws `spk::Exception`;
-- copy construction produces an independent logical copy with a fresh version state and no copied subscriptions;
-- copy assignment preserves destination subscriptions and invalidates the destination once after successful replacement;
-- move construction/assignment reset the source to the valid default-empty state and invalidate/notify the source once; the moved-to object has a fresh version state on move construction, while move assignment preserves destination subscriptions and invalidates the destination once;
-- ordinary Editor writes do not invalidate a previously returned Cell span because the storage size is fixed after construction; destruction and state-replacing assignment invalidate such views, and pre-move source views are invalid after move construction;
+- default Volume construction creates the valid empty value: zero dimensions, zero unit size, and zero Cells;
+- non-empty Volumes are produced through `Voxel::Volume::Builder(dimensions, unitSize)`;
+- Builder construction requires all dimensions > 0 and a finite unit size > 0;
+- Cell count must be representable by `std::size_t`;
+- Builder storage is contiguous `std::vector<Voxel::Cell>` obtained through a Sparkle Pool lease and initialized with default/empty Cells;
+- storage order is Y-fastest, then X, then Z: `index = y + sizeY * (x + sizeX * z)`;
+- `Builder::set()` is checked and returns true only when the packed Cell value changes;
+- `std::move(builder).build()` transfers the Builder backing Content into an immutable Volume;
+- built Volume exposes only read operations: dimensions, unit size, `contains()`, checked `at()` / `operator[]` returning Cell copies, and read-only contiguous `cells()`;
+- Volume copies share the same immutable backing Content and therefore do not duplicate Cell storage;
+- Volume moves transfer the backing Content and leave the source default-empty;
+- constructing a Builder from `std::move(volume)` consumes that Volume;
+- if the consumed Volume backing Content is uniquely owned, Builder reuses that Content and its existing Pool lease without copying;
+- if the backing Content is shared by other Volume copies, Builder obtains another pooled Cell buffer and copies the logical Cells before mutation;
+- the last Content owner returning/destroying its lease returns the vector to its originating Pool;
+- Pool instances are source-file implementation details of the Builder;
+- exact 16×16×16 dimensions use a dedicated Chunk Cell-buffer Pool;
+- all other dimensions use an ordered `std::map<std::size_t, spk::Pool<std::vector<Voxel::Cell>>>` keyed by size class;
+- general selection uses `lower_bound(requestedCellCount)`: exact class when present, otherwise the smallest higher class, otherwise a newly-created class at the requested size;
+- pool factories reserve their size-class capacity; per-obtain preparation resets the vector logical contents while preserving reusable capacity;
+- `Voxel::Volume` no longer derives from `spk::VersionedTrait` and no Editor API is part of the contract;
 - no local-bounds API is part of this first Volume contract.
 
-The abstraction represents groups of voxel cells generically, including fixed-size terrain Chunk payloads and later runtime-sized voxel models where applicable.
 
 ## Consequences
 
@@ -86,7 +91,7 @@ The abstraction represents groups of voxel cells generically, including fixed-si
 - Server and Client share the same Cell semantics in Core.
 - `Voxel::Volume` is not inherently a world Chunk: world position/Chunk coordinate remains separate semantic information.
 - EP-001 network responses may therefore naturally contain `{chunkCoordinate, volumeData}`.
-- The Volume storage/indexing, validation, editor/versioning, contiguous-view, and copy/move contracts are fixed by this record; wire byte-order remains a separate follow-up contract.
+- The Volume storage/indexing, Builder, pooled-buffer, immutable-sharing, contiguous-view, and copy/move contracts are fixed by this record; wire byte-order remains a separate follow-up contract.
 - `spk::Message << Voxel::Volume` / `>>` is the approved ergonomic serialization direction; see DR-017.
 
 ## Required tests
@@ -103,13 +108,14 @@ Once the remaining exact contracts are resolved:
 - every raw `Voxel::Cell::PackedType` value round-trips exactly;
 - Volume default/explicit construction, Y-X-Z storage-order, checked-access, and span tests;
 - invalid dimension/product-overflow/coordinate/unit-size tests;
-- Editor batching/no-op/commit/use-after-commit/version-notification tests;
-- copy/move construction and assignment ownership/version/subscriber tests;
-- contiguous-view lifetime tests across ordinary edits and state replacement.
+- Builder mutation, checked-rejection, build, and moved-Volume reconstruction tests;
+- cheap shared Volume copy/assignment tests;
+- unique-Content Builder reuse and shared-Content copy-on-build tests;
+- dedicated Chunk-pool and ordered general size-class reuse tests.
 
 ## Resolution provenance
 
-Resolved directly by the project owner on 2026-09-22 while answering Q-035 and providing the archived prototype as the preferred design basis.
+Resolved directly by the project owner on 2026-09-22 and refined during ST-001-03 review on 2026-09-23 after introducing the reusable Sparkle Pool.
 
 ## Supersession
 
