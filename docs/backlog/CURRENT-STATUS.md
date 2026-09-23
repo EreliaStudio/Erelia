@@ -55,7 +55,7 @@ DR-018 now fixes the first shared voxel Shape/Definition/Catalog contract, inclu
 - convex planar CCW polygons with semantic slots and derived normals;
 - revised Cell Orientation ordering `PositiveX=0, NegativeZ=1, NegativeX=2, PositiveZ=3`, directly representing CCW quarter-turn count;
 - `NegativeY` mirroring around `Y=0.5` with polygon rewinding;
-- lazy, mutex-protected eight-way oriented polygon caching with atomic `spk::UUID` publication and lock-free published reads;
+- lazy, mutex-protected eight-way oriented polygon caching with lock-free `std::atomic_flag` publication and immutable `spk::UUID` cache identity;
 - aggregate `Voxel::Catalog` JSON loading and typed Shape/Definition lookup behavior;
 - catalog-created Definition ID 0 Air;
 - incremental load/failure behavior;
@@ -78,27 +78,18 @@ EP-001 is still Draft overall, but implementation is active.
 
 **ST-001-04 — First terrain Definition and Shape contract** is **In Progress** on PR #11.
 
-The branch contains the first shared `Voxel::Shape` / `Voxel::Definition` / `Voxel::Catalog` implementation, `Voxel::Material::ID`, the revised Cell Orientation ordering, JSON catalog loading, immutable Definition-to-Shape ownership, exact eight-way Orientation/Flip geometry transforms, the lazy UUID-published oriented polygon cache, focused tests, and active cube/slab/slope/stair Shape resources.
+The branch contains the first shared `Voxel::Shape` / `Voxel::Definition` / `Voxel::Catalog` implementation, `Voxel::Material::ID`, the revised Cell Orientation ordering, JSON catalog loading, immutable Definition-to-Shape ownership, exact eight-way Orientation/Flip geometry transforms, the lazy publication-flag oriented polygon cache, focused tests, and active cube/slab/slope/stair Shape resources.
 
 The Shape loader preserves polygon vertex order authored in JSON and derives normals from that order. It validates polygon geometry without inventing an outward-facing direction; only the required `NegativeY` mirror reverses transformed polygon winding.
 
-Current validation evidence is **not sufficient for Done**:
+The original CI failures were corrected and CI run #127 passed the complete matrix. A subsequent project-owner direction removed the Linux `libatomic` dependency: cache publication now uses a guaranteed lock-free `std::atomic_flag` while UUID remains immutable ordinary data written before publication. Validation of that final no-`libatomic` variant is in progress.
 
-- PR #11 is open.
-- CI run #122 completed with failure.
-- Windows Core/Server Debug and Release passed.
-- Windows Client Debug and Release passed.
-- `clang-format` failed.
-- Linux Core/Server Debug and Release failed during the Erelia build.
-- Required project-owner approval has not yet been recorded.
-
-The next implementation agent must diagnose those remaining CI failures, correct only ST-001-04-owned issues, rerun the required validation, finalize completion evidence, and mark the ticket Done only after every Definition-of-Done requirement and human approval are satisfied.
+Required project-owner approval for Definition of Done has not yet been recorded.
 
 ### Next
 
-1. Finish ST-001-04 validation and corrections on the existing `feat/st-001-04-definition-shape-contract` branch and PR #11; do not recreate it from `master`.
-2. Resolve the current clang-format and Linux Core/Server CI failures, then rerun the required regression/build matrix.
-3. Record project-owner approval and mark ST-001-04 Done only after its Definition of Done is actually satisfied.
+1. Finish validation of the final no-`libatomic` ST-001-04 cache-publication implementation on the existing `feat/st-001-04-definition-shape-contract` branch and PR #11.
+2. Record project-owner approval and mark ST-001-04 Done only after its Definition of Done is actually satisfied.
 4. After ST-001-04, reassess the dependency order rather than skipping unresolved gates.
 5. Resolve OQ-039's remaining generator-scene details before ST-001-06.
 6. Resolve OQ-037/OQ-038 before the dependent Chunk networking/request tickets.
