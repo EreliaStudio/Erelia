@@ -159,7 +159,7 @@ namespace erelia::server
 			spk::Singleton<spk::WorkerPool>::instance();
 
 		RequestSet::container_type requests;
-		_requested.drain(requests);
+		(void)_requested.drain(requests);
 
 		for (const Chunk::Collection::Request &request : requests)
 		{
