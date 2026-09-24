@@ -4,7 +4,9 @@ add_library(EreliaCore STATIC
     src/voxel/cell.cpp
     src/voxel/catalog.cpp
     src/voxel/definition.cpp
+    src/voxel/definition_catalog.cpp
     src/voxel/shape.cpp
+    src/voxel/shape_catalog.cpp
     src/voxel/volume.cpp
     src/voxel/volume_builder.cpp
 )
