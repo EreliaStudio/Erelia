@@ -1,0 +1,7 @@
+{
+  "server config": {
+    "port": 0,
+    "nodeReconnectDelayMs": 1000
+  },
+  "nodes": []
+}
