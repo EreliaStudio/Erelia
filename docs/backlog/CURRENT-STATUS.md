@@ -30,7 +30,7 @@ ST-001-07 does not invent Chunk message IDs or handlers; those remain ST-001-08/
 
 ## Current implementation phase
 
-**ST-001-07 is Ready and implementation is in progress on the active branch.**
+**ST-001-07 is In Progress.** Production code, tests, remote terrain-node structure, configuration, and developer tooling are implemented on the active branch. Execution/CI evidence and project-owner review are still required before marking it Finished.
 
 ## Explicit non-goals
 
