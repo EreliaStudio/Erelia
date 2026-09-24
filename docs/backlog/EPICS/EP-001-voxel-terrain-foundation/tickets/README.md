@@ -14,7 +14,7 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-04 — First terrain Definition and Shape contract](ST-001-04-first-terrain-definition-shape-contract.md) | **Done** | ST-001-02; DR-018 |
 | [ST-001-05 — Voxel::Volume Message serialization](ST-001-05-voxel-volume-message-serialization.md) | **Done** | ST-001-02, ST-001-03; OQ-037 resolved |
 | [ST-001-06 — Deterministic validation terrain provider and Chunk collection foundation](ST-001-06-deterministic-validation-terrain-generator.md) | **Finished** | ST-001-01 through ST-001-05; DR-019; DR-020; OQ-039 resolved |
-| [ST-001-07 — Server NodeRouter terrain-node bootstrap](ST-001-07-server-node-router-terrain-node-bootstrap.md) | **Draft** | Server endpoint/lifecycle specification |
+| [ST-001-07 — Server NodeRouter remote terrain-node bootstrap](ST-001-07-server-node-router-terrain-node-bootstrap.md) | **Ready** | ST-001-06; DR-016; DR-021 |
 | [ST-001-08 — Batched Chunk request/response protocol contract](ST-001-08-batched-chunk-protocol-contract.md) | **Blocked** | ST-001-01, ST-001-03, ST-001-05; OQ-038 |
 | [ST-001-09 — Server Chunk request handler](ST-001-09-server-chunk-request-handler.md) | **Blocked** | ST-001-06, ST-001-07, ST-001-08; OQ-038 |
 | [ST-001-10 — Client dedicated-Server connection](ST-001-10-client-dedicated-server-connection.md) | **Draft** | ST-001-07; endpoint/connection-lifecycle specification |
@@ -49,7 +49,7 @@ Existing OQs:
 
 Additional Draft-ticket specification gaps exposed by decomposition:
 
-- exact EP-001 Server endpoint and Client connection lifecycle/configuration;
+- Client connection lifecycle/configuration after the now-resolved ST-001-07 Server endpoint/runtime contract;
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
