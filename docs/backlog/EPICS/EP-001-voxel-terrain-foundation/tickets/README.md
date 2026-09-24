@@ -13,8 +13,8 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-03 — Owning Voxel::Volume](ST-001-03-owning-voxel-volume.md) | **Done** | ST-001-02; OQ-035 resolved |
 | [ST-001-04 — First terrain Definition and Shape contract](ST-001-04-first-terrain-definition-shape-contract.md) | **Done** | ST-001-02; DR-018 |
 | [ST-001-05 — Voxel::Volume Message serialization](ST-001-05-voxel-volume-message-serialization.md) | **Done** | ST-001-02, ST-001-03; OQ-037 resolved |
-| [ST-001-06 — Deterministic validation terrain provider and Chunk collection foundation](ST-001-06-deterministic-validation-terrain-generator.md) | **Finished** | ST-001-01 through ST-001-05; DR-019; DR-020; OQ-039 resolved |
-| [ST-001-07 — Server NodeRouter remote terrain-node bootstrap](ST-001-07-server-node-router-terrain-node-bootstrap.md) | **Ready** | ST-001-06; DR-016; DR-021 |
+| [ST-001-06 — Deterministic validation terrain provider and Chunk collection foundation](ST-001-06-deterministic-validation-terrain-generator.md) | **Done** | ST-001-01 through ST-001-05; DR-019; DR-020; OQ-039 resolved |
+| [ST-001-07 — Server NodeRouter remote terrain-node bootstrap](ST-001-07-server-node-router-terrain-node-bootstrap.md) | **In Progress** | ST-001-06; DR-016; DR-021 |
 | [ST-001-08 — Batched Chunk request/response protocol contract](ST-001-08-batched-chunk-protocol-contract.md) | **Blocked** | ST-001-01, ST-001-03, ST-001-05; OQ-038 |
 | [ST-001-09 — Server Chunk request handler](ST-001-09-server-chunk-request-handler.md) | **Blocked** | ST-001-06, ST-001-07, ST-001-08; OQ-038 |
 | [ST-001-10 — Client dedicated-Server connection](ST-001-10-client-dedicated-server-connection.md) | **Draft** | ST-001-07; endpoint/connection-lifecycle specification |
@@ -53,4 +53,4 @@ Additional Draft-ticket specification gaps exposed by decomposition:
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
-ST-001-01 through ST-001-05 are merged into `master`. OQ-039 and the ST-001-06 readiness decisions are resolved. ST-001-06 is **Finished**: its implementation branch contains the shared immutable Volume/Chunk work, asynchronous Collection/Provider state machine, deterministic prototype terrain provider, mixed catalog resources, and local headless async infrastructure prototypes. Project-owner review is complete and the branch is ready to merge.
+ST-001-01 through ST-001-05 are merged into `master`. OQ-039 and the ST-001-06 readiness decisions are resolved. ST-001-06 is **Done** and merged through PR #13. ST-001-07 is now the active implementation ticket on `feat/st-001-07-server-node-router-terrain-node-bootstrap`.
