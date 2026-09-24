@@ -153,7 +153,7 @@ namespace Voxel
 		reader.forbidUnknown({"slot", "vertices"});
 
 		Polygon result;
-		result.slot = reader.require<std::string>("slot");
+		result.slot = reader.require<Material::SlotID>("slot");
 		if (result.slot.empty())
 		{
 			throw spk::Exception(reader.file().generic_string() + ":" + reader.pathFor("slot") + ": voxel polygon slot cannot be empty");
