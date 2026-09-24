@@ -191,9 +191,7 @@ TEST(ThreadSafeQueue, MultipleProducersDeliverEveryValueExactlyOnce)
 		producers.emplace_back(
 			[producer = endpoints.producer(),
 			 producerIndex]() mutable {
-				for (int valueIndex = 0;
-				 valueIndex < ValuesPerProducer;
-				 ++valueIndex)
+				for (int valueIndex = 0; valueIndex < ValuesPerProducer; ++valueIndex)
 				{
 					producer.publish(
 						producerIndex * ValuesPerProducer +
