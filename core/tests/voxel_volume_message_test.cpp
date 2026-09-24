@@ -366,7 +366,7 @@ TEST(VoxelVolumeMessage, MissingHugeCellBlockIsRejectedBeforeAllocation)
 	expectDecodeFailurePreservesDestination(message);
 }
 
-TEST(VoxelVolumeMessage, DecodeReusesDestinationBufferFromTheSamePoolClass)
+TEST(VoxelVolumeMessage, DecodePublishesFreshBufferWithinTheSamePoolClass)
 {
 	Voxel::Volume::Builder destinationBuilder({10, 10, 50}, 1.0f);
 	Voxel::Volume destination = std::move(destinationBuilder).build();
@@ -380,8 +380,32 @@ TEST(VoxelVolumeMessage, DecodeReusesDestinationBufferFromTheSamePoolClass)
 	message << source;
 	message >> destination;
 
-	EXPECT_EQ(destination.cells().data(), originalData);
+	EXPECT_NE(destination.cells().data(), originalData);
 	expectVolumesEqual(destination, source);
+}
+
+TEST(VoxelVolumeMessage, DecodeDoesNotMutateAnotherVolumeSharingOldDestinationContent)
+{
+	Voxel::Volume::Builder destinationBuilder({10, 10, 50}, 1.0f);
+	ASSERT_TRUE(destinationBuilder.set({9, 9, 49}, Voxel::Cell(456u)));
+	Voxel::Volume destination = std::move(destinationBuilder).build();
+	const Voxel::Volume oldSnapshot(destination);
+	const Voxel::Cell *oldStorage = destination.cells().data();
+
+	Voxel::Volume::Builder sourceBuilder({10, 10, 70}, 0.5f);
+	ASSERT_TRUE(sourceBuilder.set({9, 9, 69}, Voxel::Cell(123u)));
+	const Voxel::Volume source = std::move(sourceBuilder).build();
+
+	spk::Message message;
+	message << source;
+	message >> destination;
+
+	EXPECT_NE(destination.cells().data(), oldStorage);
+	expectVolumesEqual(destination, source);
+	EXPECT_EQ(oldSnapshot.cells().data(), oldStorage);
+	EXPECT_EQ(oldSnapshot.at({9, 9, 49}).packed(), 456u);
+	EXPECT_EQ(oldSnapshot.dimensions(), (spk::Vector3UInt{10, 10, 50}));
+	EXPECT_EQ(oldSnapshot.unitSize(), 1.0f);
 }
 
 TEST(VoxelVolumeMessage, SamePoolTruncationDoesNotMutateDestinationBuffer)

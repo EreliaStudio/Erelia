@@ -206,7 +206,7 @@ TEST(VoxelVolumeBuilder, RejectsInvalidCoordinatesWithoutMutatingOtherCells)
 	EXPECT_EQ(volume.at({1, 0, 0}).packed(), 9u);
 }
 
-TEST(VoxelVolume, CopyConstructionCreatesIndependentPooledStorage)
+TEST(VoxelVolume, CopyConstructionSharesImmutablePooledStorage)
 {
 	const auto source = makeVolumeWithCell({2, 1, 1}, 0.5f, {1, 0, 0}, 17u);
 	const Voxel::Volume copy(source);
@@ -214,10 +214,10 @@ TEST(VoxelVolume, CopyConstructionCreatesIndependentPooledStorage)
 	EXPECT_EQ(copy.dimensions(), source.dimensions());
 	EXPECT_EQ(copy.unitSize(), source.unitSize());
 	EXPECT_EQ(copy.cells()[1].packed(), 17u);
-	EXPECT_NE(copy.cells().data(), source.cells().data());
+	EXPECT_EQ(copy.cells().data(), source.cells().data());
 }
 
-TEST(VoxelVolume, CopyAssignmentCreatesIndependentPooledStorage)
+TEST(VoxelVolume, CopyAssignmentSharesImmutablePooledStorage)
 {
 	const auto source = makeVolumeWithCell({2, 1, 1}, 0.5f, {1, 0, 0}, 17u);
 	Voxel::Volume destination = makeVolume({1, 1, 1}, 1.0f);
@@ -226,8 +226,27 @@ TEST(VoxelVolume, CopyAssignmentCreatesIndependentPooledStorage)
 
 	EXPECT_EQ(destination.dimensions(), source.dimensions());
 	EXPECT_EQ(destination.unitSize(), source.unitSize());
-	EXPECT_NE(destination.cells().data(), source.cells().data());
+	EXPECT_EQ(destination.cells().data(), source.cells().data());
 	EXPECT_EQ(destination.cells()[1].packed(), 17u);
+}
+
+TEST(VoxelVolume, SharedContentSurvivesReplacementAndDestructionOfAnotherCopy)
+{
+	Voxel::Volume survivor;
+	const Voxel::Cell *sharedStorage = nullptr;
+
+	{
+		auto source = makeVolumeWithCell({2, 1, 1}, 0.5f, {1, 0, 0}, 17u);
+		survivor = source;
+		sharedStorage = source.cells().data();
+
+		source = makeVolumeWithCell({2, 1, 1}, 0.5f, {0, 0, 0}, 99u);
+		EXPECT_NE(source.cells().data(), sharedStorage);
+	}
+
+	EXPECT_EQ(survivor.cells().data(), sharedStorage);
+	EXPECT_EQ(survivor.at({0, 0, 0}).packed(), 0u);
+	EXPECT_EQ(survivor.at({1, 0, 0}).packed(), 17u);
 }
 
 TEST(VoxelVolume, MoveTransfersContentAndLeavesSourceEmpty)
@@ -260,14 +279,14 @@ TEST(VoxelVolumeBuilder, MovingUniqueVolumeIntoBuilderReusesItsBuffer)
 	EXPECT_EQ(rebuilt.at({1, 0, 0}).packed(), 17u);
 }
 
-TEST(VoxelVolumeBuilder, MovingCopiedVolumeIntoBuilderReusesOnlyMovedVolumesBuffer)
+TEST(VoxelVolumeBuilder, MovingSharedVolumeIntoBuilderCopiesBeforeMutation)
 {
 	auto volume = makeVolumeWithCell({2, 1, 1}, 0.5f, {1, 0, 0}, 17u);
 	const Voxel::Volume copy(volume);
 	const auto *volumeData = volume.cells().data();
 	const auto *copyData = copy.cells().data();
 
-	ASSERT_NE(volumeData, copyData);
+	ASSERT_EQ(volumeData, copyData);
 
 	Voxel::Volume::Builder builder(std::move(volume));
 	expectDefaultVolume(volume);
@@ -275,7 +294,7 @@ TEST(VoxelVolumeBuilder, MovingCopiedVolumeIntoBuilderReusesOnlyMovedVolumesBuff
 	EXPECT_TRUE(builder.set({0, 0, 0}, Voxel::Cell(23u)));
 	const auto rebuilt = std::move(builder).build();
 
-	EXPECT_EQ(rebuilt.cells().data(), volumeData);
+	EXPECT_NE(rebuilt.cells().data(), volumeData);
 	EXPECT_NE(rebuilt.cells().data(), copyData);
 	EXPECT_EQ(rebuilt.at({0, 0, 0}).packed(), 23u);
 	EXPECT_EQ(rebuilt.at({1, 0, 0}).packed(), 17u);

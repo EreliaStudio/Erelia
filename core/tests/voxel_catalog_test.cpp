@@ -6,7 +6,9 @@
 #include <exception.hpp>
 #include <gtest/gtest.h>
 
+#include <array>
 #include <filesystem>
+#include <utility>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -32,6 +34,37 @@ namespace
 		std::ostringstream content;
 		content << stream.rdbuf();
 		return content.str();
+	}
+}
+
+TEST(VoxelCatalog, ApprovedResourcesExerciseAggregateAndDirectRootForms)
+{
+	Voxel::Catalog catalog;
+	catalog.loadShape(voxel_test::shapeResourcePath());
+	catalog.loadShape(voxel_test::slopeShapeResourcePath());
+	catalog.loadShape(voxel_test::stairShapeResourcePath());
+	catalog.loadDefinition(voxel_test::definitionResourcePath());
+	catalog.loadDefinition(voxel_test::slopeDefinitionResourcePath());
+	catalog.loadDefinition(voxel_test::stairDefinitionResourcePath());
+
+	ASSERT_TRUE(catalog.shapes().contains("cube"));
+	ASSERT_TRUE(catalog.shapes().contains("slope"));
+	ASSERT_TRUE(catalog.shapes().contains("stair"));
+	ASSERT_TRUE(catalog.shapes().contains("slab"));
+
+	const std::array expected = {
+		std::pair<Voxel::Definition::ID, std::string>{1u, "cube"},
+		std::pair<Voxel::Definition::ID, std::string>{2u, "slope"},
+		std::pair<Voxel::Definition::ID, std::string>{3u, "stair"},
+		std::pair<Voxel::Definition::ID, std::string>{4u, "slab"}};
+
+	for (const auto &[definitionID, shapeID] : expected)
+	{
+		const auto &definition = catalog.definitions().at(definitionID);
+		EXPECT_EQ(&definition.shape(), &catalog.shapes().at(shapeID));
+		EXPECT_EQ(definition.slots().at("side"), shapeID + "-side");
+		EXPECT_EQ(definition.slots().at("top"), shapeID + "-top");
+		EXPECT_EQ(definition.slots().at("bottom"), shapeID + "-bottom");
 	}
 }
 
