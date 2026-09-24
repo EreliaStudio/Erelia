@@ -3,6 +3,7 @@
 **Purpose:** give a future planning session a high-density understanding of Erelia without re-reading the entire repository.
 **Authority:** summary only. The GDD and later explicit decisions remain authoritative.
 **GDD snapshot:** see SOURCE-BASELINE.md.
+**Implementation companion:** see IMPLEMENTATION-CONTEXT.md for coding/API taste and project working conventions.
 
 ## 1. Product identity
 
@@ -188,7 +189,11 @@ Voxel geometry may be deterministic from seeds while dynamic entities synchroniz
 
 Gameplay simulation determines movement, collision, combat occupancy, and effect timing. Animation and visual geometry do not authoritatively determine damage or other outcomes.
 
-A local authoritative host may be used for early validation if it preserves the same command boundary as the later dedicated server.
+The GDD permits a local authoritative host for early validation, but the greenfield architecture decision is stricter: Erelia will use a real dedicated Server process and a separate Client process from the first playable. Core is shared by both programs but is not an authority layer.
+
+The approved ownership rule is: Server decides authoritative outcomes; Client owns input/presentation and may perform explicitly speculative prediction; Core provides shared reusable tools, algorithms, types, and representations. Client prediction must yield to Server state.
+
+Core may directly depend on Sparkle Core for shared/headless-safe foundations such as math/vector types and generic algorithms. This does not authorize graphics/presentation-only dependencies in Core.
 
 Telemetry should be authoritative-server driven where practical and event-oriented.
 
@@ -217,3 +222,45 @@ Whether this recommendation becomes the actual implementation roadmap is still a
 The active Erelia repository currently contains only a fresh Core/Server/Client scaffold, build configuration, smoke/status functions, per-layer GoogleTest suites, CI, and Sparkle dependency wiring.
 
 Do not infer future architecture from those placeholder status functions or archived code.
+
+
+## 18. Approved greenfield architecture decisions
+
+As of 22 September 2026:
+
+- Core / Server / Client are deliberate long-term product boundaries.
+- Core is the common reusable library for code and representations useful to both Server and Client.
+- Server owns every authoritative shared/persistent gameplay decision and state transition.
+- Client owns input and presentation and may run explicitly speculative/predictive logic, but Server state always wins.
+- Core may depend directly on Sparkle Core where the dependency is suitable for both Client and headless Server use.
+- The first playable uses a real dedicated Server process and separate Client process; no in-process authoritative-host stage is planned.
+- See DECISIONS/DR-001 through DR-003 and ARCHITECTURE/ARCH-001.
+
+
+## 19. Current near-term implementation focus — EP-001
+
+The first implementation Epic is EP-001 — Voxel Terrain Delivery and Visual Validation.
+
+Its purpose is to prove the first foundational end-to-end path before production movement/gameplay systems:
+
+- Core defines shared terrain Chunk/voxel contracts.
+- Server deterministically constructs simple 16×16×16 terrain Chunks.
+- Client connects to the real dedicated Server process.
+- Client requests nearby Chunks through the network boundary.
+- Server returns canonical Chunk data.
+- Client meshes/renders received terrain.
+- A temporary free-flight 3D inspection controller provides keyboard/camera movement for human visual validation.
+
+Production Hero locomotion, movement prediction implementation, collision, followers, combat, resource nodes, and production world generation are explicitly outside EP-001.
+
+Movement prediction remains an approved future requirement (DR-005), but its exact reconciliation mechanics are deferred until the exploration-movement Epic.
+
+Additional approved decisions:
+
+- Client sends intent; Server validates/decides/mutates and may reject stale/conflicting requests (DR-004).
+- Encounter Time, discrete World Time, and Real Time are separate domains (DR-006).
+- Semantic determinism is required rather than universal cross-platform floating-point bit identity (DR-007).
+- Server serializes conflicting authoritative mutations (DR-008).
+- Epics directly contain ST-XXX-YY tickets; no mandatory Story level; near-term planning is preferred (DR-010).
+
+Immediate EP-001 questions are tracked under OPEN_QUESTIONS/: OQ-035 through OQ-039 contain the remaining voxel/network details, while OQ-029 through OQ-031 cover visual/performance validation. OQ-021 is resolved.

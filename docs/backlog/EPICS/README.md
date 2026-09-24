@@ -6,9 +6,9 @@ An Epic must not claim a capability that has no implementation/test owner.
 
 ## Current state
 
-No greenfield Epics have been created yet.
+- [EP-001 — Voxel Terrain Delivery and Visual Validation](EP-001-voxel-terrain-foundation/EP-001-voxel-terrain-foundation.md) — Draft
 
-This is deliberate. Architecture discovery and high-level decomposition come first.
+EP-001 is the first approved implementation direction. Its detailed tickets remain gated by voxel/network/visual contracts.
 
 ## Future layout
 
@@ -19,4 +19,6 @@ EP-XXX-short-name/
 - tickets/
 - optional supporting diagrams or fixtures only when needed
 
-Ticket numbering and the first Epic IDs should be assigned only after the initial decomposition is approved.
+Implementation tickets live directly under each Epic's `tickets/` folder using `ST-XXX-YY-<implementation-goal>.md`.
+
+There is no mandatory Story layer. Around 50 tickets is a deliberate Epic split-review threshold; see DR-010.

@@ -20,19 +20,21 @@ Current code is evidence of repository state, not automatic evidence of desired 
 
 ## Recommended reading order
 
-1. PROJECT-CONTEXT.md — dense fast-start note.
-2. CURRENT-STATUS.md — what exists now, what just changed, and what comes next.
-3. QUESTIONS.md — unresolved architecture questions.
-4. DECISIONS/README.md — decision rules and index.
-5. DEFINITION-OF-READY.md and DEFINITION-OF-DONE.md.
-6. INDEX.md and GLOSSARY.md.
-7. TRACEABILITY/GDD-TRACEABILITY.md.
-8. Architecture, Epic, and Ticket documents as they are approved.
+1. PROJECT-CONTEXT.md — dense product/gameplay fast-start note.
+2. IMPLEMENTATION-CONTEXT.md — implementation taste, naming/API preferences, ownership conventions, and working knowledge.
+3. CURRENT-STATUS.md — what exists now, what just changed, and what comes next.
+4. OPEN_QUESTIONS/README.md — architecture/design questions, their status, alternatives, and chosen resolutions.
+5. DECISIONS/README.md — decision rules and index.
+6. DEFINITION-OF-READY.md and DEFINITION-OF-DONE.md.
+7. INDEX.md and GLOSSARY.md.
+8. TRACEABILITY/GDD-TRACEABILITY.md.
+9. Architecture, Epic, and Ticket documents as they are approved.
 
 ## Folder map
 
 - ARCHITECTURE/ — durable cross-cutting architecture contracts.
 - DECISIONS/ — explicit decision records for real alternatives.
+- OPEN_QUESTIONS/ — one traceable OQ document per architecture/design question.
 - EPICS/ — coherent capabilities and later implementation-ticket folders.
 - TRACEABILITY/ — GDD capability ownership and later dependency views.
 - templates/ — reusable planning templates.
