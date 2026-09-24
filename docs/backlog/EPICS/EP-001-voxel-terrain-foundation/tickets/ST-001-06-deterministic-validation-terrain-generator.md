@@ -491,12 +491,13 @@ Not owned. DR-015 fixture is later consumed by render/golden tickets.
 ### Resolved readiness decisions
 
 1. **Prototype provider coordinate domain:** `PrototypeChunkProvider` accepts every representable `Chunk::Coordinate`, including negative X/Y/Z coordinates. It does not reject coordinates; coordinates where DR-015 places no occupied Cells produce a valid empty Chunk.
+2. **Collection replacement scope:** the whole-Chunk replacement API is implemented in ST-001-06 rather than deferred to ST-001-11. The absent-coordinate behavior of that API is still unresolved.
 
 ### Remaining readiness decisions
 
 Before changing production code, ask the project owner **one decision at a time** for:
 
-2. Collection replacement behavior for a coordinate that is not already stored, and whether replacement is part of ST-001-06 or deferred to ST-001-11;
+2. Collection replacement behavior for a coordinate that is not already stored. The replacement API itself is now explicitly owned by ST-001-06;
 3. how the Collection constructor handles an absent/null Provider if the selected API can represent one;
 4. exact prototype terrain assertion depth (full arrays vs explicitly enumerated representative semantic expectations).
 
