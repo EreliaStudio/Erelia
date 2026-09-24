@@ -25,7 +25,7 @@ Server terrain node owns request validation, canonical generation lookup, and re
 
 ## Allowed dependencies
 
-EreliaServerLibrary, EreliaCore, Sparkle Core networking, standard library, ST-001-06 `Chunk::Collection` / Server `PrototypeChunkProvider`, ST-001-08 protocol.
+EreliaTerrainNodeLibrary, EreliaCore, Sparkle Core networking, standard library, ST-001-06 `Chunk::Collection` / terrain-node `PrototypeChunkProvider`, ST-001-08 protocol.
 
 ## Forbidden dependencies
 
@@ -42,7 +42,7 @@ Client/rendering code, Client view radius/cache policy, terrain mesh generation,
 
 ## Explicitly not owned
 
-Client retry/cache policy, production interest management, persistent terrain editing, rendering, remote-node deployment.
+Client retry/cache policy, production interest management, persistent terrain editing, rendering.
 
 ## Public contract
 
