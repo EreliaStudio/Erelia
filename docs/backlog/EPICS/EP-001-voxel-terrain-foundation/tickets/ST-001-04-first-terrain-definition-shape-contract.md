@@ -92,8 +92,8 @@ A polygon semantically contains:
 ```cpp
 struct Polygon
 {
-    std::vector<spk::Vector3Int> vertices;
-    std::string slot;
+    std::vector<Voxel::Vertex> vertices;
+    Voxel::Material::SlotID slot;
     spk::Vector3 normal;
 };
 ```
@@ -130,7 +130,7 @@ Examples with the current precision:
 - `0.9999 -> 999`;
 - `1.0 -> 1000`.
 
-After parsing, canonical Shape geometry uses `spk::Vector3Int`; floating-point epsilon is not used to represent the stored vertices.
+After parsing, canonical Shape geometry uses `Voxel::Vertex` (`spk::Vector3Int`); floating-point epsilon is not used to represent the stored vertices.
 
 ### Polygon rules
 
@@ -505,7 +505,7 @@ These active Shape resources are semantic/test fixtures. This ticket does **not*
 - Shape IDs are strings.
 - Definition IDs are `Voxel::Definition::ID`.
 - Definition ID 0 always means catalog-provided Air referencing the catalog-owned empty Shape sentinel.
-- runtime polygon vertices are discrete `spk::Vector3Int`.
+- runtime polygon vertices are discrete `Voxel::Vertex` values (`spk::Vector3Int` / `std::int32_t` components).
 - material slots remain attached to the same semantic polygon through transform.
 - published oriented polygon arrays never change.
 - Core stays headless safe.
