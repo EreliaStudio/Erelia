@@ -4,6 +4,7 @@
 #include <cmath>
 #include <container/json/error.hpp>
 #include <cstdint>
+#include <exception>
 #include <exception.hpp>
 #include <utility>
 
@@ -20,13 +21,13 @@ namespace
 	[[nodiscard]] std::int32_t quantizeVertexComponent(
 		const spk::JSON::Reader &reader,
 		float value,
-		const char *component)
+		std::size_t componentIndex)
 	{
 		if (value < 0.0f || value > 1.0f)
 		{
 			spk::JSON::throwAt(
 				reader.file(),
-				reader.pathFor(component),
+				reader.path() + "[" + std::to_string(componentIndex) + "]",
 				"vertex coordinate is outside [0.0, 1.0]");
 		}
 		return static_cast<std::int32_t>(value * static_cast<float>(vertexScale()));
@@ -65,15 +66,24 @@ namespace Voxel
 {
 	Vertex Shape::_loadVertex(const spk::JSON::Reader &reader)
 	{
-		reader.forbidUnknown({"x", "y", "z"});
-		const float x = reader.require<float>("x");
-		const float y = reader.require<float>("y");
-		const float z = reader.require<float>("z");
+		spk::Vector3 position;
+		try
+		{
+			position = spk::Vector3::fromJSON(reader.value());
+		}
+		catch (...)
+		{
+			spk::JSON::throwAt(
+				reader.file(),
+				reader.path(),
+				"invalid voxel vertex",
+				std::current_exception());
+		}
 
 		return {
-			quantizeVertexComponent(reader, x, "x"),
-			quantizeVertexComponent(reader, y, "y"),
-			quantizeVertexComponent(reader, z, "z")};
+			quantizeVertexComponent(reader, position.x, 0u),
+			quantizeVertexComponent(reader, position.y, 1u),
+			quantizeVertexComponent(reader, position.z, 2u)};
 	}
 
 	void Shape::_validatePolygon(const Polygon &polygon, const spk::JSON::Reader &reader)
