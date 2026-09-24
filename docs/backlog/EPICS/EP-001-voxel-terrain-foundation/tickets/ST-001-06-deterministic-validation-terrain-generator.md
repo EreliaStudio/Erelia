@@ -137,7 +137,26 @@ public:
 };
 ```
 
-The Collection owns its Provider with unique ownership.
+The Collection owns its Provider with unique ownership through a private `std::unique_ptr<Provider>`, but callers do not pass pointer ownership explicitly.
+
+The public construction contract takes a concrete Provider rvalue and moves it into the Collection-owned polymorphic allocation:
+
+```cpp
+template<typename TProvider>
+    requires
+        std::derived_from<
+            std::remove_cvref_t<TProvider>,
+            Provider> &&
+        (!std::is_lvalue_reference_v<TProvider>)
+explicit Collection(TProvider&& provider)
+    : _provider(
+        std::make_unique<std::remove_cvref_t<TProvider>>(
+            std::forward<TProvider>(provider)))
+{
+}
+```
+
+The constructor therefore requires a concrete Provider derived from `Provider`, rejects lvalue construction by constraint, and requires the concrete Provider to be movable. A successfully constructed Collection always owns exactly one Provider; absent/null Provider state is not representable through the public construction API.
 
 Collection identity is `Chunk::Coordinate`; coordinate does not move into the Chunk value.
 
@@ -258,9 +277,17 @@ class Chunk::Collection
 public:
     class Provider;
 
-    // exact concrete method names beyond the approved concepts
-    // must follow the final readiness decisions below.
+    template<typename TProvider>
+        requires
+            std::derived_from<
+                std::remove_cvref_t<TProvider>,
+                Provider> &&
+            (!std::is_lvalue_reference_v<TProvider>)
+    explicit Collection(TProvider&& provider);
+
+    // lookup and whole-Chunk replacement/upsert API
 };
+
 ```
 
 The Collection owns its Provider. Provider returns `Chunk` synchronously for a requested coordinate.
@@ -329,12 +356,15 @@ Resolved for the prototype provider:
 - the provider has no coordinate-domain rejection path;
 - coordinates with no DR-015 terrain occupancy return a valid empty Chunk.
 
-Still unresolved before Ready:
+Resolved for Collection construction/replacement:
 
-1. the exact public Collection replacement API and what it does when asked to replace a coordinate that is not currently stored;
-2. the constructor/failure contract for an absent/null owned Provider, unless the final API makes null unrepresentable.
+- replacement is implemented in ST-001-06 and uses upsert semantics; an absent coordinate is inserted immediately without invoking the Provider;
+- Collection construction takes a concrete Provider rvalue through the constrained templated constructor;
+- the Collection moves that concrete Provider into its private `std::unique_ptr<Provider>`;
+- lvalues are rejected by the constructor constraint;
+- absent/null Provider state is not representable through the public constructor.
 
-Do not invent these behaviors.
+No Collection edge-semantic decision remains unresolved before Ready.
 
 ## Determinism / ordering
 
@@ -498,12 +528,12 @@ Not owned. DR-015 fixture is later consumed by render/golden tickets.
 
 1. **Prototype provider coordinate domain:** `PrototypeChunkProvider` accepts every representable `Chunk::Coordinate`, including negative X/Y/Z coordinates. It does not reject coordinates; coordinates where DR-015 places no occupied Cells produce a valid empty Chunk.
 2. **Collection replacement:** the whole-Chunk replacement API is implemented in ST-001-06 rather than deferred to ST-001-11. It has upsert semantics: an existing coordinate is replaced; an absent coordinate is inserted immediately; the Provider is not invoked by replacement.
+3. **Collection Provider ownership/construction:** Collection exclusively owns its Provider in a private `std::unique_ptr<Provider>`, while its public constructor is a constrained forwarding constructor accepting only an rvalue concrete Provider derived from `Provider`. The concrete object is moved into the owned allocation; lvalues are rejected and null/absent Provider construction is unrepresentable.
 
 ### Remaining readiness decisions
 
 Before changing production code, ask the project owner **one decision at a time** for:
 
-3. how the Collection constructor handles an absent/null Provider if the selected API can represent one;
 4. exact prototype terrain assertion depth (full arrays vs explicitly enumerated representative semantic expectations).
 
 After those are explicit, update this ticket, verify the Definition of Ready, and only then change **Blocked -> Ready**.
