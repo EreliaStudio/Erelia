@@ -64,6 +64,15 @@ The project owner approved:
 - a future Client request Provider may return an empty valid placeholder and later replace it with canonical Server data;
 - a future dedicated Chunk codec transfers only 4096 Cells, omitting fixed dimensions/unit size; ST-001-08 owns that codec/protocol work.
 
+### ST-001-06 readiness — Prototype provider coordinate domain
+
+The project owner explicitly resolved the first ST-001-06 readiness decision:
+
+- `PrototypeChunkProvider` accepts every representable `Chunk::Coordinate` (`spk::Vector3Int`);
+- negative X, Y and Z coordinates are valid;
+- the prototype provider has no coordinate-domain rejection path;
+- coordinates where DR-015 places no occupied Cells deterministically produce a valid empty Chunk.
+
 ### DR-018 clarification — catalog file forms
 
 Generic `spk::JSON::Catalog<TElement>::load(path)` is planned to accept both aggregate `{"elements":[...]}` and direct single-element `{"id":...,"data":...}` roots through one shared element parser.
@@ -95,9 +104,10 @@ None.
 
 The next dependency-ordered ticket remains **ST-001-06 — Deterministic validation terrain provider and Chunk collection foundation**.
 
-OQ-039 no longer blocks it, but the ticket remains **Blocked** until the project owner explicitly resolves these remaining Definition-of-Ready items, one at a time:
+OQ-039 no longer blocks it. The first ST-001-06 readiness decision is also resolved: `PrototypeChunkProvider` accepts every representable `Chunk::Coordinate`, including negative coordinates, with no coordinate-domain rejection.
 
-1. whether `PrototypeChunkProvider` accepts every representable `Chunk::Coordinate` or rejects any coordinates;
+The ticket remains **Blocked** until the project owner explicitly resolves these remaining Definition-of-Ready items, one at a time:
+
 2. Collection replacement behavior for a coordinate not already stored, and whether that replacement API is implemented in ST-001-06 or deferred to ST-001-11;
 3. null/absent Provider construction behavior if the chosen owned-Provider API can represent null;
 4. exact Server prototype terrain assertion depth: complete expected Cell arrays versus an explicitly enumerated representative semantic table plus structural counts/full repeated equality.
