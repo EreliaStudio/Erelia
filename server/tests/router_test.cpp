@@ -195,3 +195,38 @@ TEST(ServerRouterRuntime, MissingNodeWarnsAndReconnectsLater)
 	std::error_code error;
 	std::filesystem::remove(logPath, error);
 }
+
+TEST(ServerRouterRuntime, ReconnectsAfterEstablishedNodeDisconnects)
+{
+	spk::RemoteNode::Endpoint endpoint;
+	endpoint.start(0);
+	const std::uint16_t terrainPort = endpoint.port();
+
+	Router router(
+		Router::Configuration{
+			.port = 0,
+			.nodeReconnectDelay = 20ms,
+			.nodes = {
+				{"terrain", "127.0.0.1", terrainPort}}});
+
+	router.start();
+	ASSERT_TRUE(waitUntilConnected(router));
+
+	endpoint.stop();
+
+	const auto disconnectDeadline =
+		std::chrono::steady_clock::now() + 2s;
+	while (router.isNodeConnected("terrain") &&
+		   std::chrono::steady_clock::now() < disconnectDeadline)
+	{
+		router.dispatch();
+		std::this_thread::sleep_for(5ms);
+	}
+	ASSERT_FALSE(router.isNodeConnected("terrain"));
+
+	endpoint.start(terrainPort);
+	EXPECT_TRUE(waitUntilConnected(router));
+
+	router.stop();
+	endpoint.stop();
+}
