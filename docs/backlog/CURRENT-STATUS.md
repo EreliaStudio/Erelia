@@ -58,7 +58,8 @@ The project owner approved:
 - public checked `Chunk(Voxel::Volume&&)` validates the Chunk invariants;
 - Chunk does not store its own coordinate;
 - Core owns `Chunk::Collection` and nested `Chunk::Collection::Provider`;
-- Collection owns its Provider, caches Chunks by coordinate and returns Chunk values;
+- Collection exclusively owns its Provider in a private `std::unique_ptr<Provider>`; callers construct the Collection from a concrete Provider rvalue through the approved constrained templated constructor; the concrete Provider is moved into the owned allocation, lvalue construction is rejected, and null/absent Provider state is unrepresentable;
+- Collection caches Chunks by coordinate and returns Chunk values;
 - published Chunks are immutable and complete-value replacement is used instead of Cell mutation;
 - copied old Chunks remain alive safely while another thread replaces the Collection entry;
 - a future Client request Provider may return an empty valid placeholder and later replace it with canonical Server data;
@@ -112,9 +113,16 @@ The project owner also resolved the Collection replacement contract:
 - replacement is an upsert: an existing coordinate is replaced, while an absent coordinate is inserted immediately;
 - replacement does not invoke the Provider.
 
-The ticket remains **Blocked** until the project owner explicitly resolves these remaining Definition-of-Ready items, one at a time:
+The project owner also resolved the Provider construction/ownership contract:
 
-3. null/absent Provider construction behavior if the chosen owned-Provider API can represent null;
+- Collection keeps exclusive ownership through a private `std::unique_ptr<Provider>`;
+- callers pass a concrete Provider rvalue to a constrained templated Collection constructor rather than passing a pointer;
+- the concrete Provider is moved into the Collection-owned allocation;
+- lvalues are rejected by constraint;
+- null/absent Provider construction is not representable.
+
+The ticket remains **Blocked** only until the final Definition-of-Ready item is resolved:
+
 4. exact Server prototype terrain assertion depth: complete expected Cell arrays versus an explicitly enumerated representative semantic table plus structural counts/full repeated equality.
 
 After those decisions are recorded in ST-001-06, verify `DEFINITION-OF-READY.md`, promote the ticket to Ready, and only then modify production code.
