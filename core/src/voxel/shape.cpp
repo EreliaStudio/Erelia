@@ -243,18 +243,9 @@ namespace Voxel
 		Cell::Orientation orientation,
 		Cell::FlipOrientation flipOrientation) const
 	{
-		const auto orientationValue = static_cast<std::uint8_t>(orientation);
-		const auto flipValue = static_cast<std::uint8_t>(flipOrientation);
-		if (orientationValue > 3u)
-		{
-			throw spk::Exception("Voxel::Shape Orientation is invalid");
-		}
-		if (flipValue > 1u)
-		{
-			throw spk::Exception("Voxel::Shape FlipOrientation is invalid");
-		}
-
-		const std::size_t index = static_cast<std::size_t>(orientationValue) + 4u * static_cast<std::size_t>(flipValue);
+		const std::size_t index =
+			static_cast<std::size_t>(orientation) +
+			4u * static_cast<std::size_t>(flipOrientation);
 		OrientedPolygonArray &entry = _orientedPolygons[index];
 		if (!entry.uuid.load(std::memory_order_acquire).isNull())
 		{
