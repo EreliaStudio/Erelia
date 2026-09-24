@@ -273,6 +273,7 @@ TEST(VoxelShape, RejectsMalformedPolygonGeometryAndSchema)
 		R"({"slot":"face","vertices":[[0,0,0],[0,1,0],[1,1,0],[1,0,0.1]]})",
 		R"({"slot":"face","vertices":[[0,0,0],[0,1,0],[0.5,0.5,0],[1,1,0],[1,0,0]]})",
 		R"({"slot":"face","vertices":[[-0.01,0,0],[0,1,0],[1,0,0]]})",
+		R"({"slot":"face","vertices":[[0,"bad",0],[0,1,0],[1,0,0]]})",
 		R"({"slot":"face","vertices":[[0,0,0,1],[0,1,0],[1,0,0]]})"};
 
 	for (std::size_t index = 0; index < invalidPolygons.size(); ++index)
