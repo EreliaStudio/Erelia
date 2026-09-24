@@ -8,11 +8,11 @@
 
 #include <array>
 #include <filesystem>
-#include <utility>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 static_assert(std::is_copy_constructible_v<Voxel::Definition>);
 static_assert(std::is_move_constructible_v<Voxel::Definition>);

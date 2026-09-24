@@ -4,10 +4,9 @@
 
 Chunk::Builder::Builder() :
 	Voxel::Volume::Builder(
-		{
-			static_cast<std::uint32_t>(Chunk::Extent),
-			static_cast<std::uint32_t>(Chunk::Extent),
-			static_cast<std::uint32_t>(Chunk::Extent)},
+		{static_cast<std::uint32_t>(Chunk::Extent),
+		 static_cast<std::uint32_t>(Chunk::Extent),
+		 static_cast<std::uint32_t>(Chunk::Extent)},
 		1.0f)
 {
 }
