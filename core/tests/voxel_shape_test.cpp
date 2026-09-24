@@ -18,6 +18,9 @@ static_assert(std::is_same_v<std::atomic<spk::UUID>::value_type, spk::UUID>);
 static_assert(std::is_move_constructible_v<Voxel::Shape>);
 static_assert(!std::is_copy_constructible_v<Voxel::Shape>);
 static_assert(!std::is_move_assignable_v<Voxel::Shape>);
+static_assert(std::is_same_v<Voxel::Vertex, spk::Vector3Int>);
+static_assert(std::is_same_v<Voxel::Vertex::value_type, std::int32_t>);
+static_assert(std::is_same_v<decltype(Voxel::Shape::Polygon::normal), spk::Vector3>);
 
 namespace
 {
@@ -33,12 +36,12 @@ namespace
 		]
 	})";
 
-	[[nodiscard]] spk::Vector3Int transformed(
-		spk::Vector3Int source,
+	[[nodiscard]] Voxel::Vertex transformed(
+		Voxel::Vertex source,
 		Voxel::Cell::Orientation orientation,
 		Voxel::Cell::FlipOrientation flip)
 	{
-		spk::Vector3Int result = source;
+		Voxel::Vertex result = source;
 		switch (orientation)
 		{
 		case Voxel::Cell::Orientation::PositiveX:
@@ -140,10 +143,10 @@ TEST(VoxelShape, ConvertsNormalizedJsonCoordinatesToDiscreteVertices)
 
 	const auto &polygon = catalog.shapes().at("asymmetric").polygons().front();
 	ASSERT_EQ(polygon.vertices.size(), 4u);
-	EXPECT_EQ(polygon.vertices[0], spk::Vector3Int(100, 200, 0));
-	EXPECT_EQ(polygon.vertices[1], spk::Vector3Int(100, 800, 0));
-	EXPECT_EQ(polygon.vertices[2], spk::Vector3Int(999, 800, 0));
-	EXPECT_EQ(polygon.vertices[3], spk::Vector3Int(800, 200, 0));
+	EXPECT_EQ(polygon.vertices[0], Voxel::Vertex(100, 200, 0));
+	EXPECT_EQ(polygon.vertices[1], Voxel::Vertex(100, 800, 0));
+	EXPECT_EQ(polygon.vertices[2], Voxel::Vertex(999, 800, 0));
+	EXPECT_EQ(polygon.vertices[3], Voxel::Vertex(800, 200, 0));
 	EXPECT_EQ(polygon.slot, "face");
 	expectNormal(polygon.normal, spk::Vector3(0.0f, 0.0f, -1.0f));
 }
