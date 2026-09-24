@@ -4,5 +4,5 @@
 
 TEST(ClientInfrastructure, ReturnsSuccess)
 {
-	EXPECT_EQ(erelia::client::status(), 0);
+	EXPECT_EQ(status(), 0);
 }

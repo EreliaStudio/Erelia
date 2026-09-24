@@ -16,7 +16,7 @@ EP-001 demonstrates that its independently tested pieces actually compose at rea
 ## Starting state / prerequisites
 
 - Depends on ST-001-06, ST-001-09, ST-001-10, ST-001-11, ST-001-12, and ST-001-13.
-- OQ-036, OQ-038, and OQ-039 still block exact boundary/request/generator semantics.
+- OQ-036 and OQ-038 still block exact boundary/request semantics. OQ-039 is resolved; DR-015 fixes the generator scene.
 
 ## Product ownership
 
@@ -75,7 +75,7 @@ Both process/network lifecycles terminate cleanly and Client derived state is in
 
 ## Serialization / persistence
 
-Exercises shared protocol/Volume codecs; no persistence.
+Exercises the shared dedicated Chunk protocol codec and immutable Chunk values; no persistence.
 
 ## Networking / authority
 
@@ -89,7 +89,7 @@ Real Sparkle transport boundary is mandatory.
 
 ## Exact test fixtures
 
-Blocked until prerequisite OQs resolve. Final fixture must include exact adjacent coordinates spanning at least one positive boundary and one negative boundary and exact expected canonical Cells/semantic mesh counts at their shared boundary.
+Blocked until the remaining prerequisite OQs resolve. Final fixture must include exact adjacent coordinates spanning at least one positive boundary and one negative boundary and exact expected canonical Cells/semantic mesh counts at their shared boundary.
 
 ## Acceptance tests
 
@@ -153,7 +153,8 @@ Not required to mark this semantic integration ticket Done; ST-001-16 owns visua
 
 - [OQ-036](../../../OPEN_QUESTIONS/OQ-036-TERRAIN-MESHING-NEIGHBOR-POLICY.md) — blocking.
 - [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — blocking.
-- [OQ-039](../../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — blocking.
+- [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md) — immutable Chunk/Collection lifetime contract.
+- [OQ-039](../../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — resolved; DR-015 supplies the canonical terrain fixture.
 
 ## Completion evidence
 

@@ -1,5 +1,6 @@
 #include "erelia/core/voxel/volume_builder.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <utility>
@@ -76,11 +77,31 @@ namespace Voxel
 	{
 	}
 
-	Volume::Builder::Builder(Volume &&volume) noexcept :
-		_dimensions(std::exchange(volume._dimensions, {})),
-		_unitSize(std::exchange(volume._unitSize, 0.0f)),
-		_cells(std::move(volume._cells))
+	Volume::Builder::Builder(Volume &&volume) :
+		_dimensions(volume._dimensions),
+		_unitSize(volume._unitSize)
 	{
+		if (!volume._cells)
+		{
+			volume._dimensions = {};
+			volume._unitSize = 0.0f;
+			return;
+		}
+
+		if (volume._cells.use_count() == 1)
+		{
+			_cells = std::move(*volume._cells);
+		}
+		else
+		{
+			const auto source = volume.cells();
+			_cells = Voxel::Volume::obtainCellBuffer(source.size());
+			std::ranges::copy(source, _cells->begin());
+		}
+
+		volume._dimensions = {};
+		volume._unitSize = 0.0f;
+		volume._cells.reset();
 	}
 
 	bool Volume::Builder::set(const LocalCoordinate &coordinate, Cell value)
@@ -97,7 +118,7 @@ namespace Voxel
 		return true;
 	}
 
-	Volume Volume::Builder::build() && noexcept
+	Volume Volume::Builder::build() &&
 	{
 		return Volume(
 			std::exchange(_dimensions, {}),

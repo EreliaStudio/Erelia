@@ -273,3 +273,14 @@ The subsequent PR-head change only aligned backlog documentation before merge.
 Focused Core coverage includes direct operators, Message-constructor decoding, canonical empty Volume, X-asymmetric dimension/order validation, non-default packed Cells, 16×16×16/4096-Cell round trip, deterministic same-ABI bytes, malformed/truncated metadata and Cell blocks, overflow protection, destination preservation, Message lifetime independence, repeated round trips, deterministic power-of-two pool selection, same-pool decode reuse, and different-pool replacement.
 
 Definition of Done is satisfied: implementation, regression evidence, documentation updates, explicit project-owner approval, and merge are complete.
+
+
+### Follow-up supersession by DR-019
+
+On 24 September 2026, ST-001-06 planning changed built Volume ownership to shared immutable backing Cell content.
+
+ST-001-05 remains historically **Done** and its wire order, validation, malformed-input handling, destination preservation, cursor semantics and same-ABI determinism remain active.
+
+DR-019 supersedes only the successful-decode optimization that overwrote/reused the destination's existing same-size-class Buffer. With shared immutable content, another Volume copy may still observe that Buffer, so future implementation must decode into fresh pooled storage and replace the destination content only after successful validation.
+
+DR-019 also establishes a future dedicated fixed-size Chunk codec for ST-001-08; this does not remove the generic runtime-sized Volume codec implemented by ST-001-05.

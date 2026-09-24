@@ -2,7 +2,7 @@
 
 #include "erelia/core/status.hpp"
 
-int erelia::server::status() noexcept
+int status() noexcept
 {
 	return erelia::core::status();
 }

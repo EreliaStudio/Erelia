@@ -103,6 +103,32 @@ TEST(JsonCatalog, LoadsMoveOnlyElementsAndExposesLookupApi)
 	EXPECT_THROW((void)catalog[99u], spk::Exception);
 }
 
+TEST(JsonCatalog, LoadsDirectSingleElementRootThroughSameParser)
+{
+	const TemporaryJsonFile file(
+		R"({"id":3,"data":{"value":30}})");
+
+	Catalog catalog;
+	catalog.load(file.path());
+
+	EXPECT_TRUE(catalog.contains(3u));
+	EXPECT_EQ(catalog.at(3u).value, 30);
+}
+
+TEST(JsonCatalog, AggregateAndDirectLoadsRejectDuplicateIdsConsistently)
+{
+	const TemporaryJsonFile aggregate(
+		R"({"elements":[{"id":4,"data":{"value":40}}]})");
+	const TemporaryJsonFile direct(
+		R"({"id":4,"data":{"value":41}})");
+
+	Catalog catalog;
+	catalog.load(aggregate.path());
+
+	EXPECT_THROW(catalog.load(direct.path()), spk::Exception);
+	EXPECT_EQ(catalog.at(4u).value, 40);
+}
+
 TEST(JsonCatalog, ProtectedInsertUsesCatalogStorageAndRejectsDuplicate)
 {
 	Catalog catalog;
@@ -175,7 +201,9 @@ TEST(JsonCatalog, RejectsMalformedEnvelopeWithSourceContext)
 		R"({"elements":[{"data":{"value":1}}]})",
 		R"({"elements":[{"id":1}]})",
 		R"({"elements":[{"id":1,"data":{"value":1},"unexpected":true}]})",
-		R"({"elements":[],"unexpected":true})"};
+		R"({"elements":[],"unexpected":true})",
+		R"({"id":1})",
+		R"({"id":1,"data":{"value":1},"unexpected":true})"};
 
 	for (const std::string &fixture : fixtures)
 	{

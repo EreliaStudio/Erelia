@@ -1,6 +1,12 @@
 add_executable(EreliaCoreTestSuite
+    chunk_collection_test.cpp
+    chunk_test.cpp
     json_catalog_test.cpp
+    singleton_test.cpp
     status_test.cpp
+    task_worker_pool_test.cpp
+    thread_safe_queue_test.cpp
+    thread_safe_set_test.cpp
     terrain_coordinate_test.cpp
     voxel_catalog_test.cpp
     voxel_cell_test.cpp
@@ -10,6 +16,21 @@ add_executable(EreliaCoreTestSuite
     voxel_volume_test.cpp
 )
 target_link_libraries(EreliaCoreTestSuite PRIVATE EreliaCore GTest::gtest_main)
-target_compile_definitions(EreliaCoreTestSuite PRIVATE ERELIA_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
+
+add_custom_command(
+    TARGET EreliaCoreTestSuite
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_BINARY_DIR}/resources"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${PROJECT_SOURCE_DIR}/resources"
+        "${CMAKE_BINARY_DIR}/resources"
+    COMMENT "Copying Erelia test resources into the build directory"
+)
+
 add_test(NAME EreliaCoreTestSuite COMMAND EreliaCoreTestSuite)
-set_tests_properties(EreliaCoreTestSuite PROPERTIES LABELS "core;headless")
+set_tests_properties(
+    EreliaCoreTestSuite
+    PROPERTIES
+        LABELS "core;headless"
+        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+)

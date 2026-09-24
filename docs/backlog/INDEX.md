@@ -47,6 +47,9 @@ Architecture documents should be added only after a durable cross-cutting invari
 - [DR-015 — First deterministic terrain validation scene](DECISIONS/DR-015-FIRST-TERRAIN-VALIDATION-SCENE.md)
 - [DR-016 — Sparkle networking and Server node router](DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md)
 - [DR-017 — Direct Voxel::Volume message serialization](DECISIONS/DR-017-VOXEL-VOLUME-MESSAGE-SERIALIZATION.md)
+- [DR-018 — Shared voxel Shape, Definition, and Catalog contract](DECISIONS/DR-018-VOXEL-SHAPE-DEFINITION-CATALOG.md)
+- [DR-019 — Immutable shared Volume content and asynchronous Chunk Collection/Provider](DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
+- [DR-020 — Headless asynchronous task infrastructure prototype](DECISIONS/DR-020-HEADLESS-ASYNC-TASK-INFRASTRUCTURE.md)
 
 OPEN_QUESTIONS/ contains the question register, including resolved questions for traceability. Create a DR only when a real choice has concrete alternatives that need durable resolution.
 
@@ -58,9 +61,9 @@ EP-001 is the active near-term planning focus.
 
 ## Implementation tickets
 
-No ST-001 implementation ticket is Ready yet.
+ST-001-01 through ST-001-05 are Done. ST-001-06 is Ready / active on its dedicated branch and currently under implementation/review.
 
-EP-001 has a ticket workspace, but its detailed tickets are intentionally waiting on the voxel/network contracts tracked in OPEN_QUESTIONS/. A detailed ticket should not become Ready until its surrounding architecture is sufficiently understood and it satisfies the Definition of Ready.
+Later tickets remain gated by their own dependencies and unresolved OQs.
 
 ## Keyword navigation
 

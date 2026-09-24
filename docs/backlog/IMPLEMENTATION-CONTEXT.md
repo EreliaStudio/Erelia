@@ -86,7 +86,7 @@ For terrain streaming:
 
 - Client requests Chunks by Chunk coordinate.
 - One message may request a batch of Chunk coordinates.
-- Server returns canonical voxel/Volume data, never render meshes.
+- Server returns canonical Chunk data, never render meshes.
 - Client owns its own loading/view region policy. The Server does not choose the Client's render radius.
 
 ## 6. Voxel data/API taste
@@ -111,6 +111,8 @@ The active direction intentionally keeps the voxel data representation small and
   - missing required Definition slots warn and bind InvalidID; extra slots throw;
   - every Definition stores a non-owning `const Voxel::Shape&` to a Shape owned by the Shape catalog and must not outlive that catalog; Definition ID 0 is catalog-created Air referencing a private catalog-owned empty Shape sentinel with zero polygons and no slots;
   - the owning aggregate is `Voxel::Catalog`, loaded from filesystem JSON resources;
+  - generic `spk::JSON::Catalog<TElement>::load(path)` accepts either an aggregate root `{"elements":[...]}` or a direct single `{"id":...,"data":...}` root; both forms share one internal element parse/insert path and retain identical duplicate/error behavior;
+  - ST-001-06 intentionally exercises both forms: cube+slab remain in shared aggregate files while slope/stair use individual files for both Shapes and Definitions; this mixed layout is validation, not a final one-file policy;
   - JSON/resource validation errors with source location use the single shared `spk::JSON::throwAt` helper; do not duplicate file/path exception formatting in loaders;
   - Shape, Definition, and aggregate Catalog implementations are split by class into `shape_catalog.cpp`, `definition_catalog.cpp`, and `catalog.cpp`;
   - shared Shape/Definition catalog machinery currently uses public inheritance from an Erelia-local prototype `spk::JSON::Catalog<TElement>`: the base owns JSON envelope parsing, iteration, duplicate detection, direct `std::unordered_map<TElement::ID, TElement>` value storage, and lookup, while derived catalogs implement only `_parseKey(const spk::JSON::Reader&) -> TElement::ID` and `_parseElement(const spk::JSON::Reader&) -> TElement` pure virtual hooks; parsing returns values and the base stores them directly in `std::unordered_map<TElement::ID, TElement>` with no shared ownership wrapper; catalog elements must be move-constructible, and lookup references/pointers remain stable across later insertions because the catalog exposes no erase operation; the base public `load`/lookup API is inherited directly without forwarding wrappers; derived voxel catalogs should contain only their parsing overrides and genuinely required domain state/constructors; this prototype may be proposed to Sparkle after it has been exercised in Erelia;
@@ -147,18 +149,36 @@ Its approved first contract includes:
 - `Builder::set()` for checked mutation before build;
 - `std::move(builder).build()` to produce an immutable Volume;
 - a nested `Voxel::Volume::Buffer` semantic wrapper over `std::vector<Voxel::Cell>`, exposing `Buffer::Pool` and `Buffer::Lease`;
-- each Volume directly owns dimensions, unit size, and one `Buffer::Lease`; no shared backing Content object is used;
-- Volume copy construction/assignment deep-copies Cell contents through the Sparkle Pool Lease copy semantics, producing independent pooled storage;
-- Volume move transfers the existing Lease and leaves the source in the default-empty state;
-- `Builder(std::move(volume))` destructively consumes a Volume and directly reuses/transfers its existing Lease without copying;
-- `Voxel::Volume` privately owns pooled Cell-buffer acquisition through `static Buffer::Lease obtainCellBuffer(std::size_t)`; Builder construction and Message decoding both call that method, while `volume_buffer_pool.cpp` owns the source-private `CellArrayPool` / `CellArrayCollection` implementation;
-- one source-private `CellArrayCollection` owns the ordered `std::map<std::size_t, CellArrayPool>` registry for every non-empty Volume, including Chunks;
-- pool size classes are powers of two and represent reusable Cell capacity rather than Volume dimensions; the class is deterministically `bit_ceil(logicalCellCount)`, and the collection looks up or lazily creates exactly that class;
-- pooled Buffers retain capacity while their logical size is reset through the Pool per-obtain callback;
-- no pool-class metadata is stored on Buffer; Message extraction recomputes the current and incoming classes from their logical Cell counts and reuses the destination Lease in place when those classes match, avoiding an unnecessary recycle/obtain cycle;
+- DR-019 supersedes the original deep-copy/direct-Lease value model: a Builder owns mutable pooled storage, then build publishes it through shared immutable Volume backing content;
+- Volume copy construction/assignment shares immutable Cell backing content instead of copying the Cell array; copies are cheap snapshots and keep the same content alive independently;
+- Volume move still leaves the source in the canonical default-empty state;
+- any `Builder(std::move(volume))` path must preserve immutability: it may reuse backing storage only when exclusive and must otherwise obtain/copy mutable storage before edits;
+- `Voxel::Volume` owns pooled Cell-buffer acquisition; `volume_buffer_pool.cpp` retains the source-private `CellArrayPool` / `CellArrayCollection` implementation;
+- one source-private `CellArrayCollection` owns deterministic power-of-two capacity classes for every non-empty Volume, including Chunks;
+- pooled Buffers retain capacity while logical size is reset on obtain;
+- generic Message decode never overwrites a destination's existing backing Buffer in place, because another copied Volume may observe it; successful decode publishes fresh immutable content and swaps the destination only after validation;
 - no `VersionedTrait` inheritance or mutable Editor remains in the Volume contract.
 
-A terrain Chunk is one semantic use of a Volume. Terrain Chunks are fixed at 16×16×16 cells and one world unit per cell.
+A terrain Chunk is a semantic specialization of Volume. DR-019 fixes:
+
+- `Chunk::Builder : Voxel::Volume::Builder`, always 16×16×16 at unit size 1.0f, with `build()` returning `Chunk`;
+- a public checked `Chunk(Voxel::Volume&&)` promotion path that rejects incompatible dimensions/unit size;
+- Chunk does not store its own `Chunk::Coordinate`;
+- `Chunk::Collection` owns coordinate identity and a nested abstract `Chunk::Collection::Provider`;
+- Collection exclusively owns its Provider through a private `std::unique_ptr<Provider>`; its public constructor is a constrained template taking only a concrete Provider rvalue derived from `Provider`, moving that concrete object into the owned polymorphic allocation; lvalue Provider construction is rejected and null/absent Provider state is unrepresentable;
+- Collection uses explicit `Absent / Pending / Available` coordinate state;
+- `request(coordinate)` atomically transitions only Absent entries to Pending and attaches a monotonically increasing generation;
+- repeated requests while Pending or Available do not call the Provider again;
+- Provider acquisition is asynchronous/update-driven: Provider receives `Collection::Request { coordinate, generation }`, schedules work, then later publishes or fails that exact request;
+- publication/failure is accepted only for the still-current Pending generation, preventing stale tasks from overwriting newer state;
+- `tryGet(coordinate)` returns `std::optional<Chunk>`; Available values are copied under a short `spk::ProtectedData` Reader and remain valid after the lock is released;
+- published Chunks are immutable; whole-value replacement is used instead of Cell mutation; replacement remains an upsert and invalidates any older pending publication;
+- copied Chunks keep old immutable content alive across Collection replacement;
+- no Collection lock is held during expensive generation work.
+
+ST-001-06 also prototypes headless generic Sparkle-shaped infrastructure locally inside Erelia Core: `spk::ThreadSafeSet`, `spk::ThreadSafeQueue`, `spk::Task<TResult>`, `spk::WorkerPool`, and `spk::Singleton<T>`. `ThreadSafeQueue` follows the same shared State / Producer / Consumer / Endpoints shape as Sparkle's `ThreadSafeFIFO`; WorkerPool uses it for stop-token-aware one-job-per-consumer dispatch rather than owning another mutex/condition-variable/queue trio. These live outside the `erelia` include namespace just like the local `spk::JSON::Catalog`, remain standard-library/Sparkle-Core only, and are intended to be proposed to Sparkle after they have been exercised. See DR-020.
+
+Future Client request acquisition uses the same Collection/Provider state machine but ST-001-11 still owns network retry/cache/response policy.
 
 
 ## 7. Serialization/API ergonomics
@@ -181,7 +201,9 @@ friend const spk::Message &operator>>(const spk::Message &message, Volume &volum
 
 The operators serialize the logical Volume contents—dimensions, unit size, and contiguous Cell data. They must never raw-copy the C++ object representation of `Voxel::Volume`, because it owns a `std::vector`.
 
-`volume.hpp` includes Sparkle's `network/message.hpp` directly because Message is an explicit part of the public Volume API. Networking-specific implementation lives in `core/src/voxel/volume_networking.cpp`, keeping ordinary Volume behavior in `volume.cpp`. Network decoding reconstructs Volume directly and does not use `Voxel::Volume::Builder`; Builder remains the ordinary mutable construction API.
+`volume.hpp` includes Sparkle's `network/message.hpp` directly because Message is an explicit part of the public Volume API. Networking-specific implementation lives in `core/src/voxel/volume_networking.cpp`, keeping ordinary Volume behavior in `volume.cpp`. Network decoding reconstructs fresh immutable Volume content directly and does not use `Voxel::Volume::Builder`; it must not mutate previously published shared backing storage.
+
+DR-019 also fixes a later dedicated Chunk codec: because Chunk is always 16×16×16 at unit size 1.0f, that codec will transfer only the fixed 4096-Cell block. Dimensions/unit size and higher-level Chunk message identifiers belong to ST-001-08, not ST-001-06.
 
 Do not expose otherwise-unnecessary mutable internals merely to make serialization possible.
 
@@ -211,15 +233,21 @@ Do not introduce an unnecessary Erelia-specific axis-remapping layer.
 
 The first Server terrain generator is intentionally a technical validation fixture, not production procedural generation.
 
-The approved direction is:
+OQ-039 is resolved and DR-015 contains the exact fixture:
 
-- flat baseline;
-- vertical wall-like geometry around X = 0 and Z = 0;
-- elevated stairs, slabs, and slopes around Y H 3;
-- varied Orientation/Flip combinations;
-- enough empty space to inspect geometry from above and below.
+- Definition 1 cube baseline at world Y=0 for every X/Z;
+- Definition 1 cube walls on X=0 and Z=0 for Y=1..3;
+- Definition 2 slope fixture in Chunk (1,0,1);
+- Definition 3 stair fixture in Chunk (2,0,1);
+- Definition 4 slab fixture in Chunk (1,0,2);
+- identical local ground/elevated placement matrices for all three Shapes;
+- all eight Orientation/Flip combinations, horizontal adjacency and vertical stacking/contact;
+- elevated fixture bottoms at Y=4;
+- every non-authored Cell is Air/Empty, including all world space below Y=0;
+- exact material IDs follow `<shape-id>-<slot-id>`;
+- exact positive/negative validation Chunk set is recorded in DR-015.
 
-Exact fixture coordinates/Definitions remain open until explicitly resolved.
+ST-001-06 Provider/Collection readiness decisions are resolved. The reusable Provider/Collection contract is tested with a purpose-built Core test Provider rather than by freezing the temporary `PrototypeChunkProvider` terrain layout. The prototype still implements the resolved DR-015 validation scene for temporary integration/visual use.
 
 ## 11. Temporary inspection controls
 
@@ -248,9 +276,11 @@ Testing should live at the lowest layer that owns the behavior:
 - Client tests meshing/rendering/input/presentation;
 - integration tests cover real boundaries between those layers.
 
-For behavior with important boundary/failure semantics, cover nominal behavior, boundaries, invalid input, atomic failure, determinism, lifetime/ownership, and integration where relevant.
+For behavior with important boundary/failure semantics, cover nominal behavior, boundaries, invalid input, atomic failure, determinism, lifetime/ownership, and integration where relevant. For polymorphic acquisition abstractions such as `Chunk::Collection::Provider`, prefer a purpose-built test implementation with controlled outputs/call observation when the concrete production implementation is temporary scaffolding whose exact output should not become a durable unit-test contract.
 
 Visual golden references require explicit human approval and must not be silently regenerated/overwritten.
+
+Core test resources are copied by CMake from the source `resources/` tree into `${CMAKE_BINARY_DIR}/resources` when `EreliaCoreTestSuite` is built. CTest runs that suite with `${CMAKE_BINARY_DIR}` as its working directory, so tests must resolve project resources through relative paths such as `resources/voxels/...` rather than through a source-tree compile definition.
 
 ## 13. Backlog granularity taste
 

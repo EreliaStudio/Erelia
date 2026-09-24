@@ -78,6 +78,8 @@ TEST(VoxelShape, LoadsApprovedCubeSlabSlopeAndStairResources)
 {
 	Voxel::Catalog catalog;
 	catalog.loadShape(voxel_test::shapeResourcePath());
+	catalog.loadShape(voxel_test::slopeShapeResourcePath());
+	catalog.loadShape(voxel_test::stairShapeResourcePath());
 
 	ASSERT_TRUE(catalog.shapes().contains("cube"));
 	ASSERT_TRUE(catalog.shapes().contains("slab"));

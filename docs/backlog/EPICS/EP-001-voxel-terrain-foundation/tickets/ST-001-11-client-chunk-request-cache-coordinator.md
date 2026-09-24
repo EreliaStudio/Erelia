@@ -7,7 +7,7 @@
 
 ## Intent
 
-Own Client-side Chunk identity, missing-Chunk request batching, outstanding-request tracking, response insertion, and retention/eviction behavior for EP-001 inspection.
+Own Client-side Chunk identity, missing-Chunk request batching, outstanding-request tracking, canonical response replacement, and retention/eviction behavior for EP-001 inspection.
 
 ## User / system value
 
@@ -15,7 +15,7 @@ The Client can request only the terrain it needs and maintain coherent local can
 
 ## Starting state / prerequisites
 
-- Depends on ST-001-08 and ST-001-10.
+- Depends on ST-001-06 Core Chunk::Collection/Provider foundation, ST-001-08, and ST-001-10.
 - OQ-038 fixes only the high-level batched Client-driven direction; duplicate outstanding requests, cache retention/eviction, request limits, partial response and unavailable-coordinate behavior remain open.
 
 ## Product ownership
@@ -54,7 +54,7 @@ Blocked by OQ-038 for duplicate suppression, cache retention/eviction, request b
 
 - Cache identity is by Chunk coordinate.
 - Server response data is canonical.
-- Client never treats a locally fabricated Volume as authoritative Server terrain.
+- Client never treats a locally fabricated/placeholder Chunk as authoritative Server terrain.
 - A received response remains associated with its declared coordinate.
 
 ## State transitions
@@ -71,7 +71,11 @@ Desired-set to request-batch ordering must be explicit if observable/tested; oth
 
 ## Lifecycle / ownership
 
-Client cache owns received Volume values and any derived invalidation signals to later meshing. Exact eviction/lifetime rules are blocked.
+Core `Chunk::Collection` owns coordinate->immutable-Chunk storage and returns cheap Chunk values whose backing Cell content is shared immutably (DR-019).
+
+A Client request Provider may return an empty valid 16x16x16 placeholder immediately after issuing the request. When canonical Server data arrives, the Client replaces the complete Collection Chunk value rather than mutating the placeholder. Any renderer/mesher still holding an older copied Chunk keeps its old immutable content alive.
+
+Exact eviction, outstanding/retry and stale/unsolicited response rules remain blocked by OQ-038.
 
 ## Serialization / persistence
 
@@ -149,7 +153,7 @@ Connection loss and rejected/partial responses.
 
 ### Cross-system integration
 
-Later mesher consumes cached canonical Volume values; integration must not bypass this coordinator.
+Later mesher consumes copied immutable Chunk values from the Core Collection; integration must not bypass this coordinator.
 
 ### Performance
 
@@ -162,6 +166,7 @@ Not applicable.
 ## Decisions / unresolved questions
 
 - [DR-014](../../../DECISIONS/DR-014-BATCHED-CHUNK-PROTOCOL-DIRECTION.md)
+- [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
 - [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — blocking.
 
 ## Completion evidence

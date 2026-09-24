@@ -1,4 +1,7 @@
-add_library(EreliaServerLibrary STATIC src/status.cpp)
+add_library(EreliaServerLibrary STATIC
+    src/status.cpp
+    src/terrain/prototype_chunk_provider.cpp
+)
 target_compile_features(EreliaServerLibrary PUBLIC cxx_std_23)
 target_include_directories(EreliaServerLibrary PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(EreliaServerLibrary PUBLIC EreliaCore)

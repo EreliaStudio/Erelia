@@ -22,6 +22,24 @@ namespace spk::JSON
 	private:
 		std::unordered_map<ID, Element> _elements;
 
+		void _parseAndInsert(const Reader &elementReader)
+		{
+			elementReader.forbidUnknown({"id", "data"});
+
+			ID id = _parseKey(elementReader);
+			if (contains(id))
+			{
+				spk::JSON::throwAt(
+					elementReader.file(),
+					elementReader.pathFor("id"),
+					"duplicate catalog ID");
+			}
+
+			const Reader dataReader = elementReader.child("data");
+			Element element = _parseElement(dataReader);
+			_elements.emplace(std::move(id), std::move(element));
+		}
+
 	protected:
 		Catalog() = default;
 		virtual ~Catalog() = default;
@@ -43,13 +61,14 @@ namespace spk::JSON
 		{
 			const Value document = Loader::parseFile(file);
 			const Reader root(document, file);
-			root.forbidUnknown({"elements"});
 
 			if (!root.contains("elements"))
 			{
-				spk::JSON::throwAt(file, root.pathFor("elements"), "missing required field");
+				_parseAndInsert(root);
+				return;
 			}
 
+			root.forbidUnknown({"elements"});
 			const Value &elements = root.value().at("elements");
 			if (!elements.isArray())
 			{
@@ -60,18 +79,7 @@ namespace spk::JSON
 			for (std::size_t index = 0; index < array.size(); ++index)
 			{
 				const std::string path = root.pathFor("elements") + "[" + std::to_string(index) + "]";
-				const Reader elementReader(array[index], file, path);
-				elementReader.forbidUnknown({"id", "data"});
-
-				ID id = _parseKey(elementReader);
-				if (contains(id))
-				{
-					spk::JSON::throwAt(file, elementReader.pathFor("id"), "duplicate catalog ID");
-				}
-
-				const Reader dataReader = elementReader.child("data");
-				Element element = _parseElement(dataReader);
-				_elements.emplace(std::move(id), std::move(element));
+				_parseAndInsert(Reader(array[index], file, path));
 			}
 		}
 

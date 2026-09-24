@@ -1,5 +1,8 @@
 add_library(EreliaCore STATIC
     src/status.cpp
+    src/terrain/chunk.cpp
+    src/terrain/chunk_builder.cpp
+    src/terrain/chunk_collection.cpp
     src/terrain/coordinate.cpp
     src/voxel/cell.cpp
     src/voxel/catalog.cpp

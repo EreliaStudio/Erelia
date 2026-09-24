@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <optional>
 #include <span>
 #include <vector>
@@ -33,16 +34,9 @@ namespace Voxel
 	private:
 		spk::Vector3UInt _dimensions{};
 		UnitSize _unitSize = 0.0f;
-		Buffer::Lease _cells;
+		std::shared_ptr<Buffer::Lease> _cells;
 
-		Volume(
-			const spk::Vector3UInt &dimensions,
-			UnitSize unitSize,
-			Buffer::Lease cells) noexcept;
 		[[nodiscard]] static Buffer::Lease obtainCellBuffer(std::size_t expectedSize);
-		[[nodiscard]] static bool canReuseCellBuffer(
-			const Buffer::Lease &cells,
-			std::size_t expectedSize);
 		[[nodiscard]] std::size_t _index(const LocalCoordinate &coordinate) const;
 
 		friend spk::Message &operator<<(
@@ -51,6 +45,12 @@ namespace Voxel
 		friend const spk::Message &operator>>(
 			const spk::Message &message,
 			Volume &volume);
+
+	protected:
+		Volume(
+			const spk::Vector3UInt &dimensions,
+			UnitSize unitSize,
+			Buffer::Lease cells);
 
 	public:
 		Volume() = default;

@@ -1,0 +1,11 @@
+{
+  "id": 2,
+  "data": {
+    "shape": "slope",
+    "slots": {
+      "side": "slope-side",
+      "top": "slope-top",
+      "bottom": "slope-bottom"
+    }
+  }
+}

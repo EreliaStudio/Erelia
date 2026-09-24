@@ -1,7 +1,7 @@
 # OQ-035 — What is the first terrain voxel / cell representation?
 
 **Status:** Resolved
-**Decision records:** [DR-012](../DECISIONS/DR-012-PACKED-CELL-AND-VOLUME-DIRECTION.md), [DR-017](../DECISIONS/DR-017-VOXEL-VOLUME-MESSAGE-SERIALIZATION.md)
+**Decision records:** [DR-012](../DECISIONS/DR-012-PACKED-CELL-AND-VOLUME-DIRECTION.md), [DR-017](../DECISIONS/DR-017-VOXEL-VOLUME-MESSAGE-SERIALIZATION.md), [DR-019](../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
 **Affected areas:** EP-001, Core voxel data, networking
 
 ## Question
@@ -52,6 +52,18 @@ Use a 32-bit packed `Voxel::Cell` carrying Definition ID + Orientation + FlipOri
 - `VersionedTrait` and the previous Editor mutation model are no longer part of Volume.
 
 `Voxel::Volume` later declares/uses the friend `spk::Message` insertion/extraction contract required by DR-017. The wire encoding itself belongs to ST-001-05 and is not decided here.
+
+### Follow-up ownership clarification
+
+DR-019 supersedes the original deep-copy/direct-Lease ownership details recorded above:
+
+- built Volume copies now share immutable backing Cell content;
+- Builder remains the mutable pre-build owner of pooled storage;
+- a Volume-to-Builder path may not mutate storage still observed by another copy;
+- the power-of-two pooled Buffer strategy remains;
+- generic Message decode no longer overwrites an existing destination Buffer in place.
+
+The older bullets above remain as historical context for the ST-001-03 implementation that was Done before DR-019. The active contract is DR-012 as superseded by DR-019.
 
 ## Resolution provenance
 

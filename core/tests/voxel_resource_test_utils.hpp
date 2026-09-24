@@ -42,9 +42,40 @@ namespace voxel_test
 		}
 	};
 
+	[[nodiscard]] inline std::filesystem::path voxelResourcePath(
+		const std::filesystem::path &relative)
+	{
+		return std::filesystem::path("resources") / "voxels" / relative;
+	}
+
 	[[nodiscard]] inline std::filesystem::path shapeResourcePath()
 	{
-		return std::filesystem::path(ERELIA_SOURCE_DIR) / "resources" / "voxels" / "shapes.json";
+		return voxelResourcePath("shapes.json");
+	}
+
+	[[nodiscard]] inline std::filesystem::path slopeShapeResourcePath()
+	{
+		return voxelResourcePath(std::filesystem::path("shapes") / "slope.json");
+	}
+
+	[[nodiscard]] inline std::filesystem::path stairShapeResourcePath()
+	{
+		return voxelResourcePath(std::filesystem::path("shapes") / "stair.json");
+	}
+
+	[[nodiscard]] inline std::filesystem::path definitionResourcePath()
+	{
+		return voxelResourcePath("definition.json");
+	}
+
+	[[nodiscard]] inline std::filesystem::path slopeDefinitionResourcePath()
+	{
+		return voxelResourcePath(std::filesystem::path("definitions") / "slope.json");
+	}
+
+	[[nodiscard]] inline std::filesystem::path stairDefinitionResourcePath()
+	{
+		return voxelResourcePath(std::filesystem::path("definitions") / "stair.json");
 	}
 
 	[[nodiscard]] inline std::string shapeFile(

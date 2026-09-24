@@ -88,11 +88,11 @@ The approved Volume contract is:
 
 - Terrain network payloads can represent cells compactly as 32-bit packed values.
 - `Voxel::Volume` owns pooled dynamic Cell storage and therefore is not itself trivially copyable; direct network use is provided by explicit logical serialization, not raw object copying. See DR-017.
-- Volume copies are value copies with independent Cell storage; moves and the Volume-to-Builder path transfer pooled storage without copying.
+- **Superseded by DR-019:** the original implementation deep-copied Volume Cell storage. The active contract now shares immutable backing Cell content across Volume copies; moves remain value moves, and any Volume-to-Builder reuse must preserve other copies' immutability.
 - Server and Client share the same Cell semantics in Core.
 - `Voxel::Volume` is not inherently a world Chunk: world position/Chunk coordinate remains separate semantic information.
 - EP-001 network responses may therefore naturally contain `{chunkCoordinate, volumeData}`.
-- The Volume storage/indexing, Builder, pooled-buffer, deep-copy, contiguous-view, and copy/move contracts are fixed by this record; wire byte-order remains a separate follow-up contract.
+- The Volume storage/indexing, Builder, pooled-buffer and contiguous-view contracts remain fixed here; DR-019 supersedes the deep-copy/direct-Lease ownership details. Wire byte-order remains DR-017.
 - `spk::Message << Voxel::Volume` / `>>` is the approved ergonomic serialization direction; see DR-017.
 
 ## Required tests
@@ -110,7 +110,7 @@ Once the remaining exact contracts are resolved:
 - Volume default construction, Builder construction, Y-X-Z storage-order, checked-access, `tryGet()`, and span tests;
 - invalid dimension/product-overflow/coordinate/unit-size tests;
 - Builder mutation, checked-rejection, build, and moved-Volume reconstruction tests;
-- deep-copy Volume construction/assignment tests proving independent Cell-buffer addresses;
+- Volume copy construction/assignment tests follow DR-019 and prove shared immutable backing content/lifetime rather than independent Buffer addresses;
 - Volume move and Volume-to-Builder tests proving pooled Buffer transfer/reuse;
 - deterministic power-of-two size-class selection and reuse tests.
 
@@ -120,4 +120,13 @@ Resolved directly by the project owner on 2026-09-22 and refined during ST-001-0
 
 ## Supersession
 
-DR-018 supersedes only this record's original Orientation enum value/name ordering. The packed bit allocation, Definition-ID capacity, raw packed-value semantics, FlipOrientation mapping, and Volume contract remain active.
+DR-018 supersedes only this record's original Orientation enum value/name ordering.
+
+DR-019 supersedes this record's original **Volume ownership/copy** details:
+
+- built Volumes no longer directly own an independently copied Lease per value;
+- built Volume copies share immutable backing Cell content;
+- a Volume-to-Builder path may not mutate backing storage still observed by another Volume copy and therefore may reuse storage only when exclusive;
+- Chunk construction/Collection/Provider lifetime rules are now defined by DR-019.
+
+The packed bit allocation, Definition-ID capacity, raw packed-value semantics, FlipOrientation mapping, Volume dimensions/unit-size/indexing rules, Builder-before-build mutation model, and pooled power-of-two Buffer classes remain active.
