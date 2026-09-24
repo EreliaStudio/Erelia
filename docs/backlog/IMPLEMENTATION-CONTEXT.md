@@ -229,7 +229,7 @@ Prefer small, focused implementation slices with strong tests over large feature
 
 Prefer named source-local helper functions in an anonymous namespace over lambdas declared inside a function when the logic is independently describable and does not materially benefit from captures. Keep lambdas for genuinely local callback/capture behavior rather than using them as a substitute for ordinary helper functions.
 
-`OPEN-REQUESTS.md` tracks external dependency fixes that should trigger later Erelia cleanup. When an implementation contains a deliberate workaround for an external issue, record the issue link, current workaround, exact cleanup steps, and required validation there.
+`OPEN_REQUESTS/` tracks external dependency fixes that should trigger later Erelia cleanup. Use one `OR-XXX-[name].md` file per request. Its first line is the external issue link, its second line is `Status : Open`, `Status : Treated`, or `Status : Rejected`, and its `# Edition` section lists every `[file:line]` location that must change when a treated request is integrated.
 
 An ST ticket should ideally own one coherent implementation goal and be small enough to review, test, and revert independently. Do not combine several architectural layers into one giant ticket merely because they contribute to the same Epic.
 
