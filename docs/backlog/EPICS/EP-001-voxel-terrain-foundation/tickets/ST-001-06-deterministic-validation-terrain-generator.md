@@ -590,7 +590,7 @@ The implemented scope includes:
 - generic aggregate/direct JSON Catalog loading and the mixed validation resources;
 - Server PrototypeChunkProvider using asynchronous Task submission;
 - Erelia-local headless spk::ThreadSafeSet, spk::ThreadSafeQueue, spk::Task, spk::WorkerPool, and spk::Singleton prototypes;
-- Core tests for immutable ownership, Chunk construction, Collection state/caching/replacement/concurrency/generation behavior, ThreadSafeSet, Task/WorkerPool, Singleton, Catalog dual roots, and resource loading.
+- Core tests for immutable ownership, Chunk construction, Collection state/caching/replacement/concurrency/generation behavior, Catalog dual roots and resources, plus an intentionally extensive upstream-candidate test matrix for ThreadSafeSet, ThreadSafeQueue, Task, WorkerPool, and Singleton covering ownership, move-only values, stop/wakeup behavior, contention, exactly-once execution, failure isolation, and lifecycle.
 
 CI run #311 (run ID `36018061979`) passed on implementation head `54e93aab35d468725b595e107f099d5d8577a2c3`:
 

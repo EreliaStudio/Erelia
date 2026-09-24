@@ -129,12 +129,14 @@ The final mutation of `Chunk::Collection` therefore remains on the update thread
 
 ## Required tests
 
-Core tests cover:
+Because these Erelia-local `spk` types are intended as candidates for later direct integration into Sparkle, their test depth is intentionally larger than ordinary ticket scaffolding.
 
-- ThreadSafeSet concurrent duplicate publication and Producer/Consumer draining;
-- ThreadSafeQueue FIFO ordering, unique multi-consumer removal, and stop-token wakeup;
-- Task `Pending -> Completed` with a valid result;
-- Task `Pending -> Failed` with stored exception;
-- WorkerPool execution and invalid zero-worker construction;
-- Singleton uninstantiated failure;
-- Singleton value and pointer instantiation.
+Core tests cover at least:
+
+- ThreadSafeSet direct and endpoint APIs, duplicate insertion reporting, contains/erase, drain/reset behavior, re-request after drain, move-only values, endpoint lifetime, wait/publish wakeup, stop-token wakeup, high-contention duplicate suppression, multiple producers, and concurrent Consumers draining shared state exactly once;
+- ThreadSafeQueue direct and endpoint FIFO behavior, move-only values, endpoint lifetime, blocking wakeup, empty stop-token behavior, queued-value behavior with an already-requested stop, multiple producers, and multiple Consumers removing every value exactly once;
+- Task initial Pending state, invalid result/failure access, shared Answer observation, move-only callable captures, move-only results, successful completion, spk and standard exception preservation, and Failed/Completed access invariants;
+- WorkerPool invalid/explicit/default worker counts, single-worker FIFO execution, real multi-worker concurrency, high-contention exactly-once execution, failure isolation, heterogeneous Task result types, queued-work draining during destruction, and Answer lifetime after pool destruction;
+- Singleton compile-time construction/overload constraints, uninstantiated failure, movable and move-only value instantiation, non-movable pointer instantiation, stable mutable reference behavior, re-instantiation replacement, owned-pointer destruction, null rejection, and preservation of an existing instance after rejected null input.
+
+Concurrency tests must prefer deterministic coordination and count/set invariants over arbitrary sleep-based timing.

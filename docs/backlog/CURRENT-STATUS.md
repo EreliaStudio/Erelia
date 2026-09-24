@@ -121,6 +121,7 @@ The project owner also resolved the asynchronous Collection/Provider refinement:
 - completed/failed answers are consumed during Provider update and final Collection mutation remains on the update thread;
 - Erelia temporarily hosts `spk::ThreadSafeSet`, `spk::ThreadSafeQueue`, `spk::Task`, `spk::WorkerPool`, and `spk::Singleton` under its Core include tree until they are mature enough to propose to Sparkle;
 - WorkerPool queues polymorphic jobs through `spk::ThreadSafeQueue<std::unique_ptr<Job>>`, so its own implementation does not duplicate queue mutex/condition-variable synchronization;
+- all Erelia-local `spk` prototypes intended for later Sparkle integration receive an expanded Core test matrix covering nominal, lifetime/ownership, move-only, contention, stop/wakeup, exactly-once, and failure behavior rather than only minimal ST-001-06 coverage;
 - the Server initializes a singleton WorkerPool so Server systems can submit generic tasks.
 
 The project owner also resolved the Collection replacement contract:
