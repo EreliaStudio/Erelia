@@ -25,7 +25,7 @@ Server and Client must be able to load the same Shape/Definition JSON schema wit
 - ST-001-04 intentionally revises the existing Orientation enum value/name ordering according to DR-018 while preserving the packed bit layout.
 - Sparkle 0.1.3 provides `spk::JSON::Reader`, `spk::UUID`, `spk::Logger`, vector math, and `spk::Exception`.
 - The archived resources at `archive/resources/voxels/shapes.json` are approved as geometry/topology reference for the first cube/slab/slope/stair resources, with the adaptations stated below.
-- OQ-039 remains partially unresolved for the later terrain-generator scene. Its remaining world coordinates, scene Definition IDs, and material choices do **not** block this ticket.
+- OQ-039 did not block this already-completed ticket. It was subsequently resolved during ST-001-06 planning; DR-015 now owns the exact generator-scene world coordinates, Definition IDs and material choices.
 
 ## Product ownership
 
@@ -508,7 +508,7 @@ Adaptations from the archive are required:
 5. keep the archived slab at half-height;
 6. keep the archived stair as the validated two-step shape.
 
-These active Shape resources are semantic/test fixtures. This ticket does **not** choose the final ST-001-06 terrain-scene Definition IDs, material choices, wall coordinates, or elevated fixture coordinates.
+These active Shape resources are semantic/test fixtures. This ticket did **not** choose the later ST-001-06 terrain-scene Definition IDs, material choices, wall coordinates, or elevated fixture coordinates; those are now fixed by DR-015.
 
 ## Invariants
 
@@ -594,7 +594,7 @@ At minimum include:
 - a vertically asymmetric fixture that proves `NegativeY` mirroring and rewinding;
 - Definitions with complete slots, a missing required slot, an extra invalid slot, Air ID 0, duplicate IDs, unknown Shape reference, and maximum/overflow Definition IDs.
 
-Test-local nonzero Definition IDs/material strings are fixtures only and do not establish the later OQ-039 generator-scene IDs/material choices.
+Test-local nonzero Definition IDs/material strings from ST-001-04 remain local fixtures; DR-015 now establishes the ST-001-06 generator-scene IDs/material choices.
 
 ## Acceptance tests
 
@@ -718,7 +718,7 @@ Not owned by this ticket.
 - [DR-012](../../../DECISIONS/DR-012-PACKED-CELL-AND-VOLUME-DIRECTION.md)
 - [DR-013](../../../DECISIONS/DR-013-CLIENT-TERRAIN-MESHING.md)
 - [DR-018](../../../DECISIONS/DR-018-VOXEL-SHAPE-DEFINITION-CATALOG.md)
-- [OQ-039](../../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — **not blocking ST-001-04**; remaining exact generator-scene coordinates/Definition IDs/material choices belong to ST-001-06.
+- [OQ-039](../../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — resolved later for ST-001-06; it never blocked this completed ticket.
 
 ## Definition of Ready result
 
