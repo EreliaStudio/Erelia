@@ -154,8 +154,25 @@ namespace Voxel
 			spk::JSON::throwAt(reader.file(), reader.pathFor("slot"), "voxel polygon slot cannot be empty");
 		}
 
-		for (const spk::JSON::Reader &vertexReader : reader.childArray("vertices"))
+		if (!reader.contains("vertices"))
 		{
+			spk::JSON::throwAt(reader.file(), reader.pathFor("vertices"), "missing required field");
+		}
+
+		const spk::JSON::Value &verticesValue = reader.value().at("vertices");
+		if (!verticesValue.isArray())
+		{
+			spk::JSON::throwAt(reader.file(), reader.pathFor("vertices"), "expected an array");
+		}
+
+		const spk::JSON::Value::Array &vertices = verticesValue.asArray();
+		result.vertices.reserve(vertices.size());
+		for (std::size_t index = 0; index < vertices.size(); ++index)
+		{
+			const spk::JSON::Reader vertexReader(
+				vertices[index],
+				reader.file(),
+				reader.pathFor("vertices") + "[" + std::to_string(index) + "]");
 			result.vertices.push_back(_loadVertex(vertexReader));
 		}
 
