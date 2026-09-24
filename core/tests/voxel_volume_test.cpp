@@ -302,13 +302,13 @@ TEST(VoxelVolumeBuilder, PoolCreatesAndReusesPowerOfTwoSizeClasses)
 	const Voxel::Cell *firstBufferData = nullptr;
 
 	{
-		auto firstVolume = makeVolume({10, 10, 30}, 1.0f);
+		auto firstVolume = makeVolume({10, 10, 50}, 1.0f);
 		firstBufferData = firstVolume.cells().data();
 		ASSERT_NE(firstBufferData, nullptr);
 	}
 
-	const auto secondVolume = makeVolume({7, 10, 50}, 1.0f);
+	const auto secondVolume = makeVolume({10, 10, 70}, 1.0f);
 
-	ASSERT_EQ(secondVolume.cells().size(), 3500u);
+	ASSERT_EQ(secondVolume.cells().size(), 7000u);
 	EXPECT_EQ(secondVolume.cells().data(), firstBufferData);
 }
