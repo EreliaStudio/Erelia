@@ -2,8 +2,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstdint>
 #include <container/json/error.hpp>
+#include <cstdint>
 #include <exception.hpp>
 #include <limits>
 #include <utility>
