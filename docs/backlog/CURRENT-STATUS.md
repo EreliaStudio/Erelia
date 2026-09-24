@@ -14,7 +14,7 @@ The active ST-001-06 branch was created from current `master` at `ab2e56c60b8294
 
 The branch now contains ST-001-06 production implementation and tests. It also contains the previously approved ST-001-12 documentation clarification for structural multi-Shape occlusion fixtures.
 
-Current implementation includes shared immutable Volume backing, Chunk/Chunk::Builder, asynchronous Chunk::Collection/Provider state, mixed aggregate/direct catalog loading, validation resources, the Server PrototypeChunkProvider, and Erelia-local headless `spk::ThreadSafeSet`, `spk::Task`, `spk::WorkerPool`, and `spk::Singleton` prototypes.
+Current implementation includes shared immutable Volume backing, Chunk/Chunk::Builder, asynchronous Chunk::Collection/Provider state, mixed aggregate/direct catalog loading, validation resources, the Server PrototypeChunkProvider, and Erelia-local headless `spk::ThreadSafeSet`, `spk::ThreadSafeQueue`, `spk::Task`, `spk::WorkerPool`, and `spk::Singleton` prototypes.
 
 CI run #311 (run ID `36018061979`) passed the complete matrix on implementation head `54e93aab35d468725b595e107f099d5d8577a2c3`: clang-format, Core/Server Linux Debug + Release, Core/Server Windows Debug + Release, and Client Windows Debug + Release all succeeded. ST-001-06 remains Ready / active rather than Done until explicit project-owner approval.
 
@@ -119,7 +119,8 @@ The project owner also resolved the asynchronous Collection/Provider refinement:
 - Provider request buffering uses a set-style deduplicating primitive;
 - asynchronous generation is submitted through a generic headless WorkerPool/Task abstraction;
 - completed/failed answers are consumed during Provider update and final Collection mutation remains on the update thread;
-- Erelia temporarily hosts `spk::ThreadSafeSet`, `spk::Task`, `spk::WorkerPool`, and `spk::Singleton` under its Core include tree until they are mature enough to propose to Sparkle;
+- Erelia temporarily hosts `spk::ThreadSafeSet`, `spk::ThreadSafeQueue`, `spk::Task`, `spk::WorkerPool`, and `spk::Singleton` under its Core include tree until they are mature enough to propose to Sparkle;
+- WorkerPool queues polymorphic jobs through `spk::ThreadSafeQueue<std::unique_ptr<Job>>`, so its own implementation does not duplicate queue mutex/condition-variable synchronization;
 - the Server initializes a singleton WorkerPool so Server systems can submit generic tasks.
 
 The project owner also resolved the Collection replacement contract:

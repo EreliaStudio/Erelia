@@ -21,6 +21,7 @@ The project owner selected a reusable Sparkle-shaped API, implemented temporaril
 The following types live in Erelia Core headers but in namespace `spk`, alongside the existing Erelia-local `spk::JSON::Catalog` prototype:
 
 - `spk::ThreadSafeSet<T>`;
+- `spk::ThreadSafeQueue<T>`;
 - `spk::Task<TResult>`;
 - `spk::WorkerPool`;
 - `spk::Singleton<T>`.
@@ -43,6 +44,14 @@ Once their contracts have been exercised in Erelia, they may be proposed to Spar
 
 Unlike FIFO, insertion is set-based and therefore deduplicates equal values atomically. `publish()` / `emplace()` return whether a new value was inserted.
 
+### `spk::ThreadSafeQueue<T>`
+
+`ThreadSafeQueue` mirrors the same shared `State` / `Producer` / move-only `Consumer` / `Endpoints` structure as Sparkle's `ThreadSafeFIFO`.
+
+It owns FIFO-ordered values and is designed for worker-style individual consumption rather than batch draining. `waitPop(stopToken)` blocks while empty, atomically removes and returns exactly one value when work is available, and returns `std::nullopt` when stop is requested while no value remains. Multiple Consumers may wait on the same shared State; every queued value is removed by exactly one Consumer.
+
+This primitive is headless and generic. It is not specific to `WorkerPool`.
+
 ### `spk::Task<TResult>`
 
 A Task owns one callable representing worker-side work and exposes a lightweight shared `Task<TResult>::Answer`.
@@ -64,14 +73,14 @@ There is no `Completed + expected-error` state. Domain work that fails does so t
 It owns:
 
 - a pool of standard C++ worker threads;
-- a synchronized FIFO queue of polymorphic `WorkerPool::Job` values;
+- a `spk::ThreadSafeQueue<std::unique_ptr<WorkerPool::Job>>` of polymorphic jobs;
 - an internal `TaskJob<TResult> : WorkerPool::Job` adapter for typed `spk::Task<TResult>`.
 
 Submitting a Task returns its `Answer`. Workers execute jobs without knowing their result type.
 
 The default pool size is the standard-library hardware concurrency when available, with one worker as fallback. Explicit construction with zero workers is rejected.
 
-Pool destruction stops accepting new work, drains already queued jobs, and joins its workers.
+Workers consume jobs through separate `ThreadSafeQueue::Consumer` handles and block through `waitPop(stop_token)`. `std::jthread` stop tokens provide shutdown signaling; queued work already visible to the queue remains consumable before workers exit.
 
 ### `spk::Singleton<T>`
 
@@ -114,6 +123,7 @@ The final mutation of `Chunk::Collection` therefore remains on the update thread
 - worker threads stay independent of engine presentation APIs;
 - Chunk generation does not require direct `std::future` ownership in gameplay systems;
 - typed Task results coexist on one polymorphic Job queue;
+- WorkerPool does not duplicate mutex/condition-variable/queue synchronization already owned by `ThreadSafeQueue`;
 - request producers can deduplicate batches through `ThreadSafeSet`;
 - Erelia gains a concrete proving ground before proposing these APIs to Sparkle.
 
@@ -122,6 +132,7 @@ The final mutation of `Chunk::Collection` therefore remains on the update thread
 Core tests cover:
 
 - ThreadSafeSet concurrent duplicate publication and Producer/Consumer draining;
+- ThreadSafeQueue FIFO ordering, unique multi-consumer removal, and stop-token wakeup;
 - Task `Pending -> Completed` with a valid result;
 - Task `Pending -> Failed` with stored exception;
 - WorkerPool execution and invalid zero-worker construction;

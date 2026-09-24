@@ -1,14 +1,13 @@
 #pragma once
 
-#include <condition_variable>
 #include <cstddef>
 #include <memory>
-#include <mutex>
-#include <queue>
+#include <stop_token>
 #include <thread>
 #include <utility>
 #include <vector>
 
+#include <container/thread_safe_queue.hpp>
 #include <exception.hpp>
 
 #include <threading/task.hpp>
@@ -49,10 +48,9 @@ namespace spk
 			}
 		};
 
-		std::mutex _mutex;
-		std::condition_variable _condition;
-		std::queue<std::unique_ptr<Job>> _jobs;
-		bool _stopping = false;
+		using JobQueue = ThreadSafeQueue<std::unique_ptr<Job>>;
+
+		JobQueue _jobs;
 		std::vector<std::jthread> _workers;
 
 		[[nodiscard]] static std::size_t _defaultWorkerCount() noexcept
@@ -61,33 +59,13 @@ namespace spk
 			return count == 0u ? 1u : static_cast<std::size_t>(count);
 		}
 
-		void _run()
+		static void _run(
+			JobQueue::Consumer consumer,
+			std::stop_token stopToken)
 		{
-			while (true)
+			while (auto job = consumer.waitPop(stopToken))
 			{
-				std::unique_ptr<Job> job;
-				{
-					std::unique_lock lock(_mutex);
-					_condition.wait(
-						lock,
-						[this] {
-							return _stopping || !_jobs.empty();
-						});
-
-					if (_jobs.empty())
-					{
-						if (_stopping)
-						{
-							return;
-						}
-						continue;
-					}
-
-					job = std::move(_jobs.front());
-					_jobs.pop();
-				}
-
-				job->_execute();
+				(*job)->_execute();
 			}
 		}
 
@@ -101,15 +79,20 @@ namespace spk
 		{
 			if (workerCount == 0u)
 			{
-				throw spk::Exception("WorkerPool requires at least one worker");
+				throw spk::Exception(
+					"WorkerPool requires at least one worker");
 			}
 
 			_workers.reserve(workerCount);
 			for (std::size_t index = 0; index < workerCount; ++index)
 			{
-				_workers.emplace_back([this] {
-					_run();
-				});
+				_workers.emplace_back(
+					[consumer = _jobs.consumer()](
+						std::stop_token stopToken) mutable {
+						_run(
+							std::move(consumer),
+							stopToken);
+					});
 			}
 		}
 
@@ -119,32 +102,17 @@ namespace spk
 		WorkerPool &operator=(const WorkerPool &) = delete;
 		WorkerPool &operator=(WorkerPool &&) = delete;
 
-		~WorkerPool()
-		{
-			{
-				const std::scoped_lock lock(_mutex);
-				_stopping = true;
-			}
-			_condition.notify_all();
-		}
+		~WorkerPool() = default;
 
 		template <typename TResult>
 			requires std::movable<TResult>
-		[[nodiscard]] typename Task<TResult>::Answer submit(Task<TResult> task)
+		[[nodiscard]] typename Task<TResult>::Answer submit(
+			Task<TResult> task)
 		{
 			auto answer = task.answer();
-			auto job = std::make_unique<TaskJob<TResult>>(std::move(task));
-
-			{
-				const std::scoped_lock lock(_mutex);
-				if (_stopping)
-				{
-					throw spk::Exception("Cannot submit a Task to a stopping WorkerPool");
-				}
-				_jobs.push(std::move(job));
-			}
-
-			_condition.notify_one();
+			_jobs.publish(
+				std::make_unique<TaskJob<TResult>>(
+					std::move(task)));
 			return answer;
 		}
 

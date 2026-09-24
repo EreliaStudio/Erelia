@@ -589,7 +589,7 @@ The implemented scope includes:
 - asynchronous Chunk::Collection / Provider with explicit Absent/Pending/Available state, generation counters, stale-result rejection, replacement/upsert, and short spk::ProtectedData synchronization;
 - generic aggregate/direct JSON Catalog loading and the mixed validation resources;
 - Server PrototypeChunkProvider using asynchronous Task submission;
-- Erelia-local headless spk::ThreadSafeSet, spk::Task, spk::WorkerPool, and spk::Singleton prototypes;
+- Erelia-local headless spk::ThreadSafeSet, spk::ThreadSafeQueue, spk::Task, spk::WorkerPool, and spk::Singleton prototypes;
 - Core tests for immutable ownership, Chunk construction, Collection state/caching/replacement/concurrency/generation behavior, ThreadSafeSet, Task/WorkerPool, Singleton, Catalog dual roots, and resource loading.
 
 CI run #311 (run ID `36018061979`) passed on implementation head `54e93aab35d468725b595e107f099d5d8577a2c3`:
@@ -610,9 +610,10 @@ Do not mark this ticket Done until explicit project-owner approval is given.
 The project owner additionally approved DR-020 during implementation:
 
 - add an Erelia-local `spk::ThreadSafeSet<T>` mirroring Sparkle `ThreadSafeFIFO`'s shared State / Producer / Consumer / Endpoints shape while deduplicating values;
+- add `spk::ThreadSafeQueue<T>` with the same State / Producer / Consumer / Endpoints structure as `ThreadSafeFIFO`, plus stop-token-aware single-item `waitPop()` for worker consumption;
 - add headless `spk::Task<TResult>` with exactly Pending, Completed, Failed states;
 - Completed always means a valid result; Failed stores an exception rather than a successful `std::expected` error value;
-- add headless `spk::WorkerPool` with polymorphic `WorkerPool::Job` and internal `TaskJob<TResult> : Job` adapters;
+- add headless `spk::WorkerPool` with polymorphic `WorkerPool::Job`, internal `TaskJob<TResult> : Job` adapters, and `spk::ThreadSafeQueue<std::unique_ptr<Job>>` as its synchronized job queue;
 - add `spk::Singleton<T>` backed by inline static `std::unique_ptr<T>`, with `instanciate(value)`, `instanciate(pointer)`, `instance()`, and `isInstanciated()`;
 - instantiate the Server WorkerPool through `spk::Singleton<spk::WorkerPool>` at startup;
 - keep all four prototypes in Erelia Core, namespace `spk`, with no graphics/Window dependency until they are ready to propose to Sparkle.

@@ -176,7 +176,7 @@ A terrain Chunk is a semantic specialization of Volume. DR-019 fixes:
 - copied Chunks keep old immutable content alive across Collection replacement;
 - no Collection lock is held during expensive generation work.
 
-ST-001-06 also prototypes headless generic Sparkle-shaped infrastructure locally inside Erelia Core: `spk::ThreadSafeSet`, `spk::Task<TResult>`, `spk::WorkerPool`, and `spk::Singleton<T>`. These live outside the `erelia` include namespace just like the local `spk::JSON::Catalog`, remain standard-library/Sparkle-Core only, and are intended to be proposed to Sparkle after they have been exercised. See DR-020.
+ST-001-06 also prototypes headless generic Sparkle-shaped infrastructure locally inside Erelia Core: `spk::ThreadSafeSet`, `spk::ThreadSafeQueue`, `spk::Task<TResult>`, `spk::WorkerPool`, and `spk::Singleton<T>`. `ThreadSafeQueue` follows the same shared State / Producer / Consumer / Endpoints shape as Sparkle's `ThreadSafeFIFO`; WorkerPool uses it for stop-token-aware one-job-per-consumer dispatch rather than owning another mutex/condition-variable/queue trio. These live outside the `erelia` include namespace just like the local `spk::JSON::Catalog`, remain standard-library/Sparkle-Core only, and are intended to be proposed to Sparkle after they have been exercised. See DR-020.
 
 Future Client request acquisition uses the same Collection/Provider state machine but ST-001-11 still owns network retry/cache/response policy.
 
