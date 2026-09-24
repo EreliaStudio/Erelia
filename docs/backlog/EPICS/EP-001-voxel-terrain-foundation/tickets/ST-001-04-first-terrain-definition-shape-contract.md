@@ -282,7 +282,7 @@ A Definition object does **not** store its own catalog ID.
 A non-Air Definition contains:
 
 - a non-owning immutable `const Voxel::Shape&` to its resolved Shape;
-- slot-to-`Voxel::Material::ID` bindings.
+- `Voxel::Material::SlotID` to `Voxel::Material::ID` bindings.
 
 Definition loading resolves its JSON `shape` string against the Shape catalog once. Unknown Shape IDs throw `spk::Exception`.
 
@@ -470,7 +470,7 @@ All of the following throw `spk::Exception` with useful file/path diagnostics:
 - non-planar polygon;
 - concave polygon.
 
-Use Sparkle JSON readers/loaders rather than adding another JSON dependency.
+Use Sparkle JSON readers/loaders rather than adding another JSON dependency. All file/path-aware JSON/resource validation exceptions are formatted through the single shared `spk::JSON::throwAt` helper; do not duplicate file/path exception-string construction in voxel loaders.
 
 ## First Shape resources / exact fixtures
 
@@ -716,7 +716,7 @@ The public behavior, ownership, lifecycle, loading/error behavior, deterministic
 
 ## Completion evidence
 
-**Implementation state:** Technically complete; project-owner approval pending.
+**Implementation state:** Implementation revised; fresh validation and project-owner approval pending.
 
 Implementation remains on:
 
@@ -768,4 +768,4 @@ CI run #127 validated implementation head `44aaf1d509c231bb5f69ad9775a97349af959
 
 The concurrent cache test uses 12 threads racing the same previously unmaterialized Orientation/Flip entry and verifies that all callers observe the same entry, UUID, and immutable geometry after publication.
 
-CI run #209 (run ID `35926707908`) validated simplified catalog code head `2b9cad9e9803cb6e4cc6c81f9ef1a8f3610e85d9` successfully across clang-format, Linux Core/Server Debug + Release, Windows Core/Server Debug + Release, and Windows Client Debug + Release. Shape/Definition subcatalogs publicly inherit the base `load`/lookup API with no no-op forwarding wrappers. Subsequent commits only synchronize decision/management documentation with that validated code. The ticket remains **In Progress**, not Done, solely because explicit project-owner approval required by `DEFINITION-OF-DONE.md` has not yet been recorded. PR #11 must not be merged until separately authorized.
+CI run #209 (run ID `35926707908`) validated simplified catalog code head `2b9cad9e9803cb6e4cc6c81f9ef1a8f3610e85d9` successfully across clang-format, Linux Core/Server Debug + Release, Windows Core/Server Debug + Release, and Windows Client Debug + Release. Shape/Definition subcatalogs publicly inherit the base `load`/lookup API with no no-op forwarding wrappers. Their implementations are split one class per source file: `shape_catalog.cpp`, `definition_catalog.cpp`, and aggregate `catalog.cpp`. Subsequent commits only synchronize decision/management documentation with that validated code. The ticket remains **In Progress**, not Done, solely because explicit project-owner approval required by `DEFINITION-OF-DONE.md` has not yet been recorded. PR #11 must not be merged until separately authorized.
