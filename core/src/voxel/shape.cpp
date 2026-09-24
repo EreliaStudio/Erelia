@@ -5,17 +5,11 @@
 #include <container/json/error.hpp>
 #include <cstdint>
 #include <exception.hpp>
-#include <limits>
 #include <utility>
 
 namespace
 {
-	struct WideVector3
-	{
-		std::int64_t x;
-		std::int64_t y;
-		std::int64_t z;
-	};
+	using WideVertex = spk::TVector3<std::int64_t>;
 
 	[[nodiscard]] std::int32_t vertexScale()
 	{
@@ -23,7 +17,22 @@ namespace
 		return result;
 	}
 
-	[[nodiscard]] WideVector3 difference(const spk::Vector3Int &first, const spk::Vector3Int &second)
+	[[nodiscard]] std::int32_t quantizeVertexComponent(
+		const spk::JSON::Reader &reader,
+		float value,
+		const char *component)
+	{
+		if (value < 0.0f || value > 1.0f)
+		{
+			spk::JSON::throwAt(
+				reader.file(),
+				reader.pathFor(component),
+				"vertex coordinate is outside [0.0, 1.0]");
+		}
+		return static_cast<std::int32_t>(value * static_cast<float>(vertexScale()));
+	}
+
+	[[nodiscard]] WideVertex difference(const Voxel::Vertex &first, const Voxel::Vertex &second)
 	{
 		return {
 			static_cast<std::int64_t>(first.x) - second.x,
@@ -31,31 +40,18 @@ namespace
 			static_cast<std::int64_t>(first.z) - second.z};
 	}
 
-	[[nodiscard]] WideVector3 cross(const WideVector3 &first, const WideVector3 &second)
-	{
-		return {
-			first.y * second.z - first.z * second.y,
-			first.z * second.x - first.x * second.z,
-			first.x * second.y - first.y * second.x};
-	}
-
-	[[nodiscard]] std::int64_t dot(const WideVector3 &first, const WideVector3 &second)
-	{
-		return first.x * second.x + first.y * second.y + first.z * second.z;
-	}
-
-	[[nodiscard]] bool isZero(const WideVector3 &value)
+	[[nodiscard]] bool isZero(const WideVertex &value)
 	{
 		return value.x == 0 && value.y == 0 && value.z == 0;
 	}
 
-	[[nodiscard]] WideVector3 polygonNormal(const std::vector<spk::Vector3Int> &vertices)
+	[[nodiscard]] WideVertex polygonNormal(const std::vector<Voxel::Vertex> &vertices)
 	{
 		for (std::size_t index = 2; index < vertices.size(); ++index)
 		{
-			const WideVector3 first = difference(vertices[1], vertices[0]);
-			const WideVector3 second = difference(vertices[index], vertices[0]);
-			const WideVector3 normal = cross(first, second);
+			const WideVertex first = difference(vertices[1], vertices[0]);
+			const WideVertex second = difference(vertices[index], vertices[0]);
+			const WideVertex normal = first.cross(second);
 			if (!isZero(normal))
 			{
 				return normal;
@@ -63,30 +59,21 @@ namespace
 		}
 		return {};
 	}
-
 }
 
 namespace Voxel
 {
-	spk::Vector3Int Shape::_loadVertex(const spk::JSON::Reader &reader)
+	Vertex Shape::_loadVertex(const spk::JSON::Reader &reader)
 	{
 		reader.forbidUnknown({"x", "y", "z"});
 		const float x = reader.require<float>("x");
 		const float y = reader.require<float>("y");
 		const float z = reader.require<float>("z");
 
-		auto convert = [&](float value, const char *component) {
-			if (value < 0.0f || value > 1.0f)
-			{
-				spk::JSON::throwAt(
-					reader.file(),
-					reader.pathFor(component),
-					"vertex coordinate is outside [0.0, 1.0]");
-			}
-			return static_cast<std::int32_t>(value * static_cast<float>(vertexScale()));
-		};
-
-		return {convert(x, "x"), convert(y, "y"), convert(z, "z")};
+		return {
+			quantizeVertexComponent(reader, x, "x"),
+			quantizeVertexComponent(reader, y, "y"),
+			quantizeVertexComponent(reader, z, "z")};
 	}
 
 	void Shape::_validatePolygon(const Polygon &polygon, const spk::JSON::Reader &reader)
@@ -104,15 +91,15 @@ namespace Voxel
 			}
 		}
 
-		const WideVector3 normal = polygonNormal(polygon.vertices);
+		const WideVertex normal = polygonNormal(polygon.vertices);
 		if (isZero(normal))
 		{
 			spk::JSON::throwAt(reader.file(), reader.path(), "voxel polygon is degenerate");
 		}
 
-		for (const spk::Vector3Int &vertex : polygon.vertices)
+		for (const Vertex &vertex : polygon.vertices)
 		{
-			if (dot(normal, difference(vertex, polygon.vertices[0])) != 0)
+			if (normal.dot(difference(vertex, polygon.vertices[0])) != 0)
 			{
 				spk::JSON::throwAt(reader.file(), reader.path(), "voxel polygon is not planar");
 			}
@@ -120,9 +107,9 @@ namespace Voxel
 
 		for (std::size_t edgeIndex = 0; edgeIndex < polygon.vertices.size(); ++edgeIndex)
 		{
-			const spk::Vector3Int &edgeStart = polygon.vertices[edgeIndex];
-			const spk::Vector3Int &edgeEnd = polygon.vertices[(edgeIndex + 1) % polygon.vertices.size()];
-			const WideVector3 edge = difference(edgeEnd, edgeStart);
+			const Vertex &edgeStart = polygon.vertices[edgeIndex];
+			const Vertex &edgeEnd = polygon.vertices[(edgeIndex + 1) % polygon.vertices.size()];
+			const WideVertex edge = difference(edgeEnd, edgeStart);
 
 			for (std::size_t vertexIndex = 0; vertexIndex < polygon.vertices.size(); ++vertexIndex)
 			{
@@ -131,8 +118,8 @@ namespace Voxel
 					continue;
 				}
 
-				const WideVector3 towardVertex = difference(polygon.vertices[vertexIndex], edgeStart);
-				if (dot(cross(edge, towardVertex), normal) < 0)
+				const WideVertex towardVertex = difference(polygon.vertices[vertexIndex], edgeStart);
+				if (edge.cross(towardVertex).dot(normal) < 0)
 				{
 					spk::JSON::throwAt(reader.file(), reader.path(), "voxel polygon is concave or self-intersecting");
 				}
@@ -140,9 +127,9 @@ namespace Voxel
 		}
 	}
 
-	spk::Vector3 Shape::_normalOf(const std::vector<spk::Vector3Int> &vertices)
+	spk::Vector3 Shape::_normalOf(const std::vector<Vertex> &vertices)
 	{
-		const WideVector3 normal = polygonNormal(vertices);
+		const WideVertex normal = polygonNormal(vertices);
 		return spk::Vector3(static_cast<float>(normal.x), static_cast<float>(normal.y), static_cast<float>(normal.z)).normalized();
 	}
 
@@ -177,9 +164,9 @@ namespace Voxel
 		result.slot = polygon.slot;
 		result.vertices.reserve(polygon.vertices.size());
 
-		for (const spk::Vector3Int &source : polygon.vertices)
+		for (const Vertex &source : polygon.vertices)
 		{
-			spk::Vector3Int transformed = source;
+			Vertex transformed = source;
 			switch (orientation)
 			{
 			case Cell::Orientation::PositiveX:
