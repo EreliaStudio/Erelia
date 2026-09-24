@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include <container/json/error.hpp>
 #include <container/json/reader.hpp>
 #include <exception.hpp>
 
@@ -20,14 +21,6 @@ namespace spk::JSON
 
 	private:
 		std::unordered_map<ID, Element> _elements;
-
-		[[noreturn]] static void _throwAt(
-			const std::filesystem::path &file,
-			const std::string &path,
-			const std::string &message)
-		{
-			throw spk::Exception(file.generic_string() + ":" + path + ": " + message);
-		}
 
 	protected:
 		Catalog() = default;
@@ -54,13 +47,13 @@ namespace spk::JSON
 
 			if (!root.contains("elements"))
 			{
-				_throwAt(file, root.pathFor("elements"), "missing required field");
+				spk::JSON::throwAt(file, root.pathFor("elements"), "missing required field");
 			}
 
 			const Value &elements = root.value().at("elements");
 			if (!elements.isArray())
 			{
-				_throwAt(file, root.pathFor("elements"), "expected an array");
+				spk::JSON::throwAt(file, root.pathFor("elements"), "expected an array");
 			}
 
 			const auto &array = elements.asArray();
@@ -73,7 +66,7 @@ namespace spk::JSON
 				ID id = _parseKey(elementReader);
 				if (contains(id))
 				{
-					_throwAt(file, elementReader.pathFor("id"), "duplicate catalog ID");
+					spk::JSON::throwAt(file, elementReader.pathFor("id"), "duplicate catalog ID");
 				}
 
 				const Reader dataReader = elementReader.child("data");
