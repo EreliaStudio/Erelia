@@ -93,6 +93,7 @@ Final Ready tests require minimal exact fixtures for:
 - adjacent same-definition cells with internal face occlusion;
 - slab, slope, stair;
 - Orientation/Flip variants;
+- exact multi-Shape occlusion/contact fixtures, including vertically opposed/flipped Shapes (for example two slopes stacked against each other), with expected semantic mesh topology and exact emitted vertex/index counts;
 - boundary Cell with present neighbor;
 - boundary Cell with absent neighbor under chosen OQ-036 policy;
 - neighbor arrival/removal/remesh invalidation.
@@ -103,7 +104,7 @@ Expected semantic vertices/indices/normals/material references must be exact.
 
 ### Nominal
 
-Exact semantic mesh output for each approved Shape fixture.
+Exact semantic mesh output for each approved Shape fixture. Include compact multi-Shape contact/occlusion cases where topology counts are asserted directly; for example, two vertically opposed/flipped slopes should have an explicitly derived expected mesh and exact vertex/index counts so internal-face/partial-occlusion behavior is validated structurally without relying on rendered images.
 
 ### Boundaries
 
