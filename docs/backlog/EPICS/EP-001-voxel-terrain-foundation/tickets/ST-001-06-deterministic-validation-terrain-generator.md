@@ -147,7 +147,7 @@ Because Chunk/Volume copies share immutable backing Cell content, a returned cop
 
 The Collection's coordinate storage/lookup/replacement path must be safe for the intended update-thread/render-thread use. Shared immutable Cell content solves object lifetime; normal synchronization is still required around the Collection's mutable coordinate container.
 
-The approved long-term replacement semantic is whole-value replacement: a new Chunk for a coordinate replaces the stored Chunk value rather than mutating Cells of the old Chunk. Existing copied Chunk values continue using the old immutable content.
+The approved replacement semantic is whole-value publication: a new Chunk for a coordinate replaces the stored Chunk value rather than mutating Cells of the old Chunk. If the coordinate is absent, replacement inserts the supplied Chunk immediately. This is an upsert operation and does not invoke the Provider. Existing copied Chunk values continue using the old immutable content.
 
 ### 4. Generic Catalog dual root formats
 
@@ -296,14 +296,20 @@ stored coordinate
     -> stored Chunk copied/returned by value
 ```
 
-### Future replacement
+### Replacement
 
 ```text
 stored old Chunk
-    -> complete new Chunk arrives
-    -> Collection publishes/replaces entry
+    -> complete new Chunk supplied
+    -> Collection replaces entry
     -> existing copies keep old shared content alive
     -> new lookups obtain the replacement
+
+absent coordinate
+    -> complete new Chunk supplied
+    -> Collection inserts it immediately
+    -> Provider is not called
+    -> subsequent lookups obtain the inserted Chunk
 ```
 
 ST-001-11 owns network-specific pending/outstanding/rejected states.
@@ -491,13 +497,12 @@ Not owned. DR-015 fixture is later consumed by render/golden tickets.
 ### Resolved readiness decisions
 
 1. **Prototype provider coordinate domain:** `PrototypeChunkProvider` accepts every representable `Chunk::Coordinate`, including negative X/Y/Z coordinates. It does not reject coordinates; coordinates where DR-015 places no occupied Cells produce a valid empty Chunk.
-2. **Collection replacement scope:** the whole-Chunk replacement API is implemented in ST-001-06 rather than deferred to ST-001-11. The absent-coordinate behavior of that API is still unresolved.
+2. **Collection replacement:** the whole-Chunk replacement API is implemented in ST-001-06 rather than deferred to ST-001-11. It has upsert semantics: an existing coordinate is replaced; an absent coordinate is inserted immediately; the Provider is not invoked by replacement.
 
 ### Remaining readiness decisions
 
 Before changing production code, ask the project owner **one decision at a time** for:
 
-2. Collection replacement behavior for a coordinate that is not already stored. The replacement API itself is now explicitly owned by ST-001-06;
 3. how the Collection constructor handles an absent/null Provider if the selected API can represent one;
 4. exact prototype terrain assertion depth (full arrays vs explicitly enumerated representative semantic expectations).
 
