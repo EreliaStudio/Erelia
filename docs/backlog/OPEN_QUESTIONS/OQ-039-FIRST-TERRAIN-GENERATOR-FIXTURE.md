@@ -25,7 +25,9 @@ The first generator should be simple enough to debug networking/meshing while ex
 
 ## Remaining ambiguity
 
-Exact authored coordinates, wall extents/heights, Definition IDs/material choices, and the complete slab/slope/stair Orientation/Flip fixture table remain open.
+ST-001-04 / DR-018 now define the shared Shape/Definition/Catalog representation, the canonical +X Shape orientation, exact Orientation/Flip transforms, and the first cube/slab/slope/stair Shape resources.
+
+What remains open here is specific to the later deterministic terrain-generator scene: exact authored world coordinates, wall extents/heights, exact scene Definition IDs, material choices, and the complete placement table for the validation fixture. These remaining details block ST-001-06 and later scene validation, but no longer block ST-001-04.
 
 ## Chosen solution
 

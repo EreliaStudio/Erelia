@@ -18,7 +18,7 @@ Received canonical terrain becomes renderable while keeping GPU/presentation art
 - Depends on ST-001-03 and ST-001-04.
 - DR-013 fixes Client ownership of terrain meshes.
 - OQ-036 still leaves missing-neighbor behavior and remesh invalidation scope unresolved.
-- ST-001-04 is Draft because first active Definition/Shape geometry semantics are not yet fixed.
+- ST-001-04 is Ready with its Definition/Shape geometry semantics fixed by DR-018; this ticket still waits for ST-001-04 implementation plus OQ-036.
 
 ## Product ownership
 
@@ -161,7 +161,7 @@ Golden rendering belongs to ST-001-16; this ticket uses semantic mesh assertions
 
 - [DR-013](../../../DECISIONS/DR-013-CLIENT-TERRAIN-MESHING.md)
 - [OQ-036](../../../OPEN_QUESTIONS/OQ-036-TERRAIN-MESHING-NEIGHBOR-POLICY.md) — blocking.
-- ST-001-04 specification gap also blocks exact Shape fixtures.
+- ST-001-04 implementation remains a prerequisite for the exact Shape fixtures.
 
 ## Completion evidence
 

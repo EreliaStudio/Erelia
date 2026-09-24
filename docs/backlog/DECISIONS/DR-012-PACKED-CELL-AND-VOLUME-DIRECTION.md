@@ -34,14 +34,16 @@ The exact packed layout is:
 - bits 29-30: `Voxel::Cell::Orientation`;
 - bit 31: `Voxel::Cell::FlipOrientation`.
 
-The exact enum mapping is:
+The packed Orientation field remains a two-bit value. The current enum mapping is revised by DR-018 so its numeric value is the counter-clockwise quarter-turn count from canonical +X:
 
 - `Orientation::PositiveX = 0`;
-- `Orientation::NegativeX = 1`;
-- `Orientation::PositiveZ = 2`;
-- `Orientation::NegativeZ = 3`;
+- `Orientation::NegativeZ = 1`;
+- `Orientation::NegativeX = 2`;
+- `Orientation::PositiveZ = 3`;
 - `FlipOrientation::PositiveY = 0`;
 - `FlipOrientation::NegativeY = 1`.
+
+DR-018 supersedes only the earlier Orientation value/name ordering; the bit positions and all other packed-Cell rules in this record remain unchanged.
 
 This provides a maximum packed Definition ID of `0x1FFFFFFF` (536,870,911).
 
@@ -114,8 +116,8 @@ Once the remaining exact contracts are resolved:
 
 ## Resolution provenance
 
-Resolved directly by the project owner on 2026-09-22 and refined during ST-001-03 review on 2026-09-23 after introducing the reusable Sparkle Pool.
+Resolved directly by the project owner on 2026-09-22 and refined during ST-001-03 review on 2026-09-23 after introducing the reusable Sparkle Pool. The Orientation enum value/name ordering was subsequently revised by DR-018 on 2026-09-23.
 
 ## Supersession
 
-None.
+DR-018 supersedes only this record's original Orientation enum value/name ordering. The packed bit allocation, Definition-ID capacity, raw packed-value semantics, FlipOrientation mapping, and Volume contract remain active.

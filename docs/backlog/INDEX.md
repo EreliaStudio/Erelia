@@ -11,6 +11,7 @@ This file is the navigation layer over the folder tree.
 | Current code/planning state | CURRENT-STATUS.md |
 | Gameplay source provenance | SOURCE-BASELINE.md |
 | Architecture/design questions | OPEN_QUESTIONS/README.md |
+| External dependency follow-up requests | OPEN_REQUESTS/ |
 | Decision rules/index | DECISIONS/README.md |
 | Ready standard | DEFINITION-OF-READY.md |
 | Done standard | DEFINITION-OF-DONE.md |
