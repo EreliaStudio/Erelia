@@ -27,11 +27,11 @@ A request message contains:
 
 The Server resolves/generates requested Chunks and returns a response containing a list conceptually equivalent to:
 
-`{ spk::Vector3Int coordinate, Voxel::Volume volume }`
+`{ spk::Vector3Int coordinate, Chunk chunk }`
 
 for Chunks successfully supplied.
 
-`Voxel::Volume` is serialized through the shared direct `spk::Message << volume` / `>> volume` contract from DR-017.
+DR-019 supersedes the earlier generic-Volume response shape for terrain Chunks. ST-001-08 will define a dedicated fixed-size Chunk codec that transfers the 4096 packed Cells without redundantly serializing 16×16×16 dimensions or unit size 1.0f. Generic `Voxel::Volume` serialization from DR-017 remains available for runtime-sized Volumes.
 
 The Client alone owns its view/loading-region policy. The Server does not dictate the Client render/view radius.
 
@@ -50,7 +50,7 @@ The protocol should allow that policy to change without changing Server terrain 
 - Client-side loading-radius policy is not part of the Server contract;
 - transport/framing uses Sparkle Version-0.1.3 networking; Erelia still owns the payload byte layout;
 - duplicate-coordinate handling, partial-success/rejection semantics, and cache/eviction policy remain unresolved detailed contracts;
-- Volume payload encoding is centralized behind DR-017 rather than repeated manually at each Chunk call site.
+- Chunk payload encoding is centralized by the later ST-001-08 dedicated codec; generic runtime-sized Volume payload encoding remains centralized behind DR-017.
 
 ## Required tests
 
@@ -59,7 +59,7 @@ When exact protocol encoding is resolved:
 - one-coordinate batch;
 - multi-coordinate batch;
 - negative Chunk coordinates;
-- response coordinate/Volume association;
+- response coordinate/Chunk association;
 - duplicate request semantics;
 - partial failure/rejection semantics;
 - malformed message rejection;
@@ -68,8 +68,8 @@ When exact protocol encoding is resolved:
 
 ## Resolution provenance
 
-Resolved directly by the project owner on 2026-09-22 while answering Q-037 and Q-038. Transport selection was subsequently narrowed to Sparkle Version-0.1.3 networking by DR-016.
+Resolved directly by the project owner on 2026-09-22 while answering Q-037 and Q-038. Transport selection was subsequently narrowed to Sparkle Version-0.1.3 networking by DR-016. DR-019 later clarified that terrain responses carry semantic `Chunk` values with a dedicated fixed-size codec rather than generic Volume metadata.
 
 ## Supersession
 
-None.
+DR-019 supersedes only the earlier conceptual response payload type/encoding detail (`Voxel::Volume` -> semantic `Chunk` with fixed-size Cell-only encoding). The batched Client-driven request direction, coordinate association, Server authority, and Client-owned view policy remain active.
