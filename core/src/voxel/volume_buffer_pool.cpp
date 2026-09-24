@@ -6,18 +6,22 @@ namespace
 {
 	using Buffer = Voxel::Volume::Buffer;
 
-	[[nodiscard]] Buffer::Pool::Factory makeCellBufferFactory(std::size_t capacity)
+	class CellArrayPool : public Buffer::Pool
 	{
-		return [capacity]() {
-			auto *buffer = new Buffer();
-			buffer->reserve(capacity);
-			return buffer;
-		};
-	}
+	public:
+		explicit CellArrayPool(std::size_t capacity) :
+			Buffer::Pool([capacity]() {
+				auto *buffer = new Buffer();
+				buffer->reserve(capacity);
+				return buffer;
+			})
+		{
+		}
+	};
 
-	std::map<std::size_t, Buffer::Pool> cellBufferPools;
+	std::map<std::size_t, CellArrayPool> cellBufferPools;
 
-	[[nodiscard]] Buffer::Pool &cellBufferPoolFor(std::size_t expectedSize)
+	[[nodiscard]] CellArrayPool &cellBufferPoolFor(std::size_t expectedSize)
 	{
 		auto iterator = cellBufferPools.lower_bound(expectedSize);
 		if (iterator != cellBufferPools.end())
@@ -27,7 +31,7 @@ namespace
 
 		auto [insertedIterator, inserted] = cellBufferPools.try_emplace(
 			expectedSize,
-			makeCellBufferFactory(expectedSize));
+			expectedSize);
 		static_cast<void>(inserted);
 
 		return insertedIterator->second;
