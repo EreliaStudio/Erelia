@@ -190,12 +190,10 @@ TEST(Task, EscapingSpkExceptionProducesFailedAnswer)
 	{
 		std::rethrow_exception(answer.failure());
 		FAIL() << "Expected stored task failure";
-	}
-	catch (const spk::Exception &exception)
+	} catch (const spk::Exception &exception)
 	{
 		EXPECT_NE(
-			std::string(exception.what()).find(
-				"expected task failure"),
+			std::string(exception.what()).find("expected task failure"),
 			std::string::npos);
 	}
 }
