@@ -115,7 +115,7 @@ namespace Voxel
 
 	std::span<const Cell> Volume::cells() const noexcept
 	{
-		if (!_cells || !static_cast<bool>(**_cells))
+		if (!_cells || !static_cast<bool>(*_cells))
 		{
 			return {};
 		}
