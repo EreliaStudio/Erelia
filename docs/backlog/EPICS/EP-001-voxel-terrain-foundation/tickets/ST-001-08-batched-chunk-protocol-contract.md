@@ -15,10 +15,10 @@ Client and Server can exchange terrain requests/results through one explicit sha
 
 ## Starting state / prerequisites
 
-- Depends on ST-001-01, ST-001-03, and ST-001-05.
+- Depends on ST-001-01, ST-001-03, ST-001-05, and the DR-019 Chunk value contract introduced by ST-001-06.
 - DR-014 fixes batched Client-driven semantics.
 - DR-016 fixes Sparkle transport/message use.
-- OQ-037 and OQ-038 still leave material wire/request semantics unresolved.
+- OQ-037 is resolved for generic Volume/native representation. OQ-038 still leaves material request/response state semantics unresolved.
 
 ## Product ownership
 
@@ -38,9 +38,11 @@ Known approved shape:
 
 - request message kind identifies a Chunk request;
 - request contains a list of `spk::Vector3Int` Chunk coordinates;
-- response associates each supplied Chunk coordinate with a `Voxel::Volume`;
+- response associates each supplied Chunk coordinate with an immutable `Chunk`;
 - one message may carry multiple Chunk coordinates;
-- Volume encoding delegates to ST-001-05.
+- the dedicated Chunk payload does **not** serialize dimensions or unit size because Chunk invariants fix them at 16x16x16 / 1.0f;
+- the Chunk payload serializes exactly 4096 packed Cells in the inherited Y-fastest, then X, then Z order;
+- generic runtime-sized `Voxel::Volume` encoding remains DR-017/ST-001-05 and is not duplicated for Chunk.
 
 ## Explicitly not owned
 
@@ -60,7 +62,7 @@ Blocked until the following are explicit:
 
 ## Invariants
 
-- Response Volume is always explicitly associated with its Chunk coordinate.
+- Response Chunk is always explicitly associated with its Chunk coordinate.
 - Protocol never carries a terrain render mesh.
 - Client-provided coordinates are requests, not authoritative terrain state.
 - Negative Chunk coordinates preserve exact integer values.
@@ -92,7 +94,7 @@ Client requests coordinates; Server later validates and returns canonical result
 ## Implementation constraints
 
 - Use Sparkle Version-0.1.3 `spk::Message`.
-- Use ST-001-05 for Volume serialization.
+- Reuse ST-001-05/DR-017 native Cell-layout assumptions where applicable, but implement the DR-019 dedicated fixed-size Chunk codec rather than serializing redundant Volume metadata.
 - No additional runtime dependency.
 - Do not couple Server view radius to the payload.
 
@@ -150,7 +152,7 @@ Not applicable to pure codec.
 
 ### Authority / trust boundary
 
-No payload permits Client-authored terrain Volume to become Server truth.
+No payload permits Client-authored terrain Chunk data to become Server truth.
 
 ### Dependency failure
 
@@ -172,7 +174,8 @@ Not applicable.
 
 - [DR-014](../../../DECISIONS/DR-014-BATCHED-CHUNK-PROTOCOL-DIRECTION.md)
 - [DR-016](../../../DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md)
-- [OQ-037](../../../OPEN_QUESTIONS/OQ-037-EP001-NETWORK-SERIALIZATION.md) — blocking.
+- [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
+- [OQ-037](../../../OPEN_QUESTIONS/OQ-037-EP001-NETWORK-SERIALIZATION.md) — resolved for the native representation used by the codec.
 - [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — blocking.
 
 ## Completion evidence
