@@ -29,10 +29,10 @@ namespace
 	const std::string AsymmetricPolygon = R"({
 		"slot":"face",
 		"vertices":[
-			{"x":0.1,"y":0.2,"z":0.0},
-			{"x":0.1,"y":0.8,"z":0.0},
-			{"x":0.9999,"y":0.8,"z":0.0},
-			{"x":0.8,"y":0.2,"z":0.0}
+			[0.1,0.2,0.0],
+			[0.1,0.8,0.0],
+			[0.9999,0.8,0.0],
+			[0.8,0.2,0.0]
 		]
 	})";
 
@@ -265,15 +265,15 @@ TEST(VoxelShape, ConcurrentFirstAccessPublishesOneImmutableVariant)
 TEST(VoxelShape, RejectsMalformedPolygonGeometryAndSchema)
 {
 	const std::array invalidPolygons = {
-		R"({"slot":"","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":0,"z":0}]})",
-		R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0}]})",
-		R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":0,"z":0}]})",
-		R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":0,"z":0},{"x":0,"y":0,"z":0}]})",
-		R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0.5,"y":0.5,"z":0},{"x":1,"y":1,"z":0}]})",
-		R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0.1}]})",
-		R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":0.5,"y":0.5,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]})",
-		R"({"slot":"face","vertices":[{"x":-0.01,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":0,"z":0}]})",
-		R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0,"unexpected":1},{"x":0,"y":1,"z":0},{"x":1,"y":0,"z":0}]})"};
+		R"({"slot":"","vertices":[[0,0,0],[0,1,0],[1,0,0]]})",
+		R"({"slot":"face","vertices":[[0,0,0],[0,1,0]]})",
+		R"({"slot":"face","vertices":[[0,0,0],[0,1,0],[0,1,0],[1,0,0]]})",
+		R"({"slot":"face","vertices":[[0,0,0],[0,1,0],[1,0,0],[0,0,0]]})",
+		R"({"slot":"face","vertices":[[0,0,0],[0.5,0.5,0],[1,1,0]]})",
+		R"({"slot":"face","vertices":[[0,0,0],[0,1,0],[1,1,0],[1,0,0.1]]})",
+		R"({"slot":"face","vertices":[[0,0,0],[0,1,0],[0.5,0.5,0],[1,1,0],[1,0,0]]})",
+		R"({"slot":"face","vertices":[[-0.01,0,0],[0,1,0],[1,0,0]]})",
+		R"({"slot":"face","vertices":[[0,0,0,1],[0,1,0],[1,0,0]]})"};
 
 	for (std::size_t index = 0; index < invalidPolygons.size(); ++index)
 	{
