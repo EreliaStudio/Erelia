@@ -24,7 +24,7 @@ Current code is evidence of repository state, not automatic evidence of desired 
 2. IMPLEMENTATION-CONTEXT.md — implementation taste, naming/API preferences, ownership conventions, and working knowledge.
 3. CURRENT-STATUS.md — what exists now, what just changed, and what comes next.
 4. OPEN_QUESTIONS/README.md — architecture/design questions, their status, alternatives, and chosen resolutions.
-5. OPEN-REQUESTS.md — external dependency issues with concrete Erelia follow-up work.
+5. OPEN_REQUESTS/ — one file per external dependency request, with the exact Erelia editions to perform when it is treated.
 6. DECISIONS/README.md — decision rules and index.
 7. DEFINITION-OF-READY.md and DEFINITION-OF-DONE.md.
 8. INDEX.md and GLOSSARY.md.
@@ -36,7 +36,7 @@ Current code is evidence of repository state, not automatic evidence of desired 
 - ARCHITECTURE/ — durable cross-cutting architecture contracts.
 - DECISIONS/ — explicit decision records for real alternatives.
 - OPEN_QUESTIONS/ — one traceable OQ document per architecture/design question.
-- OPEN-REQUESTS.md — external dependency requests and the Erelia cleanup to perform when they resolve.
+- OPEN_REQUESTS/ — one `OR-XXX-[name].md` file per external dependency request.
 - EPICS/ — coherent capabilities and later implementation-ticket folders.
 - TRACEABILITY/ — GDD capability ownership and later dependency views.
 - templates/ — reusable planning templates.
