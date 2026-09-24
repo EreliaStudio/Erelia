@@ -23,7 +23,7 @@ namespace
 
 	[[nodiscard]] Voxel::Material::ID readMaterialID(
 		const spk::JSON::Reader &slotsReader,
-		const std::string &slot,
+		const Voxel::Material::SlotID &slot,
 		const spk::JSON::Value &value)
 	{
 		try
@@ -89,7 +89,7 @@ namespace Voxel
 		}
 
 		const Shape &shape = _shapes.at(shapeID);
-		std::set<std::string> shapeSlots;
+		std::set<Material::SlotID> shapeSlots;
 		for (const Shape::Polygon &polygon : shape.polygons())
 		{
 			shapeSlots.insert(polygon.slot);
@@ -111,7 +111,7 @@ namespace Voxel
 			slots.emplace(slot, readMaterialID(slotsReader, slot, value));
 		}
 
-		for (const std::string &slot : shapeSlots)
+		for (const Material::SlotID &slot : shapeSlots)
 		{
 			if (slots.contains(slot))
 			{
