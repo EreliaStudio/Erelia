@@ -155,6 +155,7 @@ Its approved first contract includes:
 - one source-private `CellArrayCollection` owns the ordered `std::map<std::size_t, CellArrayPool>` registry for every non-empty Volume, including Chunks;
 - pool size classes are powers of two and represent reusable Cell capacity rather than Volume dimensions; `lower_bound(expectedCellCount)` reuses the smallest existing adequate class, and when none exists the collection lazily creates the next representable power-of-two class;
 - pooled Buffers retain capacity while their logical size is reset through the Pool per-obtain callback;
+- each pooled Buffer records the power-of-two pool class that produced it; Message extraction reuses the destination Lease in place when the incoming Cell count selects the same pool class, avoiding an unnecessary recycle/obtain cycle;
 - no `VersionedTrait` inheritance or mutable Editor remains in the Volume contract.
 
 A terrain Chunk is one semantic use of a Volume. Terrain Chunks are fixed at 16×16×16 cells and one world unit per cell.
@@ -180,7 +181,7 @@ friend const spk::Message &operator>>(const spk::Message &message, Volume &volum
 
 The operators serialize the logical Volume contents—dimensions, unit size, and contiguous Cell data. They must never raw-copy the C++ object representation of `Voxel::Volume`, because it owns a `std::vector`.
 
-`volume.hpp` includes Sparkle's `network/message.hpp` directly because Message is an explicit part of the public Volume API. Network decoding reconstructs Volume directly and does not use `Voxel::Volume::Builder`; Builder remains the ordinary mutable construction API.
+`volume.hpp` includes Sparkle's `network/message.hpp` directly because Message is an explicit part of the public Volume API. Networking-specific implementation lives in `core/src/voxel/volume_networking.cpp`, keeping ordinary Volume behavior in `volume.cpp`. Network decoding reconstructs Volume directly and does not use `Voxel::Volume::Builder`; Builder remains the ordinary mutable construction API.
 
 Do not expose otherwise-unnecessary mutable internals merely to make serialization possible.
 

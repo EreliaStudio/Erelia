@@ -45,7 +45,7 @@ namespace Voxel
 }
 ```
 
-The corresponding free-function definitions belong to namespace `Voxel`, allowing argument-dependent lookup to resolve:
+The corresponding free-function definitions belong to namespace `Voxel` and are implemented in `core/src/voxel/volume_networking.cpp`, allowing argument-dependent lookup to resolve:
 
 ```cpp
 message << volume;
@@ -105,7 +105,7 @@ The `spk::Message` read cursor follows Sparkle Version-0.1.3's normal sequential
 
 Before allocating the Cell buffer, extraction must validate the dimension product and verify that the Message has enough remaining bytes for the derived contiguous Cell block. No additional arbitrary Erelia Volume dimension cap is introduced by this ticket.
 
-For a non-empty decoded Volume, extraction obtains a pooled `Buffer::Lease` directly from the shared capacity-based Volume buffer-pool implementation, pulls the contiguous Cell block into it, and constructs the temporary Volume. An empty decode keeps the Lease default-constructed/null. Networking does not construct a `Volume::Builder`.
+For a non-empty decoded Volume, extraction uses the shared capacity-based Volume buffer-pool implementation. If the destination already owns a Buffer from the same selected power-of-two pool class, extraction may resize and overwrite that Lease in place after all metadata and complete Cell-block availability validation succeeds. Otherwise it obtains a new Lease, pulls the contiguous Cell block into it, and replaces the destination only after reconstruction succeeds. An empty decode keeps the Lease default-constructed/null. Networking does not construct a `Volume::Builder`.
 
 The decoded Volume owns its Cell storage independently of the source Message lifetime. Trailing Message bytes are permitted because Volume is an embeddable payload value rather than a complete transport message.
 

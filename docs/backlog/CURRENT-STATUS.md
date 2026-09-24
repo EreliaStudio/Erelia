@@ -54,8 +54,9 @@ OQ-037 and DR-017 now define the complete `Voxel::Volume` Message serialization 
 - insertion and extraction validate the same Volume invariants and throw `spk::Exception` on invalid/malformed data;
 - extraction validates derived Cell byte requirements before allocation;
 - failed extraction leaves the destination Volume unchanged, while the Message cursor keeps Sparkle's normal potentially-partially-consumed behavior;
+- after complete payload validation, extraction reuses the destination Cell Lease when it belongs to the same selected power-of-two pool class; otherwise it obtains a replacement Lease;
 - decoded Cell storage is independently owned;
-- networking reconstruction does not use `Volume::Builder`;
+- networking reconstruction lives in `volume_networking.cpp` and does not use `Volume::Builder`;
 - all non-empty Volumes now share one source-private Cell-buffer collection using lazy power-of-two capacity classes and `lower_bound` reuse, with no Chunk-specific pool;
 - higher-level message IDs remain deferred to protocol tickets such as ST-001-08.
 
