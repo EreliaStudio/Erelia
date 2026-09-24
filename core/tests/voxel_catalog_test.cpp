@@ -84,7 +84,7 @@ TEST(VoxelCatalog, LoadsDefinitionsResolvesShapeAndPreservesBindings)
 TEST(VoxelCatalog, DefinitionShapeReferenceSurvivesShapeCatalogGrowth)
 {
 	const voxel_test::TemporaryJsonFile shape(
-		voxel_test::shapeFile("anchor", R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]})"));
+		voxel_test::shapeFile("anchor", R"({"slot":"face","vertices":[[0,0,0],[0,1,0],[1,1,0],[1,0,0]]})"));
 	const voxel_test::TemporaryJsonFile definition(
 		voxel_test::definitionFile(1u, "anchor", R"({"face":"stone"})"));
 
@@ -104,7 +104,7 @@ TEST(VoxelCatalog, DefinitionShapeReferenceSurvivesShapeCatalogGrowth)
 		}
 		additionalShapes
 			<< R"({"id":"extra-)" << index
-			<< R"(","data":{"polygons":[{"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]}]}})";
+			<< R"(","data":{"polygons":[{"slot":"face","vertices":[[0,0,0],[0,1,0],[1,1,0],[1,0,0]]}]}})";
 	}
 	additionalShapes << "]}";
 
@@ -146,8 +146,8 @@ TEST(VoxelCatalog, MissingShapeSlotLogsWarningAndBindsInvalidMaterial)
 
 TEST(VoxelCatalog, RepeatedShapeSlotNeedsOnlyOneDefinitionBinding)
 {
-	const voxel_test::TemporaryJsonFile shapeFile(voxel_test::shapeFile("double-face", R"({"slot":"same","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]},
-		   {"slot":"same","vertices":[{"x":1,"y":0,"z":1},{"x":1,"y":1,"z":1},{"x":0,"y":1,"z":1},{"x":0,"y":0,"z":1}]})"));
+	const voxel_test::TemporaryJsonFile shapeFile(voxel_test::shapeFile("double-face", R"({"slot":"same","vertices":[[0,0,0],[0,1,0],[1,1,0],[1,0,0]]},
+		   {"slot":"same","vertices":[[1,0,1],[1,1,1],[0,1,1],[0,0,1]]})"));
 	const voxel_test::TemporaryJsonFile definitions(voxel_test::definitionFile(1u, "double-face", R"({"same":"stone"})"));
 
 	Voxel::Catalog catalog;
@@ -190,8 +190,8 @@ TEST(VoxelCatalog, AcceptsMaximumPackedDefinitionId)
 
 TEST(VoxelCatalog, RepeatedLoadsAppendUniqueShapeAndDefinitionIds)
 {
-	const voxel_test::TemporaryJsonFile shapeOne(voxel_test::shapeFile("one", R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]})"));
-	const voxel_test::TemporaryJsonFile shapeTwo(voxel_test::shapeFile("two", R"({"slot":"face","vertices":[{"x":1,"y":0,"z":1},{"x":1,"y":1,"z":1},{"x":0,"y":1,"z":1},{"x":0,"y":0,"z":1}]})"));
+	const voxel_test::TemporaryJsonFile shapeOne(voxel_test::shapeFile("one", R"({"slot":"face","vertices":[[0,0,0],[0,1,0],[1,1,0],[1,0,0]]})"));
+	const voxel_test::TemporaryJsonFile shapeTwo(voxel_test::shapeFile("two", R"({"slot":"face","vertices":[[1,0,1],[1,1,1],[0,1,1],[0,0,1]]})"));
 	const voxel_test::TemporaryJsonFile definitionOne(voxel_test::definitionFile(1u, "one", R"({"face":"stone"})"));
 	const voxel_test::TemporaryJsonFile definitionTwo(voxel_test::definitionFile(2u, "two", R"({"face":"grass"})"));
 
@@ -209,14 +209,14 @@ TEST(VoxelCatalog, RepeatedLoadsAppendUniqueShapeAndDefinitionIds)
 
 TEST(VoxelCatalog, RejectsDuplicateIdsInCurrentAndPreviousLoads)
 {
-	const std::string validData = R"({"polygons":[{"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]}]})";
+	const std::string validData = R"({"polygons":[{"slot":"face","vertices":[[0,0,0],[0,1,0],[1,1,0],[1,0,0]]}]})";
 	const voxel_test::TemporaryJsonFile sameShapeFile(
 		R"({"elements":[{"id":"dup","data":)" + validData + R"(},{"id":"dup","data":)" + validData + R"(}]})");
 	Voxel::Catalog catalog;
 	EXPECT_THROW(catalog.loadShape(sameShapeFile.path()), spk::Exception);
 	EXPECT_TRUE(catalog.shapes().contains("dup"));
 
-	const voxel_test::TemporaryJsonFile previousShape(voxel_test::shapeFile("existing", R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]})"));
+	const voxel_test::TemporaryJsonFile previousShape(voxel_test::shapeFile("existing", R"({"slot":"face","vertices":[[0,0,0],[0,1,0],[1,1,0],[1,0,0]]})"));
 	catalog.loadShape(previousShape.path());
 	EXPECT_THROW(catalog.loadShape(previousShape.path()), spk::Exception);
 
@@ -236,9 +236,9 @@ TEST(VoxelCatalog, FailedElementPreservesEarlierInsertAndSkipsLaterElements)
 {
 	const voxel_test::TemporaryJsonFile shapes(
 		R"({"elements":[
-			{"id":"first","data":{"polygons":[{"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]}]}},
-			{"id":"bad","data":{"polygons":[{"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":2,"z":0},{"x":1,"y":0,"z":0}]}]}},
-			{"id":"third","data":{"polygons":[{"slot":"face","vertices":[{"x":1,"y":0,"z":1},{"x":1,"y":1,"z":1},{"x":0,"y":1,"z":1},{"x":0,"y":0,"z":1}]}]}}
+			{"id":"first","data":{"polygons":[{"slot":"face","vertices":[[0,0,0],[0,1,0],[1,1,0],[1,0,0]]}]}},
+			{"id":"bad","data":{"polygons":[{"slot":"face","vertices":[[0,0,0],[0,2,0],[1,0,0]]}]}},
+			{"id":"third","data":{"polygons":[{"slot":"face","vertices":[[1,0,1],[1,1,1],[0,1,1],[0,0,1]]}]}}
 		]})");
 	Voxel::Catalog catalog;
 	EXPECT_THROW(catalog.loadShape(shapes.path()), spk::Exception);
@@ -262,7 +262,7 @@ TEST(VoxelCatalog, AggregateLoadDoesNotStartDefinitionsAfterShapeFailure)
 {
 	const voxel_test::TemporaryJsonFile shapes(
 		R"({"elements":[
-			{"id":"first","data":{"polygons":[{"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]}]}},
+			{"id":"first","data":{"polygons":[{"slot":"face","vertices":[[0,0,0],[0,1,0],[1,1,0],[1,0,0]]}]}},
 			{"id":"bad","data":{"polygons":[]}}
 		]})");
 	const voxel_test::TemporaryJsonFile definitions(voxel_test::definitionFile(7u, "first", R"({"face":"stone"})"));
@@ -289,7 +289,7 @@ TEST(VoxelCatalog, MalformedCatalogEnvelopeAndShapeSchemaThrowWithContext)
 		R"({"elements":[{"id":"shape","data":{"polygons":[{"slot":"face"}]}}]})",
 		R"({"elements":[{"id":"shape","data":{"polygons":[{"slot":"face","unexpected":true,"vertices":[]}]}}]})",
 		R"({"elements":[{"id":"shape","data":{"polygons":[{"slot":"face","vertices":"bad"}]}}]})",
-		R"({"elements":[{"id":"shape","data":{"polygons":[{"slot":"face","vertices":[{"x":0,"y":0},{"x":0,"y":1,"z":0},{"x":1,"y":0,"z":0}]}]}}]})",
+		R"({"elements":[{"id":"shape","data":{"polygons":[{"slot":"face","vertices":[[0,0],[0,1,0],[1,0,0]]}]}}]})",
 		R"({"elements":[],"unexpected":true})"};
 
 	for (const std::string &fixture : fixtures)
@@ -311,8 +311,8 @@ TEST(VoxelCatalog, MalformedCatalogEnvelopeAndShapeSchemaThrowWithContext)
 
 TEST(VoxelCatalog, EquivalentResourcesProduceEquivalentSemanticData)
 {
-	const voxel_test::TemporaryJsonFile firstShape(voxel_test::shapeFile("shape", R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]})"));
-	const voxel_test::TemporaryJsonFile secondShape(voxel_test::shapeFile("shape", R"({"slot":"face","vertices":[{"x":0,"y":0,"z":0},{"x":0,"y":1,"z":0},{"x":1,"y":1,"z":0},{"x":1,"y":0,"z":0}]})"));
+	const voxel_test::TemporaryJsonFile firstShape(voxel_test::shapeFile("shape", R"({"slot":"face","vertices":[[0,0,0],[0,1,0],[1,1,0],[1,0,0]]})"));
+	const voxel_test::TemporaryJsonFile secondShape(voxel_test::shapeFile("shape", R"({"slot":"face","vertices":[[0,0,0],[0,1,0],[1,1,0],[1,0,0]]})"));
 	const voxel_test::TemporaryJsonFile firstDefinition(voxel_test::definitionFile(1u, "shape", R"({"face":"stone"})"));
 	const voxel_test::TemporaryJsonFile secondDefinition(voxel_test::definitionFile(1u, "shape", R"({"face":"stone"})"));
 
