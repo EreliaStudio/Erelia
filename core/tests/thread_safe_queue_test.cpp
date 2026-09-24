@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <cstddef>
 #include <future>
 #include <memory>
@@ -236,8 +237,9 @@ TEST(ThreadSafeQueue, MultipleConsumersRemoveEachValueExactlyOnce)
 	std::mutex valuesMutex;
 	std::vector<int> values;
 	values.reserve(ValueCount);
+	std::atomic<int> consumed = 0;
 
-	std::vector<std::thread> consumers;
+	std::vector<std::jthread> consumers;
 	for (int consumerIndex = 0;
 		 consumerIndex < ConsumerCount;
 		 ++consumerIndex)
@@ -245,52 +247,42 @@ TEST(ThreadSafeQueue, MultipleConsumersRemoveEachValueExactlyOnce)
 		consumers.emplace_back(
 			[consumer = queue.consumer(),
 			 &values,
-			 &valuesMutex]() mutable {
-				while (true)
+			 &valuesMutex,
+			 &consumed](std::stop_token stopToken) mutable {
+				while (auto value =
+						   consumer.waitPop(stopToken))
 				{
-					const std::size_t currentSize = [&] {
-						const std::scoped_lock lock(valuesMutex);
-						return values.size();
-					}();
-
-					if (currentSize >=
-						static_cast<std::size_t>(ValueCount))
 					{
-						return;
+						const std::scoped_lock lock(
+							valuesMutex);
+						values.push_back(*value);
 					}
-
-					const auto value = consumer.waitPop();
-					if (!value.has_value())
-					{
-						return;
-					}
-
-					const std::scoped_lock lock(valuesMutex);
-					values.push_back(*value);
-					if (values.size() ==
-						static_cast<std::size_t>(ValueCount))
-					{
-						return;
-					}
+					consumed.fetch_add(
+						1,
+						std::memory_order_release);
 				}
 			});
 	}
 
-	while (true)
+	const auto deadline =
+		std::chrono::steady_clock::now() +
+		std::chrono::seconds(5);
+	while (
+		consumed.load(std::memory_order_acquire) <
+			ValueCount &&
+		std::chrono::steady_clock::now() < deadline)
 	{
-		{
-			const std::scoped_lock lock(valuesMutex);
-			if (values.size() ==
-				static_cast<std::size_t>(ValueCount))
-			{
-				break;
-			}
-		}
 		std::this_thread::yield();
 	}
 
-	// Wake consumers that reached the empty queue after another
-	// consumer removed the final value.
+	EXPECT_EQ(
+		consumed.load(std::memory_order_acquire),
+		ValueCount);
+
+	for (std::jthread &consumer : consumers)
+	{
+		consumer.request_stop();
+	}
 	consumers.clear();
 
 	std::ranges::sort(values);
