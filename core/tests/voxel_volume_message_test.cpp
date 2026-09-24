@@ -101,6 +101,26 @@ TEST(VoxelVolumeMessage, EmptyVolumeRoundTripsThroughDirectOperators)
 	EXPECT_TRUE(destination.cells().empty());
 }
 
+TEST(VoxelVolumeMessage, ConstructsVolumeDirectlyFromMessage)
+{
+	const auto source = makeAsymmetricVolume();
+	spk::Message message;
+
+	message << source;
+
+	const Voxel::Volume destination(message);
+
+	expectVolumesEqual(destination, source);
+	EXPECT_EQ(message.readOffset(), message.size());
+}
+
+TEST(VoxelVolumeMessage, MessageConstructorUsesTheSameValidationContract)
+{
+	spk::Message message = metadataMessage({0, 1, 1}, 1.0f);
+
+	EXPECT_THROW((void)Voxel::Volume(message), spk::Exception);
+}
+
 TEST(VoxelVolumeMessage, SerializesNativeMetadataThenContiguousYThenXThenZCells)
 {
 	const auto source = makeAsymmetricVolume();
