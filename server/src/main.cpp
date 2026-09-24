@@ -7,5 +7,5 @@ int main()
 {
 	spk::Singleton<spk::WorkerPool>::instanciate(
 		new spk::WorkerPool());
-	return erelia::server::status();
+	return status();
 }

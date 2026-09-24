@@ -132,74 +132,71 @@ namespace
 	}
 }
 
-namespace erelia::server
+std::size_t PrototypeChunkProvider::RequestHash::operator()(
+	const Chunk::Collection::Request &request) const noexcept
 {
-	std::size_t PrototypeChunkProvider::RequestHash::operator()(
-		const Chunk::Collection::Request &request) const noexcept
+	const std::size_t coordinateHash =
+		std::hash<Chunk::Coordinate>{}(request.coordinate);
+	const std::size_t generationHash =
+		std::hash<Chunk::Collection::Generation>{}(request.generation);
+	return coordinateHash ^
+		   (generationHash + 0x9e3779b9u + (coordinateHash << 6u) +
+			(coordinateHash >> 2u));
+}
+
+void PrototypeChunkProvider::request(
+	const Chunk::Collection::Request &request)
+{
+	(void)_requested.publish(request);
+}
+
+void PrototypeChunkProvider::update(
+	Chunk::Collection &collection)
+{
+	spk::WorkerPool &workerPool =
+		spk::Singleton<spk::WorkerPool>::instance();
+
+	RequestSet::container_type requests;
+	(void)_requested.drain(requests);
+
+	for (const Chunk::Collection::Request &request : requests)
 	{
-		const std::size_t coordinateHash =
-			std::hash<Chunk::Coordinate>{}(request.coordinate);
-		const std::size_t generationHash =
-			std::hash<Chunk::Collection::Generation>{}(request.generation);
-		return coordinateHash ^
-			   (generationHash + 0x9e3779b9u + (coordinateHash << 6u) +
-				(coordinateHash >> 2u));
-	}
-
-	void PrototypeChunkProvider::request(
-		const Chunk::Collection::Request &request)
-	{
-		(void)_requested.publish(request);
-	}
-
-	void PrototypeChunkProvider::update(
-		Chunk::Collection &collection)
-	{
-		spk::WorkerPool &workerPool =
-			spk::Singleton<spk::WorkerPool>::instance();
-
-		RequestSet::container_type requests;
-		(void)_requested.drain(requests);
-
-		for (const Chunk::Collection::Request &request : requests)
+		if (!collection.isPending(request))
 		{
-			if (!collection.isPending(request))
-			{
-				continue;
-			}
-
-			spk::Task<Chunk> task(
-				[coordinate = request.coordinate] {
-					return generateChunk(coordinate);
-				});
-			auto answer = workerPool.submit(std::move(task));
-			_pending.push_back(PendingTask{request, std::move(answer)});
+			continue;
 		}
 
-		auto iterator = _pending.begin();
-		while (iterator != _pending.end())
+		spk::Task<Chunk> task(
+			[coordinate = request.coordinate] {
+				return generateChunk(coordinate);
+			});
+		auto answer = workerPool.submit(std::move(task));
+		_pending.push_back(PendingTask{request, std::move(answer)});
+	}
+
+	auto iterator = _pending.begin();
+	while (iterator != _pending.end())
+	{
+		const spk::Task<Chunk>::Status status =
+			iterator->answer.status();
+
+		if (status == spk::Task<Chunk>::Status::Pending)
 		{
-			const spk::Task<Chunk>::Status status =
-				iterator->answer.status();
-
-			if (status == spk::Task<Chunk>::Status::Pending)
-			{
-				++iterator;
-				continue;
-			}
-
-			if (status == spk::Task<Chunk>::Status::Completed)
-			{
-				(void)collection.publish(
-					iterator->request,
-					iterator->answer.result());
-			}
-			else
-			{
-				(void)collection.fail(iterator->request);
-			}
-
-			iterator = _pending.erase(iterator);
+			++iterator;
+			continue;
 		}
+
+		if (status == spk::Task<Chunk>::Status::Completed)
+		{
+			(void)collection.publish(
+				iterator->request,
+				iterator->answer.result());
+		}
+		else
+		{
+			(void)collection.fail(iterator->request);
+		}
+
+		iterator = _pending.erase(iterator);
 	}
 }

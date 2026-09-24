@@ -1,6 +1,3 @@
 #pragma once
 
-namespace erelia::server
-{
-	[[nodiscard]] int status() noexcept;
-}
+[[nodiscard]] int status() noexcept;

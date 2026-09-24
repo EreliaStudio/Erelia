@@ -2,5 +2,5 @@
 
 int main()
 {
-	return erelia::client::status();
+	return status();
 }
