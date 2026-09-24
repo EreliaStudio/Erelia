@@ -240,7 +240,7 @@ OQ-039 is resolved and DR-015 contains the exact fixture:
 - exact material IDs follow `<shape-id>-<slot-id>`;
 - exact positive/negative validation Chunk set is recorded in DR-015.
 
-ST-001-06 remains Blocked only by the exact prototype-output assertion-depth decision; the Provider coordinate domain, Collection replacement/upsert behavior, and Provider ownership/construction semantics are resolved. Do not reopen the resolved scene geometry.
+ST-001-06 Provider/Collection readiness decisions are resolved. The reusable Provider/Collection contract is tested with a purpose-built Core test Provider rather than by freezing the temporary `PrototypeChunkProvider` terrain layout. The prototype still implements the resolved DR-015 validation scene for temporary integration/visual use.
 
 ## 11. Temporary inspection controls
 
@@ -269,7 +269,7 @@ Testing should live at the lowest layer that owns the behavior:
 - Client tests meshing/rendering/input/presentation;
 - integration tests cover real boundaries between those layers.
 
-For behavior with important boundary/failure semantics, cover nominal behavior, boundaries, invalid input, atomic failure, determinism, lifetime/ownership, and integration where relevant.
+For behavior with important boundary/failure semantics, cover nominal behavior, boundaries, invalid input, atomic failure, determinism, lifetime/ownership, and integration where relevant. For polymorphic acquisition abstractions such as `Chunk::Collection::Provider`, prefer a purpose-built test implementation with controlled outputs/call observation when the concrete production implementation is temporary scaffolding whose exact output should not become a durable unit-test contract.
 
 Visual golden references require explicit human approval and must not be silently regenerated/overwritten.
 
