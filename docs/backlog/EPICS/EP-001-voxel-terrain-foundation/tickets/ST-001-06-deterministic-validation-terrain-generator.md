@@ -450,25 +450,38 @@ The already-approved Chunk test set is:
 - malformed single-element roots report source/path context;
 - voxel resources deliberately load through both forms.
 
+### Core — Provider/Collection contract
+
+Do not use `PrototypeChunkProvider` as the unit-test oracle for the reusable Provider/Collection abstraction.
+
+Core tests must define a purpose-built test implementation of `Chunk::Collection::Provider` inside the test code. That implementation should expose deterministic, controllable behavior suitable for proving the Collection contract, including:
+
+- which coordinates were requested and how many times `provide()` was called;
+- distinct known Chunk values for requested coordinates;
+- enough externally observable test state to prove ownership/caching/replacement behavior after the concrete Provider has been moved into the Collection.
+
+Use that test Provider to cover:
+
+- a missing coordinate invokes the Provider exactly once and caches the returned Chunk;
+- repeated lookup of the same coordinate does not invoke the Provider again;
+- different missing coordinates are independently requested and cached;
+- replacement of an existing coordinate publishes the supplied complete Chunk without invoking the Provider;
+- replacement of an absent coordinate inserts the supplied complete Chunk without invoking the Provider;
+- copied old Chunk values remain valid after replacement;
+- concurrent lookup/replacement follows the Collection synchronization contract;
+- Collection construction accepts a concrete Provider rvalue and rejects Provider lvalues according to the approved constructor constraints.
+
 ### Server — prototype terrain
 
-Use exhaustive semantic validation for every approved Chunk.
+`PrototypeChunkProvider` is temporary deterministic scaffolding for the first validation world, not the reusable contract under test.
 
-For each approved Chunk:
+Do not freeze its exact DR-015 Cell composition in dedicated unit tests. In particular, do not build exhaustive expected 4096-Cell arrays or assert that every non-authored Cell remains Empty as a permanent Server unit-test contract.
 
-- enumerate every Cell that is expected to be non-Empty according to DR-015, including baseline, walls, and every authored slope/stair/slab fixture Cell;
-- assert each expected non-Empty Cell exactly, including Definition ID, Orientation, and FlipOrientation;
-- iterate the full 16x16x16 Chunk and assert that every Cell not present in the explicit expected-non-Empty set is exactly `Voxel::Cell::Empty`;
-- therefore fail on both missing expected terrain and any unexpected occupied Cell;
-- generate the same Chunk repeatedly and compare the complete 4096-Cell content for deterministic equality.
-
-The completely below-baseline `(0,-1,0)` Chunk must therefore prove all 4096 Cells are Empty.
-
-This is intentionally broad test coverage rather than representative spot checking.
+Its exact temporary output remains the DR-015 implementation target for this ticket and later visual/integration work may exercise it indirectly. ST-001-06 unit-test effort should focus on the reusable Core Provider/Collection behavior through the test-specific Provider above.
 
 ### Boundaries
 
-Approved positive/negative Chunk set from DR-015, including completely below-baseline `(0,-1,0)`.
+Provider/Collection boundary behavior is exercised with test-controlled positive and negative `Chunk::Coordinate` values. The DR-015 positive/negative Chunk set remains part of the temporary prototype-world implementation fixture, not a dedicated Server unit-test matrix.
 
 ### Invalid / rejected operations
 
@@ -482,7 +495,7 @@ Approved positive/negative Chunk set from DR-015, including completely below-bas
 
 ### Determinism
 
-Repeated prototype provision for each approved fixture Chunk is semantically identical under the final assertion policy.
+Use the test-specific Core Provider to prove Collection caching/idempotency deterministically. The temporary prototype world remains deterministic by implementation intent, but ST-001-06 does not freeze its exact Cell layout through dedicated unit-test assertions.
 
 ### Lifecycle / ownership
 
@@ -534,7 +547,7 @@ Not owned. DR-015 fixture is later consumed by render/golden tickets.
 1. **Prototype provider coordinate domain:** `PrototypeChunkProvider` accepts every representable `Chunk::Coordinate`, including negative X/Y/Z coordinates. It does not reject coordinates; coordinates where DR-015 places no occupied Cells produce a valid empty Chunk.
 2. **Collection replacement:** the whole-Chunk replacement API is implemented in ST-001-06 rather than deferred to ST-001-11. It has upsert semantics: an existing coordinate is replaced; an absent coordinate is inserted immediately; the Provider is not invoked by replacement.
 3. **Collection Provider ownership/construction:** Collection exclusively owns its Provider in a private `std::unique_ptr<Provider>`, while its public constructor is a constrained forwarding constructor accepting only an rvalue concrete Provider derived from `Provider`. The concrete object is moved into the owned allocation; lvalues are rejected and null/absent Provider construction is unrepresentable.
-4. **Prototype terrain assertion depth:** Server tests enumerate every expected non-Empty Cell for every approved Chunk and assert its exact Cell semantics, then iterate all 4096 Cells and require every non-enumerated Cell to be exactly Empty. Repeated generation also compares the complete Cell content for deterministic equality.
+4. **Provider test boundary:** do not make the temporary `PrototypeChunkProvider` Cell layout a unit-test contract. Test the reusable `Chunk::Collection::Provider` / Collection interaction in Core with a purpose-built test Provider whose calls and returned Chunks are controlled by the test. The prototype still implements DR-015 for the temporary validation world, but its exact Cell composition is not frozen by dedicated unit tests.
 
 All readiness decisions are resolved. The ticket may become Ready once the Definition of Ready review is satisfied.
 
