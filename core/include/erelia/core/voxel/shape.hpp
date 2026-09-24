@@ -8,11 +8,11 @@
 #include <vector>
 
 #include <container/json/reader.hpp>
-#include <math/vector3.hpp>
 #include <type/uuid.hpp>
 
 #include "erelia/core/voxel/cell.hpp"
 #include "erelia/core/voxel/material.hpp"
+#include "erelia/core/voxel/vertex.hpp"
 
 namespace Voxel
 {
@@ -23,7 +23,7 @@ namespace Voxel
 
 		struct Polygon
 		{
-			std::vector<spk::Vector3Int> vertices;
+			std::vector<Vertex> vertices;
 			Material::SlotID slot;
 			spk::Vector3 normal;
 		};
@@ -44,12 +44,12 @@ namespace Voxel
 		explicit Shape(const spk::JSON::Reader &reader);
 
 		[[nodiscard]] static Polygon _loadPolygon(const spk::JSON::Reader &reader);
-		[[nodiscard]] static spk::Vector3Int _loadVertex(const spk::JSON::Reader &reader);
+		[[nodiscard]] static Vertex _loadVertex(const spk::JSON::Reader &reader);
 		[[nodiscard]] static Polygon _transformPolygon(
 			const Polygon &polygon,
 			Cell::Orientation orientation,
 			Cell::FlipOrientation flipOrientation);
-		[[nodiscard]] static spk::Vector3 _normalOf(const std::vector<spk::Vector3Int> &vertices);
+		[[nodiscard]] static spk::Vector3 _normalOf(const std::vector<Vertex> &vertices);
 		static void _validatePolygon(const Polygon &polygon, const spk::JSON::Reader &reader);
 
 		friend class Catalog;
