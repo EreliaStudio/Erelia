@@ -205,11 +205,10 @@ TEST(VoxelVolumeMessage, RepeatedSerializationIsByteStableOnCurrentAbi)
 	second << source;
 
 	ASSERT_EQ(first.size(), second.size());
-	EXPECT_TRUE(std::equal(
-		first.data().begin(),
-		first.data().end(),
-		second.data().begin(),
-		second.data().end()));
+	for (std::size_t index = 0; index < first.size(); ++index)
+	{
+		EXPECT_EQ(first.data()[index], second.data()[index]);
+	}
 }
 
 TEST(VoxelVolumeMessage, VolumeRemainsEmbeddableInsideLargerMessage)
