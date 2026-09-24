@@ -7,6 +7,7 @@
 
 #include <chrono>
 #include <cstdint>
+#include <filesystem>
 #include <limits>
 #include <string>
 #include <unordered_set>
