@@ -8,7 +8,7 @@
 
 ## Context
 
-The EP-001 Chunk response naturally contains a Chunk coordinate and a `Voxel::Volume`.
+DR-017 defines the generic runtime-sized `Voxel::Volume` codec. EP-001 originally expected Chunk responses to embed this generic Volume representation; DR-019 later supersedes that higher-level assumption with a dedicated fixed-size `Chunk` codec owned by ST-001-08.
 
 The desired call-site API is intentionally simple and direct:
 
