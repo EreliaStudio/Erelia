@@ -17,7 +17,7 @@ namespace spk::JSON
 		const std::string formatted = file.generic_string() + ":" + path + ": " + message;
 		if (cause != nullptr)
 		{
-			throw spk::Exception(formatted, std::move(cause));
+			throw spk::Exception(formatted, cause);
 		}
 		throw spk::Exception(formatted);
 	}
