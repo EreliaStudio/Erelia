@@ -8,7 +8,7 @@ target_include_directories(
     EreliaTerrainNodeLibrary
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
-target_link_libraries(EreliaTerrainNodeLibrary PUBLIC EreliaServerLibrary)
+target_link_libraries(EreliaTerrainNodeLibrary PUBLIC EreliaCore)
 
 add_executable(EreliaTerrainNode src/main.cpp)
 target_link_libraries(EreliaTerrainNode PRIVATE EreliaTerrainNodeLibrary)
