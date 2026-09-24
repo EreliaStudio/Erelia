@@ -168,14 +168,15 @@ namespace erelia::server
 				continue;
 			}
 
+			spk::Task<Chunk> task(
+				[coordinate = request.coordinate] {
+					return generateChunk(coordinate);
+				});
+			auto answer = workerPool.submit(std::move(task));
 			_pending.push_back(
 				{
 					.request = request,
-					.answer = workerPool.submit(
-						spk::Task<Chunk>(
-							[coordinate = request.coordinate] {
-								return generateChunk(coordinate);
-							}))});
+					.answer = std::move(answer)});
 		}
 
 		auto iterator = _pending.begin();

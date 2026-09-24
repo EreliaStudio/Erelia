@@ -48,9 +48,7 @@ namespace spk
 				bool inserted = false;
 				{
 					const std::scoped_lock lock(mutex);
-					inserted = values.emplace(
-						std::forward<TArguments>(arguments)...)
-								   .second;
+					inserted = values.emplace(std::forward<TArguments>(arguments)...).second;
 				}
 
 				if (inserted)

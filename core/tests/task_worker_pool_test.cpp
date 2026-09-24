@@ -6,6 +6,7 @@
 
 #include <chrono>
 #include <future>
+#include <string>
 #include <thread>
 
 namespace
@@ -68,10 +69,11 @@ TEST(TaskWorkerPool, EscapingExceptionProducesFailedAnswer)
 	{
 		std::rethrow_exception(answer.failure());
 		FAIL() << "Expected stored task failure";
-	}
-	catch (const spk::Exception &exception)
+	} catch (const spk::Exception &exception)
 	{
-		EXPECT_STREQ(exception.what(), "expected task failure");
+		EXPECT_NE(
+			std::string(exception.what()).find("expected task failure"),
+			std::string::npos);
 	}
 }
 

@@ -83,8 +83,7 @@ namespace spk
 			{
 				_state->result.emplace(_operation());
 				_state->status.store(Status::Completed, std::memory_order_release);
-			}
-			catch (...)
+			} catch (...)
 			{
 				_state->failure = std::current_exception();
 				_state->status.store(Status::Failed, std::memory_order_release);
@@ -95,14 +94,15 @@ namespace spk
 
 	public:
 		template <typename TOperation>
-			requires std::invocable<std::decay_t<TOperation> &> &&
-					 std::convertible_to<
-						 std::invoke_result_t<std::decay_t<TOperation> &>,
-						 TResult>
+			requires std::invocable<std::decay_t<TOperation> &>
 		explicit Task(TOperation &&operation) :
 			_state(std::make_shared<State>()),
 			_operation(std::forward<TOperation>(operation))
 		{
+			static_assert(
+				std::convertible_to<
+					std::invoke_result_t<std::decay_t<TOperation> &>,
+					TResult>);
 		}
 
 		Task(const Task &) = delete;

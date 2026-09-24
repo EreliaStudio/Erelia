@@ -49,8 +49,7 @@ bool Chunk::Collection::request(const Chunk::Coordinate &coordinate)
 	try
 	{
 		_provider->request(request);
-	}
-	catch (...)
+	} catch (...)
 	{
 		(void)fail(request);
 		throw;
