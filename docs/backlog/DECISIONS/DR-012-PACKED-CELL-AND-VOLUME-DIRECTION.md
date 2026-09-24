@@ -120,4 +120,13 @@ Resolved directly by the project owner on 2026-09-22 and refined during ST-001-0
 
 ## Supersession
 
-DR-018 supersedes only this record's original Orientation enum value/name ordering. The packed bit allocation, Definition-ID capacity, raw packed-value semantics, FlipOrientation mapping, and Volume contract remain active.
+DR-018 supersedes only this record's original Orientation enum value/name ordering.
+
+DR-019 supersedes this record's original **Volume ownership/copy** details:
+
+- built Volumes no longer directly own an independently copied Lease per value;
+- built Volume copies share immutable backing Cell content;
+- a Volume-to-Builder path may not mutate backing storage still observed by another Volume copy and therefore may reuse storage only when exclusive;
+- Chunk construction/Collection/Provider lifetime rules are now defined by DR-019.
+
+The packed bit allocation, Definition-ID capacity, raw packed-value semantics, FlipOrientation mapping, Volume dimensions/unit-size/indexing rules, Builder-before-build mutation model, and pooled power-of-two Buffer classes remain active.
