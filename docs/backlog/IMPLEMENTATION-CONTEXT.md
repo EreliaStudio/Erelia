@@ -16,6 +16,8 @@ Historical code under `archive/` may be inspected as inspiration or evidence of 
 
 Prefer semantic namespace/type composition over repeating a domain prefix in every class name.
 
+Do not add a redundant top-level `erelia` C++ namespace inside the Erelia project. Start from the relevant semantic/module namespace instead, for example `core::terrain` or `Voxel`.
+
 Preferred:
 
 ```cpp
@@ -33,6 +35,17 @@ VoxelVolume
 The intent is to let namespaces communicate the domain and keep individual type names short and precise.
 
 Do not introduce a prefixed name merely because an archived implementation used one if a clean nested/domain-scoped name expresses the concept better.
+
+Coordinate vocabulary follows the same semantic ownership:
+
+```cpp
+Voxel::Cell::Coordinate
+Voxel::Volume::LocalCoordinate
+Voxel::Volume::UnitSize
+Chunk::Coordinate
+```
+
+`Voxel::Cell::Coordinate`, `Voxel::Volume::LocalCoordinate`, and `Chunk::Coordinate` are aliases of `spk::Vector3Int`. `Voxel::Volume::UnitSize` is the scalar type used for a Volume instance's unit size and is currently `float`. Terrain `Chunk` inherits `Voxel::Volume` and owns the Chunk coordinate conversion behavior/constants. The actual per-instance unit-size storage/accessor belongs to the Volume implementation ticket; ST-001-01 does not introduce premature Volume instance state. A Volume validates its own local-coordinate bounds once the Volume contract is implemented; do not encode those runtime bounds by narrowing `LocalCoordinate` to `std::uint8_t`.
 
 Use established project terminology consistently: Core, Server, Client, Chunk, World, Hero, Encounter, Definition, Shape, `Voxel::Cell`, and `Voxel::Volume`.
 
@@ -78,28 +91,54 @@ For terrain streaming:
 
 The active direction intentionally keeps the voxel data representation small and domain-shaped.
 
+### `Voxel::Definition`
+
+- `Voxel::Definition` is the semantic owner of voxel Definition identity;
+- `Voxel::Definition::ID` is an alias of `std::uint32_t`;
+- only the ID type is established by ST-001-02; Definition data/catalog/Shape behavior remains owned by ST-001-04 and must not be inferred early.
+
 ### `Voxel::Cell`
 
-- one Cell fits in exactly one `std::uint32_t`;
-- it remains trivially copyable;
-- packed concepts are Definition ID + horizontal Orientation + vertical Flip;
-- Definition ID 0 means empty;
+- `Voxel::Cell::PackedType` aliases `std::uint32_t`;
+- one Cell stores exactly one private `PackedType` and remains exactly 32 bits;
+- it remains trivially copyable and immutable after construction;
+- lower 29 bits are `Voxel::Definition::ID`, bits 29-30 are `Orientation`, and bit 31 is `FlipOrientation`;
+- `Orientation` is exactly `PositiveX = 0`, `NegativeX = 1`, `PositiveZ = 2`, `NegativeZ = 3`;
+- `FlipOrientation` is exactly `PositiveY = 0`, `NegativeY = 1`;
+- Definition ID 0 means semantically empty, but its Orientation/FlipOrientation bits remain valid and are not canonicalized away;
+- default construction and `Voxel::Cell::Empty` use packed zero;
+- every raw `Voxel::Cell::PackedType` is a valid packed Cell and is preserved exactly;
+- logical-field construction rejects Definition IDs above `0x1FFFFFFF` or invalid enum-domain values with `spk::Exception`;
+- expose logical fields through mask/shift getters rather than C++ bitfields so the packed layout is explicit and portable;
 - the packed representation is useful for compact storage/network transfer.
 
 ### `Voxel::Volume`
 
-`Voxel::Volume` is a generic owning container for groups of voxel cells, not inherently a terrain Chunk.
+`Voxel::Volume` is a generic immutable built value for groups of voxel cells, not inherently a terrain Chunk.
 
-Its intended shape includes:
+Its approved first contract includes:
 
-- runtime dimensions;
-- a uniform voxel size;
-- contiguous owning `std::vector<Voxel::Cell>` storage;
-- checked cell access;
-- read-only contiguous cell access;
-- controlled editing rather than arbitrary external writable storage.
+- `spk::Vector3UInt` runtime dimensions and `Voxel::Volume::UnitSize` (`float`);
+- default construction as the valid empty Volume (`{0,0,0}`, `0.0f`, zero Cells);
+- read-only dimensions, unit size, checked Cell access, and contiguous `std::span<const Voxel::Cell>`;
+- `contains(LocalCoordinate)` for a pure bounds query and `tryGet(LocalCoordinate)` returning `std::optional<Voxel::Cell>` for non-throwing lookup;
+- Y-fastest, then X, then Z storage order: `y + sizeY * (x + sizeX * z)`;
+- a nested mutable `Voxel::Volume::Builder`, declared separately in `volume_builder.hpp`;
+- Builder construction from positive dimensions + finite positive unit size;
+- `Builder::set()` for checked mutation before build;
+- `std::move(builder).build()` to produce an immutable Volume;
+- a nested `Voxel::Volume::Buffer` semantic wrapper over `std::vector<Voxel::Cell>`, exposing `Buffer::Pool` and `Buffer::Lease`;
+- each Volume directly owns dimensions, unit size, and one `Buffer::Lease`; no shared backing Content object is used;
+- Volume copy construction/assignment deep-copies Cell contents through the Sparkle Pool Lease copy semantics, producing independent pooled storage;
+- Volume move transfers the existing Lease and leaves the source in the default-empty state;
+- `Builder(std::move(volume))` destructively consumes a Volume and directly reuses/transfers its existing Lease without copying;
+- pool instances are implementation details in `volume_builder.cpp`: one dedicated `Buffer::Pool` is used only for exact 16×16×16 Chunk dimensions, while other sizes use a source-local ordered `std::map<std::size_t, Buffer::Pool>`;
+- general pool lookup uses `lower_bound(expectedCellCount)`, selecting the exact size class or the smallest existing higher class; when none exists, a new pool is created for the requested size;
+- pooled Buffers retain capacity while their logical size is reset through the Pool per-obtain callback;
+- no `VersionedTrait` inheritance or mutable Editor remains in the Volume contract.
 
 A terrain Chunk is one semantic use of a Volume. Terrain Chunks are fixed at 16×16×16 cells and one world unit per cell.
+
 
 ## 7. Serialization/API ergonomics
 
@@ -218,7 +257,6 @@ Before implementation code assumes an answer, check the corresponding files unde
 
 For EP-001 in particular, the still-partial questions include:
 
-- OQ-035 — remaining `Voxel::Cell` / `Voxel::Volume` details such as canonical empty/storage/editor behavior;
 - OQ-036 — missing-neighbor/remesh policy for terrain meshing;
 - OQ-037 — remaining scalar wire portability policy;
 - OQ-038 — request/cache/eviction/partial-response details;
