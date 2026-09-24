@@ -1,6 +1,6 @@
 # ST-001-07 — Server NodeRouter remote terrain-node bootstrap
 
-**Status:** Ready
+**Status:** In Progress
 **Epic:** EP-001
 **Production target(s):** Core shared CLI utility; Server; terrain Server node; developer tooling
 **Test suite(s):** EreliaCoreTestSuite; EreliaServerTestSuite; EreliaServerSmoke
