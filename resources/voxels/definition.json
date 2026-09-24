@@ -1,0 +1,26 @@
+{
+  "elements": [
+    {
+      "id": 1,
+      "data": {
+        "shape": "cube",
+        "slots": {
+          "side": "cube-side",
+          "top": "cube-top",
+          "bottom": "cube-bottom"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "data": {
+        "shape": "slab",
+        "slots": {
+          "side": "slab-side",
+          "top": "slab-top",
+          "bottom": "slab-bottom"
+        }
+      }
+    }
+  ]
+}
