@@ -16,6 +16,9 @@ static_assert(std::is_copy_constructible_v<Voxel::Definition>);
 static_assert(std::is_move_constructible_v<Voxel::Definition>);
 static_assert(!std::is_copy_assignable_v<Voxel::Definition>);
 static_assert(!std::is_move_assignable_v<Voxel::Definition>);
+static_assert(std::is_same_v<Voxel::Material::SlotID, std::string>);
+static_assert(std::is_same_v<Voxel::Definition::SlotBindings::key_type, Voxel::Material::SlotID>);
+static_assert(std::is_same_v<decltype(Voxel::Shape::Polygon::slot), Voxel::Material::SlotID>);
 static_assert(std::is_convertible_v<Voxel::Shape::Catalog *, spk::JSON::Catalog<Voxel::Shape> *>);
 static_assert(std::is_convertible_v<Voxel::Definition::Catalog *, spk::JSON::Catalog<Voxel::Definition> *>);
 
