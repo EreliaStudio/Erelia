@@ -157,15 +157,6 @@ namespace Voxel
 			return message;
 		}
 
-		if (Volume::canReuseCellBuffer(volume._cells, layout.cellCount))
-		{
-			volume._cells->resize(layout.cellCount);
-			message.pull(volume._cells->data(), layout.cellBytes);
-			volume._dimensions = dimensions;
-			volume._unitSize = unitSize;
-			return message;
-		}
-
 		Volume::Buffer::Lease cells =
 			Volume::obtainCellBuffer(layout.cellCount);
 		message.pull(cells->data(), layout.cellBytes);

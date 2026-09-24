@@ -4,16 +4,18 @@
 
 namespace Voxel
 {
-	class Volume::Builder final
+	class Volume::Builder
 	{
 	private:
 		spk::Vector3UInt _dimensions{};
 		UnitSize _unitSize = 0.0f;
+
+	protected:
 		Buffer::Lease _cells;
 
 	public:
 		Builder(const spk::Vector3UInt &dimensions, UnitSize unitSize);
-		explicit Builder(Volume &&volume) noexcept;
+		explicit Builder(Volume &&volume);
 
 		Builder(const Builder &) = delete;
 		Builder(Builder &&) noexcept = default;
@@ -23,6 +25,6 @@ namespace Voxel
 		Builder &operator=(Builder &&) noexcept = default;
 
 		bool set(const LocalCoordinate &coordinate, Cell value);
-		[[nodiscard]] Volume build() && noexcept;
+		[[nodiscard]] Volume build() &&;
 	};
 }

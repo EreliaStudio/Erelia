@@ -69,17 +69,4 @@ namespace Voxel
 	{
 		return cellArrayCollection[expectedSize].obtain(resetCellBuffer, expectedSize);
 	}
-
-	bool Volume::canReuseCellBuffer(
-		const Buffer::Lease &cells,
-		std::size_t expectedSize)
-	{
-		if (!cells)
-		{
-			return false;
-		}
-
-		return cellBufferPoolCapacity(cells->size()) ==
-			   cellBufferPoolCapacity(expectedSize);
-	}
 }

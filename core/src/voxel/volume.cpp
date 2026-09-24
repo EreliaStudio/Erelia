@@ -1,6 +1,7 @@
 #include "erelia/core/voxel/volume.hpp"
 
 #include <cstdint>
+#include <memory>
 #include <utility>
 
 #include <exception.hpp>
@@ -10,10 +11,10 @@ namespace Voxel
 	Volume::Volume(
 		const spk::Vector3UInt &dimensions,
 		UnitSize unitSize,
-		Buffer::Lease cells) noexcept :
+		Buffer::Lease cells) :
 		_dimensions(dimensions),
 		_unitSize(unitSize),
-		_cells(std::move(cells))
+		_cells(std::make_shared<Buffer::Lease>(std::move(cells)))
 	{
 	}
 
@@ -38,8 +39,9 @@ namespace Voxel
 			return *this;
 		}
 
-		Volume replacement(other);
-		*this = std::move(replacement);
+		_dimensions = other._dimensions;
+		_unitSize = other._unitSize;
+		_cells = other._cells;
 
 		return *this;
 	}
@@ -96,12 +98,14 @@ namespace Voxel
 			return std::nullopt;
 		}
 
-		return (*_cells)[_index(coordinate)];
+		const auto view = cells();
+		return view[_index(coordinate)];
 	}
 
 	Cell Volume::at(const LocalCoordinate &coordinate) const
 	{
-		return (*_cells)[_index(coordinate)];
+		const auto view = cells();
+		return view[_index(coordinate)];
 	}
 
 	Cell Volume::operator[](const LocalCoordinate &coordinate) const
@@ -111,13 +115,14 @@ namespace Voxel
 
 	std::span<const Cell> Volume::cells() const noexcept
 	{
-		if (!_cells)
+		if (!_cells || !static_cast<bool>(**_cells))
 		{
 			return {};
 		}
 
+		const Buffer &cells = **_cells;
 		return std::span<const Cell>(
-			_cells->data(),
-			_cells->size());
+			cells.data(),
+			cells.size());
 	}
 }
