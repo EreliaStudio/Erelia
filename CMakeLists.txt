@@ -1,0 +1,28 @@
+cmake_minimum_required(VERSION 3.25)
+project(Erelia VERSION 0.1.0 LANGUAGES CXX)
+
+option(ERELIA_BUILD_CLIENT "Build the graphical client" ON)
+option(ERELIA_BUILD_SERVER "Build the headless server" ON)
+
+include(CTest)
+
+if(ERELIA_BUILD_CLIENT)
+    find_package(sparkle 0.1.3 CONFIG REQUIRED COMPONENTS Core Graphics)
+else()
+    find_package(sparkle 0.1.3 CONFIG REQUIRED COMPONENTS Core)
+endif()
+
+add_subdirectory(core)
+
+if(ERELIA_BUILD_SERVER)
+    add_subdirectory(server)
+endif()
+
+if(ERELIA_BUILD_CLIENT)
+    add_subdirectory(client)
+endif()
+
+if(BUILD_TESTING)
+    find_package(GTest CONFIG REQUIRED)
+    add_subdirectory(tests)
+endif()
