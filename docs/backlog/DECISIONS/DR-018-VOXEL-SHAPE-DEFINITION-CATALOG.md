@@ -23,7 +23,7 @@ The project owner clarified that Shape slots and Definition material bindings ar
   - `std::vector<Voxel::Vertex>` vertices, where `Voxel::Vertex = spk::Vector3Int`;
   - a non-empty semantic slot name;
   - a cached `spk::Vector3` normal derived from the final stored vertices.
-- Shape JSON is authored in normalized voxel-local floating coordinates in `[0.0, 1.0]`.
+- Shape JSON is authored in normalized voxel-local floating coordinates in `[0.0, 1.0]`; each vertex uses Sparkle's `TVector3` JSON representation directly as a three-element array `[x, y, z]`, not an `{x,y,z}` object.
 - `Voxel::Shape::VertexPrecision` is `0.001f`.
 - Parsing derives the integer scale by rounding `1.0f / VertexPrecision`; the current scale is therefore 1000.
 - Each valid JSON coordinate is multiplied by that scale and converted to `std::int32_t` by normal C++ conversion, intentionally truncating toward zero. Because valid authored coordinates are non-negative, this is equivalent to rounding down.
