@@ -165,8 +165,9 @@ A terrain Chunk is a semantic specialization of Volume. DR-019 fixes:
 - a public checked `Chunk(Voxel::Volume&&)` promotion path that rejects incompatible dimensions/unit size;
 - Chunk does not store its own `Chunk::Coordinate`;
 - `Chunk::Collection` owns coordinate identity and a nested abstract `Chunk::Collection::Provider`;
-- Collection owns its Provider, obtains missing Chunks synchronously through `provide(coordinate)`, caches them, and returns Chunk values;
-- published Chunks are immutable; whole-value replacement is used instead of Cell mutation;
+- Collection exclusively owns its Provider through a private `std::unique_ptr<Provider>`; its public constructor is a constrained template taking only a concrete Provider rvalue derived from `Provider`, moving that concrete object into the owned polymorphic allocation; lvalue Provider construction is rejected and null/absent Provider state is unrepresentable;
+- Collection obtains missing Chunks synchronously through `provide(coordinate)`, caches them, and returns Chunk values;
+- published Chunks are immutable; whole-value replacement is used instead of Cell mutation; replacement is an upsert, so an absent coordinate is inserted immediately without invoking the Provider;
 - copied Chunks keep old immutable content alive across Collection replacement, which is the intended update-thread/render-thread lifetime model;
 - Collection container access still requires ordinary synchronization; shared immutable storage provides lifetime safety, not map thread safety.
 
@@ -239,7 +240,7 @@ OQ-039 is resolved and DR-015 contains the exact fixture:
 - exact material IDs follow `<shape-id>-<slot-id>`;
 - exact positive/negative validation Chunk set is recorded in DR-015.
 
-ST-001-06 remains Blocked only by its explicitly listed Provider/Collection edge semantics and exact prototype-output assertion-depth decision; do not reopen the resolved scene geometry.
+ST-001-06 remains Blocked only by the exact prototype-output assertion-depth decision; the Provider coordinate domain, Collection replacement/upsert behavior, and Provider ownership/construction semantics are resolved. Do not reopen the resolved scene geometry.
 
 ## 11. Temporary inspection controls
 
