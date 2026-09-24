@@ -203,8 +203,18 @@ void Router::dispatch()
 	const auto now = std::chrono::steady_clock::now();
 	for (const auto &node : _nodes)
 	{
-		if (!node->remote.isConnected() &&
-			now >= node->nextConnectionAttempt)
+		if (node->remote.isConnected())
+		{
+			continue;
+		}
+
+		if (node->nextConnectionAttempt ==
+			std::chrono::steady_clock::time_point::max())
+		{
+			node->nextConnectionAttempt = now;
+		}
+
+		if (now >= node->nextConnectionAttempt)
 		{
 			_attemptConnection(*node, now);
 		}
