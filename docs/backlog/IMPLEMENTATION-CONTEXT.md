@@ -101,7 +101,7 @@ The active direction intentionally keeps the voxel data representation small and
   - Shape IDs are strings owned by the Shape catalog; Definition IDs remain `std::uint32_t` owned by the Definition catalog;
   - Shape/Definition objects do not store their own catalog IDs;
   - `Voxel::Vertex` is the semantic Shape-vertex type and aliases `spk::Vector3Int` (`std::int32_t` components); Shape polygons store `std::vector<Voxel::Vertex>`, a semantic `Voxel::Material::SlotID`, and a derived cached `spk::Vector3` floating normal;
-  - JSON vertices remain normalized floats in `[0,1]`, quantized with `Voxel::Shape::VertexPrecision = 0.001f`;
+  - JSON vertices remain normalized floats in `[0,1]`, authored using Sparkle's `TVector3` JSON representation as three-element arrays `[x, y, z]`, and quantized with `Voxel::Shape::VertexPrecision = 0.001f`;
   - Use wider integer vectors only for exact intermediate geometry arithmetic that can overflow 32-bit products/dot products; the current Shape validator uses source-local `spk::TVector3<std::int64_t>` intermediates while retaining 32-bit stored `Voxel::Vertex` values;
   - base Shape polygons are convex, planar, non-degenerate and authored CCW;
   - every Shape is authored as `PositiveX + PositiveY` and lazily caches the other seven Orientation/Flip polygon arrays;
@@ -228,6 +228,8 @@ Production third-person movement, collision, prediction/reconciliation, follower
 Prefer small, focused implementation slices with strong tests over large feature dumps.
 
 Prefer named source-local helper functions in an anonymous namespace over lambdas declared inside a function when the logic is independently describable and does not materially benefit from captures. Keep lambdas for genuinely local callback/capture behavior rather than using them as a substitute for ordinary helper functions.
+
+`OPEN-REQUESTS.md` tracks external dependency fixes that should trigger later Erelia cleanup. When an implementation contains a deliberate workaround for an external issue, record the issue link, current workaround, exact cleanup steps, and required validation there.
 
 An ST ticket should ideally own one coherent implementation goal and be small enough to review, test, and revert independently. Do not combine several architectural layers into one giant ticket merely because they contribute to the same Epic.
 
