@@ -297,6 +297,22 @@ TEST(VoxelVolumeBuilder, EqualCellCountsShareTheSamePoolRegardlessOfDimensions)
 	EXPECT_EQ(sameCellCountVolume.cells().data(), chunkData);
 }
 
+TEST(VoxelVolumeBuilder, PowerOfTwoClassDependsOnlyOnRequestedCellCount)
+{
+	const Voxel::Cell *largerClassData = nullptr;
+
+	{
+		auto largerClassVolume = makeVolume({10, 10, 50}, 1.0f);
+		largerClassData = largerClassVolume.cells().data();
+		ASSERT_NE(largerClassData, nullptr);
+	}
+
+	const auto smallerClassVolume = makeVolume({10, 10, 30}, 1.0f);
+
+	ASSERT_EQ(smallerClassVolume.cells().size(), 3000u);
+	EXPECT_NE(smallerClassVolume.cells().data(), largerClassData);
+}
+
 TEST(VoxelVolumeBuilder, PoolCreatesAndReusesPowerOfTwoSizeClasses)
 {
 	const Voxel::Cell *firstBufferData = nullptr;

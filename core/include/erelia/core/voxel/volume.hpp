@@ -25,12 +25,6 @@ namespace Voxel
 			using Pool = spk::Pool<Buffer>;
 			using Lease = Pool::Lease;
 
-		private:
-			std::size_t _poolCapacity = 0;
-
-			friend class Volume;
-
-		public:
 			using Base::Base;
 		};
 
