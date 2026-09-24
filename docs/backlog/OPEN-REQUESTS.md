@@ -38,3 +38,30 @@ When Sparkle issue #14 is resolved and Erelia adopts a Sparkle version containin
 4. keep the existing normalized-range validation and integer quantization unchanged;
 5. run the malformed-vertex tests and the full CI matrix, verifying malformed vector JSON throws instead of terminating;
 6. update this entry to Resolved, recording the Sparkle version/commit adopted by Erelia.
+
+
+### OR-002 — Sparkle JSON Reader array children should not be object-only
+
+**Status:** Open  
+**Dependency:** Sparkle  
+**External issue:** https://github.com/EreliaStudio/Sparkle/issues/15  
+**Affected Erelia ticket:** ST-001-04  
+**Affected Erelia code:** `core/src/voxel/shape.cpp`
+
+Sparkle `spk::JSON::Reader::childArray(key)` currently validates that every array element is a JSON object before returning child Readers. That prevents the Reader API from representing legitimate arrays of values, including Sparkle's own `TVector3` JSON representation where each vertex is a three-element array `[x, y, z]`.
+
+Erelia currently works around this by:
+
+1. reading `reader.value().at("vertices")` directly;
+2. validating that the value is an array;
+3. iterating the raw `spk::JSON::Value::Array`;
+4. manually constructing a path-aware `spk::JSON::Reader` for each `vertices[index]`.
+
+When Sparkle issue #15 is resolved and Erelia adopts a Sparkle version containing the fix:
+
+1. replace the manual raw-array iteration in `Shape::_loadPolygon` with the normal Sparkle Reader array-child API;
+2. keep per-element file/path diagnostics equivalent to `...vertices[index]`;
+3. keep vector parsing, normalized-range validation, quantization, winding, and geometry validation unchanged;
+4. keep malformed vector-array tests covering wrong length, wrong value type, and out-of-range coordinates;
+5. run the full CI matrix;
+6. update this entry to Resolved, recording the adopted Sparkle version/commit.
