@@ -2,6 +2,8 @@
 
 This is the new Core, Server, and Client project. The original Playground code and backlog are preserved unchanged in `archive/`.
 
+Game design: [current GDD](docs/gdd/Erelia_GDD_Current.md), with its illustrations and image-generation briefs in `docs/gdd/images/`.
+
 ## Windows development
 
 Requirements: CMake 3.25+, Ninja, Clang, vcpkg, the sibling `Sparkle` checkout, and the VS Code C/C++ extension. Set `VCPKG_ROOT` to your vcpkg directory. The VS Code launch profiles prepare an out-of-tree Sparkle 0.1.3 install, configure Erelia, and build the selected target before launch. All generated files stay under `build/`.
