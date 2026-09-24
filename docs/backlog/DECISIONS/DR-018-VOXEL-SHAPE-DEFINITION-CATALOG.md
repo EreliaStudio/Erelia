@@ -234,7 +234,7 @@ ST-001-04 reintroduces the validated archived `cube`, `slab`, `slope`, and `stai
 - The archived slope and stair were authored in the archived canonical +Z direction. Rotate their fixture geometry once into the new canonical +X direction before using them as active resources.
 - The archived slab remains half-height and the archived stair remains the validated two-step shape.
 
-Exact generator-world coordinates, Definition IDs used by the validation scene, and material choices for ST-001-06 remain in OQ-039 and are not fixed by this decision.
+The exact generator-world coordinates, validation-scene Definition IDs and material choices are now resolved by OQ-039 / DR-015. DR-018 continues to own the reusable Shape/Definition/Catalog representation rather than the terrain placement rules.
 
 ### Catalog file forms and first mixed resource layout
 
