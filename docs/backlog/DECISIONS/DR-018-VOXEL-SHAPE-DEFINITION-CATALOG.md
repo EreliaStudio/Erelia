@@ -98,9 +98,9 @@ A non-air Definition:
 
 - resolves a Shape string ID once during loading;
 - stores a non-owning immutable `const Shape&` to that catalog-owned Shape;
-- maps Shape slot names to semantic `Voxel::Material::ID` values.
+- maps semantic `Voxel::Material::SlotID` values to `Voxel::Material::ID` values.
 
-`Voxel::Material::ID` is a string identifier. The first shared material sentinel is:
+`Voxel::Material::ID` is a string identifier. `Voxel::Material::SlotID` is the semantic string identifier for Shape/Definition material slots. The first shared material sentinel is:
 
 ```cpp
 Voxel::Material::InvalidID == "InvalidID"
@@ -141,7 +141,7 @@ myVoxelCatalog.definitions().at(definitionId);
 
 Public resource paths use `std::filesystem::path`.
 
-The two typed subcatalogs derive publicly from an Erelia-local prototype `spk::JSON::Catalog<TElement>`. The base `load`, `at`, `operator[]`, `contains`, and `tryGet` API is inherited directly; the voxel subcatalogs do not add no-op forwarding wrappers. The prototype intentionally lives in namespace `spk::JSON` while it is exercised in Erelia; moving it into Sparkle itself is deferred until the API has been validated in real use.
+Each voxel catalog class implementation is kept in its own source file (`shape_catalog.cpp`, `definition_catalog.cpp`, aggregate `catalog.cpp`). The two typed subcatalogs derive publicly from an Erelia-local prototype `spk::JSON::Catalog<TElement>`. The base `load`, `at`, `operator[]`, `contains`, and `tryGet` API is inherited directly; the voxel subcatalogs do not add no-op forwarding wrappers. The prototype intentionally lives in namespace `spk::JSON` while it is exercised in Erelia; moving it into Sparkle itself is deferred until the API has been validated in real use.
 
 The shared base owns the JSON catalog envelope and common machinery: root/file parsing, `elements` array validation and iteration, wrapper validation, duplicate detection, owned value storage, incremental failure behavior, and lookup. `TElement` supplies `TElement::ID`; the base does not require `json_readable`. Derived parsing returns plain `TElement` values. The base stores those values directly in `std::unordered_map<TElement::ID, TElement>`; no shared ownership wrapper is used. Catalog elements must therefore be move-constructible. The catalog exposes no erase operation, and references/pointers to stored elements remain valid across unordered-map rehash and later insertions.
 
