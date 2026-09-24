@@ -106,6 +106,18 @@ A Shape contains one or more polygons.
 
 Shape JSON expresses each vertex in normalized voxel-local floating coordinates in `[0.0, 1.0]`.
 
+Each polygon's `vertices` field is an array of Sparkle Vector3 JSON values, so each vertex is authored directly as a three-element array:
+
+```json
+"vertices": [
+  [0.0, 0.0, 1.0],
+  [0.0, 1.0, 1.0],
+  [0.0, 1.0, 0.0]
+]
+```
+
+Do not wrap individual vertices in `{"x":...,"y":...,"z":...}` objects. Shape loading uses Sparkle's `TVector3` JSON representation and then quantizes the parsed floating vector into `Voxel::Vertex`.
+
 Derive the integer scale as:
 
 ```cpp
