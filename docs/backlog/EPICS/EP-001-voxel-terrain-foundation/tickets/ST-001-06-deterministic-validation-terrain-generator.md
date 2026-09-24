@@ -1,6 +1,6 @@
 # ST-001-06 — Deterministic validation terrain provider and Chunk collection foundation
 
-**Status:** Blocked
+**Status:** Ready
 **Epic:** EP-001
 **Production target(s):** Core + Server
 **Test suite(s):** EreliaCoreTestSuite; EreliaServerTestSuite
@@ -452,14 +452,19 @@ The already-approved Chunk test set is:
 
 ### Server — prototype terrain
 
-The project owner has approved the exact DR-015 fixture and Chunk set but has **not yet chosen the exact assertion depth** for the temporary provider.
+Use exhaustive semantic validation for every approved Chunk.
 
-Before Ready, explicitly choose between at least:
+For each approved Chunk:
 
-- complete expected Cell arrays for the approved Chunks; or
-- a smaller exact table of representative authored/empty Cells plus structural counts and repeated full semantic equality.
+- enumerate every Cell that is expected to be non-Empty according to DR-015, including baseline, walls, and every authored slope/stair/slab fixture Cell;
+- assert each expected non-Empty Cell exactly, including Definition ID, Orientation, and FlipOrientation;
+- iterate the full 16x16x16 Chunk and assert that every Cell not present in the explicit expected-non-Empty set is exactly `Voxel::Cell::Empty`;
+- therefore fail on both missing expected terrain and any unexpected occupied Cell;
+- generate the same Chunk repeatedly and compare the complete 4096-Cell content for deterministic equality.
 
-Do not silently reduce this to interface-only smoke coverage: the final chosen test contract must be explicit.
+The completely below-baseline `(0,-1,0)` Chunk must therefore prove all 4096 Cells are Empty.
+
+This is intentionally broad test coverage rather than representative spot checking.
 
 ### Boundaries
 
@@ -529,14 +534,9 @@ Not owned. DR-015 fixture is later consumed by render/golden tickets.
 1. **Prototype provider coordinate domain:** `PrototypeChunkProvider` accepts every representable `Chunk::Coordinate`, including negative X/Y/Z coordinates. It does not reject coordinates; coordinates where DR-015 places no occupied Cells produce a valid empty Chunk.
 2. **Collection replacement:** the whole-Chunk replacement API is implemented in ST-001-06 rather than deferred to ST-001-11. It has upsert semantics: an existing coordinate is replaced; an absent coordinate is inserted immediately; the Provider is not invoked by replacement.
 3. **Collection Provider ownership/construction:** Collection exclusively owns its Provider in a private `std::unique_ptr<Provider>`, while its public constructor is a constrained forwarding constructor accepting only an rvalue concrete Provider derived from `Provider`. The concrete object is moved into the owned allocation; lvalues are rejected and null/absent Provider construction is unrepresentable.
+4. **Prototype terrain assertion depth:** Server tests enumerate every expected non-Empty Cell for every approved Chunk and assert its exact Cell semantics, then iterate all 4096 Cells and require every non-enumerated Cell to be exactly Empty. Repeated generation also compares the complete Cell content for deterministic equality.
 
-### Remaining readiness decisions
-
-Before changing production code, ask the project owner **one decision at a time** for:
-
-4. exact prototype terrain assertion depth (full arrays vs explicitly enumerated representative semantic expectations).
-
-After those are explicit, update this ticket, verify the Definition of Ready, and only then change **Blocked -> Ready**.
+All readiness decisions are resolved. The ticket may become Ready once the Definition of Ready review is satisfied.
 
 ## Completion evidence
 
