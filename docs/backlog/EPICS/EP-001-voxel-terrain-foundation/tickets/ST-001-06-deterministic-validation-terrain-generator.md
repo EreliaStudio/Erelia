@@ -160,11 +160,17 @@ The constructor therefore requires a concrete Provider derived from `Provider`, 
 
 Collection identity is `Chunk::Coordinate`; coordinate does not move into the Chunk value.
 
-A lookup for a missing coordinate asks the Provider, stores the returned immutable Chunk under that coordinate, and returns a **Chunk value**. A lookup for an already stored coordinate returns a copied Chunk value without invoking the Provider again.
+Collection state is exactly `Absent`, `Pending`, or `Available`.
 
-Because Chunk/Volume copies share immutable backing Cell content, a returned copy keeps the old content alive independently of later Collection changes.
+`request(coordinate)` atomically transitions only an Absent coordinate to Pending, assigns a monotonically increasing generation, and forwards `Collection::Request { coordinate, generation }` to the owned Provider. Requests for coordinates already Pending or Available return without forwarding duplicate work.
 
-The Collection's coordinate storage/lookup/replacement path must be safe for the intended update-thread/render-thread use. Shared immutable Cell content solves object lifetime; normal synchronization is still required around the Collection's mutable coordinate container.
+The Provider contract is asynchronous/update-driven: `request(Request)` buffers/schedules work and `update(Collection&)` consumes asynchronous completion. A successful result is published only through `publish(request, chunk)`; failures use `fail(request)`.
+
+Publication/failure is accepted only if the Collection still contains the exact Pending generation. Stale older tasks therefore cannot overwrite a later request/replacement.
+
+`tryGet(coordinate)` returns `std::optional<Chunk>`. Available values are copied by value while a short shared `spk::ProtectedData` Reader is held, then remain valid independently through shared immutable Cell backing.
+
+No Collection lock is held during provider generation work.
 
 The approved replacement semantic is whole-value publication: a new Chunk for a coordinate replaces the stored Chunk value rather than mutating Cells of the old Chunk. If the coordinate is absent, replacement inserts the supplied Chunk immediately. This is an upsert operation and does not invoke the Provider. Existing copied Chunk values continue using the old immutable content.
 
@@ -223,9 +229,11 @@ Air remains catalog-created Definition 0 rather than an authored JSON Definition
 
 Implement a Server-owned concrete provider deriving from `Chunk::Collection::Provider`.
 
-Its only generation input is the requested `Chunk::Coordinate`; no seed/version/catalog argument is part of this prototype provider contract.
+Its only terrain-generation input is the requested `Chunk::Coordinate`; no seed/version/catalog argument is part of this prototype provider contract.
 
-It returns `Chunk`, not `Voxel::Volume`.
+The provider buffers deduplicated request identities, submits `spk::Task<Chunk>` work to the Server's singleton `spk::WorkerPool`, retains `Task<Chunk>::Answer` objects, and consumes them from its update pass. Final Collection publication/failure happens from that update path rather than directly from worker threads.
+
+Generation produces `Chunk`, not `Voxel::Volume`.
 
 The exact terrain output is DR-015:
 
@@ -310,17 +318,31 @@ The temporary Server provider is `PrototypeChunkProvider`.
 
 ## State transitions
 
-### Collection lookup
+### Collection request / availability
 
 ```text
-missing coordinate
-    -> Provider::provide(coordinate)
-    -> immutable Chunk stored
-    -> returned by value
+Absent
+    -> request(coordinate)
+    -> Pending(generation)
+    -> Provider::request(Request)
 
-stored coordinate
-    -> no Provider call
-    -> stored Chunk copied/returned by value
+Pending / Available
+    -> repeated request
+    -> no duplicate Provider request
+
+Provider update
+    -> Task Answer Completed
+    -> publish(Request, Chunk)
+    -> Available
+
+Provider update
+    -> Task Answer Failed
+    -> fail(Request)
+    -> Absent
+
+stale generation result
+    -> publish/fail rejected
+    -> newer Collection state preserved
 ```
 
 ### Replacement
@@ -436,8 +458,11 @@ The already-approved Chunk test set is:
 
 ### Core — Collection/Provider
 
-- missing coordinate invokes Provider once and caches result;
-- repeated lookup returns equivalent Chunk without another Provider call;
+- first request transitions Absent -> Pending and invokes Provider once;
+- repeated request while Pending or Available does not invoke Provider again;
+- Provider update can publish Pending -> Available;
+- Provider failure can return the matching Pending request to Absent;
+- stale generations cannot publish over a newer request;
 - returned Chunk copy outlives replacement/removal of the stored value;
 - replacement publishes a new complete value without mutating an older copied Chunk;
 - concurrent read/replacement contract is exercised according to the final implementation.
@@ -456,15 +481,17 @@ Do not use `PrototypeChunkProvider` as the unit-test oracle for the reusable Pro
 
 Core tests must define a purpose-built test implementation of `Chunk::Collection::Provider` inside the test code. That implementation should expose deterministic, controllable behavior suitable for proving the Collection contract, including:
 
-- which coordinates were requested and how many times `provide()` was called;
+- which request identities were forwarded and how many times `request()` was called;
 - distinct known Chunk values for requested coordinates;
 - enough externally observable test state to prove ownership/caching/replacement behavior after the concrete Provider has been moved into the Collection.
 
 Use that test Provider to cover:
 
-- a missing coordinate invokes the Provider exactly once and caches the returned Chunk;
-- repeated lookup of the same coordinate does not invoke the Provider again;
-- different missing coordinates are independently requested and cached;
+- an Absent coordinate invokes the Provider exactly once and becomes Pending;
+- repeated requests while Pending/Available do not invoke the Provider again;
+- different coordinates are independently requested;
+- update publication transitions matching Pending requests to Available;
+- stale generations are rejected;
 - replacement of an existing coordinate publishes the supplied complete Chunk without invoking the Provider;
 - replacement of an absent coordinate inserts the supplied complete Chunk without invoking the Provider;
 - copied old Chunk values remain valid after replacement;
@@ -507,7 +534,7 @@ Only regression coverage for the generic Volume ownership change. Dedicated Chun
 
 ### Retry / idempotency
 
-Repeated cached Collection lookup does not regenerate an already stored coordinate.
+Repeated requests while Pending or Available do not enqueue duplicate provider work.
 
 ### Concurrency / cancellation
 
@@ -556,3 +583,16 @@ All readiness decisions are resolved. The ticket may become Ready once the Defin
 Not implemented yet.
 
 This branch currently contains approved planning/decision documentation only (plus the earlier ST-001-12 mesher-fixture documentation clarification). Do not mark this ticket Done until implementation, tests, required regression evidence, documentation updates, and explicit project-owner approval are complete.
+
+
+## ST-001-06 asynchronous infrastructure refinement
+
+The project owner additionally approved DR-020 during implementation:
+
+- add an Erelia-local `spk::ThreadSafeSet<T>` mirroring Sparkle `ThreadSafeFIFO`'s shared State / Producer / Consumer / Endpoints shape while deduplicating values;
+- add headless `spk::Task<TResult>` with exactly Pending, Completed, Failed states;
+- Completed always means a valid result; Failed stores an exception rather than a successful `std::expected` error value;
+- add headless `spk::WorkerPool` with polymorphic `WorkerPool::Job` and internal `TaskJob<TResult> : Job` adapters;
+- add `spk::Singleton<T>` backed by inline static `std::unique_ptr<T>`, with `instanciate(value)`, `instanciate(pointer)`, `instance()`, and `isInstanciated()`;
+- instantiate the Server WorkerPool through `spk::Singleton<spk::WorkerPool>` at startup;
+- keep all four prototypes in Erelia Core, namespace `spk`, with no graphics/Window dependency until they are ready to propose to Sparkle.

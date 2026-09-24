@@ -166,12 +166,19 @@ A terrain Chunk is a semantic specialization of Volume. DR-019 fixes:
 - Chunk does not store its own `Chunk::Coordinate`;
 - `Chunk::Collection` owns coordinate identity and a nested abstract `Chunk::Collection::Provider`;
 - Collection exclusively owns its Provider through a private `std::unique_ptr<Provider>`; its public constructor is a constrained template taking only a concrete Provider rvalue derived from `Provider`, moving that concrete object into the owned polymorphic allocation; lvalue Provider construction is rejected and null/absent Provider state is unrepresentable;
-- Collection obtains missing Chunks synchronously through `provide(coordinate)`, caches them, and returns Chunk values;
-- published Chunks are immutable; whole-value replacement is used instead of Cell mutation; replacement is an upsert, so an absent coordinate is inserted immediately without invoking the Provider;
-- copied Chunks keep old immutable content alive across Collection replacement, which is the intended update-thread/render-thread lifetime model;
-- Collection container access still requires ordinary synchronization; shared immutable storage provides lifetime safety, not map thread safety.
+- Collection uses explicit `Absent / Pending / Available` coordinate state;
+- `request(coordinate)` atomically transitions only Absent entries to Pending and attaches a monotonically increasing generation;
+- repeated requests while Pending or Available do not call the Provider again;
+- Provider acquisition is asynchronous/update-driven: Provider receives `Collection::Request { coordinate, generation }`, schedules work, then later publishes or fails that exact request;
+- publication/failure is accepted only for the still-current Pending generation, preventing stale tasks from overwriting newer state;
+- `tryGet(coordinate)` returns `std::optional<Chunk>`; Available values are copied under a short `spk::ProtectedData` Reader and remain valid after the lock is released;
+- published Chunks are immutable; whole-value replacement is used instead of Cell mutation; replacement remains an upsert and invalidates any older pending publication;
+- copied Chunks keep old immutable content alive across Collection replacement;
+- no Collection lock is held during expensive generation work.
 
-Future Client request acquisition uses the same Collection/Provider shape but remains ST-001-11 work.
+ST-001-06 also prototypes headless generic Sparkle-shaped infrastructure locally inside Erelia Core: `spk::ThreadSafeSet`, `spk::Task<TResult>`, `spk::WorkerPool`, and `spk::Singleton<T>`. These live outside the `erelia` include namespace just like the local `spk::JSON::Catalog`, remain standard-library/Sparkle-Core only, and are intended to be proposed to Sparkle after they have been exercised. See DR-020.
+
+Future Client request acquisition uses the same Collection/Provider state machine but ST-001-11 still owns network retry/cache/response policy.
 
 
 ## 7. Serialization/API ergonomics

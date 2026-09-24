@@ -12,7 +12,11 @@ ST-001-01 through ST-001-05 are merged into `master`. PR #12 merged **ST-001-05 
 
 The active ST-001-06 branch was created from current `master` at `ab2e56c60b8294da1e9bbbbf26b13594ebdc4b14`.
 
-The branch contains planning/decision documentation only so far; no ST-001-06 production implementation has been performed. It also contains the previously approved ST-001-12 documentation clarification for structural multi-Shape occlusion fixtures.
+The branch now contains ST-001-06 production implementation and tests. It also contains the previously approved ST-001-12 documentation clarification for structural multi-Shape occlusion fixtures.
+
+Current implementation includes shared immutable Volume backing, Chunk/Chunk::Builder, asynchronous Chunk::Collection/Provider state, mixed aggregate/direct catalog loading, validation resources, the Server PrototypeChunkProvider, and Erelia-local headless `spk::ThreadSafeSet`, `spk::Task`, `spk::WorkerPool`, and `spk::Singleton` prototypes.
+
+CI run #307 passed the complete matrix on the earlier synchronous-Collection implementation head `29f403996fc189f8396105818272be111773c331`. The newer asynchronous refinement still requires its own final green CI evidence before ST-001-06 can be considered complete.
 
 ## What exists on master
 
@@ -106,6 +110,17 @@ EP-001 remains Draft overall.
 The next dependency-ordered ticket remains **ST-001-06 — Deterministic validation terrain provider and Chunk collection foundation**.
 
 OQ-039 no longer blocks it. The first ST-001-06 readiness decision is also resolved: `PrototypeChunkProvider` accepts every representable `Chunk::Coordinate`, including negative coordinates, with no coordinate-domain rejection.
+
+The project owner also resolved the asynchronous Collection/Provider refinement:
+
+- Collection state is exactly Absent, Pending, or Available;
+- a request atomically changes Absent -> Pending and suppresses duplicate requests while Pending/Available;
+- a generation counter protects against stale task publication;
+- Provider request buffering uses a set-style deduplicating primitive;
+- asynchronous generation is submitted through a generic headless WorkerPool/Task abstraction;
+- completed/failed answers are consumed during Provider update and final Collection mutation remains on the update thread;
+- Erelia temporarily hosts `spk::ThreadSafeSet`, `spk::Task`, `spk::WorkerPool`, and `spk::Singleton` under its Core include tree until they are mature enough to propose to Sparkle;
+- the Server initializes a singleton WorkerPool so Server systems can submit generic tasks.
 
 The project owner also resolved the Collection replacement contract:
 

@@ -105,7 +105,19 @@ This keeps Provider polymorphism and exclusive ownership while allowing call sit
 
 A successfully constructed Collection always owns one Provider. Null/absent Provider state is not part of the Collection contract.
 
-The Provider contract is synchronous from the Collection's point of view:
+The original synchronous `provide(coordinate) -> Chunk` shape was superseded during ST-001-06 implementation by an explicit asynchronous state machine.
+
+Collection state for one coordinate is exactly:
+
+```text
+Absent
+Pending(generation)
+Available(Chunk)
+```
+
+`request(coordinate)` performs the atomic `Absent -> Pending` transition under the Collection's protected storage and allocates a monotonically increasing request generation. If the coordinate is already Pending or Available, the request is rejected and the Provider is not invoked again.
+
+The Provider receives the immutable request identity and is update-driven:
 
 ```cpp
 class Chunk::Collection::Provider
@@ -113,23 +125,23 @@ class Chunk::Collection::Provider
 public:
     virtual ~Provider() = default;
 
-    [[nodiscard]] virtual Chunk provide(
-        const Chunk::Coordinate& coordinate) = 0;
+    virtual void request(
+        const Chunk::Collection::Request& request) = 0;
+
+    virtual void update(
+        Chunk::Collection& collection) = 0;
 };
 ```
 
-A Collection lookup behaves conceptually as:
+The Collection owns coordinate state. The Provider owns scheduling/execution policy.
 
-1. if the coordinate is already stored, return that Chunk value;
-2. otherwise call the attached Provider;
-3. store the provided Chunk under the requested coordinate;
-4. return a Chunk value.
+A Provider may buffer requests from arbitrary producer threads, submit asynchronous work, and later call `publish(request, chunk)` or `fail(request)` from its update pass.
 
-The Collection owns the coordinate identity. Chunk values remain unaware of their coordinate.
+Publication/failure succeeds only if the coordinate is still Pending with the exact same generation. A stale result from an older generation cannot overwrite a newer request or replacement.
 
-The Collection stores immutable published Chunk values. Callers obtain Chunks by value rather than mutable references or exposed `shared_ptr` handles. Copying the Chunk keeps the same immutable Volume content alive, so a consumer can continue using an old Chunk after the Collection replaces its entry.
+Available Chunk lookup uses `tryGet(coordinate) -> std::optional<Chunk>`. The Chunk is copied while a short shared `spk::ProtectedData` Reader is held; the lock is released immediately and the immutable shared-backed Chunk snapshot remains independently valid.
 
-Collection lookup/replacement must be safe for the intended update-thread/render-thread concurrency. The exact standard synchronization primitive is an implementation detail; shared immutable Chunk content is the lifetime mechanism, not a substitute for synchronizing the Collection's coordinate container.
+Collection mutable coordinate state uses `spk::ProtectedData`; shared immutable Chunk content is the lifetime mechanism, not a substitute for synchronizing the coordinate map.
 
 ### Replacement rather than mutation
 
@@ -139,14 +151,15 @@ A later result for the same coordinate replaces the complete stored Chunk value.
 
 Replacement is an upsert owned by ST-001-06: if the coordinate is absent, the supplied complete Chunk is inserted immediately. Replacement/upsert never invokes the Provider.
 
-This rule is intentionally suitable for the future Client:
+This rule is intentionally suitable for the future Client without inventing an "empty Chunk means loading" sentinel:
 
-- a Client-side Provider may send a Server request and immediately provide an empty valid 16x16x16 Chunk placeholder;
-- that placeholder prevents repeated missing lookups from requiring mutation of one Chunk object;
-- when canonical Server data arrives, the Client replaces the complete Collection entry with the decoded canonical Chunk;
+- an absent requested coordinate becomes explicit Pending state;
+- repeated requests are suppressed while Pending;
+- canonical Server data can publish the complete immutable Chunk for the matching generation;
+- whole-value replacement remains available for later canonical refresh/replacement;
 - the render thread may safely finish work against an older copied Chunk value.
 
-The exact Client outstanding-request/retry/stale-response policy remains owned by OQ-038 / ST-001-11. The generic Collection behavior for replacement of an absent coordinate is resolved here as direct insertion/upsert.
+The exact network batching, retry, eviction, unsolicited-response and partial-response policy remains owned by OQ-038 / ST-001-11. The generic Collection already owns duplicate Pending suppression and stale-generation rejection.
 
 ### Server implementation
 
@@ -175,8 +188,9 @@ The dedicated Chunk codec is **not** implemented by ST-001-06.
 - Volume/Chunk copies become cheap immutable snapshots rather than deep Cell copies.
 - old Chunk snapshots remain alive naturally across Collection replacement;
 - the Collection API does not need to expose shared-pointer ownership to consumers;
-- Server procedural generation and future Client request-driven acquisition share one Core Collection/Provider shape;
-- Client placeholder data remains explicitly non-authoritative and is replaced by Server-canonical data;
+- Server procedural generation and future Client request-driven acquisition share one asynchronous Core Collection/Provider state machine;
+- Absent/Pending/Available is explicit; no empty-Chunk loading sentinel is required;
+- request generations prevent stale asynchronous results from overwriting newer state;
 - generic Volume decode loses the previous in-place same-pool reuse optimization;
 - Chunk-specific serialization can later omit redundant fixed metadata.
 
@@ -192,14 +206,15 @@ ST-001-06 implementation must update/add Core coverage proving at least:
 - Chunk::Builder returns `Chunk`;
 - checked `Chunk(Voxel::Volume&&)` accepts the exact Chunk invariants and rejects incompatible dimensions/unit size;
 - Chunk does not require/stash a coordinate;
-- Collection caches a provided Chunk by coordinate and does not call the Provider again for an already stored coordinate;
+- Collection performs Absent -> Pending -> Available and does not enqueue the Provider again while Pending or Available;
+- stale request generations cannot publish over a newer request;
 - Collection exclusively owns a concrete moved Provider through its private polymorphic allocation and rejects lvalue Provider construction;
 - replacement/upsert of an absent coordinate inserts the supplied Chunk without invoking the Provider;
 - a copied Chunk remains valid after the Collection entry is replaced;
 - concurrent Collection lookup/replacement follows the implemented synchronization contract without exposing mutable Chunk Cells;
 - generic Volume Message decode replaces content rather than overwriting Cell storage shared with an existing copy.
 
-Future ST-001-08/ST-001-11 tests own dedicated Chunk wire encoding and Client request/placeholder/replacement state transitions.
+Future ST-001-08/ST-001-11 tests own dedicated Chunk wire encoding and Client network retry/cache/response semantics. The generic Pending state and stale-generation rejection are already fixed here.
 
 ## Resolution provenance
 
@@ -228,3 +243,19 @@ This record supersedes only the following earlier details:
 - DR-017 / ST-001-05: in-place destination Buffer reuse during Message decode.
 
 All other Cell packing, Volume indexing, pooling, generic Volume validation/wire order, destination-on-failure, and semantic determinism rules remain active.
+
+
+## ST-001-06 asynchronous refinement
+
+On 24 September 2026 the project owner explicitly replaced the synchronous Provider portion of this record with the asynchronous contract above and approved:
+
+- explicit Collection `Absent / Pending / Available` state;
+- `spk::ProtectedData` for the Collection coordinate container;
+- short read sections that copy immutable Chunks by value before releasing the Reader;
+- no Collection lock held during generation work;
+- a monotonically increasing request generation used to reject stale asynchronous results;
+- Provider-side deduplicated request buffering;
+- update-thread publication of completed asynchronous results;
+- the local headless `spk::Task`, `spk::WorkerPool`, `spk::ThreadSafeSet`, and `spk::Singleton` prototype direction captured by DR-020.
+
+This refinement supersedes every earlier sentence in this record that described `Provider::provide()` as synchronous or an empty Chunk as the generic Pending sentinel.

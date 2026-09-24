@@ -54,7 +54,8 @@ Key rules:
 - shared voxel cell/definition representation required by both Server and Client;
 - shared `spk::Message` serialization for generic runtime-sized `Voxel::Volume`;
 - DR-019 shared immutable Volume/Chunk backing-content semantics;
-- `Chunk::Builder`, `Chunk::Collection` and nested `Chunk::Collection::Provider` shared acquisition/lifetime contracts;
+- `Chunk::Builder`, asynchronous `Chunk::Collection` and nested `Chunk::Collection::Provider` shared acquisition/lifetime contracts;
+- temporary headless Sparkle-shaped async prototypes (`spk::ThreadSafeSet`, `spk::Task`, `spk::WorkerPool`, `spk::Singleton`) while they are exercised before upstream proposal;
 - deterministic helpers required by generation/serialization/meshing contracts;
 - protocol data structures and dedicated fixed-size Chunk codec that both processes need.
 
@@ -120,7 +121,7 @@ The Epic will require deliberate contracts for:
 | Shared owning Voxel::Volume | [ST-001-03](tickets/ST-001-03-owning-voxel-volume.md) |
 | Shared first terrain Definition/Shape contract | [ST-001-04](tickets/ST-001-04-first-terrain-definition-shape-contract.md) — Done |
 | Shared Volume Message serialization | [ST-001-05](tickets/ST-001-05-voxel-volume-message-serialization.md) — Done |
-| Immutable Chunk construction/Collection/Provider + deterministic Server prototype terrain | [ST-001-06](tickets/ST-001-06-deterministic-validation-terrain-generator.md) |
+| Immutable Chunk construction/asynchronous Collection/Provider + deterministic Server prototype terrain | [ST-001-06](tickets/ST-001-06-deterministic-validation-terrain-generator.md) |
 | Server NodeRouter + terrain LocalNode runtime | [ST-001-07](tickets/ST-001-07-server-node-router-terrain-node-bootstrap.md) |
 | Client Chunk request / Server response protocol | [ST-001-08](tickets/ST-001-08-batched-chunk-protocol-contract.md) + [ST-001-09](tickets/ST-001-09-server-chunk-request-handler.md) |
 | Dedicated Client -> Server connection | [ST-001-10](tickets/ST-001-10-client-dedicated-server-connection.md) |
