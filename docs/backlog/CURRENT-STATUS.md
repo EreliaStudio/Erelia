@@ -2,23 +2,19 @@
 
 **Updated:** 24 September 2026
 **Default baseline:** `master`
-**Active ticket branch:** `feat/st-001-04-definition-shape-contract`
+**Active ticket branch:** `feat/st-001-05-voxel-volume-message-serialization`
 
 ## Branch state
 
 Erelia uses `master` as its default branch.
 
-The first three EP-001 implementation tickets are merged into `master`:
+ST-001-01 through ST-001-04 are merged into `master`. PR #11 merged ST-001-04 on 24 September 2026 at `08f30650f261619df69f129e02821f04b308daa8`.
 
-- ST-001-01 through PR #7;
-- ST-001-02 through PR #8;
-- ST-001-03 through PR #9 after project-owner approval and green CI run #105.
-
-The former planning branch is no longer the active implementation baseline. ST-001-04 is actively being implemented and validated on `feat/st-001-04-definition-shape-contract` through PR #11. The latest implementation commit before this status update is `6423e789b69770f8f15df1e16bacda23f54a17fb`.
+The dedicated ST-001-05 implementation branch starts from that exact master commit.
 
 ## What exists now
 
-The project was restarted on 22 September 2026 and currently contains:
+The project currently includes:
 
 - top-level CMake project version 0.1.0;
 - C++23;
@@ -36,61 +32,52 @@ The project was restarted on 22 September 2026 and currently contains:
 - current GDD and illustration assets under `docs/gdd/`;
 - historical source/backlog isolated under `archive/`.
 
-Implemented EP-001 foundations now include:
+Implemented EP-001 foundations include:
 
 - shared terrain coordinate conversion;
 - packed 32-bit `Voxel::Cell` / `Voxel::Definition::ID`;
-- immutable owning `Voxel::Volume` + Builder + pooled Buffer/Lease storage.
+- immutable owning `Voxel::Volume` + Builder + pooled Buffer/Lease storage;
+- shared voxel Shape/Definition/Catalog contract and first terrain resources from ST-001-04.
 
 ## What was just resolved
 
-The ST-001-04 contract review is complete.
+ST-001-05's readiness discussion is complete.
 
-DR-018 now fixes the first shared voxel Shape/Definition/Catalog contract, including:
+OQ-037 and DR-017 now define the complete `Voxel::Volume` Message serialization contract:
 
-- shared semantic Shape and Definition resources for Server and Client;
-- string Shape IDs and numeric Definition IDs;
-- `Voxel::Material::ID` string identity with `Material::InvalidID == "InvalidID"`;
-- discrete `spk::Vector3Int` Shape vertices quantized from normalized JSON with `Voxel::Shape::VertexPrecision = 0.001f`;
-- convex planar CCW polygons with semantic slots and derived normals;
-- revised Cell Orientation ordering `PositiveX=0, NegativeZ=1, NegativeX=2, PositiveZ=3`, directly representing CCW quarter-turn count;
-- `NegativeY` mirroring around `Y=0.5` with polygon rewinding;
-- lazy, mutex-protected eight-way oriented polygon caching with atomic `spk::UUID` publication and lock-free published reads;
-- aggregate `Voxel::Catalog` JSON loading and typed Shape/Definition lookup behavior through the Erelia-local `spk::JSON::Catalog<TElement>` abstract base;
-- catalog-created Definition ID 0 Air;
-- incremental load/failure behavior;
-- first cube/slab/slope/stair resources derived from the validated archive fixtures;
-- explicit exclusion of occlusion algorithms from ST-001-04.
-
-OQ-039 remains Partially resolved, but its remaining exact generator-scene coordinates, Definition IDs, and material choices now block ST-001-06 rather than ST-001-04.
+- public API remains direct ADL-resolved `message << volume` / `message >> volume`;
+- field order is native `spk::Vector3UInt dimensions`, native `Volume::UnitSize`, then one contiguous native Cell block;
+- no explicit Cell-count field is serialized; count is derived from dimensions with checked arithmetic;
+- Cell bytes preserve the existing Y-fastest, then X, then Z storage order;
+- the wire policy deliberately follows Sparkle's native ABI/endianness/floating representation rather than adding an Erelia fixed-endian layer;
+- `{0,0,0}` / `0.0f` / no Cells is the only valid empty representation;
+- insertion and extraction validate the same Volume invariants and throw `spk::Exception` on invalid/malformed data;
+- extraction validates derived Cell byte requirements before allocation;
+- failed extraction leaves the destination Volume unchanged, while the Message cursor keeps Sparkle's normal potentially-partially-consumed behavior;
+- decoded Cell storage is independently owned;
+- higher-level message IDs remain deferred to protocol tickets such as ST-001-08.
 
 ## Current implementation phase
 
-EP-001 is still Draft overall, but implementation is active.
+EP-001 remains Draft overall, but implementation is active.
 
 ### Completed
 
 - **ST-001-01 — Shared terrain coordinate conversion:** Done.
 - **ST-001-02 — Packed Voxel::Cell value type:** Done.
 - **ST-001-03 — Owning Voxel::Volume:** Done.
-- **ST-001-04 — First terrain Definition and Shape contract:** Done; project-owner approval recorded on 24 September 2026, CI #256 passed, and PR #11 is approved for merge.
+- **ST-001-04 — First terrain Definition and Shape contract:** Done and merged through PR #11.
 
-### In progress
+### Ready / active
 
-No implementation ticket is currently In Progress.
-
-ST-001-04 completed the first shared `Voxel::Shape` / `Voxel::Definition` / `Voxel::Catalog` contract, semantic `Material::ID` / `Material::SlotID`, semantic `Voxel::Vertex`, Sparkle-style `[x, y, z]` Shape resources, exact Orientation/Flip transforms, lazy UUID-published oriented-polygon caching, direct-value JSON catalogs, source-aware JSON errors, and focused class/catalog tests.
-
-CI run #256 (run ID `35972200952`) passed the complete matrix for code head `7277609a680ab23b501c1b2423d3e7cbaffd8d1f`. The project owner approved the ticket on 24 September 2026. Sparkle issues #14 and #15 remain external follow-up requests under `OPEN_REQUESTS/` and do not block ST-001-04 completion.
+- **ST-001-05 — Voxel::Volume Message serialization:** Ready. Its previous OQ-037 and decode-contract blockers are resolved on the dedicated implementation branch.
 
 ### Next
 
-1. Merge PR #11 for completed ST-001-04.
-2. Reassess the dependency order rather than skipping unresolved gates.
-3. Resolve OQ-039's remaining generator-scene details before ST-001-06.
-4. Resolve OQ-037/OQ-038 before the dependent Chunk networking/request tickets.
-5. Resolve OQ-036 before boundary-aware Client meshing.
-6. Resolve OQ-029 through OQ-031 before final visual/performance validation.
+Implement and validate ST-001-05 only. After implementation, focused Core tests and the required repository CI/build validation must pass before requesting project-owner approval. Do not mark ST-001-05 Done until that approval is explicit.
+
+After ST-001-05, reassess dependency order against the remaining unresolved OQs rather than skipping their gates.
+
 ## Relevant approved planning constraints
 
 EP-001 is constrained by DR-001 through DR-004, DR-007, DR-009 through DR-018 and ARCH-001 through ARCH-004 as listed in the Epic.
