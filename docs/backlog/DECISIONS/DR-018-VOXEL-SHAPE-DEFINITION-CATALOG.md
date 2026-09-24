@@ -236,6 +236,44 @@ ST-001-04 reintroduces the validated archived `cube`, `slab`, `slope`, and `stai
 
 Exact generator-world coordinates, Definition IDs used by the validation scene, and material choices for ST-001-06 remain in OQ-039 and are not fixed by this decision.
 
+### Catalog file forms and first mixed resource layout
+
+Clarified by the project owner on 24 September 2026:
+
+The generic `spk::JSON::Catalog<TElement>::load(path)` parser must accept **both** of these root forms:
+
+Aggregate form:
+
+```json
+{
+  "elements": [
+    { "id": "...", "data": { } }
+  ]
+}
+```
+
+Single-element form:
+
+```json
+{
+  "id": "...",
+  "data": { }
+}
+```
+
+Both forms use the same internal one-element parsing/insertion path, including the same `id` / `data` validation, duplicate-ID behavior, and derived `_parseKey` / `_parseElement` hooks. Supporting the single-element form must not remove or deprecate the aggregate form.
+
+ST-001-06 deliberately keeps both resource styles alive so both paths remain exercised:
+
+- `resources/voxels/shapes.json` contains the shared `cube` and `slab` Shapes;
+- `resources/voxels/shapes/slope.json` contains the single `slope` Shape;
+- `resources/voxels/shapes/stair.json` contains the single `stair` Shape;
+- `resources/voxels/definition.json` contains the shared cube/slab Definitions;
+- `resources/voxels/definitions/slope.json` contains the single slope Definition;
+- `resources/voxels/definitions/stair.json` contains the single stair Definition.
+
+This mixed layout is intentional validation, not a final mandate that all future resources use either one-file-per-element or one aggregate file. The project may later standardize after exercising both authoring styles.
+
 ## Consequences
 
 - Server and Client consume the same semantic Shape/Definition resource schema.
