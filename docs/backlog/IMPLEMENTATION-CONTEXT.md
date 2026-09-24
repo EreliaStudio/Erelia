@@ -153,9 +153,9 @@ Its approved first contract includes:
 - `Builder(std::move(volume))` destructively consumes a Volume and directly reuses/transfers its existing Lease without copying;
 - `Voxel::Volume` privately owns pooled Cell-buffer acquisition through `static Buffer::Lease obtainCellBuffer(std::size_t)`; Builder construction and Message decoding both call that method, while `volume_buffer_pool.cpp` owns the source-private `CellArrayPool` / `CellArrayCollection` implementation;
 - one source-private `CellArrayCollection` owns the ordered `std::map<std::size_t, CellArrayPool>` registry for every non-empty Volume, including Chunks;
-- pool size classes are powers of two and represent reusable Cell capacity rather than Volume dimensions; `lower_bound(expectedCellCount)` reuses the smallest existing adequate class, and when none exists the collection lazily creates the next representable power-of-two class;
+- pool size classes are powers of two and represent reusable Cell capacity rather than Volume dimensions; the class is deterministically `bit_ceil(logicalCellCount)`, and the collection looks up or lazily creates exactly that class;
 - pooled Buffers retain capacity while their logical size is reset through the Pool per-obtain callback;
-- each pooled Buffer records the power-of-two pool class that produced it; Message extraction reuses the destination Lease in place when the incoming Cell count selects the same pool class, avoiding an unnecessary recycle/obtain cycle;
+- no pool-class metadata is stored on Buffer; Message extraction recomputes the current and incoming classes from their logical Cell counts and reuses the destination Lease in place when those classes match, avoiding an unnecessary recycle/obtain cycle;
 - no `VersionedTrait` inheritance or mutable Editor remains in the Volume contract.
 
 A terrain Chunk is one semantic use of a Volume. Terrain Chunks are fixed at 16×16×16 cells and one world unit per cell.

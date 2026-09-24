@@ -164,7 +164,7 @@ Shared codec only. Successful decode does not make Client data authoritative; Se
 - Keep definitions in namespace `Voxel`, not `spk`.
 - Message extraction reconstructs Volume directly; it must not use `Volume::Builder` or expose Builder internals for networking.
 - Networking-specific implementation belongs in `core/src/voxel/volume_networking.cpp`; ordinary Volume behavior remains in `volume.cpp`.
-- When the destination already owns a Cell buffer from the same selected power-of-two pool class as the incoming payload, extraction may resize/overwrite that existing buffer in place after complete payload validation instead of recycling and obtaining a new Lease.
+- When the destination's current logical Cell count and the incoming logical Cell count derive the same power-of-two pool class, extraction may resize/overwrite the existing Lease in place after complete payload validation instead of recycling and obtaining a new Lease. This decision is recomputed from logical sizes; Buffer stores no pool-class metadata and the implementation does not rely on `std::vector::capacity()`.
 - Serialize `spk::Vector3UInt` as one native Sparkle Message value.
 - Serialize Cells as one contiguous native block.
 - Use named source-local helpers where decomposition improves clarity; do not introduce Erelia `detail` / `details` namespaces.

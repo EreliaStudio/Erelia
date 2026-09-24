@@ -128,9 +128,11 @@ Pool identity is based on required Cell capacity, not semantic Volume dimensions
 
 `CellArrayCollection::operator[]` encapsulates selection:
 
-1. use `lower_bound(requestedCellCount)` to reuse the smallest existing class large enough for the request;
-2. if no existing class can satisfy it, create a new class at the smallest representable power of two greater than or equal to the requested Cell count;
+1. derive the required class as the smallest representable power of two greater than or equal to the requested logical Cell count;
+2. look up or lazily create exactly that class;
 3. if no such power-of-two size class is representable by `std::size_t`, throw `spk::Exception`.
+
+An already-existing larger pool does not change the class selected for a smaller request. For example, 3000 Cells map to 4096 even if an 8192 class already exists.
 
 Per-obtain preparation clears/resizes the Buffer to the requested logical Cell count while retaining reusable capacity.
 
@@ -184,8 +186,8 @@ Core tests cover:
 - direct Buffer reuse when constructing Builder from a moved Volume;
 - copied Volumes remaining independent when one copy is moved into a Builder and modified;
 - equal Cell-count Volumes reuse the same size-class pool regardless of dimensions, including 16×16×16 and other 4096-Cell shapes;
-- lazy power-of-two class creation, including a 5000-Cell request creating a class that can subsequently serve a 7000-Cell request;
-- ordered pool reuse where a smaller request consumes the smallest available higher size class.
+- lazy deterministic power-of-two class creation, including 5000 and 7000 Cells both mapping to 8192;
+- class selection depending only on logical Cell count, including 3000 Cells mapping to 4096 even when an 8192 class already exists.
 
 ## Serialization / networking
 
@@ -219,4 +221,4 @@ Project-owner approval was explicitly recorded on 23 September 2026. CI run #105
 
 ### Follow-up correction during ST-001-05
 
-On 24 September 2026, project-owner review removed the dedicated Chunk-pool special case and then refined the shared registry into lazy power-of-two size classes managed by `CellArrayCollection`. Pooling now depends only on reusable Cell capacity. This correction does not change the public ST-001-03 Volume/Builder contract.
+On 24 September 2026, project-owner review removed the dedicated Chunk-pool special case and refined the shared registry into lazy deterministic power-of-two size classes managed by `CellArrayCollection`. The size class is computed solely from the Volume's logical Cell count; no existing-larger-pool fallback or stored pool-class metadata is used. This correction does not change the public ST-001-03 Volume/Builder contract.

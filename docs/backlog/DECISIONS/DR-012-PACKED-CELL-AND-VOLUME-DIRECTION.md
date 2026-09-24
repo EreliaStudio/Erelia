@@ -76,10 +76,10 @@ The approved Volume contract is:
 - Volume move transfers the existing Buffer lease and leaves the source default-empty;
 - constructing a Builder from `std::move(volume)` consumes the source and directly transfers/reuses its existing Buffer lease without copying;
 - destroying/replacing the final Lease returns the Buffer to its originating Pool;
-- Pool instances are source-file implementation details of the Builder;
-- exact 16×16×16 dimensions use a dedicated Chunk `Buffer::Pool`;
-- all other dimensions use an ordered `std::map<std::size_t, Buffer::Pool>` keyed by size class;
-- general selection uses `lower_bound(requestedCellCount)`: exact class when present, otherwise the smallest higher class, otherwise a newly-created class at the requested size;
+- pooled Cell-buffer acquisition is privately owned by `Voxel::Volume`, while pool objects remain source-file implementation details;
+- all non-empty Volumes use the same `CellArrayCollection`; there is no Chunk-specific pool;
+- pool size classes are exact powers of two derived deterministically as the smallest representable power of two greater than or equal to the requested logical Cell count;
+- the collection looks up or lazily creates exactly that derived size class; an already-existing larger class does not change the class selected for a smaller request;
 - pool factories reserve their size-class capacity; per-obtain preparation resets the Buffer logical contents while preserving reusable capacity;
 - `Voxel::Volume` no longer derives from `spk::VersionedTrait` and no Editor API is part of the contract;
 - no local-bounds API is part of this first Volume contract.
@@ -112,11 +112,11 @@ Once the remaining exact contracts are resolved:
 - Builder mutation, checked-rejection, build, and moved-Volume reconstruction tests;
 - deep-copy Volume construction/assignment tests proving independent Cell-buffer addresses;
 - Volume move and Volume-to-Builder tests proving pooled Buffer transfer/reuse;
-- dedicated Chunk-pool and ordered general size-class reuse tests.
+- deterministic power-of-two size-class selection and reuse tests.
 
 ## Resolution provenance
 
-Resolved directly by the project owner on 2026-09-22 and refined during ST-001-03 review on 2026-09-23 after introducing the reusable Sparkle Pool. The Orientation enum value/name ordering was subsequently revised by DR-018 on 2026-09-23.
+Resolved directly by the project owner on 2026-09-22 and refined during ST-001-03 review on 2026-09-23 after introducing the reusable Sparkle Pool. The pooling implementation was refined again during ST-001-05 review on 2026-09-24: the dedicated Chunk special case and existing-larger-class `lower_bound` selection were removed in favor of deterministic power-of-two classes derived from logical Cell count. The Orientation enum value/name ordering was subsequently revised by DR-018 on 2026-09-23.
 
 ## Supersession
 
