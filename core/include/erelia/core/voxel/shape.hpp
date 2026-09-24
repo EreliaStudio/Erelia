@@ -12,6 +12,7 @@
 #include <type/uuid.hpp>
 
 #include "erelia/core/voxel/cell.hpp"
+#include "erelia/core/voxel/material.hpp"
 
 namespace Voxel
 {
@@ -23,7 +24,7 @@ namespace Voxel
 		struct Polygon
 		{
 			std::vector<spk::Vector3Int> vertices;
-			std::string slot;
+			Material::SlotID slot;
 			spk::Vector3 normal;
 		};
 
