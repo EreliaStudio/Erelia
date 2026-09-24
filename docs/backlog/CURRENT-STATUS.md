@@ -73,37 +73,24 @@ EP-001 is still Draft overall, but implementation is active.
 - **ST-001-01 — Shared terrain coordinate conversion:** Done.
 - **ST-001-02 — Packed Voxel::Cell value type:** Done.
 - **ST-001-03 — Owning Voxel::Volume:** Done.
+- **ST-001-04 — First terrain Definition and Shape contract:** Done; project-owner approval recorded on 24 September 2026, CI #256 passed, and PR #11 is approved for merge.
 
 ### In progress
 
-**ST-001-04 — First terrain Definition and Shape contract** is **In Progress** on PR #11.
+No implementation ticket is currently In Progress.
 
-The branch contains the first shared `Voxel::Shape` / `Voxel::Definition` / `Voxel::Catalog` implementation, `Voxel::Material::ID`, `Voxel::Material::SlotID`, the revised Cell Orientation ordering, JSON catalog loading, exact eight-way Orientation/Flip geometry transforms, the lazy UUID-published oriented polygon cache, focused tests, and active cube/slab/slope/stair Shape resources. Shape and Definition catalogs derive publicly from an Erelia-local `spk::JSON::Catalog<TElement>` base that owns JSON envelope iteration and direct element-value storage; they inherit `load` and lookup behavior directly and override only key/element parsing, with `Definition::Catalog` additionally retaining its Shape-catalog reference. `Voxel::Definition` stores a non-owning `const Shape&`; Air references a private catalog-owned empty Shape sentinel with zero polygons. No Erelia `detail` namespace is used for this abstraction. Catalog implementations are split by class across `shape_catalog.cpp`, `definition_catalog.cpp`, and aggregate `catalog.cpp`. File/path-aware JSON validation errors use the single shared `spk::JSON::throwAt` helper.
+ST-001-04 completed the first shared `Voxel::Shape` / `Voxel::Definition` / `Voxel::Catalog` contract, semantic `Material::ID` / `Material::SlotID`, semantic `Voxel::Vertex`, Sparkle-style `[x, y, z]` Shape resources, exact Orientation/Flip transforms, lazy UUID-published oriented-polygon caching, direct-value JSON catalogs, source-aware JSON errors, and focused class/catalog tests.
 
-The Shape loader preserves polygon vertex order authored in JSON and derives normals from that order. Vertices are authored using Sparkle's `[x, y, z]` Vector3 JSON representation, stored as semantic 32-bit `Voxel::Vertex` values after quantization, and validated with 64-bit integer intermediates where cross/dot products need additional range. It validates polygon geometry without inventing an outward-facing direction; only the required `NegativeY` mirror reverses transformed polygon winding.
-
-Current validation evidence:
-
-- PR #11 is open.
-- The catalog uses direct `std::unordered_map<ID, Element>` storage with no `shared_ptr`, with dedicated generic-catalog and reference-stability tests.
-- Shape/Definition subcatalogs publicly inherit the base `load`/lookup API directly, with no no-op forwarding wrappers.
-- Shape vertices use semantic `Voxel::Vertex = spk::Vector3Int`, authored as Sparkle Vector3 JSON arrays `[x, y, z]`; cached normals remain floating `spk::Vector3`.
-- JSON/resource source-aware errors use the single `spk::JSON::throwAt` helper.
-- Shape, Definition, and aggregate Catalog implementations are split by class.
-- CI run #256 (run ID `35972200952`) passed the complete matrix for code head `7277609a680ab23b501c1b2423d3e7cbaffd8d1f`.
-- Sparkle issues #14 and #15 are tracked in `OPEN_REQUESTS/` with exact follow-up edit locations.
-- Required project-owner approval has not yet been recorded.
-
-ST-001-04 is technically complete and remains In Progress only until the project owner explicitly approves the ticket.
+CI run #256 (run ID `35972200952`) passed the complete matrix for code head `7277609a680ab23b501c1b2423d3e7cbaffd8d1f`. The project owner approved the ticket on 24 September 2026. Sparkle issues #14 and #15 remain external follow-up requests under `OPEN_REQUESTS/` and do not block ST-001-04 completion.
 
 ### Next
 
-1. Record project-owner approval and mark ST-001-04 Done only after its Definition of Done is actually satisfied.
-4. After ST-001-04, reassess the dependency order rather than skipping unresolved gates.
-5. Resolve OQ-039's remaining generator-scene details before ST-001-06.
-6. Resolve OQ-037/OQ-038 before the dependent Chunk networking/request tickets.
-7. Resolve OQ-036 before boundary-aware Client meshing.
-8. Resolve OQ-029 through OQ-031 before final visual/performance validation.
+1. Merge PR #11 for completed ST-001-04.
+2. Reassess the dependency order rather than skipping unresolved gates.
+3. Resolve OQ-039's remaining generator-scene details before ST-001-06.
+4. Resolve OQ-037/OQ-038 before the dependent Chunk networking/request tickets.
+5. Resolve OQ-036 before boundary-aware Client meshing.
+6. Resolve OQ-029 through OQ-031 before final visual/performance validation.
 ## Relevant approved planning constraints
 
 EP-001 is constrained by DR-001 through DR-004, DR-007, DR-009 through DR-018 and ARCH-001 through ARCH-004 as listed in the Epic.
