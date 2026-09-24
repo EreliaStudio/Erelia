@@ -112,7 +112,7 @@ Because Volume copies already own independent Buffers, this path never needs sha
 
 ## Pooled Cell buffers
 
-Pool objects are source-private implementation details in `core/src/voxel/volume_buffer_pool.cpp`.
+`Voxel::Volume` privately owns buffer acquisition through `static Buffer::Lease obtainCellBuffer(std::size_t)`. The pool objects themselves remain source-private implementation details in `core/src/voxel/volume_buffer_pool.cpp`.
 
 ### Size-class pool registry
 

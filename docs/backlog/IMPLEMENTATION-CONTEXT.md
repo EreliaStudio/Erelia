@@ -151,7 +151,7 @@ Its approved first contract includes:
 - Volume copy construction/assignment deep-copies Cell contents through the Sparkle Pool Lease copy semantics, producing independent pooled storage;
 - Volume move transfers the existing Lease and leaves the source in the default-empty state;
 - `Builder(std::move(volume))` destructively consumes a Volume and directly reuses/transfers its existing Lease without copying;
-- pooled Cell-buffer allocation is shared by Builder construction and Message decoding through source-private `volume_buffer_pool.*` implementation files;
+- `Voxel::Volume` privately owns pooled Cell-buffer acquisition through `static Buffer::Lease obtainCellBuffer(std::size_t)`; Builder construction and Message decoding both call that method, while `volume_buffer_pool.cpp` owns the source-private `CellArrayPool` / `CellArrayCollection` implementation;
 - one source-private `CellArrayCollection` owns the ordered `std::map<std::size_t, CellArrayPool>` registry for every non-empty Volume, including Chunks;
 - pool size classes are powers of two and represent reusable Cell capacity rather than Volume dimensions; `lower_bound(expectedCellCount)` reuses the smallest existing adequate class, and when none exists the collection lazily creates the next representable power-of-two class;
 - pooled Buffers retain capacity while their logical size is reset through the Pool per-obtain callback;
