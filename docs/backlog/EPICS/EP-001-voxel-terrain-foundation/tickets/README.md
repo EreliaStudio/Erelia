@@ -12,10 +12,10 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-02 — Packed Voxel::Cell value type](ST-001-02-packed-voxel-cell.md) | **Done** | Cell portion of OQ-035 resolved |
 | [ST-001-03 — Owning Voxel::Volume](ST-001-03-owning-voxel-volume.md) | **Done** | ST-001-02; OQ-035 resolved |
 | [ST-001-04 — First terrain Definition and Shape contract](ST-001-04-first-terrain-definition-shape-contract.md) | **Done** | ST-001-02; DR-018 |
-| [ST-001-05 — Voxel::Volume Message serialization](ST-001-05-voxel-volume-message-serialization.md) | **Blocked** | ST-001-02, ST-001-03; OQ-037 |
+| [ST-001-05 — Voxel::Volume Message serialization](ST-001-05-voxel-volume-message-serialization.md) | **Done** | ST-001-02, ST-001-03; OQ-037 resolved |
 | [ST-001-06 — Deterministic validation terrain generator](ST-001-06-deterministic-validation-terrain-generator.md) | **Blocked** | ST-001-01 through ST-001-04; OQ-039 |
 | [ST-001-07 — Server NodeRouter terrain-node bootstrap](ST-001-07-server-node-router-terrain-node-bootstrap.md) | **Draft** | Server endpoint/lifecycle specification |
-| [ST-001-08 — Batched Chunk request/response protocol contract](ST-001-08-batched-chunk-protocol-contract.md) | **Blocked** | ST-001-01, ST-001-03, ST-001-05; OQ-037, OQ-038 |
+| [ST-001-08 — Batched Chunk request/response protocol contract](ST-001-08-batched-chunk-protocol-contract.md) | **Blocked** | ST-001-01, ST-001-03, ST-001-05; OQ-038 |
 | [ST-001-09 — Server Chunk request handler](ST-001-09-server-chunk-request-handler.md) | **Blocked** | ST-001-06, ST-001-07, ST-001-08; OQ-038 |
 | [ST-001-10 — Client dedicated-Server connection](ST-001-10-client-dedicated-server-connection.md) | **Draft** | ST-001-07; endpoint/connection-lifecycle specification |
 | [ST-001-11 — Client Chunk request/cache coordinator](ST-001-11-client-chunk-request-cache-coordinator.md) | **Blocked** | ST-001-08, ST-001-10; OQ-038 |
@@ -27,18 +27,21 @@ The tickets are ordered by dependency, not by implementation status.
 
 ## Current implementation state
 
-**ST-001-01 — Shared terrain coordinate conversion** is **Done**. PR #7 was merged into the planning branch on 22 September 2026 after the required implementation, headless CI evidence, and human review/approval.
+**ST-001-01 — Shared terrain coordinate conversion** is **Done**. PR #7 was merged on 22 September 2026 after the required implementation, headless CI evidence, and human review/approval.
 
-**ST-001-02 — Packed Voxel::Cell value type** is **Done** and was merged through PR #8 into the planning branch at `f03894f76fc996d5fba3241e2e51ead848783cad` after CI run #59 and project-owner approval.
+**ST-001-02 — Packed Voxel::Cell value type** is **Done** and was merged through PR #8 after CI run #59 and project-owner approval.
 
-**ST-001-03 — Owning Voxel::Volume** is **Done** through PR #9 after project-owner approval and green CI run #105. The final design is an immutable built Volume plus mutable Builder with direct pooled storage: `Voxel::Volume::Buffer` exposes `Buffer::Pool` / `Buffer::Lease`; every Volume owns its own Lease; Volume copies deep-copy into independent pooled Buffers; moves and `Builder(std::move(volume))` transfer/reuse the existing Lease. `contains()` remains the boolean bounds query and `tryGet()` provides optional non-throwing Cell retrieval. Exact 16×16×16 dimensions use a dedicated Chunk pool, while other sizes use an ordered `std::map<std::size_t, Buffer::Pool>` registry selected through `lower_bound()`.
+**ST-001-03 — Owning Voxel::Volume** is **Done** through PR #9 after project-owner approval and green CI run #105. The final public design is an immutable built Volume plus mutable Builder with direct pooled storage: `Voxel::Volume::Buffer` exposes `Buffer::Pool` / `Buffer::Lease`; every Volume owns its own Lease; Volume copies deep-copy into independent pooled Buffers; moves and `Builder(std::move(volume))` transfer/reuse the existing Lease. `contains()` remains the boolean bounds query and `tryGet()` provides optional non-throwing Cell retrieval. A follow-up cleanup during ST-001-05 removed the dedicated Chunk-pool special case: all non-empty Volumes now use one source-private `CellArrayCollection` whose reusable `CellArrayPool` class is deterministically derived as the next power of two for the logical Cell count. The collection looks up or lazily creates exactly that class, so an existing larger pool never changes the class selected for a smaller request.
+
+**ST-001-04 — First terrain Definition and Shape contract** is **Done** and merged through PR #11 on 24 September 2026.
+
+**ST-001-05 — Voxel::Volume Message serialization** is **Done** and merged through PR #12 on 24 September 2026 after project-owner approval. OQ-037 and DR-017 fix the Sparkle-native wire contract, exact field order, contiguous Cell block, derived Cell count, validation rules, decode failure semantics, ownership, and deterministic-byte scope. The implementation provides `explicit Volume(const spk::Message&)`, keeps networking reconstruction independent from Builder, isolates networking implementation in `volume_networking.cpp`, and uses deterministic power-of-two Cell-buffer pool classes with same-class decode reuse. CI run #289 (run ID `35986211668`) passed the complete formatting, Core+Server Linux/Windows Debug/Release, and Windows Client Debug/Release matrix on final code head `0baf9d27698c67855c12abf021125a3575fc364d`.
 
 ## Remaining blockers
 
 Existing OQs:
 
 - OQ-036 — missing-neighbor/remesh policy;
-- OQ-037 — scalar wire portability and remaining decode contract;
 - OQ-038 — duplicate/outstanding request, limits, cache/retention, retry and partial-response semantics;
 - OQ-039 — exact generator/Definition fixture;
 - OQ-029 / OQ-030 — golden platform and comparison policy;
@@ -50,6 +53,4 @@ Additional Draft-ticket specification gaps exposed by decomposition:
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
-ST-001-01 / ST-001-02 / ST-001-03 are merged into `master`. ST-001-04 is complete and approved on PR #11, pending merge.
-
-**ST-001-04 — First terrain Definition and Shape contract** is **Done** on `feat/st-001-04-definition-shape-contract` / PR #11 after project-owner approval on 24 September 2026. CI run #127 passed the complete matrix for the pre-redesign implementation. The catalog layer has since been revised to use an Erelia-local abstract `spk::JSON::Catalog<TElement>` base that owns JSON envelope iteration and direct element-value storage and exposes two pure virtual Reader-based key/element parsing hooks returning plain values; `Voxel::Definition` now stores a non-owning `const Shape&`, and Air references a private zero-polygon Shape sentinel owned by the Shape catalog. The project-wide implementation style forbids Erelia `detail` / `details` namespaces except as a last resort in private implementation-only areas. The `std::atomic<spk::UUID>` cache still uses Linux `libatomic`. `spk::JSON::Catalog<TElement>` now stores `Element` values directly rather than `shared_ptr`s, with dedicated generic catalog tests and reference-stability coverage. The voxel subcatalogs inherit the base public `load`/lookup API directly with no forwarding wrappers, use `Material::SlotID` for semantic slot keys, centralize source-aware JSON errors through `spk::JSON::throwAt`, and are implemented one catalog class per source file. The final Shape contract also uses semantic `Voxel::Vertex` values and Sparkle-style `[x, y, z]` vertex JSON arrays, with Sparkle follow-ups #14/#15 tracked under `OPEN_REQUESTS/`. CI run #256 (run ID `35972200952`) passed the complete matrix for code head `7277609a680ab23b501c1b2423d3e7cbaffd8d1f`. The ticket is Done; PR #11 is approved for merge. Sparkle follow-ups #14/#15 remain tracked under `OPEN_REQUESTS/` and do not block completion.
+ST-001-01 through ST-001-05 are merged into `master`. No implementation ticket is currently Ready; ST-001-06 is the next dependency-ordered ticket but remains Blocked by OQ-039's exact deterministic terrain fixture contract.

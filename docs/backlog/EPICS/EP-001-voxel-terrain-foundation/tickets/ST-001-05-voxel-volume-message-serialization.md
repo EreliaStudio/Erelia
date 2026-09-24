@@ -1,6 +1,6 @@
 # ST-001-05 — Voxel::Volume Message serialization
 
-**Status:** Blocked
+**Status:** Done
 **Epic:** EP-001
 **Production target(s):** Core
 **Test suite(s):** EreliaCoreTestSuite
@@ -15,10 +15,10 @@ EP-001 can move canonical owning Volume data across the real process boundary wi
 
 ## Starting state / prerequisites
 
-- Depends on ST-001-02 and ST-001-03.
-- DR-017 fixes the friend-operator API and logical fields.
-- OQ-037 still leaves scalar byte-order/platform portability unresolved.
-- ST-001-03 still leaves storage/index details unresolved through OQ-035.
+- ST-001-02 and ST-001-03 are Done and merged.
+- DR-017 fixes the friend-operator API and the complete Volume wire/decode contract.
+- OQ-037 is resolved for ST-001-05.
+- ST-001-03 fixes contiguous Cell storage and Y-fastest, then X, then Z ordering.
 
 ## Product ownership
 
@@ -27,19 +27,21 @@ Core owns shared serialization.
 ## Allowed dependencies
 
 - C++ standard library.
-- Sparkle Core networking/message facilities.
+- Sparkle 0.1.3 Core networking/message facilities.
 - ST-001-02 / ST-001-03 public Core contracts.
 
 ## Forbidden dependencies
 
-Server/Client-specific protocol handlers, graphics facilities, raw serialization of `std::vector` object representation.
+Server/Client-specific protocol handlers, graphics facilities, raw serialization of `Voxel::Volume` or `std::vector` object representation, third-party serializers, Volume-specific transport message IDs.
 
 ## Owned behavior
 
 - Friend insertion/extraction operators declared on `Voxel::Volume`.
 - Definitions as free functions in namespace `Voxel`.
-- Logical serialization of dimensions, voxel size, and contiguous Cell storage.
+- Sparkle-native logical serialization of dimensions, UnitSize, and contiguous Cell storage.
+- Symmetric Volume invariant validation on insertion and extraction.
 - Reconstruction of a new owning valid Volume.
+- Convenience construction through `explicit Volume(const spk::Message &message)`, delegating to the extraction operator.
 - Malformed/truncated payload rejection before an inconsistent Volume becomes observable.
 
 ## Explicitly not owned
@@ -49,106 +51,183 @@ Server/Client-specific protocol handlers, graphics facilities, raw serialization
 - Client cache.
 - Definition/Shape resource delivery.
 - Transport framing internals already owned by Sparkle.
+- Platform-independent endian/floating-point wire conversion.
 
 ## Public contract
 
 Required API:
 
 ```cpp
+spk::Message message;
 message << volume;
 message >> volume;
+
+Voxel::Volume decoded(message);
 ```
 
-with friend declarations equivalent to the signatures fixed by DR-017. Callers must not invoke a separate serializer object.
+The Message constructor delegates to `operator>>` and therefore has exactly the same validation, ownership, and Message-cursor semantics. The friend declarations remain equivalent to the signatures fixed by DR-017. Callers must not invoke a separate serializer object.
+
+## Exact wire format
+
+The Volume payload is serialized in this exact order:
+
+1. `spk::Vector3UInt dimensions` using Sparkle's native trivially-copyable serialization as one value;
+2. `Voxel::Volume::UnitSize unitSize` using Sparkle's native serialization;
+3. one contiguous native block of `Voxel::Cell` values.
+
+No explicit Cell-count field is serialized. The decoder derives the Cell count as:
+
+```text
+dimensions.x * dimensions.y * dimensions.z
+```
+
+using checked multiplication before Cell allocation.
+
+The Cell block uses the existing Volume storage order: Y-fastest, then X, then Z.
+
+The format is intentionally Sparkle-native. Byte identity is deterministic for repeated serialization on the same supported ABI/platform representation; cross-endian or non-equivalent floating-point representation portability is not promised by ST-001-05.
+
+## Volume validity contract
+
+The one valid empty representation is:
+
+```text
+dimensions = {0, 0, 0}
+unitSize   = 0.0f
+cells      = empty
+```
+
+A valid non-empty representation requires:
+
+- `dimensions.x > 0`;
+- `dimensions.y > 0`;
+- `dimensions.z > 0`;
+- finite `unitSize > 0.0f`;
+- a representable derived Cell count;
+- enough remaining Message bytes for exactly the derived contiguous Cell block.
+
+The following are malformed and must throw `spk::Exception`:
+
+- mixed-zero dimensions;
+- `{0,0,0}` with non-zero UnitSize;
+- non-empty dimensions with zero, negative, NaN, or infinite UnitSize;
+- dimension multiplication overflow / unrepresentable Cell count or Cell byte size;
+- truncated dimensions metadata;
+- truncated UnitSize metadata;
+- truncated Cell data.
+
+Both `operator<<` and `operator>>` validate the same Volume invariants. `operator<<` validates contract-invalid source state before appending Volume bytes.
+
+## State transitions and failure behavior
+
+Valid extraction reconstructs a temporary owning Volume and replaces the destination only after the complete Volume has decoded successfully.
+
+If extraction throws, the destination Volume remains unchanged.
+
+The `spk::Message` read cursor intentionally follows Sparkle 0.1.3's normal sequential extraction behavior: earlier successfully-read fields may remain consumed when a later read or validation fails. No arbitrary cursor rollback is added by this ticket.
+
+Before allocating Cell storage, extraction must:
+
+1. validate dimensions and UnitSize;
+2. compute Cell count / byte size with checked arithmetic;
+3. verify that the Message contains enough remaining bytes for the complete Cell block.
+
+No new arbitrary maximum Volume dimension/count is introduced. Sparkle's network framing separately limits network Message payloads; generic in-memory `Voxel::Volume` remains runtime-sized according to ST-001-03.
+
+Trailing bytes after a decoded Volume are valid and remain available for subsequent fields in a larger protocol message.
 
 ## Invariants
 
-- Serialized logical cell count matches dimensions.
-- Round trip preserves dimensions, voxel size, and every Cell.
+- Serialized logical Cell count is derived solely from dimensions.
+- Round trip preserves dimensions, UnitSize, and every Cell exactly.
 - No serialized bytes depend on `sizeof(Voxel::Volume)` or `std::vector` object layout.
-- A malformed payload never leaves the destination Volume internally inconsistent.
-
-## State transitions
-
-Valid payload extraction replaces/reconstructs the destination with the decoded valid logical Volume. Failed extraction leaves no partially decoded inconsistent state; exact prior-value preservation semantics must be fixed before Ready.
-
-## Failure behavior
-
-**Blocked:** exact scalar wire representation/endianness is unresolved by OQ-037. The extraction failure signaling mechanism and destination-state guarantee must also be explicit before Ready.
-
-## Determinism / ordering
-
-Field and cell serialization order must be fixed and stable. Cell order depends on the final ST-001-03 storage order.
+- Cell transfer is one contiguous block, not one high-level Message operation per Cell.
+- A malformed payload never changes the destination Volume.
+- Decoded storage does not alias the source Message buffer.
 
 ## Lifecycle / ownership
 
-Decoded Volume owns its Cell storage independently from the Message buffer.
+Decoded Volume owns its Cell storage independently from the Message buffer and remains valid after the source Message is destroyed.
 
 ## Serialization / persistence
 
-This ticket is the serialization contract. It is network transfer serialization, not persistence.
+This ticket is network-transfer serialization, not persistence.
 
 ## Networking / authority
 
-Shared codec only. Successful decode does not make Client data authoritative; Server remains canonical.
+Shared codec only. Successful decode does not make Client data authoritative; Server remains canonical. Both Client and Server validate Volume dimensions/state when serializing and decoding.
 
 ## Implementation constraints
 
 - Use the direct friend-operator API from DR-017.
-- Prefer contiguous Cell-block transfer rather than 4096 high-level Cell operations where Sparkle permits.
-- Do not add a third-party serializer.
-- Keep implementation in namespace `Voxel`, not `spk`.
+- `volume.hpp` includes `<network/message.hpp>` directly because `spk::Message` is part of the public Volume API.
+- Keep definitions in namespace `Voxel`, not `spk`.
+- Message extraction reconstructs Volume directly; it must not use `Volume::Builder` or expose Builder internals for networking.
+- Networking-specific implementation belongs in `core/src/voxel/volume_networking.cpp`; ordinary Volume behavior remains in `volume.cpp`.
+- When the destination's current logical Cell count and the incoming logical Cell count derive the same power-of-two pool class, extraction may resize/overwrite the existing Lease in place after complete payload validation instead of recycling and obtaining a new Lease. This decision is recomputed from logical sizes; Buffer stores no pool-class metadata and the implementation does not rely on `std::vector::capacity()`.
+- Serialize `spk::Vector3UInt` as one native Sparkle Message value.
+- Serialize Cells as one contiguous native block.
+- Use named source-local helpers where decomposition improves clarity; do not introduce Erelia `detail` / `details` namespaces.
+- Add compile-time checks for native-layout assumptions relied upon by the contiguous/native format where appropriate.
 
 ## Exact test fixtures
 
-Final Ready tests must include:
+The implementation must include:
 
-- a small asymmetric Volume exposing cell order;
-- default/empty Cells;
-- transformed Cells with Orientation/Flip;
+- direct ADL insertion and extraction compile/use coverage;
+- direct `Voxel::Volume(message)` construction and malformed-input validation coverage;
+- default/empty Volume round trip;
+- a small asymmetric Volume that exposes Y/X/Z Cell ordering;
+- non-default packed Cells covering Orientation and FlipOrientation;
 - exactly one 16×16×16 Volume (4096 Cells);
-- truncated metadata;
+- exact dimensions, UnitSize, and packed Cell equality after round trip;
+- repeated serialization byte stability on the current supported ABI;
+- truncated dimensions metadata;
+- truncated UnitSize metadata;
 - truncated Cell block;
-- declared dimensions/cell count mismatch;
-- impossible/unrepresentable dimensions.
+- mixed-zero dimensions;
+- invalid empty UnitSize;
+- zero/negative/NaN/infinite UnitSize for non-empty dimensions;
+- impossible/overflowing dimensions;
+- destination prior-value preservation on every representative extraction failure, including a truncated payload that would otherwise qualify for same-pool reuse;
+- same-pool decode buffer reuse and different-pool replacement behavior;
+- decoded storage lifetime after source Message destruction.
 
-Exact byte fixture(s) remain blocked by OQ-037.
+There is no declared-dimensions/serialized-Cell-count mismatch fixture because the approved format contains no explicit Cell-count field.
 
 ## Acceptance tests
 
 ### Nominal
 
-- `message << volume` compiles/resolves by ADL.
-- `message >> volume` compiles/resolves by ADL.
+- `message << volume` resolves by ADL.
+- `message >> volume` resolves by ADL.
 - Full logical round trips preserve exact state.
 
 ### Boundaries
 
-16×16×16 terrain Volume round trip and approved small/empty boundaries.
+- canonical empty Volume round trip;
+- 16×16×16 terrain Volume round trip;
+- asymmetric small Volume proving exact Cell order.
 
 ### Invalid / rejected operations
 
-Malformed/truncated/inconsistent payloads are rejected according to the final error contract.
+Malformed/truncated inputs listed above throw `spk::Exception`.
 
 ### Failure atomicity
 
-Destination state guarantee on decode failure must be tested once fixed.
+The destination Volume is unchanged on decode failure. The Message cursor is not rollback-atomic and follows Sparkle's normal semantics.
 
 ### Determinism
 
-The same logical Volume serializes to the same approved byte representation under the chosen wire policy.
+The same logical Volume serializes to the same bytes on the same supported ABI/platform representation.
 
 ### Lifecycle / ownership
 
 Decoded storage remains valid after the source Message is destroyed.
 
-### Serialization / persistence
-
-All owned behavior is covered here.
-
 ### Retry / idempotency
 
-Serializing/deserializing repeatedly preserves semantic equality.
+Repeated serialization/deserialization preserves semantic equality.
 
 ### Concurrency / cancellation
 
@@ -156,11 +235,7 @@ Not applicable: no shared mutable serializer state is intended.
 
 ### Authority / trust boundary
 
-Malformed Client/Server payloads cannot create an internally invalid Volume.
-
-### Dependency failure
-
-Not applicable beyond malformed Message input.
+Malformed Client/Server payloads cannot create or replace state with an internally invalid Volume.
 
 ### Cross-system integration
 
@@ -168,7 +243,7 @@ Later protocol tests must use these operators rather than reimplement Volume enc
 
 ### Performance
 
-Structural evidence only: terrain Cell storage is transferred as a contiguous block where supported; no timing budget.
+Structural evidence only: terrain Cell storage is transferred as one contiguous block; no timing budget.
 
 ### Client-visible / golden-image validation
 
@@ -176,10 +251,25 @@ Not applicable.
 
 ## Decisions / unresolved questions
 
-- [DR-017](../../../DECISIONS/DR-017-VOXEL-VOLUME-MESSAGE-SERIALIZATION.md)
-- [OQ-037](../../../OPEN_QUESTIONS/OQ-037-EP001-NETWORK-SERIALIZATION.md) — blocking.
-- [OQ-035](../../../OPEN_QUESTIONS/OQ-035-TERRAIN-VOXEL-CELL-REPRESENTATION.md) — blocks ST-001-03/storage order.
+- [DR-017](../../../DECISIONS/DR-017-VOXEL-VOLUME-MESSAGE-SERIALIZATION.md) — complete serialization/decode contract.
+- [OQ-037](../../../OPEN_QUESTIONS/OQ-037-EP001-NETWORK-SERIALIZATION.md) — resolved for this ticket.
+- [OQ-035](../../../OPEN_QUESTIONS/OQ-035-TERRAIN-VOXEL-CELL-REPRESENTATION.md) — resolved; ST-001-03 implements the required Volume storage order.
 
 ## Completion evidence
 
-Promote to Ready only after wire scalar policy and decode-failure/destination-state semantics are explicit and prerequisite Volume behavior is Ready.
+Definition of Ready is satisfied as of 24 September 2026: public API, exact wire order, native representation policy, validation/failure semantics, destination/cursor post-failure behavior, ownership, determinism scope, malformed cases, and exact tests are explicit.
+
+Implementation was completed on `feat/st-001-05-voxel-volume-message-serialization` and merged through PR #12 on 24 September 2026 after explicit project-owner approval.
+
+The final code-bearing head `0baf9d27698c67855c12abf021125a3575fc364d` passed CI run #289 (run ID `35986211668`) across the complete required matrix:
+
+- clang-format;
+- Linux Core+Server Debug and Release build/test;
+- Windows Core+Server Debug and Release build/test;
+- Windows Client Debug and Release regression build/test.
+
+The subsequent PR-head change only aligned backlog documentation before merge.
+
+Focused Core coverage includes direct operators, Message-constructor decoding, canonical empty Volume, X-asymmetric dimension/order validation, non-default packed Cells, 16×16×16/4096-Cell round trip, deterministic same-ABI bytes, malformed/truncated metadata and Cell blocks, overflow protection, destination preservation, Message lifetime independence, repeated round trips, deterministic power-of-two pool selection, same-pool decode reuse, and different-pool replacement.
+
+Definition of Done is satisfied: implementation, regression evidence, documentation updates, explicit project-owner approval, and merge are complete.

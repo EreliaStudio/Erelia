@@ -6,6 +6,7 @@ add_executable(EreliaCoreTestSuite
     voxel_cell_test.cpp
     voxel_definition_test.cpp
     voxel_shape_test.cpp
+    voxel_volume_message_test.cpp
     voxel_volume_test.cpp
 )
 target_link_libraries(EreliaCoreTestSuite PRIVATE EreliaCore GTest::gtest_main)

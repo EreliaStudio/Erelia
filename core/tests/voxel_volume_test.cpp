@@ -283,7 +283,7 @@ TEST(VoxelVolumeBuilder, MovingCopiedVolumeIntoBuilderReusesOnlyMovedVolumesBuff
 	EXPECT_EQ(copy.at({1, 0, 0}).packed(), 17u);
 }
 
-TEST(VoxelVolumeBuilder, ChunkSizedBuffersUseTheirDedicatedPool)
+TEST(VoxelVolumeBuilder, EqualCellCountsShareTheSamePoolRegardlessOfDimensions)
 {
 	const Voxel::Cell *chunkData = nullptr;
 
@@ -293,25 +293,38 @@ TEST(VoxelVolumeBuilder, ChunkSizedBuffersUseTheirDedicatedPool)
 		ASSERT_NE(chunkData, nullptr);
 	}
 
-	const auto nonChunkVolume = makeVolume({8, 8, 64}, 1.0f);
-	EXPECT_NE(nonChunkVolume.cells().data(), chunkData);
-
-	const auto reusedChunkVolume = makeVolume({16, 16, 16}, 1.0f);
-	EXPECT_EQ(reusedChunkVolume.cells().data(), chunkData);
+	const auto sameCellCountVolume = makeVolume({8, 8, 64}, 1.0f);
+	EXPECT_EQ(sameCellCountVolume.cells().data(), chunkData);
 }
 
-TEST(VoxelVolumeBuilder, GeneralPoolUsesSmallestAvailableHigherSizeClass)
+TEST(VoxelVolumeBuilder, PowerOfTwoClassDependsOnlyOnRequestedCellCount)
 {
-	const Voxel::Cell *largerBufferData = nullptr;
+	const Voxel::Cell *largerClassData = nullptr;
 
 	{
-		auto largerVolume = makeVolume({10, 10, 50}, 1.0f);
-		largerBufferData = largerVolume.cells().data();
-		ASSERT_NE(largerBufferData, nullptr);
+		auto largerClassVolume = makeVolume({10, 10, 50}, 1.0f);
+		largerClassData = largerClassVolume.cells().data();
+		ASSERT_NE(largerClassData, nullptr);
 	}
 
-	const auto smallerVolume = makeVolume({9, 10, 50}, 1.0f);
+	const auto smallerClassVolume = makeVolume({10, 10, 30}, 1.0f);
 
-	ASSERT_EQ(smallerVolume.cells().size(), 4500u);
-	EXPECT_EQ(smallerVolume.cells().data(), largerBufferData);
+	ASSERT_EQ(smallerClassVolume.cells().size(), 3000u);
+	EXPECT_NE(smallerClassVolume.cells().data(), largerClassData);
+}
+
+TEST(VoxelVolumeBuilder, PoolCreatesAndReusesPowerOfTwoSizeClasses)
+{
+	const Voxel::Cell *firstBufferData = nullptr;
+
+	{
+		auto firstVolume = makeVolume({10, 10, 50}, 1.0f);
+		firstBufferData = firstVolume.cells().data();
+		ASSERT_NE(firstBufferData, nullptr);
+	}
+
+	const auto secondVolume = makeVolume({10, 10, 70}, 1.0f);
+
+	ASSERT_EQ(secondVolume.cells().size(), 7000u);
+	EXPECT_EQ(secondVolume.cells().data(), firstBufferData);
 }

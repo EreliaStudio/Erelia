@@ -7,6 +7,7 @@
 
 #include <container/pool.hpp>
 #include <math/vector3.hpp>
+#include <network/message.hpp>
 
 #include "erelia/core/voxel/cell.hpp"
 
@@ -38,10 +39,22 @@ namespace Voxel
 			const spk::Vector3UInt &dimensions,
 			UnitSize unitSize,
 			Buffer::Lease cells) noexcept;
+		[[nodiscard]] static Buffer::Lease obtainCellBuffer(std::size_t expectedSize);
+		[[nodiscard]] static bool canReuseCellBuffer(
+			const Buffer::Lease &cells,
+			std::size_t expectedSize);
 		[[nodiscard]] std::size_t _index(const LocalCoordinate &coordinate) const;
+
+		friend spk::Message &operator<<(
+			spk::Message &message,
+			const Volume &volume);
+		friend const spk::Message &operator>>(
+			const spk::Message &message,
+			Volume &volume);
 
 	public:
 		Volume() = default;
+		explicit Volume(const spk::Message &message);
 		Volume(const Volume &other);
 		Volume(Volume &&other) noexcept;
 		~Volume() = default;

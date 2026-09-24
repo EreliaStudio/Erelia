@@ -2,34 +2,12 @@
 
 #include <cmath>
 #include <limits>
-#include <map>
 #include <utility>
 
 #include <exception.hpp>
 
-#include "erelia/core/chunk.hpp"
-
 namespace
 {
-	using Buffer = Voxel::Volume::Buffer;
-
-	constexpr std::size_t ChunkCellCount =
-		static_cast<std::size_t>(Chunk::Extent) *
-		static_cast<std::size_t>(Chunk::Extent) *
-		static_cast<std::size_t>(Chunk::Extent);
-
-	[[nodiscard]] Buffer::Pool::Factory makeCellBufferFactory(std::size_t capacity)
-	{
-		return [capacity]() {
-			auto *buffer = new Buffer();
-			buffer->reserve(capacity);
-			return buffer;
-		};
-	}
-
-	Buffer::Pool chunkCellBufferPool(makeCellBufferFactory(ChunkCellCount));
-	std::map<std::size_t, Buffer::Pool> cellBufferPools;
-
 	[[nodiscard]] std::size_t cellCount(const spk::Vector3UInt &dimensions)
 	{
 		if (dimensions.x == 0 || dimensions.y == 0 || dimensions.z == 0)
@@ -58,47 +36,6 @@ namespace
 		}
 
 		return unitSize;
-	}
-
-	[[nodiscard]] bool areChunkDimensions(const spk::Vector3UInt &dimensions) noexcept
-	{
-		return dimensions.x == Chunk::Extent && dimensions.y == Chunk::Extent && dimensions.z == Chunk::Extent;
-	}
-
-	[[nodiscard]] Buffer::Pool &cellBufferPoolFor(
-		const spk::Vector3UInt &dimensions,
-		std::size_t expectedSize)
-	{
-		if (areChunkDimensions(dimensions))
-		{
-			return chunkCellBufferPool;
-		}
-
-		auto iterator = cellBufferPools.lower_bound(expectedSize);
-		if (iterator != cellBufferPools.end())
-		{
-			return iterator->second;
-		}
-
-		auto [insertedIterator, inserted] = cellBufferPools.try_emplace(
-			expectedSize,
-			makeCellBufferFactory(expectedSize));
-		static_cast<void>(inserted);
-
-		return insertedIterator->second;
-	}
-
-	void resetCellBuffer(Buffer &buffer, std::size_t size)
-	{
-		buffer.clear();
-		buffer.resize(size);
-	}
-
-	[[nodiscard]] Buffer::Lease obtainEmptyCellBuffer(
-		const spk::Vector3UInt &dimensions,
-		std::size_t expectedSize)
-	{
-		return cellBufferPoolFor(dimensions, expectedSize).obtain(resetCellBuffer, expectedSize);
 	}
 
 	[[nodiscard]] std::size_t checkedIndex(
@@ -135,7 +72,7 @@ namespace Voxel
 		UnitSize unitSize) :
 		_dimensions(dimensions),
 		_unitSize(validatedUnitSize(unitSize)),
-		_cells(obtainEmptyCellBuffer(dimensions, cellCount(dimensions)))
+		_cells(Voxel::Volume::obtainCellBuffer(cellCount(dimensions)))
 	{
 	}
 

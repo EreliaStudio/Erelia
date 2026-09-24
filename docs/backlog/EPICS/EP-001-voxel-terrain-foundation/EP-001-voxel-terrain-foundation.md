@@ -115,7 +115,7 @@ The Epic will require deliberate contracts for:
 | Packed shared voxel Cell | [ST-001-02](tickets/ST-001-02-packed-voxel-cell.md) — Done |
 | Shared owning Voxel::Volume | [ST-001-03](tickets/ST-001-03-owning-voxel-volume.md) |
 | Shared first terrain Definition/Shape contract | [ST-001-04](tickets/ST-001-04-first-terrain-definition-shape-contract.md) — Done |
-| Shared Volume Message serialization | [ST-001-05](tickets/ST-001-05-voxel-volume-message-serialization.md) |
+| Shared Volume Message serialization | [ST-001-05](tickets/ST-001-05-voxel-volume-message-serialization.md) — Done |
 | Deterministic basic Server Chunk generation | [ST-001-06](tickets/ST-001-06-deterministic-validation-terrain-generator.md) |
 | Server NodeRouter + terrain LocalNode runtime | [ST-001-07](tickets/ST-001-07-server-node-router-terrain-node-bootstrap.md) |
 | Client Chunk request / Server response protocol | [ST-001-08](tickets/ST-001-08-batched-chunk-protocol-contract.md) + [ST-001-09](tickets/ST-001-09-server-chunk-request-handler.md) |
@@ -131,12 +131,13 @@ The Epic will require deliberate contracts for:
 
 The complete dependency-ordered table is maintained in [tickets/README.md](tickets/README.md).
 
-- **Done:** ST-001-01, ST-001-02, ST-001-03, ST-001-04.
+- **Done:** ST-001-01, ST-001-02, ST-001-03, ST-001-04, ST-001-05.
+- **Ready / active:** none.
 - **In Progress:** none.
-- **Blocked:** ST-001-05, ST-001-06, ST-001-08, ST-001-09, ST-001-11, ST-001-12, ST-001-15, ST-001-16.
+- **Blocked:** ST-001-06, ST-001-08, ST-001-09, ST-001-11, ST-001-12, ST-001-15, ST-001-16.
 - **Draft:** ST-001-07, ST-001-10, ST-001-13, ST-001-14.
 
-The first three implementation tickets are complete and merged into `master`: **ST-001-01 — Shared terrain coordinate conversion** through PR #7, **ST-001-02 — Packed Voxel::Cell value type** through PR #8, and **ST-001-03 — Owning Voxel::Volume** through PR #9. ST-001-03 uses the finalized immutable Builder + direct pooled `Voxel::Volume::Buffer::Lease` design, deep-copy Volume semantics, optional `tryGet()` lookup, dedicated Chunk pooling, and ordered general size-class pooling. Project-owner approval is recorded and CI run #105 passed. OQ-035 is Resolved. DR-018 resolves the first shared Shape/Definition/Catalog contract. ST-001-04 is Done on `feat/st-001-04-definition-shape-contract` / PR #11 after project-owner approval on 24 September 2026. CI run #127 passed the full matrix before the latest catalog/ownership refactor; the current design uses an Erelia-local abstract `spk::JSON::Catalog<TElement>` base with two pure virtual Reader-based parsing hooks returning values, plus non-owning `Definition -> const Shape&` references and a private zero-polygon Shape sentinel for Air. No Erelia `detail` namespace is used. The current `spk::JSON::Catalog<TElement>` stores elements directly in an unordered map and has expanded dedicated TU coverage. The current subcatalog design publicly inherits the generic catalog `load`/lookup API without forwarding wrappers, uses semantic `Material::SlotID` slot keys, centralizes source-aware JSON errors, and keeps each catalog class implementation in its own source file. The final Shape contract uses semantic `Voxel::Vertex` values and Sparkle-style `[x, y, z]` vertex JSON arrays, with external Sparkle cleanup requests tracked under `OPEN_REQUESTS/`. CI run #256 (run ID `35972200952`) passed the complete matrix for code head `7277609a680ab23b501c1b2423d3e7cbaffd8d1f`; project-owner approval is recorded and ST-001-04 is Done. PR #11 is approved for merge. No later-ticket behavior has been implemented.
+The first three implementation tickets are complete and merged into `master`: **ST-001-01 — Shared terrain coordinate conversion** through PR #7, **ST-001-02 — Packed Voxel::Cell value type** through PR #8, and **ST-001-03 — Owning Voxel::Volume** through PR #9. ST-001-03 uses the finalized immutable Builder + direct pooled `Voxel::Volume::Buffer::Lease` design, deep-copy Volume semantics, optional `tryGet()` lookup, and lazy power-of-two capacity classes shared by Chunks and other Volumes. Project-owner approval is recorded and CI run #105 passed. OQ-035 is Resolved. DR-018 resolves the first shared Shape/Definition/Catalog contract. ST-001-04 is Done on `feat/st-001-04-definition-shape-contract` / PR #11 after project-owner approval on 24 September 2026. CI run #127 passed the full matrix before the latest catalog/ownership refactor; the current design uses an Erelia-local abstract `spk::JSON::Catalog<TElement>` base with two pure virtual Reader-based parsing hooks returning values, plus non-owning `Definition -> const Shape&` references and a private zero-polygon Shape sentinel for Air. No Erelia `detail` namespace is used. The current `spk::JSON::Catalog<TElement>` stores elements directly in an unordered map and has expanded dedicated TU coverage. The current subcatalog design publicly inherits the generic catalog `load`/lookup API without forwarding wrappers, uses semantic `Material::SlotID` slot keys, centralizes source-aware JSON errors, and keeps each catalog class implementation in its own source file. The final Shape contract uses semantic `Voxel::Vertex` values and Sparkle-style `[x, y, z]` vertex JSON arrays, with external Sparkle cleanup requests tracked under `OPEN_REQUESTS/`. CI run #256 (run ID `35972200952`) passed the complete matrix for code head `7277609a680ab23b501c1b2423d3e7cbaffd8d1f`; project-owner approval is recorded and ST-001-04 is Done. PR #11 is approved for merge. ST-001-05 is Done and merged through PR #12 after project-owner approval on 24 September 2026. CI run #289 passed the complete required matrix on final code head `0baf9d27698c67855c12abf021125a3575fc364d`. It adds the shared Volume Message operators and Message constructor without implementing later Chunk protocol behavior. The next dependency-ordered ticket is ST-001-06, which remains Blocked until OQ-039 fixes the exact deterministic validation-terrain fixture.
 
 ## Epic-level integration scenarios
 
@@ -210,7 +211,7 @@ Epic-specific questions tracked in OPEN_QUESTIONS/:
 
 - [OQ-035](../../OPEN_QUESTIONS/OQ-035-TERRAIN-VOXEL-CELL-REPRESENTATION.md) — first terrain voxel/cell representation;
 - [OQ-036](../../OPEN_QUESTIONS/OQ-036-TERRAIN-MESHING-NEIGHBOR-POLICY.md) — Chunk meshing ownership and boundary-neighbor contract;
-- [OQ-037](../../OPEN_QUESTIONS/OQ-037-EP001-NETWORK-SERIALIZATION.md) — remaining scalar byte-order/platform-compatibility policy;
+- [OQ-037](../../OPEN_QUESTIONS/OQ-037-EP001-NETWORK-SERIALIZATION.md) — Resolved; Sparkle-native Volume wire representation and failure semantics;
 - [OQ-038](../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — Chunk request/streaming semantics;
 - [OQ-039](../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — exact basic terrain generator fixture;
 

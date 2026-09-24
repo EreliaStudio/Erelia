@@ -2,23 +2,19 @@
 
 **Updated:** 24 September 2026
 **Default baseline:** `master`
-**Active ticket branch:** `feat/st-001-04-definition-shape-contract`
+**Active ticket branch:** none
 
 ## Branch state
 
 Erelia uses `master` as its default branch.
 
-The first three EP-001 implementation tickets are merged into `master`:
+ST-001-01 through ST-001-05 are merged into `master`.
 
-- ST-001-01 through PR #7;
-- ST-001-02 through PR #8;
-- ST-001-03 through PR #9 after project-owner approval and green CI run #105.
-
-The former planning branch is no longer the active implementation baseline. ST-001-04 is actively being implemented and validated on `feat/st-001-04-definition-shape-contract` through PR #11. The latest implementation commit before this status update is `6423e789b69770f8f15df1e16bacda23f54a17fb`.
+PR #12 merged **ST-001-05 — Voxel::Volume Message serialization** on 24 September 2026 after explicit project-owner approval.
 
 ## What exists now
 
-The project was restarted on 22 September 2026 and currently contains:
+The project currently includes:
 
 - top-level CMake project version 0.1.0;
 - C++23;
@@ -36,61 +32,59 @@ The project was restarted on 22 September 2026 and currently contains:
 - current GDD and illustration assets under `docs/gdd/`;
 - historical source/backlog isolated under `archive/`.
 
-Implemented EP-001 foundations now include:
+Implemented EP-001 foundations include:
 
 - shared terrain coordinate conversion;
 - packed 32-bit `Voxel::Cell` / `Voxel::Definition::ID`;
-- immutable owning `Voxel::Volume` + Builder + pooled Buffer/Lease storage.
+- immutable owning `Voxel::Volume` + Builder + pooled Buffer/Lease storage;
+- shared voxel Shape/Definition/Catalog contract and first terrain resources from ST-001-04;
+- shared Sparkle-native `Voxel::Volume` Message serialization from ST-001-05.
 
-## What was just resolved
+## What was just completed
 
-The ST-001-04 contract review is complete.
+**ST-001-05 — Voxel::Volume Message serialization** is Done and merged.
 
-DR-018 now fixes the first shared voxel Shape/Definition/Catalog contract, including:
+Its delivered contract includes:
 
-- shared semantic Shape and Definition resources for Server and Client;
-- string Shape IDs and numeric Definition IDs;
-- `Voxel::Material::ID` string identity with `Material::InvalidID == "InvalidID"`;
-- discrete `spk::Vector3Int` Shape vertices quantized from normalized JSON with `Voxel::Shape::VertexPrecision = 0.001f`;
-- convex planar CCW polygons with semantic slots and derived normals;
-- revised Cell Orientation ordering `PositiveX=0, NegativeZ=1, NegativeX=2, PositiveZ=3`, directly representing CCW quarter-turn count;
-- `NegativeY` mirroring around `Y=0.5` with polygon rewinding;
-- lazy, mutex-protected eight-way oriented polygon caching with atomic `spk::UUID` publication and lock-free published reads;
-- aggregate `Voxel::Catalog` JSON loading and typed Shape/Definition lookup behavior through the Erelia-local `spk::JSON::Catalog<TElement>` abstract base;
-- catalog-created Definition ID 0 Air;
-- incremental load/failure behavior;
-- first cube/slab/slope/stair resources derived from the validated archive fixtures;
-- explicit exclusion of occlusion algorithms from ST-001-04.
+- direct ADL-resolved `message << volume` / `message >> volume`;
+- `explicit Volume(const spk::Message&)` delegating to the same extraction path;
+- native `spk::Vector3UInt dimensions`, native `Volume::UnitSize`, then one contiguous native Cell block;
+- Cell count derived from dimensions with checked arithmetic rather than serialized redundantly;
+- Y-fastest, then X, then Z Cell ordering;
+- symmetric insertion/extraction validation with `spk::Exception` on invalid or malformed data;
+- destination preservation on decode failure, while retaining Sparkle's normal Message cursor semantics;
+- networking implementation isolated in `core/src/voxel/volume_networking.cpp`;
+- networking reconstruction independent from `Volume::Builder`;
+- private `Voxel::Volume::obtainCellBuffer()` ownership of pooled Cell-buffer acquisition;
+- deterministic power-of-two pool classes derived from logical Cell count;
+- same-class decode reuse computed from logical Cell counts, with no stored pool metadata and no reliance on `std::vector::capacity()`.
 
-OQ-039 remains Partially resolved, but its remaining exact generator-scene coordinates, Definition IDs, and material choices now block ST-001-06 rather than ST-001-04.
+The final code-bearing head `0baf9d27698c67855c12abf021125a3575fc364d` passed CI run #289 (run ID `35986211668`) across clang-format, Linux/Windows Core+Server Debug/Release, and Windows Client Debug/Release.
 
 ## Current implementation phase
 
-EP-001 is still Draft overall, but implementation is active.
+EP-001 remains Draft overall, but its first five implementation tickets are complete.
 
 ### Completed
 
 - **ST-001-01 — Shared terrain coordinate conversion:** Done.
 - **ST-001-02 — Packed Voxel::Cell value type:** Done.
 - **ST-001-03 — Owning Voxel::Volume:** Done.
-- **ST-001-04 — First terrain Definition and Shape contract:** Done; project-owner approval recorded on 24 September 2026, CI #256 passed, and PR #11 is approved for merge.
+- **ST-001-04 — First terrain Definition and Shape contract:** Done.
+- **ST-001-05 — Voxel::Volume Message serialization:** Done and merged through PR #12.
 
-### In progress
+### Ready / active
 
-No implementation ticket is currently In Progress.
-
-ST-001-04 completed the first shared `Voxel::Shape` / `Voxel::Definition` / `Voxel::Catalog` contract, semantic `Material::ID` / `Material::SlotID`, semantic `Voxel::Vertex`, Sparkle-style `[x, y, z]` Shape resources, exact Orientation/Flip transforms, lazy UUID-published oriented-polygon caching, direct-value JSON catalogs, source-aware JSON errors, and focused class/catalog tests.
-
-CI run #256 (run ID `35972200952`) passed the complete matrix for code head `7277609a680ab23b501c1b2423d3e7cbaffd8d1f`. The project owner approved the ticket on 24 September 2026. Sparkle issues #14 and #15 remain external follow-up requests under `OPEN_REQUESTS/` and do not block ST-001-04 completion.
+None.
 
 ### Next
 
-1. Merge PR #11 for completed ST-001-04.
-2. Reassess the dependency order rather than skipping unresolved gates.
-3. Resolve OQ-039's remaining generator-scene details before ST-001-06.
-4. Resolve OQ-037/OQ-038 before the dependent Chunk networking/request tickets.
-5. Resolve OQ-036 before boundary-aware Client meshing.
-6. Resolve OQ-029 through OQ-031 before final visual/performance validation.
+The next dependency-ordered ticket is **ST-001-06 — Deterministic validation terrain generator**, but it is **Blocked** by **OQ-039**.
+
+Before production implementation of ST-001-06, resolve OQ-039's remaining material fixture decisions with the project owner, including exact authored world coordinates/regions, Definition IDs/material choices, Orientation/Flip placements, and complete deterministic expected Cell values. Update OQ-039 / DR-015 / ST-001-06 as appropriate, verify the Definition of Ready, and only then promote ST-001-06 to Ready and implement it.
+
+Do not skip this gate by inventing a terrain fixture.
+
 ## Relevant approved planning constraints
 
 EP-001 is constrained by DR-001 through DR-004, DR-007, DR-009 through DR-018 and ARCH-001 through ARCH-004 as listed in the Epic.

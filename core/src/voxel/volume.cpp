@@ -1,5 +1,6 @@
 #include "erelia/core/voxel/volume.hpp"
 
+#include <cstdint>
 #include <utility>
 
 #include <exception.hpp>
