@@ -283,7 +283,7 @@ TEST(VoxelVolumeBuilder, MovingCopiedVolumeIntoBuilderReusesOnlyMovedVolumesBuff
 	EXPECT_EQ(copy.at({1, 0, 0}).packed(), 17u);
 }
 
-TEST(VoxelVolumeBuilder, ChunkSizedBuffersUseTheirDedicatedPool)
+TEST(VoxelVolumeBuilder, EqualCellCountsShareTheSamePoolRegardlessOfDimensions)
 {
 	const Voxel::Cell *chunkData = nullptr;
 
@@ -293,11 +293,8 @@ TEST(VoxelVolumeBuilder, ChunkSizedBuffersUseTheirDedicatedPool)
 		ASSERT_NE(chunkData, nullptr);
 	}
 
-	const auto nonChunkVolume = makeVolume({8, 8, 64}, 1.0f);
-	EXPECT_NE(nonChunkVolume.cells().data(), chunkData);
-
-	const auto reusedChunkVolume = makeVolume({16, 16, 16}, 1.0f);
-	EXPECT_EQ(reusedChunkVolume.cells().data(), chunkData);
+	const auto sameCellCountVolume = makeVolume({8, 8, 64}, 1.0f);
+	EXPECT_EQ(sameCellCountVolume.cells().data(), chunkData);
 }
 
 TEST(VoxelVolumeBuilder, GeneralPoolUsesSmallestAvailableHigherSizeClass)

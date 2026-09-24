@@ -3,80 +3,26 @@
 #include <cmath>
 #include <cstdint>
 #include <limits>
-#include <map>
 #include <type_traits>
 #include <utility>
 
 #include <exception.hpp>
 
-#include "erelia/core/chunk.hpp"
+#include "volume_buffer_pool.hpp"
 
 namespace
 {
-	using Buffer = Voxel::Volume::Buffer;
-
 	static_assert(std::is_trivially_copyable_v<spk::Vector3UInt>);
 	static_assert(sizeof(spk::Vector3UInt) == 3 * sizeof(std::uint32_t));
 	static_assert(std::is_trivially_copyable_v<Voxel::Volume::UnitSize>);
 	static_assert(std::is_trivially_copyable_v<Voxel::Cell>);
 	static_assert(sizeof(Voxel::Cell) == sizeof(Voxel::Cell::PackedType));
 
-	constexpr std::size_t ChunkCellCount =
-		static_cast<std::size_t>(Chunk::Extent) *
-		static_cast<std::size_t>(Chunk::Extent) *
-		static_cast<std::size_t>(Chunk::Extent);
-
 	struct SerializedVolumeLayout
 	{
 		std::size_t cellCount = 0;
 		std::size_t cellBytes = 0;
 	};
-
-	[[nodiscard]] Buffer::Pool::Factory makeCellBufferFactory(std::size_t capacity)
-	{
-		return [capacity]() {
-			auto *buffer = new Buffer();
-			buffer->reserve(capacity);
-			return buffer;
-		};
-	}
-
-	Buffer::Pool chunkCellBufferPool(makeCellBufferFactory(ChunkCellCount));
-	std::map<std::size_t, Buffer::Pool> cellBufferPools;
-
-	[[nodiscard]] bool areChunkDimensions(const spk::Vector3UInt &dimensions) noexcept
-	{
-		return dimensions.x == Chunk::Extent && dimensions.y == Chunk::Extent && dimensions.z == Chunk::Extent;
-	}
-
-	[[nodiscard]] Buffer::Pool &cellBufferPoolFor(
-		const spk::Vector3UInt &dimensions,
-		std::size_t expectedSize)
-	{
-		if (areChunkDimensions(dimensions))
-		{
-			return chunkCellBufferPool;
-		}
-
-		auto iterator = cellBufferPools.lower_bound(expectedSize);
-		if (iterator != cellBufferPools.end())
-		{
-			return iterator->second;
-		}
-
-		auto [insertedIterator, inserted] = cellBufferPools.try_emplace(
-			expectedSize,
-			makeCellBufferFactory(expectedSize));
-		static_cast<void>(inserted);
-
-		return insertedIterator->second;
-	}
-
-	void resetCellBuffer(Buffer &buffer, std::size_t size)
-	{
-		buffer.clear();
-		buffer.resize(size);
-	}
 
 	[[nodiscard]] std::size_t serializedCellCount(const spk::Vector3UInt &dimensions)
 	{
@@ -182,13 +128,6 @@ namespace Voxel
 		_unitSize(unitSize),
 		_cells(std::move(cells))
 	{
-	}
-
-	Volume::Buffer::Lease Volume::_obtainEmptyCellBuffer(
-		const spk::Vector3UInt &dimensions,
-		std::size_t expectedSize)
-	{
-		return cellBufferPoolFor(dimensions, expectedSize).obtain(resetCellBuffer, expectedSize);
 	}
 
 	Volume::Volume(const spk::Message &message)
@@ -328,15 +267,12 @@ namespace Voxel
 			validatedSerializedVolumeLayout(dimensions, unitSize);
 		validateCellBytesAvailable(message, layout.cellBytes);
 
-		if (layout.cellCount == 0)
+		Volume::Buffer::Lease cells;
+		if (layout.cellCount != 0)
 		{
-			volume = Volume();
-			return message;
+			cells = obtainCellBuffer(layout.cellCount);
+			message.pull(cells->data(), layout.cellBytes);
 		}
-
-		Volume::Buffer::Lease cells =
-			Volume::_obtainEmptyCellBuffer(dimensions, layout.cellCount);
-		message.pull(cells->data(), layout.cellBytes);
 
 		Volume decoded(
 			dimensions,

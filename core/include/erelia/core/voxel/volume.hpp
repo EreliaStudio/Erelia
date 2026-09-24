@@ -39,9 +39,6 @@ namespace Voxel
 			const spk::Vector3UInt &dimensions,
 			UnitSize unitSize,
 			Buffer::Lease cells) noexcept;
-		[[nodiscard]] static Buffer::Lease _obtainEmptyCellBuffer(
-			const spk::Vector3UInt &dimensions,
-			std::size_t expectedSize);
 		[[nodiscard]] std::size_t _index(const LocalCoordinate &coordinate) const;
 
 		friend spk::Message &operator<<(
