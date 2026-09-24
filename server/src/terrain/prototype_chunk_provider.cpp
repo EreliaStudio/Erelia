@@ -5,7 +5,11 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <utility>
+
+#include <design_pattern/singleton.hpp>
+#include <threading/worker_pool.hpp>
 
 namespace
 {
@@ -117,16 +121,87 @@ namespace
 			populateShapeFixture(builder, 4u);
 		}
 	}
-}
 
-namespace erelia::server
-{
-	Chunk PrototypeChunkProvider::provide(
+	[[nodiscard]] Chunk generateChunk(
 		const Chunk::Coordinate &coordinate)
 	{
 		Chunk::Builder builder;
 		populateBaselineAndWalls(builder, coordinate);
 		populateDedicatedFixture(builder, coordinate);
 		return std::move(builder).build();
+	}
+}
+
+namespace erelia::server
+{
+	std::size_t PrototypeChunkProvider::RequestHash::operator()(
+		const Chunk::Collection::Request &request) const noexcept
+	{
+		const std::size_t coordinateHash =
+			std::hash<Chunk::Coordinate>{}(request.coordinate);
+		const std::size_t generationHash =
+			std::hash<Chunk::Collection::Generation>{}(request.generation);
+		return coordinateHash ^
+			   (generationHash + 0x9e3779b9u + (coordinateHash << 6u) +
+				(coordinateHash >> 2u));
+	}
+
+	void PrototypeChunkProvider::request(
+		const Chunk::Collection::Request &request)
+	{
+		(void)_requested.publish(request);
+	}
+
+	void PrototypeChunkProvider::update(
+		Chunk::Collection &collection)
+	{
+		spk::WorkerPool &workerPool =
+			spk::Singleton<spk::WorkerPool>::instance();
+
+		RequestSet::container_type requests;
+		_requested.drain(requests);
+
+		for (const Chunk::Collection::Request &request : requests)
+		{
+			if (!collection.isPending(request))
+			{
+				continue;
+			}
+
+			_pending.push_back(
+				{
+					.request = request,
+					.answer = workerPool.submit(
+						spk::Task<Chunk>(
+							[coordinate = request.coordinate] {
+								return generateChunk(coordinate);
+							}))});
+		}
+
+		auto iterator = _pending.begin();
+		while (iterator != _pending.end())
+		{
+			const spk::Task<Chunk>::Status status =
+				iterator->answer.status();
+
+			if (status == spk::Task<Chunk>::Status::Pending)
+			{
+				++iterator;
+				continue;
+			}
+
+			if (status == spk::Task<Chunk>::Status::Completed)
+			{
+				(void)collection.publish(
+					iterator->request,
+					iterator->answer.result());
+			}
+			else
+			{
+				(void)collection.fail(iterator->request);
+			}
+
+			iterator = _pending.erase(iterator);
+		}
 	}
 }

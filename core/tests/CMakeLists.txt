@@ -2,7 +2,10 @@ add_executable(EreliaCoreTestSuite
     chunk_collection_test.cpp
     chunk_test.cpp
     json_catalog_test.cpp
+    singleton_test.cpp
     status_test.cpp
+    task_worker_pool_test.cpp
+    thread_safe_set_test.cpp
     terrain_coordinate_test.cpp
     voxel_catalog_test.cpp
     voxel_cell_test.cpp
