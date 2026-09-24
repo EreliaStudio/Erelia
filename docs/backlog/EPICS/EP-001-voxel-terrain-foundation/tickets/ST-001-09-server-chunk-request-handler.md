@@ -7,7 +7,7 @@
 
 ## Intent
 
-Handle the EP-001 Chunk request message family inside the Server terrain LocalNode and return canonical generated Chunk results to the originating Client.
+Handle the EP-001 Chunk request message family inside the separate terrain node process and return canonical generated Chunk results to the originating Client.
 
 ## User / system value
 
@@ -16,7 +16,7 @@ A real dedicated Server can answer Client terrain requests without exposing Clie
 ## Starting state / prerequisites
 
 - Depends on ST-001-06, ST-001-07, and ST-001-08.
-- DR-016 fixes routing through NodeRouter to the terrain LocalNode.
+- DR-016 and DR-021 fix routing through NodeRouter / RemoteNode to the separate terrain Endpoint process.
 - OQ-038 still leaves duplicate, limits, partial-success, invalid/unavailable-coordinate and outstanding-request behavior unresolved.
 
 ## Product ownership
@@ -33,7 +33,7 @@ Client/rendering code, Client view radius/cache policy, terrain mesh generation,
 
 ## Owned behavior
 
-- Receive routed Chunk requests in the terrain LocalNode.
+- Receive routed Chunk requests in the terrain node's `spk::RemoteNode::Endpoint` process.
 - Validate request according to the final ST-001-08 contract.
 - Resolve each accepted coordinate through the ST-001-06 Server `Chunk::Collection` backed by `PrototypeChunkProvider`.
 - Return canonical coordinate + Chunk results through the router to the originating Client.
@@ -71,7 +71,7 @@ Provider/Collection output follows ST-001-06. Response ordering/association foll
 
 ## Lifecycle / ownership
 
-The terrain LocalNode owns request-processing lifetime. Connection references used for replies must not outlive/disconnect unsafely; exact Sparkle lifecycle must be reflected in final tests.
+The terrain node process owns request-processing lifetime. Connection references used for replies must not outlive/disconnect unsafely; exact Sparkle lifecycle must be reflected in final tests.
 
 ## Serialization / persistence
 
@@ -83,7 +83,7 @@ Server validates and returns canonical results. Client only requests coordinates
 
 ## Implementation constraints
 
-- Handler lives in the terrain LocalNode, not `main.cpp`.
+- Handler lives in the terrain node process, not either executable `main.cpp`.
 - Use Sparkle NodeRouter response path to the originating Client.
 - Do not introduce a second transport or a Server-selected view radius.
 
@@ -149,7 +149,7 @@ Generator failure and network send failure behavior must be explicit before Read
 
 ### Cross-system integration
 
-Router -> terrain LocalNode -> Chunk::Collection/PrototypeChunkProvider -> response path is covered in Server integration tests.
+Router -> `spk::RemoteNode` -> terrain `spk::RemoteNode::Endpoint` -> Chunk::Collection/PrototypeChunkProvider -> response path is covered in Server integration tests.
 
 ### Performance
 
@@ -164,6 +164,7 @@ Not applicable.
 - [DR-014](../../../DECISIONS/DR-014-BATCHED-CHUNK-PROTOCOL-DIRECTION.md)
 - [DR-016](../../../DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md)
 - [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
+- [DR-021](../../../DECISIONS/DR-021-REMOTE-SERVER-NODES-FROM-FIRST-IMPLEMENTATION.md)
 - [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — blocking.
 - [OQ-039](../../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — resolved; exact prototype terrain is fixed by DR-015.
 
