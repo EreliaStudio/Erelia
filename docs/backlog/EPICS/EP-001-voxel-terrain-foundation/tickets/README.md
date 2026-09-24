@@ -13,7 +13,7 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-03 — Owning Voxel::Volume](ST-001-03-owning-voxel-volume.md) | **Done** | ST-001-02; OQ-035 resolved |
 | [ST-001-04 — First terrain Definition and Shape contract](ST-001-04-first-terrain-definition-shape-contract.md) | **Done** | ST-001-02; DR-018 |
 | [ST-001-05 — Voxel::Volume Message serialization](ST-001-05-voxel-volume-message-serialization.md) | **Done** | ST-001-02, ST-001-03; OQ-037 resolved |
-| [ST-001-06 — Deterministic validation terrain generator](ST-001-06-deterministic-validation-terrain-generator.md) | **Blocked** | ST-001-01 through ST-001-04; OQ-039 |
+| [ST-001-06 — Deterministic validation terrain provider and Chunk collection foundation](ST-001-06-deterministic-validation-terrain-generator.md) | **Blocked** | ST-001-01 through ST-001-05; DR-019; OQ-039 resolved; remaining ticket-specific readiness decisions |
 | [ST-001-07 — Server NodeRouter terrain-node bootstrap](ST-001-07-server-node-router-terrain-node-bootstrap.md) | **Draft** | Server endpoint/lifecycle specification |
 | [ST-001-08 — Batched Chunk request/response protocol contract](ST-001-08-batched-chunk-protocol-contract.md) | **Blocked** | ST-001-01, ST-001-03, ST-001-05; OQ-038 |
 | [ST-001-09 — Server Chunk request handler](ST-001-09-server-chunk-request-handler.md) | **Blocked** | ST-001-06, ST-001-07, ST-001-08; OQ-038 |
@@ -22,8 +22,8 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-12 — Client terrain mesher](ST-001-12-client-terrain-mesher.md) | **Blocked** | ST-001-03, ST-001-04; OQ-036 |
 | [ST-001-13 — Client terrain rendering integration](ST-001-13-client-terrain-rendering-integration.md) | **Draft** | ST-001-01, ST-001-12; render-fixture/material/lifecycle specification |
 | [ST-001-14 — Temporary free-flight inspection controller](ST-001-14-temporary-free-flight-inspection-controller.md) | **Draft** | ST-001-13; full input/numeric camera-control specification |
-| [ST-001-15 — Adjacent-Chunk cross-process integration](ST-001-15-adjacent-chunk-cross-process-integration.md) | **Blocked** | ST-001-06, ST-001-09 through ST-001-13; OQ-036, OQ-038, OQ-039 |
-| [ST-001-16 — Visual and performance validation evidence](ST-001-16-visual-performance-validation.md) | **Blocked** | ST-001-14, ST-001-15; OQ-029, OQ-030, OQ-031, OQ-039 |
+| [ST-001-15 — Adjacent-Chunk cross-process integration](ST-001-15-adjacent-chunk-cross-process-integration.md) | **Blocked** | ST-001-06, ST-001-09 through ST-001-13; OQ-036, OQ-038 |
+| [ST-001-16 — Visual and performance validation evidence](ST-001-16-visual-performance-validation.md) | **Blocked** | ST-001-14, ST-001-15; OQ-029, OQ-030, OQ-031 |
 
 ## Current implementation state
 
@@ -31,11 +31,11 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-02 — Packed Voxel::Cell value type** is **Done** and was merged through PR #8 after CI run #59 and project-owner approval.
 
-**ST-001-03 — Owning Voxel::Volume** is **Done** through PR #9 after project-owner approval and green CI run #105. The final public design is an immutable built Volume plus mutable Builder with direct pooled storage: `Voxel::Volume::Buffer` exposes `Buffer::Pool` / `Buffer::Lease`; every Volume owns its own Lease; Volume copies deep-copy into independent pooled Buffers; moves and `Builder(std::move(volume))` transfer/reuse the existing Lease. `contains()` remains the boolean bounds query and `tryGet()` provides optional non-throwing Cell retrieval. A follow-up cleanup during ST-001-05 removed the dedicated Chunk-pool special case: all non-empty Volumes now use one source-private `CellArrayCollection` whose reusable `CellArrayPool` class is deterministically derived as the next power of two for the logical Cell count. The collection looks up or lazily creates exactly that class, so an existing larger pool never changes the class selected for a smaller request.
+**ST-001-03 — Owning Voxel::Volume** is **Done** through PR #9 after project-owner approval and green CI run #105. Its historical implementation used direct per-Volume pooled Leases and deep-copy Volume copies. DR-019, approved during ST-001-06 planning, supersedes those ownership/copy details with shared immutable backing Cell content while preserving the immutable built API, Builder-before-build mutation model, optional `tryGet()`, Y/X/Z indexing and deterministic power-of-two pool classes.
 
 **ST-001-04 — First terrain Definition and Shape contract** is **Done** and merged through PR #11 on 24 September 2026.
 
-**ST-001-05 — Voxel::Volume Message serialization** is **Done** and merged through PR #12 on 24 September 2026 after project-owner approval. OQ-037 and DR-017 fix the Sparkle-native wire contract, exact field order, contiguous Cell block, derived Cell count, validation rules, decode failure semantics, ownership, and deterministic-byte scope. The implementation provides `explicit Volume(const spk::Message&)`, keeps networking reconstruction independent from Builder, isolates networking implementation in `volume_networking.cpp`, and uses deterministic power-of-two Cell-buffer pool classes with same-class decode reuse. CI run #289 (run ID `35986211668`) passed the complete formatting, Core+Server Linux/Windows Debug/Release, and Windows Client Debug/Release matrix on final code head `0baf9d27698c67855c12abf021125a3575fc364d`.
+**ST-001-05 — Voxel::Volume Message serialization** is **Done** and merged through PR #12 on 24 September 2026 after project-owner approval. OQ-037 and DR-017 fix the generic Sparkle-native wire contract, field order, contiguous Cell block, validation/failure semantics and deterministic-byte scope. DR-019 supersedes only the successful-decode same-destination-buffer reuse optimization: shared immutable Volume content requires fresh decoded storage before destination replacement. CI run #289 (run ID `35986211668`) remains the historical completion evidence for ST-001-05.
 
 ## Remaining blockers
 
@@ -43,7 +43,7 @@ Existing OQs:
 
 - OQ-036 — missing-neighbor/remesh policy;
 - OQ-038 — duplicate/outstanding request, limits, cache/retention, retry and partial-response semantics;
-- OQ-039 — exact generator/Definition fixture;
+- OQ-039 — resolved exact generator/Definition fixture (DR-015);
 - OQ-029 / OQ-030 — golden platform and comparison policy;
 - OQ-031 — performance evidence methodology.
 
@@ -53,4 +53,4 @@ Additional Draft-ticket specification gaps exposed by decomposition:
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
-ST-001-01 through ST-001-05 are merged into `master`. No implementation ticket is currently Ready; ST-001-06 is the next dependency-ordered ticket but remains Blocked by OQ-039's exact deterministic terrain fixture contract.
+ST-001-01 through ST-001-05 are merged into `master`. OQ-039 is resolved. No implementation ticket is currently Ready; ST-001-06 is the next dependency-ordered ticket but remains Blocked only by the remaining Provider/Collection edge-semantics and prototype-test-depth decisions listed explicitly in ST-001-06.
