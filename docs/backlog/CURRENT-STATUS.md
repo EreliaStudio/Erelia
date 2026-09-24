@@ -121,14 +121,14 @@ The project owner also resolved the Provider construction/ownership contract:
 - lvalues are rejected by constraint;
 - null/absent Provider construction is not representable.
 
-The project owner resolved the final Server assertion-depth decision:
+The project owner clarified the final testing boundary:
 
-- for every approved Chunk, tests explicitly enumerate every expected non-Empty Cell and assert its exact Definition/Orientation/Flip semantics;
-- tests then iterate all 4096 Cells and require every non-enumerated Cell to be exactly `Voxel::Cell::Empty`;
-- repeated generation compares the complete Chunk Cell content for deterministic equality;
-- the below-baseline `(0,-1,0)` Chunk therefore proves all 4096 Cells are Empty.
+- `PrototypeChunkProvider` is temporary validation-world scaffolding and its exact DR-015 Cell layout is not a dedicated unit-test contract;
+- reusable Provider/Collection behavior is tested in Core through a purpose-built test implementation of `Chunk::Collection::Provider`;
+- that test Provider supplies controlled Chunk values and observable call state so caching, ownership, replacement/upsert, lifetime, negative coordinates, and concurrency can be verified precisely;
+- the prototype still implements the DR-015 temporary world for later integration/visual use, but ST-001-06 does not freeze all 4096 Cells of each prototype Chunk in Server unit tests.
 
-The ST-001-06 ticket was reviewed against `DEFINITION-OF-READY.md`: parent/owners/dependencies, public behavior, ownership, state transitions, failure semantics, concurrency, exact fixture values, and acceptance-test expectations are now explicit. No material implementation decision remains for the coding agent.
+The ST-001-06 ticket was reviewed against `DEFINITION-OF-READY.md`: parent/owners/dependencies, public behavior, ownership, state transitions, failure semantics, concurrency, temporary fixture values, and the reusable Provider/Collection test boundary are now explicit. No material implementation decision remains for the coding agent.
 
 **ST-001-06 is Ready and active.** Production implementation may now begin.
 
