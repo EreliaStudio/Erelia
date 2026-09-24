@@ -25,7 +25,7 @@ Server terrain node owns request validation, canonical generation lookup, and re
 
 ## Allowed dependencies
 
-EreliaServerLibrary, EreliaCore, Sparkle Core networking, standard library, ST-001-06 generator, ST-001-08 protocol.
+EreliaServerLibrary, EreliaCore, Sparkle Core networking, standard library, ST-001-06 `Chunk::Collection` / Server `PrototypeChunkProvider`, ST-001-08 protocol.
 
 ## Forbidden dependencies
 
@@ -35,8 +35,8 @@ Client/rendering code, Client view radius/cache policy, terrain mesh generation,
 
 - Receive routed Chunk requests in the terrain LocalNode.
 - Validate request according to the final ST-001-08 contract.
-- Resolve/generate each accepted coordinate through ST-001-06.
-- Return canonical coordinate + Volume results through the router to the originating Client.
+- Resolve each accepted coordinate through the ST-001-06 Server `Chunk::Collection` backed by `PrototypeChunkProvider`.
+- Return canonical coordinate + Chunk results through the router to the originating Client.
 - Keep two concurrent Client connections correlated correctly.
 - Reject malformed/invalid requests without mutating authoritative terrain state.
 
@@ -63,11 +63,11 @@ Malformed/invalid request -> reject according to final protocol -> no canonical 
 
 ## Failure behavior
 
-Blocked by OQ-038 for partial success/rejection. Generator failure behavior must also be explicit before Ready.
+Blocked by OQ-038 for partial success/rejection. Provider/Collection failure behavior from the final ST-001-06 contract must also be explicit before Ready.
 
 ## Determinism / ordering
 
-Generator output follows ST-001-06. Response ordering/association follows ST-001-08; no extra Server-specific ordering may be invented.
+Provider/Collection output follows ST-001-06. Response ordering/association follows ST-001-08; no extra Server-specific ordering may be invented.
 
 ## Lifecycle / ownership
 
@@ -75,7 +75,7 @@ The terrain LocalNode owns request-processing lifetime. Connection references us
 
 ## Serialization / persistence
 
-Uses ST-001-08/ST-001-05. No persistence.
+Uses ST-001-08's dedicated Chunk codec/protocol. Generic ST-001-05 Volume serialization remains available but is not the Chunk payload format. No persistence.
 
 ## Networking / authority
 
@@ -105,7 +105,7 @@ Final Ready fixtures must include:
 
 ### Nominal
 
-Valid single/multi requests return exact canonical generated Volumes.
+Valid single/multi requests return exact canonical Chunks.
 
 ### Boundaries
 
@@ -121,7 +121,7 @@ Rejected request does not mutate canonical terrain state; partial response behav
 
 ### Determinism
 
-Repeated valid requests for the same generator inputs return semantically identical Volumes.
+Repeated valid requests for the same coordinate return semantically identical canonical Chunks.
 
 ### Lifecycle / ownership
 
@@ -141,7 +141,7 @@ Two-Client correlation and disconnect case required. No broader gameplay concurr
 
 ### Authority / trust boundary
 
-Client cannot provide canonical Volume content or bypass Server generation.
+Client cannot provide canonical Chunk content or bypass Server Provider/Collection resolution.
 
 ### Dependency failure
 
@@ -149,7 +149,7 @@ Generator failure and network send failure behavior must be explicit before Read
 
 ### Cross-system integration
 
-Router -> terrain LocalNode -> generator -> response path is covered in Server integration tests.
+Router -> terrain LocalNode -> Chunk::Collection/PrototypeChunkProvider -> response path is covered in Server integration tests.
 
 ### Performance
 
@@ -163,8 +163,9 @@ Not applicable.
 
 - [DR-014](../../../DECISIONS/DR-014-BATCHED-CHUNK-PROTOCOL-DIRECTION.md)
 - [DR-016](../../../DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md)
+- [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
 - [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — blocking.
-- [OQ-039](../../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — blocks generator prerequisite.
+- [OQ-039](../../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — resolved; exact prototype terrain is fixed by DR-015.
 
 ## Completion evidence
 
