@@ -111,7 +111,7 @@ TEST(ThreadSafeSet, DrainedValueCanBeRequestedAgain)
 	spk::ThreadSafeSet<int>::container_type drained;
 
 	EXPECT_TRUE(values.publish(17));
-	values.drain(drained);
+	(void)values.drain(drained);
 	EXPECT_TRUE(values.publish(17));
 	EXPECT_FALSE(values.publish(17));
 }
@@ -125,7 +125,7 @@ TEST(ThreadSafeSet, SupportsMoveOnlyValues)
 	EXPECT_FALSE(values.emplace(5));
 	EXPECT_TRUE(values.publish(MoveOnlyValue(9)));
 
-	values.drain(drained);
+	(void)values.drain(drained);
 
 	EXPECT_EQ(drained.size(), 2u);
 	EXPECT_TRUE(drained.contains(MoveOnlyValue(5)));
@@ -245,7 +245,7 @@ TEST(ThreadSafeSet, MultipleProducersPublishEveryUniqueValueExactlyOnce)
 		 ++producerIndex)
 	{
 		producers.emplace_back(
-			[producer = endpoints.producer(),
+			[producer = endpoints.producer,
 			 producerIndex]() mutable {
 				for (int valueIndex = 0; valueIndex < ValuesPerProducer; ++valueIndex)
 				{
