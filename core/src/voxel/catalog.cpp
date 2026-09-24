@@ -6,20 +6,13 @@
 #include <string>
 #include <utility>
 
+#include <container/json/error.hpp>
 #include <container/json/reader.hpp>
 #include <diagnostics/logger.hpp>
 
 namespace
 {
 	constexpr std::uint64_t MaximumDefinitionID = 0x1FFFFFFFu;
-
-	[[noreturn]] void throwAt(
-		const std::filesystem::path &file,
-		const std::string &path,
-		const std::string &message)
-	{
-		throw spk::Exception(file.generic_string() + ":" + path + ": " + message);
-	}
 
 	[[nodiscard]] Voxel::Material::ID readMaterialID(
 		const spk::JSON::Reader &slotsReader,
@@ -31,8 +24,10 @@ namespace
 			return value.as<std::string>();
 		} catch (...)
 		{
-			throw spk::Exception(
-				slotsReader.file().generic_string() + ":" + slotsReader.pathFor(slot) + ": invalid value",
+			spk::JSON::throwAt(
+				slotsReader.file(),
+				slotsReader.pathFor(slot),
+				"invalid value",
 				std::current_exception());
 		}
 	}
@@ -45,8 +40,7 @@ namespace Voxel
 		const Shape::ID id = reader.require<Shape::ID>("id");
 		if (id.empty())
 		{
-			throw spk::Exception(
-				reader.file().generic_string() + ":" + reader.pathFor("id") + ": voxel Shape ID cannot be empty");
+			spk::JSON::throwAt(reader.file(), reader.pathFor("id"), "voxel Shape ID cannot be empty");
 		}
 		return id;
 	}
@@ -67,13 +61,11 @@ namespace Voxel
 		const std::uint64_t authoredID = reader.require<std::uint64_t>("id");
 		if (authoredID == 0u)
 		{
-			throw spk::Exception(
-				reader.file().generic_string() + ":" + reader.pathFor("id") + ": voxel Definition ID 0 is reserved for Air");
+			spk::JSON::throwAt(reader.file(), reader.pathFor("id"), "voxel Definition ID 0 is reserved for Air");
 		}
 		if (authoredID > MaximumDefinitionID)
 		{
-			throw spk::Exception(
-				reader.file().generic_string() + ":" + reader.pathFor("id") + ": voxel Definition ID exceeds its 29-bit capacity");
+			spk::JSON::throwAt(reader.file(), reader.pathFor("id"), "voxel Definition ID exceeds its 29-bit capacity");
 		}
 		return static_cast<Definition::ID>(authoredID);
 	}
@@ -84,8 +76,10 @@ namespace Voxel
 		const Shape::ID shapeID = dataReader.require<Shape::ID>("shape");
 		if (!_shapes.contains(shapeID))
 		{
-			throw spk::Exception(
-				dataReader.file().generic_string() + ":" + dataReader.pathFor("shape") + ": unknown voxel Shape ID '" + shapeID + "'");
+			spk::JSON::throwAt(
+				dataReader.file(),
+				dataReader.pathFor("shape"),
+				"unknown voxel Shape ID '" + shapeID + "'");
 		}
 
 		const Shape &shape = _shapes.at(shapeID);
@@ -101,12 +95,14 @@ namespace Voxel
 		{
 			if (slot.empty())
 			{
-				throwAt(slotsReader.file(), slotsReader.path(), "voxel Definition slot cannot be empty");
+				spk::JSON::throwAt(slotsReader.file(), slotsReader.path(), "voxel Definition slot cannot be empty");
 			}
 			if (!shapeSlots.contains(slot))
 			{
-				throw spk::Exception(
-					slotsReader.file().generic_string() + ":" + slotsReader.pathFor(slot) + ": voxel Definition has extra slot '" + slot + "'");
+				spk::JSON::throwAt(
+					slotsReader.file(),
+					slotsReader.pathFor(slot),
+					"voxel Definition has extra slot '" + slot + "'");
 			}
 			slots.emplace(slot, readMaterialID(slotsReader, slot, value));
 		}
