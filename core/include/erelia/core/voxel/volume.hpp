@@ -10,6 +10,11 @@
 
 #include "erelia/core/voxel/cell.hpp"
 
+namespace spk
+{
+	class Message;
+}
+
 namespace Voxel
 {
 	class Volume
@@ -39,6 +44,13 @@ namespace Voxel
 			UnitSize unitSize,
 			Buffer::Lease cells) noexcept;
 		[[nodiscard]] std::size_t _index(const LocalCoordinate &coordinate) const;
+
+		friend spk::Message &operator<<(
+			spk::Message &message,
+			const Volume &volume);
+		friend const spk::Message &operator>>(
+			const spk::Message &message,
+			Volume &volume);
 
 	public:
 		Volume() = default;

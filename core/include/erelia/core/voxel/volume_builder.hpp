@@ -11,6 +11,10 @@ namespace Voxel
 		UnitSize _unitSize = 0.0f;
 		Buffer::Lease _cells;
 
+		friend const spk::Message &operator>>(
+			const spk::Message &message,
+			Volume &volume);
+
 	public:
 		Builder(const spk::Vector3UInt &dimensions, UnitSize unitSize);
 		explicit Builder(Volume &&volume) noexcept;
