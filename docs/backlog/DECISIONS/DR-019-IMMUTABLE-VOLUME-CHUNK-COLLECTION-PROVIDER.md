@@ -82,7 +82,28 @@ public:
 };
 ```
 
-The Collection owns its Provider. The approved ownership direction is a unique owning pointer to the abstract Provider.
+The Collection exclusively owns its Provider through a private `std::unique_ptr<Provider>`, but pointer ownership is not exposed at the public call site.
+
+Construction accepts only a concrete Provider rvalue and moves that concrete object into the Collection-owned polymorphic allocation:
+
+```cpp
+template<typename TProvider>
+    requires
+        std::derived_from<
+            std::remove_cvref_t<TProvider>,
+            Provider> &&
+        (!std::is_lvalue_reference_v<TProvider>)
+explicit Collection(TProvider&& provider)
+    : _provider(
+        std::make_unique<std::remove_cvref_t<TProvider>>(
+            std::forward<TProvider>(provider)))
+{
+}
+```
+
+This keeps Provider polymorphism and exclusive ownership while allowing call sites such as `Collection(PrototypeChunkProvider{})` instead of requiring them to construct a `std::unique_ptr`. Lvalue construction is intentionally rejected: transfer of the Provider into the Collection must be explicit through an rvalue. The concrete Provider must therefore be movable.
+
+A successfully constructed Collection always owns one Provider. Null/absent Provider state is not part of the Collection contract.
 
 The Provider contract is synchronous from the Collection's point of view:
 
@@ -116,6 +137,8 @@ A Chunk already published through a Collection is never edited in place.
 
 A later result for the same coordinate replaces the complete stored Chunk value. Existing copies obtained by other threads continue to reference the previous immutable Cell content until those copies are destroyed.
 
+Replacement is an upsert owned by ST-001-06: if the coordinate is absent, the supplied complete Chunk is inserted immediately. Replacement/upsert never invokes the Provider.
+
 This rule is intentionally suitable for the future Client:
 
 - a Client-side Provider may send a Server request and immediately provide an empty valid 16x16x16 Chunk placeholder;
@@ -123,7 +146,7 @@ This rule is intentionally suitable for the future Client:
 - when canonical Server data arrives, the Client replaces the complete Collection entry with the decoded canonical Chunk;
 - the render thread may safely finish work against an older copied Chunk value.
 
-The exact Client outstanding-request/retry/stale-response/absent-replacement policy remains owned by OQ-038 / ST-001-11 and is not resolved by this record.
+The exact Client outstanding-request/retry/stale-response policy remains owned by OQ-038 / ST-001-11. The generic Collection behavior for replacement of an absent coordinate is resolved here as direct insertion/upsert.
 
 ### Server implementation
 
@@ -170,6 +193,8 @@ ST-001-06 implementation must update/add Core coverage proving at least:
 - checked `Chunk(Voxel::Volume&&)` accepts the exact Chunk invariants and rejects incompatible dimensions/unit size;
 - Chunk does not require/stash a coordinate;
 - Collection caches a provided Chunk by coordinate and does not call the Provider again for an already stored coordinate;
+- Collection exclusively owns a concrete moved Provider through its private polymorphic allocation and rejects lvalue Provider construction;
+- replacement/upsert of an absent coordinate inserts the supplied Chunk without invoking the Provider;
 - a copied Chunk remains valid after the Collection entry is replaced;
 - concurrent Collection lookup/replacement follows the implemented synchronization contract without exposing mutable Chunk Cells;
 - generic Volume Message decode replaces content rather than overwriting Cell storage shared with an existing copy.
@@ -187,8 +212,9 @@ The owner explicitly approved:
 - public checked `Chunk(Voxel::Volume&&)`;
 - Chunk values not storing their own coordinates;
 - `Chunk::Collection::Provider` as the nested acquisition abstraction;
-- Collection ownership of its Provider;
-- complete-Chunk replacement rather than Cell mutation;
+- Collection ownership of its Provider through a private `std::unique_ptr<Provider>`, with the public API taking only a concrete Provider rvalue through the constrained templated constructor rather than exposing pointer ownership;
+- null/absent Provider construction being unrepresentable and lvalue Provider construction being rejected;
+- complete-Chunk replacement rather than Cell mutation, with absent-coordinate replacement defined as direct insertion/upsert without Provider invocation;
 - shared immutable Volume content so copied Chunk values keep older content alive across replacement;
 - removal of same-destination-Lease network decode reuse as the accepted consequence;
 - future dedicated fixed-size Chunk serialization that omits dimensions/unit size.
