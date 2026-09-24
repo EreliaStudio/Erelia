@@ -16,7 +16,7 @@ The branch now contains ST-001-06 production implementation and tests. It also c
 
 Current implementation includes shared immutable Volume backing, Chunk/Chunk::Builder, asynchronous Chunk::Collection/Provider state, mixed aggregate/direct catalog loading, validation resources, the Server PrototypeChunkProvider, and Erelia-local headless `spk::ThreadSafeSet`, `spk::ThreadSafeQueue`, `spk::Task`, `spk::WorkerPool`, and `spk::Singleton` prototypes.
 
-CI run #311 (run ID `36018061979`) passed the complete matrix on implementation head `54e93aab35d468725b595e107f099d5d8577a2c3`: clang-format, Core/Server Linux Debug + Release, Core/Server Windows Debug + Release, and Client Windows Debug + Release all succeeded. ST-001-06 remains Ready / active rather than Done until explicit project-owner approval.
+CI run #311 (run ID `36018061979`) passed the complete matrix on implementation head `54e93aab35d468725b595e107f099d5d8577a2c3`. The final branch revisions have since added the approved ThreadSafeQueue/testing/resource-path and namespace cleanups. Project-owner review is complete and ST-001-06 is now **Finished**, ready to be merged into `master`.
 
 ## What exists on master
 
@@ -101,13 +101,13 @@ EP-001 remains Draft overall.
 - **ST-001-04 — First terrain Definition and Shape contract:** Done.
 - **ST-001-05 — Voxel::Volume Message serialization:** Done; same-destination-buffer reuse detail superseded by DR-019.
 
-### Ready / active
+### Finished
 
-- **ST-001-06 — Deterministic validation terrain provider and Chunk collection foundation:** Ready / active.
+- **ST-001-06 — Deterministic validation terrain provider and Chunk collection foundation:** Finished; implementation and owner review are complete, and the branch is ready to merge.
 
 ### Next
 
-The next dependency-ordered ticket remains **ST-001-06 — Deterministic validation terrain provider and Chunk collection foundation**.
+After ST-001-06 is merged, continue with the next dependency-ordered work from the EP-001 ticket plan.
 
 OQ-039 no longer blocks it. The first ST-001-06 readiness decision is also resolved: `PrototypeChunkProvider` accepts every representable `Chunk::Coordinate`, including negative coordinates, with no coordinate-domain rejection.
 
@@ -147,7 +147,7 @@ The project owner clarified the final testing boundary:
 
 The ST-001-06 ticket was reviewed against `DEFINITION-OF-READY.md`: parent/owners/dependencies, public behavior, ownership, state transitions, failure semantics, concurrency, temporary fixture values, and the reusable Provider/Collection test boundary are now explicit. No material implementation decision remains for the coding agent.
 
-**ST-001-06 is Ready and active.** Production implementation may now begin.
+**ST-001-06 is Finished.** Implementation and project-owner review are complete. This branch is ready to merge into `master`.
 
 ## Relevant approved planning constraints
 

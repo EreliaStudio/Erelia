@@ -1,6 +1,6 @@
 # ST-001-06 — Deterministic validation terrain provider and Chunk collection foundation
 
-**Status:** Ready
+**Status:** Finished
 **Epic:** EP-001
 **Production target(s):** Core + Server
 **Test suite(s):** EreliaCoreTestSuite; EreliaServerTestSuite
@@ -576,7 +576,7 @@ Not owned. DR-015 fixture is later consumed by render/golden tickets.
 3. **Collection Provider ownership/construction:** Collection exclusively owns its Provider in a private `std::unique_ptr<Provider>`, while its public constructor is a constrained forwarding constructor accepting only an rvalue concrete Provider derived from `Provider`. The concrete object is moved into the owned allocation; lvalues are rejected and null/absent Provider construction is unrepresentable.
 4. **Provider test boundary:** do not make the temporary `PrototypeChunkProvider` Cell layout a unit-test contract. Test the reusable `Chunk::Collection::Provider` / Collection interaction in Core with a purpose-built test Provider whose calls and returned Chunks are controlled by the test. The prototype still implements DR-015 for the temporary validation world, but its exact Cell composition is not frozen by dedicated unit tests.
 
-All readiness decisions are resolved. The ticket is Ready / active.
+All readiness decisions are resolved. The ticket is **Finished** and approved for merge.
 
 ## Completion evidence
 
@@ -602,7 +602,7 @@ CI run #311 (run ID `36018061979`) passed on implementation head `54e93aab35d468
 - Client Windows Debug: passed;
 - Client Windows Release: passed.
 
-Do not mark this ticket Done until explicit project-owner approval is given.
+Project-owner review is complete. ST-001-06 is **Finished** and ready to merge into `master`.
 
 
 ## ST-001-06 asynchronous infrastructure refinement
