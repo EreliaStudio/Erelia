@@ -5,3 +5,7 @@ target_link_libraries(EreliaClientLibrary PUBLIC EreliaCore PRIVATE sparkle::spa
 
 add_executable(EreliaClient src/main.cpp)
 target_link_libraries(EreliaClient PRIVATE EreliaClientLibrary)
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

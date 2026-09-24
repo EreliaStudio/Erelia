@@ -12,6 +12,10 @@ else()
     find_package(sparkle 0.1.3 CONFIG REQUIRED COMPONENTS Core)
 endif()
 
+if(BUILD_TESTING)
+    find_package(GTest CONFIG REQUIRED)
+endif()
+
 add_subdirectory(core)
 
 if(ERELIA_BUILD_SERVER)
@@ -20,9 +24,4 @@ endif()
 
 if(ERELIA_BUILD_CLIENT)
     add_subdirectory(client)
-endif()
-
-if(BUILD_TESTING)
-    find_package(GTest CONFIG REQUIRED)
-    add_subdirectory(tests)
 endif()

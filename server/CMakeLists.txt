@@ -5,3 +5,7 @@ target_link_libraries(EreliaServerLibrary PUBLIC EreliaCore)
 
 add_executable(EreliaServer src/main.cpp)
 target_link_libraries(EreliaServer PRIVATE EreliaServerLibrary)
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

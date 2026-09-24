@@ -25,7 +25,7 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install clang-format==21.1.0
       - name: Check current C++ code
-        run: find core server client tests -type f \( -name '*.cpp' -o -name '*.hpp' \) -print0 | xargs -0 -r clang-format --style=file --dry-run --Werror
+        run: find core server client -type f \( -name '*.cpp' -o -name '*.hpp' \) -print0 | xargs -0 -r clang-format --style=file --dry-run --Werror
 
   headless:
     name: Core and Server (${{ matrix.os }}, ${{ matrix.configuration }})
@@ -115,6 +115,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           cmake --build --preset $preset --parallel 4
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          ./Sparkle/tools/ci/install-mesa.ps1 -Destination "build/$preset/tests/client"
+          ./Sparkle/tools/ci/install-mesa.ps1 -Destination "build/$preset/client/tests"
           ctest --preset $preset --output-on-failure --no-tests=error
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
