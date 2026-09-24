@@ -72,7 +72,7 @@ namespace Voxel
 		UnitSize unitSize) :
 		_dimensions(dimensions),
 		_unitSize(validatedUnitSize(unitSize)),
-		_cells(Volume::_obtainCellBuffer(cellCount(dimensions)))
+		_cells(Voxel::Volume::obtainCellBuffer(cellCount(dimensions)))
 	{
 	}
 

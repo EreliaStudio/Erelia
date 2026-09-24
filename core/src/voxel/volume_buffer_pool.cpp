@@ -71,7 +71,7 @@ namespace
 
 namespace Voxel
 {
-	Volume::Buffer::Lease Volume::_obtainCellBuffer(std::size_t expectedSize)
+	Volume::Buffer::Lease Volume::obtainCellBuffer(std::size_t expectedSize)
 	{
 		return cellArrayCollection[expectedSize].obtain(resetCellBuffer, expectedSize);
 	}

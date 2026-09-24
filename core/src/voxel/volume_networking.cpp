@@ -154,7 +154,7 @@ namespace Voxel
 		Volume::Buffer::Lease cells;
 		if (layout.cellCount != 0)
 		{
-			cells = Volume::_obtainCellBuffer(layout.cellCount);
+			cells = Volume::obtainCellBuffer(layout.cellCount);
 			message.pull(cells->data(), layout.cellBytes);
 		}
 
