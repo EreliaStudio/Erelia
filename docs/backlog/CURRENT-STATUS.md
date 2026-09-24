@@ -99,7 +99,7 @@ EP-001 remains Draft overall.
 
 ### Ready / active
 
-None.
+- **ST-001-06 — Deterministic validation terrain provider and Chunk collection foundation:** Ready / active.
 
 ### Next
 
@@ -121,11 +121,16 @@ The project owner also resolved the Provider construction/ownership contract:
 - lvalues are rejected by constraint;
 - null/absent Provider construction is not representable.
 
-The ticket remains **Blocked** only until the final Definition-of-Ready item is resolved:
+The project owner resolved the final Server assertion-depth decision:
 
-4. exact Server prototype terrain assertion depth: complete expected Cell arrays versus an explicitly enumerated representative semantic table plus structural counts/full repeated equality.
+- for every approved Chunk, tests explicitly enumerate every expected non-Empty Cell and assert its exact Definition/Orientation/Flip semantics;
+- tests then iterate all 4096 Cells and require every non-enumerated Cell to be exactly `Voxel::Cell::Empty`;
+- repeated generation compares the complete Chunk Cell content for deterministic equality;
+- the below-baseline `(0,-1,0)` Chunk therefore proves all 4096 Cells are Empty.
 
-After those decisions are recorded in ST-001-06, verify `DEFINITION-OF-READY.md`, promote the ticket to Ready, and only then modify production code.
+The ST-001-06 ticket was reviewed against `DEFINITION-OF-READY.md`: parent/owners/dependencies, public behavior, ownership, state transitions, failure semantics, concurrency, exact fixture values, and acceptance-test expectations are now explicit. No material implementation decision remains for the coding agent.
+
+**ST-001-06 is Ready and active.** Production implementation may now begin.
 
 ## Relevant approved planning constraints
 
