@@ -20,7 +20,7 @@ The project owner clarified that Shape slots and Definition material bindings ar
 - `Voxel::Shape::ID` is a string identifier owned by the Shape catalog, not stored by the Shape object.
 - A Shape contains polygons.
 - Each polygon contains:
-  - `std::vector<spk::Vector3Int>` vertices;
+  - `std::vector<Voxel::Vertex>` vertices, where `Voxel::Vertex = spk::Vector3Int`;
   - a non-empty semantic slot name;
   - a cached `spk::Vector3` normal derived from the final stored vertices.
 - Shape JSON is authored in normalized voxel-local floating coordinates in `[0.0, 1.0]`.
@@ -28,11 +28,12 @@ The project owner clarified that Shape slots and Definition material bindings ar
 - Parsing derives the integer scale by rounding `1.0f / VertexPrecision`; the current scale is therefore 1000.
 - Each valid JSON coordinate is multiplied by that scale and converted to `std::int32_t` by normal C++ conversion, intentionally truncating toward zero. Because valid authored coordinates are non-negative, this is equivalent to rounding down.
 - Runtime Shape vertices are therefore discrete and deterministic after parsing.
+- Stored vertices remain 32-bit because the normalized authoring domain currently quantizes only to 0..1000. Polygon validation promotes differences/cross/dot intermediates to source-local `spk::TVector3<std::int64_t>` so exact arithmetic cannot overflow signed 32-bit at the current scale.
 - A polygon requires at least three vertices, must be non-degenerate, planar, and convex.
 - Concave surfaces are authored as multiple convex polygons.
 - JSON vertex order is authoritative and is authored counter-clockwise for the intended face direction.
 - The loader never silently reverses the authored base polygon.
-- Normals are never authored in JSON; they are computed during Shape parsing from the discrete CCW geometry.
+- Normals are never authored in JSON; exact integer intermediates derive their direction during Shape parsing, then the cached polygon normal is stored as normalized floating `spk::Vector3`.
 
 This ticket does not define occlusion algorithms, partial polygon subtraction, side-coverage metadata, or an occlusion-result cache.
 
