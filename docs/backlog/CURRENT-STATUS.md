@@ -70,13 +70,14 @@ EP-001 remains Draft overall, but implementation is active.
 - **ST-001-03 — Owning Voxel::Volume:** Done.
 - **ST-001-04 — First terrain Definition and Shape contract:** Done and merged through PR #11.
 
-### Ready / active
+### Ready / awaiting approval
 
-- **ST-001-05 — Voxel::Volume Message serialization:** Ready and actively implemented through PR #12 on the dedicated branch. The current head contains direct Message operators, the Message constructor, direct pooled decode without Builder, malformed-input coverage, and the unified lazy power-of-two Cell-buffer pool collection.
+- **ST-001-05 — Voxel::Volume Message serialization:** implementation is complete through PR #12 at head `9a41b0ecaa5838a7f469f2cb524a64c705cfa679`. The head contains direct Message operators, the Message constructor, direct pooled decode without Builder, malformed-input coverage, and the unified lazy power-of-two Cell-buffer pool collection.
+- CI run #278 (run ID `35983223882`) passed clang-format, Linux/Windows Core+Server Debug/Release, and Windows Client Debug/Release.
 
 ### Next
 
-Finish validation/review of ST-001-05 only. The required repository CI/build validation must pass on the final branch head before requesting project-owner approval. Do not mark ST-001-05 Done until that approval is explicit.
+Project-owner review/approval is the remaining ST-001-05 Definition-of-Done gate. Do not mark ST-001-05 Done until that approval is explicit.
 
 After ST-001-05, reassess dependency order against the remaining unresolved OQs rather than skipping their gates.
 

@@ -256,4 +256,15 @@ Not applicable.
 
 Definition of Ready is satisfied as of 24 September 2026: public API, exact wire order, native representation policy, validation/failure semantics, destination/cursor post-failure behavior, ownership, determinism scope, malformed cases, and exact tests are explicit.
 
-Do not mark Done until implementation, focused Core tests, required repository CI/build validation, documentation updates, and project-owner approval are complete.
+Implementation is complete on `feat/st-001-05-voxel-volume-message-serialization` / PR #12 at head `9a41b0ecaa5838a7f469f2cb524a64c705cfa679`.
+
+CI run #278 (run ID `35983223882`) passed the complete required matrix on that head:
+
+- clang-format;
+- Linux Core+Server Debug and Release build/test;
+- Windows Core+Server Debug and Release build/test;
+- Windows Client Debug and Release regression build/test.
+
+Focused Core coverage includes direct operators, Message-constructor decoding, canonical empty Volume, asymmetric ordering, non-default packed Cells, 16×16×16/4096-Cell round trip, deterministic same-ABI bytes, malformed/truncated metadata and Cell blocks, overflow protection, destination preservation, Message lifetime independence, repeated round trips, and lazy power-of-two pool reuse.
+
+The ticket remains **Ready**, not Done, pending explicit project-owner review/approval.

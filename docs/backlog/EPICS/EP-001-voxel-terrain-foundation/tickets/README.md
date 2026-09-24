@@ -35,7 +35,7 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-04 — First terrain Definition and Shape contract** is **Done** and merged through PR #11 on 24 September 2026.
 
-**ST-001-05 — Voxel::Volume Message serialization** is **Ready** and actively implemented on `feat/st-001-05-voxel-volume-message-serialization` through PR #12. OQ-037 and DR-017 fix the Sparkle-native wire contract, exact field order, contiguous Cell block, derived Cell count, validation rules, decode failure semantics, ownership, and deterministic-byte scope. The implementation also provides `explicit Volume(const spk::Message&)`, keeps networking reconstruction independent from Builder, and uses the shared lazy power-of-two Cell-buffer pool collection.
+**ST-001-05 — Voxel::Volume Message serialization** is **Ready**, implementation-complete, and awaiting project-owner approval on `feat/st-001-05-voxel-volume-message-serialization` through PR #12. OQ-037 and DR-017 fix the Sparkle-native wire contract, exact field order, contiguous Cell block, derived Cell count, validation rules, decode failure semantics, ownership, and deterministic-byte scope. The implementation also provides `explicit Volume(const spk::Message&)`, keeps networking reconstruction independent from Builder, and uses the shared lazy power-of-two Cell-buffer pool collection. CI run #278 (run ID `35983223882`) passed the complete formatting, Core+Server Linux/Windows Debug/Release, and Windows Client Debug/Release matrix on head `9a41b0ecaa5838a7f469f2cb524a64c705cfa679`.
 
 ## Remaining blockers
 
