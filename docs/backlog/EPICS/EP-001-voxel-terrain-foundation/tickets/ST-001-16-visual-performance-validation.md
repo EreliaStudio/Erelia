@@ -18,7 +18,7 @@ The first voxel terrain milestone is validated visually and structurally before 
 - Depends on ST-001-14 and ST-001-15.
 - The Client already has a basic SparkleTestLibrary golden-image harness and project-owned expected/result paths.
 - OQ-029, OQ-030, and OQ-031 are open.
-- OQ-039 must define the exact scene used by final views.
+- OQ-039 is resolved; DR-015 defines the exact scene used by final views.
 
 ## Product ownership
 
@@ -150,7 +150,7 @@ Primary acceptance area; exact platform and comparison policy blocked by OQ-029/
 - [OQ-029](../../../OPEN_QUESTIONS/OQ-029-GOLDEN-IMAGE-PLATFORM.md) — blocking.
 - [OQ-030](../../../OPEN_QUESTIONS/OQ-030-IMAGE-COMPARISON-POLICY.md) — blocking.
 - [OQ-031](../../../OPEN_QUESTIONS/OQ-031-FIRST-MILESTONE-PERFORMANCE-EVIDENCE.md) — blocking.
-- [OQ-039](../../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — blocks exact scene fixture.
+- [OQ-039](../../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — resolved; exact scene fixture is DR-015.
 
 ## Completion evidence
 
