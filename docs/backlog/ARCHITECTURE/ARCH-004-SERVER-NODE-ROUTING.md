@@ -2,81 +2,71 @@
 
 **Status:** Approved
 **Applies to:** EreliaServer, Server subsystems, Client/Server message dispatch
-**Established by decisions:** ../DECISIONS/DR-003-DEDICATED-SERVER-FIRST.md, ../DECISIONS/DR-004-COMMAND-AUTHORITY-SEMANTICS.md, ../DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md
+**Established by decisions:** DR-003, DR-004, DR-016, DR-021
 
 ## Invariant
 
 The dedicated Erelia Server exposes one Client-facing Sparkle network endpoint through `spk::NodeRouter`.
 
-Game-specific Server behavior is owned by logical nodes behind that router rather than accumulated directly in the executable/network ingress layer.
+Game-specific Server behavior is owned by logical nodes behind that router rather than accumulated in the executable/network ingress layer.
 
-EP-001 begins with one in-process terrain/Chunk `spk::LocalNode`.
+Every logical Server node is a separate process from its first implementation. EP-001 begins with one terrain/Chunk process reached through `spk::RemoteNode` and hosted by `spk::RemoteNode::Endpoint`.
 
 ## Why it exists
 
-The final product needs a dedicated authoritative Server that will grow into several coherent feature families. Sparkle already provides local and remote node routing, so adopting the routing boundary from the first implementation avoids migrating a monolithic message loop later.
+The Server will grow into coherent capability families. Sparkle already provides routed remote nodes, so using that boundary immediately avoids a later LocalNode-to-process migration.
 
 ## Allows
 
-- one LocalNode during the first milestone;
-- adding further LocalNodes as coherent Server ownership boundaries emerge;
-- replacing selected LocalNodes with `spk::RemoteNode` / `RemoteNode::Endpoint` when process separation is justified;
+- adding remote node processes as coherent ownership boundaries emerge;
+- external JSON configuration of router/node endpoints;
 - routing message families by `spk::Message::Type`;
-- subsystem-specific secondary dispatch inside the owning node.
+- subsystem-specific dispatch inside the owning node;
+- moving node processes independently while preserving the Client-facing router endpoint.
 
 ## Forbids
 
-- implementing EP-001 first as a separate bare-`spk::Server` game-message loop;
-- placing all future message handling directly in EreliaServer's entry point;
-- treating a logical node as merely a class-per-message organizational device;
-- forcing remote/distributed deployment before a subsystem needs it.
-
-## Boundary
-
-`NodeRouter` is network ingress and first-level message-family routing.
-
-A logical node owns one coherent Server capability family. Exact future node families are decided just-in-time.
-
-Sparkle's current router dispatches by message type. Routing by World, Region, encounter, account, or another instance key remains inside the owning node unless a future architecture decision extends the routing layer.
+- a separate bare-`spk::Server` game-message loop;
+- game-specific handlers accumulating in `main.cpp`;
+- Erelia-specific socket/proxy transport in place of Sparkle RemoteNode;
+- Client bypass of the authoritative router/node boundary.
 
 ## EP-001 composition
 
-```
+```text
 spk::Client
     |
     v
 EreliaServer / spk::NodeRouter
     |
     v
-Terrain LocalNode
+spk::RemoteNode
     |
-    +-- batched Chunk request
-    +-- Chunk response
+    | Sparkle remote envelope
+    v
+EreliaTerrainNode / spk::RemoteNode::Endpoint
 ```
 
-The terrain node remains in the Server process for EP-001.
+The router may start while a configured node is unavailable. It logs a Warning and retries that endpoint after the externally configured reconnect delay.
 
 ## Failure / invalid-state rules
 
 - an unrecognized/unrouted message type must not silently mutate Server state;
 - a node response must remain correlated with the originating Client;
-- node failure must not transfer authority to the Client;
-- future RemoteNode failure must be surfaced as Server-side capability/unavailability behavior, not bypass the node boundary.
+- node failure never transfers authority to the Client;
+- unavailable nodes do not prevent the main router from listening;
+- routing objects must not outlive their registered node objects.
 
 ## Enforcement
 
-- Server bootstrap constructs/owns the NodeRouter;
-- game message types are explicitly routed to nodes;
-- Server tickets identify their owning node;
-- future direct handling in the Server entry point requires an explicit architectural exception.
+- Server bootstrap owns the NodeRouter and RemoteNodes;
+- each node executable owns its Endpoint;
+- game message types are explicitly routed only after their protocol ticket defines them;
+- Server node directories are automatically discovered by CMake/tooling.
 
 ## Tests
 
-- Client -> NodeRouter -> terrain LocalNode -> originating Client round trip;
-- two Clients retain response correlation;
-- unknown/unrouted message behavior;
-- future local-to-remote node substitution tests when RemoteNode is first introduced.
-
-## Affected backlog
-
-EP-001 and all later Server-owned feature Epics.
+- router -> RemoteNode -> terrain Endpoint connectivity;
+- router startup with an unavailable node, Warning emission and later reconnection;
+- two-Client correlation once the Chunk protocol exists;
+- unknown/unrouted message behavior.
