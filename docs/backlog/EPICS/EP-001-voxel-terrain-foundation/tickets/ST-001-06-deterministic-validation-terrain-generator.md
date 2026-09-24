@@ -220,6 +220,8 @@ The exact terrain output is DR-015:
 
 Generation itself produces no images.
 
+`PrototypeChunkProvider` accepts every representable `Chunk::Coordinate` (`spk::Vector3Int`), including negative X, Y and Z coordinates. No Chunk coordinate is rejected by the prototype provider. Coordinates where DR-015 places no occupied Cells deterministically produce an empty Chunk.
+
 ## Explicitly not owned
 
 - Client `RequestChunkProvider` or equivalent;
@@ -315,11 +317,16 @@ Already fixed:
 - malformed generic Volume decode leaves destination unchanged;
 - Provider/Collection must never expose a partially built mutable Chunk.
 
+Resolved for the prototype provider:
+
+- every representable `Chunk::Coordinate` is valid, including negative coordinates on any axis;
+- the provider has no coordinate-domain rejection path;
+- coordinates with no DR-015 terrain occupancy return a valid empty Chunk.
+
 Still unresolved before Ready:
 
-1. whether `PrototypeChunkProvider` accepts **every** representable `Chunk::Coordinate` or has any rejected coordinate domain;
-2. the exact public Collection replacement API and what it does when asked to replace a coordinate that is not currently stored;
-3. the constructor/failure contract for an absent/null owned Provider, unless the final API makes null unrepresentable.
+1. the exact public Collection replacement API and what it does when asked to replace a coordinate that is not currently stored;
+2. the constructor/failure contract for an absent/null owned Provider, unless the final API makes null unrepresentable.
 
 Do not invent these behaviors.
 
@@ -424,7 +431,7 @@ Approved positive/negative Chunk set from DR-015, including completely below-bas
 
 ### Invalid / rejected operations
 
-Blocked by the remaining coordinate-domain and Collection edge-semantics decisions above.
+`PrototypeChunkProvider` has no rejected coordinate domain: every representable `Chunk::Coordinate` is accepted. Remaining invalid/rejected Collection operations depend on the unresolved Collection edge-semantics decisions above.
 
 ### Failure atomicity
 
@@ -481,11 +488,14 @@ Not owned. DR-015 fixture is later consumed by render/golden tickets.
 - [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
 - [OQ-039](../../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — resolved.
 
+### Resolved readiness decisions
+
+1. **Prototype provider coordinate domain:** `PrototypeChunkProvider` accepts every representable `Chunk::Coordinate`, including negative X/Y/Z coordinates. It does not reject coordinates; coordinates where DR-015 places no occupied Cells produce a valid empty Chunk.
+
 ### Remaining readiness decisions
 
 Before changing production code, ask the project owner **one decision at a time** for:
 
-1. valid/rejected `PrototypeChunkProvider` coordinate domain;
 2. Collection replacement behavior for a coordinate that is not already stored, and whether replacement is part of ST-001-06 or deferred to ST-001-11;
 3. how the Collection constructor handles an absent/null Provider if the selected API can represent one;
 4. exact prototype terrain assertion depth (full arrays vs explicitly enumerated representative semantic expectations).
