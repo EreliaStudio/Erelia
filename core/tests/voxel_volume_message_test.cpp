@@ -17,14 +17,14 @@ namespace
 {
 	Voxel::Volume makeAsymmetricVolume()
 	{
-		Voxel::Volume::Builder builder({2, 3, 2}, 0.25f);
+		Voxel::Volume::Builder builder({3, 2, 2}, 0.25f);
 
 		Voxel::Cell::PackedType packed = 1;
 		for (std::int32_t z = 0; z < 2; ++z)
 		{
-			for (std::int32_t x = 0; x < 2; ++x)
+			for (std::int32_t x = 0; x < 3; ++x)
 			{
-				for (std::int32_t y = 0; y < 3; ++y)
+				for (std::int32_t y = 0; y < 2; ++y)
 				{
 					EXPECT_TRUE(builder.set({x, y, z}, Voxel::Cell(packed)));
 					++packed;
@@ -142,7 +142,7 @@ TEST(VoxelVolumeMessage, SerializesNativeMetadataThenContiguousYThenXThenZCells)
 	message >> unitSize;
 	message.pull(cells.data(), sizeof(cells));
 
-	EXPECT_EQ(dimensions, (spk::Vector3UInt{2, 3, 2}));
+	EXPECT_EQ(dimensions, (spk::Vector3UInt{3, 2, 2}));
 	EXPECT_EQ(unitSize, 0.25f);
 
 	for (std::size_t index = 0; index < cells.size(); ++index)
