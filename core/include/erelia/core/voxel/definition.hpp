@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <map>
-#include <string>
 
 #include "erelia/core/voxel/material.hpp"
 
@@ -13,7 +12,7 @@ namespace Voxel
 	struct Definition
 	{
 		using ID = std::uint32_t;
-		using SlotBindings = std::map<std::string, Material::ID>;
+		using SlotBindings = std::map<Material::SlotID, Material::ID>;
 
 		class Catalog;
 
