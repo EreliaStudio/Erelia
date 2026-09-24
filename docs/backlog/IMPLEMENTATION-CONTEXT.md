@@ -100,16 +100,18 @@ The active direction intentionally keeps the voxel data representation small and
 - ST-001-04 / DR-018 establish the first shared Definition/Shape/Catalog contract:
   - Shape IDs are strings owned by the Shape catalog; Definition IDs remain `std::uint32_t` owned by the Definition catalog;
   - Shape/Definition objects do not store their own catalog IDs;
-  - Shape polygons store discrete `spk::Vector3Int` vertices, a semantic string slot, and a derived cached normal;
+  - Shape polygons store discrete `spk::Vector3Int` vertices, a semantic `Voxel::Material::SlotID`, and a derived cached normal;
   - JSON vertices remain normalized floats in `[0,1]`, quantized with `Voxel::Shape::VertexPrecision = 0.001f`;
   - base Shape polygons are convex, planar, non-degenerate and authored CCW;
   - every Shape is authored as `PositiveX + PositiveY` and lazily caches the other seven Orientation/Flip polygon arrays;
   - `NegativeY` mirrors around `Y=0.5`, reverses polygon order, and recomputes the final normal;
   - semantic slots move with their polygons through transforms;
-  - `Voxel::Material::ID` is a string and `Voxel::Material::InvalidID` is `"InvalidID"`;
+  - `Voxel::Material::ID` and `Voxel::Material::SlotID` are semantic string aliases; `Voxel::Material::InvalidID` is `"InvalidID"`;
   - missing required Definition slots warn and bind InvalidID; extra slots throw;
   - every Definition stores a non-owning `const Voxel::Shape&` to a Shape owned by the Shape catalog and must not outlive that catalog; Definition ID 0 is catalog-created Air referencing a private catalog-owned empty Shape sentinel with zero polygons and no slots;
   - the owning aggregate is `Voxel::Catalog`, loaded from filesystem JSON resources;
+  - JSON/resource validation errors with source location use the single shared `spk::JSON::throwAt` helper; do not duplicate file/path exception formatting in loaders;
+  - Shape, Definition, and aggregate Catalog implementations are split by class into `shape_catalog.cpp`, `definition_catalog.cpp`, and `catalog.cpp`;
   - shared Shape/Definition catalog machinery currently uses public inheritance from an Erelia-local prototype `spk::JSON::Catalog<TElement>`: the base owns JSON envelope parsing, iteration, duplicate detection, direct `std::unordered_map<TElement::ID, TElement>` value storage, and lookup, while derived catalogs implement only `_parseKey(const spk::JSON::Reader&) -> TElement::ID` and `_parseElement(const spk::JSON::Reader&) -> TElement` pure virtual hooks; parsing returns values and the base stores them directly in `std::unordered_map<TElement::ID, TElement>` with no shared ownership wrapper; catalog elements must be move-constructible, and lookup references/pointers remain stable across later insertions because the catalog exposes no erase operation; the base public `load`/lookup API is inherited directly without forwarding wrappers; derived voxel catalogs should contain only their parsing overrides and genuinely required domain state/constructors; this prototype may be proposed to Sparkle after it has been exercised in Erelia;
   - occlusion algorithms/metadata are deliberately not part of ST-001-04.
 
