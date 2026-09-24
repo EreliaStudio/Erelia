@@ -1,4 +1,5 @@
 add_executable(EreliaCoreTestSuite
+    argument_parser_test.cpp
     chunk_collection_test.cpp
     chunk_test.cpp
     json_catalog_test.cpp
