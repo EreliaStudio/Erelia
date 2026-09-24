@@ -222,3 +222,16 @@ Project-owner approval was explicitly recorded on 23 September 2026. CI run #105
 ### Follow-up correction during ST-001-05
 
 On 24 September 2026, project-owner review removed the dedicated Chunk-pool special case and refined the shared registry into lazy deterministic power-of-two size classes managed by `CellArrayCollection`. The size class is computed solely from the Volume's logical Cell count; no existing-larger-pool fallback or stored pool-class metadata is used. This correction does not change the public ST-001-03 Volume/Builder contract.
+
+
+### Follow-up supersession by DR-019
+
+On 24 September 2026, while specifying ST-001-06, the project owner approved DR-019.
+
+ST-001-03 remains historically **Done** with the implementation/evidence recorded above, but the following ownership details are superseded for the next implementation:
+
+- Volume copies will share immutable backing Cell content instead of deep-copying pooled Buffers;
+- a moved Volume-to-Builder path may reuse storage only when doing so cannot mutate content still observed by another copy;
+- Chunk construction/lifetime now builds on this immutable shared-content model.
+
+The pooled Buffer type, deterministic power-of-two classes, immutable-after-build public behavior, indexing/access APIs and moved-from-empty semantics remain active unless DR-019 explicitly says otherwise.
