@@ -366,6 +366,42 @@ TEST(VoxelVolumeMessage, MissingHugeCellBlockIsRejectedBeforeAllocation)
 	expectDecodeFailurePreservesDestination(message);
 }
 
+TEST(VoxelVolumeMessage, DecodeReusesDestinationBufferFromTheSamePoolClass)
+{
+	Voxel::Volume::Builder destinationBuilder({10, 10, 50}, 1.0f);
+	Voxel::Volume destination = std::move(destinationBuilder).build();
+	const Voxel::Cell *originalData = destination.cells().data();
+
+	Voxel::Volume::Builder sourceBuilder({10, 10, 70}, 0.5f);
+	ASSERT_TRUE(sourceBuilder.set({9, 9, 69}, Voxel::Cell(123u)));
+	const Voxel::Volume source = std::move(sourceBuilder).build();
+
+	spk::Message message;
+	message << source;
+	message >> destination;
+
+	EXPECT_EQ(destination.cells().data(), originalData);
+	expectVolumesEqual(destination, source);
+}
+
+TEST(VoxelVolumeMessage, DecodeReplacesDestinationBufferWhenPoolClassChanges)
+{
+	Voxel::Volume::Builder destinationBuilder({10, 10, 30}, 1.0f);
+	Voxel::Volume destination = std::move(destinationBuilder).build();
+	const Voxel::Cell *originalData = destination.cells().data();
+
+	Voxel::Volume::Builder sourceBuilder({10, 10, 50}, 0.5f);
+	ASSERT_TRUE(sourceBuilder.set({9, 9, 49}, Voxel::Cell(321u)));
+	const Voxel::Volume source = std::move(sourceBuilder).build();
+
+	spk::Message message;
+	message << source;
+	message >> destination;
+
+	EXPECT_NE(destination.cells().data(), originalData);
+	expectVolumesEqual(destination, source);
+}
+
 TEST(VoxelVolumeMessage, RepeatedRoundTripsPreserveLogicalState)
 {
 	const auto source = makeAsymmetricVolume();

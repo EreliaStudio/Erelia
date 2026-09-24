@@ -12,14 +12,23 @@ namespace
 
 	class CellArrayPool : public Buffer::Pool
 	{
+	private:
+		std::size_t _capacity;
+
 	public:
 		explicit CellArrayPool(std::size_t capacity) :
 			Buffer::Pool([capacity]() {
 				auto *buffer = new Buffer();
 				buffer->reserve(capacity);
 				return buffer;
-			})
+			}),
+			_capacity(capacity)
 		{
+		}
+
+		[[nodiscard]] std::size_t capacity() const noexcept
+		{
+			return _capacity;
 		}
 	};
 
@@ -73,6 +82,21 @@ namespace Voxel
 {
 	Volume::Buffer::Lease Volume::obtainCellBuffer(std::size_t expectedSize)
 	{
-		return cellArrayCollection[expectedSize].obtain(resetCellBuffer, expectedSize);
+		CellArrayPool &pool = cellArrayCollection[expectedSize];
+		Buffer::Lease result = pool.obtain(resetCellBuffer, expectedSize);
+		result->_poolCapacity = pool.capacity();
+		return result;
+	}
+
+	bool Volume::canReuseCellBuffer(
+		const Buffer::Lease &cells,
+		std::size_t expectedSize)
+	{
+		if (!cells)
+		{
+			return false;
+		}
+
+		return cells->_poolCapacity == cellArrayCollection[expectedSize].capacity();
 	}
 }

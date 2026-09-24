@@ -25,6 +25,12 @@ namespace Voxel
 			using Pool = spk::Pool<Buffer>;
 			using Lease = Pool::Lease;
 
+		private:
+			std::size_t _poolCapacity = 0;
+
+			friend class Volume;
+
+		public:
 			using Base::Base;
 		};
 
@@ -40,6 +46,9 @@ namespace Voxel
 			UnitSize unitSize,
 			Buffer::Lease cells) noexcept;
 		[[nodiscard]] static Buffer::Lease obtainCellBuffer(std::size_t expectedSize);
+		[[nodiscard]] static bool canReuseCellBuffer(
+			const Buffer::Lease &cells,
+			std::size_t expectedSize);
 		[[nodiscard]] std::size_t _index(const LocalCoordinate &coordinate) const;
 
 		friend spk::Message &operator<<(
