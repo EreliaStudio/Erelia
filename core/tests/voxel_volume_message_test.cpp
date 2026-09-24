@@ -384,6 +384,23 @@ TEST(VoxelVolumeMessage, DecodeReusesDestinationBufferFromTheSamePoolClass)
 	expectVolumesEqual(destination, source);
 }
 
+TEST(VoxelVolumeMessage, SamePoolTruncationDoesNotMutateDestinationBuffer)
+{
+	Voxel::Volume::Builder destinationBuilder({10, 10, 50}, 1.0f);
+	ASSERT_TRUE(destinationBuilder.set({9, 9, 49}, Voxel::Cell(456u)));
+	Voxel::Volume destination = std::move(destinationBuilder).build();
+	const Voxel::Volume expected(destination);
+	const Voxel::Cell *originalData = destination.cells().data();
+
+	spk::Message message = metadataMessage({10, 10, 70}, 0.5f);
+	const Voxel::Cell partialCell(7u);
+	message.append(&partialCell, sizeof(partialCell));
+
+	EXPECT_THROW((message >> destination), spk::Exception);
+	EXPECT_EQ(destination.cells().data(), originalData);
+	expectVolumesEqual(destination, expected);
+}
+
 TEST(VoxelVolumeMessage, DecodeReplacesDestinationBufferWhenPoolClassChanges)
 {
 	Voxel::Volume::Builder destinationBuilder({10, 10, 30}, 1.0f);
