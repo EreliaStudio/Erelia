@@ -21,7 +21,7 @@ namespace
 	{
 		try
 		{
-			return value.as<std::string>();
+			return value.as<Voxel::Material::ID>();
 		} catch (...)
 		{
 			spk::JSON::throwAt(
