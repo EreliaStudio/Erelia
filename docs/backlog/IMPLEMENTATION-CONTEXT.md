@@ -280,6 +280,8 @@ For behavior with important boundary/failure semantics, cover nominal behavior, 
 
 Visual golden references require explicit human approval and must not be silently regenerated/overwritten.
 
+Core test resources are copied by CMake from the source `resources/` tree into `${CMAKE_BINARY_DIR}/resources` when `EreliaCoreTestSuite` is built. CTest runs that suite with `${CMAKE_BINARY_DIR}` as its working directory, so tests must resolve project resources through relative paths such as `resources/voxels/...` rather than through a source-tree compile definition.
+
 ## 13. Backlog granularity taste
 
 Epics directly contain `ST-XXX-YY` implementation tickets. There is no mandatory separate Story layer despite the `ST` prefix.

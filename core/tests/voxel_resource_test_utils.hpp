@@ -45,7 +45,7 @@ namespace voxel_test
 	[[nodiscard]] inline std::filesystem::path voxelResourcePath(
 		const std::filesystem::path &relative)
 	{
-		return std::filesystem::path(ERELIA_SOURCE_DIR) / "resources" / "voxels" / relative;
+		return std::filesystem::path("resources") / "voxels" / relative;
 	}
 
 	[[nodiscard]] inline std::filesystem::path shapeResourcePath()
