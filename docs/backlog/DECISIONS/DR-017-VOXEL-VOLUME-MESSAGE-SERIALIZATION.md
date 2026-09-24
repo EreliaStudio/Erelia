@@ -3,7 +3,7 @@
 **Status:** Resolved
 **Date opened:** 2026-09-22
 **Date resolved:** 2026-09-22
-**Last clarified:** 2026-09-24
+**Last clarified:** 2026-09-24 (DR-019 ownership update)
 **Applies to:** Core voxel representation, EP-001 Chunk payloads, Client/Server serialization
 
 ## Context
@@ -105,7 +105,9 @@ The `spk::Message` read cursor follows Sparkle Version-0.1.3's normal sequential
 
 Before allocating the Cell buffer, extraction must validate the dimension product and verify that the Message has enough remaining bytes for the derived contiguous Cell block. No additional arbitrary Erelia Volume dimension cap is introduced by this ticket.
 
-For a non-empty decoded Volume, extraction uses the shared capacity-based Volume buffer-pool implementation. If the destination already owns a Buffer from the same selected power-of-two pool class, extraction may resize and overwrite that Lease in place after all metadata and complete Cell-block availability validation succeeds. Otherwise it obtains a new Lease, pulls the contiguous Cell block into it, and replaces the destination only after reconstruction succeeds. An empty decode keeps the Lease default-constructed/null. Networking does not construct a `Volume::Builder`.
+For a non-empty decoded Volume, extraction uses the shared capacity-based Volume buffer-pool implementation. DR-019 changes built Volume ownership to shared immutable Cell content. Extraction therefore **must not overwrite the destination's current backing Buffer in place**, even when the incoming and current logical Cell counts map to the same pool class: another copied Volume may still observe that content.
+
+For every non-empty decode, extraction obtains fresh mutable pooled storage, pulls the contiguous Cell block into that storage, constructs new immutable Volume content, and replaces the destination only after reconstruction succeeds. Existing copies keep the previous immutable content alive. An empty decode replaces the destination with the canonical empty Volume. Networking does not construct a `Volume::Builder`.
 
 The decoded Volume owns its Cell storage independently of the source Message lifetime. Trailing Message bytes are permitted because Volume is an embeddable payload value rather than a complete transport message.
 
@@ -117,6 +119,7 @@ The decoded Volume owns its Cell storage independently of the source Message lif
 - Compact contiguous transfer uses the already-approved packed `Voxel::Cell` representation.
 - Serialization belongs in shared Core code because both Client and Server require it.
 - Higher-level protocol message IDs remain owned by protocol tickets such as ST-001-08 rather than `Voxel::Volume`.
+- DR-019 additionally fixes that a future dedicated `Chunk` codec will omit dimensions/unit size and transfer only the fixed 4096-Cell block; generic `Voxel::Volume` serialization remains available for runtime-sized Volumes.
 - The format inherits Sparkle's native representation assumptions; platform-independent wire encoding is not part of ST-001-05.
 
 ## Required tests
@@ -158,4 +161,6 @@ Clarified with the project owner on 24 September 2026 for ST-001-05 readiness:
 
 ## Supersession
 
-None.
+DR-019 supersedes only the previous in-place same-pool **destination Buffer reuse** optimization. All generic Volume wire-order, validation, destination-preservation-on-failure, Message-cursor, contiguous Cell-block, and native-representation rules remain active.
+
+DR-019 also establishes that EP-001's future dedicated Chunk codec is distinct from this generic Volume codec: fixed Chunk dimensions/unit size will not be redundantly serialized. ST-001-08 owns that later protocol work.
