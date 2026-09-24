@@ -247,9 +247,7 @@ TEST(ThreadSafeSet, MultipleProducersPublishEveryUniqueValueExactlyOnce)
 		producers.emplace_back(
 			[producer = endpoints.producer(),
 			 producerIndex]() mutable {
-				for (int valueIndex = 0;
-				 valueIndex < ValuesPerProducer;
-				 ++valueIndex)
+				for (int valueIndex = 0; valueIndex < ValuesPerProducer; ++valueIndex)
 				{
 					const int value =
 						producerIndex * ValuesPerProducer +
