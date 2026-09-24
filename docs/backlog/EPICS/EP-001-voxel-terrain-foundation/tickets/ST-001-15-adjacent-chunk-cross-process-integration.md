@@ -36,7 +36,7 @@ The final integration fixture proves:
 
 - Server and Client are separate runtime processes/boundaries;
 - Client requests a fixed adjacent-Chunk set;
-- Server routes requests through terrain LocalNode and generates exact canonical fixtures;
+- Server routes requests through the terrain `RemoteNode` to the separate terrain Endpoint process and generates exact canonical fixtures;
 - Client associates responses with exact coordinates;
 - Client caches and meshes them;
 - shared boundary faces/placement follow the chosen neighbor policy;
