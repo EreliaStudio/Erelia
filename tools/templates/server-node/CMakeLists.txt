@@ -7,7 +7,7 @@ target_include_directories(
     Erelia__NODE_NAME__NodeLibrary
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
-target_link_libraries(Erelia__NODE_NAME__NodeLibrary PUBLIC EreliaServerLibrary)
+target_link_libraries(Erelia__NODE_NAME__NodeLibrary PUBLIC EreliaCore)
 
 add_executable(Erelia__NODE_NAME__Node src/main.cpp)
 target_link_libraries(Erelia__NODE_NAME__Node PRIVATE Erelia__NODE_NAME__NodeLibrary)
