@@ -8,8 +8,6 @@
 
 #include <exception.hpp>
 
-#include "volume_buffer_pool.hpp"
-
 namespace
 {
 	static_assert(std::is_trivially_copyable_v<spk::Vector3UInt>);
@@ -156,7 +154,7 @@ namespace Voxel
 		Volume::Buffer::Lease cells;
 		if (layout.cellCount != 0)
 		{
-			cells = obtainCellBuffer(layout.cellCount);
+			cells = Volume::_obtainCellBuffer(layout.cellCount);
 			message.pull(cells->data(), layout.cellBytes);
 		}
 

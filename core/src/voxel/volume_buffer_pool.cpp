@@ -1,4 +1,4 @@
-#include "volume_buffer_pool.hpp"
+#include "erelia/core/voxel/volume.hpp"
 
 #include <bit>
 #include <limits>
@@ -71,7 +71,7 @@ namespace
 
 namespace Voxel
 {
-	Volume::Buffer::Lease obtainCellBuffer(std::size_t expectedSize)
+	Volume::Buffer::Lease Volume::_obtainCellBuffer(std::size_t expectedSize)
 	{
 		return cellArrayCollection[expectedSize].obtain(resetCellBuffer, expectedSize);
 	}

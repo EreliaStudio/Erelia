@@ -6,8 +6,6 @@
 
 #include <exception.hpp>
 
-#include "volume_buffer_pool.hpp"
-
 namespace
 {
 	[[nodiscard]] std::size_t cellCount(const spk::Vector3UInt &dimensions)
@@ -74,7 +72,7 @@ namespace Voxel
 		UnitSize unitSize) :
 		_dimensions(dimensions),
 		_unitSize(validatedUnitSize(unitSize)),
-		_cells(obtainCellBuffer(cellCount(dimensions)))
+		_cells(Volume::_obtainCellBuffer(cellCount(dimensions)))
 	{
 	}
 
