@@ -8,6 +8,7 @@ add_library(EreliaCore STATIC
     src/voxel/shape.cpp
     src/voxel/shape_catalog.cpp
     src/voxel/volume.cpp
+    src/voxel/volume_buffer_pool.cpp
     src/voxel/volume_builder.cpp
 )
 target_compile_features(EreliaCore PUBLIC cxx_std_23)
