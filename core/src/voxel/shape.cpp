@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <container/json/error.hpp>
 #include <exception.hpp>
 #include <limits>
 #include <utility>
@@ -63,11 +64,6 @@ namespace
 		return {};
 	}
 
-	[[noreturn]] void throwAt(const spk::JSON::Reader &reader, const std::string &message)
-	{
-		throw spk::Exception(reader.file().generic_string() + ":" + reader.path() + ": " + message);
-	}
-
 }
 
 namespace Voxel
@@ -82,8 +78,10 @@ namespace Voxel
 		auto convert = [&](float value, const char *component) {
 			if (value < 0.0f || value > 1.0f)
 			{
-				throw spk::Exception(
-					reader.file().generic_string() + ":" + reader.pathFor(component) + ": vertex coordinate is outside [0.0, 1.0]");
+				spk::JSON::throwAt(
+					reader.file(),
+					reader.pathFor(component),
+					"vertex coordinate is outside [0.0, 1.0]");
 			}
 			return static_cast<std::int32_t>(value * static_cast<float>(vertexScale()));
 		};
@@ -95,28 +93,28 @@ namespace Voxel
 	{
 		if (polygon.vertices.size() < 3)
 		{
-			throwAt(reader, "voxel polygon needs at least three vertices");
+			spk::JSON::throwAt(reader.file(), reader.path(), "voxel polygon needs at least three vertices");
 		}
 
 		for (std::size_t index = 0; index < polygon.vertices.size(); ++index)
 		{
 			if (polygon.vertices[index] == polygon.vertices[(index + 1) % polygon.vertices.size()])
 			{
-				throwAt(reader, "voxel polygon has duplicate adjacent vertices");
+				spk::JSON::throwAt(reader.file(), reader.path(), "voxel polygon has duplicate adjacent vertices");
 			}
 		}
 
 		const WideVector3 normal = polygonNormal(polygon.vertices);
 		if (isZero(normal))
 		{
-			throwAt(reader, "voxel polygon is degenerate");
+			spk::JSON::throwAt(reader.file(), reader.path(), "voxel polygon is degenerate");
 		}
 
 		for (const spk::Vector3Int &vertex : polygon.vertices)
 		{
 			if (dot(normal, difference(vertex, polygon.vertices[0])) != 0)
 			{
-				throwAt(reader, "voxel polygon is not planar");
+				spk::JSON::throwAt(reader.file(), reader.path(), "voxel polygon is not planar");
 			}
 		}
 
@@ -136,7 +134,7 @@ namespace Voxel
 				const WideVector3 towardVertex = difference(polygon.vertices[vertexIndex], edgeStart);
 				if (dot(cross(edge, towardVertex), normal) < 0)
 				{
-					throwAt(reader, "voxel polygon is concave or self-intersecting");
+					spk::JSON::throwAt(reader.file(), reader.path(), "voxel polygon is concave or self-intersecting");
 				}
 			}
 		}
@@ -156,7 +154,7 @@ namespace Voxel
 		result.slot = reader.require<Material::SlotID>("slot");
 		if (result.slot.empty())
 		{
-			throw spk::Exception(reader.file().generic_string() + ":" + reader.pathFor("slot") + ": voxel polygon slot cannot be empty");
+			spk::JSON::throwAt(reader.file(), reader.pathFor("slot"), "voxel polygon slot cannot be empty");
 		}
 
 		for (const spk::JSON::Reader &vertexReader : reader.childArray("vertices"))
@@ -244,7 +242,7 @@ namespace Voxel
 		}
 		if (canonical.polygons.empty())
 		{
-			throwAt(reader, "voxel shape has no polygons");
+			spk::JSON::throwAt(reader.file(), reader.path(), "voxel shape has no polygons");
 		}
 		canonical.uuid.store(spk::UUID::generate(), std::memory_order_release);
 	}
