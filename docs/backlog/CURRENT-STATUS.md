@@ -16,7 +16,7 @@ The branch now contains ST-001-06 production implementation and tests. It also c
 
 Current implementation includes shared immutable Volume backing, Chunk/Chunk::Builder, asynchronous Chunk::Collection/Provider state, mixed aggregate/direct catalog loading, validation resources, the Server PrototypeChunkProvider, and Erelia-local headless `spk::ThreadSafeSet`, `spk::Task`, `spk::WorkerPool`, and `spk::Singleton` prototypes.
 
-CI run #307 passed the complete matrix on the earlier synchronous-Collection implementation head `29f403996fc189f8396105818272be111773c331`. The newer asynchronous refinement still requires its own final green CI evidence before ST-001-06 can be considered complete.
+CI run #311 (run ID `36018061979`) passed the complete matrix on implementation head `54e93aab35d468725b595e107f099d5d8577a2c3`: clang-format, Core/Server Linux Debug + Release, Core/Server Windows Debug + Release, and Client Windows Debug + Release all succeeded. ST-001-06 remains Ready / active rather than Done until explicit project-owner approval.
 
 ## What exists on master
 

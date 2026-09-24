@@ -576,13 +576,33 @@ Not owned. DR-015 fixture is later consumed by render/golden tickets.
 3. **Collection Provider ownership/construction:** Collection exclusively owns its Provider in a private `std::unique_ptr<Provider>`, while its public constructor is a constrained forwarding constructor accepting only an rvalue concrete Provider derived from `Provider`. The concrete object is moved into the owned allocation; lvalues are rejected and null/absent Provider construction is unrepresentable.
 4. **Provider test boundary:** do not make the temporary `PrototypeChunkProvider` Cell layout a unit-test contract. Test the reusable `Chunk::Collection::Provider` / Collection interaction in Core with a purpose-built test Provider whose calls and returned Chunks are controlled by the test. The prototype still implements DR-015 for the temporary validation world, but its exact Cell composition is not frozen by dedicated unit tests.
 
-All readiness decisions are resolved. The ticket may become Ready once the Definition of Ready review is satisfied.
+All readiness decisions are resolved. The ticket is Ready / active.
 
 ## Completion evidence
 
-Not implemented yet.
+Implementation and regression coverage are present on the active branch.
 
-This branch currently contains approved planning/decision documentation only (plus the earlier ST-001-12 mesher-fixture documentation clarification). Do not mark this ticket Done until implementation, tests, required regression evidence, documentation updates, and explicit project-owner approval are complete.
+The implemented scope includes:
+
+- shared immutable Volume backing and updated fresh-content Message decode behavior;
+- Chunk checked construction and Chunk::Builder;
+- asynchronous Chunk::Collection / Provider with explicit Absent/Pending/Available state, generation counters, stale-result rejection, replacement/upsert, and short spk::ProtectedData synchronization;
+- generic aggregate/direct JSON Catalog loading and the mixed validation resources;
+- Server PrototypeChunkProvider using asynchronous Task submission;
+- Erelia-local headless spk::ThreadSafeSet, spk::Task, spk::WorkerPool, and spk::Singleton prototypes;
+- Core tests for immutable ownership, Chunk construction, Collection state/caching/replacement/concurrency/generation behavior, ThreadSafeSet, Task/WorkerPool, Singleton, Catalog dual roots, and resource loading.
+
+CI run #311 (run ID `36018061979`) passed on implementation head `54e93aab35d468725b595e107f099d5d8577a2c3`:
+
+- clang-format: passed;
+- Core/Server Linux Debug: passed;
+- Core/Server Linux Release: passed;
+- Core/Server Windows Debug: passed;
+- Core/Server Windows Release: passed;
+- Client Windows Debug: passed;
+- Client Windows Release: passed.
+
+Do not mark this ticket Done until explicit project-owner approval is given.
 
 
 ## ST-001-06 asynchronous infrastructure refinement
