@@ -1,6 +1,6 @@
 # ST-001-04 — First terrain Definition and Shape contract
 
-**Status:** In Progress
+**Status:** Done
 **Epic:** EP-001
 **Production target(s):** Core
 **Test suite(s):** EreliaCoreTestSuite
@@ -425,9 +425,9 @@ Shape example:
           {
             "slot": "side",
             "vertices": [
-              {"x": 0.0, "y": 0.0, "z": 0.0},
-              {"x": 0.0, "y": 1.0, "z": 0.0},
-              {"x": 0.0, "y": 1.0, "z": 1.0}
+              [0.0, 0.0, 0.0],
+              [0.0, 1.0, 0.0],
+              [0.0, 1.0, 1.0]
             ]
           }
         ]
@@ -474,7 +474,7 @@ All of the following throw `spk::Exception` with useful file/path diagnostics:
 - empty polygon slot;
 - missing/wrong-type polygon list;
 - missing/wrong-type vertex list;
-- vertex missing x/y/z;
+- malformed vertex array (wrong length or non-numeric component);
 - vertex coordinate outside `[0.0, 1.0]`;
 - fewer than three vertices;
 - duplicate adjacent vertices / explicit repeated closing vertex;
@@ -728,7 +728,7 @@ The public behavior, ownership, lifecycle, loading/error behavior, deterministic
 
 ## Completion evidence
 
-**Implementation state:** Technically complete; project-owner approval pending.
+**Implementation state:** Done; project-owner approval recorded.
 
 Implementation remains on:
 
@@ -781,4 +781,4 @@ CI run #127 validated implementation head `44aaf1d509c231bb5f69ad9775a97349af959
 
 The concurrent cache test uses 12 threads racing the same previously unmaterialized Orientation/Flip entry and verifies that all callers observe the same entry, UUID, and immutable geometry after publication.
 
-CI run #256 (run ID `35972200952`) validated current code head `7277609a680ab23b501c1b2423d3e7cbaffd8d1f` successfully across clang-format, Linux Core/Server Debug + Release, Windows Core/Server Debug + Release, and Windows Client Debug + Release. This validated the semantic `Material::SlotID`, centralized `spk::JSON::throwAt`, one-catalog-class-per-source split, semantic `Voxel::Vertex`, 32-bit stored vertices with 64-bit exact geometry intermediates, and the final Sparkle-style `[x, y, z]` Shape vertex JSON representation. The active Shape resources were also rechecked geometrically against the archived cube/slab/slope/stair fixtures after the approved winding and canonical-orientation adaptations. Sparkle follow-up issues #14 and #15 are tracked under `docs/backlog/OPEN_REQUESTS/`. Subsequent commits only synchronize request/status documentation with that validated code. The ticket remains **In Progress**, not Done, solely because explicit project-owner approval required by `DEFINITION-OF-DONE.md` has not yet been recorded. PR #11 must not be merged until separately authorized.
+CI run #256 (run ID `35972200952`) validated current code head `7277609a680ab23b501c1b2423d3e7cbaffd8d1f` successfully across clang-format, Linux Core/Server Debug + Release, Windows Core/Server Debug + Release, and Windows Client Debug + Release. This validated the semantic `Material::SlotID`, centralized `spk::JSON::throwAt`, one-catalog-class-per-source split, semantic `Voxel::Vertex`, 32-bit stored vertices with 64-bit exact geometry intermediates, and the final Sparkle-style `[x, y, z]` Shape vertex JSON representation. The active Shape resources were also rechecked geometrically against the archived cube/slab/slope/stair fixtures after the approved winding and canonical-orientation adaptations. Sparkle follow-up issues #14 and #15 are tracked under `docs/backlog/OPEN_REQUESTS/`. Subsequent commits only synchronize request/status documentation with that validated code. The project owner approved ST-001-04 on 24 September 2026 after final code review and CI #256. The ticket is **Done** and PR #11 is approved for merge.
