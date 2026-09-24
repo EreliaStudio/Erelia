@@ -45,7 +45,7 @@ ST-001-05's readiness discussion is complete.
 
 OQ-037 and DR-017 now define the complete `Voxel::Volume` Message serialization contract:
 
-- public API remains direct ADL-resolved `message << volume` / `message >> volume`;
+- public API remains direct ADL-resolved `message << volume` / `message >> volume`, with `explicit Volume(const spk::Message&)` as a convenience delegating to the same extraction path;
 - field order is native `spk::Vector3UInt dimensions`, native `Volume::UnitSize`, then one contiguous native Cell block;
 - no explicit Cell-count field is serialized; count is derived from dimensions with checked arithmetic;
 - Cell bytes preserve the existing Y-fastest, then X, then Z storage order;
@@ -55,6 +55,8 @@ OQ-037 and DR-017 now define the complete `Voxel::Volume` Message serialization 
 - extraction validates derived Cell byte requirements before allocation;
 - failed extraction leaves the destination Volume unchanged, while the Message cursor keeps Sparkle's normal potentially-partially-consumed behavior;
 - decoded Cell storage is independently owned;
+- networking reconstruction does not use `Volume::Builder`;
+- all non-empty Volumes now share one capacity-based Cell-buffer pool registry, so equal Cell counts share a pool regardless of dimensions;
 - higher-level message IDs remain deferred to protocol tickets such as ST-001-08.
 
 ## Current implementation phase
@@ -70,11 +72,11 @@ EP-001 remains Draft overall, but implementation is active.
 
 ### Ready / active
 
-- **ST-001-05 — Voxel::Volume Message serialization:** Ready. Its previous OQ-037 and decode-contract blockers are resolved on the dedicated implementation branch.
+- **ST-001-05 — Voxel::Volume Message serialization:** Ready and actively implemented through PR #12 on the dedicated branch. The current head contains direct Message operators, the Message constructor, direct pooled decode without Builder, malformed-input coverage, and the unified capacity-based Cell-buffer pool.
 
 ### Next
 
-Implement and validate ST-001-05 only. After implementation, focused Core tests and the required repository CI/build validation must pass before requesting project-owner approval. Do not mark ST-001-05 Done until that approval is explicit.
+Finish validation/review of ST-001-05 only. The required repository CI/build validation must pass on the final branch head before requesting project-owner approval. Do not mark ST-001-05 Done until that approval is explicit.
 
 After ST-001-05, reassess dependency order against the remaining unresolved OQs rather than skipping their gates.
 

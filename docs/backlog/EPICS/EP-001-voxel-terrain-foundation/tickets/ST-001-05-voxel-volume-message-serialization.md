@@ -41,6 +41,7 @@ Server/Client-specific protocol handlers, graphics facilities, raw serialization
 - Sparkle-native logical serialization of dimensions, UnitSize, and contiguous Cell storage.
 - Symmetric Volume invariant validation on insertion and extraction.
 - Reconstruction of a new owning valid Volume.
+- Convenience construction through `explicit Volume(const spk::Message &message)`, delegating to the extraction operator.
 - Malformed/truncated payload rejection before an inconsistent Volume becomes observable.
 
 ## Explicitly not owned
@@ -60,9 +61,11 @@ Required API:
 spk::Message message;
 message << volume;
 message >> volume;
+
+Voxel::Volume decoded(message);
 ```
 
-with friend declarations equivalent to the signatures fixed by DR-017. Callers must not invoke a separate serializer object.
+The Message constructor delegates to `operator>>` and therefore has exactly the same validation, ownership, and Message-cursor semantics. The friend declarations remain equivalent to the signatures fixed by DR-017. Callers must not invoke a separate serializer object.
 
 ## Exact wire format
 
@@ -157,7 +160,9 @@ Shared codec only. Successful decode does not make Client data authoritative; Se
 ## Implementation constraints
 
 - Use the direct friend-operator API from DR-017.
+- `volume.hpp` includes `<network/message.hpp>` directly because `spk::Message` is part of the public Volume API.
 - Keep definitions in namespace `Voxel`, not `spk`.
+- Message extraction reconstructs Volume directly; it must not use `Volume::Builder` or expose Builder internals for networking.
 - Serialize `spk::Vector3UInt` as one native Sparkle Message value.
 - Serialize Cells as one contiguous native block.
 - Use named source-local helpers where decomposition improves clarity; do not introduce Erelia `detail` / `details` namespaces.
@@ -168,6 +173,7 @@ Shared codec only. Successful decode does not make Client data authoritative; Se
 The implementation must include:
 
 - direct ADL insertion and extraction compile/use coverage;
+- direct `Voxel::Volume(message)` construction and malformed-input validation coverage;
 - default/empty Volume round trip;
 - a small asymmetric Volume that exposes Y/X/Z Cell ordering;
 - non-default packed Cells covering Orientation and FlipOrientation;

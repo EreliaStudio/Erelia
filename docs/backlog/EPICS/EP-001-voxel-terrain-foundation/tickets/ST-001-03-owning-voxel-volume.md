@@ -112,31 +112,27 @@ Because Volume copies already own independent Buffers, this path never needs sha
 
 ## Pooled Cell buffers
 
-Pool objects are source-file implementation details in `core/src/voxel/volume_builder.cpp`.
+Pool objects are source-private implementation details in `core/src/voxel/volume_buffer_pool.cpp`.
 
-### Chunk pool
+### Size-class pool registry
 
-Exact `16×16×16` dimensions use one dedicated process-lifetime `Voxel::Volume::Buffer::Pool`.
-
-Another Volume shape with the same total Cell count does **not** use the Chunk pool.
-
-### General pool registry
-
-Other dimensions use:
+All non-empty Volumes use one ordered registry:
 
 ```cpp
-std::map<std::size_t, Voxel::Volume::Buffer::Pool>
+std::map<std::size_t, CellArrayPool>
 ```
 
-The key is the pool's intended capacity size class.
+The key is the pool's intended Cell-capacity size class. `CellArrayPool` derives from `Voxel::Volume::Buffer::Pool` and owns the capacity-aware Buffer factory used by that size class.
+
+Pool identity is based on required Cell capacity, not semantic Volume dimensions. Therefore an exact `16×16×16` Chunk uses the 4096-Cell size class just like any other Volume containing 4096 Cells.
 
 Selection uses `lower_bound(requestedCellCount)`:
 
 1. use an exact existing class when present;
 2. otherwise use the smallest existing higher class;
-3. when no equal-or-higher class exists, create a new pool at the requested size.
+3. when no equal-or-higher class exists, create a new `CellArrayPool` at the requested size.
 
-Each pool factory creates a Buffer and reserves its size-class capacity. Per-obtain preparation clears/resizes the Buffer to the requested logical Cell count while retaining reusable capacity.
+Per-obtain preparation clears/resizes the Buffer to the requested logical Cell count while retaining reusable capacity.
 
 The Pool implementation is intentionally single-threaded; this ticket introduces no concurrent Builder/pool access contract.
 
@@ -187,8 +183,8 @@ Core tests cover:
 - move-to-empty Volume behavior;
 - direct Buffer reuse when constructing Builder from a moved Volume;
 - copied Volumes remaining independent when one copy is moved into a Builder and modified;
-- dedicated 16×16×16 Chunk pool reuse and isolation from another 4096-cell shape;
-- ordered general pool reuse where a smaller request consumes the smallest available higher size class.
+- equal Cell-count Volumes reuse the same size-class pool regardless of dimensions, including 16×16×16 and other 4096-Cell shapes;
+- ordered pool reuse where a smaller request consumes the smallest available higher size class.
 
 ## Serialization / networking
 
@@ -218,3 +214,8 @@ Production changes include:
 Acceptance coverage is in `core/tests/voxel_volume_test.cpp`.
 
 Project-owner approval was explicitly recorded on 23 September 2026. CI run #105 passed clang-format, Linux/Windows Core+Server Debug/Release builds and CTest, plus Windows Client Debug/Release regression builds and CTest. The ticket is **Done**; PR #9 remains open only for the final merge into the planning baseline.
+
+
+### Follow-up correction during ST-001-05
+
+On 24 September 2026, project-owner review removed the dedicated Chunk-pool special case. Pooling now depends only on reusable Cell capacity through the shared size-class registry described above. This correction does not change the public ST-001-03 Volume/Builder contract.

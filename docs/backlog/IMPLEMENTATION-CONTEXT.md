@@ -151,8 +151,9 @@ Its approved first contract includes:
 - Volume copy construction/assignment deep-copies Cell contents through the Sparkle Pool Lease copy semantics, producing independent pooled storage;
 - Volume move transfers the existing Lease and leaves the source in the default-empty state;
 - `Builder(std::move(volume))` destructively consumes a Volume and directly reuses/transfers its existing Lease without copying;
-- pool instances are implementation details in `volume_builder.cpp`: one dedicated `Buffer::Pool` is used only for exact 16×16×16 Chunk dimensions, while other sizes use a source-local ordered `std::map<std::size_t, Buffer::Pool>`;
-- general pool lookup uses `lower_bound(expectedCellCount)`, selecting the exact size class or the smallest existing higher class; when none exists, a new pool is created for the requested size;
+- pooled Cell-buffer allocation is shared by Builder construction and Message decoding through source-private `volume_buffer_pool.*` implementation files;
+- one ordered `std::map<std::size_t, CellArrayPool>` registry covers every non-empty Volume, including Chunks; pool identity is Cell capacity rather than Volume dimensions, so all 4096-Cell Volumes share the same size class;
+- pool lookup uses `lower_bound(expectedCellCount)`, selecting the exact size class or the smallest existing higher class; when none exists, a new capacity-specific `CellArrayPool` is created;
 - pooled Buffers retain capacity while their logical size is reset through the Pool per-obtain callback;
 - no `VersionedTrait` inheritance or mutable Editor remains in the Volume contract.
 
@@ -168,6 +169,8 @@ message << volume;
 message >> volume;
 ```
 
+`Voxel::Volume` also exposes `explicit Volume(const spk::Message &message)`, which delegates to the same extraction operator and therefore uses the exact same validation and cursor semantics.
+
 The operators are declared as friends directly on `Voxel::Volume` and implemented as free functions in namespace `Voxel`:
 
 ```cpp
@@ -175,7 +178,9 @@ friend spk::Message &operator<<(spk::Message &message, const Volume &volume);
 friend const spk::Message &operator>>(const spk::Message &message, Volume &volume);
 ```
 
-The operators serialize the logical Volume contentsdimensions, voxel size, and contiguous Cell data. They must never raw-copy the C++ object representation of `Voxel::Volume`, because it owns a `std::vector`.
+The operators serialize the logical Volume contents—dimensions, unit size, and contiguous Cell data. They must never raw-copy the C++ object representation of `Voxel::Volume`, because it owns a `std::vector`.
+
+`volume.hpp` includes Sparkle's `network/message.hpp` directly because Message is an explicit part of the public Volume API. Network decoding reconstructs Volume directly and does not use `Voxel::Volume::Builder`; Builder remains the ordinary mutable construction API.
 
 Do not expose otherwise-unnecessary mutable internals merely to make serialization possible.
 

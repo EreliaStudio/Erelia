@@ -52,7 +52,15 @@ message << volume;
 message >> volume;
 ```
 
-This friend-operator form is the required public API for EP-001; an alternative `volume.serialize(message)`, serializer object, or Volume-specific transport Message type does not replace it.
+`Voxel::Volume` additionally exposes:
+
+```cpp
+explicit Volume(const spk::Message &message);
+```
+
+The constructor delegates to `message >> *this`, so it is only a convenience construction form over the same extraction contract and validation rules.
+
+This friend-operator form remains the core EP-001 serialization API; an alternative `volume.serialize(message)`, serializer object, or Volume-specific transport Message type does not replace it. `Voxel::Volume::Builder` is not part of networking reconstruction.
 
 ### Exact wire order
 
@@ -97,6 +105,8 @@ The `spk::Message` read cursor follows Sparkle Version-0.1.3's normal sequential
 
 Before allocating the Cell buffer, extraction must validate the dimension product and verify that the Message has enough remaining bytes for the derived contiguous Cell block. No additional arbitrary Erelia Volume dimension cap is introduced by this ticket.
 
+For a non-empty decoded Volume, extraction obtains a pooled `Buffer::Lease` directly from the shared capacity-based Volume buffer-pool implementation, pulls the contiguous Cell block into it, and constructs the temporary Volume. An empty decode keeps the Lease default-constructed/null. Networking does not construct a `Volume::Builder`.
+
 The decoded Volume owns its Cell storage independently of the source Message lifetime. Trailing Message bytes are permitted because Volume is an embeddable payload value rather than a complete transport message.
 
 ## Consequences
@@ -113,6 +123,7 @@ The decoded Volume owns its Cell storage independently of the source Message lif
 
 - `spk::Message message; message << volume;` resolves through ADL.
 - `message >> volume;` resolves through ADL.
+- `Voxel::Volume(message)` delegates to the same extraction/validation contract.
 - default/empty Volume round trip.
 - asymmetric Volume proves exact Y/X/Z Cell order.
 - transformed/non-default packed Cell values round trip exactly.
@@ -141,7 +152,9 @@ Clarified with the project owner on 24 September 2026 for ST-001-05 readiness:
 - transfer Cells as one contiguous native block;
 - validate the same Volume invariants on insertion and extraction;
 - preserve the destination Volume on failed extraction;
-- retain Sparkle's normal partial read-cursor advancement behavior on failure.
+- retain Sparkle's normal partial read-cursor advancement behavior on failure;
+- expose an explicit Message constructor as a convenience over `operator>>`;
+- keep networking reconstruction independent from `Volume::Builder`.
 
 ## Supersession
 
