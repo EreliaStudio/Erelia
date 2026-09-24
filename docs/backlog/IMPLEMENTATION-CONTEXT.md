@@ -152,8 +152,8 @@ Its approved first contract includes:
 - Volume move transfers the existing Lease and leaves the source in the default-empty state;
 - `Builder(std::move(volume))` destructively consumes a Volume and directly reuses/transfers its existing Lease without copying;
 - pooled Cell-buffer allocation is shared by Builder construction and Message decoding through source-private `volume_buffer_pool.*` implementation files;
-- one ordered `std::map<std::size_t, CellArrayPool>` registry covers every non-empty Volume, including Chunks; pool identity is Cell capacity rather than Volume dimensions, so all 4096-Cell Volumes share the same size class;
-- pool lookup uses `lower_bound(expectedCellCount)`, selecting the exact size class or the smallest existing higher class; when none exists, a new capacity-specific `CellArrayPool` is created;
+- one source-private `CellArrayCollection` owns the ordered `std::map<std::size_t, CellArrayPool>` registry for every non-empty Volume, including Chunks;
+- pool size classes are powers of two and represent reusable Cell capacity rather than Volume dimensions; `lower_bound(expectedCellCount)` reuses the smallest existing adequate class, and when none exists the collection lazily creates the next representable power-of-two class;
 - pooled Buffers retain capacity while their logical size is reset through the Pool per-obtain callback;
 - no `VersionedTrait` inheritance or mutable Editor remains in the Volume contract.
 

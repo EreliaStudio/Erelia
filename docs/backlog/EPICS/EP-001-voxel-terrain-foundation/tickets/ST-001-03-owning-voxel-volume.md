@@ -116,21 +116,21 @@ Pool objects are source-private implementation details in `core/src/voxel/volume
 
 ### Size-class pool registry
 
-All non-empty Volumes use one ordered registry:
+All non-empty Volumes use one source-private `CellArrayCollection`, which owns an ordered:
 
 ```cpp
 std::map<std::size_t, CellArrayPool>
 ```
 
-The key is the pool's intended Cell-capacity size class. `CellArrayPool` derives from `Voxel::Volume::Buffer::Pool` and owns the capacity-aware Buffer factory used by that size class.
+Each map key is a power-of-two Cell-capacity size class. `CellArrayPool` derives from `Voxel::Volume::Buffer::Pool` and owns the capacity-aware Buffer factory for its bound.
 
-Pool identity is based on required Cell capacity, not semantic Volume dimensions. Therefore an exact `16×16×16` Chunk uses the 4096-Cell size class just like any other Volume containing 4096 Cells.
+Pool identity is based on required Cell capacity, not semantic Volume dimensions. Therefore an exact `16×16×16` Chunk naturally uses the 4096-Cell power-of-two class just like any other Volume whose request is served by that class.
 
-Selection uses `lower_bound(requestedCellCount)`:
+`CellArrayCollection::operator[]` encapsulates selection:
 
-1. use an exact existing class when present;
-2. otherwise use the smallest existing higher class;
-3. when no equal-or-higher class exists, create a new `CellArrayPool` at the requested size.
+1. use `lower_bound(requestedCellCount)` to reuse the smallest existing class large enough for the request;
+2. if no existing class can satisfy it, create a new class at the smallest representable power of two greater than or equal to the requested Cell count;
+3. if no such power-of-two size class is representable by `std::size_t`, throw `spk::Exception`.
 
 Per-obtain preparation clears/resizes the Buffer to the requested logical Cell count while retaining reusable capacity.
 
@@ -184,6 +184,7 @@ Core tests cover:
 - direct Buffer reuse when constructing Builder from a moved Volume;
 - copied Volumes remaining independent when one copy is moved into a Builder and modified;
 - equal Cell-count Volumes reuse the same size-class pool regardless of dimensions, including 16×16×16 and other 4096-Cell shapes;
+- lazy power-of-two class creation, including a 5000-Cell request creating a class that can subsequently serve a 7000-Cell request;
 - ordered pool reuse where a smaller request consumes the smallest available higher size class.
 
 ## Serialization / networking
@@ -218,4 +219,4 @@ Project-owner approval was explicitly recorded on 23 September 2026. CI run #105
 
 ### Follow-up correction during ST-001-05
 
-On 24 September 2026, project-owner review removed the dedicated Chunk-pool special case. Pooling now depends only on reusable Cell capacity through the shared size-class registry described above. This correction does not change the public ST-001-03 Volume/Builder contract.
+On 24 September 2026, project-owner review removed the dedicated Chunk-pool special case and then refined the shared registry into lazy power-of-two size classes managed by `CellArrayCollection`. Pooling now depends only on reusable Cell capacity. This correction does not change the public ST-001-03 Volume/Builder contract.

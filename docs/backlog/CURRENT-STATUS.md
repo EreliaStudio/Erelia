@@ -56,7 +56,7 @@ OQ-037 and DR-017 now define the complete `Voxel::Volume` Message serialization 
 - failed extraction leaves the destination Volume unchanged, while the Message cursor keeps Sparkle's normal potentially-partially-consumed behavior;
 - decoded Cell storage is independently owned;
 - networking reconstruction does not use `Volume::Builder`;
-- all non-empty Volumes now share one capacity-based Cell-buffer pool registry, so equal Cell counts share a pool regardless of dimensions;
+- all non-empty Volumes now share one source-private Cell-buffer collection using lazy power-of-two capacity classes and `lower_bound` reuse, with no Chunk-specific pool;
 - higher-level message IDs remain deferred to protocol tickets such as ST-001-08.
 
 ## Current implementation phase
@@ -72,7 +72,7 @@ EP-001 remains Draft overall, but implementation is active.
 
 ### Ready / active
 
-- **ST-001-05 — Voxel::Volume Message serialization:** Ready and actively implemented through PR #12 on the dedicated branch. The current head contains direct Message operators, the Message constructor, direct pooled decode without Builder, malformed-input coverage, and the unified capacity-based Cell-buffer pool.
+- **ST-001-05 — Voxel::Volume Message serialization:** Ready and actively implemented through PR #12 on the dedicated branch. The current head contains direct Message operators, the Message constructor, direct pooled decode without Builder, malformed-input coverage, and the unified lazy power-of-two Cell-buffer pool collection.
 
 ### Next
 
