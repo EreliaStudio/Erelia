@@ -56,11 +56,7 @@ namespace
 			}
 
 			const std::size_t bound = _nextPowerOfTwo(capacity);
-			auto [insertedIterator, inserted] =
-				_collection.try_emplace(bound, bound);
-			static_cast<void>(inserted);
-
-			return insertedIterator->second;
+			return _collection.try_emplace(bound, bound).first->second;
 		}
 	};
 
