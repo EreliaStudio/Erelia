@@ -188,9 +188,7 @@ namespace Voxel
 		const spk::Vector3UInt &dimensions,
 		std::size_t expectedSize)
 	{
-		return cellBufferPoolFor(dimensions, expectedSize).obtain(
-			resetCellBuffer,
-			expectedSize);
+		return cellBufferPoolFor(dimensions, expectedSize).obtain(resetCellBuffer, expectedSize);
 	}
 
 	Volume::Volume(const spk::Message &message)
