@@ -106,9 +106,11 @@ The next dependency-ordered ticket remains **ST-001-06 — Deterministic validat
 
 OQ-039 no longer blocks it. The first ST-001-06 readiness decision is also resolved: `PrototypeChunkProvider` accepts every representable `Chunk::Coordinate`, including negative coordinates, with no coordinate-domain rejection.
 
+The project owner also resolved that the whole-Chunk replacement API itself is implemented in **ST-001-06** rather than deferred to ST-001-11.
+
 The ticket remains **Blocked** until the project owner explicitly resolves these remaining Definition-of-Ready items, one at a time:
 
-2. Collection replacement behavior for a coordinate not already stored, and whether that replacement API is implemented in ST-001-06 or deferred to ST-001-11;
+2. Collection replacement behavior for a coordinate not already stored;
 3. null/absent Provider construction behavior if the chosen owned-Provider API can represent null;
 4. exact Server prototype terrain assertion depth: complete expected Cell arrays versus an explicitly enumerated representative semantic table plus structural counts/full repeated equality.
 
