@@ -1,6 +1,6 @@
 # Current Status
 
-**Updated:** 23 September 2026
+**Updated:** 24 September 2026
 **Default baseline:** `master`
 **Active ticket branch:** `feat/st-001-04-definition-shape-contract`
 
@@ -80,24 +80,25 @@ EP-001 is still Draft overall, but implementation is active.
 
 The branch contains the first shared `Voxel::Shape` / `Voxel::Definition` / `Voxel::Catalog` implementation, `Voxel::Material::ID`, `Voxel::Material::SlotID`, the revised Cell Orientation ordering, JSON catalog loading, exact eight-way Orientation/Flip geometry transforms, the lazy UUID-published oriented polygon cache, focused tests, and active cube/slab/slope/stair Shape resources. Shape and Definition catalogs derive publicly from an Erelia-local `spk::JSON::Catalog<TElement>` base that owns JSON envelope iteration and direct element-value storage; they inherit `load` and lookup behavior directly and override only key/element parsing, with `Definition::Catalog` additionally retaining its Shape-catalog reference. `Voxel::Definition` stores a non-owning `const Shape&`; Air references a private catalog-owned empty Shape sentinel with zero polygons. No Erelia `detail` namespace is used for this abstraction. Catalog implementations are split by class across `shape_catalog.cpp`, `definition_catalog.cpp`, and aggregate `catalog.cpp`. File/path-aware JSON validation errors use the single shared `spk::JSON::throwAt` helper.
 
-The Shape loader preserves polygon vertex order authored in JSON and derives normals from that order. It validates polygon geometry without inventing an outward-facing direction; only the required `NegativeY` mirror reverses transformed polygon winding.
+The Shape loader preserves polygon vertex order authored in JSON and derives normals from that order. Vertices are authored using Sparkle's `[x, y, z]` Vector3 JSON representation, stored as semantic 32-bit `Voxel::Vertex` values after quantization, and validated with 64-bit integer intermediates where cross/dot products need additional range. It validates polygon geometry without inventing an outward-facing direction; only the required `NegativeY` mirror reverses transformed polygon winding.
 
-Current validation evidence is **not sufficient for Done**:
+Current validation evidence:
 
 - PR #11 is open.
-- CI run #127 passed the complete matrix for the implementation before the catalog-abstraction redesign.
-- The catalog uses direct `std::unordered_map<ID, Element>` storage with no `shared_ptr`, with dedicated tests for the generic catalog and reference stability across insertion growth/rehash.
+- The catalog uses direct `std::unordered_map<ID, Element>` storage with no `shared_ptr`, with dedicated generic-catalog and reference-stability tests.
 - Shape/Definition subcatalogs publicly inherit the base `load`/lookup API directly, with no no-op forwarding wrappers.
-- CI run #209 (run ID `35926707908`) passed the complete matrix before the latest `Material::SlotID`, centralized JSON-error helper, and source-split refactors.
-- Current code head `e2f348e8d22b66fd184fa954f7b0b2e3aa5fe5d6` requires fresh validation.
+- Shape vertices use semantic `Voxel::Vertex = spk::Vector3Int`, authored as Sparkle Vector3 JSON arrays `[x, y, z]`; cached normals remain floating `spk::Vector3`.
+- JSON/resource source-aware errors use the single `spk::JSON::throwAt` helper.
+- Shape, Definition, and aggregate Catalog implementations are split by class.
+- CI run #256 (run ID `35972200952`) passed the complete matrix for code head `7277609a680ab23b501c1b2423d3e7cbaffd8d1f`.
+- Sparkle issues #14 and #15 are tracked in `OPEN_REQUESTS/` with exact follow-up edit locations.
 - Required project-owner approval has not yet been recorded.
 
-ST-001-04 remains In Progress until the current refactors pass the full matrix and the project owner explicitly approves the ticket.
+ST-001-04 is technically complete and remains In Progress only until the project owner explicitly approves the ticket.
 
 ### Next
 
-1. Finish fresh validation of the current SlotID/error-helper/source-split refactors.
-2. Record project-owner approval and mark ST-001-04 Done only after its Definition of Done is actually satisfied.
+1. Record project-owner approval and mark ST-001-04 Done only after its Definition of Done is actually satisfied.
 4. After ST-001-04, reassess the dependency order rather than skipping unresolved gates.
 5. Resolve OQ-039's remaining generator-scene details before ST-001-06.
 6. Resolve OQ-037/OQ-038 before the dependent Chunk networking/request tickets.
