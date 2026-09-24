@@ -1,4 +1,4 @@
-# Implementation Context — Taste, Conventions, and Working Knowledge
+# Implementation Context  Taste, Conventions, and Working Knowledge
 
 **Purpose:** give a future implementation/planning session a high-density view of how Erelia should be built, not just what the game should do.
 **Authority:** summary only. The user's latest explicit direction, resolved Decision Records, Architecture documents, and the GDD remain authoritative.
@@ -35,6 +35,8 @@ VoxelVolume
 The intent is to let namespaces communicate the domain and keep individual type names short and precise.
 
 Do not introduce a prefixed name merely because an archived implementation used one if a clean nested/domain-scoped name expresses the concept better.
+
+Do not introduce `detail` / `details` namespaces in public Erelia code. Prefer explicit private members/types or source-local anonymous namespaces instead. A `detail`-style namespace is acceptable only as a last resort inside a private header or source-only implementation area, and should still be avoided when a clearer structure is available.
 
 Coordinate vocabulary follows the same semantic ownership:
 
@@ -95,7 +97,24 @@ The active direction intentionally keeps the voxel data representation small and
 
 - `Voxel::Definition` is the semantic owner of voxel Definition identity;
 - `Voxel::Definition::ID` is an alias of `std::uint32_t`;
-- only the ID type is established by ST-001-02; Definition data/catalog/Shape behavior remains owned by ST-001-04 and must not be inferred early.
+- ST-001-04 / DR-018 establish the first shared Definition/Shape/Catalog contract:
+  - Shape IDs are strings owned by the Shape catalog; Definition IDs remain `std::uint32_t` owned by the Definition catalog;
+  - Shape/Definition objects do not store their own catalog IDs;
+  - `Voxel::Vertex` is the semantic Shape-vertex type and aliases `spk::Vector3Int` (`std::int32_t` components); Shape polygons store `std::vector<Voxel::Vertex>`, a semantic `Voxel::Material::SlotID`, and a derived cached `spk::Vector3` floating normal;
+  - JSON vertices remain normalized floats in `[0,1]`, authored using Sparkle's `TVector3` JSON representation as three-element arrays `[x, y, z]`, and quantized with `Voxel::Shape::VertexPrecision = 0.001f`;
+  - Use wider integer vectors only for exact intermediate geometry arithmetic that can overflow 32-bit products/dot products; the current Shape validator uses source-local `spk::TVector3<std::int64_t>` intermediates while retaining 32-bit stored `Voxel::Vertex` values;
+  - base Shape polygons are convex, planar, non-degenerate and authored CCW;
+  - every Shape is authored as `PositiveX + PositiveY` and lazily caches the other seven Orientation/Flip polygon arrays;
+  - `NegativeY` mirrors around `Y=0.5`, reverses polygon order, and recomputes the final normal;
+  - semantic slots move with their polygons through transforms;
+  - `Voxel::Material::ID` and `Voxel::Material::SlotID` are semantic string aliases; `Voxel::Material::InvalidID` is `"InvalidID"`;
+  - missing required Definition slots warn and bind InvalidID; extra slots throw;
+  - every Definition stores a non-owning `const Voxel::Shape&` to a Shape owned by the Shape catalog and must not outlive that catalog; Definition ID 0 is catalog-created Air referencing a private catalog-owned empty Shape sentinel with zero polygons and no slots;
+  - the owning aggregate is `Voxel::Catalog`, loaded from filesystem JSON resources;
+  - JSON/resource validation errors with source location use the single shared `spk::JSON::throwAt` helper; do not duplicate file/path exception formatting in loaders;
+  - Shape, Definition, and aggregate Catalog implementations are split by class into `shape_catalog.cpp`, `definition_catalog.cpp`, and `catalog.cpp`;
+  - shared Shape/Definition catalog machinery currently uses public inheritance from an Erelia-local prototype `spk::JSON::Catalog<TElement>`: the base owns JSON envelope parsing, iteration, duplicate detection, direct `std::unordered_map<TElement::ID, TElement>` value storage, and lookup, while derived catalogs implement only `_parseKey(const spk::JSON::Reader&) -> TElement::ID` and `_parseElement(const spk::JSON::Reader&) -> TElement` pure virtual hooks; parsing returns values and the base stores them directly in `std::unordered_map<TElement::ID, TElement>` with no shared ownership wrapper; catalog elements must be move-constructible, and lookup references/pointers remain stable across later insertions because the catalog exposes no erase operation; the base public `load`/lookup API is inherited directly without forwarding wrappers; derived voxel catalogs should contain only their parsing overrides and genuinely required domain state/constructors; this prototype may be proposed to Sparkle after it has been exercised in Erelia;
+  - occlusion algorithms/metadata are deliberately not part of ST-001-04.
 
 ### `Voxel::Cell`
 
@@ -103,7 +122,7 @@ The active direction intentionally keeps the voxel data representation small and
 - one Cell stores exactly one private `PackedType` and remains exactly 32 bits;
 - it remains trivially copyable and immutable after construction;
 - lower 29 bits are `Voxel::Definition::ID`, bits 29-30 are `Orientation`, and bit 31 is `FlipOrientation`;
-- `Orientation` is exactly `PositiveX = 0`, `NegativeX = 1`, `PositiveZ = 2`, `NegativeZ = 3`;
+- `Orientation` is exactly `PositiveX = 0`, `NegativeZ = 1`, `NegativeX = 2`, `PositiveZ = 3`; the numeric value is the counter-clockwise quarter-turn count around +Y from canonical +X;
 - `FlipOrientation` is exactly `PositiveY = 0`, `NegativeY = 1`;
 - Definition ID 0 means semantically empty, but its Orientation/FlipOrientation bits remain valid and are not canonicalized away;
 - default construction and `Voxel::Cell::Empty` use packed zero;
@@ -156,7 +175,7 @@ friend spk::Message &operator<<(spk::Message &message, const Volume &volume);
 friend const spk::Message &operator>>(const spk::Message &message, Volume &volume);
 ```
 
-The operators serialize the logical Volume contents—dimensions, voxel size, and contiguous Cell data. They must never raw-copy the C++ object representation of `Voxel::Volume`, because it owns a `std::vector`.
+The operators serialize the logical Volume contentsdimensions, voxel size, and contiguous Cell data. They must never raw-copy the C++ object representation of `Voxel::Volume`, because it owns a `std::vector`.
 
 Do not expose otherwise-unnecessary mutable internals merely to make serialization possible.
 
@@ -190,7 +209,7 @@ The approved direction is:
 
 - flat baseline;
 - vertical wall-like geometry around X = 0 and Z = 0;
-- elevated stairs, slabs, and slopes around Y ≈ 3;
+- elevated stairs, slabs, and slopes around Y H 3;
 - varied Orientation/Flip combinations;
 - enough empty space to inspect geometry from above and below.
 
@@ -207,6 +226,10 @@ Production third-person movement, collision, prediction/reconciliation, follower
 ## 12. Test and implementation taste
 
 Prefer small, focused implementation slices with strong tests over large feature dumps.
+
+Prefer named source-local helper functions in an anonymous namespace over lambdas declared inside a function when the logic is independently describable and does not materially benefit from captures. Keep lambdas for genuinely local callback/capture behavior rather than using them as a substitute for ordinary helper functions.
+
+`OPEN_REQUESTS/` tracks external dependency fixes that should trigger later Erelia cleanup. Use one `OR-XXX-[name].md` file per request. Its first line is the external issue link, its second line is `Status : Open`, `Status : Treated`, or `Status : Rejected`, and its `# Edition` section lists every `[file:line]` location that must change when a treated request is integrated.
 
 An ST ticket should ideally own one coherent implementation goal and be small enough to review, test, and revert independently. Do not combine several architectural layers into one giant ticket merely because they contribute to the same Epic.
 
@@ -235,7 +258,7 @@ When an OQ still blocks a public contract, do not mark the corresponding ticket 
 
 ## 14. Current implementation focus
 
-The active near-term Epic is EP-001 — Voxel Terrain Delivery and Visual Validation.
+The active near-term Epic is EP-001  Voxel Terrain Delivery and Visual Validation.
 
 The intended progressive path is roughly:
 
@@ -257,10 +280,10 @@ Before implementation code assumes an answer, check the corresponding files unde
 
 For EP-001 in particular, the still-partial questions include:
 
-- OQ-036 — missing-neighbor/remesh policy for terrain meshing;
-- OQ-037 — remaining scalar wire portability policy;
-- OQ-038 — request/cache/eviction/partial-response details;
-- OQ-039 — exact terrain-generator fixture coordinates/Definitions;
-- OQ-029 through OQ-031 — golden-image and performance-validation policy.
+- OQ-036  missing-neighbor/remesh policy for terrain meshing;
+- OQ-037  remaining scalar wire portability policy;
+- OQ-038  request/cache/eviction/partial-response details;
+- OQ-039  exact terrain-generator fixture coordinates/Definitions;
+- OQ-029 through OQ-031  golden-image and performance-validation policy.
 
 Do not hide one of these unresolved choices inside a coding ticket.

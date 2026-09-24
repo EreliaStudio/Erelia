@@ -43,3 +43,4 @@ Resolved greenfield decisions are indexed below. Questions and their resolution 
 | DR-015 | [First deterministic terrain validation scene](DR-015-FIRST-TERRAIN-VALIDATION-SCENE.md) | Resolved | Terrain validation fixture | — |
 | DR-016 | [Use Sparkle networking and plan Server as a node router](DR-016-SPARKLE-NETWORK-NODE-ROUTER.md) | Resolved | Networking, Server topology | — |
 | DR-017 | [Voxel::Volume serializes directly through spk::Message](DR-017-VOXEL-VOLUME-MESSAGE-SERIALIZATION.md) | Resolved | Voxel networking/serialization | — |
+| DR-018 | [Shared voxel Shape, Definition, and Catalog contract](DR-018-VOXEL-SHAPE-DEFINITION-CATALOG.md) | Resolved | Core voxel resources, Shape transforms, Catalog loading | DR-012 Orientation mapping only |

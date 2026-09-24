@@ -11,7 +11,7 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-01 — Shared terrain coordinate conversion](ST-001-01-shared-terrain-coordinate-conversion.md) | **Done** | — |
 | [ST-001-02 — Packed Voxel::Cell value type](ST-001-02-packed-voxel-cell.md) | **Done** | Cell portion of OQ-035 resolved |
 | [ST-001-03 — Owning Voxel::Volume](ST-001-03-owning-voxel-volume.md) | **Done** | ST-001-02; OQ-035 resolved |
-| [ST-001-04 — First terrain Definition and Shape contract](ST-001-04-first-terrain-definition-shape-contract.md) | **Draft** | ST-001-02; OQ-039 + Definition/Shape specification gap |
+| [ST-001-04 — First terrain Definition and Shape contract](ST-001-04-first-terrain-definition-shape-contract.md) | **Done** | ST-001-02; DR-018 |
 | [ST-001-05 — Voxel::Volume Message serialization](ST-001-05-voxel-volume-message-serialization.md) | **Blocked** | ST-001-02, ST-001-03; OQ-037 |
 | [ST-001-06 — Deterministic validation terrain generator](ST-001-06-deterministic-validation-terrain-generator.md) | **Blocked** | ST-001-01 through ST-001-04; OQ-039 |
 | [ST-001-07 — Server NodeRouter terrain-node bootstrap](ST-001-07-server-node-router-terrain-node-bootstrap.md) | **Draft** | Server endpoint/lifecycle specification |
@@ -31,7 +31,7 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-02 — Packed Voxel::Cell value type** is **Done** and was merged through PR #8 into the planning branch at `f03894f76fc996d5fba3241e2e51ead848783cad` after CI run #59 and project-owner approval.
 
-**ST-001-03 — Owning Voxel::Volume** is **Done** on `feat/st-001-03-owning-voxel-volume` through PR #9 after project-owner approval and green CI run #105. The final design is an immutable built Volume plus mutable Builder with direct pooled storage: `Voxel::Volume::Buffer` exposes `Buffer::Pool` / `Buffer::Lease`; every Volume owns its own Lease; Volume copies deep-copy into independent pooled Buffers; moves and `Builder(std::move(volume))` transfer/reuse the existing Lease. `contains()` remains the boolean bounds query and `tryGet()` provides optional non-throwing Cell retrieval. Exact 16×16×16 dimensions use a dedicated Chunk pool, while other sizes use an ordered `std::map<std::size_t, Buffer::Pool>` registry selected through `lower_bound()`.
+**ST-001-03 — Owning Voxel::Volume** is **Done** through PR #9 after project-owner approval and green CI run #105. The final design is an immutable built Volume plus mutable Builder with direct pooled storage: `Voxel::Volume::Buffer` exposes `Buffer::Pool` / `Buffer::Lease`; every Volume owns its own Lease; Volume copies deep-copy into independent pooled Buffers; moves and `Builder(std::move(volume))` transfer/reuse the existing Lease. `contains()` remains the boolean bounds query and `tryGet()` provides optional non-throwing Cell retrieval. Exact 16×16×16 dimensions use a dedicated Chunk pool, while other sizes use an ordered `std::map<std::size_t, Buffer::Pool>` registry selected through `lower_bound()`.
 
 ## Remaining blockers
 
@@ -46,9 +46,10 @@ Existing OQs:
 
 Additional Draft-ticket specification gaps exposed by decomposition:
 
-- minimal greenfield Definition/Shape geometry/resource-availability contract;
 - exact EP-001 Server endpoint and Client connection lifecycle/configuration;
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
-The planning branch remains the backlog baseline and contains ST-001-01 / ST-001-02. ST-001-03 is Done on its dedicated feature branch and PR #9 is awaiting the final merge into that planning baseline.
+ST-001-01 / ST-001-02 / ST-001-03 are merged into `master`. ST-001-04 is complete and approved on PR #11, pending merge.
+
+**ST-001-04 — First terrain Definition and Shape contract** is **Done** on `feat/st-001-04-definition-shape-contract` / PR #11 after project-owner approval on 24 September 2026. CI run #127 passed the complete matrix for the pre-redesign implementation. The catalog layer has since been revised to use an Erelia-local abstract `spk::JSON::Catalog<TElement>` base that owns JSON envelope iteration and direct element-value storage and exposes two pure virtual Reader-based key/element parsing hooks returning plain values; `Voxel::Definition` now stores a non-owning `const Shape&`, and Air references a private zero-polygon Shape sentinel owned by the Shape catalog. The project-wide implementation style forbids Erelia `detail` / `details` namespaces except as a last resort in private implementation-only areas. The `std::atomic<spk::UUID>` cache still uses Linux `libatomic`. `spk::JSON::Catalog<TElement>` now stores `Element` values directly rather than `shared_ptr`s, with dedicated generic catalog tests and reference-stability coverage. The voxel subcatalogs inherit the base public `load`/lookup API directly with no forwarding wrappers, use `Material::SlotID` for semantic slot keys, centralize source-aware JSON errors through `spk::JSON::throwAt`, and are implemented one catalog class per source file. The final Shape contract also uses semantic `Voxel::Vertex` values and Sparkle-style `[x, y, z]` vertex JSON arrays, with Sparkle follow-ups #14/#15 tracked under `OPEN_REQUESTS/`. CI run #256 (run ID `35972200952`) passed the complete matrix for code head `7277609a680ab23b501c1b2423d3e7cbaffd8d1f`. The ticket is Done; PR #11 is approved for merge. Sparkle follow-ups #14/#15 remain tracked under `OPEN_REQUESTS/` and do not block completion.
