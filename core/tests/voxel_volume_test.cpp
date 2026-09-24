@@ -297,18 +297,18 @@ TEST(VoxelVolumeBuilder, EqualCellCountsShareTheSamePoolRegardlessOfDimensions)
 	EXPECT_EQ(sameCellCountVolume.cells().data(), chunkData);
 }
 
-TEST(VoxelVolumeBuilder, GeneralPoolUsesSmallestAvailableHigherSizeClass)
+TEST(VoxelVolumeBuilder, PoolCreatesAndReusesPowerOfTwoSizeClasses)
 {
-	const Voxel::Cell *largerBufferData = nullptr;
+	const Voxel::Cell *firstBufferData = nullptr;
 
 	{
-		auto largerVolume = makeVolume({10, 10, 50}, 1.0f);
-		largerBufferData = largerVolume.cells().data();
-		ASSERT_NE(largerBufferData, nullptr);
+		auto firstVolume = makeVolume({10, 10, 30}, 1.0f);
+		firstBufferData = firstVolume.cells().data();
+		ASSERT_NE(firstBufferData, nullptr);
 	}
 
-	const auto smallerVolume = makeVolume({9, 10, 50}, 1.0f);
+	const auto secondVolume = makeVolume({7, 10, 50}, 1.0f);
 
-	ASSERT_EQ(smallerVolume.cells().size(), 4500u);
-	EXPECT_EQ(smallerVolume.cells().data(), largerBufferData);
+	ASSERT_EQ(secondVolume.cells().size(), 3500u);
+	EXPECT_EQ(secondVolume.cells().data(), firstBufferData);
 }
