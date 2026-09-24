@@ -2,11 +2,12 @@
 
 #include <algorithm>
 #include <cmath>
-#include <container/json/error.hpp>
 #include <cstdint>
 #include <exception>
-#include <exception.hpp>
 #include <utility>
+
+#include <container/json/error.hpp>
+#include <exception.hpp>
 
 namespace
 {
@@ -70,8 +71,7 @@ namespace Voxel
 		try
 		{
 			position = spk::Vector3::fromJSON(reader.value());
-		}
-		catch (...)
+		} catch (...)
 		{
 			spk::JSON::throwAt(
 				reader.file(),
