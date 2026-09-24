@@ -173,10 +173,7 @@ namespace erelia::server
 					return generateChunk(coordinate);
 				});
 			auto answer = workerPool.submit(std::move(task));
-			_pending.push_back(
-				{
-					.request = request,
-					.answer = std::move(answer)});
+			_pending.push_back(PendingTask{request, std::move(answer)});
 		}
 
 		auto iterator = _pending.begin();
