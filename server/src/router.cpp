@@ -125,8 +125,7 @@ Router::~Router()
 	try
 	{
 		stop();
-	}
-	catch (...)
+	} catch (...)
 	{
 	}
 }
@@ -142,8 +141,7 @@ void Router::_attemptConnection(
 			node.configuration.port);
 		node.nextConnectionAttempt =
 			std::chrono::steady_clock::time_point::max();
-	}
-	catch (const std::exception &exception)
+	} catch (const std::exception &exception)
 	{
 		SPK_LOG(Warning)
 			<< "Unable to connect Server node '"
