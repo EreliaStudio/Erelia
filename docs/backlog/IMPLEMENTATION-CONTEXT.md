@@ -80,7 +80,7 @@ Use Sparkle Version-0.1.3 networking.
 
 The Server starts with `spk::NodeRouter`; do not first build a monolithic bare-`spk::Server` game-message loop and plan to migrate later.
 
-EP-001 begins with one in-process `spk::LocalNode` owning the terrain/Chunk message family. Add further nodes only when a coherent ownership boundary appears. A local node may become a `spk::RemoteNode` later when actual process separation is justified.
+EP-001 uses a separate terrain Server-node process from its first implementation. `EreliaServer` owns the Client-facing `spk::NodeRouter`, which reaches the terrain process through `spk::RemoteNode` / `spk::RemoteNode::Endpoint` as fixed by DR-021.
 
 Client messages express intent/requests. Server code validates and produces canonical results.
 
@@ -117,7 +117,7 @@ The active direction intentionally keeps the voxel data representation small and
   - ST-001-06 intentionally exercises both forms: cube+slab remain in shared aggregate files while slope/stair use individual files for both Shapes and Definitions; this mixed layout is validation, not a final one-file policy;
   - JSON/resource validation errors with source location use the single shared `spk::JSON::throwAt` helper; do not duplicate file/path exception formatting in loaders;
   - Shape, Definition, and aggregate Catalog implementations are split by class into `shape_catalog.cpp`, `definition_catalog.cpp`, and `catalog.cpp`;
-  - shared Shape/Definition catalog machinery currently uses public inheritance from an Erelia-local prototype `spk::JSON::Catalog<TElement>`: the base owns JSON envelope parsing, iteration, duplicate detection, direct `std::unordered_map<TElement::ID, TElement>` value storage, and lookup, while derived catalogs implement only `_parseKey(const spk::JSON::Reader&) -> TElement::ID` and `_parseElement(const spk::JSON::Reader&) -> TElement` pure virtual hooks; parsing returns values and the base stores them directly in `std::unordered_map<TElement::ID, TElement>` with no shared ownership wrapper; catalog elements must be move-constructible, and lookup references/pointers remain stable across later insertions because the catalog exposes no erase operation; the base public `load`/lookup API is inherited directly without forwarding wrappers; derived voxel catalogs should contain only their parsing overrides and genuinely required domain state/constructors; this prototype may be proposed to Sparkle after it has been exercised in Erelia;
+  - shared Shape/Definition catalog machinery uses public inheritance from Sparkle Version-0.1.3 `spk::JSON::Catalog<TElement>`: the base owns JSON envelope parsing, iteration, duplicate detection, direct `std::unordered_map<TElement::ID, TElement>` value storage, and lookup, while derived catalogs implement only `_parseKey(const spk::JSON::Reader&) -> TElement::ID` and `_parseElement(const spk::JSON::Reader&) -> TElement` pure virtual hooks; parsing returns values and the base stores them directly in `std::unordered_map<TElement::ID, TElement>` with no shared ownership wrapper; catalog elements must be move-constructible, and lookup references/pointers remain stable across later insertions because the catalog exposes no erase operation; the base public `load`/lookup API is inherited directly without forwarding wrappers; derived voxel catalogs should contain only their parsing overrides and genuinely required domain state/constructors; the generic catalog and shared JSON error helper are now Sparkle-owned after upstreaming from Erelia;
   - occlusion algorithms/metadata are deliberately not part of ST-001-04.
 
 ### `Voxel::Cell`
@@ -178,7 +178,7 @@ A terrain Chunk is a semantic specialization of Volume. DR-019 fixes:
 - copied Chunks keep old immutable content alive across Collection replacement;
 - no Collection lock is held during expensive generation work.
 
-ST-001-06 also prototypes headless generic Sparkle-shaped infrastructure locally inside Erelia Core: `spk::ThreadSafeSet`, `spk::ThreadSafeQueue`, `spk::Task<TResult>`, `spk::WorkerPool`, and `spk::Singleton<T>`. `ThreadSafeQueue` follows the same shared State / Producer / Consumer / Endpoints shape as Sparkle's `ThreadSafeFIFO`; WorkerPool uses it for stop-token-aware one-job-per-consumer dispatch rather than owning another mutex/condition-variable/queue trio. These live outside the `erelia` include namespace just like the local `spk::JSON::Catalog`, remain standard-library/Sparkle-Core only, and are intended to be proposed to Sparkle after they have been exercised. See DR-020.
+The headless generic facilities first prototyped by ST-001-06 — `spk::ThreadSafeSet`, `spk::ThreadSafeQueue`, `spk::Task<TResult>`, `spk::WorkerPool`, and `spk::Singleton<T>` — are now owned by Sparkle Version-0.1.3. Erelia consumes the Sparkle implementations directly. DR-020 remains the historical design record for why these facilities were introduced.
 
 Future Client request acquisition uses the same Collection/Provider state machine but ST-001-11 still owns network retry/cache/response policy.
 
@@ -319,9 +319,9 @@ Before implementation code assumes an answer, check the corresponding files unde
 For EP-001 in particular, the still-partial questions include:
 
 - OQ-036  missing-neighbor/remesh policy for terrain meshing;
-- OQ-037  remaining scalar wire portability policy;
-- OQ-038  request/cache/eviction/partial-response details;
-- OQ-039  exact terrain-generator fixture coordinates/Definitions;
+- OQ-037 — resolved generic Volume native-representation contract;
+- OQ-038 — resolved ST-001-08 Chunk wire contract; Client retry/cache/recycle-threshold policy remains in ST-001-11;
+- OQ-039 — resolved exact terrain-generator fixture coordinates/Definitions;
 - OQ-029 through OQ-031  golden-image and performance-validation policy.
 
 Do not hide one of these unresolved choices inside a coding ticket.
