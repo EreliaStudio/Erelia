@@ -75,7 +75,7 @@ Core `Chunk::Collection` owns coordinate->immutable-Chunk storage and returns ch
 
 A Client request Provider may return an empty valid 16x16x16 placeholder immediately after issuing the request. When canonical Server data arrives, the Client replaces the complete Collection Chunk value rather than mutating the placeholder. Any renderer/mesher still holding an older copied Chunk keeps its old immutable content alive.
 
-Exact eviction, outstanding/retry and stale/unsolicited response rules remain blocked by OQ-038.
+OQ-038/DR-022 fixes the shared wire contract and terminal-response semantics. Exact eviction, retry timing, recycle threshold, disconnect handling, and stale/unsolicited response policy remain this ticket's own unresolved Client-coordinator specification.
 
 ## Serialization / persistence
 
@@ -167,7 +167,7 @@ Not applicable.
 
 - [DR-014](../../../DECISIONS/DR-014-BATCHED-CHUNK-PROTOCOL-DIRECTION.md)
 - [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
-- [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — blocking.
+- [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — resolved by DR-022 for the shared Chunk protocol.
 
 ## Completion evidence
 
