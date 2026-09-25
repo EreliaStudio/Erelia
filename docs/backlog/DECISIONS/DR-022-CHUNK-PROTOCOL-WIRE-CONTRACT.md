@@ -57,14 +57,16 @@ Construction uses:
 
 ```cpp
 Chunk::Protocol::Request request;
-request.add(coordinate);
+const bool inserted = request.add(coordinate);
 ```
+
+The Request keeps its accepted coordinates in a `std::set<Chunk::Coordinate>`. `add()` returns `true` and appends the coordinate to the payload only when the coordinate was not already present. A duplicate add returns `false` and leaves the payload unchanged.
 
 ### Duplicate coordinates
 
-Duplicate coordinates inside one Request are protocol misuse, but they do not reject otherwise valid unique demand.
+The typed construction API prevents duplicate coordinates from being serialized. Duplicate coordinates can still exist in an incoming raw Sparkle Message produced by an invalid or non-conforming peer, so Request decoding remains defensive.
 
-Only the first occurrence participates in normal Chunk resolution. For each distinct coordinate that appeared more than once, the Server emits one diagnostic in a correlated `ChunkError`.
+For decoded input, only one instance participates in normal Chunk resolution. The Request exposes the distinct duplicated coordinates through its duplicate-coordinate set, and the Server emits one diagnostic in a correlated `ChunkError` for each of them.
 
 ```cpp
 enum class Chunk::Protocol::Error::Code : std::uint8_t
@@ -201,11 +203,11 @@ Later Server/Client consumers catch protocol exceptions at the network boundary,
 - request, response, and error counts are derived rather than serialized;
 - Response ranges can be divided directly for parallel work;
 - async completion order does not change Response encoding;
-- duplicate misuse remains observable without becoming a normal result state;
+- the typed Request builder prevents duplicate coordinates from being serialized, while defensive decoding keeps duplicate misuse observable without making it a normal result state;
 - RequestID reuse needs no Server reset handshake;
 - Client retry/cache/disconnect policy remains outside Core;
 - Server and Client must consume these shared Core protocol types rather than reimplement payload serialization.
 
 ## Required tests
 
-ST-001-08 must cover exact nominal and malformed fixtures for all three Message types, including 1/1024 Request boundaries, negative coordinates, duplicates, every Response state/group combination, empty groups, deterministic sorting, fixed Chunk Cell order, invalid offsets/states/codes/sizes/order/duplicates/trailing bytes, non-zero correlation, and cursor-independent Response section access.
+ST-001-08 must cover exact nominal and malformed fixtures for all three Message types, including 1/1024 Request boundaries, negative coordinates, duplicate `add()` refusal without payload mutation, defensive decoding of raw duplicate Request coordinates, every Response state/group combination, empty groups, deterministic sorting, fixed Chunk Cell order, invalid offsets/states/codes/sizes/order/duplicates/trailing bytes, non-zero correlation, and cursor-independent Response section access.

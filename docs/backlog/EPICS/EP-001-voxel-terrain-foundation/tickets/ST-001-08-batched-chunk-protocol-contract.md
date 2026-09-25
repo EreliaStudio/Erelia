@@ -56,7 +56,8 @@ The protocol uses typed Erelia messages built on `spk::Message`:
 - `Chunk::Protocol::Request` generates a non-zero request ID from a thread-safe atomic sequence and stores it in the Sparkle Message header; request ID 0 remains the uncorrelated/default value;
 - correlated `ChunkResponse` and `ChunkError` messages reuse the originating request ID;
 - one request carries 1..1024 Chunk coordinates; its payload is exactly the contiguous coordinate entries with no serialized count, and the decoder derives cardinality from payload size;
-- duplicate coordinates are protocol misuse: only the first occurrence participates in normal resolution, while one `DuplicateCoordinate` diagnostic is reported for each distinct duplicated coordinate; the Error payload is a contiguous sequence of fixed `[Code:uint8][Chunk::Coordinate]` entries with no serialized count;
+- `Chunk::Protocol::Request` stores accepted coordinates in a `std::set<Chunk::Coordinate>`; `add()` returns `true` and serializes a coordinate only when newly inserted, while duplicate adds return `false` without mutating the payload;
+- duplicate coordinates remain protocol misuse on incoming raw Messages: defensive decoding exposes one distinct duplicate coordinate for each repeated value so the Server can report one `DuplicateCoordinate` diagnostic per coordinate; the Error payload is a contiguous sequence of fixed `[Code:uint8][Chunk::Coordinate]` entries with no serialized count;
 - `ChunkError` diagnostics are sorted X/Y/Z and, when present, are sent before the normal response;
 - `ChunkResponse` is always the terminal Chunk-protocol message for its request ID;
 - responses group entries as Success, Rejected, then Unavailable, with X/Y/Z lexicographic ordering inside each group;
@@ -73,10 +74,10 @@ Request construction uses an incremental typed API:
 
 ```cpp
 Chunk::Protocol::Request request;
-request.add(coordinate);
+const bool inserted = request.add(coordinate);
 ```
 
-`Chunk::Protocol::Request` sets `Networking::MessageType::ChunkRequest` itself, owns assignment of the generated non-zero Sparkle RequestID, and appends coordinates through `add()`. Ordinary callers do not manually write the raw request payload.
+`Chunk::Protocol::Request` sets `Networking::MessageType::ChunkRequest` itself, owns assignment of the generated non-zero Sparkle RequestID, stores accepted coordinates in a `std::set<Chunk::Coordinate>`, and appends only newly inserted coordinates through `add()`. Duplicate calls return `false` and do not alter the serialized payload. Ordinary callers do not manually write the raw request payload.
 
 Response construction uses:
 
@@ -150,7 +151,8 @@ The implementation test matrix must include:
 - 1024-coordinate Request boundary and rejection of the derived 1025-coordinate payload;
 - positive and negative coordinate components preserved exactly;
 - empty and misaligned Request payload rejection;
-- Request duplicate input where the first occurrence participates in normal resolution and one diagnostic is produced for each distinct duplicated coordinate;
+- duplicate Request `add()` calls returning `false` without changing the payload;
+- raw incoming Request duplicate input where unique coordinates remain available for normal resolution and one distinct duplicate coordinate is exposed for each repeated value;
 - Error payload with no count, fixed `[Code:uint8][Coordinate]` entries, deterministic X/Y/Z ordering, and non-zero correlation;
 - Response summary exactly three `std::uint32_t` offsets with `successOffset == 12`;
 - all-empty-group boundary combinations through equal offsets;
@@ -215,7 +217,7 @@ Primary acceptance area.
 
 ### Retry / idempotency
 
-Request retry semantics are not owned by codec, but duplicate-coordinate behavior inside one batch is.
+Request retry semantics are not owned by codec. Within one typed Request, repeated `add()` calls for the same coordinate are idempotent with respect to the payload and return `false`; defensive decode still identifies duplicates from non-conforming raw Messages.
 
 ### Concurrency / cancellation
 

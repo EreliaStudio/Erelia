@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <set>
 #include <vector>
 
 #include <network/message.hpp>
@@ -14,8 +15,8 @@ public:
 	class Request final : public spk::Message
 	{
 	private:
-		std::vector<Coordinate> _coordinates;
-		std::vector<Coordinate> _duplicateCoordinates;
+		std::set<Coordinate> _coordinates;
+		std::set<Coordinate> _duplicateCoordinates;
 
 		void _decode();
 
@@ -23,10 +24,10 @@ public:
 		Request();
 		explicit Request(const spk::Message &message);
 
-		void add(const Coordinate &coordinate);
+		[[nodiscard]] bool add(const Coordinate &coordinate);
 
-		[[nodiscard]] const std::vector<Coordinate> &coordinates() const noexcept;
-		[[nodiscard]] const std::vector<Coordinate> &duplicateCoordinates() const noexcept;
+		[[nodiscard]] const std::set<Coordinate> &coordinates() const noexcept;
+		[[nodiscard]] const std::set<Coordinate> &duplicateCoordinates() const noexcept;
 	};
 
 	class Error final : public spk::Message

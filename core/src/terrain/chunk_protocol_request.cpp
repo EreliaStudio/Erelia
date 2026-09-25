@@ -1,12 +1,11 @@
 #include "erelia/core/chunk_protocol.hpp"
 
-#include <algorithm>
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <set>
 #include <type_traits>
-#include <unordered_set>
 
 #include <exception.hpp>
 
@@ -90,25 +89,16 @@ void Chunk::Protocol::Request::_decode()
 		throw spk::Exception("Chunk::Protocol::Request exceeds the 1024-coordinate limit");
 	}
 
-	std::vector<Coordinate> coordinates;
-	std::vector<Coordinate> duplicateCoordinates;
-	coordinates.reserve(coordinateCount);
-	duplicateCoordinates.reserve(coordinateCount);
-
-	std::unordered_set<Coordinate> seen;
-	std::unordered_set<Coordinate> duplicated;
+	std::set<Coordinate> coordinates;
+	std::set<Coordinate> duplicateCoordinates;
 
 	for (std::size_t index = 0; index < coordinateCount; ++index)
 	{
 		const Coordinate coordinate = readAt<Coordinate>(index * sizeof(Coordinate));
 
-		if (seen.insert(coordinate).second)
+		if (!coordinates.insert(coordinate).second)
 		{
-			coordinates.push_back(coordinate);
-		}
-		else if (duplicated.insert(coordinate).second)
-		{
-			duplicateCoordinates.push_back(coordinate);
+			duplicateCoordinates.insert(coordinate);
 		}
 	}
 
@@ -116,7 +106,7 @@ void Chunk::Protocol::Request::_decode()
 	_duplicateCoordinates = std::move(duplicateCoordinates);
 }
 
-void Chunk::Protocol::Request::add(const Coordinate &coordinate)
+bool Chunk::Protocol::Request::add(const Coordinate &coordinate)
 {
 	validateHeader(*this);
 
@@ -125,31 +115,42 @@ void Chunk::Protocol::Request::add(const Coordinate &coordinate)
 		throw spk::Exception("Chunk::Protocol::Request payload is not coordinate-aligned");
 	}
 
+	if (_coordinates.contains(coordinate))
+	{
+		return false;
+	}
+
 	const std::size_t coordinateCount = size() / sizeof(Coordinate);
 	if (coordinateCount >= MaximumCoordinateCount)
 	{
 		throw spk::Exception("Chunk::Protocol::Request cannot contain more than 1024 coordinates");
 	}
 
-	append(coordinate);
+	const auto [iterator, inserted] = _coordinates.insert(coordinate);
+	if (!inserted)
+	{
+		return false;
+	}
 
-	const auto existing = std::ranges::find(_coordinates, coordinate);
-	if (existing == _coordinates.end())
+	try
 	{
-		_coordinates.push_back(coordinate);
+		append(coordinate);
 	}
-	else if (std::ranges::find(_duplicateCoordinates, coordinate) == _duplicateCoordinates.end())
+	catch (...)
 	{
-		_duplicateCoordinates.push_back(coordinate);
+		_coordinates.erase(iterator);
+		throw;
 	}
+
+	return true;
 }
 
-const std::vector<Chunk::Coordinate> &Chunk::Protocol::Request::coordinates() const noexcept
+const std::set<Chunk::Coordinate> &Chunk::Protocol::Request::coordinates() const noexcept
 {
 	return _coordinates;
 }
 
-const std::vector<Chunk::Coordinate> &Chunk::Protocol::Request::duplicateCoordinates() const noexcept
+const std::set<Chunk::Coordinate> &Chunk::Protocol::Request::duplicateCoordinates() const noexcept
 {
 	return _duplicateCoordinates;
 }
