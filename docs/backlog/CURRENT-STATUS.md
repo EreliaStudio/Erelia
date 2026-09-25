@@ -1,6 +1,6 @@
 # Current Status
 
-**Updated:** 25 September 2026
+**Updated:** 26 September 2026
 **Default baseline:** `master`
 **Active ticket branch:** `feat/st-001-09-server-chunk-request-handler`
 
@@ -8,7 +8,7 @@
 
 ST-001-01 through ST-001-08 are completed on `master`.
 
-The latest `master` removes the temporary Erelia-local Sparkle prototypes after those reusable facilities were upstreamed into Sparkle Version-0.1.3. Erelia consumes the Sparkle-owned ArgumentParser, JSON Catalog/error helpers, ThreadSafeSet, ThreadSafeQueue, Task, WorkerPool, Singleton, and the protocol-v2 networking support required by the Chunk protocol.
+The latest `master` removes the earlier temporary Erelia-local Sparkle prototypes after those reusable facilities were upstreamed into Sparkle Version-0.1.3. Sparkle Version-0.1.3 now also contains the merged Task completion contract, thread-safe ContractProvider, and TaskGroup required by ST-001-09. Erelia should consume these Sparkle-owned facilities directly rather than retain the temporary TaskGroup prototype currently present on the active feature branch.
 
 ST-001-08 is merged through PR #16. Core now owns the finalized batched Chunk Request/Response/Error protocol and its dedicated tests.
 
@@ -42,9 +42,11 @@ The merged contract includes:
 
 The next dependency-ordered ticket is **ST-001-09 — Server Chunk request handler**.
 
-ST-001-09 remains **Blocked** until its remaining Server-specific lifecycle/failure behavior and the exact Collection/Provider bridge for per-protocol-request grouped completion are explicitly resolved. ST-001-08 and OQ-038 no longer block it.
+ST-001-09 remains **Blocked** only on its remaining Erelia-specific batch acquisition and Server lifecycle/failure details. The Sparkle asynchronous composition dependency is resolved: Version-0.1.3 now provides Task completion subscriptions, thread-safe ContractProvider, and `spk::TaskGroup<TResult>`.
 
-The active feature branch now contains the first approved batching scaffold: an Erelia-local `spk::TaskGroup<TResult>` prototype with focused Core tests, grouped `PrototypeChunkProvider` WorkerPool submission, and TerrainNode ownership/update-driving of the authoritative `Chunk::Collection`. TaskGroup aggregation is passive: it does not occupy a worker while waiting for child Tasks.
+The approved direction is that TerrainNode keeps each Client protocol Request intact, partitions its distinct coordinates into smaller internal batches, asks `Chunk::Collection` for one asynchronous acquisition Answer per batch, groups those Answers in one Sparkle TaskGroup, and emits one terminal `ChunkResponse` with the original RequestID when the group settles. `Chunk::Collection::Provider` should become a task-construction/submission driver returning Task Answers rather than owning an `update(Collection&)` polling loop.
+
+The temporary Erelia-local TaskGroup scaffold currently on the feature branch is now obsolete and should be removed when implementation is reconciled with the merged Sparkle dependency.
 
 The next planning pass should also include the transport-level reception smoke coverage already identified for ST-001-09: prove that a real `ChunkRequest` crosses Client -> NodeRouter -> RemoteNode -> terrain Endpoint byte-for-byte before testing request parsing/handling semantics.
 
