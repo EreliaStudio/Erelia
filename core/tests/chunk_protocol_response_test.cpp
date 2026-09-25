@@ -84,11 +84,12 @@ namespace
 		const spk::Message &second)
 	{
 		ASSERT_EQ(first.size(), second.size());
-		EXPECT_TRUE(std::equal(
-			first.data().begin(),
-			first.data().end(),
-			second.data().begin(),
-			second.data().end()));
+		EXPECT_TRUE(
+			std::equal(
+				first.data().begin(),
+				first.data().end(),
+				second.data().begin(),
+				second.data().end()));
 	}
 }
 

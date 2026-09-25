@@ -40,10 +40,7 @@ namespace
 
 	[[nodiscard]] bool validState(std::uint8_t state) noexcept
 	{
-		return
-			state == static_cast<std::uint8_t>(Chunk::Protocol::Response::State::Success) ||
-			state == static_cast<std::uint8_t>(Chunk::Protocol::Response::State::Rejected) ||
-			state == static_cast<std::uint8_t>(Chunk::Protocol::Response::State::Unavailable);
+		return state == static_cast<std::uint8_t>(Chunk::Protocol::Response::State::Success) || state == static_cast<std::uint8_t>(Chunk::Protocol::Response::State::Rejected) || state == static_cast<std::uint8_t>(Chunk::Protocol::Response::State::Unavailable);
 	}
 
 	void validateHeader(const spk::Message &message)
@@ -215,9 +212,7 @@ void Chunk::Protocol::Response::_decode()
 		}
 
 		validateOrderedCoordinate(coordinate, previous, hasPrevious, seen);
-		successEntries.push_back({
-			coordinate,
-			decodeChunk(*this, offset + CoordinateAndStateSize)});
+		successEntries.push_back({coordinate, decodeChunk(*this, offset + CoordinateAndStateSize)});
 	}
 
 	previous = {};
@@ -340,9 +335,7 @@ bool Chunk::Protocol::Response::_contains(const Coordinate &coordinate) const no
 		return true;
 	}
 
-	return
-		std::ranges::find(_unavailableCoordinates, coordinate) !=
-		_unavailableCoordinates.end();
+	return std::ranges::find(_unavailableCoordinates, coordinate) != _unavailableCoordinates.end();
 }
 
 void Chunk::Protocol::Response::addSuccess(

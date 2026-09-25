@@ -92,11 +92,12 @@ TEST(ChunkProtocolRequest, GeneratedRequestIDsAreUniqueAcrossConcurrentConstruct
 	}
 
 	ASSERT_EQ(requestIDs.size(), ThreadCount * RequestsPerThread);
-	EXPECT_TRUE(std::ranges::none_of(
-		requestIDs,
-		[](spk::Message::RequestID requestID) {
-			return requestID == 0u;
-		}));
+	EXPECT_TRUE(
+		std::ranges::none_of(
+			requestIDs,
+			[](spk::Message::RequestID requestID) {
+				return requestID == 0u;
+			}));
 
 	std::ranges::sort(requestIDs);
 	EXPECT_EQ(

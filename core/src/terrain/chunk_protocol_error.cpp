@@ -22,8 +22,7 @@ namespace
 
 	[[nodiscard]] bool validCode(std::uint8_t code) noexcept
 	{
-		return code == static_cast<std::uint8_t>(
-			Chunk::Protocol::Error::Code::DuplicateCoordinate);
+		return code == static_cast<std::uint8_t>(Chunk::Protocol::Error::Code::DuplicateCoordinate);
 	}
 
 	void validateHeader(const spk::Message &message)
@@ -88,9 +87,7 @@ void Chunk::Protocol::Error::_decode()
 				"Chunk::Protocol::Error coordinates must be unique and sorted X/Y/Z");
 		}
 
-		entries.push_back({
-			static_cast<Code>(rawCode),
-			coordinate});
+		entries.push_back({static_cast<Code>(rawCode), coordinate});
 		previous = coordinate;
 		hasPrevious = true;
 	}
