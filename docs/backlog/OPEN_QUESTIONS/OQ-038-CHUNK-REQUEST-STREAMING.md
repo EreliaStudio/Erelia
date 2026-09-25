@@ -34,7 +34,7 @@ The project owner has now fixed several ST-001-08 protocol details:
 - the first values are `ChunkRequest = 1` and `ChunkResponse = 2`;
 - top-level Chunk protocol messages are domain types such as `Chunk::Protocol::Request` and `Chunk::Protocol::Response` built on `spk::Message`, set their own message type at construction, and expose Chunk-protocol operations so ordinary callers do not manually serialize raw `spk::Message` fields;
 - one Chunk request contains at most 1024 coordinates; larger Client demand must be split across multiple messages;
-- duplicate coordinates inside one request are protocol misuse rather than a normal Chunk result state: duplicate occurrences are ignored for Chunk resolution, while a separate correlated protocol-error message reports the misuse;
+- duplicate coordinates inside one request are protocol misuse rather than a normal Chunk result state: duplicate occurrences are ignored for Chunk resolution, while a separate correlated `ChunkError` message type reports the misuse;
 - a Chunk response entry contains its coordinate plus a typed `Chunk::Protocol::Response::State : std::uint8_t`;
 - the response states are `Success = 0`, `Rejected = 1`, and `Unavailable = 2`;
 - only `Success` is followed by the fixed 4096-Cell Chunk payload; `Rejected` and `Unavailable` carry no Chunk data;
@@ -46,12 +46,12 @@ The project owner has now fixed several ST-001-08 protocol details:
 - because correlation is a Sparkle Message header concern, the Erelia Chunk payload does not redundantly serialize a `RequestID`;
 - Sparkle `spk::Message` gains checked, cursor-independent random-access reads with the approved API shape `readAt(std::size_t offset, void* destination, std::size_t size) const` plus a trivially-copyable typed `readAt<TValue>(std::size_t offset) const`;
 - Chunk responses are grouped by result state in the fixed order `Success`, `Rejected`, then `Unavailable`; inside each state group, entries are sorted lexicographically by `Chunk::Coordinate` components in X, then Y, then Z order, making response encoding deterministic independently of request ordering or asynchronous completion order; before the entry data, the response carries a compact summary identifying the first byte of the Success, Rejected, and Unavailable groups so consumers can derive direct offsets for parallel work;
+- `count == 0` is malformed Chunk protocol input: the protocol decoder rejects it, and a network consumer catches/logs/drops it without sending a Chunk response;
 - Client retry timing, cache retention/eviction, desired-region policy, and handling policy for already-completed/unknown responses remain deferred to ST-001-11.
 
 The remaining ST-001-08 blockers are now narrower:
 
-- the exact separate protocol-error message type/payload for duplicate-coordinate misuse;
-- exact zero-coordinate request behavior;
+- the exact numeric `Networking::MessageType` value and payload/cardinality contract for the separate `ChunkError` message;
 - exact duplicate reporting cardinality when a batch contains multiple duplicate occurrences;
 - exact encoding of the response summary: field widths, whether group starts are absolute payload offsets or offsets relative to the entry-data section, and representation of an empty state group;
 - exact malformed-message logging/drop boundary between the pure Core protocol types and the later Server/Client network consumers.
