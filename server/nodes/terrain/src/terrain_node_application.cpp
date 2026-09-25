@@ -71,8 +71,7 @@ int runTerrainNode(int argc, char **argv)
 		node.stop();
 
 		return EXIT_SUCCESS;
-	}
-	catch (const std::exception &exception)
+	} catch (const std::exception &exception)
 	{
 		SPK_LOG(Error)
 			<< exception.what()
