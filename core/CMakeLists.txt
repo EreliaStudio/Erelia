@@ -3,6 +3,9 @@ add_library(EreliaCore STATIC
     src/terrain/chunk.cpp
     src/terrain/chunk_builder.cpp
     src/terrain/chunk_collection.cpp
+    src/terrain/chunk_protocol_error.cpp
+    src/terrain/chunk_protocol_request.cpp
+    src/terrain/chunk_protocol_response.cpp
     src/terrain/coordinate.cpp
     src/voxel/cell.cpp
     src/voxel/catalog.cpp
