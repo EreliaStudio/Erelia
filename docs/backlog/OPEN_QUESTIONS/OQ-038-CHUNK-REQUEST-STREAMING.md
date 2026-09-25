@@ -26,9 +26,31 @@ The Client needs to request nearby Chunks efficiently without making the Server 
 
 ## Remaining ambiguity
 
-Core-local duplicate suppression is now resolved: `Chunk::Collection` owns explicit Absent/Pending/Available state and does not invoke its Provider again while a coordinate is Pending or Available. Each Pending request carries a monotonically increasing generation and stale asynchronous results are rejected.
+Core-local duplicate suppression is already resolved: `Chunk::Collection` owns explicit Absent/Pending/Available state and does not invoke its Provider again while a coordinate is Pending or Available. Each Pending request carries a monotonically increasing generation and stale asynchronous results are rejected.
 
-Network-level retry timing, cache eviction/retention, batch/request limits, partial-success behavior, stale/unsolicited network response behavior, and invalid/unavailable-coordinate response semantics remain open.
+The project owner has now fixed several ST-001-08 protocol details:
+
+- Erelia owns a typed `Networking::MessageType` enum whose underlying type is `spk::Message::Type`;
+- the first values are `ChunkRequest = 1` and `ChunkResponse = 2`;
+- top-level Chunk protocol messages are domain types such as `Chunk::Protocol::Request` and `Chunk::Protocol::Response` built on `spk::Message`, set their own message type at construction, and expose Chunk-protocol operations so ordinary callers do not manually serialize raw `spk::Message` fields;
+- one Chunk request contains at most 1024 coordinates; larger Client demand must be split across multiple messages;
+- duplicate coordinates inside one request are protocol misuse rather than a normal Chunk result state: duplicate occurrences are ignored for Chunk resolution, while a separate correlated protocol-error message reports the misuse;
+- a Chunk response entry contains its coordinate plus a typed `Chunk::Protocol::Response::State : std::uint8_t`;
+- the response states are `Success = 0`, `Rejected = 1`, and `Unavailable = 2`;
+- only `Success` is followed by the fixed 4096-Cell Chunk payload; `Rejected` and `Unavailable` carry no Chunk data;
+- `Unavailable` is a normal result state, not a protocol error;
+- malformed network/protocol input must not terminate the Server or Client process: lower-level decoding may throw, but the network-processing boundary catches the failure, logs it through Sparkle logging, drops/rejects the malformed message as appropriate, and continues processing later traffic;
+- Client retry timing, cache retention/eviction, desired-region policy, and handling policy for already-completed/unknown responses remain deferred to ST-001-11.
+
+The remaining ST-001-08 blockers are now narrower:
+
+- whether request/response correlation becomes a native Sparkle `spk::Message` field and network-frame field rather than an Erelia payload field, including exact type/generation/preservation semantics through `RemoteNode`;
+- the exact separate protocol-error message type/payload for duplicate-coordinate misuse;
+- exact zero-coordinate request behavior;
+- exact duplicate reporting cardinality when a batch contains multiple duplicate occurrences;
+- exact response ordering after duplicate occurrences are ignored;
+- the exact random-access `spk::Message` API required for offset-based/parallel payload reading, and whether ST-001-08 needs only random-access byte/value reads or an additional response-entry indexing structure;
+- exact malformed-message logging/drop boundary between the pure Core protocol types and the later Server/Client network consumers.
 
 DR-019 also removes the former empty-Chunk placeholder idea from the generic Collection contract. Pending is represented as state, not as fake voxel content. Existing copied Available Chunk values remain valid through immutable shared Volume content.
 
@@ -38,4 +60,6 @@ Use batched Client-driven Chunk requests. The Client chooses its view region (ha
 
 Use the Core `Chunk::Collection` / nested Provider abstraction established by DR-019 when ST-001-11 is implemented. A missing requested coordinate becomes Pending; no placeholder Chunk is published. The Client Provider may perform asynchronous network work and later publish the canonical complete Chunk only for the matching generation.
 
-Remaining network retry timing, absent/stale/unsolicited response policy, cache/retention, batch limits and partial-response details are not yet chosen.
+Use the approved Erelia typed message/state conventions above. Keep protocol misuse (such as duplicate coordinates) distinct from normal per-coordinate availability/rejection state.
+
+Remaining network retry timing and cache/retention policy stay outside ST-001-08 and belong to ST-001-11. The remaining wire-level correlation/error/random-access details above must be resolved before OQ-038 can be marked Resolved and ST-001-08 promoted to Ready.
