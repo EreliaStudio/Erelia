@@ -119,23 +119,34 @@ The final mutation of `Chunk::Collection` therefore remains on the update thread
 
 ## ST-001-09 TaskGroup refinement
 
-ST-001-09 adds a new Erelia-local Sparkle-shaped prototype, `spk::TaskGroup<TResult>`, after the original DR-020 primitives were moved into Sparkle Version-0.1.3.
+The TaskGroup prototype discussed during ST-001-09 planning has now been upstreamed and merged into Sparkle Version-0.1.3 together with Task completion contracts and thread-safe `spk::ContractProvider`.
 
-A TaskGroup owns a series of homogeneous `spk::Task<TResult>` values and submits each child independently to an existing `spk::WorkerPool`. Submission returns one lightweight `TaskGroup<TResult>::Answer` that passively aggregates the child Answers; the group never consumes a worker merely to wait for other workers.
+The authoritative Sparkle contract is now:
 
-The aggregate status is:
+- `Task<TResult>::Answer::subscribeToCompletion(...)` returns a normal `ContractProvider<>::Contract`;
+- subscribing while a Task is Pending registers the completion callback, while subscribing after it is already terminal invokes the callback immediately;
+- `ContractProvider` synchronizes cross-thread subscription, resignation, invalidation, validity checks, and dispatch;
+- `spk::TaskGroup<TResult>` groups already-running `Task<TResult>::Answer` values;
+- TaskGroup does not submit child Tasks and does not consume another WorkerPool thread merely to wait;
+- the grouped Answer stays Pending while any child is Pending;
+- it becomes Completed when every child completed successfully;
+- it becomes Failed only after every child is terminal when at least one child failed;
+- child Answers remain individually available in insertion order;
+- TaskGroup exposes the same completion-subscription model.
 
-- `Pending` while at least one child Task is Pending;
-- `Completed` when every child Task completed successfully;
-- `Failed` when every child Task is terminal and at least one child Task failed.
+ST-001-09 uses these primitives directly from Sparkle. The temporary Erelia-local TaskGroup prototype is no longer part of the target architecture and should be removed from the active feature branch when the ticket implementation is reconciled with the merged dependency.
 
-The grouped Answer preserves child Answer insertion order and exposes each child Answer so callers can retain per-item success/failure information after the aggregate becomes terminal. An empty group is immediately Completed.
+The intended Erelia ownership is now:
 
-The prototype lives in Erelia Core under namespace `spk` while its contract is exercised. If the API proves reusable and stable, moving it into Sparkle is intentionally a later change rather than part of ST-001-09.
+- TerrainNode splits one Client protocol request into smaller internal coordinate batches;
+- Chunk::Collection exposes batched asynchronous acquisition and returns one Answer per internal batch;
+- Collection::Provider acts only as the WorkerPool-facing task factory/driver: accept the missing coordinates for an acquisition batch, construct/submit the Task, and return its Answer;
+- Provider no longer owns an `update(Collection&)` polling loop;
+- Collection owns authoritative availability, pending-work reuse, deduplication, and cache transitions;
+- TerrainNode groups the Collection Answers in one Sparkle TaskGroup and subscribes once to grouped completion;
+- grouped completion produces one terminal ChunkResponse correlated with the original Client RequestID.
 
-`PrototypeChunkProvider` uses TaskGroup to submit each drained set of missing Chunk-generation jobs as one observable worker batch while still publishing/failing every original `Chunk::Collection::Request` independently. The terrain node owns the authoritative Collection and drives its update pass.
-
-This refinement does not yet expose Provider-owned child Task Answers through `Chunk::Collection`. Therefore the terrain protocol handler cannot yet retain a per-protocol-request `TaskGroup::Answer` without an explicit follow-up decision about the Collection/Provider boundary. That bridge must not be created by leaking the concrete Provider or silently replacing DR-019's generic Provider contract.
+The exact Erelia batch-result type and the precise Collection representation for overlapping Available/Pending/Absent coordinates remain ST-001-09 design details and are not defined by Sparkle.
 
 ## Consequences
 
@@ -145,7 +156,7 @@ This refinement does not yet expose Provider-owned child Task Answers through `C
 - typed Task results coexist on one polymorphic Job queue;
 - WorkerPool does not duplicate mutex/condition-variable/queue synchronization already owned by `ThreadSafeQueue`;
 - request producers can deduplicate batches through `ThreadSafeSet`;
-- Erelia gains a concrete proving ground before proposing these APIs to Sparkle.
+- the asynchronous primitives proven in Erelia are now Sparkle-owned and consumed directly by Erelia.
 
 ## Required tests
 
