@@ -1,0 +1,13 @@
+{
+  "server config": {
+    "port": 2550,
+    "nodeReconnectDelayMs": 1000
+  },
+  "nodes": [
+    {
+      "name": "terrain",
+      "address": "127.0.0.1",
+      "port": 2551
+    }
+  ]
+}

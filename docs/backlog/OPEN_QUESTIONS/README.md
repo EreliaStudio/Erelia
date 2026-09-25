@@ -51,7 +51,7 @@ Statuses:
 | OQ-037 | [What networking transport and serialization / framing should EP-001 use?](OQ-037-EP001-NETWORK-SERIALIZATION.md) | Resolved | DR-016, DR-017 |
 | OQ-038 | [What are the first Chunk request / streaming semantics?](OQ-038-CHUNK-REQUEST-STREAMING.md) | Partially resolved | DR-014 |
 | OQ-039 | [What exact basic terrain generator should be the first deterministic fixture?](OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) | Resolved | DR-015 |
-| OQ-040 | [Should EP-001 use NodeRouter from the first Server implementation?](OQ-040-EP001-SERVER-NODE-ROUTER.md) | Resolved | DR-016 |
+| OQ-040 | [Should EP-001 use NodeRouter from the first Server implementation?](OQ-040-EP001-SERVER-NODE-ROUTER.md) | Resolved | DR-016, DR-021 |
 
 ## Maintenance rule
 

@@ -1,11 +1,6 @@
-#include "erelia/server/status.hpp"
+#include "erelia/server/application.hpp"
 
-#include <design_pattern/singleton.hpp>
-#include <threading/worker_pool.hpp>
-
-int main()
+int main(int argc, char **argv)
 {
-	spk::Singleton<spk::WorkerPool>::instanciate(
-		new spk::WorkerPool());
-	return status();
+	return runServer(argc, argv);
 }

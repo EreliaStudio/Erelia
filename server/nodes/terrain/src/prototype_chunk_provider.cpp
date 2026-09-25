@@ -1,4 +1,4 @@
-#include "erelia/server/terrain/prototype_chunk_provider.hpp"
+#include "prototype_chunk_provider.hpp"
 
 #include "erelia/core/chunk_builder.hpp"
 #include "erelia/core/voxel/cell.hpp"

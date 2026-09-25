@@ -90,4 +90,4 @@ The initial router + one LocalNode approach was explicitly approved by the proje
 
 ## Supersession
 
-None.
+DR-021 supersedes only this record's initial in-process `LocalNode` deployment choice. Sparkle networking, the Client-facing `spk::NodeRouter`, message-type routing, and the authority/serialization consequences in this record remain active.

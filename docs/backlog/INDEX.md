@@ -50,6 +50,7 @@ Architecture documents should be added only after a durable cross-cutting invari
 - [DR-018 — Shared voxel Shape, Definition, and Catalog contract](DECISIONS/DR-018-VOXEL-SHAPE-DEFINITION-CATALOG.md)
 - [DR-019 — Immutable shared Volume content and asynchronous Chunk Collection/Provider](DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
 - [DR-020 — Headless asynchronous task infrastructure prototype](DECISIONS/DR-020-HEADLESS-ASYNC-TASK-INFRASTRUCTURE.md)
+- [DR-021 — Start logical Server nodes as remote processes](DECISIONS/DR-021-REMOTE-SERVER-NODES-FROM-FIRST-IMPLEMENTATION.md)
 
 OPEN_QUESTIONS/ contains the question register, including resolved questions for traceability. Create a DR only when a real choice has concrete alternatives that need durable resolution.
 
@@ -61,9 +62,9 @@ EP-001 is the active near-term planning focus.
 
 ## Implementation tickets
 
-ST-001-01 through ST-001-05 are Done. ST-001-06 is Ready / active on its dedicated branch and currently under implementation/review.
+ST-001-01 through ST-001-07 are Done. There is currently no active implementation ticket.
 
-Later tickets remain gated by their own dependencies and unresolved OQs.
+ST-001-08 is the next dependency-ordered ticket and remains blocked by OQ-038. Later tickets remain gated by their own dependencies and unresolved OQs.
 
 ## Keyword navigation
 
