@@ -1,4 +1,5 @@
-#include "erelia/core/chunk_protocol_error.hpp"\n#include "erelia/core/networking/message_type.hpp"
+#include "erelia/core/chunk_protocol_error.hpp"
+#include "erelia/core/networking/message_type.hpp"
 
 #include <algorithm>
 #include <cstddef>
