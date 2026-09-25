@@ -71,8 +71,7 @@ int runServer(int argc, char **argv)
 		router.stop();
 
 		return EXIT_SUCCESS;
-	}
-	catch (const std::exception &exception)
+	} catch (const std::exception &exception)
 	{
 		SPK_LOG(Error)
 			<< exception.what()
