@@ -32,9 +32,7 @@ namespace spk
 			throw spk::Exception("ArgumentParser option requires a long or short name");
 		}
 
-		const std::string key = option.longName.empty()
-			? std::string(1, option.shortName)
-			: option.longName;
+		const std::string key = option.longName.empty() ? std::string(1, option.shortName) : option.longName;
 
 		if (_options.contains(key))
 		{
@@ -62,9 +60,7 @@ namespace spk
 
 	bool ArgumentParser::_isShortOption(const std::string &token) noexcept
 	{
-		return token.size() >= 2 &&
-			token[0] == '-' &&
-			(token.size() == 2 || token[1] != '-');
+		return token.size() >= 2 && token[0] == '-' && (token.size() == 2 || token[1] != '-');
 	}
 
 	ArgumentParser::Option &ArgumentParser::_requireByLong(
