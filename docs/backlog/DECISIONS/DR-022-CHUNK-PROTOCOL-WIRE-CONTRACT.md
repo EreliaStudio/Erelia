@@ -31,9 +31,11 @@ enum class Networking::MessageType : spk::Message::Type
 
 Typed protocol messages derive from `spk::Message`, set their own Message type, and hide ordinary payload serialization behind Chunk-domain operations.
 
+Every protocol message uses a nested `Builder` for local construction. Builders own temporary semantic containers while assembling data. Final `Request`, `Error`, and `Response` objects keep no mirrored semantic vectors/sets: the inherited `spk::Message` payload is their single persistent representation. Builders compute the final payload size, call `resize()` once, and write the encoded content with `edit()`.
+
 ### Correlation
 
-`Chunk::Protocol::Request` assigns a non-zero `spk::Message::RequestID` from a thread-safe atomic monotonically increasing sequence. Request ID 0 remains Sparkle's uncorrelated/default value.
+`Chunk::Protocol::Request::Builder::build()` assigns a non-zero `spk::Message::RequestID` from a thread-safe atomic monotonically increasing sequence to the finalized Request. Request ID 0 remains Sparkle's uncorrelated/default value.
 
 `ChunkResponse` and `ChunkError` reuse the originating RequestID. RequestID is Sparkle header metadata and is not duplicated in any Erelia payload.
 
@@ -56,17 +58,19 @@ There is no serialized count. Cardinality is derived from payload size divided b
 Construction uses:
 
 ```cpp
-Chunk::Protocol::Request request;
-const bool inserted = request.add(coordinate);
+Chunk::Protocol::Request::Builder builder;
+builder.add(coordinate);
+
+Chunk::Protocol::Request request = std::move(builder).build();
 ```
 
-The Request keeps its accepted coordinates in a `std::set<Chunk::Coordinate>`. `add()` returns `true` and appends the coordinate to the payload only when the coordinate was not already present. A duplicate add returns `false` and leaves the payload unchanged.
+The Request Builder preserves coordinate insertion order in a temporary `std::vector<Chunk::Coordinate>`. `build()` allocates the final Message payload once and writes the complete contiguous coordinate block into it. The finalized Request stores only the Message payload and exposes cursor-independent coordinate access over that payload.
 
 ### Duplicate coordinates
 
-The typed construction API prevents duplicate coordinates from being serialized. Duplicate coordinates can still exist in an incoming raw Sparkle Message produced by an invalid or non-conforming peer, so Request decoding remains defensive.
+Duplicate coordinates remain protocol misuse. Request Builder duplicate detection is a Debug-build developer guard only; Release construction does not spend runtime work deduplicating the batch. Incoming Messages are therefore always treated defensively regardless of how they were produced.
 
-For decoded input, only one instance participates in normal Chunk resolution. The Request exposes the distinct duplicated coordinates through its duplicate-coordinate set, and the Server emits one diagnostic in a correlated `ChunkError` for each of them.
+A finalized Request exposes its coordinates directly from Message storage and computes the distinct duplicated-coordinate set on demand when diagnostics are needed. For processing, only the first occurrence participates in normal Chunk resolution, and the Server emits one correlated `ChunkError` diagnostic for each distinct duplicated coordinate.
 
 ```cpp
 enum class Chunk::Protocol::Error::Code : std::uint8_t
@@ -88,11 +92,15 @@ There is no serialized count. Entries are sorted lexicographically by coordinate
 Construction uses:
 
 ```cpp
-Chunk::Protocol::Error error(requestID);
-error.add(
+Chunk::Protocol::Error::Builder builder(requestID);
+builder.add(
     Chunk::Protocol::Error::Code::DuplicateCoordinate,
     coordinate);
+
+Chunk::Protocol::Error error = std::move(builder).build();
 ```
+
+The Builder sorts and validates its temporary entries, then writes the final Error payload once. The finalized Error derives its entry count and reads entries directly from Message storage.
 
 When an Error exists for a request, it is sent before the normal Response.
 
@@ -157,14 +165,16 @@ Chunk dimensions/unit size are omitted because Chunk invariants fix them at 16x1
 Construction uses:
 
 ```cpp
-Chunk::Protocol::Response response(requestID);
+Chunk::Protocol::Response::Builder builder(requestID);
 
-response.addSuccess(coordinate, chunk);
-response.addRejected(coordinate);
-response.addUnavailable(coordinate);
+builder.addSuccess(coordinate, chunk);
+builder.addRejected(coordinate);
+builder.addUnavailable(coordinate);
+
+Chunk::Protocol::Response response = std::move(builder).build();
 ```
 
-The Response implementation owns canonical grouping and sorting regardless of add-call order.
+The Builder owns canonical grouping and sorting regardless of add-call order. During `build()`, it computes the three offsets and exact final payload size, calls `resize()` once, and writes the summary and all groups through `spk::Message::edit()`. Success Cell storage is copied directly from the Chunk's contiguous Cell span into the final Message payload.
 
 The typed Response exposes validated `successOffset()`, `rejectedOffset()`, and `unavailableOffset()` accessors so later WorkerPool consumers can use Sparkle `readAt()` on disjoint ranges.
 
@@ -203,11 +213,12 @@ Later Server/Client consumers catch protocol exceptions at the network boundary,
 - request, response, and error counts are derived rather than serialized;
 - Response ranges can be divided directly for parallel work;
 - async completion order does not change Response encoding;
-- the typed Request builder prevents duplicate coordinates from being serialized, while defensive decoding keeps duplicate misuse observable without making it a normal result state;
+- finalized protocol objects use the Message payload as their single persistent representation; temporary Builder containers are discarded after `build()`;
+- Request Builder duplicate checks are Debug-only developer validation, while defensive payload inspection keeps duplicate misuse observable in every build;
 - RequestID reuse needs no Server reset handshake;
 - Client retry/cache/disconnect policy remains outside Core;
 - Server and Client must consume these shared Core protocol types rather than reimplement payload serialization.
 
 ## Required tests
 
-ST-001-08 must cover exact nominal and malformed fixtures for all three Message types, including 1/1024 Request boundaries, negative coordinates, duplicate `add()` refusal without payload mutation, defensive decoding of raw duplicate Request coordinates, every Response state/group combination, empty groups, deterministic sorting, fixed Chunk Cell order, invalid offsets/states/codes/sizes/order/duplicates/trailing bytes, non-zero correlation, and cursor-independent Response section access.
+ST-001-08 must cover exact nominal and malformed fixtures for all three Message types, including 1/1024 Request boundaries, negative coordinates, the Debug-only Request Builder duplicate guard, defensive inspection of duplicate Request payload coordinates, Message-backed accessors, every Response state/group combination, empty groups, deterministic sorting, fixed Chunk Cell order, invalid offsets/states/codes/sizes/order/duplicates/trailing bytes, non-zero correlation, and cursor-independent Response section access.

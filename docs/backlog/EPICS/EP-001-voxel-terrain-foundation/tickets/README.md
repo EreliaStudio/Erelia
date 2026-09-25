@@ -39,7 +39,7 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-07 — Server NodeRouter remote terrain-node bootstrap** is **Finished** after project-owner review. It establishes the remote terrain-node process, router reconnect/configuration behavior, reusable node generator/template, automatic node discovery, and lifecycle/connectivity/signal-shutdown coverage. PR #14 is the completion/merge vehicle.
 
-**ST-001-08 — Batched Chunk request/response protocol contract** is **In Progress** pending project-owner review. PR #16 now contains the Core `Networking::MessageType` contract, typed `Chunk::Protocol::{Request, Response, Error}` messages, strict decoding/canonical encoding, `std::set`-backed Request duplicate prevention with defensive raw-message duplicate detection, and dedicated protocol TU coverage. CI run #350 (run ID `36130513460`) passed the complete matrix on code head `a061eb47beae262d576d2310d81dc888905d9a88`.
+**ST-001-08 — Batched Chunk request/response protocol contract** is **In Progress** pending project-owner review. PR #16 now contains the Core `Networking::MessageType` contract, typed Message-backed `Chunk::Protocol::{Request, Response, Error}` values, nested construction Builders, one-shot `resize()` + `edit()` encoding, strict decoding/canonical encoding, Debug-only Request Builder duplicate validation with defensive payload duplicate inspection, and dedicated protocol TU coverage. CI run #352 (run ID `36133142739`) passed the complete matrix on code head `94d9196afa2f79608e2ec3ff549c94aa6d101221`.
 
 ## Remaining blockers
 
