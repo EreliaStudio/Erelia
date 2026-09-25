@@ -135,8 +135,7 @@ bool Chunk::Protocol::Request::add(const Coordinate &coordinate)
 	try
 	{
 		append(coordinate);
-	}
-	catch (...)
+	} catch (...)
 	{
 		_coordinates.erase(iterator);
 		throw;
