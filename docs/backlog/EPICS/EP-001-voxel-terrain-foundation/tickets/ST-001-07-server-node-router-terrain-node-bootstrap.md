@@ -120,13 +120,15 @@ Remote-node connection failure is non-fatal and logs Warning. Unrouted Client me
 - Sparkle port 0 for ephemeral listener ports;
 - reconnect fixture obtains an ephemeral terrain port, stops that Endpoint, starts Router against the unavailable port using a short test-only delay, verifies Warning, restarts the Endpoint on that port, and waits with a finite deadline for Connected;
 - no production Chunk message type is invented;
-- EreliaServerSmoke uses the terminating `--help` path; networking lifecycle is tested directly in EreliaServerTestSuite.
+- EreliaServerSmoke uses the terminating `--help` path; networking lifecycle is tested directly in EreliaServerTestSuite;
+- terrain-node application tests run the real application loop, raise SIGINT and SIGTERM, verify termination within a finite deadline, and restore the previous process signal handlers.
 
 ## Acceptance tests
 
 - valid router/node configs parse;
 - malformed/unknown/invalid fields reject;
 - terrain Endpoint starts/stops/restarts;
+- terrain application exits cleanly on SIGINT and SIGTERM;
 - Router starts/stops/restarts and reports actual bound port;
 - Router connects a real RemoteNode to terrain Endpoint;
 - missing terrain Endpoint leaves Router running, logs Warning and later reconnects;
