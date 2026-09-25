@@ -51,6 +51,8 @@ Chunk::Coordinate
 
 Use established project terminology consistently: Core, Server, Client, Chunk, World, Hero, Encounter, Definition, Shape, `Voxel::Cell`, and `Voxel::Volume`.
 
+Prefer typed enums for closed semantic domains such as protocol states, message kinds, result states, and error codes. Use `enum class` with an explicit underlying integer type when storage or serialization width is part of the contract (for example `enum class State : std::uint8_t`). Do not use macros or untyped integer constants for values that have a meaningful finite type domain.
+
 ## 3. Product/module ownership taste
 
 Core / Server / Client are deliberate long-term boundaries.
