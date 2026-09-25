@@ -32,8 +32,7 @@ TerrainNode::~TerrainNode()
 	try
 	{
 		stop();
-	}
-	catch (...)
+	} catch (...)
 	{
 	}
 }
