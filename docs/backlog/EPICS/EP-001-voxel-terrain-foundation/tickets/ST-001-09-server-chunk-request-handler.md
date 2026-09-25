@@ -17,7 +17,7 @@ A real dedicated Server can answer Client terrain requests without exposing Clie
 
 - Depends on ST-001-06, ST-001-07, and ST-001-08.
 - DR-016 and DR-021 fix routing through NodeRouter / RemoteNode to the separate terrain Endpoint process.
-- OQ-038 still leaves duplicate, limits, partial-success, invalid/unavailable-coordinate and outstanding-request behavior unresolved.
+- OQ-038 is resolved by DR-022 for duplicate handling, limits, result states, ordering, correlation, and malformed protocol behavior.
 
 ## Product ownership
 
@@ -46,7 +46,7 @@ Client retry/cache policy, production interest management, persistent terrain ed
 
 ## Public contract
 
-Blocked until ST-001-08/OQ-038 fix exact request limits, duplicate semantics, partial-success/rejection format, and invalid/unavailable-coordinate behavior.
+The shared request limits, duplicate semantics, result-state format, correlation, ordering, and malformed-input contract are fixed by ST-001-08/DR-022. This ticket remains blocked until ST-001-08 is implemented and its own Server lifecycle/failure details are Ready.
 
 ## Invariants
 
@@ -165,7 +165,7 @@ Not applicable.
 - [DR-016](../../../DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md)
 - [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
 - [DR-021](../../../DECISIONS/DR-021-REMOTE-SERVER-NODES-FROM-FIRST-IMPLEMENTATION.md)
-- [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — blocking.
+- [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — resolved by DR-022 for the shared Chunk protocol.
 - [OQ-039](../../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — resolved; exact prototype terrain is fixed by DR-015.
 
 ## Completion evidence
