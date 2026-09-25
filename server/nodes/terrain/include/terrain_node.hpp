@@ -5,6 +5,8 @@
 
 #include <network/remote_node.hpp>
 
+#include "erelia/core/chunk_collection.hpp"
+
 class TerrainNode final
 {
 public:
@@ -19,6 +21,7 @@ public:
 private:
 	Configuration _configuration;
 	spk::RemoteNode::Endpoint _endpoint;
+	Chunk::Collection _chunks;
 
 public:
 	explicit TerrainNode(Configuration configuration);

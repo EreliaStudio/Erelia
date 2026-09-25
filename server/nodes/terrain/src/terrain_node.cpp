@@ -1,5 +1,7 @@
 #include "terrain_node.hpp"
 
+#include "prototype_chunk_provider.hpp"
+
 #include <container/json/reader.hpp>
 
 #include <filesystem>
@@ -23,7 +25,8 @@ TerrainNode::Configuration TerrainNode::Configuration::load(
 }
 
 TerrainNode::TerrainNode(Configuration configuration) :
-	_configuration(std::move(configuration))
+	_configuration(std::move(configuration)),
+	_chunks(PrototypeChunkProvider{})
 {
 }
 
@@ -56,6 +59,7 @@ void TerrainNode::dispatch()
 	if (isRunning())
 	{
 		_endpoint.dispatch();
+		_chunks.update();
 	}
 }
 

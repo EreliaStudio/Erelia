@@ -159,6 +159,10 @@ void PrototypeChunkProvider::update(
 	RequestSet::container_type requests;
 	(void)_requested.drain(requests);
 
+	spk::TaskGroup<Chunk> taskGroup;
+	std::vector<Chunk::Collection::Request> groupedRequests;
+	groupedRequests.reserve(requests.size());
+
 	for (const Chunk::Collection::Request &request : requests)
 	{
 		if (!collection.isPending(request))
@@ -166,35 +170,47 @@ void PrototypeChunkProvider::update(
 			continue;
 		}
 
-		spk::Task<Chunk> task(
-			[coordinate = request.coordinate] {
-				return generateChunk(coordinate);
-			});
-		auto answer = workerPool.submit(std::move(task));
-		_pending.push_back(PendingTask{request, std::move(answer)});
+		taskGroup.add(
+			spk::Task<Chunk>(
+				[coordinate = request.coordinate] {
+					return generateChunk(coordinate);
+				}));
+		groupedRequests.push_back(request);
+	}
+
+	if (!groupedRequests.empty())
+	{
+		_pending.push_back(
+			PendingTaskGroup{
+				std::move(groupedRequests),
+				std::move(taskGroup).submit(workerPool)});
 	}
 
 	auto iterator = _pending.begin();
 	while (iterator != _pending.end())
 	{
-		const spk::Task<Chunk>::Status status =
-			iterator->answer.status();
-
-		if (status == spk::Task<Chunk>::Status::Pending)
+		if (iterator->answer.status() == spk::Task<Chunk>::Status::Pending)
 		{
 			++iterator;
 			continue;
 		}
 
-		if (status == spk::Task<Chunk>::Status::Completed)
+		const auto answers = iterator->answer.answers();
+		for (std::size_t index = 0u; index < answers.size(); ++index)
 		{
-			(void)collection.publish(
-				iterator->request,
-				iterator->answer.result());
-		}
-		else
-		{
-			(void)collection.fail(iterator->request);
+			const auto &answer = answers[index];
+			const auto &request = iterator->requests[index];
+
+			if (answer.status() == spk::Task<Chunk>::Status::Completed)
+			{
+				(void)collection.publish(
+					request,
+					answer.result());
+			}
+			else
+			{
+				(void)collection.fail(request);
+			}
 		}
 
 		iterator = _pending.erase(iterator);

@@ -5,6 +5,7 @@ add_executable(EreliaCoreTestSuite
     chunk_protocol_response_test.cpp
     chunk_test.cpp
     status_test.cpp
+    task_group_test.cpp
     terrain_coordinate_test.cpp
     voxel_catalog_test.cpp
     voxel_cell_test.cpp

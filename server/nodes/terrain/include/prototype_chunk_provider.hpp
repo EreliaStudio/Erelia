@@ -4,9 +4,9 @@
 #include <vector>
 
 #include <container/thread_safe_set.hpp>
-#include <threading/task.hpp>
 
 #include "erelia/core/chunk_collection.hpp"
+#include "erelia/core/task_group.hpp"
 
 class PrototypeChunkProvider final : public Chunk::Collection::Provider
 {
@@ -21,14 +21,14 @@ private:
 		Chunk::Collection::Request,
 		RequestHash>;
 
-	struct PendingTask
+	struct PendingTaskGroup
 	{
-		Chunk::Collection::Request request;
-		spk::Task<Chunk>::Answer answer;
+		std::vector<Chunk::Collection::Request> requests;
+		spk::TaskGroup<Chunk>::Answer answer;
 	};
 
 	RequestSet _requested;
-	std::vector<PendingTask> _pending;
+	std::vector<PendingTaskGroup> _pending;
 
 public:
 	PrototypeChunkProvider() = default;
