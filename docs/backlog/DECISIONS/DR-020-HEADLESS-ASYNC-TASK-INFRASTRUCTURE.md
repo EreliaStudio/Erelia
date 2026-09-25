@@ -117,6 +117,26 @@ The WorkerPool remains generic and has no Chunk, Server-authority, rendering, or
 
 The final mutation of `Chunk::Collection` therefore remains on the update thread rather than occurring directly inside WorkerPool threads.
 
+## ST-001-09 TaskGroup refinement
+
+ST-001-09 adds a new Erelia-local Sparkle-shaped prototype, `spk::TaskGroup<TResult>`, after the original DR-020 primitives were moved into Sparkle Version-0.1.3.
+
+A TaskGroup owns a series of homogeneous `spk::Task<TResult>` values and submits each child independently to an existing `spk::WorkerPool`. Submission returns one lightweight `TaskGroup<TResult>::Answer` that passively aggregates the child Answers; the group never consumes a worker merely to wait for other workers.
+
+The aggregate status is:
+
+- `Pending` while at least one child Task is Pending;
+- `Completed` when every child Task completed successfully;
+- `Failed` when every child Task is terminal and at least one child Task failed.
+
+The grouped Answer preserves child Answer insertion order and exposes each child Answer so callers can retain per-item success/failure information after the aggregate becomes terminal. An empty group is immediately Completed.
+
+The prototype lives in Erelia Core under namespace `spk` while its contract is exercised. If the API proves reusable and stable, moving it into Sparkle is intentionally a later change rather than part of ST-001-09.
+
+`PrototypeChunkProvider` uses TaskGroup to submit each drained set of missing Chunk-generation jobs as one observable worker batch while still publishing/failing every original `Chunk::Collection::Request` independently. The terrain node owns the authoritative Collection and drives its update pass.
+
+This refinement does not yet expose Provider-owned child Task Answers through `Chunk::Collection`. Therefore the terrain protocol handler cannot yet retain a per-protocol-request `TaskGroup::Answer` without an explicit follow-up decision about the Collection/Provider boundary. That bridge must not be created by leaking the concrete Provider or silently replacing DR-019's generic Provider contract.
+
 ## Consequences
 
 - asynchronous execution becomes reusable outside terrain generation;

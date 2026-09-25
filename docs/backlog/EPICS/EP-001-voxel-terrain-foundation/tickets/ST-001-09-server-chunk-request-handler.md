@@ -58,7 +58,9 @@ The shared request limits, duplicate semantics, result-state format, correlation
 
 ## State transitions
 
-Valid request -> validate -> generate/resolve requested Chunks -> send accepted response/rejection according to final protocol.
+Valid request -> validate -> deduplicate protocol coordinates -> resolve/generate the distinct requested Chunks through the Collection/Provider -> wait until every internal worker result belonging to the request is terminal -> compose one terminal `ChunkResponse` using the original RequestID.
+
+The Client does not split its protocol request. One protocol Request may contain up to the ST-001-08 limit of 1024 coordinates. Server-side worker batching is an implementation detail and does not create additional protocol RequestIDs or partial protocol Responses.
 
 Malformed/invalid request -> reject according to final protocol -> no canonical state mutation.
 
@@ -87,6 +89,11 @@ Server validates and returns canonical results. Client only requests coordinates
 - Handler lives in the terrain node process, not either executable `main.cpp`.
 - Use Sparkle NodeRouter response path to the originating Client.
 - Do not introduce a second transport or a Server-selected view radius.
+- Use the Erelia-local `spk::TaskGroup<TResult>` prototype for grouped WorkerPool work rather than consuming a worker to wait on other workers.
+- A TaskGroup Answer becomes terminal only after all of its child Tasks are terminal; mixed child failures remain inspectable so the eventual protocol Response can encode per-coordinate `Success` / `Unavailable`.
+- Keep protocol correlation at the original RequestID: internal worker batches do not own protocol RequestIDs.
+- `PrototypeChunkProvider` currently groups drained generation jobs with TaskGroup while `TerrainNode` owns and updates the authoritative `Chunk::Collection`.
+- Do not expose the concrete Provider from `Chunk::Collection` merely so TerrainNode can reach Provider-owned Task Answers. A direct per-protocol-request TaskGroup handle still requires an explicit Collection/Provider bridge decision.
 
 ## Exact test fixtures
 
@@ -165,6 +172,7 @@ Not applicable.
 - [DR-014](../../../DECISIONS/DR-014-BATCHED-CHUNK-PROTOCOL-DIRECTION.md)
 - [DR-016](../../../DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md)
 - [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
+- [DR-020](../../../DECISIONS/DR-020-HEADLESS-ASYNC-TASK-INFRASTRUCTURE.md)
 - [DR-021](../../../DECISIONS/DR-021-REMOTE-SERVER-NODES-FROM-FIRST-IMPLEMENTATION.md)
 - [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — resolved by DR-022 for the shared Chunk protocol.
 - [OQ-039](../../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — resolved; exact prototype terrain is fixed by DR-015.

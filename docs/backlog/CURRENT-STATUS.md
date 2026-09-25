@@ -2,7 +2,7 @@
 
 **Updated:** 25 September 2026
 **Default baseline:** `master`
-**Active ticket branch:** none
+**Active ticket branch:** `feat/st-001-09-server-chunk-request-handler`
 
 ## Branch state
 
@@ -42,7 +42,9 @@ The merged contract includes:
 
 The next dependency-ordered ticket is **ST-001-09 — Server Chunk request handler**.
 
-ST-001-09 remains **Blocked** until its remaining Server-specific lifecycle/failure behavior is explicitly resolved. ST-001-08 and OQ-038 no longer block it.
+ST-001-09 remains **Blocked** until its remaining Server-specific lifecycle/failure behavior and the exact Collection/Provider bridge for per-protocol-request grouped completion are explicitly resolved. ST-001-08 and OQ-038 no longer block it.
+
+The active feature branch now contains the first approved batching scaffold: an Erelia-local `spk::TaskGroup<TResult>` prototype with focused Core tests, grouped `PrototypeChunkProvider` WorkerPool submission, and TerrainNode ownership/update-driving of the authoritative `Chunk::Collection`. TaskGroup aggregation is passive: it does not occupy a worker while waiting for child Tasks.
 
 The next planning pass should also include the transport-level reception smoke coverage already identified for ST-001-09: prove that a real `ChunkRequest` crosses Client -> NodeRouter -> RemoteNode -> terrain Endpoint byte-for-byte before testing request parsing/handling semantics.
 
