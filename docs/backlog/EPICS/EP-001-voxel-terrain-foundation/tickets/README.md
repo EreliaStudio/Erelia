@@ -15,7 +15,7 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-05 — Voxel::Volume Message serialization](ST-001-05-voxel-volume-message-serialization.md) | **Done** | ST-001-02, ST-001-03; OQ-037 resolved |
 | [ST-001-06 — Deterministic validation terrain provider and Chunk collection foundation](ST-001-06-deterministic-validation-terrain-generator.md) | **Done** | ST-001-01 through ST-001-05; DR-019; DR-020; OQ-039 resolved |
 | [ST-001-07 — Server NodeRouter remote terrain-node bootstrap](ST-001-07-server-node-router-terrain-node-bootstrap.md) | **Done** | ST-001-06; DR-016; DR-021 |
-| [ST-001-08 — Batched Chunk request/response protocol contract](ST-001-08-batched-chunk-protocol-contract.md) | **Ready** | ST-001-01, ST-001-03, ST-001-05; OQ-038 resolved; DR-022 |
+| [ST-001-08 — Batched Chunk request/response protocol contract](ST-001-08-batched-chunk-protocol-contract.md) | **In Progress** | ST-001-01, ST-001-03, ST-001-05; OQ-038 resolved; DR-022 |
 | [ST-001-09 — Server Chunk request handler](ST-001-09-server-chunk-request-handler.md) | **Blocked** | ST-001-06, ST-001-07, ST-001-08; OQ-038 |
 | [ST-001-10 — Client dedicated-Server connection](ST-001-10-client-dedicated-server-connection.md) | **Draft** | ST-001-07; endpoint/connection-lifecycle specification |
 | [ST-001-11 — Client Chunk request/cache coordinator](ST-001-11-client-chunk-request-cache-coordinator.md) | **Blocked** | ST-001-08, ST-001-10; OQ-038 |
@@ -39,6 +39,8 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-07 — Server NodeRouter remote terrain-node bootstrap** is **Finished** after project-owner review. It establishes the remote terrain-node process, router reconnect/configuration behavior, reusable node generator/template, automatic node discovery, and lifecycle/connectivity/signal-shutdown coverage. PR #14 is the completion/merge vehicle.
 
+**ST-001-08 — Batched Chunk request/response protocol contract** is **In Progress** pending project-owner review. PR #16 now contains the Core `Networking::MessageType` contract, typed `Chunk::Protocol::{Request, Response, Error}` messages, strict decoding/canonical encoding, `std::set`-backed Request duplicate prevention with defensive raw-message duplicate detection, and dedicated protocol TU coverage. CI run #350 (run ID `36130513460`) passed the complete matrix on code head `a061eb47beae262d576d2310d81dc888905d9a88`.
+
 ## Remaining blockers
 
 Existing OQs:
@@ -55,4 +57,4 @@ Additional Draft-ticket specification gaps exposed by decomposition:
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
-ST-001-01 through ST-001-07 are completed on `master`. OQ-039 and the ST-001-06 readiness decisions are resolved. ST-001-06 is **Done** and merged through PR #13. ST-001-07 is **Finished/Done** through PR #14 after project-owner review. The next dependency-ordered ticket is ST-001-08, which is **Ready** on `feat/st-001-08-batched-chunk-protocol-contract`.
+ST-001-01 through ST-001-07 are completed on `master`. OQ-039 and the ST-001-06 readiness decisions are resolved. ST-001-06 is **Done** and merged through PR #13. ST-001-07 is **Finished/Done** through PR #14 after project-owner review. ST-001-08 is implemented on `feat/st-001-08-batched-chunk-protocol-contract` and remains **In Progress** pending project-owner review in PR #16.

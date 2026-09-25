@@ -205,7 +205,7 @@ The operators serialize the logical Volume contents—dimensions, unit size, and
 
 `volume.hpp` includes Sparkle's `network/message.hpp` directly because Message is an explicit part of the public Volume API. Networking-specific implementation lives in `core/src/voxel/volume_networking.cpp`, keeping ordinary Volume behavior in `volume.cpp`. Network decoding reconstructs fresh immutable Volume content directly and does not use `Voxel::Volume::Builder`; it must not mutate previously published shared backing storage.
 
-DR-019 also fixes a later dedicated Chunk codec: because Chunk is always 16×16×16 at unit size 1.0f, that codec will transfer only the fixed 4096-Cell block. Dimensions/unit size and higher-level Chunk message identifiers belong to ST-001-08, not ST-001-06.
+ST-001-08 / DR-022 now implement the dedicated Chunk protocol codec. `Networking::MessageType` owns `ChunkRequest`, `ChunkResponse`, and `ChunkError`; `Chunk::Protocol::{Request, Response, Error}` derive from `spk::Message`. Request stores accepted coordinates in `std::set<Chunk::Coordinate>` and `add()` returns `false` without changing the payload for an already-present coordinate, while decoding still detects duplicates present in non-conforming raw Messages. Response Success entries transfer only the fixed 4096-Cell block because Chunk is always 16×16×16 at unit size 1.0f; dimensions/unit size are not serialized.
 
 Do not expose otherwise-unnecessary mutable internals merely to make serialization possible.
 

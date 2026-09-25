@@ -1,6 +1,6 @@
 # ST-001-08 — Batched Chunk request/response protocol contract
 
-**Status:** Ready
+**Status:** In Progress
 **Epic:** EP-001
 **Production target(s):** Core
 **Test suite(s):** EreliaCoreTestSuite
@@ -254,4 +254,20 @@ Not applicable.
 
 ## Completion evidence
 
-The ticket is Ready: OQ-038 and DR-022 fix the wire layout, message IDs, RequestID correlation, count-less payloads, duplicate semantics, result states, deterministic ordering, terminal-response rule, public construction API, response section offsets, strict malformed-input behavior, and exact test matrix. Implementation must not introduce Server handler or Client coordinator policy owned by later tickets.
+Implementation is complete on `feat/st-001-08-batched-chunk-protocol-contract` / PR #16 and is awaiting project-owner review.
+
+The Core implementation adds:
+
+- `Networking::MessageType` with the exact DR-022 numeric values;
+- typed `Chunk::Protocol::Request`, `Chunk::Protocol::Response`, and `Chunk::Protocol::Error` messages derived from `spk::Message`;
+- atomic non-zero RequestID generation;
+- a `std::set<Chunk::Coordinate>` Request API where `add()` returns `false` and leaves the wire payload unchanged for duplicates;
+- defensive raw Request decoding that still exposes distinct duplicated coordinates for later `ChunkError` generation;
+- deterministic Error and Response canonicalization;
+- the three-offset Response summary and fixed 4096-Cell Success payload;
+- strict `spk::Exception` validation of malformed Request/Response/Error messages;
+- dedicated Core TU coverage for boundaries, ordering, malformed input, correlation, deterministic bytes, lifetime, and cursor-independent `readAt()`.
+
+CI run #350 (run ID `36130513460`) passed the complete required matrix on code head `a061eb47beae262d576d2310d81dc888905d9a88`: clang-format, Linux Core/Server Debug + Release, Windows Core/Server Debug + Release, and Windows Client Debug + Release.
+
+The ticket remains **In Progress** until project-owner review/approval is recorded. ST-001-09 Server handling and ST-001-11 Client coordinator policy remain outside this implementation.
