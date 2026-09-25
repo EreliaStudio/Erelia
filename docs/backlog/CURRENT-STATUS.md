@@ -2,40 +2,48 @@
 
 **Updated:** 25 September 2026
 **Default baseline:** `master`
-**Active ticket branch:** none
+**Active ticket branch:** `feat/st-001-08-batched-chunk-protocol-contract`
 
 ## Branch state
 
-ST-001-07 is Finished after project-owner review and is prepared as the post-merge state for PR #14. ST-001-01 through ST-001-07 are treated as completed on `master`.
+ST-001-01 through ST-001-07 are completed on `master`.
 
-ST-001-07 establishes:
+The latest `master` also removes the temporary Erelia-local Sparkle prototypes after those reusable facilities were upstreamed into Sparkle Version-0.1.3. Erelia now consumes the Sparkle-owned ArgumentParser, JSON Catalog/error helpers, ThreadSafeSet, ThreadSafeQueue, Task, WorkerPool, and Singleton facilities.
 
-- the Erelia-owned shared `spk::ArgumentParser` adaptation;
-- `EreliaServer` as the one Client-facing `spk::NodeRouter`;
-- a separate `EreliaTerrainNode` process using `spk::RemoteNode::Endpoint`;
-- router-owned `spk::RemoteNode` connections with Warning + configurable reconnect behavior;
-- explicit router/node JSON configuration passed through `--config`;
-- development defaults of router port `2550` and terrain-node port `2551`;
-- automatic Server-node CMake discovery;
-- reusable `tools/create-server-node.ps1` generation from `tools/templates/server-node/`;
-- node-local tests contributing to `EreliaServerTestSuite`;
-- real loopback connection/reconnection coverage;
-- SIGINT/SIGTERM shutdown coverage for generated node applications.
+Sparkle Version-0.1.3 additionally provides the ST-001-08 prerequisites: native `spk::Message::RequestID`, `requestID()` / `setRequestID()`, checked cursor-independent `readAt()`, protocol-version-2 network framing carrying RequestID, and RequestID preservation through RemoteNode envelopes.
 
-DR-021 supersedes DR-016's original in-process LocalNode deployment detail while retaining the NodeRouter architecture.
+The active feature branch is rebased on that `master` state and contains only ST-001-08 planning/decision documentation.
 
 ## Validation / review state
 
-Project-owner review is complete.
+OQ-038 is Resolved.
 
-CI run #325 passed every Linux/Windows Debug/Release build-and-test job; its only failure was clang-format. The formatting violations were corrected afterward. The final signal-shutdown additions and status edits are part of the PR head and must be covered by the final PR check before merge.
+DR-022 records the final batched Chunk Request/Response/Error wire contract.
+
+ST-001-08 is **Ready** for implementation. Production implementation has not started yet.
+
+The resolved contract fixes:
+
+- `Networking::MessageType` values `ChunkRequest = 1`, `ChunkResponse = 2`, `ChunkError = 3`;
+- non-zero Sparkle RequestID correlation with protocol-owned atomic Request generation;
+- count-less Request and Error payloads;
+- a three-offset count-less Response summary;
+- Success / Rejected / Unavailable result states;
+- deterministic state grouping and X/Y/Z ordering;
+- distinct duplicate-coordinate diagnostics;
+- `ChunkError` before the terminal `ChunkResponse`;
+- safe session-scoped RequestID reuse only after all outstanding terminal Responses;
+- strict Core malformed-input validation and later network-boundary Warning/drop behavior;
+- the approved typed construction APIs and exact test matrix.
 
 ## Next implementation step
 
-There is no active implementation ticket.
+Implement **ST-001-08 — Batched Chunk request/response protocol contract** on the existing branch:
 
-**ST-001-08 — Batched Chunk request/response protocol contract** is the next dependency-ordered ticket, but it remains **Blocked** by OQ-038. Resolve the duplicate/outstanding request, batch-limit, ordering, partial-response, rejection, retry/cache and malformed-payload semantics required by OQ-038 before promoting ST-001-08 to Ready.
+`feat/st-001-08-batched-chunk-protocol-contract`
+
+Implementation is Core-only. Do not implement ST-001-09 Server request handling or ST-001-11 Client retry/cache/coordinator policy as part of this ticket.
 
 ## Explicit non-goals
 
-Do not implement Client networking policy, Chunk protocol/handler behavior, rendering, production terrain generation, or gameplay node families beyond the terrain bootstrap until their owning tickets are Ready.
+Do not implement Server Chunk handling, Client loading/cache/retry policy, rendering, production terrain generation, or gameplay systems beyond the owning Ready ticket.
