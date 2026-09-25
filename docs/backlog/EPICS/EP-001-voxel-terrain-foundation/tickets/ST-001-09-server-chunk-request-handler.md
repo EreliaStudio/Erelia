@@ -71,11 +71,11 @@ The Client does not split its protocol request. One protocol Request may contain
 
 The TaskGroup completion callback is allowed to run on the worker thread that settles the final child Task, or immediately on the subscribing thread if the group is already terminal. The handler implementation must therefore make the captured request/reply state safe for that callback lifetime and must not assume completion callbacks are executed by the TerrainNode dispatch thread.
 
-Malformed/invalid request -> reject according to final protocol -> no canonical state mutation.
+Malformed typed request -> catch the protocol decoding `spk::Exception` at the terrain consumer boundary -> log a Sparkle Warning -> drop the malformed message without a protocol reply -> no canonical state mutation -> continue serving later messages.
 
 ## Failure behavior
 
-OQ-038/DR-022 already fix mixed per-coordinate Success/Rejected/Unavailable protocol semantics. TaskGroup failure means at least one child Task failed after every child settled; the child Answers remain individually inspectable so Server code can still map each coordinate/batch outcome to the terminal protocol Response.
+OQ-038/DR-022 fix the available protocol result states. ST-001-09 currently has no Server policy/domain rule that produces `Rejected`; generated canonical Chunks map to `Success` and accepted coordinates whose generation/acquisition fails map to `Unavailable`. TaskGroup failure means at least one child Task failed after every child settled; the child Answers remain individually inspectable so Server code can still map each coordinate/batch outcome into the one terminal protocol Response.
 
 Remaining failure behavior to resolve before Ready is Server-specific: the exact Collection batch-result representation and cache transition on child failure, reply/send failure handling, and outstanding-request/disconnect lifecycle.
 
@@ -118,8 +118,8 @@ Final Ready fixtures must include:
 - one valid coordinate;
 - valid multi-coordinate batch including negative coordinate;
 - duplicate coordinate case;
-- invalid/unavailable coordinate case;
-- partial-success case if approved;
+- deterministic unavailable/generation-failure case;
+- mixed terminal result case where one requested coordinate succeeds and another becomes unavailable;
 - malformed payload;
 - two Clients issuing distinguishable requests;
 - disconnect during an outstanding request;
@@ -143,7 +143,7 @@ Per OQ-038 final semantics.
 
 ### Failure atomicity
 
-Rejected request does not mutate canonical terrain state; partial response behavior must match final contract exactly.
+Malformed requests do not mutate canonical terrain state. Mixed child success/failure is represented inside the single terminal `ChunkResponse`; ST-001-09 does not emit partial protocol Responses.
 
 ### Determinism
 
