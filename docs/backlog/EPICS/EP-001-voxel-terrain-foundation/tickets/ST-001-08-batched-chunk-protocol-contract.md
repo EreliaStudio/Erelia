@@ -55,8 +55,8 @@ The protocol uses typed Erelia messages built on `spk::Message`:
 - `Networking::MessageType : spk::Message::Type` identifies `ChunkRequest = 1`, `ChunkResponse = 2`, and `ChunkError = 3`;
 - `Chunk::Protocol::Request` generates a non-zero request ID from a thread-safe atomic sequence and stores it in the Sparkle Message header; request ID 0 remains the uncorrelated/default value;
 - correlated `ChunkResponse` and `ChunkError` messages reuse the originating request ID;
-- one request carries 1..1024 Chunk coordinates;
-- duplicate coordinates are protocol misuse: only the first occurrence participates in normal resolution, while one `DuplicateCoordinate` diagnostic is reported for each distinct duplicated coordinate;
+- one request carries 1..1024 Chunk coordinates; its payload is exactly the contiguous coordinate entries with no serialized count, and the decoder derives cardinality from payload size;
+- duplicate coordinates are protocol misuse: only the first occurrence participates in normal resolution, while one `DuplicateCoordinate` diagnostic is reported for each distinct duplicated coordinate; the Error payload is a contiguous sequence of fixed `[Code:uint8][Chunk::Coordinate]` entries with no serialized count;
 - `ChunkError` diagnostics are sorted X/Y/Z and, when present, are sent before the normal response;
 - `ChunkResponse` is always the terminal Chunk-protocol message for its request ID;
 - responses group entries as Success, Rejected, then Unavailable, with X/Y/Z lexicographic ordering inside each group;
@@ -65,6 +65,20 @@ The protocol uses typed Erelia messages built on `spk::Message`:
 - the response payload starts with absolute `std::uint32_t` byte offsets `successOffset`, `rejectedOffset`, and `unavailableOffset`; no redundant response count is serialized because each group count is derived from its byte range and fixed entry size;
 - strict Core decoding throws `spk::Exception` for malformed protocol payloads; later network consumers own Warning logging, dropping the message, and continuing processing;
 - a Client may reuse request IDs only after it has stopped issuing new requests and all outstanding requests in the connection/session have received their terminal `ChunkResponse`; the operational recycle threshold belongs to ST-001-11.
+
+
+### Public API direction
+
+Request construction uses an incremental typed API:
+
+```cpp
+Chunk::Protocol::Request request;
+request.add(coordinate);
+```
+
+`Chunk::Protocol::Request` sets `Networking::MessageType::ChunkRequest` itself, owns assignment of the generated non-zero Sparkle RequestID, and appends coordinates through `add()`. Ordinary callers do not manually write the raw request payload.
+
+The exact public construction/read API for `Chunk::Protocol::Response` and `Chunk::Protocol::Error` must be fixed before implementation so an implementation agent does not invent their external contract.
 
 ## Invariants
 
@@ -130,7 +144,24 @@ Minimum/maximum approved batch sizes and negative coordinates.
 
 ### Invalid / rejected operations
 
-Malformed payload, invalid batch size, invalid/unavailable coordinate semantics per OQ-038.
+Core decoding rejects with `spk::Exception` at least:
+
+- wrong `spk::Message::Type` for the typed protocol object;
+- RequestID 0 where a correlated Chunk request/response/error requires a non-zero ID;
+- empty Request payload;
+- Request payload size not divisible by `sizeof(Chunk::Coordinate)`;
+- derived Request cardinality greater than 1024;
+- truncated coordinate or Chunk Cell data;
+- unknown `Response::State`;
+- unknown `Error::Code`;
+- Response summary offsets outside the payload, out of order, or inconsistent with the fixed summary start;
+- Response group byte ranges not divisible by the fixed entry size for that group;
+- an entry state byte inconsistent with the group in which it appears;
+- duplicate response coordinates;
+- response entries that violate the required X/Y/Z ordering inside a group;
+- Error payload size not divisible by the fixed Error-entry size;
+- duplicate Error coordinates or Error coordinates that violate required X/Y/Z ordering;
+- unexpected trailing bytes or any payload shape that cannot be consumed exactly by the approved format.
 
 ### Failure atomicity
 
