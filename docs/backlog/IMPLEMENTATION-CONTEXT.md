@@ -178,9 +178,11 @@ A terrain Chunk is a semantic specialization of Volume. DR-019 fixes:
 - copied Chunks keep old immutable content alive across Collection replacement;
 - no Collection lock is held during expensive generation work.
 
-The headless generic facilities first prototyped by ST-001-06 — `spk::ThreadSafeSet`, `spk::ThreadSafeQueue`, `spk::Task<TResult>`, `spk::WorkerPool`, and `spk::Singleton<T>` — are now owned by Sparkle Version-0.1.3. Erelia consumes the Sparkle implementations directly. DR-020 remains the historical design record for why these facilities were introduced.
+The headless generic facilities first prototyped by Erelia — `spk::ThreadSafeSet`, `spk::ThreadSafeQueue`, `spk::Task<TResult>`, `spk::WorkerPool`, `spk::Singleton<T>`, and now `spk::TaskGroup<TResult>` — are owned by Sparkle Version-0.1.3. Erelia consumes the Sparkle implementations directly. DR-020 remains the historical design record for why these facilities were introduced.
 
-ST-001-09 temporarily adds a new Erelia-owned `spk::TaskGroup<TResult>` prototype. It groups homogeneous Tasks, submits every child independently to the shared WorkerPool, and exposes one passive group Answer whose status remains Pending until every child is terminal. It never occupies a worker merely to wait. Child Answers remain individually inspectable and preserve insertion order, allowing a terminal group to retain mixed child Completed/Failed results. The API is deliberately being exercised in Erelia before any later Sparkle move.
+Sparkle's Task Answer exposes `subscribeToCompletion(...)`, backed by the thread-safe `spk::ContractProvider`. `spk::TaskGroup<TResult>` groups already-running `Task<TResult>::Answer` values, does not submit or occupy a worker itself, remains Pending until every child is terminal, and preserves the child Answers for mixed Completed/Failed inspection.
+
+For ST-001-09, TerrainNode owns the split of one Client Chunk request into smaller internal coordinate batches. Each batch is requested from `Chunk::Collection`; the returned asynchronous Answers are grouped in one `spk::TaskGroup`. The grouped completion callback drives construction of one terminal protocol Response using the original RequestID. Internal worker batches are never Client-visible protocol requests.
 
 Future Client request acquisition uses the same Collection/Provider state machine but ST-001-11 still owns network retry/cache/response policy.
 
