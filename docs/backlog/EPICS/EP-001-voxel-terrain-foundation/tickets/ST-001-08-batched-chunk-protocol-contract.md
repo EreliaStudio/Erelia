@@ -18,7 +18,7 @@ Client and Server can exchange terrain requests/results through one explicit sha
 - Depends on ST-001-01, ST-001-03, ST-001-05, and the DR-019 Chunk value contract introduced by ST-001-06.
 - DR-014 fixes batched Client-driven semantics.
 - DR-016 fixes Sparkle transport/message use.
-- OQ-037 is resolved for generic Volume/native representation. OQ-038 still leaves material request/response state semantics unresolved.
+- OQ-037 is resolved for generic Volume/native representation. OQ-038 now resolves the Chunk request/response/error wire semantics required by this ticket.
 
 ## Product ownership
 
@@ -50,15 +50,21 @@ Client loading radius, cache eviction, Server generation, rendering, transport s
 
 ## Public contract
 
-Blocked until the following are explicit:
+The protocol uses typed Erelia messages built on `spk::Message`:
 
-- Erelia message type identifiers/encoding;
-- scalar byte order/platform policy from OQ-037;
-- duplicate-coordinate semantics;
-- request batch limits;
-- partial-success/rejection format;
-- invalid/unavailable-coordinate result semantics;
-- malformed-payload failure signaling.
+- `Networking::MessageType : spk::Message::Type` identifies `ChunkRequest = 1`, `ChunkResponse = 2`, and `ChunkError = 3`;
+- `Chunk::Protocol::Request` generates a non-zero request ID from a thread-safe atomic sequence and stores it in the Sparkle Message header; request ID 0 remains the uncorrelated/default value;
+- correlated `ChunkResponse` and `ChunkError` messages reuse the originating request ID;
+- one request carries 1..1024 Chunk coordinates;
+- duplicate coordinates are protocol misuse: only the first occurrence participates in normal resolution, while one `DuplicateCoordinate` diagnostic is reported for each distinct duplicated coordinate;
+- `ChunkError` diagnostics are sorted X/Y/Z and, when present, are sent before the normal response;
+- `ChunkResponse` is always the terminal Chunk-protocol message for its request ID;
+- responses group entries as Success, Rejected, then Unavailable, with X/Y/Z lexicographic ordering inside each group;
+- `Chunk::Protocol::Response::State : std::uint8_t` is `Success = 0`, `Rejected = 1`, or `Unavailable = 2`;
+- only Success entries carry the fixed 4096-Cell Chunk payload;
+- the response payload starts with absolute `std::uint32_t` byte offsets `successOffset`, `rejectedOffset`, and `unavailableOffset`; no redundant response count is serialized because each group count is derived from its byte range and fixed entry size;
+- strict Core decoding throws `spk::Exception` for malformed protocol payloads; later network consumers own Warning logging, dropping the message, and continuing processing;
+- a Client may reuse request IDs only after it has stopped issuing new requests and all outstanding requests in the connection/session have received their terminal `ChunkResponse`; the operational recycle threshold belongs to ST-001-11.
 
 ## Invariants
 
@@ -73,11 +79,11 @@ Codec is stateless. Request/response processing state belongs to Server/Client c
 
 ## Failure behavior
 
-Blocked by OQ-037/OQ-038.
+Core protocol decoding is strict and throws `spk::Exception` for malformed input. This ticket does not log or swallow network failures. Later Server/Client consumers catch protocol-decoding failures at the network boundary, log a Sparkle Warning, drop the malformed message, and continue processing.
 
 ## Determinism / ordering
 
-Request/response list ordering semantics must be fixed by OQ-038 before Ready; consumers must not infer an unstated order.
+Normal response groups are encoded in the fixed order Success, Rejected, Unavailable. Entries inside every group are sorted lexicographically by Chunk coordinate X, then Y, then Z. Duplicate diagnostics use the same coordinate ordering. When duplicate diagnostics exist, `ChunkError` precedes the terminal `ChunkResponse`.
 
 ## Lifecycle / ownership
 
@@ -176,7 +182,7 @@ Not applicable.
 - [DR-016](../../../DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md)
 - [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
 - [OQ-037](../../../OPEN_QUESTIONS/OQ-037-EP001-NETWORK-SERIALIZATION.md) — resolved for the native representation used by the codec.
-- [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — blocking.
+- [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — resolved for this protocol contract.
 
 ## Completion evidence
 
