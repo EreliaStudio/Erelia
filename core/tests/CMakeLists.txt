@@ -1,5 +1,8 @@
 add_executable(EreliaCoreTestSuite
     chunk_collection_test.cpp
+    chunk_protocol_error_test.cpp
+    chunk_protocol_request_test.cpp
+    chunk_protocol_response_test.cpp
     chunk_test.cpp
     status_test.cpp
     terrain_coordinate_test.cpp

@@ -17,7 +17,7 @@ A real dedicated Server can answer Client terrain requests without exposing Clie
 
 - Depends on ST-001-06, ST-001-07, and ST-001-08.
 - DR-016 and DR-021 fix routing through NodeRouter / RemoteNode to the separate terrain Endpoint process.
-- OQ-038 still leaves duplicate, limits, partial-success, invalid/unavailable-coordinate and outstanding-request behavior unresolved.
+- OQ-038 is resolved by DR-022 for duplicate handling, limits, result states, ordering, correlation, and malformed protocol behavior.
 
 ## Product ownership
 
@@ -34,6 +34,7 @@ Client/rendering code, Client view radius/cache policy, terrain mesh generation,
 ## Owned behavior
 
 - Receive routed Chunk requests in the terrain node's `spk::RemoteNode::Endpoint` process.
+- Add a transport-level smoke fixture proving a real `ChunkRequest` crosses Client -> NodeRouter -> RemoteNode -> terrain Endpoint with Message type, RequestID, size, and payload bytes preserved before parsing/handler semantics are asserted.
 - Validate request according to the final ST-001-08 contract.
 - Resolve each accepted coordinate through the ST-001-06 Server `Chunk::Collection` backed by `PrototypeChunkProvider`.
 - Return canonical coordinate + Chunk results through the router to the originating Client.
@@ -46,7 +47,7 @@ Client retry/cache policy, production interest management, persistent terrain ed
 
 ## Public contract
 
-Blocked until ST-001-08/OQ-038 fix exact request limits, duplicate semantics, partial-success/rejection format, and invalid/unavailable-coordinate behavior.
+The shared request limits, duplicate semantics, result-state format, correlation, ordering, and malformed-input contract are fixed by the completed ST-001-08/DR-022 work. This ticket remains Blocked only until its own Server lifecycle/failure details are explicit enough for Ready.
 
 ## Invariants
 
@@ -63,7 +64,7 @@ Malformed/invalid request -> reject according to final protocol -> no canonical 
 
 ## Failure behavior
 
-Blocked by OQ-038 for partial success/rejection. Provider/Collection failure behavior from the final ST-001-06 contract must also be explicit before Ready.
+OQ-038/DR-022 already fix partial success/rejection protocol semantics. Remaining failure behavior to resolve before Ready is Server-specific: Provider/Collection failure propagation, reply/send failure handling, and outstanding-request/disconnect lifecycle.
 
 ## Determinism / ordering
 
@@ -165,7 +166,7 @@ Not applicable.
 - [DR-016](../../../DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md)
 - [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
 - [DR-021](../../../DECISIONS/DR-021-REMOTE-SERVER-NODES-FROM-FIRST-IMPLEMENTATION.md)
-- [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — blocking.
+- [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — resolved by DR-022 for the shared Chunk protocol.
 - [OQ-039](../../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — resolved; exact prototype terrain is fixed by DR-015.
 
 ## Completion evidence

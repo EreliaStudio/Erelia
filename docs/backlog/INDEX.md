@@ -51,6 +51,7 @@ Architecture documents should be added only after a durable cross-cutting invari
 - [DR-019 — Immutable shared Volume content and asynchronous Chunk Collection/Provider](DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
 - [DR-020 — Headless asynchronous task infrastructure prototype](DECISIONS/DR-020-HEADLESS-ASYNC-TASK-INFRASTRUCTURE.md)
 - [DR-021 — Start logical Server nodes as remote processes](DECISIONS/DR-021-REMOTE-SERVER-NODES-FROM-FIRST-IMPLEMENTATION.md)
+- [DR-022 — Batched Chunk protocol wire contract](DECISIONS/DR-022-CHUNK-PROTOCOL-WIRE-CONTRACT.md)
 
 OPEN_QUESTIONS/ contains the question register, including resolved questions for traceability. Create a DR only when a real choice has concrete alternatives that need durable resolution.
 
@@ -62,9 +63,9 @@ EP-001 is the active near-term planning focus.
 
 ## Implementation tickets
 
-ST-001-01 through ST-001-07 are Done. There is currently no active implementation ticket.
+ST-001-01 through ST-001-08 are Done on `master`. ST-001-08 was completed through PR #16 after project-owner review; CI run #356 (run ID `36138476545`) passed on reviewed head `a4c0e29059cec422bee848dff2c465ad26c53493`. The next dependency-ordered ticket is ST-001-09, which remains Blocked only by its remaining Server-specific lifecycle/failure specification.
 
-ST-001-08 is the next dependency-ordered ticket and remains blocked by OQ-038. Later tickets remain gated by their own dependencies and unresolved OQs.
+OQ-038 is Resolved and DR-022 fixes the exact Chunk Request/Response/Error protocol. Later tickets remain gated by their own dependencies and unresolved ticket-specific decisions.
 
 ## Keyword navigation
 

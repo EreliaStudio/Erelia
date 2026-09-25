@@ -12,6 +12,14 @@ struct Chunk : public Voxel::Volume
 	class Builder;
 	class Collection;
 
+	class Protocol final
+	{
+	public:
+		class Request;
+		class Error;
+		class Response;
+	};
+
 	inline static constexpr std::int32_t Extent = 16;
 
 	explicit Chunk(Voxel::Volume &&volume);
