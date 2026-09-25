@@ -266,7 +266,7 @@ Implementation is complete on `feat/st-001-08-batched-chunk-protocol-contract` /
 The Core implementation adds:
 
 - `Networking::MessageType` with the exact DR-022 numeric values;
-- typed `Chunk::Protocol::Request`, `Chunk::Protocol::Response`, and `Chunk::Protocol::Error` messages derived from `spk::Message`;
+- typed `Chunk::Protocol::Request`, `Chunk::Protocol::Response`, and `Chunk::Protocol::Error` messages derived from `spk::Message`, each declared in its own protocol header for focused ownership/readability;
 - atomic non-zero RequestID generation;
 - nested Request/Error/Response Builders that own temporary semantic containers and emit finalized Message-backed protocol values;
 - one-shot `resize()` + `edit()` payload construction with no mirrored semantic containers retained by finalized protocol values;
@@ -274,8 +274,9 @@ The Core implementation adds:
 - deterministic Error and Response canonicalization;
 - the three-offset Response summary and fixed 4096-Cell Success payload;
 - strict `spk::Exception` validation of malformed Request/Response/Error messages;
-- dedicated Core TU coverage for boundaries, ordering, malformed input, correlation, deterministic bytes, lifetime, and cursor-independent `readAt()`.
+- dedicated Core TU coverage for boundaries, ordering, malformed input, correlation, deterministic bytes, lifetime, and cursor-independent `readAt()`;
+- one-message-per-header organization: `chunk_protocol_request.hpp`, `chunk_protocol_error.hpp`, and `chunk_protocol_response.hpp`; the former aggregate `chunk_protocol.hpp` is removed.
 
-CI run #352 (run ID `36133142739`) passed the complete required matrix on code head `94d9196afa2f79608e2ec3ff549c94aa6d101221`: clang-format, Linux Core/Server Debug + Release, Windows Core/Server Debug + Release, and Windows Client Debug + Release.
+CI run #355 (run ID `36137711405`) passed the complete required matrix on code head `44395a694af64bba5e7e616860fe4699f8d432f9`: clang-format, Linux Core/Server Debug + Release, Windows Core/Server Debug + Release, and Windows Client Debug + Release.
 
 The ticket remains **In Progress** until project-owner review/approval is recorded. ST-001-09 Server handling and ST-001-11 Client coordinator policy remain outside this implementation.

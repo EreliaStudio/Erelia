@@ -20,7 +20,7 @@ OQ-038 is Resolved.
 
 DR-022 records the final batched Chunk Request/Response/Error wire contract.
 
-ST-001-08 is **In Progress** only because project-owner review is still pending. The Core implementation is complete on PR #16, and CI run #352 (run ID `36133142739`) passed the complete required matrix on code head `94d9196afa2f79608e2ec3ff549c94aa6d101221`.
+ST-001-08 is **In Progress** only because project-owner review is still pending. The Core implementation is complete on PR #16, and CI run #355 (run ID `36137711405`) passed the complete required matrix on code head `44395a694af64bba5e7e616860fe4699f8d432f9`.
 
 The resolved contract fixes:
 
@@ -30,6 +30,7 @@ The resolved contract fixes:
 - a three-offset count-less Response summary;
 - Success / Rejected / Unavailable result states;
 - deterministic state grouping and X/Y/Z ordering;
+- Request/Error/Response declarations are split one message per public header, while `Chunk::Protocol` remains the semantic nested scope;
 - nested Request/Error/Response Builders own temporary construction containers, while finalized protocol values use only their `spk::Message` payload as persistent storage;
 - Builders allocate the finalized payload once with `resize()` and encode it through `edit()`; Request duplicate checks are Debug-only developer validation, while finalized/raw Request payloads retain defensive on-demand duplicate inspection;
 - distinct duplicate-coordinate diagnostics;
