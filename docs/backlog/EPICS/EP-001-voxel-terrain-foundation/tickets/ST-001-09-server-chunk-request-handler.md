@@ -36,7 +36,10 @@ Client/rendering code, Client view radius/cache policy, terrain mesh generation,
 - Receive routed Chunk requests in the terrain node's `spk::RemoteNode::Endpoint` process.
 - Add a transport-level smoke fixture proving a real `ChunkRequest` crosses Client -> NodeRouter -> RemoteNode -> terrain Endpoint with Message type, RequestID, size, and payload bytes preserved before parsing/handler semantics are asserted.
 - Validate request according to the final ST-001-08 contract.
-- Resolve each accepted coordinate through the ST-001-06 Server `Chunk::Collection` backed by `PrototypeChunkProvider`.
+- Keep each Client protocol request intact at the wire level, then split its distinct coordinates inside `TerrainNode` into smaller internal work batches.
+- Resolve each internal batch through the Server `Chunk::Collection` backed by `PrototypeChunkProvider`.
+- Group the returned batch Task Answers with Sparkle Version-0.1.3 `spk::TaskGroup<TResult>`.
+- Subscribe once to grouped completion and, only when every internal batch is terminal, compose one terminal `ChunkResponse` using the original Client RequestID.
 - Return canonical coordinate + Chunk results through the router to the originating Client.
 - Keep two concurrent Client connections correlated correctly.
 - Reject malformed/invalid requests without mutating authoritative terrain state.
@@ -47,7 +50,11 @@ Client retry/cache policy, production interest management, persistent terrain ed
 
 ## Public contract
 
-The shared request limits, duplicate semantics, result-state format, correlation, ordering, and malformed-input contract are fixed by the completed ST-001-08/DR-022 work. This ticket remains Blocked only until its own Server lifecycle/failure details are explicit enough for Ready.
+The shared request limits, duplicate semantics, result-state format, correlation, ordering, and malformed-input contract are fixed by the completed ST-001-08/DR-022 work.
+
+Sparkle Version-0.1.3 now also provides the asynchronous composition primitives required by this ticket: `Task<TResult>::Answer::subscribeToCompletion(...)`, thread-safe `ContractProvider`, and `TaskGroup<TResult>`. TaskGroup composes already-running Task Answers without consuming another worker merely to wait.
+
+This ticket remains Blocked only by the remaining Erelia-specific Collection/Provider batch-result contract and Server lifecycle/failure details that still need to be made explicit enough for Ready.
 
 ## Invariants
 
@@ -58,15 +65,19 @@ The shared request limits, duplicate semantics, result-state format, correlation
 
 ## State transitions
 
-Valid request -> validate -> deduplicate protocol coordinates -> resolve/generate the distinct requested Chunks through the Collection/Provider -> wait until every internal worker result belonging to the request is terminal -> compose one terminal `ChunkResponse` using the original RequestID.
+Valid request -> validate -> deduplicate protocol coordinates -> TerrainNode partitions the distinct coordinates into smaller internal batches -> ask `Chunk::Collection` once per internal batch -> add each returned Task Answer to one `spk::TaskGroup` owned by the protocol-request context -> seal the group -> subscribe to grouped completion -> when every child Answer is terminal, compose one terminal `ChunkResponse` using the original RequestID.
 
-The Client does not split its protocol request. One protocol Request may contain up to the ST-001-08 limit of 1024 coordinates. Server-side worker batching is an implementation detail and does not create additional protocol RequestIDs or partial protocol Responses.
+The Client does not split its protocol request. One protocol Request may contain up to the ST-001-08 limit of 1024 coordinates. Internal Server batches are worker-scheduling units only: they do not create protocol RequestIDs, partial protocol Responses, or additional Client-visible request lifecycles.
+
+The TaskGroup completion callback is allowed to run on the worker thread that settles the final child Task, or immediately on the subscribing thread if the group is already terminal. The handler implementation must therefore make the captured request/reply state safe for that callback lifetime and must not assume completion callbacks are executed by the TerrainNode dispatch thread.
 
 Malformed/invalid request -> reject according to final protocol -> no canonical state mutation.
 
 ## Failure behavior
 
-OQ-038/DR-022 already fix partial success/rejection protocol semantics. Remaining failure behavior to resolve before Ready is Server-specific: Provider/Collection failure propagation, reply/send failure handling, and outstanding-request/disconnect lifecycle.
+OQ-038/DR-022 already fix mixed per-coordinate Success/Rejected/Unavailable protocol semantics. TaskGroup failure means at least one child Task failed after every child settled; the child Answers remain individually inspectable so Server code can still map each coordinate/batch outcome to the terminal protocol Response.
+
+Remaining failure behavior to resolve before Ready is Server-specific: the exact Collection batch-result representation and cache transition on child failure, reply/send failure handling, and outstanding-request/disconnect lifecycle.
 
 ## Determinism / ordering
 
@@ -89,11 +100,16 @@ Server validates and returns canonical results. Client only requests coordinates
 - Handler lives in the terrain node process, not either executable `main.cpp`.
 - Use Sparkle NodeRouter response path to the originating Client.
 - Do not introduce a second transport or a Server-selected view radius.
-- Use the Erelia-local `spk::TaskGroup<TResult>` prototype for grouped WorkerPool work rather than consuming a worker to wait on other workers.
-- A TaskGroup Answer becomes terminal only after all of its child Tasks are terminal; mixed child failures remain inspectable so the eventual protocol Response can encode per-coordinate `Success` / `Unavailable`.
-- Keep protocol correlation at the original RequestID: internal worker batches do not own protocol RequestIDs.
-- `PrototypeChunkProvider` currently groups drained generation jobs with TaskGroup while `TerrainNode` owns and updates the authoritative `Chunk::Collection`.
-- Do not expose the concrete Provider from `Chunk::Collection` merely so TerrainNode can reach Provider-owned Task Answers. A direct per-protocol-request TaskGroup handle still requires an explicit Collection/Provider bridge decision.
+- Use Sparkle Version-0.1.3 `spk::TaskGroup<TResult>`; remove the temporary Erelia-local TaskGroup prototype and its duplicate Core tests once Erelia consumes the merged Sparkle version.
+- TaskGroup groups already-running `Task<TResult>::Answer` values. It does not own WorkerPool submission and does not consume a worker merely to wait.
+- A TaskGroup Answer becomes terminal only after all child Tasks are terminal; mixed child failures remain inspectable through the child Answers.
+- TerrainNode owns the split of one protocol request into smaller internal coordinate batches and owns the protocol-request TaskGroup.
+- Keep protocol correlation at the original RequestID: internal work batches never own protocol RequestIDs.
+- `Chunk::Collection` must expose a batched acquisition API so TerrainNode can ask for a set of coordinates and receive an asynchronous Answer representing that acquisition.
+- `Chunk::Collection::Provider` is to be simplified into a WorkerPool-facing driver: it accepts a batch of coordinates, constructs/submits the corresponding Task through the shared WorkerPool, and returns that Task Answer. The Provider no longer owns an `update(Collection&)` polling phase.
+- Collection owns authoritative cache/deduplication semantics. A missing Chunk is represented by pending asynchronous acquisition state rather than by inserting a placeholder/empty Chunk. Overlapping requests must reuse already-pending work instead of asking the Provider to generate the same missing coordinate again.
+- The exact public batch Result/Answer shape used between Provider and Collection is still to be finalized before Ready; do not expose the concrete `PrototypeChunkProvider` merely to reach worker Answers.
+- The grouped completion callback may execute from a WorkerPool thread. Any captured Endpoint/request state must have a safe lifetime and any network operation performed there must follow Sparkle's thread-safety contract.
 
 ## Exact test fixtures
 
@@ -107,7 +123,9 @@ Final Ready fixtures must include:
 - malformed payload;
 - two Clients issuing distinguishable requests;
 - disconnect during an outstanding request;
-- generator failure fixture if generator can fail.
+- generator failure fixture using a deterministic test Provider rather than depending on PrototypeChunkProvider output/failure;
+- overlapping requests whose internal batches share at least one coordinate, proving pending work is reused rather than regenerated;
+- a grouped request where one child batch completes before another, proving no Client-visible Response is emitted until the TaskGroup is terminal.
 
 ## Acceptance tests
 
