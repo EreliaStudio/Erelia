@@ -1,7 +1,5 @@
 #include "terrain_node_application.hpp"
 
-#include "terrain_node.hpp"
-
 #include <structure/system/argument_parser.hpp>
 
 #include <design_pattern/singleton.hpp>
@@ -14,15 +12,78 @@
 #include <cstdlib>
 #include <exception>
 #include <thread>
+#include <utility>
 
-namespace
+TerrainNodeApplication::TerrainNodeApplication(
+	TerrainNode::Configuration configuration) :
+	_node(std::move(configuration))
 {
-	volatile std::sig_atomic_t Running = 1;
+}
 
-	void onSignal(int)
+void TerrainNodeApplication::_onSignal(int)
+{
+	_signalReceived = 1;
+}
+
+void TerrainNodeApplication::run()
+{
+	_stopRequested.store(
+		false,
+		std::memory_order_release);
+	_running.store(
+		false,
+		std::memory_order_release);
+	_signalReceived = 0;
+
+	const auto previousInterruptHandler =
+		std::signal(SIGINT, _onSignal);
+	const auto previousTerminationHandler =
+		std::signal(SIGTERM, _onSignal);
+
+	try
 	{
-		Running = 0;
+		_node.start();
+		_running.store(
+			true,
+			std::memory_order_release);
+
+		while (
+			_stopRequested.load(std::memory_order_acquire) == false &&
+			_signalReceived == 0)
+		{
+			_node.dispatch();
+			std::this_thread::sleep_for(
+				std::chrono::milliseconds(1));
+		}
+
+		_running.store(
+			false,
+			std::memory_order_release);
+		_node.stop();
+	} catch (...)
+	{
+		_running.store(
+			false,
+			std::memory_order_release);
+		std::signal(SIGINT, previousInterruptHandler);
+		std::signal(SIGTERM, previousTerminationHandler);
+		throw;
 	}
+
+	std::signal(SIGINT, previousInterruptHandler);
+	std::signal(SIGTERM, previousTerminationHandler);
+}
+
+void TerrainNodeApplication::stop() noexcept
+{
+	_stopRequested.store(
+		true,
+		std::memory_order_release);
+}
+
+bool TerrainNodeApplication::isRunning() const noexcept
+{
+	return _running.load(std::memory_order_acquire);
 }
 
 int runTerrainNode(int argc, char **argv)
@@ -53,22 +114,10 @@ int runTerrainNode(int argc, char **argv)
 		spk::Singleton<spk::WorkerPool>::instanciate(
 			new spk::WorkerPool());
 
-		TerrainNode node(
+		TerrainNodeApplication application(
 			TerrainNode::Configuration::load(
 				arguments.get("config").values.front()));
-
-		Running = 1;
-		std::signal(SIGINT, onSignal);
-		std::signal(SIGTERM, onSignal);
-
-		node.start();
-		while (Running != 0)
-		{
-			node.dispatch();
-			std::this_thread::sleep_for(
-				std::chrono::milliseconds(1));
-		}
-		node.stop();
+		application.run();
 
 		return EXIT_SUCCESS;
 	} catch (const std::exception &exception)
