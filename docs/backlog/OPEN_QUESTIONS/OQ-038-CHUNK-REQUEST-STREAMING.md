@@ -1,7 +1,7 @@
 # OQ-038 — What are the first Chunk request / streaming semantics?
 
 **Status:** Resolved
-**Decision records:** [DR-014](../DECISIONS/DR-014-BATCHED-CHUNK-PROTOCOL-DIRECTION.md), [DR-019](../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md), [DR-020](../DECISIONS/DR-020-HEADLESS-ASYNC-TASK-INFRASTRUCTURE.md)
+**Decision records:** [DR-014](../DECISIONS/DR-014-BATCHED-CHUNK-PROTOCOL-DIRECTION.md), [DR-019](../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md), [DR-020](../DECISIONS/DR-020-HEADLESS-ASYNC-TASK-INFRASTRUCTURE.md), [DR-022](../DECISIONS/DR-022-CHUNK-PROTOCOL-WIRE-CONTRACT.md)
 **Affected areas:** EP-001, Client streaming, TerrainNode
 
 ## Question
@@ -66,3 +66,5 @@ Use the Core `Chunk::Collection` / nested Provider abstraction established by DR
 Use the approved Erelia typed message/state conventions above. Keep protocol misuse (such as duplicate coordinates) distinct from normal per-coordinate availability/rejection state.
 
 Network retry timing, request-ID recycle threshold, disconnect handling, and cache/retention policy stay outside ST-001-08 and belong to ST-001-11. OQ-038 now fixes the ST-001-08 wire-level correlation, terminal-message, error, ordering, random-access, and malformed-input semantics.
+
+DR-022 is the durable exact wire-contract record for the ST-001-08 decisions resolved here.
