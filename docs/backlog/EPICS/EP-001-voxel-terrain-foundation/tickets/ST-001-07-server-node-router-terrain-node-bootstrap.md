@@ -1,6 +1,6 @@
 # ST-001-07 — Server NodeRouter remote terrain-node bootstrap
 
-**Status:** In Progress
+**Status:** Finished
 **Epic:** EP-001
 **Production target(s):** Core shared CLI utility; Server; terrain Server node; developer tooling
 **Test suite(s):** EreliaCoreTestSuite; EreliaServerTestSuite; EreliaServerSmoke
@@ -144,4 +144,4 @@ No material ST-001-07 observable behavior remains open.
 
 ## Completion evidence
 
-EreliaCoreTestSuite, EreliaServerTestSuite and EreliaServerSmoke pass in required build configurations; tooling is present; project-owner review is required before Finished/Done.
+Project-owner review completed on 25 September 2026. PR #14 contains the approved implementation. CI run #325 passed every Linux/Windows Debug/Release build-and-test job; its sole failure was clang-format, which was corrected afterward. Final PR CI covers the formatting correction plus the added SIGINT/SIGTERM node-application shutdown tests before merge.
