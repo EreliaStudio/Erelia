@@ -45,7 +45,7 @@ The project owner has now fixed several ST-001-08 protocol details:
 - correlated Chunk response/error Messages reuse the originating request ID through `setRequestID()`;
 - because correlation is a Sparkle Message header concern, the Erelia Chunk payload does not redundantly serialize a `RequestID`;
 - Sparkle `spk::Message` gains checked, cursor-independent random-access reads with the approved API shape `readAt(std::size_t offset, void* destination, std::size_t size) const` plus a trivially-copyable typed `readAt<TValue>(std::size_t offset) const`;
-- Chunk responses are grouped/sorted by result state rather than preserving request order; before the entry data, the response carries a compact summary identifying the first byte of the Success, Rejected, and Unavailable groups so consumers can derive direct offsets for parallel work;
+- Chunk responses are grouped by result state in the fixed order `Success`, `Rejected`, then `Unavailable`; inside each state group, entries are sorted lexicographically by `Chunk::Coordinate` components in X, then Y, then Z order, making response encoding deterministic independently of request ordering or asynchronous completion order; before the entry data, the response carries a compact summary identifying the first byte of the Success, Rejected, and Unavailable groups so consumers can derive direct offsets for parallel work;
 - Client retry timing, cache retention/eviction, desired-region policy, and handling policy for already-completed/unknown responses remain deferred to ST-001-11.
 
 The remaining ST-001-08 blockers are now narrower:
@@ -53,7 +53,6 @@ The remaining ST-001-08 blockers are now narrower:
 - the exact separate protocol-error message type/payload for duplicate-coordinate misuse;
 - exact zero-coordinate request behavior;
 - exact duplicate reporting cardinality when a batch contains multiple duplicate occurrences;
-- exact ordering inside each state-sorted response group after duplicate occurrences are ignored;
 - exact encoding of the response summary: field widths, whether group starts are absolute payload offsets or offsets relative to the entry-data section, and representation of an empty state group;
 - exact malformed-message logging/drop boundary between the pure Core protocol types and the later Server/Client network consumers.
 
