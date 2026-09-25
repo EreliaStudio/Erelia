@@ -1,6 +1,6 @@
 # ST-001-08 — Batched Chunk request/response protocol contract
 
-**Status:** Blocked
+**Status:** Ready
 **Epic:** EP-001
 **Production target(s):** Core
 **Test suite(s):** EreliaCoreTestSuite
@@ -78,7 +78,31 @@ request.add(coordinate);
 
 `Chunk::Protocol::Request` sets `Networking::MessageType::ChunkRequest` itself, owns assignment of the generated non-zero Sparkle RequestID, and appends coordinates through `add()`. Ordinary callers do not manually write the raw request payload.
 
-The exact public construction/read API for `Chunk::Protocol::Response` and `Chunk::Protocol::Error` must be fixed before implementation so an implementation agent does not invent their external contract.
+Response construction uses:
+
+```cpp
+Chunk::Protocol::Response response(requestID);
+
+response.addSuccess(coordinate, chunk);
+response.addRejected(coordinate);
+response.addUnavailable(coordinate);
+```
+
+Error construction uses:
+
+```cpp
+Chunk::Protocol::Error error(requestID);
+
+error.add(
+    Chunk::Protocol::Error::Code::DuplicateCoordinate,
+    coordinate);
+```
+
+Response/Error constructors receive the originating non-zero `spk::Message::RequestID` and set their own Erelia Message type. Their add methods own payload construction; callers do not serialize offsets, states, codes, coordinates, or Chunk Cells manually.
+
+Response construction accepts additions in any order; the protocol object owns canonical grouping and X/Y/Z ordering in the encoded payload.
+
+A validated Response exposes `successOffset()`, `rejectedOffset()`, and `unavailableOffset()`. Later consumers may use those protocol-owned boundaries together with Sparkle `readAt()` for parallel reads without mutating the Message cursor. Typed incoming Request/Response/Error objects must validate the complete underlying Message before exposing it as valid protocol data.
 
 ## Invariants
 
@@ -120,17 +144,27 @@ Client requests coordinates; Server later validates and returns canonical result
 
 ## Exact test fixtures
 
-Final Ready ticket must include:
+The implementation test matrix must include:
 
-- one-coordinate request;
-- multi-coordinate request with positive/negative coordinates;
-- duplicate-coordinate request according to resolved semantics;
-- one and multiple response entries;
-- partial success/rejection fixture;
-- malformed/truncated request and response;
-- batch-size boundary values.
-
-Exact expected bytes require OQ-037.
+- one-coordinate Request with a non-zero RequestID and payload containing exactly one `Chunk::Coordinate`;
+- 1024-coordinate Request boundary and rejection of the derived 1025-coordinate payload;
+- positive and negative coordinate components preserved exactly;
+- empty and misaligned Request payload rejection;
+- Request duplicate input where the first occurrence participates in normal resolution and one diagnostic is produced for each distinct duplicated coordinate;
+- Error payload with no count, fixed `[Code:uint8][Coordinate]` entries, deterministic X/Y/Z ordering, and non-zero correlation;
+- Response summary exactly three `std::uint32_t` offsets with `successOffset == 12`;
+- all-empty-group boundary combinations through equal offsets;
+- Success-only, Rejected-only, Unavailable-only, and mixed-group Responses;
+- Success entry containing exactly 4096 packed Cells in Y-fastest, then X, then Z order;
+- Response additions supplied in non-canonical order but encoded in canonical state-group and X/Y/Z order;
+- malformed/truncated coordinate, state, Chunk payload, Error entry, and summary cases;
+- invalid offset ordering/ranges/alignment;
+- unknown Response state and Error code;
+- duplicate or unsorted Response/Error coordinates;
+- unexpected trailing bytes;
+- RequestID 0 rejection for correlated Request/Response/Error;
+- `successOffset()`, `rejectedOffset()`, and `unavailableOffset()` matching the encoded summary;
+- Sparkle `readAt()` use from the returned Response ranges without changing the Message read cursor.
 
 ## Acceptance tests
 
@@ -214,7 +248,8 @@ Not applicable.
 - [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
 - [OQ-037](../../../OPEN_QUESTIONS/OQ-037-EP001-NETWORK-SERIALIZATION.md) — resolved for the native representation used by the codec.
 - [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — resolved for this protocol contract.
+- [DR-022](../../../DECISIONS/DR-022-CHUNK-PROTOCOL-WIRE-CONTRACT.md) — exact Chunk Request/Response/Error wire and correlation contract.
 
 ## Completion evidence
 
-Promote to Ready only after wire, duplicate, batch-limit, ordering, partial-response, rejection, and malformed-payload semantics are explicit.
+The ticket is Ready: OQ-038 and DR-022 fix the wire layout, message IDs, RequestID correlation, count-less payloads, duplicate semantics, result states, deterministic ordering, terminal-response rule, public construction API, response section offsets, strict malformed-input behavior, and exact test matrix. Implementation must not introduce Server handler or Client coordinator policy owned by later tickets.
