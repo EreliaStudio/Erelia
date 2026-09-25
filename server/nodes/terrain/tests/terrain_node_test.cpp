@@ -73,8 +73,7 @@ namespace
 
 		std::exception_ptr applicationFailure;
 		std::thread applicationThread(
-			[&]()
-			{
+			[&]() {
 				try
 				{
 					application.run();
@@ -86,8 +85,7 @@ namespace
 			});
 
 		if (!waitUntil(
-				[&]()
-				{
+				[&]() {
 					return application.isRunning();
 				}))
 		{
@@ -109,8 +107,7 @@ namespace
 		}
 
 		if (!waitUntil(
-				[&]()
-				{
+				[&]() {
 					return application.isRunning() == false;
 				}))
 		{
