@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <utility>
 
 #include <exception.hpp>
 
@@ -49,13 +50,13 @@ Chunk::Protocol::Error::Error(spk::Message::RequestID requestID) :
 	setRequestID(requestID);
 }
 
-Chunk::Protocol::Error::Error(const spk::Message &message) :
-	spk::Message(message)
+Chunk::Protocol::Error::Error(spk::Message message) :
+	spk::Message(std::move(message))
 {
-	_decode();
+	_validate();
 }
 
-void Chunk::Protocol::Error::_decode()
+void Chunk::Protocol::Error::_validate() const
 {
 	validateHeader(*this);
 
@@ -64,59 +65,35 @@ void Chunk::Protocol::Error::_decode()
 		throw spk::Exception("Chunk::Protocol::Error payload is not entry-aligned");
 	}
 
-	std::vector<Entry> entries;
-	entries.reserve(size() / SerializedEntrySize);
-
 	Coordinate previous{};
 	bool hasPrevious = false;
 
-	for (std::size_t offset = 0; offset < size(); offset += SerializedEntrySize)
+	for (std::size_t index = 0; index < entryCount(); ++index)
 	{
-		const auto rawCode = readAt<std::uint8_t>(offset);
-		if (!validCode(rawCode))
-		{
-			throw spk::Exception("Chunk::Protocol::Error contains an unknown error code");
-		}
+		const Entry current = entry(index);
 
-		const Coordinate coordinate =
-			readAt<Coordinate>(offset + SerializedCodeSize);
-
-		if (hasPrevious && !(previous < coordinate))
+		if (hasPrevious && !(previous < current.coordinate))
 		{
 			throw spk::Exception(
 				"Chunk::Protocol::Error coordinates must be unique and sorted X/Y/Z");
 		}
 
-		entries.push_back({static_cast<Code>(rawCode), coordinate});
-		previous = coordinate;
+		previous = current.coordinate;
 		hasPrevious = true;
 	}
-
-	_entries = std::move(entries);
 }
 
-void Chunk::Protocol::Error::_encode()
+Chunk::Protocol::Error::Builder::Builder(spk::Message::RequestID requestID) :
+	_requestID(requestID)
 {
-	std::ranges::sort(
-		_entries,
-		{},
-		&Entry::coordinate);
-
-	clear();
-	setType(errorMessageType());
-
-	for (const Entry &entry : _entries)
+	if (_requestID == 0u)
 	{
-		const auto code = static_cast<std::uint8_t>(entry.code);
-		append(code);
-		append(entry.coordinate);
+		throw spk::Exception("Chunk::Protocol::Error requires a non-zero RequestID");
 	}
 }
 
-void Chunk::Protocol::Error::add(Code code, const Coordinate &coordinate)
+void Chunk::Protocol::Error::Builder::add(Code code, const Coordinate &coordinate)
 {
-	validateHeader(*this);
-
 	const auto rawCode = static_cast<std::uint8_t>(code);
 	if (!validCode(rawCode))
 	{
@@ -129,10 +106,51 @@ void Chunk::Protocol::Error::add(Code code, const Coordinate &coordinate)
 	}
 
 	_entries.push_back({code, coordinate});
-	_encode();
 }
 
-const std::vector<Chunk::Protocol::Error::Entry> &Chunk::Protocol::Error::entries() const noexcept
+Chunk::Protocol::Error Chunk::Protocol::Error::Builder::build() &&
 {
-	return _entries;
+	std::ranges::sort(
+		_entries,
+		{},
+		&Entry::coordinate);
+
+	Error result(_requestID);
+	result.resize(_entries.size() * SerializedEntrySize);
+
+	std::size_t offset = 0u;
+	for (const Entry &current : _entries)
+	{
+		const auto code = static_cast<std::uint8_t>(current.code);
+		result.edit(offset, code);
+		offset += SerializedCodeSize;
+		result.edit(offset, current.coordinate);
+		offset += sizeof(Coordinate);
+	}
+
+	return result;
+}
+
+std::size_t Chunk::Protocol::Error::entryCount() const noexcept
+{
+	return size() / SerializedEntrySize;
+}
+
+Chunk::Protocol::Error::Entry Chunk::Protocol::Error::entry(std::size_t index) const
+{
+	if (index >= entryCount())
+	{
+		throw spk::Exception("Chunk::Protocol::Error entry index is outside the payload");
+	}
+
+	const std::size_t offset = index * SerializedEntrySize;
+	const auto rawCode = readAt<std::uint8_t>(offset);
+	if (!validCode(rawCode))
+	{
+		throw spk::Exception("Chunk::Protocol::Error contains an unknown error code");
+	}
+
+	return {
+		static_cast<Code>(rawCode),
+		readAt<Coordinate>(offset + SerializedCodeSize)};
 }

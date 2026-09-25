@@ -1,13 +1,11 @@
 #include "erelia/core/chunk_protocol.hpp"
 
-#include "erelia/core/chunk_builder.hpp"
-
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <set>
 #include <type_traits>
-#include <unordered_set>
 #include <utility>
 
 #include <exception.hpp>
@@ -21,7 +19,7 @@ namespace
 		static_cast<std::size_t>(Chunk::Extent) *
 		static_cast<std::size_t>(Chunk::Extent) *
 		static_cast<std::size_t>(Chunk::Extent);
-	constexpr std::size_t ChunkCellBytes = ChunkCellCount * sizeof(Voxel::Cell::PackedType);
+	constexpr std::size_t ChunkCellBytes = ChunkCellCount * sizeof(Voxel::Cell);
 	constexpr std::size_t CoordinateAndStateSize =
 		sizeof(Chunk::Coordinate) + SerializedStateSize;
 	constexpr std::size_t SuccessEntrySize = CoordinateAndStateSize + ChunkCellBytes;
@@ -29,7 +27,7 @@ namespace
 
 	static_assert(std::is_trivially_copyable_v<Chunk::Coordinate>);
 	static_assert(sizeof(Chunk::Coordinate) == 3 * sizeof(std::int32_t));
-	static_assert(std::is_trivially_copyable_v<Voxel::Cell::PackedType>);
+	static_assert(std::is_trivially_copyable_v<Voxel::Cell>);
 	static_assert(sizeof(Voxel::Cell) == sizeof(Voxel::Cell::PackedType));
 	static_assert(ChunkCellCount == 4096u);
 
@@ -59,7 +57,7 @@ namespace
 		const Chunk::Coordinate &coordinate,
 		Chunk::Coordinate &previous,
 		bool &hasPrevious,
-		std::unordered_set<Chunk::Coordinate> &seen)
+		std::set<Chunk::Coordinate> &seen)
 	{
 		if (hasPrevious && !(previous < coordinate))
 		{
@@ -80,7 +78,8 @@ namespace
 		std::size_t count,
 		std::size_t entrySize)
 	{
-		constexpr auto Maximum = std::numeric_limits<std::uint32_t>::max();
+		constexpr std::size_t Maximum =
+			std::numeric_limits<std::uint32_t>::max();
 
 		if (count > (Maximum - start) / entrySize)
 		{
@@ -90,32 +89,18 @@ namespace
 		return start + count * entrySize;
 	}
 
-	[[nodiscard]] Chunk decodeChunk(
-		const spk::Message &message,
-		std::size_t cellOffset)
+	void validateState(
+		std::uint8_t state,
+		Chunk::Protocol::Response::State expected)
 	{
-		Chunk::Builder builder;
-
-		for (std::size_t index = 0; index < ChunkCellCount; ++index)
+		if (!validState(state))
 		{
-			const auto packed = message.readAt<Voxel::Cell::PackedType>(
-				cellOffset + index * sizeof(Voxel::Cell::PackedType));
-
-			if (packed == Voxel::Cell::Empty.packed())
-			{
-				continue;
-			}
-
-			const auto y = static_cast<std::int32_t>(index % Chunk::Extent);
-			const auto x = static_cast<std::int32_t>(
-				(index / Chunk::Extent) % Chunk::Extent);
-			const auto z = static_cast<std::int32_t>(
-				index / (Chunk::Extent * Chunk::Extent));
-
-			(void)builder.set({x, y, z}, Voxel::Cell(packed));
+			throw spk::Exception("Chunk::Protocol::Response contains an unknown result state");
 		}
-
-		return std::move(builder).build();
+		if (state != static_cast<std::uint8_t>(expected))
+		{
+			throw spk::Exception("Chunk::Protocol::Response result state does not match its group");
+		}
 	}
 }
 
@@ -128,16 +113,15 @@ Chunk::Protocol::Response::Response(spk::Message::RequestID requestID) :
 	}
 
 	setRequestID(requestID);
-	_encode();
 }
 
-Chunk::Protocol::Response::Response(const spk::Message &message) :
-	spk::Message(message)
+Chunk::Protocol::Response::Response(spk::Message message) :
+	spk::Message(std::move(message))
 {
-	_decode();
+	_validate();
 }
 
-void Chunk::Protocol::Response::_decode()
+void Chunk::Protocol::Response::_validate() const
 {
 	validateHeader(*this);
 
@@ -146,31 +130,25 @@ void Chunk::Protocol::Response::_decode()
 		throw spk::Exception("Chunk::Protocol::Response is missing its 12-byte summary");
 	}
 
-	const auto successOffsetValue = readAt<std::uint32_t>(0u);
-	const auto rejectedOffsetValue = readAt<std::uint32_t>(sizeof(std::uint32_t));
-	const auto unavailableOffsetValue =
-		readAt<std::uint32_t>(2u * sizeof(std::uint32_t));
+	const std::size_t successOffsetValue = successOffset();
+	const std::size_t rejectedOffsetValue = rejectedOffset();
+	const std::size_t unavailableOffsetValue = unavailableOffset();
 
 	if (successOffsetValue != SummarySize)
 	{
 		throw spk::Exception("Chunk::Protocol::Response successOffset must equal 12");
 	}
-
-	const std::size_t successOffset = successOffsetValue;
-	const std::size_t rejectedOffset = rejectedOffsetValue;
-	const std::size_t unavailableOffset = unavailableOffsetValue;
-
 	if (
-		rejectedOffset < successOffset ||
-		unavailableOffset < rejectedOffset ||
-		unavailableOffset > size())
+		rejectedOffsetValue < successOffsetValue ||
+		unavailableOffsetValue < rejectedOffsetValue ||
+		unavailableOffsetValue > size())
 	{
 		throw spk::Exception("Chunk::Protocol::Response offsets are outside canonical bounds");
 	}
 
-	const std::size_t successBytes = rejectedOffset - successOffset;
-	const std::size_t rejectedBytes = unavailableOffset - rejectedOffset;
-	const std::size_t unavailableBytes = size() - unavailableOffset;
+	const std::size_t successBytes = rejectedOffsetValue - successOffsetValue;
+	const std::size_t rejectedBytes = unavailableOffsetValue - rejectedOffsetValue;
+	const std::size_t unavailableBytes = size() - unavailableOffsetValue;
 
 	if (successBytes % SuccessEntrySize != 0u)
 	{
@@ -185,87 +163,77 @@ void Chunk::Protocol::Response::_decode()
 		throw spk::Exception("Chunk::Protocol::Response Unavailable range is not entry-aligned");
 	}
 
-	std::vector<SuccessEntry> successEntries;
-	std::vector<Coordinate> rejectedCoordinates;
-	std::vector<Coordinate> unavailableCoordinates;
-	successEntries.reserve(successBytes / SuccessEntrySize);
-	rejectedCoordinates.reserve(rejectedBytes / ResultEntrySize);
-	unavailableCoordinates.reserve(unavailableBytes / ResultEntrySize);
-
-	std::unordered_set<Coordinate> seen;
-
+	std::set<Coordinate> seen;
 	Coordinate previous{};
 	bool hasPrevious = false;
-	for (std::size_t offset = successOffset; offset < rejectedOffset; offset += SuccessEntrySize)
+
+	for (std::size_t offset = successOffsetValue; offset < rejectedOffsetValue; offset += SuccessEntrySize)
 	{
-		const Coordinate coordinate = readAt<Coordinate>(offset);
+		const Coordinate current = readAt<Coordinate>(offset);
 		const auto state = readAt<std::uint8_t>(offset + sizeof(Coordinate));
-
-		if (!validState(state))
-		{
-			throw spk::Exception("Chunk::Protocol::Response contains an unknown result state");
-		}
-		if (state != static_cast<std::uint8_t>(State::Success))
-		{
-			throw spk::Exception(
-				"Chunk::Protocol::Response Success range contains another result state");
-		}
-
-		validateOrderedCoordinate(coordinate, previous, hasPrevious, seen);
-		successEntries.push_back({coordinate, decodeChunk(*this, offset + CoordinateAndStateSize)});
+		validateState(state, State::Success);
+		validateOrderedCoordinate(current, previous, hasPrevious, seen);
 	}
 
 	previous = {};
 	hasPrevious = false;
-	for (std::size_t offset = rejectedOffset; offset < unavailableOffset; offset += ResultEntrySize)
+	for (std::size_t offset = rejectedOffsetValue; offset < unavailableOffsetValue; offset += ResultEntrySize)
 	{
-		const Coordinate coordinate = readAt<Coordinate>(offset);
+		const Coordinate current = readAt<Coordinate>(offset);
 		const auto state = readAt<std::uint8_t>(offset + sizeof(Coordinate));
-
-		if (!validState(state))
-		{
-			throw spk::Exception("Chunk::Protocol::Response contains an unknown result state");
-		}
-		if (state != static_cast<std::uint8_t>(State::Rejected))
-		{
-			throw spk::Exception(
-				"Chunk::Protocol::Response Rejected range contains another result state");
-		}
-
-		validateOrderedCoordinate(coordinate, previous, hasPrevious, seen);
-		rejectedCoordinates.push_back(coordinate);
+		validateState(state, State::Rejected);
+		validateOrderedCoordinate(current, previous, hasPrevious, seen);
 	}
 
 	previous = {};
 	hasPrevious = false;
-	for (std::size_t offset = unavailableOffset; offset < size(); offset += ResultEntrySize)
+	for (std::size_t offset = unavailableOffsetValue; offset < size(); offset += ResultEntrySize)
 	{
-		const Coordinate coordinate = readAt<Coordinate>(offset);
+		const Coordinate current = readAt<Coordinate>(offset);
 		const auto state = readAt<std::uint8_t>(offset + sizeof(Coordinate));
-
-		if (!validState(state))
-		{
-			throw spk::Exception("Chunk::Protocol::Response contains an unknown result state");
-		}
-		if (state != static_cast<std::uint8_t>(State::Unavailable))
-		{
-			throw spk::Exception(
-				"Chunk::Protocol::Response Unavailable range contains another result state");
-		}
-
-		validateOrderedCoordinate(coordinate, previous, hasPrevious, seen);
-		unavailableCoordinates.push_back(coordinate);
+		validateState(state, State::Unavailable);
+		validateOrderedCoordinate(current, previous, hasPrevious, seen);
 	}
-
-	_successEntries = std::move(successEntries);
-	_rejectedCoordinates = std::move(rejectedCoordinates);
-	_unavailableCoordinates = std::move(unavailableCoordinates);
-	_successOffset = successOffsetValue;
-	_rejectedOffset = rejectedOffsetValue;
-	_unavailableOffset = unavailableOffsetValue;
 }
 
-void Chunk::Protocol::Response::_encode()
+Chunk::Protocol::Response::Builder::Builder(spk::Message::RequestID requestID) :
+	_requestID(requestID)
+{
+	if (_requestID == 0u)
+	{
+		throw spk::Exception("Chunk::Protocol::Response requires a non-zero RequestID");
+	}
+}
+
+void Chunk::Protocol::Response::Builder::_insertCoordinate(const Coordinate &coordinate)
+{
+	if (!_coordinates.insert(coordinate).second)
+	{
+		throw spk::Exception("Chunk::Protocol::Response cannot encode a duplicate coordinate");
+	}
+}
+
+void Chunk::Protocol::Response::Builder::addSuccess(
+	const Coordinate &coordinate,
+	const Chunk &chunk)
+{
+	_insertCoordinate(coordinate);
+	_successEntries.push_back({coordinate, chunk});
+}
+
+void Chunk::Protocol::Response::Builder::addRejected(const Coordinate &coordinate)
+{
+	_insertCoordinate(coordinate);
+	_rejectedCoordinates.push_back(coordinate);
+}
+
+void Chunk::Protocol::Response::Builder::addUnavailable(const Coordinate &coordinate)
+{
+	_insertCoordinate(coordinate);
+	_unavailableCoordinates.push_back(coordinate);
+}
+
+Chunk::Protocol::Response Chunk::Protocol::Response::Builder::build() &&
 {
 	std::ranges::sort(
 		_successEntries,
@@ -274,122 +242,81 @@ void Chunk::Protocol::Response::_encode()
 	std::ranges::sort(_rejectedCoordinates);
 	std::ranges::sort(_unavailableCoordinates);
 
-	const std::size_t successOffset = SummarySize;
-	const std::size_t rejectedOffset =
-		checkedOffset(successOffset, _successEntries.size(), SuccessEntrySize);
-	const std::size_t unavailableOffset =
-		checkedOffset(rejectedOffset, _rejectedCoordinates.size(), ResultEntrySize);
-	(void)checkedOffset(unavailableOffset, _unavailableCoordinates.size(), ResultEntrySize);
+	const std::size_t successOffsetValue = SummarySize;
+	const std::size_t rejectedOffsetValue =
+		checkedOffset(successOffsetValue, _successEntries.size(), SuccessEntrySize);
+	const std::size_t unavailableOffsetValue =
+		checkedOffset(rejectedOffsetValue, _rejectedCoordinates.size(), ResultEntrySize);
+	const std::size_t finalSize =
+		checkedOffset(unavailableOffsetValue, _unavailableCoordinates.size(), ResultEntrySize);
 
-	_successOffset = static_cast<std::uint32_t>(successOffset);
-	_rejectedOffset = static_cast<std::uint32_t>(rejectedOffset);
-	_unavailableOffset = static_cast<std::uint32_t>(unavailableOffset);
+	const auto serializedSuccessOffset =
+		static_cast<std::uint32_t>(successOffsetValue);
+	const auto serializedRejectedOffset =
+		static_cast<std::uint32_t>(rejectedOffsetValue);
+	const auto serializedUnavailableOffset =
+		static_cast<std::uint32_t>(unavailableOffsetValue);
 
-	clear();
-	setType(responseMessageType());
+	Response result(_requestID);
+	result.resize(finalSize);
+	result.edit(0u, serializedSuccessOffset);
+	result.edit(sizeof(std::uint32_t), serializedRejectedOffset);
+	result.edit(2u * sizeof(std::uint32_t), serializedUnavailableOffset);
 
-	append(_successOffset);
-	append(_rejectedOffset);
-	append(_unavailableOffset);
-
-	for (const SuccessEntry &entry : _successEntries)
+	std::size_t offset = successOffsetValue;
+	for (const SuccessEntry &current : _successEntries)
 	{
-		const auto cells = entry.chunk.cells();
+		result.edit(offset, current.coordinate);
+		offset += sizeof(Coordinate);
+
+		const auto state = static_cast<std::uint8_t>(State::Success);
+		result.edit(offset, state);
+		offset += SerializedStateSize;
+
+		const auto cells = current.chunk.cells();
 		if (cells.size() != ChunkCellCount)
 		{
-			throw spk::Exception(
-				"Chunk::Protocol::Response Success requires a complete 4096-Cell Chunk");
+			throw spk::Exception("Chunk::Protocol::Response Success Chunk must contain exactly 4096 Cells");
 		}
 
-		append(entry.coordinate);
-		append(static_cast<std::uint8_t>(State::Success));
-		for (const Voxel::Cell &cell : cells)
-		{
-			append(cell.packed());
-		}
+		result.edit(offset, cells.data(), ChunkCellBytes);
+		offset += ChunkCellBytes;
 	}
 
 	for (const Coordinate &coordinate : _rejectedCoordinates)
 	{
-		append(coordinate);
-		append(static_cast<std::uint8_t>(State::Rejected));
+		result.edit(offset, coordinate);
+		offset += sizeof(Coordinate);
+
+		const auto state = static_cast<std::uint8_t>(State::Rejected);
+		result.edit(offset, state);
+		offset += SerializedStateSize;
 	}
 
 	for (const Coordinate &coordinate : _unavailableCoordinates)
 	{
-		append(coordinate);
-		append(static_cast<std::uint8_t>(State::Unavailable));
-	}
-}
+		result.edit(offset, coordinate);
+		offset += sizeof(Coordinate);
 
-bool Chunk::Protocol::Response::_contains(const Coordinate &coordinate) const noexcept
-{
-	if (
-		std::ranges::find(_successEntries, coordinate, &SuccessEntry::coordinate) !=
-		_successEntries.end())
-	{
-		return true;
-	}
-	if (std::ranges::find(_rejectedCoordinates, coordinate) != _rejectedCoordinates.end())
-	{
-		return true;
+		const auto state = static_cast<std::uint8_t>(State::Unavailable);
+		result.edit(offset, state);
+		offset += SerializedStateSize;
 	}
 
-	return std::ranges::find(_unavailableCoordinates, coordinate) != _unavailableCoordinates.end();
+	return result;
 }
 
-void Chunk::Protocol::Response::addSuccess(
-	const Coordinate &coordinate,
-	const Chunk &chunk)
+std::uint32_t Chunk::Protocol::Response::successOffset() const
 {
-	validateHeader(*this);
-
-	if (_contains(coordinate))
-	{
-		throw spk::Exception("Chunk::Protocol::Response cannot encode a duplicate coordinate");
-	}
-
-	_successEntries.push_back({coordinate, chunk});
-	_encode();
+	return readAt<std::uint32_t>(0u);
 }
 
-void Chunk::Protocol::Response::addRejected(const Coordinate &coordinate)
+std::uint32_t Chunk::Protocol::Response::rejectedOffset() const
 {
-	validateHeader(*this);
-
-	if (_contains(coordinate))
-	{
-		throw spk::Exception("Chunk::Protocol::Response cannot encode a duplicate coordinate");
-	}
-
-	_rejectedCoordinates.push_back(coordinate);
-	_encode();
+	return readAt<std::uint32_t>(sizeof(std::uint32_t));
 }
 
-void Chunk::Protocol::Response::addUnavailable(const Coordinate &coordinate)
+std::uint32_t Chunk::Protocol::Response::unavailableOffset() const
 {
-	validateHeader(*this);
-
-	if (_contains(coordinate))
-	{
-		throw spk::Exception("Chunk::Protocol::Response cannot encode a duplicate coordinate");
-	}
-
-	_unavailableCoordinates.push_back(coordinate);
-	_encode();
-}
-
-std::uint32_t Chunk::Protocol::Response::successOffset() const noexcept
-{
-	return _successOffset;
-}
-
-std::uint32_t Chunk::Protocol::Response::rejectedOffset() const noexcept
-{
-	return _rejectedOffset;
-}
-
-std::uint32_t Chunk::Protocol::Response::unavailableOffset() const noexcept
-{
-	return _unavailableOffset;
+	return readAt<std::uint32_t>(2u * sizeof(std::uint32_t));
 }

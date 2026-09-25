@@ -1,11 +1,13 @@
 #include "erelia/core/chunk_protocol.hpp"
 
+#include <algorithm>
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <set>
 #include <type_traits>
+#include <utility>
 
 #include <exception.hpp>
 
@@ -58,19 +60,24 @@ namespace
 	}
 }
 
-Chunk::Protocol::Request::Request() :
+Chunk::Protocol::Request::Request(spk::Message::RequestID requestID) :
 	spk::Message(requestMessageType())
 {
-	setRequestID(generateRequestID());
+	if (requestID == 0u)
+	{
+		throw spk::Exception("Chunk::Protocol::Request requires a non-zero RequestID");
+	}
+
+	setRequestID(requestID);
 }
 
-Chunk::Protocol::Request::Request(const spk::Message &message) :
-	spk::Message(message)
+Chunk::Protocol::Request::Request(spk::Message message) :
+	spk::Message(std::move(message))
 {
-	_decode();
+	_validate();
 }
 
-void Chunk::Protocol::Request::_decode()
+void Chunk::Protocol::Request::_validate() const
 {
 	validateHeader(*this);
 
@@ -82,74 +89,73 @@ void Chunk::Protocol::Request::_decode()
 	{
 		throw spk::Exception("Chunk::Protocol::Request payload is not coordinate-aligned");
 	}
-
-	const std::size_t coordinateCount = size() / sizeof(Coordinate);
-	if (coordinateCount > MaximumCoordinateCount)
+	if (coordinateCount() > MaximumCoordinateCount)
 	{
 		throw spk::Exception("Chunk::Protocol::Request exceeds the 1024-coordinate limit");
 	}
-
-	std::set<Coordinate> coordinates;
-	std::set<Coordinate> duplicateCoordinates;
-
-	for (std::size_t index = 0; index < coordinateCount; ++index)
-	{
-		const Coordinate coordinate = readAt<Coordinate>(index * sizeof(Coordinate));
-
-		if (!coordinates.insert(coordinate).second)
-		{
-			duplicateCoordinates.insert(coordinate);
-		}
-	}
-
-	_coordinates = std::move(coordinates);
-	_duplicateCoordinates = std::move(duplicateCoordinates);
 }
 
-bool Chunk::Protocol::Request::add(const Coordinate &coordinate)
+void Chunk::Protocol::Request::Builder::add(const Coordinate &coordinate)
 {
-	validateHeader(*this);
-
-	if (size() % sizeof(Coordinate) != 0u)
-	{
-		throw spk::Exception("Chunk::Protocol::Request payload is not coordinate-aligned");
-	}
-
-	if (_coordinates.contains(coordinate))
-	{
-		return false;
-	}
-
-	const std::size_t coordinateCount = size() / sizeof(Coordinate);
-	if (coordinateCount >= MaximumCoordinateCount)
+	if (_coordinates.size() >= MaximumCoordinateCount)
 	{
 		throw spk::Exception("Chunk::Protocol::Request cannot contain more than 1024 coordinates");
 	}
 
-	const auto [iterator, inserted] = _coordinates.insert(coordinate);
-	if (!inserted)
+#ifndef NDEBUG
+	if (std::ranges::find(_coordinates, coordinate) != _coordinates.end())
 	{
-		return false;
+		throw spk::Exception("Chunk::Protocol::Request Builder contains a duplicate coordinate");
 	}
+#endif
 
-	try
-	{
-		append(coordinate);
-	} catch (...)
-	{
-		_coordinates.erase(iterator);
-		throw;
-	}
-
-	return true;
+	_coordinates.push_back(coordinate);
 }
 
-const std::set<Chunk::Coordinate> &Chunk::Protocol::Request::coordinates() const noexcept
+Chunk::Protocol::Request Chunk::Protocol::Request::Builder::build() &&
 {
-	return _coordinates;
+	if (_coordinates.empty())
+	{
+		throw spk::Exception("Chunk::Protocol::Request cannot be built without coordinates");
+	}
+
+	Request result(generateRequestID());
+	const std::size_t payloadSize = _coordinates.size() * sizeof(Coordinate);
+
+	result.resize(payloadSize);
+	result.edit(0u, _coordinates.data(), payloadSize);
+
+	return result;
 }
 
-const std::set<Chunk::Coordinate> &Chunk::Protocol::Request::duplicateCoordinates() const noexcept
+std::size_t Chunk::Protocol::Request::coordinateCount() const noexcept
 {
-	return _duplicateCoordinates;
+	return size() / sizeof(Coordinate);
+}
+
+Chunk::Coordinate Chunk::Protocol::Request::coordinate(std::size_t index) const
+{
+	if (index >= coordinateCount())
+	{
+		throw spk::Exception("Chunk::Protocol::Request coordinate index is outside the payload");
+	}
+
+	return readAt<Coordinate>(index * sizeof(Coordinate));
+}
+
+std::set<Chunk::Coordinate> Chunk::Protocol::Request::duplicateCoordinates() const
+{
+	std::set<Coordinate> seen;
+	std::set<Coordinate> duplicates;
+
+	for (std::size_t index = 0; index < coordinateCount(); ++index)
+	{
+		const Coordinate current = coordinate(index);
+		if (!seen.insert(current).second)
+		{
+			duplicates.insert(current);
+		}
+	}
+
+	return duplicates;
 }

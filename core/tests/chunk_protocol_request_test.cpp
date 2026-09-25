@@ -9,6 +9,7 @@
 #include <mutex>
 #include <set>
 #include <thread>
+#include <utility>
 #include <vector>
 
 namespace
@@ -32,6 +33,17 @@ namespace
 
 		return message;
 	}
+
+	Chunk::Protocol::Request buildRequest(
+		const std::vector<Chunk::Coordinate> &coordinates)
+	{
+		Chunk::Protocol::Request::Builder builder;
+		for (const auto &coordinate : coordinates)
+		{
+			builder.add(coordinate);
+		}
+		return std::move(builder).build();
+	}
 }
 
 TEST(ChunkProtocolMessageType, UsesApprovedTypedValues)
@@ -47,21 +59,19 @@ TEST(ChunkProtocolMessageType, UsesApprovedTypedValues)
 		3u);
 }
 
-TEST(ChunkProtocolRequest, ConstructionOwnsTypeAndNonZeroRequestID)
+TEST(ChunkProtocolRequest, BuilderProducesTypedRequestWithNonZeroMonotonicRequestID)
 {
-	const Chunk::Protocol::Request first;
-	const Chunk::Protocol::Request second;
+	const auto first = buildRequest({{1, 2, 3}});
+	const auto second = buildRequest({{4, 5, 6}});
 
 	EXPECT_EQ(first.type(), requestMessageType());
 	EXPECT_NE(first.requestID(), 0u);
 	EXPECT_EQ(second.type(), requestMessageType());
 	EXPECT_NE(second.requestID(), 0u);
 	EXPECT_GT(second.requestID(), first.requestID());
-	EXPECT_TRUE(first.empty());
-	EXPECT_TRUE(second.empty());
 }
 
-TEST(ChunkProtocolRequest, GeneratedRequestIDsAreUniqueAcrossConcurrentConstruction)
+TEST(ChunkProtocolRequest, GeneratedRequestIDsAreUniqueAcrossConcurrentBuilds)
 {
 	constexpr std::size_t ThreadCount = 8u;
 	constexpr std::size_t RequestsPerThread = 64u;
@@ -78,7 +88,10 @@ TEST(ChunkProtocolRequest, GeneratedRequestIDsAreUniqueAcrossConcurrentConstruct
 		threads.emplace_back([&] {
 			for (std::size_t requestIndex = 0; requestIndex < RequestsPerThread; ++requestIndex)
 			{
-				const Chunk::Protocol::Request request;
+				Chunk::Protocol::Request::Builder builder;
+				builder.add(
+					{static_cast<std::int32_t>(requestIndex), 0, 0});
+				const auto request = std::move(builder).build();
 
 				std::scoped_lock lock(mutex);
 				requestIDs.push_back(request.requestID());
@@ -105,73 +118,71 @@ TEST(ChunkProtocolRequest, GeneratedRequestIDsAreUniqueAcrossConcurrentConstruct
 		requestIDs.end());
 }
 
-TEST(ChunkProtocolRequest, AddSerializesExactlyOneCoordinateWithoutCount)
+TEST(ChunkProtocolRequest, BuilderRejectsEmptyRequest)
 {
-	Chunk::Protocol::Request request;
+	Chunk::Protocol::Request::Builder builder;
+
+	EXPECT_THROW(
+		(void)std::move(builder).build(),
+		spk::Exception);
+}
+
+TEST(ChunkProtocolRequest, BuildSerializesExactlyOneCoordinateWithoutCount)
+{
 	const Chunk::Coordinate coordinate{17, -4, 23};
 
-	EXPECT_TRUE(request.add(coordinate));
+	auto request = buildRequest({coordinate});
 
 	EXPECT_EQ(request.size(), sizeof(Chunk::Coordinate));
+	EXPECT_EQ(request.coordinateCount(), 1u);
+	EXPECT_EQ(request.coordinate(0u), coordinate);
 	EXPECT_EQ(request.readAt<Chunk::Coordinate>(0u), coordinate);
-	EXPECT_EQ(request.coordinates(), (std::set<Chunk::Coordinate>{coordinate}));
 	EXPECT_TRUE(request.duplicateCoordinates().empty());
 }
 
-TEST(ChunkProtocolRequest, PreservesWireInsertionOrderAndCoordinateValuesExactly)
+TEST(ChunkProtocolRequest, BuilderPreservesInsertionOrderAndCoordinateValuesExactly)
 {
-	Chunk::Protocol::Request request;
-	const std::vector<Chunk::Coordinate> expectedWireOrder = {
+	const std::vector<Chunk::Coordinate> expected = {
 		{-123456, 789, -42},
 		{0, -1, 1},
 		{2147483647, -2147483647 - 1, 7}};
 
-	for (const auto &coordinate : expectedWireOrder)
-	{
-		EXPECT_TRUE(request.add(coordinate));
-	}
+	auto request = buildRequest(expected);
 
-	ASSERT_EQ(request.size(), expectedWireOrder.size() * sizeof(Chunk::Coordinate));
-	for (std::size_t index = 0; index < expectedWireOrder.size(); ++index)
-	{
-		EXPECT_EQ(
-			request.readAt<Chunk::Coordinate>(index * sizeof(Chunk::Coordinate)),
-			expectedWireOrder[index]);
-	}
+	ASSERT_EQ(request.coordinateCount(), expected.size());
+	ASSERT_EQ(request.size(), expected.size() * sizeof(Chunk::Coordinate));
 
-	EXPECT_EQ(
-		request.coordinates(),
-		(std::set<Chunk::Coordinate>(
-			expectedWireOrder.begin(),
-			expectedWireOrder.end())));
+	for (std::size_t index = 0; index < expected.size(); ++index)
+	{
+		EXPECT_EQ(request.coordinate(index), expected[index]);
+	}
 }
 
-TEST(ChunkProtocolRequest, DuplicateAddIsRefusedWithoutChangingPayload)
+TEST(ChunkProtocolRequest, BuilderDuplicateCheckIsDebugOnly)
 {
-	const Chunk::Coordinate a{1, 2, 3};
-	const Chunk::Coordinate b{-4, 5, 6};
-	const Chunk::Coordinate c{7, 8, -9};
+	const Chunk::Coordinate coordinate{1, 2, 3};
 
-	Chunk::Protocol::Request request;
-	EXPECT_TRUE(request.add(a));
-	EXPECT_TRUE(request.add(b));
+	Chunk::Protocol::Request::Builder builder;
+	builder.add(coordinate);
 
-	const auto sizeBeforeDuplicate = request.size();
-	EXPECT_FALSE(request.add(a));
-	EXPECT_EQ(request.size(), sizeBeforeDuplicate);
+#ifndef NDEBUG
+	EXPECT_THROW(builder.add(coordinate), spk::Exception);
 
-	EXPECT_TRUE(request.add(c));
-	EXPECT_FALSE(request.add(b));
-	EXPECT_FALSE(request.add(b));
-
-	EXPECT_EQ(request.size(), 3u * sizeof(Chunk::Coordinate));
-	EXPECT_EQ(
-		request.coordinates(),
-		(std::set<Chunk::Coordinate>{a, b, c}));
+	const auto request = std::move(builder).build();
+	EXPECT_EQ(request.coordinateCount(), 1u);
 	EXPECT_TRUE(request.duplicateCoordinates().empty());
+#else
+	EXPECT_NO_THROW(builder.add(coordinate));
+
+	const auto request = std::move(builder).build();
+	EXPECT_EQ(request.coordinateCount(), 2u);
+	EXPECT_EQ(
+		request.duplicateCoordinates(),
+		(std::set<Chunk::Coordinate>{coordinate}));
+#endif
 }
 
-TEST(ChunkProtocolRequest, RawDuplicateInputKeepsUniqueResolutionAndDistinctDiagnostics)
+TEST(ChunkProtocolRequest, IncomingDuplicatePayloadExposesDistinctDuplicateCoordinates)
 {
 	const Chunk::Coordinate a{1, 2, 3};
 	const Chunk::Coordinate b{-4, 5, 6};
@@ -182,34 +193,31 @@ TEST(ChunkProtocolRequest, RawDuplicateInputKeepsUniqueResolutionAndDistinctDiag
 		{a, b, a, c, b, b});
 	const Chunk::Protocol::Request request(raw);
 
-	EXPECT_EQ(
-		request.coordinates(),
-		(std::set<Chunk::Coordinate>{a, b, c}));
+	EXPECT_EQ(request.coordinateCount(), 6u);
+	EXPECT_EQ(request.coordinate(0u), a);
+	EXPECT_EQ(request.coordinate(1u), b);
+	EXPECT_EQ(request.coordinate(2u), a);
 	EXPECT_EQ(
 		request.duplicateCoordinates(),
 		(std::set<Chunk::Coordinate>{a, b}));
-	EXPECT_EQ(request.size(), 6u * sizeof(Chunk::Coordinate));
 }
 
-TEST(ChunkProtocolRequest, AcceptsExactly1024CoordinatesAndRejectsTheNextUniqueAdd)
+TEST(ChunkProtocolRequest, AcceptsExactly1024CoordinatesAndRejectsTheNextAdd)
 {
-	Chunk::Protocol::Request request;
+	Chunk::Protocol::Request::Builder builder;
 
 	for (std::int32_t index = 0; index < 1024; ++index)
 	{
-		EXPECT_TRUE(request.add({index, -index, index * 2}));
+		EXPECT_NO_THROW(builder.add({index, -index, index * 2}));
 	}
 
+	EXPECT_THROW(
+		builder.add({1024, -1024, 2048}),
+		spk::Exception);
+
+	const auto request = std::move(builder).build();
+	EXPECT_EQ(request.coordinateCount(), 1024u);
 	EXPECT_EQ(request.size(), 1024u * sizeof(Chunk::Coordinate));
-	EXPECT_EQ(request.coordinates().size(), 1024u);
-
-	const auto previousSize = request.size();
-	EXPECT_FALSE(request.add({0, 0, 0}));
-	EXPECT_EQ(request.size(), previousSize);
-
-	EXPECT_THROW((void)request.add({1024, -1024, 2048}), spk::Exception);
-	EXPECT_EQ(request.size(), previousSize);
-	EXPECT_EQ(request.coordinates().size(), 1024u);
 }
 
 TEST(ChunkProtocolRequest, DecodesThe1024CoordinateBoundary)
@@ -226,11 +234,11 @@ TEST(ChunkProtocolRequest, DecodesThe1024CoordinateBoundary)
 	const Chunk::Protocol::Request request(raw);
 
 	EXPECT_EQ(request.requestID(), 77u);
-	EXPECT_EQ(
-		request.coordinates(),
-		(std::set<Chunk::Coordinate>(
-			coordinates.begin(),
-			coordinates.end())));
+	EXPECT_EQ(request.coordinateCount(), coordinates.size());
+	for (std::size_t index = 0; index < coordinates.size(); ++index)
+	{
+		EXPECT_EQ(request.coordinate(index), coordinates[index]);
+	}
 	EXPECT_TRUE(request.duplicateCoordinates().empty());
 }
 
@@ -286,6 +294,26 @@ TEST(ChunkProtocolRequest, RejectsMisalignedAndTruncatedCoordinatePayload)
 	EXPECT_THROW((void)Chunk::Protocol::Request(raw), spk::Exception);
 }
 
+TEST(ChunkProtocolRequest, CoordinateRejectsOutOfRangeIndex)
+{
+	const auto request = buildRequest({{1, 2, 3}});
+
+	EXPECT_THROW((void)request.coordinate(1u), spk::Exception);
+}
+
+TEST(ChunkProtocolRequest, AccessorsReadTheMessagePayloadAsTheirSourceOfTruth)
+{
+	auto request = buildRequest(
+		{{1, 2, 3}, {4, 5, 6}});
+	const Chunk::Coordinate replacement{-7, 8, 9};
+
+	request.edit(0u, replacement);
+
+	EXPECT_EQ(request.coordinate(0u), replacement);
+	EXPECT_EQ(request.coordinate(1u), (Chunk::Coordinate{4, 5, 6}));
+	EXPECT_TRUE(request.duplicateCoordinates().empty());
+}
+
 TEST(ChunkProtocolRequest, DecodeUsesCursorIndependentReads)
 {
 	spk::Message raw = requestMessage(
@@ -298,7 +326,6 @@ TEST(ChunkProtocolRequest, DecodeUsesCursorIndependentReads)
 
 	EXPECT_EQ(raw.readOffset(), originalReadOffset);
 	EXPECT_EQ(request.readOffset(), originalReadOffset);
-	EXPECT_EQ(
-		request.coordinates(),
-		(std::set<Chunk::Coordinate>{{1, 2, 3}, {4, 5, 6}}));
+	EXPECT_EQ(request.coordinate(0u), (Chunk::Coordinate{1, 2, 3}));
+	EXPECT_EQ(request.coordinate(1u), (Chunk::Coordinate{4, 5, 6}));
 }

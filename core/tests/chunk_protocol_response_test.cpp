@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <vector>
+#include <utility>
 
 namespace
 {
@@ -19,7 +19,7 @@ namespace
 	constexpr std::size_t CoordinateAndStateSize =
 		sizeof(Chunk::Coordinate) + sizeof(std::uint8_t);
 	constexpr std::size_t SuccessEntrySize =
-		CoordinateAndStateSize + CellCount * sizeof(Voxel::Cell::PackedType);
+		CoordinateAndStateSize + CellCount * sizeof(Voxel::Cell);
 	constexpr std::size_t ResultEntrySize = CoordinateAndStateSize;
 
 	[[nodiscard]] spk::Message::Type responseMessageType() noexcept
@@ -50,6 +50,12 @@ namespace
 	Chunk makeEmptyChunk()
 	{
 		return std::move(Chunk::Builder{}).build();
+	}
+
+	Chunk::Protocol::Response emptyResponse(spk::Message::RequestID requestID)
+	{
+		Chunk::Protocol::Response::Builder builder(requestID);
+		return std::move(builder).build();
 	}
 
 	spk::Message responseMessage(spk::Message::RequestID requestID)
@@ -93,9 +99,9 @@ namespace
 	}
 }
 
-TEST(ChunkProtocolResponse, ConstructionWritesExactlyTheThreeOffsetSummary)
+TEST(ChunkProtocolResponse, EmptyBuilderWritesExactlyTheThreeOffsetSummary)
 {
-	const Chunk::Protocol::Response response(100u);
+	const auto response = emptyResponse(100u);
 
 	EXPECT_EQ(response.type(), responseMessageType());
 	EXPECT_EQ(response.requestID(), 100u);
@@ -110,9 +116,11 @@ TEST(ChunkProtocolResponse, ConstructionWritesExactlyTheThreeOffsetSummary)
 		SummarySize);
 }
 
-TEST(ChunkProtocolResponse, RejectsZeroOriginatingRequestID)
+TEST(ChunkProtocolResponse, BuilderRejectsZeroOriginatingRequestID)
 {
-	EXPECT_THROW((void)Chunk::Protocol::Response(0u), spk::Exception);
+	EXPECT_THROW(
+		(void)Chunk::Protocol::Response::Builder(0u),
+		spk::Exception);
 }
 
 TEST(ChunkProtocolResponse, SuccessOnlyUsesFixedChunkEntryAndCellOrder)
@@ -120,8 +128,9 @@ TEST(ChunkProtocolResponse, SuccessOnlyUsesFixedChunkEntryAndCellOrder)
 	const Chunk chunk = makeSequentialChunk();
 	const Chunk::Coordinate coordinate{-3, 8, 11};
 
-	Chunk::Protocol::Response response(101u);
-	response.addSuccess(coordinate, chunk);
+	Chunk::Protocol::Response::Builder builder(101u);
+	builder.addSuccess(coordinate, chunk);
+	const auto response = std::move(builder).build();
 
 	EXPECT_EQ(response.successOffset(), SummarySize);
 	EXPECT_EQ(response.rejectedOffset(), SummarySize + SuccessEntrySize);
@@ -141,15 +150,16 @@ TEST(ChunkProtocolResponse, SuccessOnlyUsesFixedChunkEntryAndCellOrder)
 	{
 		EXPECT_EQ(
 			response.readAt<Voxel::Cell::PackedType>(
-				cellOffset + index * sizeof(Voxel::Cell::PackedType)),
+				cellOffset + index * sizeof(Voxel::Cell)),
 			index + 1u);
 	}
 }
 
 TEST(ChunkProtocolResponse, RejectedOnlyUsesEqualEmptySuccessBoundary)
 {
-	Chunk::Protocol::Response response(102u);
-	response.addRejected({1, 2, 3});
+	Chunk::Protocol::Response::Builder builder(102u);
+	builder.addRejected({1, 2, 3});
+	const auto response = std::move(builder).build();
 
 	EXPECT_EQ(response.successOffset(), SummarySize);
 	EXPECT_EQ(response.rejectedOffset(), SummarySize);
@@ -163,8 +173,9 @@ TEST(ChunkProtocolResponse, RejectedOnlyUsesEqualEmptySuccessBoundary)
 
 TEST(ChunkProtocolResponse, UnavailableOnlyUsesEqualSuccessAndRejectedBoundaries)
 {
-	Chunk::Protocol::Response response(103u);
-	response.addUnavailable({1, 2, 3});
+	Chunk::Protocol::Response::Builder builder(103u);
+	builder.addUnavailable({1, 2, 3});
+	const auto response = std::move(builder).build();
 
 	EXPECT_EQ(response.successOffset(), SummarySize);
 	EXPECT_EQ(response.rejectedOffset(), SummarySize);
@@ -176,17 +187,18 @@ TEST(ChunkProtocolResponse, UnavailableOnlyUsesEqualSuccessAndRejectedBoundaries
 		static_cast<std::uint8_t>(Chunk::Protocol::Response::State::Unavailable));
 }
 
-TEST(ChunkProtocolResponse, EncodesGroupsAndCoordinatesCanonicallyRegardlessOfAddOrder)
+TEST(ChunkProtocolResponse, BuilderEncodesGroupsAndCoordinatesCanonicallyRegardlessOfAddOrder)
 {
 	const Chunk chunk = makeEmptyChunk();
 
-	Chunk::Protocol::Response response(104u);
-	response.addUnavailable({9, 0, 0});
-	response.addRejected({3, 0, 0});
-	response.addSuccess({8, 0, 0}, chunk);
-	response.addRejected({-4, 5, 0});
-	response.addSuccess({-2, 7, 1}, chunk);
-	response.addUnavailable({0, 0, -1});
+	Chunk::Protocol::Response::Builder builder(104u);
+	builder.addUnavailable({9, 0, 0});
+	builder.addRejected({3, 0, 0});
+	builder.addSuccess({8, 0, 0}, chunk);
+	builder.addRejected({-4, 5, 0});
+	builder.addSuccess({-2, 7, 1}, chunk);
+	builder.addUnavailable({0, 0, -1});
+	const auto response = std::move(builder).build();
 
 	ASSERT_EQ(
 		response.rejectedOffset(),
@@ -224,35 +236,36 @@ TEST(ChunkProtocolResponse, SameLogicalResultsProduceIdenticalPayloadBytes)
 {
 	const Chunk chunk = makeEmptyChunk();
 
-	Chunk::Protocol::Response first(105u);
-	first.addUnavailable({7, 0, 0});
-	first.addSuccess({4, 0, 0}, chunk);
-	first.addRejected({-3, 0, 0});
-	first.addSuccess({-5, 0, 0}, chunk);
+	Chunk::Protocol::Response::Builder firstBuilder(105u);
+	firstBuilder.addUnavailable({7, 0, 0});
+	firstBuilder.addSuccess({4, 0, 0}, chunk);
+	firstBuilder.addRejected({-3, 0, 0});
+	firstBuilder.addSuccess({-5, 0, 0}, chunk);
+	const auto first = std::move(firstBuilder).build();
 
-	Chunk::Protocol::Response second(105u);
-	second.addSuccess({-5, 0, 0}, chunk);
-	second.addRejected({-3, 0, 0});
-	second.addSuccess({4, 0, 0}, chunk);
-	second.addUnavailable({7, 0, 0});
+	Chunk::Protocol::Response::Builder secondBuilder(105u);
+	secondBuilder.addSuccess({-5, 0, 0}, chunk);
+	secondBuilder.addRejected({-3, 0, 0});
+	secondBuilder.addSuccess({4, 0, 0}, chunk);
+	secondBuilder.addUnavailable({7, 0, 0});
+	const auto second = std::move(secondBuilder).build();
 
 	expectPayloadsEqual(first, second);
 }
 
-TEST(ChunkProtocolResponse, RoundTripPreservesValidatedRangesAndAllowsFurtherAdds)
+TEST(ChunkProtocolResponse, RoundTripPreservesValidatedRanges)
 {
-	Chunk::Protocol::Response source(106u);
-	source.addRejected({-5, 4, 3});
+	Chunk::Protocol::Response::Builder builder(106u);
+	builder.addRejected({-5, 4, 3});
+	builder.addUnavailable({8, 9, 10});
+	const auto source = std::move(builder).build();
 
 	const spk::Message raw = source;
-	Chunk::Protocol::Response decoded(raw);
+	const Chunk::Protocol::Response decoded(raw);
 
 	EXPECT_EQ(decoded.successOffset(), source.successOffset());
 	EXPECT_EQ(decoded.rejectedOffset(), source.rejectedOffset());
 	EXPECT_EQ(decoded.unavailableOffset(), source.unavailableOffset());
-
-	decoded.addUnavailable({8, 9, 10});
-
 	EXPECT_EQ(
 		decoded.readAt<Chunk::Coordinate>(decoded.rejectedOffset()),
 		(Chunk::Coordinate{-5, 4, 3}));
@@ -263,8 +276,9 @@ TEST(ChunkProtocolResponse, RoundTripPreservesValidatedRangesAndAllowsFurtherAdd
 
 TEST(ChunkProtocolResponse, ValidatedRangesSupportReadAtWithoutChangingCursor)
 {
-	Chunk::Protocol::Response source(107u);
-	source.addRejected({-7, 2, 9});
+	Chunk::Protocol::Response::Builder builder(107u);
+	builder.addRejected({-7, 2, 9});
+	const auto source = std::move(builder).build();
 
 	spk::Message raw = source;
 	raw.skip<std::uint32_t>();
@@ -281,8 +295,9 @@ TEST(ChunkProtocolResponse, ValidatedRangesSupportReadAtWithoutChangingCursor)
 TEST(ChunkProtocolResponse, DecodedPayloadOutlivesSourceMessage)
 {
 	const Chunk::Protocol::Response decoded = [] {
-		Chunk::Protocol::Response source(108u);
-		source.addUnavailable({1, -2, 3});
+		Chunk::Protocol::Response::Builder builder(108u);
+		builder.addUnavailable({1, -2, 3});
+		const auto source = std::move(builder).build();
 		const spk::Message raw = source;
 		return Chunk::Protocol::Response(raw);
 	}();
@@ -292,21 +307,19 @@ TEST(ChunkProtocolResponse, DecodedPayloadOutlivesSourceMessage)
 		(Chunk::Coordinate{1, -2, 3}));
 }
 
-TEST(ChunkProtocolResponse, AddRejectsDuplicateCoordinateAcrossStates)
+TEST(ChunkProtocolResponse, BuilderRejectsDuplicateCoordinateAcrossStates)
 {
 	const Chunk chunk = makeEmptyChunk();
-	Chunk::Protocol::Response response(109u);
-	response.addSuccess({1, 2, 3}, chunk);
+	Chunk::Protocol::Response::Builder builder(109u);
+	builder.addSuccess({1, 2, 3}, chunk);
 
-	const auto previousSize = response.size();
-	EXPECT_THROW(response.addRejected({1, 2, 3}), spk::Exception);
-	EXPECT_THROW(response.addUnavailable({1, 2, 3}), spk::Exception);
-	EXPECT_EQ(response.size(), previousSize);
+	EXPECT_THROW(builder.addRejected({1, 2, 3}), spk::Exception);
+	EXPECT_THROW(builder.addUnavailable({1, 2, 3}), spk::Exception);
 }
 
 TEST(ChunkProtocolResponse, RejectsWrongMessageType)
 {
-	Chunk::Protocol::Response valid(110u);
+	auto valid = emptyResponse(110u);
 	spk::Message raw = valid;
 	raw.setType(
 		static_cast<spk::Message::Type>(Networking::MessageType::ChunkRequest));
@@ -316,7 +329,7 @@ TEST(ChunkProtocolResponse, RejectsWrongMessageType)
 
 TEST(ChunkProtocolResponse, RejectsZeroRequestID)
 {
-	Chunk::Protocol::Response valid(111u);
+	auto valid = emptyResponse(111u);
 	spk::Message raw = valid;
 	raw.setRequestID(0u);
 
@@ -377,8 +390,9 @@ TEST(ChunkProtocolResponse, RejectsMisalignedRejectedRange)
 
 TEST(ChunkProtocolResponse, RejectsMisalignedUnavailableRangeAndTrailingBytes)
 {
-	Chunk::Protocol::Response valid(118u);
-	valid.addRejected({1, 2, 3});
+	Chunk::Protocol::Response::Builder builder(118u);
+	builder.addRejected({1, 2, 3});
+	const auto valid = std::move(builder).build();
 
 	spk::Message raw = valid;
 	raw.append(std::uint8_t{0u});
@@ -388,8 +402,9 @@ TEST(ChunkProtocolResponse, RejectsMisalignedUnavailableRangeAndTrailingBytes)
 
 TEST(ChunkProtocolResponse, RejectsKnownStateInWrongGroup)
 {
-	Chunk::Protocol::Response valid(119u);
-	valid.addRejected({1, 2, 3});
+	Chunk::Protocol::Response::Builder builder(119u);
+	builder.addRejected({1, 2, 3});
+	const auto valid = std::move(builder).build();
 
 	spk::Message raw = valid;
 	const std::uint8_t wrongState =
@@ -403,8 +418,9 @@ TEST(ChunkProtocolResponse, RejectsKnownStateInWrongGroup)
 
 TEST(ChunkProtocolResponse, RejectsUnknownState)
 {
-	Chunk::Protocol::Response valid(120u);
-	valid.addRejected({1, 2, 3});
+	Chunk::Protocol::Response::Builder builder(120u);
+	builder.addRejected({1, 2, 3});
+	const auto valid = std::move(builder).build();
 
 	spk::Message raw = valid;
 	const std::uint8_t unknownState = 99u;

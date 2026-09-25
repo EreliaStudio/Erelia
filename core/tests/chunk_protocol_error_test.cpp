@@ -5,7 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <vector>
+#include <utility>
 
 namespace
 {
@@ -34,45 +34,50 @@ namespace
 	}
 }
 
-TEST(ChunkProtocolError, ConstructionOwnsTypeAndOriginatingRequestID)
+TEST(ChunkProtocolError, EmptyBuilderProducesTypedCorrelatedMessage)
 {
-	const Chunk::Protocol::Error error(91u);
+	Chunk::Protocol::Error::Builder builder(91u);
+	const auto error = std::move(builder).build();
 
 	EXPECT_EQ(error.type(), errorMessageType());
 	EXPECT_EQ(error.requestID(), 91u);
 	EXPECT_TRUE(error.empty());
-	EXPECT_TRUE(error.entries().empty());
+	EXPECT_EQ(error.entryCount(), 0u);
 }
 
-TEST(ChunkProtocolError, RejectsZeroOriginatingRequestID)
+TEST(ChunkProtocolError, BuilderRejectsZeroOriginatingRequestID)
 {
-	EXPECT_THROW((void)Chunk::Protocol::Error(0u), spk::Exception);
+	EXPECT_THROW(
+		(void)Chunk::Protocol::Error::Builder(0u),
+		spk::Exception);
 }
 
-TEST(ChunkProtocolError, AddSortsEntriesAndSerializesNoCount)
+TEST(ChunkProtocolError, BuilderSortsEntriesAndSerializesNoCount)
 {
 	const Chunk::Coordinate high{5, 0, 0};
 	const Chunk::Coordinate low{-2, 9, 9};
 	const Chunk::Coordinate middle{5, -1, 7};
 
-	Chunk::Protocol::Error error(12u);
-	error.add(
+	Chunk::Protocol::Error::Builder builder(12u);
+	builder.add(
 		Chunk::Protocol::Error::Code::DuplicateCoordinate,
 		high);
-	error.add(
+	builder.add(
 		Chunk::Protocol::Error::Code::DuplicateCoordinate,
 		low);
-	error.add(
+	builder.add(
 		Chunk::Protocol::Error::Code::DuplicateCoordinate,
 		middle);
 
-	ASSERT_EQ(error.size(), 3u * EntrySize);
-	ASSERT_EQ(error.entries().size(), 3u);
-	EXPECT_EQ(error.entries()[0].coordinate, low);
-	EXPECT_EQ(error.entries()[1].coordinate, middle);
-	EXPECT_EQ(error.entries()[2].coordinate, high);
+	const auto error = std::move(builder).build();
 
-	for (std::size_t index = 0; index < error.entries().size(); ++index)
+	ASSERT_EQ(error.size(), 3u * EntrySize);
+	ASSERT_EQ(error.entryCount(), 3u);
+	EXPECT_EQ(error.entry(0u).coordinate, low);
+	EXPECT_EQ(error.entry(1u).coordinate, middle);
+	EXPECT_EQ(error.entry(2u).coordinate, high);
+
+	for (std::size_t index = 0; index < error.entryCount(); ++index)
 	{
 		const std::size_t offset = index * EntrySize;
 		EXPECT_EQ(
@@ -81,7 +86,7 @@ TEST(ChunkProtocolError, AddSortsEntriesAndSerializesNoCount)
 				Chunk::Protocol::Error::Code::DuplicateCoordinate));
 		EXPECT_EQ(
 			error.readAt<Chunk::Coordinate>(offset + sizeof(std::uint8_t)),
-			error.entries()[index].coordinate);
+			error.entry(index).coordinate);
 	}
 }
 
@@ -89,42 +94,47 @@ TEST(ChunkProtocolError, PreservesNegativeCoordinatesExactly)
 {
 	const Chunk::Coordinate coordinate{-100, -200, -300};
 
-	Chunk::Protocol::Error error(13u);
-	error.add(
+	Chunk::Protocol::Error::Builder builder(13u);
+	builder.add(
 		Chunk::Protocol::Error::Code::DuplicateCoordinate,
 		coordinate);
+	const auto error = std::move(builder).build();
 
 	EXPECT_EQ(
 		error.readAt<Chunk::Coordinate>(sizeof(std::uint8_t)),
 		coordinate);
-	ASSERT_EQ(error.entries().size(), 1u);
-	EXPECT_EQ(error.entries()[0].coordinate, coordinate);
+	ASSERT_EQ(error.entryCount(), 1u);
+	EXPECT_EQ(error.entry(0u).coordinate, coordinate);
 }
 
-TEST(ChunkProtocolError, RoundTripsAndOwnsDecodedEntries)
+TEST(ChunkProtocolError, RoundTripsAndOwnsDecodedPayload)
 {
-	Chunk::Protocol::Error source(14u);
-	source.add(
+	Chunk::Protocol::Error::Builder builder(14u);
+	builder.add(
 		Chunk::Protocol::Error::Code::DuplicateCoordinate,
 		{3, 2, 1});
-	source.add(
+	builder.add(
 		Chunk::Protocol::Error::Code::DuplicateCoordinate,
 		{-1, 7, 4});
+	const auto source = std::move(builder).build();
 
 	const spk::Message raw = source;
 	const Chunk::Protocol::Error decoded(raw);
 
 	EXPECT_EQ(decoded.requestID(), source.requestID());
-	EXPECT_EQ(decoded.entries(), source.entries());
+	EXPECT_EQ(decoded.entryCount(), source.entryCount());
+	EXPECT_EQ(decoded.entry(0u), source.entry(0u));
+	EXPECT_EQ(decoded.entry(1u), source.entry(1u));
 	EXPECT_EQ(decoded.size(), source.size());
 }
 
 TEST(ChunkProtocolError, DecodingDoesNotMoveTheSourceCursor)
 {
-	Chunk::Protocol::Error source(15u);
-	source.add(
+	Chunk::Protocol::Error::Builder builder(15u);
+	builder.add(
 		Chunk::Protocol::Error::Code::DuplicateCoordinate,
 		{1, 2, 3});
+	const auto source = std::move(builder).build();
 
 	spk::Message raw = source;
 	raw.skip<std::uint8_t>();
@@ -134,6 +144,28 @@ TEST(ChunkProtocolError, DecodingDoesNotMoveTheSourceCursor)
 
 	EXPECT_EQ(raw.readOffset(), originalReadOffset);
 	EXPECT_EQ(decoded.readOffset(), originalReadOffset);
+}
+
+TEST(ChunkProtocolError, AccessorReadsTheMessagePayloadAsItsSourceOfTruth)
+{
+	Chunk::Protocol::Error::Builder builder(16u);
+	builder.add(
+		Chunk::Protocol::Error::Code::DuplicateCoordinate,
+		{1, 2, 3});
+	auto error = std::move(builder).build();
+
+	const Chunk::Coordinate replacement{-4, 5, 6};
+	error.edit(sizeof(std::uint8_t), replacement);
+
+	EXPECT_EQ(error.entry(0u).coordinate, replacement);
+}
+
+TEST(ChunkProtocolError, EntryRejectsOutOfRangeIndex)
+{
+	Chunk::Protocol::Error::Builder builder(17u);
+	const auto error = std::move(builder).build();
+
+	EXPECT_THROW((void)error.entry(0u), spk::Exception);
 }
 
 TEST(ChunkProtocolError, RejectsWrongMessageType)
@@ -189,35 +221,27 @@ TEST(ChunkProtocolError, RejectsUnsortedCoordinates)
 	EXPECT_THROW((void)Chunk::Protocol::Error(raw), spk::Exception);
 }
 
-TEST(ChunkProtocolError, AddRejectsDuplicateWithoutMutatingEncodedMessage)
+TEST(ChunkProtocolError, BuilderRejectsDuplicateCoordinate)
 {
-	Chunk::Protocol::Error error(6u);
-	error.add(
+	Chunk::Protocol::Error::Builder builder(6u);
+	builder.add(
 		Chunk::Protocol::Error::Code::DuplicateCoordinate,
 		{1, 2, 3});
 
-	const auto previousSize = error.size();
-	const auto previousEntries = error.entries();
-
 	EXPECT_THROW(
-		error.add(
+		builder.add(
 			Chunk::Protocol::Error::Code::DuplicateCoordinate,
 			{1, 2, 3}),
 		spk::Exception);
-
-	EXPECT_EQ(error.size(), previousSize);
-	EXPECT_EQ(error.entries(), previousEntries);
 }
 
-TEST(ChunkProtocolError, AddRejectsUnknownCode)
+TEST(ChunkProtocolError, BuilderRejectsUnknownCode)
 {
-	Chunk::Protocol::Error error(7u);
+	Chunk::Protocol::Error::Builder builder(7u);
 
 	EXPECT_THROW(
-		error.add(
+		builder.add(
 			static_cast<Chunk::Protocol::Error::Code>(99u),
 			{1, 2, 3}),
 		spk::Exception);
-	EXPECT_TRUE(error.empty());
-	EXPECT_TRUE(error.entries().empty());
 }
