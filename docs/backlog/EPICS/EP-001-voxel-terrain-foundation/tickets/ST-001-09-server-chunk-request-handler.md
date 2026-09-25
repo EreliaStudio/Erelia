@@ -34,6 +34,7 @@ Client/rendering code, Client view radius/cache policy, terrain mesh generation,
 ## Owned behavior
 
 - Receive routed Chunk requests in the terrain node's `spk::RemoteNode::Endpoint` process.
+- Add a transport-level smoke fixture proving a real `ChunkRequest` crosses Client -> NodeRouter -> RemoteNode -> terrain Endpoint with Message type, RequestID, size, and payload bytes preserved before parsing/handler semantics are asserted.
 - Validate request according to the final ST-001-08 contract.
 - Resolve each accepted coordinate through the ST-001-06 Server `Chunk::Collection` backed by `PrototypeChunkProvider`.
 - Return canonical coordinate + Chunk results through the router to the originating Client.
@@ -46,7 +47,7 @@ Client retry/cache policy, production interest management, persistent terrain ed
 
 ## Public contract
 
-The shared request limits, duplicate semantics, result-state format, correlation, ordering, and malformed-input contract are fixed by ST-001-08/DR-022. This ticket remains blocked until ST-001-08 is implemented and its own Server lifecycle/failure details are Ready.
+The shared request limits, duplicate semantics, result-state format, correlation, ordering, and malformed-input contract are fixed by the completed ST-001-08/DR-022 work. This ticket remains Blocked only until its own Server lifecycle/failure details are explicit enough for Ready.
 
 ## Invariants
 
@@ -63,7 +64,7 @@ Malformed/invalid request -> reject according to final protocol -> no canonical 
 
 ## Failure behavior
 
-Blocked by OQ-038 for partial success/rejection. Provider/Collection failure behavior from the final ST-001-06 contract must also be explicit before Ready.
+OQ-038/DR-022 already fix partial success/rejection protocol semantics. Remaining failure behavior to resolve before Ready is Server-specific: Provider/Collection failure propagation, reply/send failure handling, and outstanding-request/disconnect lifecycle.
 
 ## Determinism / ordering
 

@@ -1,6 +1,6 @@
 # ST-001-08 — Batched Chunk request/response protocol contract
 
-**Status:** In Progress
+**Status:** Done
 **Epic:** EP-001
 **Production target(s):** Core
 **Test suite(s):** EreliaCoreTestSuite
@@ -261,7 +261,7 @@ Not applicable.
 
 ## Completion evidence
 
-Implementation is complete on `feat/st-001-08-batched-chunk-protocol-contract` / PR #16 and is awaiting project-owner review.
+Implementation is complete, project-owner review is recorded, and PR #16 is treated as merged into `master`.
 
 The Core implementation adds:
 
@@ -277,6 +277,6 @@ The Core implementation adds:
 - dedicated Core TU coverage for boundaries, ordering, malformed input, correlation, deterministic bytes, lifetime, and cursor-independent `readAt()`;
 - one-message-per-header organization: `chunk_protocol_request.hpp`, `chunk_protocol_error.hpp`, and `chunk_protocol_response.hpp`; the former aggregate `chunk_protocol.hpp` is removed.
 
-CI run #355 (run ID `36137711405`) passed the complete required matrix on code head `44395a694af64bba5e7e616860fe4699f8d432f9`: clang-format, Linux Core/Server Debug + Release, Windows Core/Server Debug + Release, and Windows Client Debug + Release.
+CI run #356 (run ID `36138476545`) passed the complete required matrix on reviewed PR head `a4c0e29059cec422bee848dff2c465ad26c53493`: clang-format, Linux Core/Server Debug + Release, Windows Core/Server Debug + Release, and Windows Client Debug + Release.
 
-The ticket remains **In Progress** until project-owner review/approval is recorded. ST-001-09 Server handling and ST-001-11 Client coordinator policy remain outside this implementation.
+The ticket is **Done**. ST-001-09 Server handling and ST-001-11 Client coordinator policy remain outside this implementation.

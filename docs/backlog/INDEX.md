@@ -63,7 +63,7 @@ EP-001 is the active near-term planning focus.
 
 ## Implementation tickets
 
-ST-001-01 through ST-001-07 are Done. ST-001-08 is implemented on `feat/st-001-08-batched-chunk-protocol-contract` / PR #16 and remains In Progress pending project-owner review. CI run #350 passed the complete matrix for the implemented Core protocol.
+ST-001-01 through ST-001-08 are Done on `master`. ST-001-08 was completed through PR #16 after project-owner review; CI run #356 (run ID `36138476545`) passed on reviewed head `a4c0e29059cec422bee848dff2c465ad26c53493`. The next dependency-ordered ticket is ST-001-09, which remains Blocked only by its remaining Server-specific lifecycle/failure specification.
 
 OQ-038 is Resolved and DR-022 fixes the exact Chunk Request/Response/Error protocol. Later tickets remain gated by their own dependencies and unresolved ticket-specific decisions.
 
