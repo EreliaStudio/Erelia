@@ -47,7 +47,8 @@ TEST(TerrainNodeConfiguration, LoadsAndRejectsExactContract)
 		R"({"server config":{"port":0}})");
 	EXPECT_EQ(
 		TerrainNode::Configuration::load(
-			valid.path().string()).port,
+			valid.path().string())
+			.port,
 		0u);
 
 	const std::string invalidFixtures[] = {
