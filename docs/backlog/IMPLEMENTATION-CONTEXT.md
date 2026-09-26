@@ -227,6 +227,22 @@ ST-001-08 / DR-022 implemented the first dedicated Chunk protocol codec, but ST-
 
 Do not expose otherwise-unnecessary mutable internals merely to make serialization possible.
 
+## 7.1 Client dedicated-Server connection lifecycle
+
+ST-001-10 establishes the first durable Erelia Client networking lifecycle on Sparkle Version-0.1.3.
+
+The Client-side runtime type is `ClientRuntime`. It owns the explicit Server endpoint configuration, one `spk::Client`, and the current connection-attempt `spk::Task<bool>::Answer`. Do not introduce a separate connection RAII wrapper solely around `spk::Client`.
+
+Sparkle's `spk::Client::connect()` is synchronous, so Erelia submits that call to the shared `spk::WorkerPool`. The returned Task describes only the connection attempt: Pending while `connect()` executes, Completed when it returns successfully, and Failed when it throws. The Task does not describe the later connected lifetime; `spk::Client::isConnected()` remains the source of truth for live transport state.
+
+Connection attempts against one owned Client are serialized. Calling `connect()` while a prior attempt is Pending reuses that Answer. Calling it while already connected is an Erelia-level no-op rather than Sparkle's lower-level disconnect/reconnect behavior. There is no automatic retry or reconnect. Explicit retry/reconnect reuses the same runtime after failure/disconnect.
+
+Sparkle Version-0.1.3 Tasks are not cancellable. Shutdown while the connection attempt is Pending must wait for Task settlement before the owned `spk::Client` can be disconnected/destroyed. Do not invent an Erelia-specific connect timeout without a later approved contract.
+
+Production Client endpoint configuration is external and explicit: `server config.address` and non-zero `server config.port` are required; unknown JSON fields are rejected; no compiled-in production endpoint/path is used. `EreliaClient` receives that file through `--config` / `-c`. The launcher generates the Client config from the dynamically selected Router port.
+
+ST-001-10 owns connection lifecycle only. Chunk request sending, response draining, cache state, retry policy, and Collection Provider behavior remain ST-001-11 work; do not expose transport forwarding APIs merely to make the existing Chunk integration fixture stop using raw `spk::Client`.
+
 ## 8. Voxel/rendering ownership
 
 The Server never emits terrain render meshes.
@@ -361,6 +377,6 @@ The integration target must:
 
 The current ST-001-09 integration coverage includes canonical single- and multi-coordinate requests, duplicate and malformed request diagnostics, two concurrent Clients with response correlation, and disconnect during an outstanding acquisition followed by continued Terrain service. The disconnect fixture deterministically keeps acquisition outstanding by occupying the shared WorkerPool before releasing it after the originating Client disconnects.
 
-The current Client networking APIs owned by ST-001-10/ST-001-11 do not yet exist. Until they do, the integration harness uses Sparkle's network Client only at the outer transport edge. When the Erelia Client connection/request APIs are implemented, replace that outer edge with the real Erelia Client API without moving the integration suite or weakening the existing Server/terrain/canonical-result assertions.
+ST-001-10 adds `ClientRuntime` and the integration suite now exercises that real Erelia Client connection API against the Router transport boundary. The existing ST-001-09 Chunk request fixtures still use Sparkle's network Client at their outer edge because send/message/request-cache behavior belongs to ST-001-11; do not broaden ST-001-10 solely to remove that raw transport usage.
 
-The integration suite intentionally orchestrates the runtime libraries in one test process while communicating through the real Sparkle network boundary; it does not launch the Erelia executables. Executable-level startup/connectivity smoke coverage is deferred until the Client executable exposes the connection behavior owned by the later Client tickets.
+The library-level integration suite intentionally orchestrates Erelia runtime libraries in one test process while communicating through the real Sparkle network boundary. ST-001-10 additionally registers `EreliaClientServerProcessSmoke` on Windows, which launches real `EreliaServer` and `EreliaClient` processes with temporary explicit configurations, proves the Client reaches the Router endpoint, and verifies unexpected Server loss terminates the Client as a failure. Chunk request/response semantics remain in the library integration fixture rather than being duplicated through process-log inspection.
