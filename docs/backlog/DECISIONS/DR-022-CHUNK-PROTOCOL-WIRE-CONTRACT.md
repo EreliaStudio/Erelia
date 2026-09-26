@@ -182,6 +182,8 @@ The typed Response exposes validated `successOffset()`, `rejectedOffset()`, and 
 
 `ChunkResponse` is always the terminal Chunk-protocol message for its RequestID. No later Chunk-protocol message with that RequestID may be emitted.
 
+ST-001-09 later selected atomic failure for an internal Collection batch Task: if any coordinate acquisition/generation Task fails, that whole `Task<BatchResult>` is Failed rather than exposing a partial BatchResult. This is an internal asynchronous-composition rule only; it does **not** amend this wire contract. The mapping of a failed Collection batch / failed outer TaskGroup onto this protocol remains to be resolved explicitly before ST-001-09 is Ready. No request-level failure state or new `ChunkError` code is implied by the Task failure.
+
 ### Strict decoding
 
 Typed incoming Request, Response, and Error wrappers validate their underlying `spk::Message`. Core parsing may throw `spk::Exception`; it does not log or swallow malformed input.
