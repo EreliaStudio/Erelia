@@ -111,6 +111,9 @@ $clientProcess = $null
 
 try {
     $port = Get-FreeTcpPort
+    do {
+        $terrainPort = Get-FreeTcpPort
+    } while ($terrainPort -eq $port)
 
     $serverConfigPath = Join-Path $tempRoot 'server.json'
     Write-JsonFile -Path $serverConfigPath -Value ([ordered]@{
@@ -118,7 +121,13 @@ try {
             port = $port
             nodeReconnectDelayMs = 25
         }
-        nodes = @()
+        nodes = @(
+            [ordered]@{
+                name = 'terrain'
+                address = '127.0.0.1'
+                port = $terrainPort
+            }
+        )
     })
 
     $clientConfigPath = Join-Path $tempRoot 'client.json'
