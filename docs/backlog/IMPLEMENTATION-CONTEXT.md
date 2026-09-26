@@ -353,7 +353,7 @@ The integration target must:
 
 - link the Erelia Client and Server libraries plus each Server-node library exercised by the fixture;
 - communicate through the real network/runtime boundary rather than directly invoking the Server handler under test;
-- use the CTest `integration` label so CI can execute component tests and integration tests as distinct phases;
+- use the CTest `integration` label and dedicated GitHub Actions `Integration (Windows, Debug/Release)` jobs so cross-system tests are visible as first-class PR checks rather than hidden inside component jobs;
 - keep deterministic canonical-result assertions at the Client-facing edge;
 - add node-library links explicitly as integration scope expands rather than inventing an automatic all-node linker.
 
