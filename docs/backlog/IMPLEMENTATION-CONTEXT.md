@@ -168,24 +168,37 @@ A terrain Chunk is a semantic specialization of Volume. DR-019 fixes:
 - Chunk does not store its own `Chunk::Coordinate`;
 - `Chunk::Collection` owns coordinate identity and a nested abstract `Chunk::Collection::Provider`;
 - Collection exclusively owns its Provider through a private `std::unique_ptr<Provider>`; its public constructor is a constrained template taking only a concrete Provider rvalue derived from `Provider`, moving that concrete object into the owned polymorphic allocation; lvalue Provider construction is rejected and null/absent Provider state is unrepresentable;
-- Collection uses explicit `Absent / Pending / Available` coordinate state;
-- `request(coordinate)` atomically transitions only Absent entries to Pending and attaches a monotonically increasing generation;
-- repeated requests while Pending or Available do not call the Provider again;
-- Provider acquisition is asynchronous/update-driven: Provider receives `Collection::Request { coordinate, generation }`, schedules work, then later publishes or fails that exact request;
-- publication/failure is accepted only for the still-current Pending generation, preventing stale tasks from overwriting newer state;
+- Collection uses explicit semantic `Absent / Pending / Available` coordinate state;
+- Pending means one unique in-flight `spk::Task<Chunk>::Answer` exists for that coordinate; overlapping requests reuse/subscribe to that Answer instead of regenerating;
+- stale asynchronous work must not overwrite newer authoritative Collection state; the exact private generation/identity mechanism remains an implementation detail;
 - `tryGet(coordinate)` returns `std::optional<Chunk>`; Available values are copied under a short `spk::ProtectedData` Reader and remain valid after the lock is released;
-- published Chunks are immutable; whole-value replacement is used instead of Cell mutation; replacement remains an upsert and invalidates any older pending publication;
-- copied Chunks keep old immutable content alive across Collection replacement;
+- published Chunks are immutable; whole-value replacement is used instead of Cell mutation; copied Chunks keep old immutable content alive across Collection replacement;
 - no Collection lock is held during expensive generation work.
 
-The headless generic facilities first prototyped by Erelia — `spk::ThreadSafeSet`, `spk::ThreadSafeQueue`, `spk::Task<TResult>`, `spk::WorkerPool`, `spk::Singleton<T>`, and now `spk::TaskGroup<TResult>` — are owned by Sparkle Version-0.1.3. Erelia consumes the Sparkle implementations directly. DR-020 remains the historical design record for why these facilities were introduced.
+Sparkle Version-0.1.3 owns the generic headless facilities first prototyped by Erelia. In particular:
 
-Sparkle's Task Answer exposes `subscribeToCompletion(...)`, backed by the thread-safe `spk::ContractProvider`. `spk::TaskGroup<TResult>` groups already-running `Task<TResult>::Answer` values, does not submit or occupy a worker itself, remains Pending until every child is terminal, and preserves the child Answers for mixed Completed/Failed inspection.
+- `spk::Task<TResult>` is a generic asynchronous result state with explicit `validate(TResult)` / `fail(std::exception_ptr)` settlement and no execution lambda;
+- `Task<TResult>::Answer` is the shared observation handle and exposes `subscribeToCompletion(...)` through thread-safe `spk::ContractProvider`;
+- `spk::WorkerPool::submit(callable)` executes worker work through its internal type-erased Job / TaskJob layer and returns `Task<TResult>::Answer`;
+- `spk::TaskGroup<TResult>` groups arbitrary Task Answers, including manually-settled and WorkerPool-produced Tasks, without occupying a worker merely to wait.
 
-For ST-001-09, TerrainNode owns the split of one Client Chunk request into smaller internal coordinate batches. Each batch is requested from `Chunk::Collection`; the returned asynchronous Answers are grouped in one `spk::TaskGroup`. The grouped completion callback drives construction of one terminal protocol Response using the original RequestID. Internal worker batches are never Client-visible protocol requests.
+For ST-001-09 the selected ownership is:
 
-Future Client request acquisition uses the same Collection/Provider state machine but ST-001-11 still owns network retry/cache/response policy.
+- TerrainNode splits one Client Chunk request into smaller internal coordinate batches;
+- each batch is passed to `Chunk::Collection::request(vector<Coordinate>)`, which returns one `Task<BatchResult>::Answer`;
+- on Available coordinates, Collection shallow-copies the Chunk into the batch result;
+- on Pending coordinates, Collection subscribes to the existing coordinate Answer;
+- on Absent coordinates, Collection asks Provider for exactly one coordinate Task Answer, stores/reuses it as Pending, and subscribes;
+- Provider is single-coordinate and WorkerPool-backed; it no longer owns batch buffering or `update(Collection&)` polling;
+- Collection creates its BatchResult Task directly and never submits that aggregation Task to WorkerPool;
+- the Collection batch stays Pending until every coordinate dependency is terminal;
+- if all coordinates succeed, Collection validates a complete BatchResult containing every requested coordinate/Chunk pair by shallow copy;
+- if any coordinate Task fails, Collection fails the entire batch Task and exposes no partial BatchResult;
+- TerrainNode groups the Collection batch Answers in one `spk::TaskGroup<BatchResult>` and handles one terminal protocol outcome using the original RequestID.
 
+The exact private Collection state structs and exact concrete BatchResult container type are not durable API requirements. The final mapping from a failed Collection batch / failed TaskGroup to the fixed DR-022 wire protocol is still unresolved and must not be invented during implementation.
+
+Future Client request acquisition uses the same Collection/Provider state machine, but ST-001-11 still owns Client network retry/cache/response policy.
 
 ## 7. Serialization/API ergonomics
 
