@@ -285,7 +285,29 @@ virtual spk::Task<Chunk>::Answer request(
 
 For an Absent coordinate, the Provider submits one callable to the shared WorkerPool and returns its `Task<Chunk>::Answer`. The Provider no longer receives Collection batches and no longer owns `update(Collection&)`.
 
-`Chunk::Collection` owns batching. Its target acquisition operation accepts a vector of coordinates and returns one `spk::Task<BatchResult>::Answer` representing the whole requested batch. The exact public C++ name/container shape of `BatchResult` is not frozen here; semantically, it contains one terminal outcome for every requested coordinate: either a shallow-copied immutable `Chunk` or a networking-agnostic acquisition failure.
+`Chunk::Collection` owns batching. Its acquisition operation accepts a vector of coordinates and returns one `spk::Task<BatchResult>::Answer` representing the whole requested batch. The public result shape is fixed as:
+
+```cpp
+struct Chunk::Collection::BatchResult
+{
+    struct Acquired
+    {
+        Chunk::Coordinate coordinate;
+        Chunk chunk;
+    };
+
+    struct Failed
+    {
+        Chunk::Coordinate coordinate;
+        std::exception_ptr exception;
+    };
+
+    std::vector<Acquired> acquired;
+    std::vector<Failed> failed;
+};
+```
+
+Every requested coordinate appears exactly once across `acquired` and `failed`. These types are acquisition-domain types only and have no dependency on `Chunk::Protocol::Response`.
 
 For each coordinate in one Collection batch:
 
@@ -306,4 +328,4 @@ Multiple overlapping Collection requests that include the same Pending coordinat
 
 TerrainNode may group several Collection batch Answers in one `spk::TaskGroup<BatchResult>`. Because TaskGroup accepts arbitrary `Task<TResult>::Answer` values, these manually-settled Collection Tasks compose with the same API as WorkerPool-produced Tasks.
 
-ST-001-09 later refined the terminal protocol representation so `Chunk::Protocol::Response` owns nested `Response::Success { coordinate, chunk }` and `Response::Failure { coordinate, Failure::Code, message }` entries. Collection remains networking-agnostic and must not return those protocol types directly. TerrainNode owns the translation from acquisition outcomes into protocol entries. On 26 September 2026 the project owner explicitly selected per-coordinate failure-as-data semantics: ordinary coordinate generation/acquisition failure completes the Collection batch with a failure outcome in `BatchResult`; it does not fail the batch Task. The exact networking-agnostic C++ representation of that failure outcome remains to be resolved before ST-001-09 is Ready.
+ST-001-09 later refined the terminal protocol representation so `Chunk::Protocol::Response` owns nested `Response::Success { coordinate, chunk }` and `Response::Failure { coordinate, Failure::Code, message }` entries. Collection remains networking-agnostic and must not return those protocol types directly. TerrainNode owns the translation from acquisition outcomes into protocol entries. On 26 September 2026 the project owner explicitly selected per-coordinate failure-as-data semantics and fixed the Collection result names as `Chunk::Collection::BatchResult::Acquired` and `Chunk::Collection::BatchResult::Failed`; `Failed` preserves the originating `std::exception_ptr`. Ordinary coordinate generation/acquisition failure completes the Collection batch with a `Failed` entry; it does not fail the batch Task.
