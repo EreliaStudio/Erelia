@@ -63,7 +63,7 @@ Fixture startup -> Client connects -> request batch -> Server response -> Client
 
 ## Failure behavior
 
-Final fixture must include at least Server disconnect while requests are outstanding and malformed/rejected response/request cases as defined by prerequisite tickets.
+Final fixture must include at least Server disconnect while requests are outstanding, malformed request/response handling, terminal `Response::Failure` behavior, and any generic diagnostic path defined by prerequisite tickets.
 
 ## Determinism / ordering
 
@@ -103,11 +103,11 @@ Positive and negative adjacent-Chunk boundaries.
 
 ### Invalid / rejected operations
 
-Protocol rejection/malformed case from prerequisite tickets.
+Terminal Response Failure and malformed/diagnostic cases from prerequisite tickets.
 
 ### Failure atomicity
 
-One failed/rejected request cannot corrupt already valid unrelated cached/mesh state.
+One failed coordinate/request cannot corrupt already valid unrelated cached/mesh state.
 
 ### Determinism
 
