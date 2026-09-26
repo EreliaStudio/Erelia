@@ -184,7 +184,7 @@ Sparkle Version-0.1.3 owns the generic headless facilities first prototyped by E
 
 For ST-001-09 the selected ownership is:
 
-- TerrainNode partitions one Client Chunk request using a fixed internal batch-size constant of 1024 coordinates; the size is not configurable and is not part of the Chunk wire protocol. Because the current protocol maximum is also 1024, every valid request currently produces one Collection batch;
+- TerrainNode partitions one Client Chunk request using a fixed internal batch-size constant of 1024 coordinates; the size is not configurable and is not part of the Chunk wire protocol. Because the current protocol maximum is also 1024, every valid request currently produces one Collection batch. Multi-batch TaskGroup behavior remains structurally supported, but a multi-batch protocol fixture is deferred until the protocol maximum and internal batch size diverge;
 - each batch is passed to `Chunk::Collection::request(vector<Coordinate>)`, which returns one `Task<BatchResult>::Answer`;
 - on Available coordinates, Collection shallow-copies the Chunk into the batch result;
 - on Pending coordinates, Collection subscribes to the existing coordinate Answer;
@@ -357,4 +357,8 @@ The integration target must:
 - keep deterministic canonical-result assertions at the Client-facing edge;
 - add node-library links explicitly as integration scope expands rather than inventing an automatic all-node linker.
 
+The current ST-001-09 integration coverage includes canonical single- and multi-coordinate requests, duplicate and malformed request diagnostics, two concurrent Clients with response correlation, and disconnect during an outstanding acquisition followed by continued Terrain service. The disconnect fixture deterministically keeps acquisition outstanding by occupying the shared WorkerPool before releasing it after the originating Client disconnects.
+
 The current Client networking APIs owned by ST-001-10/ST-001-11 do not yet exist. Until they do, the integration harness uses Sparkle's network Client only at the outer transport edge. When the Erelia Client connection/request APIs are implemented, replace that outer edge with the real Erelia Client API without moving the integration suite or weakening the existing Server/terrain/canonical-result assertions.
+
+The integration suite intentionally orchestrates the runtime libraries in one test process while communicating through the real Sparkle network boundary; it does not launch the Erelia executables. Executable-level startup/connectivity smoke coverage is deferred until the Client executable exposes the connection behavior owned by the later Client tickets.

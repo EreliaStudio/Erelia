@@ -3,7 +3,7 @@
 **Status:** Done
 **Epic:** EP-001
 **Production target(s):** Server
-**Test suite(s):** EreliaServerTestSuite
+**Test suite(s):** EreliaServerTestSuite, EreliaIntegrationTestSuite
 
 ## Intent
 
@@ -203,13 +203,13 @@ Ready fixtures include:
 - overlapping Collection requests that share a Pending coordinate, proving the same in-flight `Task<Chunk>::Answer` is reused and Provider is not called twice;
 - completion of one shared Pending coordinate notifying every batch subscribed to that Answer;
 - a Collection batch where one coordinate Task succeeds and another fails, proving the batch waits for all dependencies then completes with both coordinate outcomes preserved in its BatchResult;
-- a TerrainNode grouped request where one Collection batch completes before another, proving no Client-visible terminal handling occurs until the outer TaskGroup is terminal;
+- multi-batch TerrainNode TaskGroup behavior is structurally supported, but no multi-batch protocol fixture is required while both the Chunk Request maximum and TerrainNode internal batch size are 1024; add that fixture when those limits diverge;
 - malformed payload;
 - two Clients issuing distinguishable requests;
 - disconnect during an outstanding request;
 - deterministic generator failure through a purpose-built test Provider rather than depending on PrototypeChunkProvider output/failure.
 
-The Server integration fixtures are implemented for routed multi-coordinate success, duplicate-coordinate diagnosis plus deduplicated processing, malformed-request diagnosis, and transport preservation. Core tests cover mixed per-coordinate success/failure, pending-work reuse, stale-work protection, and callback lifetime after Collection destruction.
+The Server integration fixtures are implemented for canonical single- and multi-coordinate success, duplicate-coordinate diagnosis plus deduplicated processing, malformed-request diagnosis, two concurrent Clients with response correlation, disconnect during an outstanding acquisition followed by continued Terrain service, and transport preservation. Core tests cover mixed per-coordinate success/failure, pending-work reuse, stale-work protection, and callback lifetime after Collection destruction.
 
 ## Acceptance tests
 
@@ -281,4 +281,4 @@ Not applicable.
 
 ## Completion evidence
 
-Implementation is complete on `feat/st-001-09-server-chunk-request-handler`. CI run #464 (run ID `36233964005`) passed the full matrix on code head `b15896137e9eb13b92b2ed150541383fe0e4bff9`: clang-format, Core/Server Linux Debug+Release, Core/Server Windows Debug+Release, and Client Windows Debug+Release. Server integration tests cover the real Client -> Router -> RemoteNode -> terrain Endpoint path, routed multi-coordinate responses, duplicate-coordinate diagnostics, and malformed-request diagnostics; Core tests cover the asynchronous Collection/Provider result and lifetime contracts.
+Implementation is complete on `feat/st-001-09-server-chunk-request-handler`. CI run #475 (run ID `36248085170`) passed the full matrix on code head `488f761c33f5f9b5fe5a4d0e810ee2ce79e1a58d`: clang-format, Core/Server Linux Debug+Release, Core/Server Windows Debug+Release, Client Windows Debug+Release, and dedicated Integration Windows Debug+Release. Server integration tests cover the real Client -> Router -> RemoteNode -> terrain Endpoint path, canonical single- and multi-coordinate responses, duplicate-coordinate diagnostics, malformed-request diagnostics, two-Client response correlation, and disconnect during an outstanding acquisition with continued Terrain service afterward; Core tests cover the asynchronous Collection/Provider result and lifetime contracts. Because the protocol maximum and internal TerrainNode batch size are both 1024, every valid protocol request currently maps to one Collection batch, so a multi-batch TaskGroup protocol fixture is intentionally deferred until those limits diverge.
