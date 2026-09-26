@@ -195,7 +195,7 @@ For ST-001-09 the selected ownership is:
 - each coordinate contributes either `Chunk::Collection::BatchResult::Acquired { coordinate, chunk }` or `Chunk::Collection::BatchResult::Failed { coordinate, std::exception_ptr exception }`;
 - after all coordinate dependencies are terminal, Collection validates one complete BatchResult containing every coordinate outcome;
 - ordinary per-coordinate acquisition failure does not fail the batch Task; the batch Task fails only when aggregation itself cannot produce a valid BatchResult;
-- TerrainNode groups the Collection batch Answers in one `spk::TaskGroup<BatchResult>` and handles one terminal protocol outcome using the original RequestID.
+- TerrainNode groups the Collection batch Answers in one `spk::TaskGroup<BatchResult>` and handles one terminal protocol outcome using the original RequestID. If the outer TaskGroup itself is Failed because aggregation cannot produce a valid BatchResult, TerrainNode emits one correlated `Networking::Diagnostic` with `Severity::Error` and translation key exactly `"Chunk_Request_Aggregation_Failure"`; no ChunkResponse is emitted for that request.
 
 The exact private Collection state structs remain implementation details. The public BatchResult shape is fixed as nested `Acquired` / `Failed` types with `std::vector<Acquired> acquired` and `std::vector<Failed> failed`; `Failed` preserves the originating `std::exception_ptr`. TerrainNode translates these acquisition-domain outcomes into `Chunk::Protocol::Response::Success` / `Response::Failure` entries. On 26 September 2026 the project owner explicitly selected this per-coordinate failure-as-data contract so successful coordinates are preserved independently of internal batch partitioning.
 
