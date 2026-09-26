@@ -1,6 +1,6 @@
 # ST-001-09 — Server Chunk request handler
 
-**Status:** Blocked
+**Status:** Ready
 **Epic:** EP-001
 **Production target(s):** Server
 **Test suite(s):** EreliaServerTestSuite
@@ -95,7 +95,7 @@ Finalized Response objects remain Message-backed. Builder-side temporary Success
 
 Non-terminal technical diagnostics use the generic `Networking::Diagnostic` base contract: severity + stable string translation key, with severity values `Trace = 0`, `Info = 1`, `Warning = 2`, and `Error = 3`. The string is intended for a future translation/localization engine and is not user-facing prose. `Chunk::Protocol::Error` remains as a specialized diagnostic deriving from `Networking::Diagnostic`; for ST-001-09 it adds only a list of problematic Chunk coordinates. Its serialization reuses the Diagnostic prefix and appends the coordinate list. The coordinate count is fixed as `std::uint32_t`, followed by that many contiguous `Chunk::Coordinate` values. Message types preserve `ChunkError = 3` and add generic `Diagnostic = 4`. Generic Diagnostic allows RequestID 0 for uncorrelated diagnostics or a non-zero originating RequestID for correlation. `Chunk::Protocol::Error` always requires and reuses the non-zero originating Chunk RequestID. Malformed Chunk input uses a correlated generic Diagnostic only when a valid non-zero RequestID remains available; otherwise it is uncorrelated.
 
-The internal batch size is a fixed TerrainNode implementation constant of 1024 coordinates; it is not configurable and is not part of the wire protocol. With the current protocol maximum of 1024 coordinates, one valid Client request therefore maps to one internal Collection batch. The main `EreliaServer` process registers `ChunkRequest -> "terrain"` immediately after constructing `Router`; terrain-side dispatch remains owned by `TerrainNodeApplication`. Duplicate-coordinate diagnostics use `Networking::Diagnostic::Severity::Warning` with translation key exactly `"Chunk_Coordinates_Duplication"`; malformed-request diagnostics use `Networking::Diagnostic::Severity::Error` with translation key exactly `"Chunk_Request_Malformed"`. One blocker remains: the Client-visible behavior when a Collection batch/outer TaskGroup itself reaches `Failed` because aggregation cannot produce a valid `BatchResult`.
+The internal batch size is a fixed TerrainNode implementation constant of 1024 coordinates; it is not configurable and is not part of the wire protocol. With the current protocol maximum of 1024 coordinates, one valid Client request therefore maps to one internal Collection batch. The main `EreliaServer` process registers `ChunkRequest -> "terrain"` immediately after constructing `Router`; terrain-side dispatch remains owned by `TerrainNodeApplication`. Duplicate-coordinate diagnostics use `Networking::Diagnostic::Severity::Warning` with translation key exactly `"Chunk_Coordinates_Duplication"`; malformed-request diagnostics use `Networking::Diagnostic::Severity::Error` with translation key exactly `"Chunk_Request_Malformed"`. A true Collection batch/outer TaskGroup aggregation failure emits one correlated generic `Networking::Diagnostic` with severity `Error`, translation key exactly `"Chunk_Request_Aggregation_Failure"`, and the original non-zero Chunk RequestID. No `Chunk::Protocol::Response` is emitted for that request because no valid `BatchResult` exists to translate.
 
 ## Invariants
 
@@ -138,7 +138,7 @@ Malformed typed request -> catch the protocol decoding `spk::Exception` at the t
 
 Per-coordinate acquisition/generation failure is part of the completed `BatchResult`, not failure of the Collection batch Task. A batch waits until every coordinate dependency is terminal, then exposes every requested coordinate's outcome together in one valid result.
 
-The TerrainNode's outer `spk::TaskGroup<BatchResult>` therefore remains successful when child batches contain ordinary per-coordinate acquisition failures. A Collection batch Task, and therefore potentially the outer TaskGroup, becomes Failed only for a batch/aggregation-level failure that prevents a valid BatchResult from being produced.
+The TerrainNode's outer `spk::TaskGroup<BatchResult>` therefore remains successful when child batches contain ordinary per-coordinate acquisition failures. A Collection batch Task, and therefore potentially the outer TaskGroup, becomes Failed only for a batch/aggregation-level failure that prevents a valid BatchResult from being produced. That outer failure is reported as `Error / "Chunk_Request_Aggregation_Failure"` using the original RequestID, with no terminal ChunkResponse.
 
 This preserves successful coordinates from the same internal batch and prevents the internal batch partition from changing Client-visible success/failure semantics.
 
