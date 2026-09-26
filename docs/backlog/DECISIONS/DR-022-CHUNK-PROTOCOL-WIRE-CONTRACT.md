@@ -289,7 +289,7 @@ Malformed request handling should likewise be reconsidered through the future ge
 
 `Chunk::Collection` remains networking-agnostic. It must not expose `Response::Success` or `Response::Failure` as its acquisition result types merely because TerrainNode later converts acquisition outcomes into a protocol Response.
 
-The exact Collection batch-result type remains an Erelia acquisition detail. TerrainNode owns translation from Collection acquisition outcomes/failures into `Chunk::Protocol::Response::Success` and `Chunk::Protocol::Response::Failure` entries.
+The Collection batch-result public shape is fixed by ST-001-09 / DR-019 as `Chunk::Collection::BatchResult::Acquired { coordinate, chunk }` and `Chunk::Collection::BatchResult::Failed { coordinate, std::exception_ptr exception }`, stored in separate `acquired` and `failed` vectors. TerrainNode owns translation from Collection acquisition outcomes/failures into `Chunk::Protocol::Response::Success` and `Chunk::Protocol::Response::Failure` entries.
 
 There is still one unresolved interaction with the currently selected atomic Collection batch-failure rule: a Failed `spk::Task<BatchResult>` exposes no partial BatchResult. Therefore, if a batch contains both successful and failed coordinate tasks, TerrainNode cannot recover the successful coordinate values from that failed batch Answer. This must be resolved before ST-001-09 is Ready; the Response refinement does not silently change the Task failure contract.
 
