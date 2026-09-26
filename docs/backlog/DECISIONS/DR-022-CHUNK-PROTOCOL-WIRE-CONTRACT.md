@@ -325,9 +325,9 @@ enum class Networking::Diagnostic::Severity : std::uint8_t
 };
 ```
 
-`Chunk::Protocol::Error` is retained as a specialized diagnostic and derives from `Networking::Diagnostic`. Its only additional semantic data for ST-001-09 is a list of problematic `Chunk::Coordinate` values. The generic Diagnostic serialization is reused as the prefix of the specialized Error serialization; Chunk::Protocol::Error then appends its coordinate list. Additional Chunk-specific contextual fields are not part of this ticket.
+`Chunk::Protocol::Error` is retained as a specialized diagnostic and derives from `Networking::Diagnostic`. Its only additional semantic data for ST-001-09 is a list of problematic `Chunk::Coordinate` values. The generic Diagnostic serialization is reused as the prefix of the specialized Error serialization; `Chunk::Protocol::Error` then appends `[coordinateCount:uint32]` followed by `coordinateCount` contiguous `Chunk::Coordinate` values. Additional Chunk-specific contextual fields are not part of this ticket.
 
-The exact fixed-width coordinate-count field, correlation rules, and the `Networking::MessageType` value remain unresolved.
+The Chunk-specific diagnostic extension serializes its coordinate count as exactly `std::uint32_t`, followed by that many contiguous `Chunk::Coordinate` values. Correlation rules and the `Networking::MessageType` values remain unresolved.
 
 Duplicate-coordinate semantics remain: the first occurrence participates in normal Chunk resolution; later duplicate occurrences do not trigger duplicate generation. The misuse should be observable through the future generic diagnostic mechanism rather than by making the coordinate itself a failed terminal Chunk result.
 
