@@ -241,7 +241,10 @@ public:
 
     struct Failure final
     {
-        enum class Code : std::uint8_t;
+        enum class Code : std::uint8_t
+        {
+            AcquisitionFailed = 0
+        };
 
         Chunk::Coordinate coordinate;
         Code code;
@@ -254,7 +257,7 @@ public:
 
 `Success` and `Failure` belong to `Chunk::Protocol::Response` because they are terminal Chunk-protocol response entries, not generic Collection concepts.
 
-`Failure::Code` is nested under `Failure` because the code domain only has meaning for failed response entries. The concrete `Failure::Code` values are not yet frozen by this refinement.
+`Failure::Code` is nested under `Failure` because the code domain only has meaning for failed response entries. ST-001-09 fixes the initial code domain to exactly `AcquisitionFailed = 0`. TerrainNode uses this code when translating a `Chunk::Collection::BatchResult::Failed` acquisition outcome into a terminal protocol Failure.
 
 The Response Builder may own temporary `std::vector<Response::Success>` / `std::vector<Response::Failure>` containers while assembling a message. The finalized `Response` must continue following the established Message-backed rule: it stores only the inherited `spk::Message` payload and reconstructs semantic entry values through accessors. It must not retain mirrored semantic vectors after `build()`.
 
