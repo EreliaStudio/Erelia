@@ -259,3 +259,49 @@ On 24 September 2026 the project owner explicitly replaced the synchronous Provi
 - the local headless `spk::Task`, `spk::WorkerPool`, `spk::ThreadSafeSet`, and `spk::Singleton` prototype direction captured by DR-020.
 
 This refinement supersedes every earlier sentence in this record that described `Provider::provide()` as synchronous or an empty Chunk as the generic Pending sentinel.
+
+## ST-001-09 batched acquisition refinement
+
+On 26 September 2026 the project owner refined the asynchronous Collection/Provider contract again to use Sparkle Version-0.1.3's generic manually-settled `spk::Task<TResult>` model.
+
+This refinement supersedes the ST-001-06 Provider buffering / `update(Collection&)` polling portion above for the target ST-001-09 architecture.
+
+The semantic coordinate states remain:
+
+```text
+Absent
+Pending(asynchronous Chunk work)
+Available(Chunk)
+```
+
+The Pending state is backed by the `spk::Task<Chunk>::Answer` for the unique in-flight generation/acquisition of that coordinate. The exact private state representation remains an implementation detail. Existing stale-work protection remains required; a stale asynchronous result must not overwrite newer authoritative state.
+
+`Chunk::Collection::Provider` now owns only single-coordinate generation execution. Its target contract is conceptually:
+
+```cpp
+virtual spk::Task<Chunk>::Answer request(
+    const Chunk::Coordinate& coordinate) = 0;
+```
+
+For an Absent coordinate, the Provider submits one callable to the shared WorkerPool and returns its `Task<Chunk>::Answer`. The Provider no longer receives Collection batches and no longer owns `update(Collection&)`.
+
+`Chunk::Collection` owns batching. Its target acquisition operation accepts a vector of coordinates and returns one `spk::Task<BatchResult>::Answer` representing the whole requested batch. The exact public C++ name/container shape of `BatchResult` is not frozen here; semantically, a successful result contains every requested coordinate paired with a shallow-copied immutable `Chunk`.
+
+For each coordinate in one Collection batch:
+
+- Available -> copy the existing Chunk directly into the batch result;
+- Pending -> reuse the already-existing `Task<Chunk>::Answer` and subscribe to its completion;
+- Absent -> create the coordinate's Pending entry, ask the Provider for one `Task<Chunk>::Answer`, store/reuse that Answer, and subscribe to its completion.
+
+The Collection creates its batch `spk::Task<BatchResult>` directly and does **not** submit it to the WorkerPool. It settles that Task from child completion callbacks, so no worker is occupied merely waiting for other workers.
+
+Batch settlement is atomic at the Task-result level:
+
+- if every requested coordinate resolves successfully, the Collection calls `validate(BatchResult)` once with all requested coordinate/Chunk pairs;
+- if any coordinate acquisition/generation Task fails, the Collection batch Task becomes `Failed` and no partial `BatchResult` is exposed through that Answer.
+
+Multiple overlapping Collection requests that include the same Pending coordinate must subscribe to the same in-flight coordinate Answer and must not invoke the Provider a second time for that coordinate.
+
+TerrainNode may group several Collection batch Answers in one `spk::TaskGroup<BatchResult>`. Because TaskGroup accepts arbitrary `Task<TResult>::Answer` values, these manually-settled Collection Tasks compose with the same API as WorkerPool-produced Tasks.
+
+The wire-level mapping from a failed Collection batch / failed outer TaskGroup into the already-fixed DR-022 protocol remains an ST-001-09 decision. DR-022 currently has per-coordinate Success / Rejected / Unavailable response states and only the DuplicateCoordinate `ChunkError`; this refinement does not invent a new wire error code or request-level failure state.
