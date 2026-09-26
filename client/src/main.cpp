@@ -1,6 +1,6 @@
-#include "erelia/client/status.hpp"
+#include "erelia/client/application.hpp"
 
-int main()
+int main(int argc, char **argv)
 {
-	return status();
+	return runClient(argc, argv);
 }
