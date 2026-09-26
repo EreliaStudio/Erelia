@@ -63,7 +63,7 @@ EP-001 is the active near-term planning focus.
 
 ## Implementation tickets
 
-ST-001-01 through ST-001-08 are Done on `master`. ST-001-08 was completed through PR #16 after project-owner review; CI run #356 (run ID `36138476545`) passed on reviewed head `a4c0e29059cec422bee848dff2c465ad26c53493`. The next dependency-ordered ticket is ST-001-09, which is Ready and being implemented on `feat/st-001-09-server-chunk-request-handler`.
+ST-001-01 through ST-001-08 are Done on `master`. ST-001-08 was completed through PR #16 after project-owner review; CI run #356 (run ID `36138476545`) passed on reviewed head `a4c0e29059cec422bee848dff2c465ad26c53493`. The next dependency-ordered ticket is ST-001-09, which is Blocked only on the Client-visible behavior for a true Collection batch/TaskGroup aggregation failure.
 
 OQ-038 is Resolved and DR-022 fixes the exact Chunk Request/Response/Error protocol. Later tickets remain gated by their own dependencies and unresolved ticket-specific decisions.
 
