@@ -283,6 +283,8 @@ Prefer small, focused implementation slices with strong tests over large feature
 
 Prefer named source-local helper functions in an anonymous namespace over lambdas declared inside a function when the logic is independently describable and does not materially benefit from captures. Keep lambdas for genuinely local callback/capture behavior rather than using them as a substitute for ordinary helper functions.
 
+Boolean-valued expressions must be explicit. Do not rely on implicit boolean truthiness and do not use unary `!` to negate a boolean-valued expression. Write `expression == true` or `expression == false` according to the intended branch. This applies to boolean variables, predicates, and boolean-returning accessors such as `has_value()`: prefer `if (value.has_value() == false)` over `if (!value.has_value())`, and prefer `if (ready == true)` over `if (ready)`. Existing comparison expressions such as `pointer == nullptr`, `iterator == end`, or enum/status comparisons are already explicit and do not require an additional boolean comparison.
+
 `OPEN_REQUESTS/` tracks external dependency fixes that should trigger later Erelia cleanup. Use one `OR-XXX-[name].md` file per request. Its first line is the external issue link, its second line is `Status : Open`, `Status : Treated`, or `Status : Rejected`, and its `# Edition` section lists every `[file:line]` location that must change when a treated request is integrated.
 
 An ST ticket should ideally own one coherent implementation goal and be small enough to review, test, and revert independently. Do not combine several architectural layers into one giant ticket merely because they contribute to the same Epic.

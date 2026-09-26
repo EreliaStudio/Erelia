@@ -19,7 +19,7 @@ void Chunk::Collection::Batch::addContract(
 	CompletionContract contract)
 {
 	const std::scoped_lock lock(_mutex);
-	if (!_settled)
+	if (_settled == false)
 	{
 		_contracts.push_back(
 			std::move(contract));
@@ -35,7 +35,7 @@ void Chunk::Collection::Batch::acquired(
 
 	{
 		const std::scoped_lock lock(_mutex);
-		if (_settled)
+		if (_settled == true)
 		{
 			return;
 		}
@@ -66,7 +66,7 @@ void Chunk::Collection::Batch::acquired(
 	{
 		_task.fail(std::move(failure));
 	}
-	else if (completed.has_value())
+	else if (completed.has_value() == true)
 	{
 		_task.validate(
 			std::move(*completed));
@@ -82,7 +82,7 @@ void Chunk::Collection::Batch::failed(
 
 	{
 		const std::scoped_lock lock(_mutex);
-		if (_settled)
+		if (_settled == true)
 		{
 			return;
 		}
@@ -115,7 +115,7 @@ void Chunk::Collection::Batch::failed(
 		_task.fail(
 			std::move(aggregationFailure));
 	}
-	else if (completed.has_value())
+	else if (completed.has_value() == true)
 	{
 		_task.validate(
 			std::move(*completed));
@@ -128,14 +128,14 @@ void Chunk::Collection::Batch::abort(
 	bool shouldFail = false;
 	{
 		const std::scoped_lock lock(_mutex);
-		if (!_settled)
+		if (_settled == false)
 		{
 			_settled = true;
 			shouldFail = true;
 		}
 	}
 
-	if (shouldFail)
+	if (shouldFail == true)
 	{
 		_task.fail(std::move(exception));
 	}
@@ -146,7 +146,7 @@ void Chunk::Collection::Batch::completeEmpty()
 	std::optional<BatchResult> completed;
 	{
 		const std::scoped_lock lock(_mutex);
-		if (!_settled && _remaining == 0u)
+		if (_settled == false && _remaining == 0u)
 		{
 			_settled = true;
 			completed.emplace(
@@ -154,7 +154,7 @@ void Chunk::Collection::Batch::completeEmpty()
 		}
 	}
 
-	if (completed.has_value())
+	if (completed.has_value() == true)
 	{
 		_task.validate(
 			std::move(*completed));

@@ -19,7 +19,7 @@ Chunk::Collection::State Chunk::Collection::state(
 	{
 		return State::Absent;
 	}
-	return found->second.chunk.has_value() ? State::Available : State::Pending;
+	return found->second.chunk.has_value() == true ? State::Available : State::Pending;
 }
 
 std::optional<Chunk> Chunk::Collection::tryGet(
@@ -30,7 +30,7 @@ std::optional<Chunk> Chunk::Collection::tryGet(
 		reader->chunks.find(coordinate);
 	if (
 		found == reader->chunks.end() ||
-		!found->second.chunk.has_value())
+		found->second.chunk.has_value() == false)
 	{
 		return std::nullopt;
 	}
@@ -111,7 +111,7 @@ Chunk::Collection::request(
 				}
 			}
 
-			if (available.has_value())
+			if (available.has_value() == true)
 			{
 				batch->acquired(
 					coordinate,
@@ -127,7 +127,7 @@ Chunk::Collection::request(
 				continue;
 			}
 
-			if (!pending.has_value())
+			if (pending.has_value() == false)
 			{
 				batch->abort(
 					std::make_exception_ptr(

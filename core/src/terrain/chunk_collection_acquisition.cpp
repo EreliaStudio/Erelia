@@ -69,7 +69,7 @@ void Chunk::Collection::Acquisition::_publishAcquired() const
 	if (
 		found != writer->chunks.end() &&
 		found->second.generation == _generation &&
-		found->second.pending.has_value())
+		found->second.pending.has_value() == true)
 	{
 		found->second.chunk =
 			_answer.result();
@@ -91,7 +91,7 @@ void Chunk::Collection::Acquisition::_discardFailed() const
 	if (
 		found != writer->chunks.end() &&
 		found->second.generation == _generation &&
-		found->second.pending.has_value())
+		found->second.pending.has_value() == true)
 	{
 		writer->chunks.erase(found);
 	}
