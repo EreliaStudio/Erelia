@@ -184,7 +184,7 @@ Sparkle Version-0.1.3 owns the generic headless facilities first prototyped by E
 
 For ST-001-09 the selected ownership is:
 
-- TerrainNode splits one Client Chunk request into smaller internal coordinate batches;
+- TerrainNode splits one Client Chunk request into smaller internal coordinate batches using a fixed implementation constant; this size is not configurable and is not part of the Chunk wire protocol;
 - each batch is passed to `Chunk::Collection::request(vector<Coordinate>)`, which returns one `Task<BatchResult>::Answer`;
 - on Available coordinates, Collection shallow-copies the Chunk into the batch result;
 - on Pending coordinates, Collection subscribes to the existing coordinate Answer;
