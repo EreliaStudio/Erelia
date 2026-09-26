@@ -301,7 +301,19 @@ The Chunk-specific `Chunk::Protocol::Error` message is no longer the preferred l
 
 The current direction is to replace it with a more general Erelia diagnostic message that can carry technical information at Trace / Info / Warning / Error severity, optionally correlated with a Sparkle RequestID. Duplicate coordinates and malformed requests are examples of diagnostics rather than terminal Chunk results.
 
-That generic diagnostic message's exact public type name, payload encoding, severity enum ownership, correlation rules, and message-type value are **not yet frozen**. Until that contract is explicitly resolved, documentation must not invent its final wire representation.
+For ST-001-09, the diagnostic semantic payload is intentionally minimal:
+
+```cpp
+struct Diagnostic
+{
+    Severity severity;
+    std::string message;
+};
+```
+
+Only severity and the human-readable message are carried in the diagnostic payload for now. Additional structured/contextual diagnostic information may be added by later work, but ST-001-09 must not invent it.
+
+The exact public type name, severity enum ownership/numeric values, byte-level payload encoding, correlation rules, and Networking::MessageType value are still unresolved.
 
 Duplicate-coordinate semantics remain: the first occurrence participates in normal Chunk resolution; later duplicate occurrences do not trigger duplicate generation. The misuse should be observable through the future generic diagnostic mechanism rather than by making the coordinate itself a failed terminal Chunk result.
 
