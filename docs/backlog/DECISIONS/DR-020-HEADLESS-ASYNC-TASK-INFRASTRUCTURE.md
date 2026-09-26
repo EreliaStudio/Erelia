@@ -185,7 +185,7 @@ The Provider no longer buffers Collection batches and no longer owns an `update(
 
 No worker thread is consumed merely to wait for child Chunk generation.
 
-If any coordinate acquisition/generation Task fails, the Collection batch Task is Failed rather than validating a partial `BatchResult`. The exact Server wire-level mapping of that failed batch/request remains owned by ST-001-09 because DR-022 currently defines no request-level failure state or generic generation-error `ChunkError` code.
+If any coordinate acquisition/generation Task fails, the currently selected Collection rule is to fail the whole batch Task rather than validate a partial `BatchResult`. ST-001-09 later refined the terminal wire model to `Chunk::Protocol::Response::Success` / `Response::Failure` entries. Because a Failed Task exposes no partial BatchResult, those two decisions currently conflict for mixed-success batches and must be reconciled before implementation.
 
 ## ST-001-09 TaskGroup refinement
 
@@ -217,7 +217,7 @@ The intended Erelia ownership is now:
 - TerrainNode groups the Collection batch Answers in one Sparkle TaskGroup and subscribes once to grouped completion;
 - grouped completion is the point at which the Server may produce the one terminal protocol outcome correlated with the original Client RequestID.
 
-The exact private Collection state representation remains an implementation detail. The final wire-level mapping for a failed Collection batch/request, plus Server disconnect/reply/shutdown behavior, remain ST-001-09 decisions.
+The exact private Collection state representation remains an implementation detail. ST-001-09 owns the unresolved reconciliation between atomic failed Collection batches and preserving successful coordinates for terminal `Response::Success` entries, plus `Response::Failure` code/string encoding, the future generic diagnostic-message contract, and Server disconnect/reply/shutdown behavior.
 
 ## Consequences
 
