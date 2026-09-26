@@ -25,7 +25,7 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install clang-format==21.1.0
       - name: Check current C++ code
-        run: find core server client -type f \( -name '*.cpp' -o -name '*.hpp' \) -print0 | xargs -0 -r clang-format --style=file --dry-run --Werror
+        run: find core server client tests -type f \( -name '*.cpp' -o -name '*.hpp' \) -print0 | xargs -0 -r clang-format --style=file --dry-run --Werror
 
   headless:
     name: Core and Server (${{ matrix.os }}, ${{ matrix.configuration }})
@@ -106,7 +106,7 @@ jobs:
         run: |
           $env:VCPKG_ROOT = $env:VCPKG_INSTALLATION_ROOT
           ./tools/dev/prepare-sparkle.ps1 -Configuration ${{ matrix.configuration }}
-      - name: Build and test Erelia
+      - name: Build Erelia
         shell: pwsh
         run: |
           $env:VCPKG_ROOT = $env:VCPKG_INSTALLATION_ROOT
@@ -116,5 +116,15 @@ jobs:
           cmake --build --preset $preset --parallel 4
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           ./Sparkle/tools/ci/install-mesa.ps1 -Destination "build/$preset/client/tests"
-          ctest --preset $preset --output-on-failure --no-tests=error
+      - name: Run component tests
+        shell: pwsh
+        run: |
+          $preset = '${{ matrix.configuration }}'.ToLowerInvariant()
+          ctest --preset $preset --output-on-failure --no-tests=error -LE integration
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Run integration tests
+        shell: pwsh
+        run: |
+          $preset = '${{ matrix.configuration }}'.ToLowerInvariant()
+          ctest --preset $preset --output-on-failure --no-tests=error -L integration
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
