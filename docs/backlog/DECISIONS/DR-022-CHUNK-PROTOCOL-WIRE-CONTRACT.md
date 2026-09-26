@@ -256,7 +256,7 @@ public:
 };
 ```
 
-`Success` and `Failure` belong to `Chunk::Protocol::Response` because they are terminal Chunk-protocol response entries, not generic Collection concepts.
+`Success` and `Failure` belong to `Chunk::Protocol::Response` because they are terminal Chunk-protocol response entries, not generic Collection concepts. The public Message-backed decoding API is symmetric: `failureOffset()`, `successCount()`, `success(index)`, `failureCount()`, and `failure(index)`. `Builder` exposes `addSuccess(coordinate, chunk)` and `addFailure(coordinate, Failure::Code, std::string)`. The count/accessor methods reconstruct values from the Message payload; finalized Response objects do not retain semantic vectors.
 
 `Failure::Code` is nested under `Failure` because the code domain only has meaning for failed response entries. ST-001-09 fixes the initial code domain to exactly `AcquisitionFailed = 0`. TerrainNode uses this code when translating a `Chunk::Collection::BatchResult::Failed` acquisition outcome into a terminal protocol Failure.
 
