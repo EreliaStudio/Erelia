@@ -272,7 +272,18 @@ There is no terminal Pending section. Internal Collection Pending state is a ter
 
 A Success entry contains the requested coordinate and its canonical Chunk. A Failure entry contains the requested coordinate, a typed failure code, and a human-readable error string.
 
-The exact byte-level encoding of the variable-length Failure string, including its length field type/placement, remains to be specified before the protocol implementation is changed.
+Failure messages use Sparkle Version-0.1.3's existing `spk::Message` string representation exactly: a `std::uint32_t` byte length followed immediately by that many string bytes, with no null terminator.
+
+A Failure entry is therefore encoded as:
+
+```text
+[Chunk::Coordinate]
+[Failure::Code:uint8]
+[messageLength:uint32]
+[messageBytes:messageLength]
+```
+
+The message length is the exact byte count written by Sparkle's standard string serialization.
 
 This refinement supersedes the earlier terminal `Response::State { Success, Rejected, Unavailable }` grouping as the target ST-001-09 response model. The existing ST-001-08 implementation remains historical completion evidence and must be migrated by the owning later work rather than treated as the final target contract.
 
