@@ -8,7 +8,7 @@
 
 ST-001-01 through ST-001-08 are completed on `master`.
 
-The latest `master` removes the earlier temporary Erelia-local Sparkle prototypes after those reusable facilities were upstreamed into Sparkle Version-0.1.3. Sparkle Version-0.1.3 now also contains the merged Task completion contract, thread-safe ContractProvider, and TaskGroup required by ST-001-09. Erelia should consume these Sparkle-owned facilities directly rather than retain the temporary TaskGroup prototype currently present on the active feature branch.
+The latest `master` removes the earlier temporary Erelia-local Sparkle prototypes after those reusable facilities were upstreamed into Sparkle Version-0.1.3. Sparkle Version-0.1.3 now also contains the merged generic Task settlement contract, direct-callable WorkerPool TaskJob execution, thread-safe ContractProvider, and TaskGroup required by ST-001-09. Erelia should consume these Sparkle-owned facilities directly rather than retain the temporary TaskGroup prototype currently present on the active feature branch.
 
 ST-001-08 is merged through PR #16. Core now owns the finalized batched Chunk Request/Response/Error protocol and its dedicated tests.
 
@@ -42,9 +42,20 @@ The merged contract includes:
 
 The next dependency-ordered ticket is **ST-001-09 — Server Chunk request handler**.
 
-ST-001-09 remains **Blocked** only on its remaining Erelia-specific batch acquisition and Server lifecycle/failure details. The Sparkle asynchronous composition dependency is resolved: Version-0.1.3 now provides Task completion subscriptions, thread-safe ContractProvider, and `spk::TaskGroup<TResult>`.
+ST-001-09 remains **Blocked**, but its Collection/Provider asynchronous ownership is now resolved. Sparkle Version-0.1.3 provides the generic manually-settled `spk::Task<TResult>`, direct-callable WorkerPool execution, completion subscriptions, thread-safe ContractProvider, and `spk::TaskGroup<TResult>` needed by the selected design.
 
-The approved direction is that TerrainNode keeps each Client protocol Request intact, partitions its distinct coordinates into smaller internal batches, asks `Chunk::Collection` for one asynchronous acquisition Answer per batch, groups those Answers in one Sparkle TaskGroup, and emits one terminal `ChunkResponse` with the original RequestID when the group settles. `Chunk::Collection::Provider` should become a task-construction/submission driver returning Task Answers rather than owning an `update(Collection&)` polling loop.
+The approved direction is:
+
+- TerrainNode keeps each Client protocol Request intact and partitions its distinct coordinates into smaller internal batches;
+- `Chunk::Collection::request(vector<Coordinate>)` returns one manually-settled `Task<BatchResult>::Answer` per internal batch;
+- a successful BatchResult contains every requested coordinate with a shallow-copied immutable Chunk;
+- Collection reuses already-Pending coordinate Answers, copies already-Available Chunks, and asks Provider only for Absent coordinates;
+- `Chunk::Collection::Provider` accepts exactly one coordinate and returns one WorkerPool-produced `Task<Chunk>::Answer`;
+- Collection subscribes to those coordinate Answers and settles its batch Task only after every coordinate is terminal;
+- if any coordinate Task fails, the entire Collection batch Task is Failed and no partial BatchResult is exposed;
+- TerrainNode groups the Collection batch Answers in one Sparkle TaskGroup.
+
+The remaining ST-001-09 blockers are now Server-specific: the internal batch-size rule; the mapping from a failed Collection batch / failed outer TaskGroup onto the fixed DR-022 wire protocol; and outstanding-request/reply/disconnect/shutdown lifetime behavior. DR-022 currently has only per-coordinate Success / Rejected / Unavailable Response states and DuplicateCoordinate as a ChunkError code, so no new request-level failure representation may be invented implicitly.
 
 The temporary Erelia-local TaskGroup scaffold currently on the feature branch is now obsolete and should be removed when implementation is reconciled with the merged Sparkle dependency.
 
