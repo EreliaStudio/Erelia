@@ -132,87 +132,14 @@ namespace
 	}
 }
 
-std::size_t PrototypeChunkProvider::RequestHash::operator()(
-	const Chunk::Collection::Request &request) const noexcept
-{
-	const std::size_t coordinateHash =
-		std::hash<Chunk::Coordinate>{}(request.coordinate);
-	const std::size_t generationHash =
-		std::hash<Chunk::Collection::Generation>{}(request.generation);
-	return coordinateHash ^
-		   (generationHash + 0x9e3779b9u + (coordinateHash << 6u) +
-			(coordinateHash >> 2u));
-}
-
-void PrototypeChunkProvider::request(
-	const Chunk::Collection::Request &request)
-{
-	(void)_requested.publish(request);
-}
-
-void PrototypeChunkProvider::update(
-	Chunk::Collection &collection)
+spk::Task<Chunk>::Answer PrototypeChunkProvider::request(
+	const Chunk::Coordinate &coordinate)
 {
 	spk::WorkerPool &workerPool =
 		spk::Singleton<spk::WorkerPool>::instance();
 
-	RequestSet::container_type requests;
-	(void)_requested.drain(requests);
-
-	spk::TaskGroup<Chunk> taskGroup;
-	std::vector<Chunk::Collection::Request> groupedRequests;
-	groupedRequests.reserve(requests.size());
-
-	for (const Chunk::Collection::Request &request : requests)
-	{
-		if (!collection.isPending(request))
-		{
-			continue;
-		}
-
-		taskGroup.add(
-			spk::Task<Chunk>(
-				[coordinate = request.coordinate] {
-					return generateChunk(coordinate);
-				}));
-		groupedRequests.push_back(request);
-	}
-
-	if (!groupedRequests.empty())
-	{
-		_pending.push_back(
-			PendingTaskGroup{
-				std::move(groupedRequests),
-				std::move(taskGroup).submit(workerPool)});
-	}
-
-	auto iterator = _pending.begin();
-	while (iterator != _pending.end())
-	{
-		if (iterator->answer.status() == spk::Task<Chunk>::Status::Pending)
-		{
-			++iterator;
-			continue;
-		}
-
-		const auto answers = iterator->answer.answers();
-		for (std::size_t index = 0u; index < answers.size(); ++index)
-		{
-			const auto &answer = answers[index];
-			const auto &request = iterator->requests[index];
-
-			if (answer.status() == spk::Task<Chunk>::Status::Completed)
-			{
-				(void)collection.publish(
-					request,
-					answer.result());
-			}
-			else
-			{
-				(void)collection.fail(request);
-			}
-		}
-
-		iterator = _pending.erase(iterator);
-	}
+	return workerPool.submit(
+		[coordinate] {
+			return generateChunk(coordinate);
+		});
 }
