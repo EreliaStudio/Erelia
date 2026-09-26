@@ -132,7 +132,7 @@ The Client does not split its protocol request. One protocol Request may contain
 
 The outer TaskGroup completion callback may run on the thread that settles the final child batch Task, or immediately on the subscribing thread if the group is already terminal. The handler implementation must therefore make the captured request/reply state safe for that callback lifetime and must not assume completion callbacks execute on the TerrainNode dispatch thread.
 
-Malformed typed request -> catch the protocol decoding `spk::Exception` at the terrain consumer boundary -> log a Sparkle Warning -> drop the malformed message without a protocol reply -> no canonical state mutation -> continue serving later messages.
+Malformed typed request -> catch the protocol decoding `spk::Exception` at the terrain consumer boundary -> log locally -> emit a generic `Networking::Diagnostic` through the originating reply path when possible, using the approved RequestID correlation rule -> no canonical state mutation -> continue serving later messages. The exact severity/message text remains to be frozen before Ready.
 
 ## Failure behavior
 
@@ -154,7 +154,7 @@ Provider/Collection output follows ST-001-06. Response ordering/association foll
 
 ## Lifecycle / ownership
 
-The terrain node process owns request-processing lifetime. Connection references used for replies must not outlive/disconnect unsafely; exact Sparkle lifecycle must be reflected in final tests.
+The terrain node process owns request-processing lifetime. Completion callbacks publish only into the shared thread-safe mailbox; `TerrainNode::dispatch()` owns Endpoint reply emission. Shutdown unsubscribes completion contracts and discards pending replies without waiting for outstanding acquisition tasks, while disconnect does not cancel acquisition.
 
 ## Serialization / persistence
 
@@ -188,7 +188,7 @@ Server validates and returns canonical results. Client only requests coordinates
 - `Chunk::Protocol::Response` owns nested `Success` and `Failure` semantic entries; Collection must stay networking-agnostic and must not depend on those protocol types.
 - The finalized Response remains Message-backed; temporary Builder Success/Failure containers are construction-only.
 - `Response::Failure::Code` is fixed to `AcquisitionFailed = 0` for ST-001-09. Do not invent additional codes. Failure strings use Sparkle's `uint32_t` byte-length-prefixed Message string representation with no null terminator.
-- Treat the future generic diagnostic message as unresolved infrastructure; do not retain `Chunk::Protocol::Error` as the assumed final design merely because ST-001-08 currently implements it.
+- Implement the approved generic `Networking::Diagnostic` base and retain `Chunk::Protocol::Error` as its Chunk-specific specialization with the approved diagnostic-prefix + `uint32_t` coordinate-count + contiguous-coordinate layout.
 
 ## Exact test fixtures
 
@@ -209,7 +209,7 @@ Final Ready fixtures must include:
 - disconnect during an outstanding request;
 - deterministic generator failure through a purpose-built test Provider rather than depending on PrototypeChunkProvider output/failure.
 
-The final Server integration fixtures for mixed coordinate success/failure and diagnostic delivery cannot be fixed until the exact BatchResult failure representation, `Response::Failure` code/string encoding, and generic diagnostic-message contract are explicitly resolved.
+The final Server integration fixtures for mixed coordinate success/failure are now fully specified. Diagnostic-delivery fixtures still require the exact severity/message text for duplicate-coordinate and malformed-request cases.
 
 ## Acceptance tests
 
