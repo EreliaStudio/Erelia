@@ -1,8 +1,8 @@
 # Current Status
 
-**Updated:** 26 September 2026
+**Updated:** 27 September 2026
 **Default baseline:** `master`
-**Active ticket branch:** none
+**Active ticket branch:** `feat/st-001-10-client-dedicated-server-connection`
 
 ## Branch state
 
@@ -46,7 +46,7 @@ ST-001-09 — Server Chunk request handler is **Done** and merged into `master` 
 
 A dedicated cross-system integration layer now lives under `tests/integration/`. `EreliaIntegrationTestSuite` links `EreliaClientLibrary`, `EreliaServerLibrary`, and the required Server-node libraries, and is registered with the CTest `integration` label. The delivered Chunk fixtures exercise the real network route through Router and TerrainNode and validate canonical DR-015 single- and multi-coordinate Chunk results, duplicate-coordinate diagnostics, malformed-request diagnostics, two concurrent Clients with correctly correlated responses, and disconnect during an outstanding acquisition followed by a successful request from a new Client. Until ST-001-10/ST-001-11 provide the Erelia Client networking API, the outer transport edge uses `spk::Client`; the integration harness is explicitly intended to switch to the real Erelia Client API once available. Final PR CI run #478 (run ID `36260702871`) validated this integration coverage in dedicated `Integration (Windows, Debug)` and `Integration (Windows, Release)` GitHub Actions jobs, while Client jobs ran component tests separately.
 
-The next dependency-ordered ticket is **ST-001-10 — Client dedicated-Server connection**, which remains Draft pending its own endpoint/connection-lifecycle specification.
+**ST-001-10 — Client dedicated-Server connection** is now **Ready** after project-owner approval of the explicit Client endpoint configuration, WorkerPool-backed asynchronous connection-attempt Task, live `spk::Client::isConnected()` state, explicit reconnect/no-auto-retry policy, pending-attempt shutdown ordering, and executable failure semantics. Implementation is active on `feat/st-001-10-client-dedicated-server-connection`.
 
 The implemented ST-001-09 contract reports a true Collection batch/outer TaskGroup aggregation failure as one correlated generic Diagnostic with severity `Error`, translation key `"Chunk_Request_Aggregation_Failure"`, and the original RequestID; no ChunkResponse is emitted because no valid BatchResult exists. Sparkle Version-0.1.3 provides the generic manually-settled `spk::Task<TResult>`, direct-callable WorkerPool execution, completion subscriptions, thread-safe ContractProvider, and `spk::TaskGroup<TResult>` used by the implementation.
 
