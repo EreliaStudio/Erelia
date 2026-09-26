@@ -22,8 +22,7 @@ namespace
 
 	[[nodiscard]] bool validSeverity(std::uint8_t severity) noexcept
 	{
-		return severity <= static_cast<std::uint8_t>(
-			Networking::Diagnostic::Severity::Error);
+		return severity <= static_cast<std::uint8_t>(Networking::Diagnostic::Severity::Error);
 	}
 }
 
@@ -117,8 +116,7 @@ std::size_t Networking::Diagnostic::diagnosticSize() const
 {
 	const auto messageLength =
 		readAt<std::uint32_t>(SerializedSeveritySize);
-	return DiagnosticHeaderSize +
-		static_cast<std::size_t>(messageLength);
+	return DiagnosticHeaderSize + static_cast<std::size_t>(messageLength);
 }
 
 Networking::Diagnostic::Severity Networking::Diagnostic::severity() const
