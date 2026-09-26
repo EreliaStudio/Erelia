@@ -68,3 +68,20 @@ Use the approved Erelia typed message/state conventions above. Keep protocol mis
 Network retry timing, request-ID recycle threshold, disconnect handling, and cache/retention policy stay outside ST-001-08 and belong to ST-001-11. OQ-038 now fixes the ST-001-08 wire-level correlation, terminal-message, error, ordering, random-access, and malformed-input semantics.
 
 DR-022 is the durable exact wire-contract record for the ST-001-08 decisions resolved here.
+
+
+## Later ST-001-09 refinement
+
+OQ-038 remains Resolved for the decisions it originally closed, but ST-001-09 planning later refined the terminal response representation.
+
+The current target is:
+
+- `Chunk::Protocol::Response::Success { coordinate, chunk }` for successful terminal coordinate results;
+- `Chunk::Protocol::Response::Failure { coordinate, Failure::Code, message }` for failed terminal coordinate results;
+- `Failure::Code` is owned by `Response::Failure`; its concrete code set is not yet frozen;
+- finalized Responses remain Message-backed; Builder containers are temporary only;
+- no terminal Pending/Unavailable section is expected because a terminal Response is emitted only after work is terminal;
+- the previous Chunk-specific `Chunk::Protocol::Error` is expected to be replaced by a generic diagnostic-message mechanism for non-terminal technical diagnostics, but that mechanism's exact protocol contract remains unresolved;
+- duplicate occurrences remain protocol misuse and should be diagnosed without causing duplicate generation; the first occurrence continues to participate in normal resolution.
+
+The exact variable-length Failure string encoding and the generic diagnostic-message format must be resolved before the refined protocol is implemented.
