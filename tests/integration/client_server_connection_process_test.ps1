@@ -120,7 +120,7 @@ try {
 
     $clientProcess = Start-Process -FilePath $ClientExecutable -ArgumentList @("--config=$clientConfigPath") -RedirectStandardOutput $clientOut -RedirectStandardError $clientErr -PassThru
 
-    Wait-LogText -Path $clientOut -Text 'Connected to dedicated Server' -Process $clientProcess
+    Wait-LogText -Path $clientErr -Text 'Connected to dedicated Server' -Process $clientProcess
 
     if ($clientProcess.HasExited) {
         throw "Client did not remain alive after connecting. Exit code: $($clientProcess.ExitCode)"
