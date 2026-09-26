@@ -191,9 +191,7 @@ Chunk::Collection::State Chunk::Collection::state(
 	{
 		return State::Absent;
 	}
-	return found->second.chunk.has_value()
-		? State::Available
-		: State::Pending;
+	return found->second.chunk.has_value() ? State::Available : State::Pending;
 }
 
 std::optional<Chunk> Chunk::Collection::tryGet(
@@ -226,9 +224,7 @@ Chunk::Collection::request(
 		return batchAnswer;
 	}
 
-	const std::weak_ptr<
-		spk::ProtectedData<Storage>>
-	weakStorage = _storage;
+	const std::weak_ptr<spk::ProtectedData<Storage>> weakStorage = _storage;
 
 	for (const Coordinate &coordinate : coordinates)
 	{
