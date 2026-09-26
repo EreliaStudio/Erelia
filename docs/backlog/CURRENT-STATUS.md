@@ -48,7 +48,7 @@ The approved direction is:
 
 - TerrainNode keeps each Client protocol Request intact and partitions its distinct coordinates into smaller internal batches;
 - `Chunk::Collection::request(vector<Coordinate>)` returns one manually-settled `Task<BatchResult>::Answer` per internal batch;
-- BatchResult preserves one terminal outcome for every requested coordinate: either a shallow-copied immutable Chunk or a networking-agnostic acquisition failure;
+- `Chunk::Collection::BatchResult` is fixed with nested `Acquired { coordinate, chunk }` and `Failed { coordinate, std::exception_ptr exception }` entries, stored in `acquired` and `failed` vectors;
 - Collection reuses already-Pending coordinate Answers, copies already-Available Chunks, and asks Provider only for Absent coordinates;
 - `Chunk::Collection::Provider` accepts exactly one coordinate and returns one WorkerPool-produced `Task<Chunk>::Answer`;
 - Collection subscribes to those coordinate Answers and settles its batch Task only after every coordinate is terminal;
@@ -57,7 +57,7 @@ The approved direction is:
 
 ST-001-09 has additionally refined the terminal wire model: `Chunk::Protocol::Response` owns nested `Response::Success { coordinate, chunk }` and `Response::Failure { coordinate, Failure::Code, message }` entries. Finalized Responses remain Message-backed. The old `Rejected/Unavailable` grouping and Chunk-specific Error message are no longer the preferred future target; non-terminal diagnostics are expected to move to a generic diagnostic message, whose exact contract is still unresolved.
 
-The remaining ST-001-09 blockers are Server/protocol-specific: the internal batch-size rule; the exact networking-agnostic BatchResult failure representation; the `Response::Failure::Code` set and variable-length failure-string wire encoding; the future generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
+The remaining ST-001-09 blockers are Server/protocol-specific: the internal batch-size rule; mapping `BatchResult::Failed::exception` into the `Response::Failure::Code` set and variable-length failure-string wire encoding; the future generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
 
 The temporary Erelia-local TaskGroup scaffold currently on the feature branch is now obsolete and should be removed when implementation is reconciled with the merged Sparkle dependency.
 
