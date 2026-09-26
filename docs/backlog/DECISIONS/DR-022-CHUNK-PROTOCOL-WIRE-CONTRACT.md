@@ -269,6 +269,16 @@ Success[]
 Failure[]
 ```
 
+The refined Response payload uses one absolute `std::uint32_t failureOffset` from payload byte 0:
+
+```text
+[failureOffset:uint32]
+[Success entries...]
+[Failure entries...]
+```
+
+Success entries occupy `[4, failureOffset)`; Failure entries occupy `[failureOffset, message.size())`. If there are no Success entries, `failureOffset == 4`. If there are no Failure entries, `failureOffset == message.size()`. Success entries remain fixed-size and their count is derived from their byte range. Failure entries are decoded sequentially from their coordinate/code/length-prefixed-message representation until the end of the payload. Both sections are sorted lexicographically by coordinate X/Y/Z.
+
 There is no terminal Pending section. Internal Collection Pending state is a terrain-node acquisition concern and is not useful once the terminal network Response is emitted.
 
 A Success entry contains the requested coordinate and its canonical Chunk. A Failure entry contains the requested coordinate, a typed failure code, and a human-readable error string.
@@ -312,7 +322,7 @@ struct Diagnostic
 };
 ```
 
-Only severity and the human-readable message are carried in the diagnostic payload for now. Additional structured/contextual diagnostic information may be added by later work, but ST-001-09 must not invent it.
+Only severity and a string diagnostic identifier are carried in the generic diagnostic payload for now. That string is not user-facing prose: it is a stable translation key intended for a future localization/translation engine. Additional structured/contextual diagnostic information may be added by later work, but ST-001-09 must not invent it. The exact translation keys for concrete diagnostics remain to be frozen.
 
 The public type is fixed for ST-001-09 as `Networking::Diagnostic`, declared in a dedicated generic networking header rather than under `Chunk::Protocol`. Its severity contract is fixed exactly as:
 
