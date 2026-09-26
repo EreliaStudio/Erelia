@@ -161,6 +161,7 @@ namespace
 	private:
 		TerrainNodeApplication _application;
 		std::thread _thread;
+		std::atomic_bool _failed{false};
 
 	public:
 		explicit TerrainApplicationRunner(
@@ -175,6 +176,9 @@ namespace
 						_application.run();
 					} catch (...)
 					{
+						_failed.store(
+							true,
+							std::memory_order_release);
 					}
 				})
 		{
@@ -182,11 +186,22 @@ namespace
 
 		~TerrainApplicationRunner()
 		{
+			stop();
+		}
+
+		void stop()
+		{
 			_application.stop();
 			if (_thread.joinable())
 			{
 				_thread.join();
 			}
+		}
+
+		[[nodiscard]] bool failed() const noexcept
+		{
+			return _failed.load(
+				std::memory_order_acquire);
 		}
 
 		[[nodiscard]] bool waitUntilRunning()
@@ -345,6 +360,8 @@ TEST(TerrainNodeIntegration, ReturnsOneResponseForMultiCoordinateRequest)
 
 	client.disconnect();
 	router.stop();
+	application.stop();
+	EXPECT_FALSE(application.failed());
 }
 
 TEST(TerrainNodeIntegration, DiagnosesDuplicatesAndProcessesFirstOccurrence)
@@ -412,6 +429,8 @@ TEST(TerrainNodeIntegration, DiagnosesDuplicatesAndProcessesFirstOccurrence)
 
 	client.disconnect();
 	router.stop();
+	application.stop();
+	EXPECT_FALSE(application.failed());
 }
 
 TEST(TerrainNodeIntegration, MalformedRequestReturnsDiagnosticWithoutChunkResponse)
@@ -473,4 +492,6 @@ TEST(TerrainNodeIntegration, MalformedRequestReturnsDiagnosticWithoutChunkRespon
 
 	client.disconnect();
 	router.stop();
+	application.stop();
+	EXPECT_FALSE(application.failed());
 }
