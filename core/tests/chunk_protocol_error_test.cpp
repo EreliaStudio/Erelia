@@ -27,11 +27,11 @@ namespace
 	Chunk::Protocol::Error buildError(
 		spk::Message::RequestID requestID = 91u)
 	{
-		return Chunk::Protocol::Error::Builder(
+		Chunk::Protocol::Error::Builder builder(
 			requestID,
 			Networking::Diagnostic::Severity::Warning,
-			std::string(DuplicateKey))
-			.build();
+			std::string(DuplicateKey));
+		return std::move(builder).build();
 	}
 }
 
