@@ -93,7 +93,7 @@ These protocol entry types must not leak downward into `Chunk::Collection`; Terr
 
 Finalized Response objects remain Message-backed. Builder-side temporary Success/Failure containers are discarded after encoding.
 
-The previous Chunk-specific Error message is planned for replacement by a generic diagnostic-message mechanism for non-terminal technical diagnostics such as duplicate coordinates and malformed requests. Its semantic payload is fixed for this ticket to severity + human-readable message only; later work may extend it with additional contextual information. The public type is `Networking::Diagnostic` in the generic networking layer. Severity numeric contract, byte encoding, correlation rule, and message-type value remain unresolved.
+The previous Chunk-specific Error message is planned for replacement by a generic diagnostic-message mechanism for non-terminal technical diagnostics such as duplicate coordinates and malformed requests. Its semantic payload is fixed for this ticket to severity + human-readable message only; later work may extend it with additional contextual information. The public type is `Networking::Diagnostic` in the generic networking layer. Severity values are fixed as `Trace = 0`, `Info = 1`, `Warning = 2`, and `Error = 3`. Byte encoding, correlation rule, and message-type value remain unresolved.
 
 The internal batch size is a fixed TerrainNode implementation constant of 1024 coordinates; it is not configurable and is not part of the wire protocol. With the current protocol maximum of 1024 coordinates, one valid Client request therefore maps to one internal Collection batch. This ticket remains Blocked on the generic diagnostic-message contract and outstanding-request/reply/disconnect/shutdown lifetime behavior.
 
