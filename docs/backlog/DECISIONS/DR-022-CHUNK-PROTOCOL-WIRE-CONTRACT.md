@@ -285,6 +285,14 @@ A Failure entry is therefore encoded as:
 
 The message length is the exact byte count written by Sparkle's standard string serialization.
 
+TerrainNode converts `Chunk::Collection::BatchResult::Failed::exception` into the Failure message by rethrowing it and applying this exact mapping:
+
+- `spk::Exception` -> `exception.message()`;
+- any other `std::exception` -> `exception.what()`;
+- any non-standard exception -> exactly `"Unknown acquisition failure"`.
+
+The resulting Failure always uses `Response::Failure::Code::AcquisitionFailed`.
+
 This refinement supersedes the earlier terminal `Response::State { Success, Rejected, Unavailable }` grouping as the target ST-001-09 response model. The existing ST-001-08 implementation remains historical completion evidence and must be migrated by the owning later work rather than treated as the final target contract.
 
 ### ChunkError / diagnostic direction
