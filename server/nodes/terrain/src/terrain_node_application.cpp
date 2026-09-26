@@ -1,5 +1,10 @@
 #include "terrain_node_application.hpp"
 
+#include "erelia/core/chunk_protocol_error.hpp"
+#include "erelia/core/chunk_protocol_request.hpp"
+#include "erelia/core/networking/diagnostic.hpp"
+#include "erelia/core/networking/message_type.hpp"
+
 #include <system/argument_parser.hpp>
 
 #include <design_pattern/singleton.hpp>
@@ -11,8 +16,19 @@
 #include <csignal>
 #include <cstdlib>
 #include <exception>
+#include <set>
+#include <string>
 #include <thread>
 #include <utility>
+#include <vector>
+
+namespace
+{
+	constexpr std::string_view DuplicateCoordinateKey =
+		"Chunk_Coordinates_Duplication";
+	constexpr std::string_view MalformedRequestKey =
+		"Chunk_Request_Malformed";
+}
 
 TerrainNodeApplication::TerrainNodeApplication(
 	TerrainNode::Configuration configuration) :
@@ -23,6 +39,101 @@ TerrainNodeApplication::TerrainNodeApplication(
 void TerrainNodeApplication::_onSignal(int)
 {
 	_signalReceived = 1;
+}
+
+void TerrainNodeApplication::_treatMessages()
+{
+	for (TerrainNode::Request &request :
+		 _node.requests().drain(_requests))
+	{
+		_treatMessage(std::move(request));
+	}
+}
+
+void TerrainNodeApplication::_treatMessage(
+	TerrainNode::Request request)
+{
+	switch (static_cast<Networking::MessageType>(
+		request.message.type()))
+	{
+	case Networking::MessageType::ChunkRequest:
+		_parseChunkRequest(std::move(request));
+		break;
+
+	default:
+		SPK_LOG(Warning)
+			<< "TerrainNode received unsupported message type "
+			<< request.message.type()
+			<< std::endl;
+		break;
+	}
+}
+
+void TerrainNodeApplication::_parseChunkRequest(
+	TerrainNode::Request request)
+{
+	try
+	{
+		const Chunk::Protocol::Request chunkRequest(
+			request.message);
+		const std::set<Chunk::Coordinate> duplicates =
+			chunkRequest.duplicateCoordinates();
+
+		if (!duplicates.empty())
+		{
+			Chunk::Protocol::Error::Builder builder(
+				chunkRequest.requestID(),
+				Networking::Diagnostic::Severity::Warning,
+				std::string(DuplicateCoordinateKey));
+
+			for (const Chunk::Coordinate &coordinate :
+				 duplicates)
+			{
+				builder.add(coordinate);
+			}
+
+			_node.reply(
+				request,
+				std::move(builder).build());
+		}
+
+		std::set<Chunk::Coordinate> seen;
+		std::vector<Chunk::Coordinate> coordinates;
+		coordinates.reserve(
+			chunkRequest.coordinateCount());
+
+		for (
+			std::size_t index = 0u;
+			index < chunkRequest.coordinateCount();
+			++index)
+		{
+			const Chunk::Coordinate coordinate =
+				chunkRequest.coordinate(index);
+			if (seen.insert(coordinate).second)
+			{
+				coordinates.push_back(coordinate);
+			}
+		}
+
+		_node.requestChunks(
+			std::move(request),
+			std::move(coordinates));
+	}
+	catch (const spk::Exception &exception)
+	{
+		SPK_LOG(Error)
+			<< "Malformed Chunk request: "
+			<< exception.what()
+			<< std::endl;
+
+		Networking::Diagnostic::Builder builder(
+			Networking::Diagnostic::Severity::Error,
+			std::string(MalformedRequestKey),
+			request.message.requestID());
+		_node.reply(
+			request,
+			std::move(builder).build());
+	}
 }
 
 void TerrainNodeApplication::run()
@@ -52,6 +163,7 @@ void TerrainNodeApplication::run()
 			_signalReceived == 0)
 		{
 			_node.dispatch();
+			_treatMessages();
 			std::this_thread::sleep_for(
 				std::chrono::milliseconds(1));
 		}
@@ -60,7 +172,8 @@ void TerrainNodeApplication::run()
 			false,
 			std::memory_order_release);
 		_node.stop();
-	} catch (...)
+	}
+	catch (...)
 	{
 		_running.store(
 			false,
@@ -120,7 +233,8 @@ int runTerrainNode(int argc, char **argv)
 		application.run();
 
 		return EXIT_SUCCESS;
-	} catch (const std::exception &exception)
+	}
+	catch (const std::exception &exception)
 	{
 		SPK_LOG(Error)
 			<< exception.what()
