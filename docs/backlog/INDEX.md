@@ -63,7 +63,7 @@ EP-001 is the active near-term planning focus.
 
 ## Implementation tickets
 
-ST-001-01 through ST-001-08 are Done on `master`. ST-001-08 was completed through PR #16 after project-owner review; CI run #356 (run ID `36138476545`) passed on reviewed head `a4c0e29059cec422bee848dff2c465ad26c53493`. The next dependency-ordered ticket is ST-001-09, which remains Blocked only by its remaining Server-specific lifecycle/failure specification.
+ST-001-01 through ST-001-08 are Done on `master`. ST-001-08 was completed through PR #16 after project-owner review; CI run #356 (run ID `36138476545`) passed on reviewed head `a4c0e29059cec422bee848dff2c465ad26c53493`. ST-001-09 is Done on `feat/st-001-09-server-chunk-request-handler`; CI run #464 (run ID `36233964005`) passed the full matrix on code head `b15896137e9eb13b92b2ed150541383fe0e4bff9`. The next dependency-ordered ticket is ST-001-10, which remains Draft pending its own connection-lifecycle specification.
 
 OQ-038 is Resolved and DR-022 fixes the exact Chunk Request/Response/Error protocol. Later tickets remain gated by their own dependencies and unresolved ticket-specific decisions.
 

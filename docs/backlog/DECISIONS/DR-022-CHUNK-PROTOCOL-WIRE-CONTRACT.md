@@ -25,7 +25,8 @@ enum class Networking::MessageType : spk::Message::Type
 {
     ChunkRequest = 1,
     ChunkResponse = 2,
-    ChunkError = 3
+    ChunkError = 3,
+    Diagnostic = 4
 };
 ```
 
@@ -182,6 +183,7 @@ The typed Response exposes validated `successOffset()`, `rejectedOffset()`, and 
 
 `ChunkResponse` is always the terminal Chunk-protocol message for its RequestID. No later Chunk-protocol message with that RequestID may be emitted.
 
+
 ### Strict decoding
 
 Typed incoming Request, Response, and Error wrappers validate their underlying `spk::Message`. Core parsing may throw `spk::Exception`; it does not log or swallow malformed input.
@@ -222,3 +224,133 @@ Later Server/Client consumers catch protocol exceptions at the network boundary,
 ## Required tests
 
 ST-001-08 must cover exact nominal and malformed fixtures for all three Message types, including 1/1024 Request boundaries, negative coordinates, the Debug-only Request Builder duplicate guard, defensive inspection of duplicate Request payload coordinates, Message-backed accessors, every Response state/group combination, empty groups, deterministic sorting, fixed Chunk Cell order, invalid offsets/states/codes/sizes/order/duplicates/trailing bytes, non-zero correlation, and cursor-independent Response section access.
+## ST-001-09 response-result refinement
+
+On 26 September 2026 the project owner refined the terminal Chunk response model while planning ST-001-09.
+
+The terminal result of a Chunk request is now modeled directly by `Chunk::Protocol::Response` through nested semantic entry types:
+
+```cpp
+class Chunk::Protocol::Response final : public spk::Message
+{
+public:
+    struct Success final
+    {
+        Chunk::Coordinate coordinate;
+        Chunk chunk;
+    };
+
+    struct Failure final
+    {
+        enum class Code : std::uint8_t
+        {
+            AcquisitionFailed = 0
+        };
+
+        Chunk::Coordinate coordinate;
+        Code code;
+        std::string message;
+    };
+
+    class Builder;
+};
+```
+
+`Success` and `Failure` belong to `Chunk::Protocol::Response` because they are terminal Chunk-protocol response entries, not generic Collection concepts. The public Message-backed decoding API is symmetric: `failureOffset()`, `successCount()`, `success(index)`, `failureCount()`, and `failure(index)`. `Builder` exposes `addSuccess(coordinate, chunk)` and `addFailure(coordinate, Failure::Code, std::string)`. The count/accessor methods reconstruct values from the Message payload; finalized Response objects do not retain semantic vectors.
+
+`Failure::Code` is nested under `Failure` because the code domain only has meaning for failed response entries. ST-001-09 fixes the initial code domain to exactly `AcquisitionFailed = 0`. TerrainNode uses this code when translating a `Chunk::Collection::BatchResult::Failed` acquisition outcome into a terminal protocol Failure.
+
+The Response Builder may own temporary `std::vector<Response::Success>` / `std::vector<Response::Failure>` containers while assembling a message. The finalized `Response` must continue following the established Message-backed rule: it stores only the inherited `spk::Message` payload and reconstructs semantic entry values through accessors. It must not retain mirrored semantic vectors after `build()`.
+
+The target terminal response therefore has two semantic sections:
+
+```text
+Success[]
+Failure[]
+```
+
+The refined Response payload uses one absolute `std::uint32_t failureOffset` from payload byte 0:
+
+```text
+[failureOffset:uint32]
+[Success entries...]
+[Failure entries...]
+```
+
+Success entries occupy `[4, failureOffset)`; Failure entries occupy `[failureOffset, message.size())`. If there are no Success entries, `failureOffset == 4`. If there are no Failure entries, `failureOffset == message.size()`. Success entries remain fixed-size and their count is derived from their byte range. Failure entries are decoded sequentially from their coordinate/code/length-prefixed-message representation until the end of the payload. Both sections are sorted lexicographically by coordinate X/Y/Z.
+
+There is no terminal Pending section. Internal Collection Pending state is a terrain-node acquisition concern and is not useful once the terminal network Response is emitted.
+
+A Success entry contains the requested coordinate and its canonical Chunk. A Failure entry contains the requested coordinate, a typed failure code, and a human-readable error string.
+
+Failure messages use Sparkle Version-0.1.3's existing `spk::Message` string representation exactly: a `std::uint32_t` byte length followed immediately by that many string bytes, with no null terminator.
+
+A Failure entry is therefore encoded as:
+
+```text
+[Chunk::Coordinate]
+[Failure::Code:uint8]
+[messageLength:uint32]
+[messageBytes:messageLength]
+```
+
+The message length is the exact byte count written by Sparkle's standard string serialization.
+
+TerrainNode converts `Chunk::Collection::BatchResult::Failed::exception` into the Failure message by rethrowing it and applying this exact mapping:
+
+- `spk::Exception` -> `exception.message()`;
+- any other `std::exception` -> `exception.what()`;
+- any non-standard exception -> exactly `"Unknown acquisition failure"`.
+
+The resulting Failure always uses `Response::Failure::Code::AcquisitionFailed`.
+
+This refinement supersedes the earlier terminal `Response::State { Success, Rejected, Unavailable }` grouping as the target ST-001-09 response model. The existing ST-001-08 implementation remains historical completion evidence and must be migrated by the owning later work rather than treated as the final target contract.
+
+### ChunkError / diagnostic direction
+
+The Chunk-specific `Chunk::Protocol::Error` is no longer an independent diagnostic format. It is retained as a Chunk-specific specialization of the generic `Networking::Diagnostic` contract.
+
+The current direction is to replace it with a more general Erelia diagnostic message that can carry technical information at Trace / Info / Warning / Error severity, optionally correlated with a Sparkle RequestID. Duplicate coordinates and malformed requests are examples of diagnostics rather than terminal Chunk results.
+
+For ST-001-09, the diagnostic semantic payload is intentionally minimal:
+
+```cpp
+struct Diagnostic
+{
+    Severity severity;
+    std::string message;
+};
+```
+
+Only severity and a string diagnostic identifier are carried in the generic diagnostic payload for now. That string is not user-facing prose: it is a stable translation key intended for a future localization/translation engine. Additional structured/contextual diagnostic information may be added by later work, but ST-001-09 must not invent it. ST-001-09 fixes the concrete keys used here to `"Chunk_Coordinates_Duplication"`, `"Chunk_Request_Malformed"`, and `"Chunk_Request_Aggregation_Failure"`.
+
+The public type is fixed for ST-001-09 as `Networking::Diagnostic`, declared in a dedicated generic networking header rather than under `Chunk::Protocol`. Its severity contract is fixed exactly as:
+
+```cpp
+enum class Networking::Diagnostic::Severity : std::uint8_t
+{
+    Trace = 0,
+    Info = 1,
+    Warning = 2,
+    Error = 3
+};
+```
+
+`Chunk::Protocol::Error` is retained as a specialized diagnostic and derives from `Networking::Diagnostic`. Its only additional semantic data for ST-001-09 is a list of problematic `Chunk::Coordinate` values. The generic Diagnostic serialization is reused as the prefix of the specialized Error serialization; `Chunk::Protocol::Error` then appends `[coordinateCount:uint32]` followed by `coordinateCount` contiguous `Chunk::Coordinate` values. Additional Chunk-specific contextual fields are not part of this ticket.
+
+The Chunk-specific diagnostic extension serializes its coordinate count as exactly `std::uint32_t`, followed by that many contiguous `Chunk::Coordinate` values. `Networking::MessageType` preserves `ChunkRequest = 1`, `ChunkResponse = 2`, and `ChunkError = 3`, and adds `Diagnostic = 4`. `Networking::Diagnostic` accepts RequestID 0 for an uncorrelated diagnostic or a non-zero RequestID to correlate the diagnostic with an originating request. `Chunk::Protocol::Error` requires a non-zero RequestID and reuses the originating Chunk RequestID. Malformed Chunk input may emit a correlated generic Diagnostic only when a valid non-zero RequestID is still available; otherwise the Diagnostic is uncorrelated.
+
+Duplicate-coordinate semantics remain: the first occurrence participates in normal Chunk resolution; later duplicate occurrences do not trigger duplicate generation. The misuse is reported through `Chunk::Protocol::Error` with inherited severity `Networking::Diagnostic::Severity::Warning` and translation key exactly `"Chunk_Coordinates_Duplication"`; the duplicated coordinate list is carried by the Chunk-specific extension. It is not a failed terminal Chunk result.
+
+Malformed Chunk requests are reported, when the originating reply path remains usable, with generic `Networking::Diagnostic::Severity::Error` and translation key exactly `"Chunk_Request_Malformed"`. The approved RequestID correlation rule applies; malformed input never mutates canonical terrain state.
+
+A true Collection batch / outer TaskGroup aggregation failure that prevents production of a valid `BatchResult` is reported with generic `Networking::Diagnostic::Severity::Error`, translation key exactly `"Chunk_Request_Aggregation_Failure"`, and the original non-zero RequestID. No `Chunk::Protocol::Response` is emitted for that request.
+
+### Interaction with Collection batching
+
+`Chunk::Collection` remains networking-agnostic. It must not expose `Response::Success` or `Response::Failure` as its acquisition result types merely because TerrainNode later converts acquisition outcomes into a protocol Response.
+
+The Collection batch-result public shape is fixed by ST-001-09 / DR-019 as `Chunk::Collection::BatchResult::Acquired { coordinate, chunk }` and `Chunk::Collection::BatchResult::Failed { coordinate, std::exception_ptr exception }`, stored in separate `acquired` and `failed` vectors. TerrainNode owns translation from Collection acquisition outcomes/failures into `Chunk::Protocol::Response::Success` and `Chunk::Protocol::Response::Failure` entries.
+
+Ordinary per-coordinate acquisition failure does not fail the Collection batch Task. After all coordinate dependencies are terminal, the BatchResult completes with each requested coordinate represented exactly once as either `Acquired` or `Failed`. TerrainNode can therefore translate successful and failed coordinates independently without the internal batch partition changing Client-visible result semantics.
+
