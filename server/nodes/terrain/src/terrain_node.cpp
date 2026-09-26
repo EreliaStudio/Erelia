@@ -59,7 +59,6 @@ void TerrainNode::dispatch()
 	if (isRunning())
 	{
 		_endpoint.dispatch();
-		_chunks.update();
 	}
 }
 
@@ -71,4 +70,9 @@ bool TerrainNode::isRunning() const noexcept
 std::uint16_t TerrainNode::port() const noexcept
 {
 	return _endpoint.port();
+}
+
+TerrainNode::RequestQueue &TerrainNode::requests() noexcept
+{
+	return _endpoint.requests();
 }
