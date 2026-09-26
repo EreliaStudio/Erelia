@@ -48,16 +48,16 @@ The approved direction is:
 
 - TerrainNode keeps each Client protocol Request intact and partitions its distinct coordinates into smaller internal batches;
 - `Chunk::Collection::request(vector<Coordinate>)` returns one manually-settled `Task<BatchResult>::Answer` per internal batch;
-- a successful BatchResult contains every requested coordinate with a shallow-copied immutable Chunk;
+- BatchResult preserves one terminal outcome for every requested coordinate: either a shallow-copied immutable Chunk or a networking-agnostic acquisition failure;
 - Collection reuses already-Pending coordinate Answers, copies already-Available Chunks, and asks Provider only for Absent coordinates;
 - `Chunk::Collection::Provider` accepts exactly one coordinate and returns one WorkerPool-produced `Task<Chunk>::Answer`;
 - Collection subscribes to those coordinate Answers and settles its batch Task only after every coordinate is terminal;
-- if any coordinate Task fails, the entire Collection batch Task is Failed and no partial BatchResult is exposed;
+- after every coordinate Task is terminal, Collection validates the BatchResult containing all success/failure outcomes; ordinary per-coordinate failure does not fail the batch Task;
 - TerrainNode groups the Collection batch Answers in one Sparkle TaskGroup.
 
 ST-001-09 has additionally refined the terminal wire model: `Chunk::Protocol::Response` owns nested `Response::Success { coordinate, chunk }` and `Response::Failure { coordinate, Failure::Code, message }` entries. Finalized Responses remain Message-backed. The old `Rejected/Unavailable` grouping and Chunk-specific Error message are no longer the preferred future target; non-terminal diagnostics are expected to move to a generic diagnostic message, whose exact contract is still unresolved.
 
-The remaining ST-001-09 blockers are Server/protocol-specific: the internal batch-size rule; reconciling atomic failed Collection batches with preservation of successful coordinate results for Response construction; the `Response::Failure::Code` set and variable-length failure-string wire encoding; the future generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
+The remaining ST-001-09 blockers are Server/protocol-specific: the internal batch-size rule; the exact networking-agnostic BatchResult failure representation; the `Response::Failure::Code` set and variable-length failure-string wire encoding; the future generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
 
 The temporary Erelia-local TaskGroup scaffold currently on the feature branch is now obsolete and should be removed when implementation is reconciled with the merged Sparkle dependency.
 
