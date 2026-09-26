@@ -343,3 +343,18 @@ For EP-001 in particular, the still-partial questions include:
 - OQ-029 through OQ-031  golden-image and performance-validation policy.
 
 Do not hide one of these unresolved choices inside a coding ticket.
+
+
+## Cross-system integration tests
+
+Cross-system integration tests live under `tests/integration/`, not under a single component's unit-test directory.
+
+The integration target must:
+
+- link the Erelia Client and Server libraries plus each Server-node library exercised by the fixture;
+- communicate through the real network/runtime boundary rather than directly invoking the Server handler under test;
+- use the CTest `integration` label so CI can execute component tests and integration tests as distinct phases;
+- keep deterministic canonical-result assertions at the Client-facing edge;
+- add node-library links explicitly as integration scope expands rather than inventing an automatic all-node linker.
+
+The current Client networking APIs owned by ST-001-10/ST-001-11 do not yet exist. Until they do, the integration harness uses Sparkle's network Client only at the outer transport edge. When the Erelia Client connection/request APIs are implemented, replace that outer edge with the real Erelia Client API without moving the integration suite or weakening the existing Server/terrain/canonical-result assertions.
