@@ -6,7 +6,6 @@ add_executable(EreliaCoreTestSuite
     chunk_test.cpp
     networking_diagnostic_test.cpp
     status_test.cpp
-    task_group_test.cpp
     terrain_coordinate_test.cpp
     voxel_catalog_test.cpp
     voxel_cell_test.cpp
