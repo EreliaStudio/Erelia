@@ -192,11 +192,12 @@ For ST-001-09 the selected ownership is:
 - Provider is single-coordinate and WorkerPool-backed; it no longer owns batch buffering or `update(Collection&)` polling;
 - Collection creates its BatchResult Task directly and never submits that aggregation Task to WorkerPool;
 - the Collection batch stays Pending until every coordinate dependency is terminal;
-- if all coordinates succeed, Collection validates a complete BatchResult containing every requested coordinate/Chunk pair by shallow copy;
-- if any coordinate Task fails, Collection fails the entire batch Task and exposes no partial BatchResult;
+- each coordinate contributes either a shallow-copied immutable Chunk or a networking-agnostic acquisition-failure outcome;
+- after all coordinate dependencies are terminal, Collection validates one complete BatchResult containing every coordinate outcome;
+- ordinary per-coordinate acquisition failure does not fail the batch Task; the batch Task fails only when aggregation itself cannot produce a valid BatchResult;
 - TerrainNode groups the Collection batch Answers in one `spk::TaskGroup<BatchResult>` and handles one terminal protocol outcome using the original RequestID.
 
-The exact private Collection state structs and exact concrete BatchResult container type are not durable API requirements. TerrainNode ultimately translates acquisition outcomes into `Chunk::Protocol::Response::Success` / `Response::Failure` entries, but one interaction is still unresolved: a Failed `Task<BatchResult>` exposes no partial BatchResult, so an atomic failed Collection batch currently loses access to any successful coordinates from that batch. This must be reconciled before implementation. Do not silently change either the Task failure rule or the Response contract.
+The exact private Collection state structs and exact concrete BatchResult container type are not durable API requirements. TerrainNode ultimately translates acquisition outcomes into `Chunk::Protocol::Response::Success` / `Response::Failure` entries. On 26 September 2026 the project owner explicitly selected per-coordinate failure-as-data semantics so successful coordinates are preserved independently of internal batch partitioning. The exact networking-agnostic C++ representation of a BatchResult failure outcome remains unresolved and must be fixed before implementation.
 
 Future Client request acquisition uses the same Collection/Provider state machine, but ST-001-11 still owns Client network retry/cache/response policy.
 
