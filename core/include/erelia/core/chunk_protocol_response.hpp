@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <set>
+#include <string>
 #include <vector>
 
 #include <network/message.hpp>
@@ -11,26 +13,30 @@
 class Chunk::Protocol::Response final : public spk::Message
 {
 public:
-	enum class State : std::uint8_t
+	struct Success final
 	{
-		Success = 0,
-		Rejected = 1,
-		Unavailable = 2
+		Coordinate coordinate;
+		Chunk chunk;
+	};
+
+	struct Failure final
+	{
+		enum class Code : std::uint8_t
+		{
+			AcquisitionFailed = 0
+		};
+
+		Coordinate coordinate;
+		Code code;
+		std::string message;
 	};
 
 	class Builder final
 	{
 	private:
-		struct SuccessEntry final
-		{
-			Coordinate coordinate;
-			Chunk chunk;
-		};
-
 		spk::Message::RequestID _requestID;
-		std::vector<SuccessEntry> _successEntries;
-		std::vector<Coordinate> _rejectedCoordinates;
-		std::vector<Coordinate> _unavailableCoordinates;
+		std::vector<Success> _successes;
+		std::vector<Failure> _failures;
 		std::set<Coordinate> _coordinates;
 
 		void _insertCoordinate(const Coordinate &coordinate);
@@ -38,9 +44,13 @@ public:
 	public:
 		explicit Builder(spk::Message::RequestID requestID);
 
-		void addSuccess(const Coordinate &coordinate, const Chunk &chunk);
-		void addRejected(const Coordinate &coordinate);
-		void addUnavailable(const Coordinate &coordinate);
+		void addSuccess(
+			const Coordinate &coordinate,
+			const Chunk &chunk);
+		void addFailure(
+			const Coordinate &coordinate,
+			Failure::Code code,
+			std::string message);
 
 		[[nodiscard]] Response build() &&;
 	};
@@ -53,7 +63,9 @@ private:
 public:
 	explicit Response(spk::Message message);
 
-	[[nodiscard]] std::uint32_t successOffset() const;
-	[[nodiscard]] std::uint32_t rejectedOffset() const;
-	[[nodiscard]] std::uint32_t unavailableOffset() const;
+	[[nodiscard]] std::uint32_t failureOffset() const;
+	[[nodiscard]] std::size_t successCount() const;
+	[[nodiscard]] Success success(std::size_t index) const;
+	[[nodiscard]] std::size_t failureCount() const;
+	[[nodiscard]] Failure failure(std::size_t index) const;
 };

@@ -1,6 +1,6 @@
 #include "__NODE_SNAKE___node_application.hpp"
 
-#include <structure/system/argument_parser.hpp>
+#include <system/argument_parser.hpp>
 
 #include <design_pattern/singleton.hpp>
 #include <diagnostics/logger.hpp>

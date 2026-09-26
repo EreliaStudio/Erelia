@@ -168,20 +168,38 @@ A terrain Chunk is a semantic specialization of Volume. DR-019 fixes:
 - Chunk does not store its own `Chunk::Coordinate`;
 - `Chunk::Collection` owns coordinate identity and a nested abstract `Chunk::Collection::Provider`;
 - Collection exclusively owns its Provider through a private `std::unique_ptr<Provider>`; its public constructor is a constrained template taking only a concrete Provider rvalue derived from `Provider`, moving that concrete object into the owned polymorphic allocation; lvalue Provider construction is rejected and null/absent Provider state is unrepresentable;
-- Collection uses explicit `Absent / Pending / Available` coordinate state;
-- `request(coordinate)` atomically transitions only Absent entries to Pending and attaches a monotonically increasing generation;
-- repeated requests while Pending or Available do not call the Provider again;
-- Provider acquisition is asynchronous/update-driven: Provider receives `Collection::Request { coordinate, generation }`, schedules work, then later publishes or fails that exact request;
-- publication/failure is accepted only for the still-current Pending generation, preventing stale tasks from overwriting newer state;
+- Collection uses explicit semantic `Absent / Pending / Available` coordinate state;
+- Pending means one unique in-flight `spk::Task<Chunk>::Answer` exists for that coordinate; overlapping requests reuse/subscribe to that Answer instead of regenerating;
+- stale asynchronous work must not overwrite newer authoritative Collection state; the exact private generation/identity mechanism remains an implementation detail;
 - `tryGet(coordinate)` returns `std::optional<Chunk>`; Available values are copied under a short `spk::ProtectedData` Reader and remain valid after the lock is released;
-- published Chunks are immutable; whole-value replacement is used instead of Cell mutation; replacement remains an upsert and invalidates any older pending publication;
-- copied Chunks keep old immutable content alive across Collection replacement;
+- published Chunks are immutable; whole-value replacement is used instead of Cell mutation; copied Chunks keep old immutable content alive across Collection replacement;
 - no Collection lock is held during expensive generation work.
 
-The headless generic facilities first prototyped by ST-001-06 — `spk::ThreadSafeSet`, `spk::ThreadSafeQueue`, `spk::Task<TResult>`, `spk::WorkerPool`, and `spk::Singleton<T>` — are now owned by Sparkle Version-0.1.3. Erelia consumes the Sparkle implementations directly. DR-020 remains the historical design record for why these facilities were introduced.
+Sparkle Version-0.1.3 owns the generic headless facilities first prototyped by Erelia. In particular:
 
-Future Client request acquisition uses the same Collection/Provider state machine but ST-001-11 still owns network retry/cache/response policy.
+- `spk::Task<TResult>` is a generic asynchronous result state with explicit `validate(TResult)` / `fail(std::exception_ptr)` settlement and no execution lambda;
+- `Task<TResult>::Answer` is the shared observation handle and exposes `subscribeToCompletion(...)` through thread-safe `spk::ContractProvider`;
+- `spk::WorkerPool::submit(callable)` executes worker work through its internal type-erased Job / TaskJob layer and returns `Task<TResult>::Answer`;
+- `spk::TaskGroup<TResult>` is Sparkle-owned and groups arbitrary Task Answers, including manually-settled and WorkerPool-produced Tasks, without occupying a worker merely to wait. Do not reintroduce an Erelia-local TaskGroup wrapper. Sparkle's `ArgumentParser` public include is `<system/argument_parser.hpp>`.
 
+For ST-001-09 the selected ownership is:
+
+- TerrainNode partitions one Client Chunk request using a fixed internal batch-size constant of 1024 coordinates; the size is not configurable and is not part of the Chunk wire protocol. Because the current protocol maximum is also 1024, every valid request currently produces one Collection batch. Multi-batch TaskGroup behavior remains structurally supported, but a multi-batch protocol fixture is deferred until the protocol maximum and internal batch size diverge;
+- each batch is passed to `Chunk::Collection::request(vector<Coordinate>)`, which returns one `Task<BatchResult>::Answer`;
+- on Available coordinates, Collection shallow-copies the Chunk into the batch result;
+- on Pending coordinates, Collection subscribes to the existing coordinate Answer;
+- on Absent coordinates, Collection asks Provider for exactly one coordinate Task Answer, stores/reuses it as Pending, and subscribes;
+- Provider is single-coordinate and WorkerPool-backed; it no longer owns batch buffering or `update(Collection&)` polling;
+- Collection creates its BatchResult Task directly and never submits that aggregation Task to WorkerPool;
+- the Collection batch stays Pending until every coordinate dependency is terminal;
+- each coordinate contributes either `Chunk::Collection::BatchResult::Acquired { coordinate, chunk }` or `Chunk::Collection::BatchResult::Failed { coordinate, std::exception_ptr exception }`;
+- after all coordinate dependencies are terminal, Collection validates one complete BatchResult containing every coordinate outcome;
+- ordinary per-coordinate acquisition failure does not fail the batch Task; the batch Task fails only when aggregation itself cannot produce a valid BatchResult;
+- TerrainNode groups the Collection batch Answers in one `spk::TaskGroup<BatchResult>` and handles one terminal protocol outcome using the original RequestID. If the outer TaskGroup itself is Failed because aggregation cannot produce a valid BatchResult, TerrainNode emits one correlated `Networking::Diagnostic` with `Severity::Error` and translation key exactly `"Chunk_Request_Aggregation_Failure"`; no ChunkResponse is emitted for that request.
+
+The exact private Collection state structs remain implementation details. The public BatchResult shape is fixed as nested `Acquired` / `Failed` types with `std::vector<Acquired> acquired` and `std::vector<Failed> failed`; `Failed` preserves the originating `std::exception_ptr`. TerrainNode translates these acquisition-domain outcomes into `Chunk::Protocol::Response::Success` / `Response::Failure` entries. On 26 September 2026 the project owner explicitly selected this per-coordinate failure-as-data contract so successful coordinates are preserved independently of internal batch partitioning.
+
+Future Client request acquisition uses the same Collection/Provider state machine, but ST-001-11 still owns Client network retry/cache/response policy.
 
 ## 7. Serialization/API ergonomics
 
@@ -205,7 +223,7 @@ The operators serialize the logical Volume contents—dimensions, unit size, and
 
 `volume.hpp` includes Sparkle's `network/message.hpp` directly because Message is an explicit part of the public Volume API. Networking-specific implementation lives in `core/src/voxel/volume_networking.cpp`, keeping ordinary Volume behavior in `volume.cpp`. Network decoding reconstructs fresh immutable Volume content directly and does not use `Voxel::Volume::Builder`; it must not mutate previously published shared backing storage.
 
-ST-001-08 / DR-022 implement the dedicated Chunk protocol codec. `Networking::MessageType` owns `ChunkRequest`, `ChunkResponse`, and `ChunkError`; `Chunk::Protocol::{Request, Response, Error}` derive from `spk::Message`. Keep the public protocol declarations one message per header (`chunk_protocol_request.hpp`, `chunk_protocol_error.hpp`, `chunk_protocol_response.hpp`), with `Chunk::Protocol` only providing the semantic nested scope/forward declarations from `chunk.hpp`. Every protocol type has a nested Builder that owns temporary vectors/sets during construction. `build()` computes the exact final payload, resizes the Message once, and writes through `spk::Message::edit()`. Finalized protocol objects retain no mirrored semantic containers: their Message payload is the single persistent representation, read through `readAt()`/protocol accessors. Request preserves insertion order; its Builder duplicate guard is Debug-only, while duplicate diagnostics are computed from Message storage on demand. Response Success entries transfer only the fixed contiguous 4096-Cell block because Chunk is always 16×16×16 at unit size 1.0f; dimensions/unit size are not serialized.
+ST-001-08 / DR-022 implemented the first dedicated Chunk protocol codec, but ST-001-09 planning later refined the terminal Response target. `Chunk::Protocol::Request` and `Chunk::Protocol::Response` remain Message-backed domain types. `Response` now owns nested semantic terminal entries: `Response::Success { coordinate, chunk }` and `Response::Failure { coordinate, Failure::Code, message }`. `Failure::Code` belongs under `Failure`; ST-001-09 fixes `Response::Failure::Code::AcquisitionFailed = 0` as the initial and currently only code. Builders may own temporary semantic containers during construction, but finalized protocol objects retain no mirrored semantic vectors: the inherited `spk::Message` payload remains the single persistent representation. Response uses the symmetric public API `failureOffset()`, `successCount()`, `success(index)`, `failureCount()`, and `failure(index)`; Builder uses `addSuccess(...)` and `addFailure(...)`. Success entries still transfer only the fixed contiguous 4096-Cell block because Chunk is always 16×16×16 at unit size 1.0f; dimensions/unit size are not serialized. Failure strings use Sparkle's existing Message string representation exactly: `std::uint32_t` byte length followed by the message bytes, with no null terminator. TerrainNode maps `BatchResult::Failed::exception` by rethrowing it: `spk::Exception::message()`, otherwise `std::exception::what()`, otherwise exactly `"Unknown acquisition failure"`; the corresponding protocol code is `Response::Failure::Code::AcquisitionFailed`. The old Chunk-specific `Chunk::Protocol::Error` message is not the preferred long-term target; non-terminal technical diagnostics move toward a generic diagnostic message. For ST-001-09 its semantic payload is intentionally limited to severity + stable string translation key. The key is intended for a future translation/localization engine rather than direct user display. Later work may add contextual fields, but this ticket must not invent them. Its public type is fixed as `Networking::Diagnostic` in the generic networking layer. Severity is fixed as `Trace = 0`, `Info = 1`, `Warning = 2`, and `Error = 3`. `Chunk::Protocol::Error` derives from `Networking::Diagnostic` and adds only a list of problematic Chunk coordinates for this ticket; specialized serialization reuses the Diagnostic prefix before appending those coordinates. The Chunk-specific coordinate count is fixed as `std::uint32_t`, followed by that many contiguous `Chunk::Coordinate` values. `Networking::MessageType` preserves `ChunkError = 3` and adds `Diagnostic = 4`. Generic `Networking::Diagnostic` may use RequestID 0 when uncorrelated or a non-zero originating RequestID when correlated. `Chunk::Protocol::Error` requires and reuses the originating non-zero Chunk RequestID. Malformed Chunk input is correlated only when a valid non-zero RequestID is still available. TerrainNode completion callbacks must not capture the TerrainNode or send through the Endpoint directly; they publish into a thread-safe shared completion mailbox. Terrain-side incoming-message dispatch is owned by `TerrainNodeApplication`: it drains `spk::RemoteNode::Endpoint::requests()` after Endpoint dispatch, switches on the contained Message type, and calls one dedicated handler per supported type while preserving the original Endpoint Request envelope for reply routing. Reply emission remains on the terrain dispatch thread. The main Server registers `ChunkRequest -> "terrain"` immediately after constructing `Router`. Duplicate-coordinate diagnostics use `Warning / "Chunk_Coordinates_Duplication"`; malformed-request diagnostics use `Error / "Chunk_Request_Malformed"`. Shutdown unsubscribes completion contracts and discards pending replies without waiting for outstanding acquisition work; disconnection does not cancel acquisition; reply/send exceptions are logged and dropped.
 
 Do not expose otherwise-unnecessary mutable internals merely to make serialization possible.
 
@@ -264,6 +282,8 @@ Production third-person movement, collision, prediction/reconciliation, follower
 Prefer small, focused implementation slices with strong tests over large feature dumps.
 
 Prefer named source-local helper functions in an anonymous namespace over lambdas declared inside a function when the logic is independently describable and does not materially benefit from captures. Keep lambdas for genuinely local callback/capture behavior rather than using them as a substitute for ordinary helper functions.
+
+Boolean-valued expressions must be explicit. Do not rely on implicit boolean truthiness and do not use unary `!` to negate a boolean-valued expression. Write `expression == true` or `expression == false` according to the intended branch. This applies to boolean variables, predicates, and boolean-returning accessors such as `has_value()`: prefer `if (value.has_value() == false)` over `if (!value.has_value())`, and prefer `if (ready == true)` over `if (ready)`. Existing comparison expressions such as `pointer == nullptr`, `iterator == end`, or enum/status comparisons are already explicit and do not require an additional boolean comparison.
 
 `OPEN_REQUESTS/` tracks external dependency fixes that should trigger later Erelia cleanup. Use one `OR-XXX-[name].md` file per request. Its first line is the external issue link, its second line is `Status : Open`, `Status : Treated`, or `Status : Rejected`, and its `# Edition` section lists every `[file:line]` location that must change when a treated request is integrated.
 
@@ -325,3 +345,22 @@ For EP-001 in particular, the still-partial questions include:
 - OQ-029 through OQ-031  golden-image and performance-validation policy.
 
 Do not hide one of these unresolved choices inside a coding ticket.
+
+
+## Cross-system integration tests
+
+Cross-system integration tests live under `tests/integration/`, not under a single component's unit-test directory.
+
+The integration target must:
+
+- link the Erelia Client and Server libraries plus each Server-node library exercised by the fixture;
+- communicate through the real network/runtime boundary rather than directly invoking the Server handler under test;
+- use the CTest `integration` label and dedicated GitHub Actions `Integration (Windows, Debug/Release)` jobs so cross-system tests are visible as first-class PR checks rather than hidden inside component jobs;
+- keep deterministic canonical-result assertions at the Client-facing edge;
+- add node-library links explicitly as integration scope expands rather than inventing an automatic all-node linker.
+
+The current ST-001-09 integration coverage includes canonical single- and multi-coordinate requests, duplicate and malformed request diagnostics, two concurrent Clients with response correlation, and disconnect during an outstanding acquisition followed by continued Terrain service. The disconnect fixture deterministically keeps acquisition outstanding by occupying the shared WorkerPool before releasing it after the originating Client disconnects.
+
+The current Client networking APIs owned by ST-001-10/ST-001-11 do not yet exist. Until they do, the integration harness uses Sparkle's network Client only at the outer transport edge. When the Erelia Client connection/request APIs are implemented, replace that outer edge with the real Erelia Client API without moving the integration suite or weakening the existing Server/terrain/canonical-result assertions.
+
+The integration suite intentionally orchestrates the runtime libraries in one test process while communicating through the real Sparkle network boundary; it does not launch the Erelia executables. Executable-level startup/connectivity smoke coverage is deferred until the Client executable exposes the connection behavior owned by the later Client tickets.

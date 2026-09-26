@@ -29,3 +29,7 @@ endif()
 if(ERELIA_BUILD_CLIENT)
     add_subdirectory(client)
 endif()
+
+if(BUILD_TESTING AND ERELIA_BUILD_CLIENT AND ERELIA_BUILD_SERVER)
+    add_subdirectory(tests/integration)
+endif()

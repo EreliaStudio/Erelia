@@ -2,38 +2,30 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include <vector>
 
-#include <network/message.hpp>
-
 #include "erelia/core/chunk.hpp"
+#include "erelia/core/networking/diagnostic.hpp"
 
-class Chunk::Protocol::Error final : public spk::Message
+class Chunk::Protocol::Error final : public Networking::Diagnostic
 {
 public:
-	enum class Code : std::uint8_t
-	{
-		DuplicateCoordinate = 0
-	};
-
-	struct Entry final
-	{
-		Code code;
-		Coordinate coordinate;
-
-		[[nodiscard]] bool operator==(const Entry &) const = default;
-	};
-
 	class Builder final
 	{
 	private:
 		spk::Message::RequestID _requestID;
-		std::vector<Entry> _entries;
+		Networking::Diagnostic::Severity _severity;
+		std::string _message;
+		std::vector<Coordinate> _coordinates;
 
 	public:
-		explicit Builder(spk::Message::RequestID requestID);
+		Builder(
+			spk::Message::RequestID requestID,
+			Networking::Diagnostic::Severity severity,
+			std::string message);
 
-		void add(Code code, const Coordinate &coordinate);
+		void add(const Coordinate &coordinate);
 		[[nodiscard]] Error build() &&;
 	};
 
@@ -45,6 +37,6 @@ private:
 public:
 	explicit Error(spk::Message message);
 
-	[[nodiscard]] std::size_t entryCount() const noexcept;
-	[[nodiscard]] Entry entry(std::size_t index) const;
+	[[nodiscard]] std::size_t coordinateCount() const;
+	[[nodiscard]] Coordinate coordinate(std::size_t index) const;
 };

@@ -259,6 +259,25 @@ Not applicable.
 - [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — resolved for this protocol contract.
 - [DR-022](../../../DECISIONS/DR-022-CHUNK-PROTOCOL-WIRE-CONTRACT.md) — exact Chunk Request/Response/Error wire and correlation contract.
 
+## Post-completion ST-001-09 refinement
+
+ST-001-08 is historically Finished and its implementation/CI evidence remains valid for the contract reviewed at that time. ST-001-09 planning on 26 September 2026 subsequently refined the target terminal response API.
+
+The newer target places terminal Chunk outcomes directly under `Chunk::Protocol::Response`:
+
+```cpp
+Response::Success { coordinate, chunk }
+Response::Failure { coordinate, Failure::Code, message }
+```
+
+`Success` and `Failure` are protocol semantic entry types. The Response Builder may temporarily collect those values, while the finalized Response remains backed only by its `spk::Message` payload.
+
+This newer target supersedes the earlier `Response::State { Success, Rejected, Unavailable }` grouping for future implementation work.
+
+The Chunk-specific `Chunk::Protocol::Error` message is also no longer the preferred long-term diagnostic mechanism. The current direction is a generic Erelia diagnostic message for non-terminal technical diagnostics such as duplicate coordinates and malformed messages. Its final wire contract is not yet resolved.
+
+Do not rewrite the historical ST-001-08 completion evidence as though the later refinement had already been implemented in that ticket; implementation migration belongs to later work.
+
 ## Completion evidence
 
 Implementation is complete, project-owner review is recorded, and PR #16 is treated as merged into `master`.

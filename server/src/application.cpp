@@ -2,7 +2,9 @@
 
 #include "erelia/server/router.hpp"
 
-#include <structure/system/argument_parser.hpp>
+#include "erelia/core/networking/message_type.hpp"
+
+#include <system/argument_parser.hpp>
 
 #include <design_pattern/singleton.hpp>
 #include <diagnostics/logger.hpp>
@@ -56,6 +58,10 @@ int runServer(int argc, char **argv)
 		Router router(
 			Router::Configuration::load(
 				arguments.get("config").values.front()));
+		router.redirect(
+			static_cast<spk::Message::Type>(
+				Networking::MessageType::ChunkRequest),
+			"terrain");
 
 		Running = 1;
 		std::signal(SIGINT, onSignal);

@@ -16,7 +16,7 @@ The Client can request only the terrain it needs and maintain coherent local can
 ## Starting state / prerequisites
 
 - Depends on ST-001-06 Core Chunk::Collection/Provider foundation, ST-001-08, and ST-001-10.
-- OQ-038 fixes only the high-level batched Client-driven direction; duplicate outstanding requests, cache retention/eviction, request limits, partial response and unavailable-coordinate behavior remain open.
+- OQ-038/DR-022 establish the batched Client-driven direction and RequestID correlation. ST-001-09 planning later refines terminal Chunk responses toward `Response::Success` / `Response::Failure`; exact failure-code/string encoding and the generic diagnostic-message contract remain open.
 
 ## Product ownership
 
@@ -40,7 +40,8 @@ The final ticket should own:
 - outstanding-request suppression/retry behavior;
 - insertion/replacement of canonical responses;
 - retention/eviction policy;
-- disconnect/partial-response cleanup.
+- disconnect/outstanding-request cleanup;
+- application of terminal `Response::Success` / `Response::Failure` entries once the refined protocol contract is finalized.
 
 ## Explicitly not owned
 
@@ -48,7 +49,7 @@ How the inspection position is controlled, meshing/rendering, Server generation,
 
 ## Public contract
 
-Blocked by OQ-038 for duplicate suppression, cache retention/eviction, request batch limits, partial success, unavailable-coordinate semantics, retry behavior, and response replacement rules.
+Blocked by remaining Client policy plus the refined ST-001-09 protocol details: duplicate outstanding suppression, cache retention/eviction, request batching policy, retry behavior, Response Failure handling, generic diagnostic handling where relevant, and response replacement rules.
 
 ## Invariants
 
@@ -59,7 +60,7 @@ Blocked by OQ-038 for duplicate suppression, cache retention/eviction, request b
 
 ## State transitions
 
-Need exact OQ-038 contract for missing -> outstanding -> cached/rejected/retryable/evicted transitions.
+Need exact Client contract for missing -> outstanding -> cached/failed/retryable/evicted transitions using terminal `Response::Success` / `Response::Failure` semantics.
 
 ## Failure behavior
 
@@ -99,8 +100,8 @@ Final Ready fixture set must include:
 - repeated desired update;
 - duplicate coordinate inputs;
 - full successful batch response;
-- partial response;
-- unavailable/rejected coordinate;
+- mixed terminal Response containing Success and Failure entries once that wire contract is finalized;
+- failed coordinate carrying `Response::Failure::Code` and message;
 - disconnect while outstanding;
 - retention/eviction boundary;
 - retry behavior if approved.
@@ -121,7 +122,7 @@ Unexpected/duplicate/stale response behavior per final contract.
 
 ### Failure atomicity
 
-Failed/partial response cannot corrupt unrelated cached Chunks.
+Failed coordinates or failed requests cannot corrupt unrelated cached Chunks; successful Response entries remain authoritative for their own coordinates under the final refined contract.
 
 ### Determinism
 
@@ -149,7 +150,7 @@ Only decoded Server responses enter the canonical Client Chunk cache.
 
 ### Dependency failure
 
-Connection loss and rejected/partial responses.
+Connection loss, terminal Failure entries, and malformed/diagnostic paths.
 
 ### Cross-system integration
 
@@ -171,4 +172,4 @@ Not applicable.
 
 ## Completion evidence
 
-Promote to Ready only when every cache/outstanding/retry/partial-response transition has an exact test fixture and no Server-side view policy is introduced.
+Promote to Ready only when every cache/outstanding/retry/Success/Failure transition has an exact test fixture, the refined Response/diagnostic contracts are stable, and no Server-side view policy is introduced.

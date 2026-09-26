@@ -1,6 +1,6 @@
 # ST-001-07 — Server NodeRouter remote terrain-node bootstrap
 
-**Status:** Finished
+**Status:** Done
 **Epic:** EP-001
 **Production target(s):** Core shared CLI utility; Server; terrain Server node; developer tooling
 **Test suite(s):** EreliaCoreTestSuite; EreliaServerTestSuite; EreliaServerSmoke
@@ -74,7 +74,7 @@ The Server runtime owns one `spk::NodeRouter` and one `spk::RemoteNode` per conf
 - `stop()` disconnects nodes and stops the NodeRouter and is idempotent;
 - the same runtime object can be started again.
 
-ST-001-07 registers the terrain node object but registers **no Chunk message redirection** because ST-001-08 owns message types.
+At ST-001-07 completion, the terrain node object was registered without Chunk message redirection because ST-001-08 owned message types. Current `master` now registers `ChunkRequest -> "terrain"` as part of the subsequently completed ST-001-09 handler.
 
 ### Process lifetime
 
@@ -146,4 +146,4 @@ No material ST-001-07 observable behavior remains open.
 
 ## Completion evidence
 
-Project-owner review completed on 25 September 2026. PR #14 contains the approved implementation. CI run #325 passed every Linux/Windows Debug/Release build-and-test job; its sole failure was clang-format, which was corrected afterward. Final PR CI covers the formatting correction plus the added SIGINT/SIGTERM node-application shutdown tests before merge.
+Project-owner review completed on 25 September 2026. ST-001-07 is Done and merged into `master` through PR #14. CI run #325 passed every Linux/Windows Debug/Release build-and-test job; its sole failure was clang-format, which was corrected before merge. The merged implementation also includes the added SIGINT/SIGTERM node-application shutdown tests.

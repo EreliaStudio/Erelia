@@ -4,6 +4,7 @@ add_executable(EreliaCoreTestSuite
     chunk_protocol_request_test.cpp
     chunk_protocol_response_test.cpp
     chunk_test.cpp
+    networking_diagnostic_test.cpp
     status_test.cpp
     terrain_coordinate_test.cpp
     voxel_catalog_test.cpp
