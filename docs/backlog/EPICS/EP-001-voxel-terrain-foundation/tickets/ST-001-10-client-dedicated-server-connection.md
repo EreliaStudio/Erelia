@@ -1,6 +1,6 @@
 # ST-001-10 — Client dedicated-Server connection
 
-**Status:** Ready
+**Status:** In Progress
 **Epic:** EP-001
 **Production target(s):** Client
 **Test suite(s):** EreliaClientTestSuite; EreliaIntegrationTestSuite; executable process smoke
@@ -287,13 +287,30 @@ No unresolved observable ST-001-10 contract question remains. The ticket satisfi
 
 ## Completion evidence
 
-Ready evidence is the approved contract above.
+Implementation is complete on `feat/st-001-10-client-dedicated-server-connection` / draft PR #18 and is awaiting project-owner review before this ticket may become Done.
 
-Done evidence must include:
-- Client production endpoint/runtime implementation;
-- deterministic Client component tests;
-- real Erelia Client -> Router integration coverage;
-- real separate-process `EreliaClient` -> `EreliaServer` connection evidence;
-- launcher/config documentation updates;
-- green required CI/test matrix;
-- project-owner human review before status becomes Done.
+Delivered production behavior:
+- `ClientRuntime` owns the explicit endpoint configuration, one `spk::Client`, and the current connection-attempt Task Answer;
+- strict JSON endpoint loading rejects missing, unknown, empty-address, zero-port, and invalid-port inputs;
+- `ClientRuntime::connect()` submits Sparkle's synchronous `spk::Client::connect()` to the shared WorkerPool, reuses a Pending attempt, and is a no-op while already connected;
+- `disconnect()` waits for a Pending attempt before transport teardown and is idempotent when already disconnected;
+- the same runtime supports explicit retry/reconnect after failure or disconnect without automatic retry;
+- `runClient()` implements explicit-config startup, connected idle lifetime, SIGINT/SIGTERM clean shutdown, initial-connect failure, and unexpected remote-disconnect failure;
+- `main.cpp` remains a thin application entry point;
+- `tools/run-client-server.ps1` now generates the Client endpoint configuration from the dynamically selected Router port and passes it explicitly.
+
+Delivered tests:
+- `EreliaClientTestSuite` covers strict configuration, successful/failed asynchronous connection settlement, live transport state, Pending-attempt reuse, connect/disconnect idempotency, explicit retry/reconnect, remote disconnect, Pending-attempt shutdown ordering, initial application connection failure, and SIGINT/SIGTERM clean application shutdown;
+- `EreliaIntegrationTestSuite` adds a real `ClientRuntime -> Router` transport-boundary fixture while preserving the ST-001-09 raw-`spk::Client` Chunk fixtures whose send/message coordination belongs to ST-001-11;
+- `EreliaClientServerProcessSmoke` launches real `EreliaServer` and `EreliaClient` executables with temporary explicit configurations, proves the Client reaches the Router endpoint, then verifies unexpected Server loss terminates the Client with failure;
+- the process fixture uses a production-valid Router configuration containing the required `terrain` route but does not extend ST-001-10 into terrain request semantics.
+
+Validation:
+- CI run `36276188328` passed clang-format, Linux Core/Server Debug+Release, Windows Core/Server Debug+Release, Client Windows Debug+Release, and Integration Windows Debug+Release, including the separate-process smoke, before the final application-signal tests were added;
+- latest-head CI validation including the SIGINT/SIGTERM and initial-connect-failure application tests is required before review completion.
+
+Human validation still pending:
+- project-owner code review/approval of PR #18;
+- only after that approval and green latest-head CI may this ticket be marked **Done**.
+
+ST-001-11 remains the next dependency-ordered implementation area, but it is still **Blocked** on its own Client cache/retry/recycle policy specification.
