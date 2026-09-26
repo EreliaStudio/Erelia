@@ -10,13 +10,13 @@ ST-001-01 through ST-001-08 are completed on `master`.
 
 The latest `master` removes the earlier temporary Erelia-local Sparkle prototypes after those reusable facilities were upstreamed into Sparkle Version-0.1.3. Sparkle Version-0.1.3 now also contains the merged generic Task settlement contract, direct-callable WorkerPool TaskJob execution, thread-safe ContractProvider, and TaskGroup required by ST-001-09. Erelia should consume these Sparkle-owned facilities directly rather than retain the temporary TaskGroup prototype currently present on the active feature branch.
 
-ST-001-08 is merged through PR #16. Core now owns the finalized batched Chunk Request/Response/Error protocol and its dedicated tests.
+ST-001-08 is merged through PR #16 and provides the historically reviewed first batched Chunk Request/Response/Error protocol implementation and dedicated tests. ST-001-09 planning now refines the future terminal Response and diagnostic model without invalidating that historical completion evidence.
 
 ## Validation / review state
 
 OQ-038 is Resolved.
 
-DR-022 records the final batched Chunk Request/Response/Error wire contract.
+DR-022 records the original resolved ST-001-08 wire contract plus the later ST-001-09 refinement toward nested Response Success/Failure entries and a future generic diagnostic mechanism.
 
 ST-001-08 is **Done** after project-owner review. CI run #356 (run ID `36138476545`) passed on the reviewed PR head `a4c0e29059cec422bee848dff2c465ad26c53493`.
 
