@@ -34,14 +34,22 @@ The disconnect fixture is deterministic: it occupies the shared WorkerPool befor
 
 ## Client boundary
 
-The current Erelia Client library does not yet expose the dedicated-Server connection and Chunk request/cache APIs owned by ST-001-10 and ST-001-11. Until those APIs exist, the integration fixture uses Sparkle's network Client at the outer transport edge.
+ST-001-10 adds the real Erelia `ClientRuntime` connection lifecycle. `client_server_connection_test.cpp` uses that API against the real Router transport boundary and validates live disconnect after Router shutdown.
 
-When ST-001-10/ST-001-11 implement the Erelia Client networking path, replace that transport-edge usage with the real Erelia Client API. Keep the same integration-suite location, Server/terrain runtime, network path, canonical Chunk assertions, and CTest `integration` label.
+The ST-001-09 Chunk request fixtures intentionally continue to use Sparkle's network Client at their outer transport edge. Replacing that usage would require send/message/request-cache behavior owned by ST-001-11, so ST-001-10 does not expose a transport-forwarding API merely for test migration.
 
-Do not invent an interim Erelia Client networking abstraction solely for this test.
+When ST-001-11 implements the Client request/cache path, migrate the Chunk fixtures to that real Erelia API while preserving their Server/terrain runtime, real network path, canonical Chunk assertions, and CTest `integration` label.
 
 ## Process boundary
 
-The integration suite orchestrates Erelia runtime libraries inside one test process, but the Client/Router/Terrain communication still crosses the real Sparkle network transport boundary. It intentionally does not launch `EreliaClient`, `EreliaServer`, or terrain-node executables.
+The library integration suite orchestrates Erelia runtime libraries inside one test process, but Client/Router/Terrain communication still crosses the real Sparkle network transport boundary.
 
-Executable-level startup/connectivity smoke testing is deferred until the Client executable exposes the dedicated-Server connection behavior owned by the later Client tickets. Chunk request/response semantics remain the responsibility of this integration layer rather than being duplicated through log inspection.
+ST-001-10 also registers `EreliaClientServerProcessSmoke` on Windows. That fixture:
+- allocates temporary Router/terrain ports and writes explicit temporary Server and Client configurations;
+- starts the real `EreliaServer` process with the production-required terrain route configured;
+- starts the real `EreliaClient` process against that Router endpoint;
+- waits for the Client's successful connection marker using bounded state/deadline polling;
+- verifies the Client remains alive while connected;
+- terminates the Server and verifies the Client exits with failure after unexpected transport loss.
+
+The terrain endpoint need not be running for this ST-001-10 smoke because the fixture validates the Client-facing Router connection only. Chunk request/response semantics remain the responsibility of the library integration layer rather than being duplicated through process-log inspection.
