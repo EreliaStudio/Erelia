@@ -322,7 +322,7 @@ struct Diagnostic
 };
 ```
 
-Only severity and a string diagnostic identifier are carried in the generic diagnostic payload for now. That string is not user-facing prose: it is a stable translation key intended for a future localization/translation engine. Additional structured/contextual diagnostic information may be added by later work, but ST-001-09 must not invent it. The exact translation keys for concrete diagnostics remain to be frozen.
+Only severity and a string diagnostic identifier are carried in the generic diagnostic payload for now. That string is not user-facing prose: it is a stable translation key intended for a future localization/translation engine. Additional structured/contextual diagnostic information may be added by later work, but ST-001-09 must not invent it. ST-001-09 fixes the concrete keys used here to `"Chunk_Coordinates_Duplication"`, `"Chunk_Request_Malformed"`, and `"Chunk_Request_Aggregation_Failure"`.
 
 The public type is fixed for ST-001-09 as `Networking::Diagnostic`, declared in a dedicated generic networking header rather than under `Chunk::Protocol`. Its severity contract is fixed exactly as:
 
@@ -343,6 +343,8 @@ The Chunk-specific diagnostic extension serializes its coordinate count as exact
 Duplicate-coordinate semantics remain: the first occurrence participates in normal Chunk resolution; later duplicate occurrences do not trigger duplicate generation. The misuse is reported through `Chunk::Protocol::Error` with inherited severity `Networking::Diagnostic::Severity::Warning` and translation key exactly `"Chunk_Coordinates_Duplication"`; the duplicated coordinate list is carried by the Chunk-specific extension. It is not a failed terminal Chunk result.
 
 Malformed Chunk requests are reported, when the originating reply path remains usable, with generic `Networking::Diagnostic::Severity::Error` and translation key exactly `"Chunk_Request_Malformed"`. The approved RequestID correlation rule applies; malformed input never mutates canonical terrain state.
+
+A true Collection batch / outer TaskGroup aggregation failure that prevents production of a valid `BatchResult` is reported with generic `Networking::Diagnostic::Severity::Error`, translation key exactly `"Chunk_Request_Aggregation_Failure"`, and the original non-zero RequestID. No `Chunk::Protocol::Response` is emitted for that request.
 
 ### Interaction with Collection batching
 

@@ -16,7 +16,7 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-06 — Deterministic validation terrain provider and Chunk collection foundation](ST-001-06-deterministic-validation-terrain-generator.md) | **Done** | ST-001-01 through ST-001-05; DR-019; DR-020; OQ-039 resolved |
 | [ST-001-07 — Server NodeRouter remote terrain-node bootstrap](ST-001-07-server-node-router-terrain-node-bootstrap.md) | **Done** | ST-001-06; DR-016; DR-021 |
 | [ST-001-08 — Batched Chunk request/response protocol contract](ST-001-08-batched-chunk-protocol-contract.md) | **Done** | ST-001-01, ST-001-03, ST-001-05; OQ-038 resolved; DR-022 |
-| [ST-001-09 — Server Chunk request handler](ST-001-09-server-chunk-request-handler.md) | **Blocked** | ST-001-06, ST-001-07, ST-001-08; aggregation-level failure reply semantics |
+| [ST-001-09 — Server Chunk request handler](ST-001-09-server-chunk-request-handler.md) | **Done** | ST-001-06, ST-001-07, ST-001-08 |
 | [ST-001-10 — Client dedicated-Server connection](ST-001-10-client-dedicated-server-connection.md) | **Draft** | ST-001-07; endpoint/connection-lifecycle specification |
 | [ST-001-11 — Client Chunk request/cache coordinator](ST-001-11-client-chunk-request-cache-coordinator.md) | **Blocked** | ST-001-08, ST-001-10; Client cache/retry/recycle policy specification |
 | [ST-001-12 — Client terrain mesher](ST-001-12-client-terrain-mesher.md) | **Blocked** | ST-001-03, ST-001-04; OQ-036 |
@@ -39,7 +39,9 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-07 — Server NodeRouter remote terrain-node bootstrap** is **Finished** after project-owner review. It establishes the remote terrain-node process, router reconnect/configuration behavior, reusable node generator/template, automatic node discovery, and lifecycle/connectivity/signal-shutdown coverage. PR #14 is the completion/merge vehicle.
 
-**ST-001-08 — Batched Chunk request/response protocol contract** is **Done** and merged through PR #16 after project-owner review. It historically implemented the first Core `Networking::MessageType` contract and Message-backed `Chunk::Protocol::{Request, Response, Error}` values with nested Builders, strict decoding/canonical encoding, and dedicated protocol TU coverage. CI run #356 (run ID `36138476545`) passed on reviewed head `a4c0e29059cec422bee848dff2c465ad26c53493`. ST-001-09 planning later refines the future terminal Response target to nested `Response::Success` / `Response::Failure` entries and plans to replace Chunk-specific Error diagnostics with a generic diagnostic message; those later changes are not part of ST-001-08's historical completion.
+**ST-001-08 — Batched Chunk request/response protocol contract** is **Done** and merged through PR #16 after project-owner review. It historically implemented the first Core `Networking::MessageType` contract and Message-backed `Chunk::Protocol::{Request, Response, Error}` values with nested Builders, strict decoding/canonical encoding, and dedicated protocol TU coverage. CI run #356 (run ID `36138476545`) passed on reviewed head `a4c0e29059cec422bee848dff2c465ad26c53493`. ST-001-09 subsequently refined and implemented the terminal `Response::Success` / `Response::Failure` model and generic diagnostic base while preserving ST-001-08 as historical completion evidence.
+
+**ST-001-09 — Server Chunk request handler** is **Done** on `feat/st-001-09-server-chunk-request-handler`. It implements the asynchronous Collection/Provider batch contract, generic diagnostics, refined terminal Response codec, terrain application dispatch, safe completion mailbox/reply lifetime, main Router registration, and real routed Server integration coverage. CI run #464 (run ID `36233964005`) passed the full matrix on code head `b15896137e9eb13b92b2ed150541383fe0e4bff9`.
 
 ## Remaining blockers
 
@@ -57,4 +59,4 @@ Additional Draft-ticket specification gaps exposed by decomposition:
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
-ST-001-01 through ST-001-08 are completed on `master`. OQ-039 and the ST-001-06 readiness decisions are resolved. ST-001-06 is **Done** and merged through PR #13. ST-001-07 is **Finished/Done** through PR #14 after project-owner review. ST-001-08 is **Done** and merged through PR #16 after project-owner review. ST-001-09 is now the next dependency-ordered ticket and is **Blocked** only on the Client-visible reply semantics for a true Collection batch/TaskGroup aggregation failure; ordinary per-coordinate failures are fully specified.
+ST-001-01 through ST-001-08 are completed on `master`. OQ-039 and the ST-001-06 readiness decisions are resolved. ST-001-06 is **Done** and merged through PR #13. ST-001-07 is **Finished/Done** through PR #14 after project-owner review. ST-001-08 is **Done** and merged through PR #16 after project-owner review. ST-001-09 is **Done** on its feature branch with green CI run #464; the next dependency-ordered ticket is ST-001-10, which remains Draft pending its own connection-lifecycle specification.

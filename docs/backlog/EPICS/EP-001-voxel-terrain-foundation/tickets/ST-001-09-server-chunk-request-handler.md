@@ -1,6 +1,6 @@
 # ST-001-09 — Server Chunk request handler
 
-**Status:** Ready
+**Status:** Done
 **Epic:** EP-001
 **Production target(s):** Server
 **Test suite(s):** EreliaServerTestSuite
@@ -209,7 +209,7 @@ Ready fixtures include:
 - disconnect during an outstanding request;
 - deterministic generator failure through a purpose-built test Provider rather than depending on PrototypeChunkProvider output/failure.
 
-The final Server integration fixtures for mixed coordinate success/failure are now fully specified. Diagnostic-delivery fixtures still require the exact severity/message text for duplicate-coordinate and malformed-request cases.
+The Server integration fixtures are implemented for routed multi-coordinate success, duplicate-coordinate diagnosis plus deduplicated processing, malformed-request diagnosis, and transport preservation. Core tests cover mixed per-coordinate success/failure, pending-work reuse, stale-work protection, and callback lifetime after Collection destruction.
 
 ## Acceptance tests
 
@@ -281,4 +281,4 @@ Not applicable.
 
 ## Completion evidence
 
-Server tests cover all final request/rejection/correlation/disconnect cases and prove responses contain canonical voxel data only.
+Implementation is complete on `feat/st-001-09-server-chunk-request-handler`. CI run #464 (run ID `36233964005`) passed the full matrix on code head `b15896137e9eb13b92b2ed150541383fe0e4bff9`: clang-format, Core/Server Linux Debug+Release, Core/Server Windows Debug+Release, and Client Windows Debug+Release. Server integration tests cover the real Client -> Router -> RemoteNode -> terrain Endpoint path, routed multi-coordinate responses, duplicate-coordinate diagnostics, and malformed-request diagnostics; Core tests cover the asynchronous Collection/Provider result and lifetime contracts.
