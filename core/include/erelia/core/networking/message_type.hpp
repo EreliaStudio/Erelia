@@ -8,6 +8,7 @@ namespace Networking
 	{
 		ChunkRequest = 1,
 		ChunkResponse = 2,
-		ChunkError = 3
+		ChunkError = 3,
+		Diagnostic = 4
 	};
 }
