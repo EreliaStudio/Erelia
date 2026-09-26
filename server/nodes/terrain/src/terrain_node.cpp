@@ -204,47 +204,105 @@ void TerrainNode::dispatch()
 
 void TerrainNode::requestChunks(
 	Request request,
-	std::vector<Chunk::Coordinate> coordinates)
+	std::vector<Chunk::Coordinate> coordinates) noexcept
 {
-	BatchGroup group;
+	std::shared_ptr<AsyncState::RequestContext> context;
 
-	for (
-		std::size_t offset = 0u;
-		offset < coordinates.size();
-		offset += ChunkBatchSize)
+	try
 	{
-		const std::size_t end =
-			std::min(
-				coordinates.size(),
-				offset + ChunkBatchSize);
-		std::vector<Chunk::Coordinate> batch(
-			coordinates.begin() +
-				static_cast<std::ptrdiff_t>(offset),
-			coordinates.begin() +
-				static_cast<std::ptrdiff_t>(end));
-		group.add(_chunks.request(batch));
+		BatchGroup group;
+
+		for (
+			std::size_t offset = 0u;
+			offset < coordinates.size();
+			offset += ChunkBatchSize)
+		{
+			const std::size_t end =
+				std::min(
+					coordinates.size(),
+					offset + ChunkBatchSize);
+			std::vector<Chunk::Coordinate> batch(
+				coordinates.begin() +
+					static_cast<std::ptrdiff_t>(offset),
+				coordinates.begin() +
+					static_cast<std::ptrdiff_t>(end));
+			group.add(_chunks.request(batch));
+		}
+
+		context =
+			std::make_shared<AsyncState::RequestContext>(
+				request,
+				std::move(group).answer());
+		_async->outstanding.push_back(context);
+
+		const std::weak_ptr<AsyncState::RequestContext> weakContext =
+			context;
+		const std::shared_ptr<AsyncState::CompletionMailbox> mailbox =
+			_async->mailbox;
+
+		context->contract.emplace(
+			context->answer.subscribeToCompletion(
+				[weakContext, mailbox] {
+					if (const auto current = weakContext.lock();
+						current != nullptr)
+					{
+						mailbox->publish(current);
+					}
+				}));
+	} catch (const std::exception &exception)
+	{
+		if (context != nullptr)
+		{
+			_async->remove(context);
+		}
+
+		SPK_LOG(Error)
+			<< "Unable to aggregate TerrainNode Chunk request: "
+			<< exception.what()
+			<< std::endl;
+
+		try
+		{
+			Networking::Diagnostic::Builder builder(
+				Networking::Diagnostic::Severity::Error,
+				std::string(AggregationFailureKey),
+				request.message.requestID());
+			reply(
+				request,
+				std::move(builder).build());
+		} catch (...)
+		{
+			SPK_LOG(Error)
+				<< "Unable to build Chunk aggregation failure diagnostic"
+				<< std::endl;
+		}
+	} catch (...)
+	{
+		if (context != nullptr)
+		{
+			_async->remove(context);
+		}
+
+		SPK_LOG(Error)
+			<< "Unable to aggregate TerrainNode Chunk request: unknown exception"
+			<< std::endl;
+
+		try
+		{
+			Networking::Diagnostic::Builder builder(
+				Networking::Diagnostic::Severity::Error,
+				std::string(AggregationFailureKey),
+				request.message.requestID());
+			reply(
+				request,
+				std::move(builder).build());
+		} catch (...)
+		{
+			SPK_LOG(Error)
+				<< "Unable to build Chunk aggregation failure diagnostic"
+				<< std::endl;
+		}
 	}
-
-	auto context =
-		std::make_shared<AsyncState::RequestContext>(
-			std::move(request),
-			std::move(group).answer());
-	_async->outstanding.push_back(context);
-
-	const std::weak_ptr<AsyncState::RequestContext> weakContext =
-		context;
-	const std::shared_ptr<AsyncState::CompletionMailbox> mailbox =
-		_async->mailbox;
-
-	context->contract.emplace(
-		context->answer.subscribeToCompletion(
-			[weakContext, mailbox] {
-				if (const auto current = weakContext.lock();
-					current != nullptr)
-				{
-					mailbox->publish(current);
-				}
-			}));
 }
 
 void TerrainNode::reply(
