@@ -227,7 +227,7 @@ Per OQ-038 final semantics.
 
 ### Failure atomicity
 
-Malformed requests do not mutate canonical terrain state. A Collection batch with failed coordinate acquisitions still settles only after all coordinate dependencies are terminal, then completes with one outcome per requested coordinate. ST-001-09 still emits one terminal protocol Response for the original Client request; it does not emit partial protocol Responses.
+Malformed requests do not mutate canonical terrain state. A Collection batch with failed coordinate acquisitions still settles only after all coordinate dependencies are terminal, then completes with one outcome per requested coordinate. For a valid request whose batch aggregation succeeds, ST-001-09 emits exactly one terminal protocol Response for the original Client request; it does not emit partial protocol Responses. A true aggregation-level failure instead follows the approved correlated Diagnostic-only path.
 
 ### Determinism
 

@@ -10,13 +10,13 @@ ST-001-01 through ST-001-08 are completed on `master`.
 
 The active ST-001-09 branch now consumes Sparkle Version-0.1.3 directly for generic Task settlement, direct-callable WorkerPool execution, thread-safe ContractProvider, and `spk::TaskGroup<TResult>`. The obsolete Erelia-local `task_group.hpp` and duplicate Core tests have been removed. Sparkle Version-0.1.3 also moved `ArgumentParser` to the dedicated `<system/argument_parser.hpp>` path; Erelia and its server-node template use that new path.
 
-ST-001-08 is merged through PR #16 and provides the historically reviewed first batched Chunk Request/Response/Error protocol implementation and dedicated tests. ST-001-09 planning now refines the future terminal Response and diagnostic model without invalidating that historical completion evidence.
+ST-001-08 is merged through PR #16 and provides the historically reviewed first batched Chunk Request/Response/Error protocol implementation and dedicated tests. ST-001-09 subsequently refined and implemented the terminal Response and diagnostic model without invalidating that historical completion evidence.
 
 ## Validation / review state
 
 OQ-038 is Resolved.
 
-DR-022 records the original resolved ST-001-08 wire contract plus the later ST-001-09 refinement toward nested Response Success/Failure entries and a future generic diagnostic mechanism.
+DR-022 records the original resolved ST-001-08 wire contract plus the implemented ST-001-09 refinement to nested Response Success/Failure entries and the generic diagnostic mechanism.
 
 ST-001-08 is **Done** after project-owner review. CI run #356 (run ID `36138476545`) passed on the reviewed PR head `a4c0e29059cec422bee848dff2c465ad26c53493`.
 
@@ -63,7 +63,6 @@ The internal batch size is fixed at 1024 coordinates as a TerrainNode implementa
 
 The Core implementation is now reconciled with Sparkle: `Networking::Diagnostic`, specialized `Chunk::Protocol::Error`, the refined Success/Failure `Chunk::Protocol::Response`, the batched asynchronous `Chunk::Collection`, and single-coordinate WorkerPool-backed `PrototypeChunkProvider` are implemented with dedicated deterministic tests. Main Server routing now registers `ChunkRequest -> "terrain"`, and `TerrainNode` exposes its Endpoint request queue for the application dispatcher.
 
-The next planning pass should also include the transport-level reception smoke coverage already identified for ST-001-09: prove that a real `ChunkRequest` crosses Client -> NodeRouter -> RemoteNode -> terrain Endpoint byte-for-byte before testing request parsing/handling semantics.
 
 ## Explicit non-goals
 
