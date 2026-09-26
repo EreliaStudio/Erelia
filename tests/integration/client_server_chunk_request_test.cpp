@@ -97,8 +97,7 @@ namespace
 		{
 			return waitUntil(
 				[this] {
-					return _started->load(std::memory_order_acquire) ==
-						_workerCount;
+					return _started->load(std::memory_order_acquire) == _workerCount;
 				});
 		}
 
