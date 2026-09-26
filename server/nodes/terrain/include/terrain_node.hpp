@@ -10,6 +10,9 @@
 class TerrainNode final
 {
 public:
+	using Request = spk::RemoteNode::Endpoint::Request;
+	using RequestQueue = spk::RemoteNode::Endpoint::RequestQueue;
+
 	struct Configuration
 	{
 		std::uint16_t port = 0;
@@ -37,4 +40,5 @@ public:
 
 	[[nodiscard]] bool isRunning() const noexcept;
 	[[nodiscard]] std::uint16_t port() const noexcept;
+	[[nodiscard]] RequestQueue &requests() noexcept;
 };
