@@ -30,8 +30,7 @@ namespace
 		std::optional<Chunk::Coordinate> throwingCoordinate;
 	};
 
-	class TestProvider final :
-		public Chunk::Collection::Provider
+	class TestProvider final : public Chunk::Collection::Provider
 	{
 	private:
 		std::shared_ptr<ProviderState> _state;
@@ -209,9 +208,7 @@ TEST(ChunkCollection, MissingCoordinateBecomesPendingThenAvailable)
 		answer.result().acquired.front().coordinate,
 		coordinate);
 	EXPECT_EQ(
-		answer.result().acquired.front().chunk
-			.at({0, 0, 0})
-			.packed(),
+		answer.result().acquired.front().chunk.at({0, 0, 0}).packed(),
 		101u);
 
 	EXPECT_EQ(
@@ -246,9 +243,7 @@ TEST(ChunkCollection, AvailableCoordinateCompletesWithoutProviderCall)
 			Status::Completed);
 	ASSERT_EQ(answer.result().acquired.size(), 1u);
 	EXPECT_EQ(
-		answer.result().acquired.front().chunk
-			.at({0, 0, 0})
-			.packed(),
+		answer.result().acquired.front().chunk.at({0, 0, 0}).packed(),
 		222u);
 	EXPECT_TRUE(requests(providerState).empty());
 }
