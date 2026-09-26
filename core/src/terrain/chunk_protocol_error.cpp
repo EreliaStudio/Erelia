@@ -129,18 +129,20 @@ void Chunk::Protocol::Error::_validate() const
 		readAt<std::uint32_t>(prefixSize);
 	const std::size_t coordinateBytes =
 		size() - prefixSize - SerializedCoordinateCountSize;
+	const std::uint64_t expectedCoordinateBytes =
+		static_cast<std::uint64_t>(count) *
+		static_cast<std::uint64_t>(sizeof(Coordinate));
 
-	if (count >
-		std::numeric_limits<std::size_t>::max() /
-			sizeof(Coordinate))
+	if (
+		expectedCoordinateBytes >
+		std::numeric_limits<std::size_t>::max())
 	{
 		throw spk::Exception(
 			"Chunk::Protocol::Error coordinate block exceeds size_t capacity");
 	}
 
 	if (
-		static_cast<std::size_t>(count) *
-			sizeof(Coordinate) !=
+		static_cast<std::size_t>(expectedCoordinateBytes) !=
 		coordinateBytes)
 	{
 		throw spk::Exception(
