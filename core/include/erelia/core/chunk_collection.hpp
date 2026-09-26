@@ -54,6 +54,9 @@ public:
 	};
 
 private:
+	class Batch;
+	class Acquisition;
+
 	using Generation = std::uint64_t;
 	using ChunkAnswer = spk::Task<Chunk>::Answer;
 

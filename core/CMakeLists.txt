@@ -4,6 +4,8 @@ add_library(EreliaCore STATIC
     src/terrain/chunk.cpp
     src/terrain/chunk_builder.cpp
     src/terrain/chunk_collection.cpp
+    src/terrain/chunk_collection_acquisition.cpp
+    src/terrain/chunk_collection_batch.cpp
     src/terrain/chunk_protocol_error.cpp
     src/terrain/chunk_protocol_request.cpp
     src/terrain/chunk_protocol_response.cpp

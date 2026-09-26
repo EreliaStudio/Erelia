@@ -1,185 +1,13 @@
 #include "erelia/core/chunk_collection.hpp"
 
-#include <cstddef>
+#include "chunk_collection_acquisition.hpp"
+#include "chunk_collection_batch.hpp"
+
 #include <exception>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <utility>
 #include <vector>
-
-namespace
-{
-	using Collection = Chunk::Collection;
-	using BatchResult = Collection::BatchResult;
-	using BatchTask = spk::Task<BatchResult>;
-	using ChunkTask = spk::Task<Chunk>;
-	using CompletionContract =
-		typename ChunkTask::Answer::CompletionContract;
-
-	struct BatchState final
-	{
-		std::mutex mutex;
-		BatchTask task;
-		BatchResult result;
-		std::vector<CompletionContract> contracts;
-		std::size_t remaining = 0u;
-		bool settled = false;
-
-		explicit BatchState(std::size_t count) :
-			remaining(count)
-		{
-		}
-
-		[[nodiscard]] BatchTask::Answer answer() const
-		{
-			return task.answer();
-		}
-
-		void addContract(CompletionContract contract)
-		{
-			const std::scoped_lock lock(mutex);
-			if (!settled)
-			{
-				contracts.push_back(std::move(contract));
-			}
-		}
-
-		void acquired(
-			const Chunk::Coordinate &coordinate,
-			const Chunk &chunk)
-		{
-			std::optional<BatchResult> completed;
-			std::exception_ptr failure;
-
-			{
-				const std::scoped_lock lock(mutex);
-				if (settled)
-				{
-					return;
-				}
-
-				try
-				{
-					result.acquired.push_back(
-						{coordinate, chunk});
-				} catch (...)
-				{
-					settled = true;
-					failure = std::current_exception();
-				}
-
-				if (failure == nullptr)
-				{
-					--remaining;
-					if (remaining == 0u)
-					{
-						settled = true;
-						completed.emplace(
-							std::move(result));
-					}
-				}
-			}
-
-			if (failure != nullptr)
-			{
-				task.fail(std::move(failure));
-			}
-			else if (completed.has_value())
-			{
-				task.validate(
-					std::move(*completed));
-			}
-		}
-
-		void failed(
-			const Chunk::Coordinate &coordinate,
-			std::exception_ptr exception)
-		{
-			std::optional<BatchResult> completed;
-			std::exception_ptr aggregationFailure;
-
-			{
-				const std::scoped_lock lock(mutex);
-				if (settled)
-				{
-					return;
-				}
-
-				try
-				{
-					result.failed.push_back(
-						{coordinate, std::move(exception)});
-				} catch (...)
-				{
-					settled = true;
-					aggregationFailure =
-						std::current_exception();
-				}
-
-				if (aggregationFailure == nullptr)
-				{
-					--remaining;
-					if (remaining == 0u)
-					{
-						settled = true;
-						completed.emplace(
-							std::move(result));
-					}
-				}
-			}
-
-			if (aggregationFailure != nullptr)
-			{
-				task.fail(
-					std::move(aggregationFailure));
-			}
-			else if (completed.has_value())
-			{
-				task.validate(
-					std::move(*completed));
-			}
-		}
-
-		void abort(std::exception_ptr exception)
-		{
-			bool shouldFail = false;
-			{
-				const std::scoped_lock lock(mutex);
-				if (!settled)
-				{
-					settled = true;
-					shouldFail = true;
-				}
-			}
-
-			if (shouldFail)
-			{
-				task.fail(std::move(exception));
-			}
-		}
-
-		void completeEmpty()
-		{
-			std::optional<BatchResult> completed;
-			{
-				const std::scoped_lock lock(mutex);
-				if (!settled && remaining == 0u)
-				{
-					settled = true;
-					completed.emplace(
-						std::move(result));
-				}
-			}
-
-			if (completed.has_value())
-			{
-				task.validate(
-					std::move(*completed));
-			}
-		}
-	};
-}
 
 Chunk::Collection::State Chunk::Collection::state(
 	const Chunk::Coordinate &coordinate) const
@@ -214,7 +42,7 @@ Chunk::Collection::request(
 	const std::vector<Chunk::Coordinate> &coordinates)
 {
 	auto batch =
-		std::make_shared<BatchState>(
+		std::make_shared<Batch>(
 			coordinates.size());
 	const auto batchAnswer = batch->answer();
 
@@ -308,84 +136,14 @@ Chunk::Collection::request(
 				continue;
 			}
 
-			const ChunkAnswer answer = *pending;
-			auto contract =
-				answer.subscribeToCompletion(
-					[batch,
-					 weakStorage,
-					 coordinate,
-					 generation,
-					 answer] {
-						try
-						{
-							if (
-								answer.status() ==
-								ChunkTask::Status::Completed)
-							{
-								if (
-									const auto storage =
-										weakStorage.lock();
-									storage != nullptr)
-								{
-									auto writer =
-										storage->write();
-									const auto found =
-										writer->chunks.find(
-											coordinate);
-									if (
-										found !=
-											writer->chunks.end() &&
-										found->second.generation ==
-											generation &&
-										found->second.pending.has_value())
-									{
-										found->second.chunk =
-											answer.result();
-										found->second.pending.reset();
-									}
-								}
-
-								batch->acquired(
-									coordinate,
-									answer.result());
-							}
-							else
-							{
-								if (
-									const auto storage =
-										weakStorage.lock();
-									storage != nullptr)
-								{
-									auto writer =
-										storage->write();
-									const auto found =
-										writer->chunks.find(
-											coordinate);
-									if (
-										found !=
-											writer->chunks.end() &&
-										found->second.generation ==
-											generation &&
-										found->second.pending.has_value())
-									{
-										writer->chunks.erase(
-											found);
-									}
-								}
-
-								batch->failed(
-									coordinate,
-									answer.failure());
-							}
-						} catch (...)
-						{
-							batch->abort(
-								std::current_exception());
-						}
-					});
-
+			Acquisition acquisition(
+				coordinate,
+				generation,
+				*pending,
+				weakStorage,
+				batch);
 			batch->addContract(
-				std::move(contract));
+				acquisition.subscribe());
 		} catch (...)
 		{
 			batch->abort(
