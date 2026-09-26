@@ -291,7 +291,7 @@ TEST(ServerRouterRuntime, RoutesChunkRequestToTerrainEndpointPreservingMessage)
 			[&] {
 				router.dispatch();
 				endpoint.dispatch();
-				endpoint.requests().drain(received);
+				(void)endpoint.requests().drain(received);
 				return !received.empty();
 			}));
 
