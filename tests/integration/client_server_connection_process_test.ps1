@@ -87,8 +87,11 @@ function Wait-LogText {
     $deadline = [DateTime]::UtcNow.AddMilliseconds($TimeoutMilliseconds)
     while ([DateTime]::UtcNow -lt $deadline) {
         if (Test-Path -LiteralPath $Path) {
-            $content = Get-Content -LiteralPath $Path -Raw
-            if ($content.Contains($Text)) {
+            [string]$content = Get-Content -LiteralPath $Path -Raw
+            if (
+                [string]::IsNullOrEmpty($content) -eq $false -and
+                $content.Contains($Text)
+            ) {
                 return
             }
         }
