@@ -313,7 +313,19 @@ struct Diagnostic
 
 Only severity and the human-readable message are carried in the diagnostic payload for now. Additional structured/contextual diagnostic information may be added by later work, but ST-001-09 must not invent it.
 
-The public type is fixed for ST-001-09 as `Networking::Diagnostic`, declared in a dedicated generic networking header rather than under `Chunk::Protocol`. Severity enum ownership/numeric values, byte-level payload encoding, correlation rules, and the `Networking::MessageType` value remain unresolved.
+The public type is fixed for ST-001-09 as `Networking::Diagnostic`, declared in a dedicated generic networking header rather than under `Chunk::Protocol`. Its severity contract is fixed exactly as:
+
+```cpp
+enum class Networking::Diagnostic::Severity : std::uint8_t
+{
+    Trace = 0,
+    Info = 1,
+    Warning = 2,
+    Error = 3
+};
+```
+
+Byte-level payload encoding beyond the already-approved severity + string semantics, correlation rules, and the `Networking::MessageType` value remain unresolved.
 
 Duplicate-coordinate semantics remain: the first occurrence participates in normal Chunk resolution; later duplicate occurrences do not trigger duplicate generation. The misuse should be observable through the future generic diagnostic mechanism rather than by making the coordinate itself a failed terminal Chunk result.
 
