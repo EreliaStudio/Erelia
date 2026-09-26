@@ -1,11 +1,16 @@
 #include "erelia/server/router.hpp"
 
+#include "erelia/core/chunk_protocol_request.hpp"
+#include "erelia/core/networking/message_type.hpp"
+
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
 #include <gtest/gtest.h>
+#include <network/client.hpp>
 #include <network/remote_node.hpp>
 #include <type/uuid.hpp>
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -227,6 +232,61 @@ TEST(ServerRouterRuntime, ReconnectsAfterEstablishedNodeDisconnects)
 	endpoint.start(terrainPort);
 	EXPECT_TRUE(waitUntilConnected(router));
 
+	router.stop();
+	endpoint.stop();
+}
+
+
+TEST(ServerRouterRuntime, RoutesChunkRequestToTerrainEndpointPreservingMessage)
+{
+	spk::RemoteNode::Endpoint endpoint;
+	endpoint.start(0);
+
+	Router router(
+		Router::Configuration{
+			.port = 0,
+			.nodeReconnectDelay = 10ms,
+			.nodes = {
+				{"terrain", "127.0.0.1", endpoint.port()}}});
+	router.redirect(
+		static_cast<spk::Message::Type>(
+			Networking::MessageType::ChunkRequest),
+		"terrain");
+
+	router.start();
+	ASSERT_TRUE(waitUntilConnected(router));
+
+	spk::Client client;
+	client.connect("127.0.0.1", router.port());
+
+	Chunk::Protocol::Request::Builder builder;
+	builder.add({-2, 3, 4});
+	builder.add({8, -1, 0});
+	const auto request = std::move(builder).build();
+
+	client.send(request);
+
+	std::vector<spk::RemoteNode::Endpoint::Request> received;
+	ASSERT_TRUE(
+		waitUntil(
+			[&] {
+				router.dispatch();
+				endpoint.dispatch();
+				endpoint.requests().drain(received);
+				return !received.empty();
+			}));
+
+	ASSERT_EQ(received.size(), 1u);
+	const spk::Message &forwarded = received.front().message;
+	EXPECT_EQ(forwarded.type(), request.type());
+	EXPECT_EQ(forwarded.requestID(), request.requestID());
+	ASSERT_EQ(forwarded.size(), request.size());
+	EXPECT_TRUE(
+		std::ranges::equal(
+			forwarded.data(),
+			request.data()));
+
+	client.disconnect();
 	router.stop();
 	endpoint.stop();
 }
