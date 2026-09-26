@@ -17,7 +17,7 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-07 — Server NodeRouter remote terrain-node bootstrap](ST-001-07-server-node-router-terrain-node-bootstrap.md) | **Done** | ST-001-06; DR-016; DR-021 |
 | [ST-001-08 — Batched Chunk request/response protocol contract](ST-001-08-batched-chunk-protocol-contract.md) | **Done** | ST-001-01, ST-001-03, ST-001-05; OQ-038 resolved; DR-022 |
 | [ST-001-09 — Server Chunk request handler](ST-001-09-server-chunk-request-handler.md) | **Done** | ST-001-06, ST-001-07, ST-001-08 |
-| [ST-001-10 — Client dedicated-Server connection](ST-001-10-client-dedicated-server-connection.md) | **Draft** | ST-001-07; endpoint/connection-lifecycle specification |
+| [ST-001-10 — Client dedicated-Server connection](ST-001-10-client-dedicated-server-connection.md) | **Ready** | ST-001-07; approved endpoint/connection-lifecycle specification |
 | [ST-001-11 — Client Chunk request/cache coordinator](ST-001-11-client-chunk-request-cache-coordinator.md) | **Blocked** | ST-001-08, ST-001-10; Client cache/retry/recycle policy specification |
 | [ST-001-12 — Client terrain mesher](ST-001-12-client-terrain-mesher.md) | **Blocked** | ST-001-03, ST-001-04; OQ-036 |
 | [ST-001-13 — Client terrain rendering integration](ST-001-13-client-terrain-rendering-integration.md) | **Draft** | ST-001-01, ST-001-12; render-fixture/material/lifecycle specification |
@@ -55,8 +55,7 @@ Existing OQs:
 
 Additional Draft-ticket specification gaps exposed by decomposition:
 
-- Client connection lifecycle/configuration after the now-resolved ST-001-07 Server endpoint/runtime contract;
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
-ST-001-01 through ST-001-09 are completed on `master`. OQ-039 and the ST-001-06 readiness decisions are resolved. ST-001-06 is **Done** and merged through PR #13. ST-001-07 is **Done** and merged through PR #14 after project-owner review. ST-001-08 is **Done** and merged through PR #16 after project-owner review. ST-001-09 is **Done** and merged through PR #17 with green final PR CI run #478; the next dependency-ordered ticket is ST-001-10, which remains Draft pending its own connection-lifecycle specification.
+ST-001-01 through ST-001-09 are completed on `master`. OQ-039 and the ST-001-06 readiness decisions are resolved. ST-001-06 is **Done** and merged through PR #13. ST-001-07 is **Done** and merged through PR #14 after project-owner review. ST-001-08 is **Done** and merged through PR #16 after project-owner review. ST-001-09 is **Done** and merged through PR #17 with green final PR CI run #478. ST-001-10 is **Ready** after project-owner approval of its explicit endpoint, WorkerPool-backed connection-attempt Task, reconnect, failure, and shutdown contracts.
