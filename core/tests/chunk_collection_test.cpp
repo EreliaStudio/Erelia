@@ -586,16 +586,13 @@ TEST(ChunkCollection, ConcurrentLookupAndReplacementReturnPublishedSnapshots)
 	EXPECT_TRUE(requests(providerState).empty());
 }
 
-
 TEST(ChunkCollection, CompletionAfterCollectionDestructionDoesNotAccessDestroyedState)
 {
 	auto providerState =
 		std::make_shared<ProviderState>();
 	const Chunk::Coordinate coordinate{12, -4, 9};
 
-	std::optional<
-		spk::Task<Chunk::Collection::BatchResult>::Answer>
-		answer;
+	std::optional<spk::Task<Chunk::Collection::BatchResult>::Answer> answer;
 	{
 		Chunk::Collection collection{
 			TestProvider(providerState)};
