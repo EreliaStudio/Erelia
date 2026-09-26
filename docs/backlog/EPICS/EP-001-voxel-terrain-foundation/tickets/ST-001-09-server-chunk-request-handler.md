@@ -95,7 +95,7 @@ Finalized Response objects remain Message-backed. Builder-side temporary Success
 
 The previous Chunk-specific Error message is planned for replacement by a generic diagnostic-message mechanism for non-terminal technical diagnostics such as duplicate coordinates and malformed requests. The exact generic diagnostic wire contract is still unresolved.
 
-This ticket remains Blocked on the internal batch-size rule; the exact exception-to-human-readable-message mapping; the generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
+This ticket remains Blocked on the internal batch-size rule; the generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
 
 ## Invariants
 
@@ -146,7 +146,7 @@ This preserves successful coordinates from the same internal batch and prevents 
 
 The old `Rejected` / `Unavailable` terminal state split is no longer the target ST-001-09 response model.
 
-Remaining failure behavior to resolve before Ready is Server-specific: translate `BatchResult::Failed::exception` into the human-readable Failure message while using `Response::Failure::Code::AcquisitionFailed`; settle reply/send failure handling; and settle outstanding-request/disconnect/shutdown lifecycle.
+TerrainNode translates `BatchResult::Failed::exception` into the human-readable Failure message by rethrowing it: `spk::Exception` uses `.message()`, other `std::exception` values use `.what()`, and non-standard exceptions use exactly `"Unknown acquisition failure"`. It always uses `Response::Failure::Code::AcquisitionFailed`. Remaining failure behavior to resolve before Ready is reply/send handling and outstanding-request/disconnect/shutdown lifecycle.
 
 ## Determinism / ordering
 
