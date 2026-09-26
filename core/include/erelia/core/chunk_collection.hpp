@@ -75,8 +75,7 @@ private:
 
 public:
 	template <typename TProvider>
-		requires std::derived_from<std::remove_cvref_t<TProvider>, Provider> &&
-				 (!std::is_lvalue_reference_v<TProvider>)
+		requires std::derived_from<std::remove_cvref_t<TProvider>, Provider> && (!std::is_lvalue_reference_v<TProvider>)
 	explicit Collection(TProvider &&provider) :
 		_provider(
 			std::make_unique<
