@@ -180,7 +180,7 @@ Sparkle Version-0.1.3 owns the generic headless facilities first prototyped by E
 - `spk::Task<TResult>` is a generic asynchronous result state with explicit `validate(TResult)` / `fail(std::exception_ptr)` settlement and no execution lambda;
 - `Task<TResult>::Answer` is the shared observation handle and exposes `subscribeToCompletion(...)` through thread-safe `spk::ContractProvider`;
 - `spk::WorkerPool::submit(callable)` executes worker work through its internal type-erased Job / TaskJob layer and returns `Task<TResult>::Answer`;
-- `spk::TaskGroup<TResult>` groups arbitrary Task Answers, including manually-settled and WorkerPool-produced Tasks, without occupying a worker merely to wait.
+- `spk::TaskGroup<TResult>` is Sparkle-owned and groups arbitrary Task Answers, including manually-settled and WorkerPool-produced Tasks, without occupying a worker merely to wait. Do not reintroduce an Erelia-local TaskGroup wrapper. Sparkle's `ArgumentParser` public include is `<system/argument_parser.hpp>`.
 
 For ST-001-09 the selected ownership is:
 
