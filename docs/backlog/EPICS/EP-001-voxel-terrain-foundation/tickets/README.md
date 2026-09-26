@@ -17,7 +17,7 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-07 — Server NodeRouter remote terrain-node bootstrap](ST-001-07-server-node-router-terrain-node-bootstrap.md) | **Done** | ST-001-06; DR-016; DR-021 |
 | [ST-001-08 — Batched Chunk request/response protocol contract](ST-001-08-batched-chunk-protocol-contract.md) | **Done** | ST-001-01, ST-001-03, ST-001-05; OQ-038 resolved; DR-022 |
 | [ST-001-09 — Server Chunk request handler](ST-001-09-server-chunk-request-handler.md) | **Done** | ST-001-06, ST-001-07, ST-001-08 |
-| [ST-001-10 — Client dedicated-Server connection](ST-001-10-client-dedicated-server-connection.md) | **Ready** | ST-001-07; approved endpoint/connection-lifecycle specification |
+| [ST-001-10 — Client dedicated-Server connection](ST-001-10-client-dedicated-server-connection.md) | **In Progress** | ST-001-07; implementation complete in PR #18, project-owner review pending |
 | [ST-001-11 — Client Chunk request/cache coordinator](ST-001-11-client-chunk-request-cache-coordinator.md) | **Blocked** | ST-001-08, ST-001-10; Client cache/retry/recycle policy specification |
 | [ST-001-12 — Client terrain mesher](ST-001-12-client-terrain-mesher.md) | **Blocked** | ST-001-03, ST-001-04; OQ-036 |
 | [ST-001-13 — Client terrain rendering integration](ST-001-13-client-terrain-rendering-integration.md) | **Draft** | ST-001-01, ST-001-12; render-fixture/material/lifecycle specification |
@@ -43,6 +43,8 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-09 — Server Chunk request handler** is **Done** and merged through PR #17 on 26 September 2026. It implements the asynchronous Collection/Provider batch contract, generic diagnostics, refined terminal Response codec, terrain application dispatch, safe completion mailbox/reply lifetime, main Router registration, and real routed Server integration coverage. Final PR CI run #478 (run ID `36260702871`) passed the full matrix on reviewed head `18a2a52dbd43215c4a9a51d42e872ff7d32731f7`.
 
+**ST-001-10 — Client dedicated-Server connection** is **In Progress** on draft PR #18. The implementation replaces the status-only Client with an explicit-config `ClientRuntime` owning one `spk::Client`; synchronous Sparkle connection attempts execute as serialized WorkerPool Tasks, while `spk::Client::isConnected()` remains the live transport state. It adds explicit reconnect/no-auto-retry behavior, pending-attempt-safe shutdown, executable signal/failure lifecycle, generated launcher endpoint configuration, Client component coverage, real Router integration, and a separate-process `EreliaClient -> EreliaServer` smoke. Project-owner review and green latest-head CI remain required before Done.
+
 ## Remaining blockers
 
 Existing OQs:
@@ -58,4 +60,4 @@ Additional Draft-ticket specification gaps exposed by decomposition:
 - deterministic first render fixture/material binding and render-resource failure/lifecycle behavior;
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
-ST-001-01 through ST-001-09 are completed on `master`. OQ-039 and the ST-001-06 readiness decisions are resolved. ST-001-06 is **Done** and merged through PR #13. ST-001-07 is **Done** and merged through PR #14 after project-owner review. ST-001-08 is **Done** and merged through PR #16 after project-owner review. ST-001-09 is **Done** and merged through PR #17 with green final PR CI run #478. ST-001-10 is **Ready** after project-owner approval of its explicit endpoint, WorkerPool-backed connection-attempt Task, reconnect, failure, and shutdown contracts.
+ST-001-01 through ST-001-09 are completed on `master`. OQ-039 and the ST-001-06 readiness decisions are resolved. ST-001-06 is **Done** and merged through PR #13. ST-001-07 is **Done** and merged through PR #14 after project-owner review. ST-001-08 is **Done** and merged through PR #16 after project-owner review. ST-001-09 is **Done** and merged through PR #17 with green final PR CI run #478. ST-001-10 is **In Progress** on draft PR #18: implementation and required test coverage are present, while latest-head CI and project-owner review remain before Done.
