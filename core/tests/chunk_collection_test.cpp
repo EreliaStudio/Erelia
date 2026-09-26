@@ -1,13 +1,16 @@
 #include "erelia/core/chunk_builder.hpp"
 #include "erelia/core/chunk_collection.hpp"
 
+#include <exception.hpp>
 #include <gtest/gtest.h>
 
 #include <atomic>
 #include <cstddef>
-#include <cstdint>
+#include <exception>
 #include <memory>
 #include <mutex>
+#include <optional>
+#include <stdexcept>
 #include <thread>
 #include <type_traits>
 #include <utility>
@@ -15,258 +18,526 @@
 
 namespace
 {
-	struct ProviderState
+	struct ProviderState final
 	{
 		std::mutex mutex;
-		std::vector<Chunk::Collection::Request> requests;
-		std::vector<Chunk::Collection::Request> pending;
+		std::vector<Chunk::Coordinate> requests;
+		std::vector<
+			std::pair<
+				Chunk::Coordinate,
+				std::shared_ptr<spk::Task<Chunk>>>>
+			tasks;
+		std::optional<Chunk::Coordinate> throwingCoordinate;
 	};
 
-	class TestProvider final : public Chunk::Collection::Provider
+	class TestProvider final :
+		public Chunk::Collection::Provider
 	{
 	private:
 		std::shared_ptr<ProviderState> _state;
 
 	public:
-		explicit TestProvider(std::shared_ptr<ProviderState> state) :
+		explicit TestProvider(
+			std::shared_ptr<ProviderState> state) :
 			_state(std::move(state))
 		{
 		}
 
 		TestProvider(const TestProvider &) = delete;
-		TestProvider &operator=(const TestProvider &) = delete;
+		TestProvider &operator=(
+			const TestProvider &) = delete;
 		TestProvider(TestProvider &&) noexcept = default;
-		TestProvider &operator=(TestProvider &&) noexcept = default;
+		TestProvider &operator=(
+			TestProvider &&) noexcept = default;
 
-		void request(
-			const Chunk::Collection::Request &request) override
+		[[nodiscard]] spk::Task<Chunk>::Answer request(
+			const Chunk::Coordinate &coordinate) override
 		{
 			const std::scoped_lock lock(_state->mutex);
-			_state->requests.push_back(request);
-			_state->pending.push_back(request);
-		}
+			_state->requests.push_back(coordinate);
 
-		void update(Chunk::Collection &collection) override
-		{
-			std::vector<Chunk::Collection::Request> pending;
+			if (
+				_state->throwingCoordinate.has_value() &&
+				*_state->throwingCoordinate == coordinate)
 			{
-				const std::scoped_lock lock(_state->mutex);
-				pending.swap(_state->pending);
+				throw std::runtime_error(
+					"provider scheduling failure");
 			}
 
-			for (const Chunk::Collection::Request &request : pending)
-			{
-				Chunk::Builder builder;
-				const auto packed =
-					static_cast<Voxel::Cell::PackedType>(
-						100u + request.generation);
-				(void)builder.set(
-					{0, 0, 0},
-					Voxel::Cell(packed));
-				(void)collection.publish(
-					request,
-					std::move(builder).build());
-			}
+			auto task =
+				std::make_shared<spk::Task<Chunk>>();
+			const auto answer = task->answer();
+			_state->tasks.emplace_back(
+				coordinate,
+				std::move(task));
+			return answer;
 		}
 	};
 
 	static_assert(
-		std::is_constructible_v<Chunk::Collection, TestProvider &&>);
+		std::is_constructible_v<
+			Chunk::Collection,
+			TestProvider &&>);
 	static_assert(
-		!std::is_constructible_v<Chunk::Collection, TestProvider &>);
+		!std::is_constructible_v<
+			Chunk::Collection,
+			TestProvider &>);
 
 	Chunk makeChunk(Voxel::Cell::PackedType packed)
 	{
 		Chunk::Builder builder;
-		(void)builder.set({0, 0, 0}, Voxel::Cell(packed));
+		(void)builder.set(
+			{0, 0, 0},
+			Voxel::Cell(packed));
 		return std::move(builder).build();
 	}
 
-	std::vector<Chunk::Collection::Request> requests(
+	std::vector<Chunk::Coordinate> requests(
 		const std::shared_ptr<ProviderState> &state)
 	{
 		const std::scoped_lock lock(state->mutex);
 		return state->requests;
 	}
+
+	std::shared_ptr<spk::Task<Chunk>> taskFor(
+		const std::shared_ptr<ProviderState> &state,
+		const Chunk::Coordinate &coordinate)
+	{
+		const std::scoped_lock lock(state->mutex);
+		for (const auto &[current, task] : state->tasks)
+		{
+			if (current == coordinate)
+			{
+				return task;
+			}
+		}
+		return nullptr;
+	}
+
+	const Chunk::Collection::BatchResult::Acquired *
+	findAcquired(
+		const Chunk::Collection::BatchResult &result,
+		const Chunk::Coordinate &coordinate)
+	{
+		for (const auto &current : result.acquired)
+		{
+			if (current.coordinate == coordinate)
+			{
+				return &current;
+			}
+		}
+		return nullptr;
+	}
+
+	const Chunk::Collection::BatchResult::Failed *
+	findFailed(
+		const Chunk::Collection::BatchResult &result,
+		const Chunk::Coordinate &coordinate)
+	{
+		for (const auto &current : result.failed)
+		{
+			if (current.coordinate == coordinate)
+			{
+				return &current;
+			}
+		}
+		return nullptr;
+	}
+}
+
+TEST(ChunkCollection, EmptyBatchCompletesImmediately)
+{
+	auto providerState =
+		std::make_shared<ProviderState>();
+	Chunk::Collection collection{
+		TestProvider(providerState)};
+
+	const auto answer =
+		collection.request({});
+
+	ASSERT_EQ(
+		answer.status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Completed);
+	EXPECT_TRUE(answer.result().acquired.empty());
+	EXPECT_TRUE(answer.result().failed.empty());
+	EXPECT_TRUE(requests(providerState).empty());
 }
 
 TEST(ChunkCollection, MissingCoordinateBecomesPendingThenAvailable)
 {
-	auto providerState = std::make_shared<ProviderState>();
-	Chunk::Collection collection{TestProvider(providerState)};
+	auto providerState =
+		std::make_shared<ProviderState>();
+	Chunk::Collection collection{
+		TestProvider(providerState)};
 	const Chunk::Coordinate coordinate{3, 0, -2};
 
 	EXPECT_EQ(
 		collection.state(coordinate),
 		Chunk::Collection::State::Absent);
-	EXPECT_TRUE(collection.request(coordinate));
+
+	const auto answer =
+		collection.request({coordinate});
+
+	EXPECT_EQ(
+		answer.status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Pending);
 	EXPECT_EQ(
 		collection.state(coordinate),
 		Chunk::Collection::State::Pending);
-	EXPECT_FALSE(collection.tryGet(coordinate).has_value());
-	EXPECT_FALSE(collection.request(coordinate));
+	EXPECT_FALSE(
+		collection.tryGet(coordinate).has_value());
 
 	const auto recorded = requests(providerState);
 	ASSERT_EQ(recorded.size(), 1u);
-	EXPECT_EQ(recorded.front().coordinate, coordinate);
+	EXPECT_EQ(recorded.front(), coordinate);
 
-	collection.update();
+	auto task = taskFor(
+		providerState,
+		coordinate);
+	ASSERT_NE(task, nullptr);
+	task->validate(makeChunk(101u));
+
+	ASSERT_EQ(
+		answer.status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Completed);
+	ASSERT_EQ(answer.result().acquired.size(), 1u);
+	EXPECT_TRUE(answer.result().failed.empty());
+	EXPECT_EQ(
+		answer.result().acquired.front().coordinate,
+		coordinate);
+	EXPECT_EQ(
+		answer.result().acquired.front().chunk
+			.at({0, 0, 0})
+			.packed(),
+		101u);
 
 	EXPECT_EQ(
 		collection.state(coordinate),
 		Chunk::Collection::State::Available);
-	const auto chunk = collection.tryGet(coordinate);
-	ASSERT_TRUE(chunk.has_value());
+	const auto stored =
+		collection.tryGet(coordinate);
+	ASSERT_TRUE(stored.has_value());
 	EXPECT_EQ(
-		chunk->at({0, 0, 0}).packed(),
-		static_cast<Voxel::Cell::PackedType>(
-			100u + recorded.front().generation));
-	EXPECT_FALSE(collection.request(coordinate));
-	EXPECT_EQ(requests(providerState).size(), 1u);
+		stored->at({0, 0, 0}).packed(),
+		101u);
 }
 
-TEST(ChunkCollection, DifferentCoordinatesAreRequestedIndependently)
+TEST(ChunkCollection, AvailableCoordinateCompletesWithoutProviderCall)
 {
-	auto providerState = std::make_shared<ProviderState>();
-	Chunk::Collection collection{TestProvider(providerState)};
+	auto providerState =
+		std::make_shared<ProviderState>();
+	Chunk::Collection collection{
+		TestProvider(providerState)};
+	const Chunk::Coordinate coordinate{4, 1, 7};
 
-	EXPECT_TRUE(collection.request({4, 1, 7}));
-	EXPECT_TRUE(collection.request({-4, -1, -7}));
-	EXPECT_EQ(requests(providerState).size(), 2u);
+	collection.replace(
+		coordinate,
+		makeChunk(222u));
 
-	collection.update();
+	const auto answer =
+		collection.request({coordinate});
 
-	EXPECT_TRUE(collection.tryGet({4, 1, 7}).has_value());
-	EXPECT_TRUE(collection.tryGet({-4, -1, -7}).has_value());
-	EXPECT_EQ(requests(providerState).size(), 2u);
+	ASSERT_EQ(
+		answer.status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Completed);
+	ASSERT_EQ(answer.result().acquired.size(), 1u);
+	EXPECT_EQ(
+		answer.result().acquired.front().chunk
+			.at({0, 0, 0})
+			.packed(),
+		222u);
+	EXPECT_TRUE(requests(providerState).empty());
 }
 
-TEST(ChunkCollection, ConcurrentDuplicateRequestOnlyReachesProviderOnce)
+TEST(ChunkCollection, OverlappingBatchesReusePendingCoordinateTask)
 {
-	auto providerState = std::make_shared<ProviderState>();
-	Chunk::Collection collection{TestProvider(providerState)};
+	auto providerState =
+		std::make_shared<ProviderState>();
+	Chunk::Collection collection{
+		TestProvider(providerState)};
 	const Chunk::Coordinate coordinate{9, 2, -6};
 
-	std::atomic<std::size_t> accepted = 0u;
-	std::vector<std::thread> threads;
-	for (std::size_t index = 0; index < 8u; ++index)
-	{
-		threads.emplace_back(
-			[&] {
-				if (collection.request(coordinate))
-				{
-					accepted.fetch_add(
-						1u,
-						std::memory_order_relaxed);
-				}
-			});
-	}
+	const auto first =
+		collection.request({coordinate});
+	const auto second =
+		collection.request({coordinate});
 
-	for (std::thread &thread : threads)
-	{
-		thread.join();
-	}
-
-	EXPECT_EQ(accepted.load(std::memory_order_relaxed), 1u);
-	EXPECT_EQ(requests(providerState).size(), 1u);
+	ASSERT_EQ(requests(providerState).size(), 1u);
 	EXPECT_EQ(
-		collection.state(coordinate),
-		Chunk::Collection::State::Pending);
+		first.status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Pending);
+	EXPECT_EQ(
+		second.status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Pending);
+
+	taskFor(providerState, coordinate)
+		->validate(makeChunk(333u));
+
+	ASSERT_EQ(
+		first.status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Completed);
+	ASSERT_EQ(
+		second.status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Completed);
+	EXPECT_EQ(first.result().acquired.size(), 1u);
+	EXPECT_EQ(second.result().acquired.size(), 1u);
+	EXPECT_EQ(requests(providerState).size(), 1u);
 }
 
-TEST(ChunkCollection, StaleGenerationCannotPublishOverNewRequest)
+TEST(ChunkCollection, BatchWaitsForEveryCoordinateAndPreservesMixedOutcomes)
 {
-	auto providerState = std::make_shared<ProviderState>();
-	Chunk::Collection collection{TestProvider(providerState)};
+	auto providerState =
+		std::make_shared<ProviderState>();
+	Chunk::Collection collection{
+		TestProvider(providerState)};
+	const Chunk::Coordinate successCoordinate{1, 2, 3};
+	const Chunk::Coordinate failureCoordinate{-1, -2, -3};
+
+	const auto answer =
+		collection.request(
+			{successCoordinate, failureCoordinate});
+
+	auto failureTask =
+		taskFor(
+			providerState,
+			failureCoordinate);
+	ASSERT_NE(failureTask, nullptr);
+	failureTask->fail(
+		std::make_exception_ptr(
+			std::runtime_error(
+				"generation failure")));
+
+	EXPECT_EQ(
+		answer.status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Pending);
+	EXPECT_EQ(
+		collection.state(failureCoordinate),
+		Chunk::Collection::State::Absent);
+
+	auto successTask =
+		taskFor(
+			providerState,
+			successCoordinate);
+	ASSERT_NE(successTask, nullptr);
+	successTask->validate(makeChunk(444u));
+
+	ASSERT_EQ(
+		answer.status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Completed);
+	const auto &result = answer.result();
+	ASSERT_EQ(result.acquired.size(), 1u);
+	ASSERT_EQ(result.failed.size(), 1u);
+
+	const auto *acquired =
+		findAcquired(result, successCoordinate);
+	ASSERT_NE(acquired, nullptr);
+	EXPECT_EQ(
+		acquired->chunk.at({0, 0, 0}).packed(),
+		444u);
+
+	const auto *failed =
+		findFailed(result, failureCoordinate);
+	ASSERT_NE(failed, nullptr);
+	EXPECT_THROW(
+		std::rethrow_exception(failed->exception),
+		std::runtime_error);
+
+	EXPECT_EQ(
+		collection.state(successCoordinate),
+		Chunk::Collection::State::Available);
+	EXPECT_EQ(
+		collection.state(failureCoordinate),
+		Chunk::Collection::State::Absent);
+}
+
+TEST(ChunkCollection, ProviderSchedulingExceptionIsPerCoordinateFailure)
+{
+	auto providerState =
+		std::make_shared<ProviderState>();
+	const Chunk::Coordinate coordinate{7, 8, 9};
+	providerState->throwingCoordinate =
+		coordinate;
+	Chunk::Collection collection{
+		TestProvider(providerState)};
+
+	const auto answer =
+		collection.request({coordinate});
+
+	ASSERT_EQ(
+		answer.status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Completed);
+	EXPECT_TRUE(answer.result().acquired.empty());
+	ASSERT_EQ(answer.result().failed.size(), 1u);
+	EXPECT_EQ(
+		answer.result().failed.front().coordinate,
+		coordinate);
+	EXPECT_THROW(
+		std::rethrow_exception(
+			answer.result().failed.front().exception),
+		std::runtime_error);
+	EXPECT_EQ(
+		collection.state(coordinate),
+		Chunk::Collection::State::Absent);
+}
+
+TEST(ChunkCollection, FailedCoordinateCanBeRequestedAgain)
+{
+	auto providerState =
+		std::make_shared<ProviderState>();
+	Chunk::Collection collection{
+		TestProvider(providerState)};
 	const Chunk::Coordinate coordinate{2, 3, 4};
 
-	ASSERT_TRUE(collection.request(coordinate));
-	auto recorded = requests(providerState);
-	ASSERT_EQ(recorded.size(), 1u);
-	const Chunk::Collection::Request first = recorded.front();
-
-	EXPECT_TRUE(collection.fail(first));
+	const auto first =
+		collection.request({coordinate});
+	taskFor(providerState, coordinate)
+		->fail(
+			std::make_exception_ptr(
+				std::runtime_error("failure")));
+	ASSERT_EQ(
+		first.status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Completed);
 	EXPECT_EQ(
 		collection.state(coordinate),
 		Chunk::Collection::State::Absent);
 
-	ASSERT_TRUE(collection.request(coordinate));
-	recorded = requests(providerState);
-	ASSERT_EQ(recorded.size(), 2u);
-	const Chunk::Collection::Request second = recorded.back();
-	EXPECT_NE(first.generation, second.generation);
-
-	collection.update();
-
-	const auto chunk = collection.tryGet(coordinate);
-	ASSERT_TRUE(chunk.has_value());
+	const auto second =
+		collection.request({coordinate});
+	ASSERT_EQ(requests(providerState).size(), 2u);
 	EXPECT_EQ(
-		chunk->at({0, 0, 0}).packed(),
-		static_cast<Voxel::Cell::PackedType>(
-			100u + second.generation));
-	EXPECT_FALSE(collection.publish(first, makeChunk(999u)));
+		second.status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Pending);
 }
 
-TEST(ChunkCollection, ReplacementPublishesNewValueWithoutMutatingOldCopy)
+TEST(ChunkCollection, StalePendingCompletionCannotOverwriteReplacement)
 {
-	auto providerState = std::make_shared<ProviderState>();
-	Chunk::Collection collection{TestProvider(providerState)};
-	const Chunk::Coordinate coordinate{1, 2, 3};
+	auto providerState =
+		std::make_shared<ProviderState>();
+	Chunk::Collection collection{
+		TestProvider(providerState)};
+	const Chunk::Coordinate coordinate{5, 6, 7};
 
-	ASSERT_TRUE(collection.request(coordinate));
-	collection.update();
-	const auto oldOptional = collection.tryGet(coordinate);
-	ASSERT_TRUE(oldOptional.has_value());
-	const Chunk oldCopy = *oldOptional;
-	const Voxel::Cell *oldStorage = oldCopy.cells().data();
+	const auto answer =
+		collection.request({coordinate});
+	auto oldTask =
+		taskFor(providerState, coordinate);
+	ASSERT_NE(oldTask, nullptr);
 
-	collection.replace(coordinate, makeChunk(900u));
-	const auto replacement = collection.tryGet(coordinate);
+	collection.replace(
+		coordinate,
+		makeChunk(900u));
+	oldTask->validate(makeChunk(100u));
 
-	ASSERT_TRUE(replacement.has_value());
-	EXPECT_EQ(oldCopy.cells().data(), oldStorage);
-	EXPECT_EQ(replacement->at({0, 0, 0}).packed(), 900u);
-	EXPECT_NE(replacement->cells().data(), oldStorage);
+	ASSERT_EQ(
+		answer.status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Completed);
+	const auto stored =
+		collection.tryGet(coordinate);
+	ASSERT_TRUE(stored.has_value());
+	EXPECT_EQ(
+		stored->at({0, 0, 0}).packed(),
+		900u);
 }
 
 TEST(ChunkCollection, ReplacementOfAbsentCoordinateUpsertsWithoutProviderCall)
 {
-	auto providerState = std::make_shared<ProviderState>();
-	Chunk::Collection collection{TestProvider(providerState)};
+	auto providerState =
+		std::make_shared<ProviderState>();
+	Chunk::Collection collection{
+		TestProvider(providerState)};
 	const Chunk::Coordinate coordinate{-9, 4, 11};
 
-	collection.replace(coordinate, makeChunk(777u));
-	const auto stored = collection.tryGet(coordinate);
+	collection.replace(
+		coordinate,
+		makeChunk(777u));
+	const auto stored =
+		collection.tryGet(coordinate);
 
 	EXPECT_TRUE(requests(providerState).empty());
 	ASSERT_TRUE(stored.has_value());
-	EXPECT_EQ(stored->at({0, 0, 0}).packed(), 777u);
+	EXPECT_EQ(
+		stored->at({0, 0, 0}).packed(),
+		777u);
 	EXPECT_EQ(
 		collection.state(coordinate),
 		Chunk::Collection::State::Available);
 }
 
+TEST(ChunkCollection, ReplacementPublishesNewValueWithoutMutatingOldCopy)
+{
+	auto providerState =
+		std::make_shared<ProviderState>();
+	Chunk::Collection collection{
+		TestProvider(providerState)};
+	const Chunk::Coordinate coordinate{1, 2, 3};
+
+	collection.replace(
+		coordinate,
+		makeChunk(200u));
+	const auto oldOptional =
+		collection.tryGet(coordinate);
+	ASSERT_TRUE(oldOptional.has_value());
+	const Chunk oldCopy = *oldOptional;
+	const Voxel::Cell *oldStorage =
+		oldCopy.cells().data();
+
+	collection.replace(
+		coordinate,
+		makeChunk(300u));
+	const auto replacement =
+		collection.tryGet(coordinate);
+
+	ASSERT_TRUE(replacement.has_value());
+	EXPECT_EQ(oldCopy.cells().data(), oldStorage);
+	EXPECT_EQ(
+		oldCopy.at({0, 0, 0}).packed(),
+		200u);
+	EXPECT_EQ(
+		replacement->at({0, 0, 0}).packed(),
+		300u);
+	EXPECT_NE(
+		replacement->cells().data(),
+		oldStorage);
+}
+
 TEST(ChunkCollection, ConcurrentLookupAndReplacementReturnPublishedSnapshots)
 {
-	auto providerState = std::make_shared<ProviderState>();
-	Chunk::Collection collection{TestProvider(providerState)};
+	auto providerState =
+		std::make_shared<ProviderState>();
+	Chunk::Collection collection{
+		TestProvider(providerState)};
 	const Chunk::Coordinate coordinate{5, -2, 8};
 	const Chunk first = makeChunk(200u);
 	const Chunk second = makeChunk(300u);
 
 	collection.replace(coordinate, first);
-	const auto retainedOptional = collection.tryGet(coordinate);
-	ASSERT_TRUE(retainedOptional.has_value());
-	const Chunk retained = *retainedOptional;
-	const Voxel::Cell *retainedStorage = retained.cells().data();
 
 	std::atomic<bool> failed = false;
 	std::vector<std::thread> readers;
-	for (std::size_t threadIndex = 0; threadIndex < 6u; ++threadIndex)
+	for (std::size_t threadIndex = 0u;
+		 threadIndex < 6u;
+		 ++threadIndex)
 	{
 		readers.emplace_back(
 			[&] {
-				for (std::size_t iteration = 0; iteration < 1000u; ++iteration)
+				for (
+					std::size_t iteration = 0u;
+					iteration < 1000u;
+					++iteration)
 				{
 					const auto snapshot =
 						collection.tryGet(coordinate);
@@ -279,8 +550,11 @@ TEST(ChunkCollection, ConcurrentLookupAndReplacementReturnPublishedSnapshots)
 					}
 
 					const auto packed =
-						snapshot->at({0, 0, 0}).packed();
-					if (packed != 200u && packed != 300u)
+						snapshot->at({0, 0, 0})
+							.packed();
+					if (
+						packed != 200u &&
+						packed != 300u)
 					{
 						failed.store(
 							true,
@@ -293,11 +567,16 @@ TEST(ChunkCollection, ConcurrentLookupAndReplacementReturnPublishedSnapshots)
 
 	std::thread writer(
 		[&] {
-			for (std::size_t iteration = 0; iteration < 1000u; ++iteration)
+			for (
+				std::size_t iteration = 0u;
+				iteration < 1000u;
+				++iteration)
 			{
 				collection.replace(
 					coordinate,
-					iteration % 2u == 0u ? first : second);
+					iteration % 2u == 0u
+						? first
+						: second);
 			}
 		});
 
@@ -307,8 +586,7 @@ TEST(ChunkCollection, ConcurrentLookupAndReplacementReturnPublishedSnapshots)
 	}
 	writer.join();
 
-	EXPECT_FALSE(failed.load(std::memory_order_relaxed));
+	EXPECT_FALSE(
+		failed.load(std::memory_order_relaxed));
 	EXPECT_TRUE(requests(providerState).empty());
-	EXPECT_EQ(retained.at({0, 0, 0}).packed(), 200u);
-	EXPECT_EQ(retained.cells().data(), retainedStorage);
 }
