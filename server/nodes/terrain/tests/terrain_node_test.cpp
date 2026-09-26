@@ -161,7 +161,6 @@ namespace
 	private:
 		TerrainNodeApplication _application;
 		std::thread _thread;
-		std::exception_ptr _failure;
 
 	public:
 		explicit TerrainApplicationRunner(
@@ -177,8 +176,6 @@ namespace
 					}
 					catch (...)
 					{
-						_failure =
-							std::current_exception();
 					}
 				})
 		{
@@ -470,7 +467,7 @@ TEST(TerrainNodeIntegration, MalformedRequestReturnsDiagnosticWithoutChunkRespon
 		waitUntil(
 			[&] {
 				router.dispatch();
-				client.messages().drain(additional);
+				(void)client.messages().drain(additional);
 				return !additional.empty();
 			},
 			100ms);
