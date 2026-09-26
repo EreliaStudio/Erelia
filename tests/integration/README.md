@@ -8,7 +8,7 @@ The integration suite is built only when:
 - `ERELIA_BUILD_CLIENT=ON`;
 - `ERELIA_BUILD_SERVER=ON`.
 
-`EreliaIntegrationTestSuite` links the Client, Server, Core, and required Server-node libraries. It is registered with the CTest label `integration`.
+`EreliaIntegrationTestSuite` links the Client, Server, Core, and required Server-node libraries. It is registered with the CTest label `integration`. GitHub Actions exposes the suite through dedicated `Integration (Windows, Debug)` and `Integration (Windows, Release)` jobs rather than hiding integration execution inside the Client job.
 
 ## Current Chunk request fixture
 
