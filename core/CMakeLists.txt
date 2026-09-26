@@ -1,5 +1,6 @@
 add_library(EreliaCore STATIC
     src/status.cpp
+    src/networking/diagnostic.cpp
     src/terrain/chunk.cpp
     src/terrain/chunk_builder.cpp
     src/terrain/chunk_collection.cpp
