@@ -50,7 +50,7 @@ Client retry/cache policy, production interest management, persistent terrain ed
 
 ## Public contract
 
-The shared request limits, duplicate semantics, result-state format, correlation, ordering, and malformed-input contract are fixed by the completed ST-001-08/DR-022 work.
+The shared request limits, duplicate-detection semantics, correlation, and strict malformed-input validation originate from the completed ST-001-08/DR-022 work. ST-001-09 planning has since refined the terminal Response representation: `Chunk::Protocol::Response` owns nested `Success` and `Failure` entry types, replacing the earlier target `Success / Rejected / Unavailable` state grouping.
 
 Sparkle Version-0.1.3 now provides the complete asynchronous composition model required here:
 
@@ -74,7 +74,20 @@ The Erelia Collection/Provider ownership is now fixed semantically:
 
 The exact private Collection state representation and exact concrete C++ container/name used for `BatchResult` remain implementation details as long as they preserve this semantic contract.
 
-This ticket remains Blocked on the remaining Server-specific decisions: how a failed Collection batch / failed outer TaskGroup maps into the already-fixed DR-022 wire protocol, the internal batch-size rule, and outstanding-request/reply/disconnect/shutdown lifetime behavior.
+`Chunk::Protocol::Response` owns the terminal wire-entry semantics:
+
+```cpp
+Response::Success { coordinate, chunk }
+Response::Failure { coordinate, Failure::Code, message }
+```
+
+These protocol entry types must not leak downward into `Chunk::Collection`; TerrainNode translates acquisition outcomes into them.
+
+Finalized Response objects remain Message-backed. Builder-side temporary Success/Failure containers are discarded after encoding.
+
+The previous Chunk-specific Error message is planned for replacement by a generic diagnostic-message mechanism for non-terminal technical diagnostics such as duplicate coordinates and malformed requests. The exact generic diagnostic wire contract is still unresolved.
+
+This ticket remains Blocked on the internal batch-size rule; the interaction between atomic failed Collection batches and preserving successful coordinates for Response construction; the exact failure-code/string wire encoding; the generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
 
 ## Invariants
 
@@ -121,11 +134,11 @@ Consequently, the TerrainNode's outer `spk::TaskGroup<BatchResult>` becomes Fail
 
 This supersedes the earlier ST-001-09 assumption that an individual generation failure would automatically become a per-coordinate `Unavailable` while the rest of that Collection batch remained successful.
 
-DR-022 still defines `Success`, `Rejected`, and `Unavailable` as per-coordinate Response states, and `ChunkError` currently only defines `DuplicateCoordinate`. Therefore the final **wire-level** mapping of a failed Collection batch / failed outer TaskGroup is still unresolved. This ticket must not invent a new request-level failure state or `ChunkError` code while implementing the Collection failure rule.
+`Chunk::Protocol::Response` now owns terminal `Success` and `Failure` semantic entries. A Failure carries the coordinate, a typed `Response::Failure::Code`, and a human-readable string. The exact code set and variable-length string encoding remain unresolved.
 
-ST-001-09 still has no selected Server policy/domain rule that produces `Rejected`.
+The old `Rejected` / `Unavailable` terminal state split is no longer the target ST-001-09 response model.
 
-Remaining failure behavior to resolve before Ready is Server-specific: failed-batch-to-wire mapping, cache transition/retention semantics around successful coordinates in a failed batch if any ambiguity remains in implementation, reply/send failure handling, and outstanding-request/disconnect/shutdown lifecycle.
+Remaining failure behavior to resolve before Ready is Server-specific: reconcile atomic failed Collection batches with the need to preserve successful coordinates for terminal Response Success entries; define the `Response::Failure::Code` set and failure-string byte encoding; settle reply/send failure handling; and settle outstanding-request/disconnect/shutdown lifecycle.
 
 ## Determinism / ordering
 
@@ -164,7 +177,10 @@ Server validates and returns canonical results. Client only requests coordinates
 - If all coordinate Answers succeed, Collection validates the complete BatchResult. If any coordinate Answer fails, Collection fails the entire batch Task and exposes no partial BatchResult.
 - The exact private structs/variant used for Absent/Pending/Available and the exact concrete BatchResult container type are not public-contract requirements.
 - The grouped completion callback may execute outside the TerrainNode dispatch thread. Any captured Endpoint/request state must have safe lifetime and any network operation performed there must follow Sparkle's thread-safety contract.
-- Do not implement a failed-batch wire representation until its mapping onto DR-022 is explicitly resolved.
+- `Chunk::Protocol::Response` owns nested `Success` and `Failure` semantic entries; Collection must stay networking-agnostic and must not depend on those protocol types.
+- The finalized Response remains Message-backed; temporary Builder Success/Failure containers are construction-only.
+- Do not freeze `Response::Failure::Code` values or failure-string wire-length encoding until they are explicitly resolved.
+- Treat the future generic diagnostic message as unresolved infrastructure; do not retain `Chunk::Protocol::Error` as the assumed final design merely because ST-001-08 currently implements it.
 
 ## Exact test fixtures
 
@@ -185,7 +201,7 @@ Final Ready fixtures must include:
 - disconnect during an outstanding request;
 - deterministic generator failure through a purpose-built test Provider rather than depending on PrototypeChunkProvider output/failure.
 
-The final Server integration fixture for the **wire result of a failed Collection batch** cannot be fixed until the failed-batch-to-DR-022 mapping is explicitly resolved.
+The final Server integration fixtures for mixed coordinate success/failure and diagnostic delivery cannot be fixed until the Collection batch-failure reconciliation, `Response::Failure` code/string encoding, and generic diagnostic-message contract are explicitly resolved.
 
 ## Acceptance tests
 
