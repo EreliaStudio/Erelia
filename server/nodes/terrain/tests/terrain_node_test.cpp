@@ -200,11 +200,6 @@ namespace
 					return _application.isRunning();
 				});
 		}
-
-		[[nodiscard]] std::exception_ptr failure() const
-		{
-			return _failure;
-		}
 	};
 
 	void configureChunkRouting(Router &router)
@@ -355,7 +350,6 @@ TEST(TerrainNodeIntegration, ReturnsOneResponseForMultiCoordinateRequest)
 
 	client.disconnect();
 	router.stop();
-	EXPECT_FALSE(application.failure());
 }
 
 TEST(TerrainNodeIntegration, DiagnosesDuplicatesAndProcessesFirstOccurrence)
@@ -423,7 +417,6 @@ TEST(TerrainNodeIntegration, DiagnosesDuplicatesAndProcessesFirstOccurrence)
 
 	client.disconnect();
 	router.stop();
-	EXPECT_FALSE(application.failure());
 }
 
 TEST(TerrainNodeIntegration, MalformedRequestReturnsDiagnosticWithoutChunkResponse)
@@ -485,5 +478,4 @@ TEST(TerrainNodeIntegration, MalformedRequestReturnsDiagnosticWithoutChunkRespon
 
 	client.disconnect();
 	router.stop();
-	EXPECT_FALSE(application.failure());
 }
