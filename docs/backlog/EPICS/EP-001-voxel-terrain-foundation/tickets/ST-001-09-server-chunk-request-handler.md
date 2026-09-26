@@ -64,13 +64,14 @@ The Erelia Collection/Provider ownership is now fixed semantically:
 
 - TerrainNode splits one protocol Request into internal coordinate batches;
 - `Chunk::Collection` accepts one coordinate vector per internal batch and returns one `spk::Task<BatchResult>::Answer`;
-- a successful `BatchResult` contains every requested coordinate paired with a shallow-copied immutable Chunk;
+- `BatchResult` represents every requested coordinate with either a successful shallow-copied immutable Chunk or a networking-agnostic per-coordinate acquisition failure;
 - Collection owns Available/Pending/Absent lookup, pending-work reuse, subscriptions, and batch aggregation;
 - `Chunk::Collection::Provider` generates exactly one Absent coordinate per request and returns one WorkerPool-produced `spk::Task<Chunk>::Answer`;
 - Collection's batch Task is created directly and manually settled; it is never submitted to WorkerPool;
 - the batch stays Pending until every coordinate dependency is terminal;
-- if every coordinate succeeds, Collection validates the complete BatchResult;
-- if any coordinate Task fails, the whole Collection batch Task is Failed and exposes no partial BatchResult.
+- each coordinate's terminal acquisition outcome is retained in the BatchResult;
+- once every coordinate dependency is terminal, Collection validates the complete BatchResult even when one or more coordinate acquisitions failed;
+- the Collection batch Task becomes Failed only when a batch/aggregation-level failure prevents Collection from producing a valid BatchResult.
 
 The exact private Collection state representation and exact concrete C++ container/name used for `BatchResult` remain implementation details as long as they preserve this semantic contract.
 
@@ -87,7 +88,7 @@ Finalized Response objects remain Message-backed. Builder-side temporary Success
 
 The previous Chunk-specific Error message is planned for replacement by a generic diagnostic-message mechanism for non-terminal technical diagnostics such as duplicate coordinates and malformed requests. The exact generic diagnostic wire contract is still unresolved.
 
-This ticket remains Blocked on the internal batch-size rule; the interaction between atomic failed Collection batches and preserving successful coordinates for Response construction; the exact failure-code/string wire encoding; the generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
+This ticket remains Blocked on the internal batch-size rule; the exact networking-agnostic BatchResult failure representation; the exact failure-code/string wire encoding; the generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
 
 ## Invariants
 
@@ -118,7 +119,7 @@ Absent
 
 The Provider operation is single-coordinate and WorkerPool-backed. The Collection batch itself is a generic `spk::Task<BatchResult>` that is not submitted to WorkerPool.
 
-The Collection batch does not become terminal until all coordinate dependencies are terminal. If all succeeded, it calls `validate(BatchResult)` once with all requested coordinate/Chunk pairs. If at least one failed, it calls `fail(...)` for the whole batch and no partial BatchResult is exposed.
+The Collection batch does not become terminal until all coordinate dependencies are terminal. Each coordinate contributes either a successful Chunk outcome or a networking-agnostic acquisition-failure outcome. Once every dependency is terminal, Collection calls `validate(BatchResult)` once with the complete set of outcomes. The batch Task calls `fail(...)` only for a batch/aggregation-level failure that prevents construction of a valid BatchResult.
 
 The Client does not split its protocol request. One protocol Request may contain up to the ST-001-08 limit of 1024 coordinates. Internal Server batches are scheduling/composition units only: they do not create protocol RequestIDs, partial protocol Responses, or additional Client-visible request lifecycles.
 
@@ -128,17 +129,17 @@ Malformed typed request -> catch the protocol decoding `spk::Exception` at the t
 
 ## Failure behavior
 
-Collection batch failure is atomic at the Answer/result level. A batch never returns a partial `BatchResult`: after every coordinate dependency becomes terminal, one failed coordinate Task makes the whole `Task<BatchResult>` Failed.
+Per-coordinate acquisition/generation failure is part of the completed `BatchResult`, not failure of the Collection batch Task. A batch waits until every coordinate dependency is terminal, then exposes every requested coordinate's outcome together in one valid result.
 
-Consequently, the TerrainNode's outer `spk::TaskGroup<BatchResult>` becomes Failed after every child batch is terminal if at least one Collection batch failed. Successful child batch Answers remain individually inspectable, while a failed child batch exposes its failure rather than a partial result.
+The TerrainNode's outer `spk::TaskGroup<BatchResult>` therefore remains successful when child batches contain ordinary per-coordinate acquisition failures. A Collection batch Task, and therefore potentially the outer TaskGroup, becomes Failed only for a batch/aggregation-level failure that prevents a valid BatchResult from being produced.
 
-This supersedes the earlier ST-001-09 assumption that an individual generation failure would automatically become a per-coordinate `Unavailable` while the rest of that Collection batch remained successful.
+This preserves successful coordinates from the same internal batch and prevents the internal batch partition from changing Client-visible success/failure semantics.
 
 `Chunk::Protocol::Response` now owns terminal `Success` and `Failure` semantic entries. A Failure carries the coordinate, a typed `Response::Failure::Code`, and a human-readable string. The exact code set and variable-length string encoding remain unresolved.
 
 The old `Rejected` / `Unavailable` terminal state split is no longer the target ST-001-09 response model.
 
-Remaining failure behavior to resolve before Ready is Server-specific: reconcile atomic failed Collection batches with the need to preserve successful coordinates for terminal Response Success entries; define the `Response::Failure::Code` set and failure-string byte encoding; settle reply/send failure handling; and settle outstanding-request/disconnect/shutdown lifecycle.
+Remaining failure behavior to resolve before Ready is Server-specific: define the exact networking-agnostic per-coordinate failure representation carried by `BatchResult`; define the `Response::Failure::Code` set and failure-string byte encoding; settle reply/send failure handling; and settle outstanding-request/disconnect/shutdown lifecycle.
 
 ## Determinism / ordering
 
@@ -168,13 +169,13 @@ Server validates and returns canonical results. Client only requests coordinates
 - TerrainNode owns the split of one protocol request into smaller internal coordinate batches and owns the protocol-request TaskGroup.
 - Keep protocol correlation at the original RequestID: internal work batches never own protocol RequestIDs.
 - `Chunk::Collection::request(vector<Chunk::Coordinate>)` must return one asynchronous `Task<BatchResult>::Answer` representing the complete internal batch.
-- A successful BatchResult semantically contains all requested coordinate/Chunk pairs by value. Chunk copies are shallow immutable snapshots through the existing Volume/Chunk ownership model.
+- A BatchResult semantically contains one terminal outcome per requested coordinate: either a Chunk value or a networking-agnostic acquisition failure. Chunk copies are shallow immutable snapshots through the existing Volume/Chunk ownership model.
 - `Chunk::Collection::Provider` is a single-coordinate WorkerPool-facing generator. Its request operation accepts one `Chunk::Coordinate` and returns one `spk::Task<Chunk>::Answer`.
 - Provider no longer owns Collection batching, request buffering for batches, or an `update(Collection&)` polling phase.
 - Collection owns authoritative cache/deduplication semantics. A missing Chunk becomes Pending asynchronous work; no placeholder/empty Chunk is inserted.
 - A Pending coordinate retains/reuses the unique in-flight `Task<Chunk>::Answer`. Overlapping Collection requests subscribe to that same Answer and must not ask Provider to regenerate the same coordinate.
 - Collection subscribes to every Pending/new coordinate Answer and settles its own batch Task only after all coordinates are terminal.
-- If all coordinate Answers succeed, Collection validates the complete BatchResult. If any coordinate Answer fails, Collection fails the entire batch Task and exposes no partial BatchResult.
+- After all coordinate Answers are terminal, Collection validates the complete BatchResult containing all success/failure outcomes. Collection fails the batch Task only when aggregation itself cannot produce a valid BatchResult.
 - The exact private structs/variant used for Absent/Pending/Available and the exact concrete BatchResult container type are not public-contract requirements.
 - The grouped completion callback may execute outside the TerrainNode dispatch thread. Any captured Endpoint/request state must have safe lifetime and any network operation performed there must follow Sparkle's thread-safety contract.
 - `Chunk::Protocol::Response` owns nested `Success` and `Failure` semantic entries; Collection must stay networking-agnostic and must not depend on those protocol types.
@@ -194,14 +195,14 @@ Final Ready fixtures must include:
 - mixed Available + Pending + Absent Collection batch;
 - overlapping Collection requests that share a Pending coordinate, proving the same in-flight `Task<Chunk>::Answer` is reused and Provider is not called twice;
 - completion of one shared Pending coordinate notifying every batch subscribed to that Answer;
-- a Collection batch where one coordinate Task succeeds and another fails, proving the batch waits for all dependencies then becomes Failed and exposes no partial BatchResult;
+- a Collection batch where one coordinate Task succeeds and another fails, proving the batch waits for all dependencies then completes with both coordinate outcomes preserved in its BatchResult;
 - a TerrainNode grouped request where one Collection batch completes before another, proving no Client-visible terminal handling occurs until the outer TaskGroup is terminal;
 - malformed payload;
 - two Clients issuing distinguishable requests;
 - disconnect during an outstanding request;
 - deterministic generator failure through a purpose-built test Provider rather than depending on PrototypeChunkProvider output/failure.
 
-The final Server integration fixtures for mixed coordinate success/failure and diagnostic delivery cannot be fixed until the Collection batch-failure reconciliation, `Response::Failure` code/string encoding, and generic diagnostic-message contract are explicitly resolved.
+The final Server integration fixtures for mixed coordinate success/failure and diagnostic delivery cannot be fixed until the exact BatchResult failure representation, `Response::Failure` code/string encoding, and generic diagnostic-message contract are explicitly resolved.
 
 ## Acceptance tests
 
@@ -219,7 +220,7 @@ Per OQ-038 final semantics.
 
 ### Failure atomicity
 
-Malformed requests do not mutate canonical terrain state. A Collection batch with any failed coordinate Task becomes Failed after all coordinate dependencies settle and exposes no partial BatchResult. ST-001-09 does not emit partial protocol Responses; the final wire-level representation of a failed batch/request remains to be resolved.
+Malformed requests do not mutate canonical terrain state. A Collection batch with failed coordinate acquisitions still settles only after all coordinate dependencies are terminal, then completes with one outcome per requested coordinate. ST-001-09 still emits one terminal protocol Response for the original Client request; it does not emit partial protocol Responses.
 
 ### Determinism
 
@@ -247,7 +248,7 @@ Client cannot provide canonical Chunk content or bypass Server Provider/Collecti
 
 ### Dependency failure
 
-Generator failure already fails the complete Collection batch Task; its DR-022 wire mapping and network send failure behavior must be explicit before Ready.
+Generator failure is retained as a per-coordinate BatchResult outcome; its DR-022 wire mapping and network send failure behavior must be explicit before Ready.
 
 ### Cross-system integration
 
