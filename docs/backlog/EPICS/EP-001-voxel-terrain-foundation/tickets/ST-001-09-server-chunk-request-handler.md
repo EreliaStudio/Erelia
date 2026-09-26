@@ -1,6 +1,6 @@
 # ST-001-09 — Server Chunk request handler
 
-**Status:** Blocked
+**Status:** Ready
 **Epic:** EP-001
 **Production target(s):** Server
 **Test suite(s):** EreliaServerTestSuite
@@ -192,7 +192,7 @@ Server validates and returns canonical results. Client only requests coordinates
 
 ## Exact test fixtures
 
-Final Ready fixtures must include:
+Ready fixtures include:
 
 - one valid coordinate;
 - valid multi-coordinate Collection batch including a negative coordinate;
@@ -255,7 +255,7 @@ Client cannot provide canonical Chunk content or bypass Server Provider/Collecti
 
 ### Dependency failure
 
-Generator failure is retained as a per-coordinate BatchResult outcome; its DR-022 wire mapping and network send failure behavior must be explicit before Ready.
+Generator failure is retained as a per-coordinate BatchResult outcome; its DR-022 wire mapping and network send failure behavior are fixed by the approved Failure code/message mapping and terrain reply-lifecycle contract.
 
 ### Cross-system integration
 
