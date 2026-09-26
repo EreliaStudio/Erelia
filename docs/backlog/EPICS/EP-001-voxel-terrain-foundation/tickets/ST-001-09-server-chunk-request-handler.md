@@ -64,7 +64,10 @@ The Erelia Collection/Provider ownership is now fixed semantically:
 
 - TerrainNode splits one protocol Request into internal coordinate batches;
 - `Chunk::Collection` accepts one coordinate vector per internal batch and returns one `spk::Task<BatchResult>::Answer`;
-- `BatchResult` represents every requested coordinate with either a successful shallow-copied immutable Chunk or a networking-agnostic per-coordinate acquisition failure;
+- `Chunk::Collection::BatchResult` owns nested networking-agnostic `Acquired` and `Failed` entry types:
+  - `BatchResult::Acquired { coordinate, chunk }`;
+  - `BatchResult::Failed { coordinate, std::exception_ptr exception }`;
+- one BatchResult contains every requested coordinate exactly once across its `acquired` and `failed` collections;
 - Collection owns Available/Pending/Absent lookup, pending-work reuse, subscriptions, and batch aggregation;
 - `Chunk::Collection::Provider` generates exactly one Absent coordinate per request and returns one WorkerPool-produced `spk::Task<Chunk>::Answer`;
 - Collection's batch Task is created directly and manually settled; it is never submitted to WorkerPool;
@@ -73,7 +76,7 @@ The Erelia Collection/Provider ownership is now fixed semantically:
 - once every coordinate dependency is terminal, Collection validates the complete BatchResult even when one or more coordinate acquisitions failed;
 - the Collection batch Task becomes Failed only when a batch/aggregation-level failure prevents Collection from producing a valid BatchResult.
 
-The exact private Collection state representation and exact concrete C++ container/name used for `BatchResult` remain implementation details as long as they preserve this semantic contract.
+The exact private Collection state representation remains an implementation detail. The public BatchResult shape is fixed as `Collection::BatchResult::Acquired` / `Collection::BatchResult::Failed`, with `std::vector<Acquired> acquired` and `std::vector<Failed> failed`.
 
 `Chunk::Protocol::Response` owns the terminal wire-entry semantics:
 
@@ -88,7 +91,7 @@ Finalized Response objects remain Message-backed. Builder-side temporary Success
 
 The previous Chunk-specific Error message is planned for replacement by a generic diagnostic-message mechanism for non-terminal technical diagnostics such as duplicate coordinates and malformed requests. The exact generic diagnostic wire contract is still unresolved.
 
-This ticket remains Blocked on the internal batch-size rule; the exact networking-agnostic BatchResult failure representation; the exact failure-code/string wire encoding; the generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
+This ticket remains Blocked on the internal batch-size rule; the exact failure-code/string wire encoding; the generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
 
 ## Invariants
 
@@ -139,7 +142,7 @@ This preserves successful coordinates from the same internal batch and prevents 
 
 The old `Rejected` / `Unavailable` terminal state split is no longer the target ST-001-09 response model.
 
-Remaining failure behavior to resolve before Ready is Server-specific: define the exact networking-agnostic per-coordinate failure representation carried by `BatchResult`; define the `Response::Failure::Code` set and failure-string byte encoding; settle reply/send failure handling; and settle outstanding-request/disconnect/shutdown lifecycle.
+Remaining failure behavior to resolve before Ready is Server-specific: map `BatchResult::Failed::exception` into the `Response::Failure::Code` set and failure message; define failure-string byte encoding; settle reply/send failure handling; and settle outstanding-request/disconnect/shutdown lifecycle.
 
 ## Determinism / ordering
 
@@ -169,14 +172,14 @@ Server validates and returns canonical results. Client only requests coordinates
 - TerrainNode owns the split of one protocol request into smaller internal coordinate batches and owns the protocol-request TaskGroup.
 - Keep protocol correlation at the original RequestID: internal work batches never own protocol RequestIDs.
 - `Chunk::Collection::request(vector<Chunk::Coordinate>)` must return one asynchronous `Task<BatchResult>::Answer` representing the complete internal batch.
-- A BatchResult semantically contains one terminal outcome per requested coordinate: either a Chunk value or a networking-agnostic acquisition failure. Chunk copies are shallow immutable snapshots through the existing Volume/Chunk ownership model.
+- `Chunk::Collection::BatchResult` contains `std::vector<Acquired> acquired` and `std::vector<Failed> failed`, where `Acquired` stores coordinate + Chunk and `Failed` stores coordinate + `std::exception_ptr`. Chunk copies are shallow immutable snapshots through the existing Volume/Chunk ownership model.
 - `Chunk::Collection::Provider` is a single-coordinate WorkerPool-facing generator. Its request operation accepts one `Chunk::Coordinate` and returns one `spk::Task<Chunk>::Answer`.
 - Provider no longer owns Collection batching, request buffering for batches, or an `update(Collection&)` polling phase.
 - Collection owns authoritative cache/deduplication semantics. A missing Chunk becomes Pending asynchronous work; no placeholder/empty Chunk is inserted.
 - A Pending coordinate retains/reuses the unique in-flight `Task<Chunk>::Answer`. Overlapping Collection requests subscribe to that same Answer and must not ask Provider to regenerate the same coordinate.
 - Collection subscribes to every Pending/new coordinate Answer and settles its own batch Task only after all coordinates are terminal.
 - After all coordinate Answers are terminal, Collection validates the complete BatchResult containing all success/failure outcomes. Collection fails the batch Task only when aggregation itself cannot produce a valid BatchResult.
-- The exact private structs/variant used for Absent/Pending/Available and the exact concrete BatchResult container type are not public-contract requirements.
+- The exact private structs/variant used for Absent/Pending/Available remain implementation details; the public `BatchResult::Acquired` / `BatchResult::Failed` shape is fixed.
 - The grouped completion callback may execute outside the TerrainNode dispatch thread. Any captured Endpoint/request state must have safe lifetime and any network operation performed there must follow Sparkle's thread-safety contract.
 - `Chunk::Protocol::Response` owns nested `Success` and `Failure` semantic entries; Collection must stay networking-agnostic and must not depend on those protocol types.
 - The finalized Response remains Message-backed; temporary Builder Success/Failure containers are construction-only.
