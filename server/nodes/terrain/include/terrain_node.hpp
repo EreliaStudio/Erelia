@@ -47,7 +47,7 @@ public:
 
 	void requestChunks(
 		Request request,
-		std::vector<Chunk::Coordinate> coordinates);
+		std::vector<Chunk::Coordinate> coordinates) noexcept;
 	void reply(
 		const Request &request,
 		spk::Message message) noexcept;
