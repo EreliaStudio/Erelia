@@ -119,8 +119,7 @@ void TerrainNodeApplication::_parseChunkRequest(
 		_node.requestChunks(
 			std::move(request),
 			std::move(coordinates));
-	}
-	catch (const spk::Exception &exception)
+	} catch (const spk::Exception &exception)
 	{
 		SPK_LOG(Error)
 			<< "Malformed Chunk request: "
@@ -173,8 +172,7 @@ void TerrainNodeApplication::run()
 			false,
 			std::memory_order_release);
 		_node.stop();
-	}
-	catch (...)
+	} catch (...)
 	{
 		_running.store(
 			false,
@@ -234,8 +232,7 @@ int runTerrainNode(int argc, char **argv)
 		application.run();
 
 		return EXIT_SUCCESS;
-	}
-	catch (const std::exception &exception)
+	} catch (const std::exception &exception)
 	{
 		SPK_LOG(Error)
 			<< exception.what()
