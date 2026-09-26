@@ -182,7 +182,6 @@ The typed Response exposes validated `successOffset()`, `rejectedOffset()`, and 
 
 `ChunkResponse` is always the terminal Chunk-protocol message for its RequestID. No later Chunk-protocol message with that RequestID may be emitted.
 
-ST-001-09 later selected atomic failure for an internal Collection batch Task: if any coordinate acquisition/generation Task fails, that whole `Task<BatchResult>` is Failed rather than exposing a partial BatchResult. This is an internal asynchronous-composition rule only; it does **not** amend this wire contract. The mapping of a failed Collection batch / failed outer TaskGroup onto this protocol remains to be resolved explicitly before ST-001-09 is Ready. No request-level failure state or new `ChunkError` code is implied by the Task failure.
 
 ### Strict decoding
 
@@ -224,3 +223,73 @@ Later Server/Client consumers catch protocol exceptions at the network boundary,
 ## Required tests
 
 ST-001-08 must cover exact nominal and malformed fixtures for all three Message types, including 1/1024 Request boundaries, negative coordinates, the Debug-only Request Builder duplicate guard, defensive inspection of duplicate Request payload coordinates, Message-backed accessors, every Response state/group combination, empty groups, deterministic sorting, fixed Chunk Cell order, invalid offsets/states/codes/sizes/order/duplicates/trailing bytes, non-zero correlation, and cursor-independent Response section access.
+## ST-001-09 response-result refinement
+
+On 26 September 2026 the project owner refined the terminal Chunk response model while planning ST-001-09.
+
+The terminal result of a Chunk request is now modeled directly by `Chunk::Protocol::Response` through nested semantic entry types:
+
+```cpp
+class Chunk::Protocol::Response final : public spk::Message
+{
+public:
+    struct Success final
+    {
+        Chunk::Coordinate coordinate;
+        Chunk chunk;
+    };
+
+    struct Failure final
+    {
+        enum class Code : std::uint8_t;
+
+        Chunk::Coordinate coordinate;
+        Code code;
+        std::string message;
+    };
+
+    class Builder;
+};
+```
+
+`Success` and `Failure` belong to `Chunk::Protocol::Response` because they are terminal Chunk-protocol response entries, not generic Collection concepts.
+
+`Failure::Code` is nested under `Failure` because the code domain only has meaning for failed response entries. The concrete `Failure::Code` values are not yet frozen by this refinement.
+
+The Response Builder may own temporary `std::vector<Response::Success>` / `std::vector<Response::Failure>` containers while assembling a message. The finalized `Response` must continue following the established Message-backed rule: it stores only the inherited `spk::Message` payload and reconstructs semantic entry values through accessors. It must not retain mirrored semantic vectors after `build()`.
+
+The target terminal response therefore has two semantic sections:
+
+```text
+Success[]
+Failure[]
+```
+
+There is no terminal Pending section. Internal Collection Pending state is a terrain-node acquisition concern and is not useful once the terminal network Response is emitted.
+
+A Success entry contains the requested coordinate and its canonical Chunk. A Failure entry contains the requested coordinate, a typed failure code, and a human-readable error string.
+
+The exact byte-level encoding of the variable-length Failure string, including its length field type/placement, remains to be specified before the protocol implementation is changed.
+
+This refinement supersedes the earlier terminal `Response::State { Success, Rejected, Unavailable }` grouping as the target ST-001-09 response model. The existing ST-001-08 implementation remains historical completion evidence and must be migrated by the owning later work rather than treated as the final target contract.
+
+### ChunkError / diagnostic direction
+
+The Chunk-specific `Chunk::Protocol::Error` message is no longer the preferred long-term home for non-terminal diagnostics.
+
+The current direction is to replace it with a more general Erelia diagnostic message that can carry technical information at Trace / Info / Warning / Error severity, optionally correlated with a Sparkle RequestID. Duplicate coordinates and malformed requests are examples of diagnostics rather than terminal Chunk results.
+
+That generic diagnostic message's exact public type name, payload encoding, severity enum ownership, correlation rules, and message-type value are **not yet frozen**. Until that contract is explicitly resolved, documentation must not invent its final wire representation.
+
+Duplicate-coordinate semantics remain: the first occurrence participates in normal Chunk resolution; later duplicate occurrences do not trigger duplicate generation. The misuse should be observable through the future generic diagnostic mechanism rather than by making the coordinate itself a failed terminal Chunk result.
+
+Malformed request handling should likewise be reconsidered through the future generic diagnostic mechanism where enough correlation/routing information exists, but its exact reply rule remains unresolved.
+
+### Interaction with Collection batching
+
+`Chunk::Collection` remains networking-agnostic. It must not expose `Response::Success` or `Response::Failure` as its acquisition result types merely because TerrainNode later converts acquisition outcomes into a protocol Response.
+
+The exact Collection batch-result type remains an Erelia acquisition detail. TerrainNode owns translation from Collection acquisition outcomes/failures into `Chunk::Protocol::Response::Success` and `Chunk::Protocol::Response::Failure` entries.
+
+There is still one unresolved interaction with the currently selected atomic Collection batch-failure rule: a Failed `spk::Task<BatchResult>` exposes no partial BatchResult. Therefore, if a batch contains both successful and failed coordinate tasks, TerrainNode cannot recover the successful coordinate values from that failed batch Answer. This must be resolved before ST-001-09 is Ready; the Response refinement does not silently change the Task failure contract.
+
