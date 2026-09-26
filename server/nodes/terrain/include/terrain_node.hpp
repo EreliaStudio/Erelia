@@ -1,7 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include <network/remote_node.hpp>
 
@@ -22,9 +24,14 @@ public:
 	};
 
 private:
+	struct AsyncState;
+
 	Configuration _configuration;
 	spk::RemoteNode::Endpoint _endpoint;
 	Chunk::Collection _chunks;
+	std::unique_ptr<AsyncState> _async;
+
+	void _drainCompletions();
 
 public:
 	explicit TerrainNode(Configuration configuration);
@@ -37,6 +44,13 @@ public:
 	void start();
 	void stop();
 	void dispatch();
+
+	void requestChunks(
+		Request request,
+		std::vector<Chunk::Coordinate> coordinates);
+	void reply(
+		const Request &request,
+		spk::Message message) noexcept;
 
 	[[nodiscard]] bool isRunning() const noexcept;
 	[[nodiscard]] std::uint16_t port() const noexcept;
