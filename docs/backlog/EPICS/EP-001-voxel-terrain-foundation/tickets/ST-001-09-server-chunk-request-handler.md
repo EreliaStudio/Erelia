@@ -33,7 +33,7 @@ Client/rendering code, Client view radius/cache policy, terrain mesh generation,
 
 ## Owned behavior
 
-- Receive routed Chunk requests in the terrain node's `spk::RemoteNode::Endpoint` process.
+- Receive routed Chunk requests in the terrain node's `spk::RemoteNode::Endpoint` process. `TerrainNodeApplication` owns terrain-side message dispatch: after Endpoint dispatch, it drains `spk::RemoteNode::Endpoint::requests()`, switches on the contained Message type, and forwards each supported type to a dedicated handler.
 - Add a transport-level smoke fixture proving a real `ChunkRequest` crosses Client -> NodeRouter -> RemoteNode -> terrain Endpoint with Message type, RequestID, size, and payload bytes preserved before parsing/handler semantics are asserted.
 - Validate request according to the final ST-001-08 contract.
 - Keep each Client protocol request intact at the wire level, then split its distinct coordinates inside `TerrainNode` into smaller internal work batches.
@@ -166,7 +166,7 @@ Server validates and returns canonical results. Client only requests coordinates
 
 ## Implementation constraints
 
-- Handler lives in the terrain node process, not either executable `main.cpp`.
+- Handler lives in `TerrainNodeApplication` in the terrain node process, not either executable `main.cpp`. Use one dedicated handler method per supported message type. Chunk request handling operates from the original `spk::RemoteNode::Endpoint::Request` envelope so proxy/origin connection context remains available for the later reply; the typed domain message is `Chunk::Protocol::Request`, not a Sparkle-owned Chunk type.
 - Use Sparkle NodeRouter response path to the originating Client.
 - Do not introduce a second transport or a Server-selected view radius.
 - Consume Sparkle Version-0.1.3 directly; remove the temporary Erelia-local TaskGroup prototype and its duplicate Core tests.
