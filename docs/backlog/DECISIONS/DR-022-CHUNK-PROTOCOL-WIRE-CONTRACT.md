@@ -340,9 +340,9 @@ enum class Networking::Diagnostic::Severity : std::uint8_t
 
 The Chunk-specific diagnostic extension serializes its coordinate count as exactly `std::uint32_t`, followed by that many contiguous `Chunk::Coordinate` values. `Networking::MessageType` preserves `ChunkRequest = 1`, `ChunkResponse = 2`, and `ChunkError = 3`, and adds `Diagnostic = 4`. `Networking::Diagnostic` accepts RequestID 0 for an uncorrelated diagnostic or a non-zero RequestID to correlate the diagnostic with an originating request. `Chunk::Protocol::Error` requires a non-zero RequestID and reuses the originating Chunk RequestID. Malformed Chunk input may emit a correlated generic Diagnostic only when a valid non-zero RequestID is still available; otherwise the Diagnostic is uncorrelated.
 
-Duplicate-coordinate semantics remain: the first occurrence participates in normal Chunk resolution; later duplicate occurrences do not trigger duplicate generation. The misuse should be observable through the future generic diagnostic mechanism rather than by making the coordinate itself a failed terminal Chunk result.
+Duplicate-coordinate semantics remain: the first occurrence participates in normal Chunk resolution; later duplicate occurrences do not trigger duplicate generation. The misuse is reported through `Chunk::Protocol::Error` with inherited severity `Networking::Diagnostic::Severity::Warning` and translation key exactly `"Chunk_Coordinates_Duplication"`; the duplicated coordinate list is carried by the Chunk-specific extension. It is not a failed terminal Chunk result.
 
-Malformed request handling should likewise be reconsidered through the future generic diagnostic mechanism where enough correlation/routing information exists, but its exact reply rule remains unresolved.
+Malformed Chunk requests are reported, when the originating reply path remains usable, with generic `Networking::Diagnostic::Severity::Error` and translation key exactly `"Chunk_Request_Malformed"`. The approved RequestID correlation rule applies; malformed input never mutates canonical terrain state.
 
 ### Interaction with Collection batching
 
