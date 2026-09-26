@@ -10,10 +10,10 @@
 
 #include <atomic>
 #include <chrono>
-#include <csignal>
-#include <cstdlib>
 #include <cstddef>
 #include <cstdint>
+#include <csignal>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -411,7 +411,6 @@ TEST(ClientRuntimeConnection, DisconnectWaitsForPendingAttemptBeforeCleanup)
 
 	server.stop();
 }
-
 
 TEST(ClientApplication, InitialConnectionFailureReturnsFailure)
 {
