@@ -1,3 +1,4 @@
+#include "erelia/client/application.hpp"
 #include "erelia/client/client_runtime.hpp"
 
 #include <design_pattern/singleton.hpp>
@@ -9,6 +10,8 @@
 
 #include <atomic>
 #include <chrono>
+#include <csignal>
+#include <cstdlib>
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
@@ -407,4 +410,93 @@ TEST(ClientRuntimeConnection, DisconnectWaitsForPendingAttemptBeforeCleanup)
 	EXPECT_FALSE(client.isConnected());
 
 	server.stop();
+}
+
+
+TEST(ClientApplication, InitialConnectionFailureReturnsFailure)
+{
+	ensureWorkerPool();
+
+	const std::uint16_t port = availablePort();
+	const TemporaryJsonFile file(
+		"{\"server config\":{\"address\":\"127.0.0.1\",\"port\":" +
+		std::to_string(port) +
+		"}}");
+
+	std::string configurationPath =
+		file.path().string();
+	char program[] = "EreliaClient";
+	char option[] = "--config";
+	char *arguments[] = {
+		program,
+		option,
+		configurationPath.data()};
+
+	EXPECT_EQ(
+		runClient(3, arguments),
+		EXIT_FAILURE);
+}
+
+TEST(ClientApplication, SigtermRequestsCleanShutdown)
+{
+	ensureWorkerPool();
+
+	spk::Server server;
+	server.start(0);
+
+	std::atomic_bool connected = false;
+	auto connectionContract =
+		server.subscribeToConnection(
+			[&connected](spk::ConnectionID) {
+				connected.store(
+					true,
+					std::memory_order_release);
+			});
+
+	const TemporaryJsonFile file(
+		"{\"server config\":{\"address\":\"127.0.0.1\",\"port\":" +
+		std::to_string(server.port()) +
+		"}}");
+
+	std::atomic_int result = -1;
+	std::thread application(
+		[&] {
+			std::string configurationPath =
+				file.path().string();
+			char program[] = "EreliaClient";
+			char option[] = "-c";
+			char *arguments[] = {
+				program,
+				option,
+				configurationPath.data()};
+
+			result.store(
+				runClient(3, arguments),
+				std::memory_order_release);
+		});
+
+	const bool didConnect =
+		waitUntil(
+			[&connected] {
+				return connected.load(
+					std::memory_order_acquire);
+			});
+
+	if (didConnect == false)
+	{
+		server.stop();
+		application.join();
+		FAIL() << "Client did not connect before the shutdown test deadline";
+		return;
+	}
+
+	EXPECT_EQ(std::raise(SIGTERM), 0);
+	application.join();
+
+	EXPECT_EQ(
+		result.load(std::memory_order_acquire),
+		EXIT_SUCCESS);
+
+	server.stop();
+	(void)connectionContract;
 }
