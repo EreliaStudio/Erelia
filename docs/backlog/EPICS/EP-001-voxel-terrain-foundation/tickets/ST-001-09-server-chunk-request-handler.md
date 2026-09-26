@@ -1,6 +1,6 @@
 # ST-001-09 — Server Chunk request handler
 
-**Status:** Ready
+**Status:** Blocked
 **Epic:** EP-001
 **Production target(s):** Server
 **Test suite(s):** EreliaServerTestSuite
@@ -95,7 +95,7 @@ Finalized Response objects remain Message-backed. Builder-side temporary Success
 
 Non-terminal technical diagnostics use the generic `Networking::Diagnostic` base contract: severity + stable string translation key, with severity values `Trace = 0`, `Info = 1`, `Warning = 2`, and `Error = 3`. The string is intended for a future translation/localization engine and is not user-facing prose. `Chunk::Protocol::Error` remains as a specialized diagnostic deriving from `Networking::Diagnostic`; for ST-001-09 it adds only a list of problematic Chunk coordinates. Its serialization reuses the Diagnostic prefix and appends the coordinate list. The coordinate count is fixed as `std::uint32_t`, followed by that many contiguous `Chunk::Coordinate` values. Message types preserve `ChunkError = 3` and add generic `Diagnostic = 4`. Generic Diagnostic allows RequestID 0 for uncorrelated diagnostics or a non-zero originating RequestID for correlation. `Chunk::Protocol::Error` always requires and reuses the non-zero originating Chunk RequestID. Malformed Chunk input uses a correlated generic Diagnostic only when a valid non-zero RequestID remains available; otherwise it is uncorrelated.
 
-The internal batch size is a fixed TerrainNode implementation constant of 1024 coordinates; it is not configurable and is not part of the wire protocol. With the current protocol maximum of 1024 coordinates, one valid Client request therefore maps to one internal Collection batch. Final readiness decisions are resolved: the main `EreliaServer` process registers `ChunkRequest -> "terrain"` immediately after constructing `Router`; terrain-side dispatch remains owned by `TerrainNodeApplication`. Duplicate-coordinate diagnostics use `Networking::Diagnostic::Severity::Warning` with translation key exactly `"Chunk_Coordinates_Duplication"`; malformed-request diagnostics use `Networking::Diagnostic::Severity::Error` with translation key exactly `"Chunk_Request_Malformed"`.
+The internal batch size is a fixed TerrainNode implementation constant of 1024 coordinates; it is not configurable and is not part of the wire protocol. With the current protocol maximum of 1024 coordinates, one valid Client request therefore maps to one internal Collection batch. The main `EreliaServer` process registers `ChunkRequest -> "terrain"` immediately after constructing `Router`; terrain-side dispatch remains owned by `TerrainNodeApplication`. Duplicate-coordinate diagnostics use `Networking::Diagnostic::Severity::Warning` with translation key exactly `"Chunk_Coordinates_Duplication"`; malformed-request diagnostics use `Networking::Diagnostic::Severity::Error` with translation key exactly `"Chunk_Request_Malformed"`. One blocker remains: the Client-visible behavior when a Collection batch/outer TaskGroup itself reaches `Failed` because aggregation cannot produce a valid `BatchResult`.
 
 ## Invariants
 
