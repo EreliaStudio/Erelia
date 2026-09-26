@@ -45,16 +45,13 @@ namespace
 		try
 		{
 			std::rethrow_exception(exception);
-		}
-		catch (const spk::Exception &current)
+		} catch (const spk::Exception &current)
 		{
 			return current.message();
-		}
-		catch (const std::exception &current)
+		} catch (const std::exception &current)
 		{
 			return current.what();
-		}
-		catch (...)
+		} catch (...)
 		{
 			return "Unknown acquisition failure";
 		}
@@ -132,7 +129,7 @@ struct TerrainNode::AsyncState
 	{
 		mailbox->deactivate();
 		outstanding.clear();
-		completions.drain(drained);
+		(void)completions.drain(drained);
 		drained.clear();
 	}
 
@@ -172,8 +169,7 @@ TerrainNode::~TerrainNode()
 	try
 	{
 		stop();
-	}
-	catch (...)
+	} catch (...)
 	{
 	}
 }
@@ -260,15 +256,13 @@ void TerrainNode::reply(
 		_endpoint.reply(
 			request,
 			std::move(message));
-	}
-	catch (const std::exception &exception)
+	} catch (const std::exception &exception)
 	{
 		SPK_LOG(Error)
 			<< "Unable to reply from TerrainNode: "
 			<< exception.what()
 			<< std::endl;
-	}
-	catch (...)
+	} catch (...)
 	{
 		SPK_LOG(Error)
 			<< "Unable to reply from TerrainNode: unknown exception"
@@ -329,15 +323,13 @@ void TerrainNode::_drainCompletions()
 			reply(
 				context->request,
 				std::move(builder).build());
-		}
-		catch (const std::exception &exception)
+		} catch (const std::exception &exception)
 		{
 			SPK_LOG(Error)
 				<< "Unable to build TerrainNode Chunk response: "
 				<< exception.what()
 				<< std::endl;
-		}
-		catch (...)
+		} catch (...)
 		{
 			SPK_LOG(Error)
 				<< "Unable to build TerrainNode Chunk response: unknown exception"
