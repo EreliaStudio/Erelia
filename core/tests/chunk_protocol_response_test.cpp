@@ -182,9 +182,7 @@ TEST(ChunkProtocolResponse, FailureOnlyUsesSparkleStringEncoding)
 	ASSERT_EQ(response.failureCount(), 1u);
 	EXPECT_EQ(
 		response.size(),
-		SummarySize +
-		FailureFixedSize +
-		text.size());
+		SummarySize + FailureFixedSize + text.size());
 
 	const auto failure = response.failure(0u);
 	EXPECT_EQ(failure.coordinate, coordinate);
