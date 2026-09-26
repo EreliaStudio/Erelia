@@ -4,8 +4,7 @@
 
 #include "erelia/core/chunk_collection.hpp"
 
-class PrototypeChunkProvider final :
-	public Chunk::Collection::Provider
+class PrototypeChunkProvider final : public Chunk::Collection::Provider
 {
 public:
 	PrototypeChunkProvider() = default;
