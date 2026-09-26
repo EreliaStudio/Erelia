@@ -54,10 +54,7 @@ namespace
 	[[nodiscard]] bool validFailureCode(
 		std::uint8_t code) noexcept
 	{
-		return code ==
-			static_cast<std::uint8_t>(
-				Chunk::Protocol::Response::Failure::Code::
-					AcquisitionFailed);
+		return code == static_cast<std::uint8_t>(Chunk::Protocol::Response::Failure::Code::AcquisitionFailed);
 	}
 
 	void validateHeader(const spk::Message &message)
@@ -410,10 +407,7 @@ std::uint32_t Chunk::Protocol::Response::failureOffset() const
 
 std::size_t Chunk::Protocol::Response::successCount() const
 {
-	return (
-		static_cast<std::size_t>(failureOffset()) -
-		SummarySize) /
-		SuccessEntrySize;
+	return (static_cast<std::size_t>(failureOffset()) - SummarySize) / SuccessEntrySize;
 }
 
 Chunk::Protocol::Response::Success
