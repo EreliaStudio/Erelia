@@ -57,7 +57,7 @@ The approved direction is:
 
 ST-001-09 has additionally refined the terminal wire model: `Chunk::Protocol::Response` owns nested `Response::Success { coordinate, chunk }` and `Response::Failure { coordinate, Failure::Code, message }` entries, with `Response::Failure::Code::AcquisitionFailed = 0` as the currently defined terminal acquisition-failure code. Failure messages use Sparkle's existing `uint32_t` byte-length-prefixed Message string encoding with no null terminator. Finalized Responses remain Message-backed. The old `Rejected/Unavailable` grouping and Chunk-specific Error message are no longer the preferred future target; non-terminal diagnostics are expected to move to a generic diagnostic message, whose exact contract is still unresolved.
 
-The remaining ST-001-09 blockers are Server/protocol-specific: the internal batch-size rule; mapping `BatchResult::Failed::exception` into the human-readable Failure message; the future generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
+The remaining ST-001-09 blockers are Server/protocol-specific: the internal batch-size rule; the future generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior. Exception-to-message mapping is fixed: `spk::Exception::message()`, otherwise `std::exception::what()`, otherwise exactly `"Unknown acquisition failure"`.
 
 The temporary Erelia-local TaskGroup scaffold currently on the feature branch is now obsolete and should be removed when implementation is reconciled with the merged Sparkle dependency.
 
