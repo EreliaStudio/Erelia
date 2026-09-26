@@ -1,9 +1,9 @@
 # ST-001-10 — Client dedicated-Server connection
 
-**Status:** Draft
+**Status:** Ready
 **Epic:** EP-001
 **Production target(s):** Client
-**Test suite(s):** EreliaClientTestSuite; cross-process integration fixture
+**Test suite(s):** EreliaClientTestSuite; EreliaIntegrationTestSuite; executable process smoke
 
 ## Intent
 
@@ -15,10 +15,11 @@ Terrain retrieval can exercise the real process/network boundary required from t
 
 ## Starting state / prerequisites
 
-- Depends on ST-001-07 for a real Server endpoint.
-- Current Client executable only returns smoke status.
-- DR-003 and DR-016 require a separate Client using `spk::Client`.
-- Exact endpoint configuration, connection startup/shutdown, unavailable-Server behavior, and reconnect policy are not yet specified.
+- ST-001-07 provides the real Client-facing Server Router endpoint.
+- ST-001-09 provides routed Chunk request handling and cross-system integration, with raw `spk::Client` still used at the outer Client edge.
+- DR-003 and DR-016 require a separate Client process using Sparkle networking.
+- Sparkle Version-0.1.3 `spk::Client::connect()` is synchronous and throws on connection failure, `disconnect()` is idempotent, remote loss clears the connected state, and the same Client object may connect again.
+- Sparkle Version-0.1.3 `spk::WorkerPool::submit(...)` converts a thrown operation into a failed `spk::Task<TResult>::Answer`; Task Answers expose `status()`, `wait()`, `get()`, and completion subscription.
 
 ## Product ownership
 
@@ -26,7 +27,7 @@ Client owns connection lifecycle/presentation-side connectivity state. Server re
 
 ## Allowed dependencies
 
-EreliaClientLibrary, EreliaCore, Sparkle Version-0.1.3 Client/network APIs, standard library.
+EreliaClientLibrary, EreliaCore, Sparkle Version-0.1.3 Client/network/Task/WorkerPool APIs, standard library.
 
 ## Forbidden dependencies
 
@@ -34,93 +35,216 @@ In-process Server authority, raw socket wrappers, extra networking libraries, Cl
 
 ## Owned behavior
 
-The eventual ticket establishes a Client connection to the configured dedicated Server and exposes enough connection state for later Chunk request coordination.
+This ticket establishes:
+- explicit Client endpoint configuration;
+- asynchronous scheduling of the synchronous Sparkle connection attempt on the shared WorkerPool;
+- observable connection-attempt Task state and live connected/disconnected state;
+- explicit disconnect and explicit reconnect using the same owned `spk::Client`;
+- Client executable startup, connected idle lifetime, signal shutdown, initial-failure handling, and unexpected remote-disconnect handling;
+- deterministic component, integration, and separate-process connection coverage.
 
 ## Explicitly not owned
 
-Chunk protocol payloads, cache policy, automatic reconnect unless explicitly approved, terrain generation, meshing/rendering, production session/account identity.
+Chunk request/cache coordination, protocol payload forwarding APIs, cache policy, automatic reconnect/retry, terrain generation, meshing/rendering, production session/account identity.
 
 ## Public contract
 
-Draft: exact endpoint source (hard-coded development value vs startup config), connection state model, startup timeout/failure presentation, reconnect/retry behavior, and shutdown semantics are not specified.
+### Endpoint configuration
+
+The Client JSON configuration is:
+
+```json
+{
+  "server config": {
+    "address": "127.0.0.1",
+    "port": 2550
+  }
+}
+```
+
+Contract:
+- `server config.address` is required and must be non-empty;
+- `server config.port` is required and must be non-zero;
+- unknown JSON fields are rejected;
+- there is no compiled-in production configuration path and no hidden address/port default;
+- the executable accepts `--config <path>`, `--config=<path>`, and `-c <path>`;
+- missing or invalid configuration is an error and the executable returns `EXIT_FAILURE`;
+- `--help` prints help and returns `EXIT_SUCCESS`;
+- `tools/run-client-server.ps1` generates an explicit Client runtime configuration using `127.0.0.1` and the dynamically allocated Router port.
+
+### Connection attempt
+
+The Client runtime owns one `spk::Client`. It does not introduce a separate connection RAII abstraction.
+
+A connection request submits the blocking `spk::Client::connect(address, port)` call to `spk::WorkerPool` and returns/stores a Task Answer for that attempt.
+
+The Task represents only the connection attempt:
+- `Pending`: the connect operation is executing;
+- `Completed`: `spk::Client::connect()` returned successfully;
+- `Failed`: `spk::Client::connect()` threw, and `Answer::get()` rethrows that failure.
+
+Task completion does not represent the lifetime of the established connection. After a successful attempt, `spk::Client::isConnected()` is the source of truth for the live transport state.
+
+No additional Client connection-state enum is introduced.
+
+### Repeated operations and reconnect
+
+- A connection request while already connected is an Erelia-level no-op and must not tear down/reconnect the underlying Sparkle Client.
+- A connection request while a previous attempt is still `Pending` returns/reuses that outstanding attempt rather than submitting concurrent `connect()` calls against the same `spk::Client`.
+- Initial connection failure leaves the Client disconnected.
+- There is no automatic retry.
+- Remote disconnection leaves the Client disconnected.
+- There is no automatic reconnect.
+- The same Client runtime may explicitly submit a new connection attempt after a failed attempt or later disconnection.
+- Disconnect while already disconnected is a no-op.
+- A deliberate reconnect is therefore `disconnect()` followed by a new connection request.
+
+### Shutdown while connecting
+
+Sparkle Version-0.1.3 WorkerPool Tasks are not cancellable.
+
+If shutdown is requested while a connection attempt is `Pending`, the Client waits for that Task to become terminal. It then disconnects if the attempt established a connection and completes shutdown. Erelia does not destroy the `spk::Client` while a WorkerPool task may still be executing `connect()` on it.
+
+No Erelia-specific TCP connection timeout is added in this ticket.
 
 ## Invariants
 
 - Client and Server remain separate processes.
 - Client uses Sparkle `spk::Client`.
+- The synchronous Sparkle connection operation never blocks the Client's main/runtime thread; it executes as WorkerPool work.
+- At most one connection Task may operate on the owned `spk::Client` at a time.
 - Loss of Server connectivity never grants local authority.
+- Connection-attempt Task state and live transport state are distinct concepts.
 
 ## State transitions
 
-Expected states include disconnected -> connecting -> connected -> disconnected/failure, but exact observable state/event API is Draft.
+Observable connection-attempt/liveness transitions are:
+
+- disconnected + no pending attempt -> submit -> Task `Pending`;
+- Task `Pending` -> `Completed` + `isConnected() == true` on success;
+- Task `Pending` -> `Failed` + `isConnected() == false` on failure;
+- connected -> explicit disconnect -> disconnected;
+- connected -> remote loss -> disconnected;
+- failed/disconnected -> explicit new connection request -> new Task `Pending`.
+
+There is no automatic transition from disconnected back to connecting.
 
 ## Failure behavior
 
-Draft until unavailable Server, refused connection, connection loss, and shutdown behavior are explicit.
+- Invalid/missing configuration throws/fails startup before connection is attempted.
+- Refused/unavailable Server causes the connection Task to fail and leaves `isConnected() == false`.
+- The Client executable treats initial connection failure as `EXIT_FAILURE`.
+- Unexpected remote Server disconnect during the executable's connected idle lifetime causes `EXIT_FAILURE`.
+- SIGINT/SIGTERM-requested local shutdown disconnects cleanly and returns `EXIT_SUCCESS`.
+- Shutdown requested while the connect Task is pending waits for terminal Task state before destroying/disconnecting the Client.
 
 ## Determinism / ordering
 
-Not applicable beyond ordered connection-state transitions.
+For one Client runtime, connection attempts are serialized: a second attempt cannot execute concurrently with an outstanding pending attempt. Local shutdown observes/settles an outstanding attempt before network-object destruction.
 
 ## Lifecycle / ownership
 
-Client owns the network connection object and must shut it down before dependent runtime resources disappear. Exact ownership API remains Draft.
+The Client runtime owns:
+- endpoint configuration;
+- one `spk::Client`;
+- the current connection-attempt Task Answer when one exists.
+
+The process owns/instantiates the shared `spk::WorkerPool` required to execute the connection Task.
+
+The connection Task never owns the whole connected lifetime. Sparkle's internal Client receive worker owns transport receive activity after `connect()` succeeds.
 
 ## Serialization / persistence
 
-Not owned.
+Only the JSON endpoint configuration is owned. No gameplay/session persistence is introduced.
 
 ## Networking / authority
 
-This ticket establishes transport only. Server remains canonical and Client does not synthesize successful authoritative results while disconnected.
+This ticket establishes transport only. Server remains canonical and Client does not synthesize successful authoritative terrain state while disconnected.
 
 ## Implementation constraints
 
-- Use Sparkle Version-0.1.3 networking.
+- Use Sparkle Version-0.1.3 networking and WorkerPool/Task APIs.
 - No hidden in-process Server shortcut.
+- Keep `main.cpp` thin.
+- Do not introduce redundant `erelia::client` / `erelia::server` C++ namespaces.
+- Boolean-valued expressions follow the project convention of explicit `== true` / `== false`; do not introduce unary `!` for boolean values.
+- Do not add Chunk send/receive/cache APIs; ST-001-11 owns those semantics.
 - Keep production movement/session scope out of EP-001.
 
 ## Exact test fixtures
 
-Need an explicitly approved loopback endpoint/configuration and lifecycle fixture before Ready.
+### Component fixture
+
+Use a deterministic loopback Sparkle listener with port `0` where the listener API supports it. Resolve the assigned port and construct the Client endpoint explicitly.
+
+Cover:
+- configuration parsing/validation;
+- initial disconnected state;
+- successful asynchronous connect Task;
+- failed/refused connection Task with disconnected post-state;
+- repeated connection call while already connected is a no-op;
+- repeated connection call while the first attempt is pending reuses the outstanding Answer;
+- clean explicit disconnect and idempotent disconnect;
+- explicit reuse/reconnect of the same Client runtime after disconnect;
+- remote disconnect updates live connectivity;
+- destruction only after pending work has settled.
+
+No arbitrary sleep is permitted when Task `wait()`/`get()`, completion subscription, transport state, or a bounded deadline fixture can prove the condition.
+
+### Cross-system integration fixture
+
+Use the real Erelia Client connection API against the real Erelia Server Router transport boundary.
+
+ST-001-09 Chunk protocol integration remains unchanged where replacing raw `spk::Client` would require ST-001-11-owned send/message coordination. ST-001-10 adds/migrates only fixtures that actually exercise the connection-lifecycle layer.
+
+### Separate-process executable fixture
+
+Start a real `EreliaServer` process with an explicit temporary Router configuration and a real `EreliaClient` process with an explicit temporary Client configuration pointing at that Router.
+
+Prove that the separately running Client reaches the Server endpoint. Process startup/configuration must not use a compiled-in endpoint.
 
 ## Acceptance tests
 
 ### Nominal
 
-Separate Client connects to separately running Server at the approved endpoint.
+Separate Client connects to separately running Server at the explicit configured endpoint.
 
 ### Boundaries
 
-Repeated clean start/stop if the chosen lifecycle supports it.
+- Repeated explicit connect/disconnect using the same Client runtime.
+- Connect while connected is a no-op.
+- Connect while an attempt is already pending does not schedule a second concurrent operation.
 
 ### Invalid / rejected operations
 
-Unavailable/refused endpoint behavior per final contract.
+- Missing/invalid Client config is rejected.
+- Empty address is rejected.
+- Port zero is rejected.
+- Unavailable/refused endpoint settles the connection Task as failed.
 
 ### Failure atomicity
 
-Failed connection leaves Client in a well-defined non-connected state.
+Failed connection leaves Client in a well-defined disconnected state and permits a later explicit connection attempt.
 
 ### Determinism
 
-Not applicable.
+Connection attempts against one owned Sparkle Client are serialized.
 
 ### Lifecycle / ownership
 
-Clean shutdown and connection object destruction.
+Clean shutdown, remote disconnect, pending-attempt shutdown ordering, and connection object destruction are covered.
 
 ### Serialization / persistence
 
-Not applicable.
+Strict Client endpoint JSON parsing is covered.
 
 ### Retry / idempotency
 
-Reconnect/retry is Draft; do not invent.
+No automatic retry/reconnect. Explicit reconnect is supported. Disconnect and connect-while-connected are idempotent at the Erelia API boundary.
 
 ### Concurrency / cancellation
 
-Connection shutdown/cancel behavior must match the final lifecycle contract.
+Connection is WorkerPool work. Cancellation is not supported by Sparkle Version-0.1.3; shutdown during a pending attempt waits for task settlement before Client destruction.
 
 ### Authority / trust boundary
 
@@ -128,11 +252,11 @@ Disconnected Client cannot replace Server terrain with local canonical state.
 
 ### Dependency failure
 
-Server unavailable / network connection failure.
+Server unavailable / network connection failure becomes a failed connection Task and executable startup failure.
 
 ### Cross-system integration
 
-Real separate-process connection fixture required.
+Real Erelia Client connection API reaches the real Router transport boundary. Existing routed Chunk tests retain raw Sparkle transport only where the higher-level request/message API belongs to ST-001-11.
 
 ### Performance
 
@@ -146,9 +270,30 @@ Not applicable.
 
 - [DR-003](../../../DECISIONS/DR-003-DEDICATED-SERVER-FIRST.md)
 - [DR-016](../../../DECISIONS/DR-016-SPARKLE-NETWORK-NODE-ROUTER.md)
+- [DR-020](../../../DECISIONS/DR-020-HEADLESS-ASYNC-TASK-INFRASTRUCTURE.md)
+- [DR-021](../../../DECISIONS/DR-021-REMOTE-SERVER-NODE-PROCESS-TOPOLOGY.md)
 
-Specification still needed before Ready: EP-001 endpoint/configuration, connection-state lifecycle, unavailable-Server behavior, and retry/reconnect policy.
+Project-owner decisions approved on 27 September 2026:
+- strict explicit JSON endpoint configuration and CLI config path;
+- WorkerPool Task for the synchronous Sparkle connection attempt rather than a dedicated connection RAII class;
+- Task state represents only attempt progress/result; `spk::Client::isConnected()` represents current liveness;
+- no automatic retry/reconnect;
+- serialized/idempotent Erelia connection operations;
+- shutdown during a pending attempt waits for task settlement;
+- local signal shutdown succeeds, initial-connect failure and unexpected remote disconnect fail the executable;
+- real separate-process executable connection evidence remains required.
+
+No unresolved observable ST-001-10 contract question remains. The ticket satisfies the project Definition of Ready.
 
 ## Completion evidence
 
-Ready/Done evidence must include a real separate-process connection test using the approved deterministic local endpoint fixture.
+Ready evidence is the approved contract above.
+
+Done evidence must include:
+- Client production endpoint/runtime implementation;
+- deterministic Client component tests;
+- real Erelia Client -> Router integration coverage;
+- real separate-process `EreliaClient` -> `EreliaServer` connection evidence;
+- launcher/config documentation updates;
+- green required CI/test matrix;
+- project-owner human review before status becomes Done.
