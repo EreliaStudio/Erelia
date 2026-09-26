@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include <cstdint>
+#include <string>
 #include <utility>
 
 namespace
@@ -14,14 +15,25 @@ namespace
 		return static_cast<spk::Message::Type>(
 			Networking::MessageType::Diagnostic);
 	}
+
+	Networking::Diagnostic buildDiagnostic(
+		Networking::Diagnostic::Severity severity,
+		std::string message,
+		spk::Message::RequestID requestID = 0u)
+	{
+		Networking::Diagnostic::Builder builder(
+			severity,
+			std::move(message),
+			requestID);
+		return std::move(builder).build();
+	}
 }
 
 TEST(NetworkingDiagnostic, BuilderProducesUncorrelatedDiagnosticByDefault)
 {
-	auto diagnostic = Networking::Diagnostic::Builder(
+	const auto diagnostic = buildDiagnostic(
 		Networking::Diagnostic::Severity::Warning,
-		"Chunk_Coordinates_Duplication")
-		.build();
+		"Chunk_Coordinates_Duplication");
 
 	EXPECT_EQ(diagnostic.type(), diagnosticMessageType());
 	EXPECT_EQ(diagnostic.requestID(), 0u);
@@ -35,26 +47,26 @@ TEST(NetworkingDiagnostic, BuilderProducesUncorrelatedDiagnosticByDefault)
 
 TEST(NetworkingDiagnostic, BuilderPreservesCorrelation)
 {
-	auto diagnostic = Networking::Diagnostic::Builder(
+	const auto diagnostic = buildDiagnostic(
 		Networking::Diagnostic::Severity::Error,
 		"Chunk_Request_Malformed",
-		71u)
-		.build();
+		71u);
 
 	EXPECT_EQ(diagnostic.requestID(), 71u);
 	EXPECT_EQ(
 		diagnostic.severity(),
 		Networking::Diagnostic::Severity::Error);
-	EXPECT_EQ(diagnostic.message(), "Chunk_Request_Malformed");
+	EXPECT_EQ(
+		diagnostic.message(),
+		"Chunk_Request_Malformed");
 }
 
 TEST(NetworkingDiagnostic, UsesSeverityThenSparkleStringEncoding)
 {
 	const std::string key = "Diagnostic_Key";
-	auto diagnostic = Networking::Diagnostic::Builder(
+	const auto diagnostic = buildDiagnostic(
 		Networking::Diagnostic::Severity::Info,
-		key)
-		.build();
+		key);
 
 	ASSERT_EQ(
 		diagnostic.size(),
@@ -66,23 +78,23 @@ TEST(NetworkingDiagnostic, UsesSeverityThenSparkleStringEncoding)
 		static_cast<std::uint8_t>(
 			Networking::Diagnostic::Severity::Info));
 	EXPECT_EQ(
-		diagnostic.readAt<std::uint32_t>(sizeof(std::uint8_t)),
+		diagnostic.readAt<std::uint32_t>(
+			sizeof(std::uint8_t)),
 		key.size());
 }
 
 TEST(NetworkingDiagnostic, RoundTripIsCursorIndependent)
 {
-	auto source = Networking::Diagnostic::Builder(
+	const auto source = buildDiagnostic(
 		Networking::Diagnostic::Severity::Trace,
 		"Trace_Key",
-		19u)
-		.build();
+		19u);
 
 	spk::Message raw = source;
 	raw.skip<std::uint8_t>();
 	const auto originalOffset = raw.readOffset();
 
-	Networking::Diagnostic decoded(raw);
+	const Networking::Diagnostic decoded(raw);
 
 	EXPECT_EQ(raw.readOffset(), originalOffset);
 	EXPECT_EQ(decoded.readOffset(), originalOffset);
@@ -95,11 +107,10 @@ TEST(NetworkingDiagnostic, RoundTripIsCursorIndependent)
 
 TEST(NetworkingDiagnostic, SerializerReusesDiagnosticPrefix)
 {
-	auto diagnostic = Networking::Diagnostic::Builder(
+	const auto diagnostic = buildDiagnostic(
 		Networking::Diagnostic::Severity::Warning,
 		"Shared_Prefix",
-		5u)
-		.build();
+		5u);
 
 	spk::Message destination(99u);
 	destination << diagnostic;
@@ -109,16 +120,16 @@ TEST(NetworkingDiagnostic, SerializerReusesDiagnosticPrefix)
 		static_cast<std::uint8_t>(
 			Networking::Diagnostic::Severity::Warning));
 	EXPECT_EQ(
-		destination.readAt<std::uint32_t>(sizeof(std::uint8_t)),
+		destination.readAt<std::uint32_t>(
+			sizeof(std::uint8_t)),
 		std::string("Shared_Prefix").size());
 }
 
 TEST(NetworkingDiagnostic, RejectsWrongMessageType)
 {
-	auto source = Networking::Diagnostic::Builder(
+	const auto source = buildDiagnostic(
 		Networking::Diagnostic::Severity::Info,
-		"Key")
-		.build();
+		"Key");
 	spk::Message raw = source;
 	raw.setType(
 		static_cast<spk::Message::Type>(
@@ -155,10 +166,9 @@ TEST(NetworkingDiagnostic, RejectsTruncatedString)
 
 TEST(NetworkingDiagnostic, RejectsTrailingBytes)
 {
-	auto source = Networking::Diagnostic::Builder(
+	const auto source = buildDiagnostic(
 		Networking::Diagnostic::Severity::Error,
-		"Key")
-		.build();
+		"Key");
 	spk::Message raw = source;
 	raw << std::uint8_t{0u};
 
