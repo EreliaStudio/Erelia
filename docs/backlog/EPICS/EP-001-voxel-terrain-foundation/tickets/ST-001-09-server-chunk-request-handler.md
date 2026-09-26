@@ -95,7 +95,7 @@ Finalized Response objects remain Message-backed. Builder-side temporary Success
 
 The previous Chunk-specific Error message is planned for replacement by a generic diagnostic-message mechanism for non-terminal technical diagnostics such as duplicate coordinates and malformed requests. The exact generic diagnostic wire contract is still unresolved.
 
-The internal batch size is a fixed implementation constant owned by TerrainNode; it is not configurable and is not part of the wire protocol. Its exact numeric value remains to be fixed. This ticket remains Blocked on that numeric value; the generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
+The internal batch size is a fixed TerrainNode implementation constant of 1024 coordinates; it is not configurable and is not part of the wire protocol. With the current protocol maximum of 1024 coordinates, one valid Client request therefore maps to one internal Collection batch. This ticket remains Blocked on the generic diagnostic-message contract and outstanding-request/reply/disconnect/shutdown lifetime behavior.
 
 ## Invariants
 
@@ -173,7 +173,7 @@ Server validates and returns canonical results. Client only requests coordinates
 - `spk::Task<TResult>` is the generic asynchronous result state. Collection may create a Task directly and settle it with `validate(...)` / `fail(...)` without WorkerPool execution.
 - `spk::WorkerPool::submit(callable)` is used only for executable work. Provider generation is WorkerPool-backed; Collection batch aggregation is not.
 - `spk::TaskGroup<TResult>` groups Task Answers regardless of whether those Tasks were manually settled or WorkerPool-produced. It does not submit Tasks and does not consume a worker merely to wait.
-- TerrainNode owns the split of one protocol request into smaller internal coordinate batches and owns the protocol-request TaskGroup. The batch size is a fixed implementation constant, not terrain-node configuration or protocol state.
+- TerrainNode owns the split of one protocol request into internal coordinate batches and owns the protocol-request TaskGroup. The batch size is the fixed implementation constant 1024, not terrain-node configuration or protocol state.
 - Keep protocol correlation at the original RequestID: internal work batches never own protocol RequestIDs.
 - `Chunk::Collection::request(vector<Chunk::Coordinate>)` must return one asynchronous `Task<BatchResult>::Answer` representing the complete internal batch.
 - `Chunk::Collection::BatchResult` contains `std::vector<Acquired> acquired` and `std::vector<Failed> failed`, where `Acquired` stores coordinate + Chunk and `Failed` stores coordinate + `std::exception_ptr`. Chunk copies are shallow immutable snapshots through the existing Volume/Chunk ownership model.
