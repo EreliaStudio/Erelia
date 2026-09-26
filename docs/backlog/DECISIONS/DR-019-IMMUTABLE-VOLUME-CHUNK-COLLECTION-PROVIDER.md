@@ -285,7 +285,7 @@ virtual spk::Task<Chunk>::Answer request(
 
 For an Absent coordinate, the Provider submits one callable to the shared WorkerPool and returns its `Task<Chunk>::Answer`. The Provider no longer receives Collection batches and no longer owns `update(Collection&)`.
 
-`Chunk::Collection` owns batching. Its target acquisition operation accepts a vector of coordinates and returns one `spk::Task<BatchResult>::Answer` representing the whole requested batch. The exact public C++ name/container shape of `BatchResult` is not frozen here; semantically, a successful result contains every requested coordinate paired with a shallow-copied immutable `Chunk`.
+`Chunk::Collection` owns batching. Its target acquisition operation accepts a vector of coordinates and returns one `spk::Task<BatchResult>::Answer` representing the whole requested batch. The exact public C++ name/container shape of `BatchResult` is not frozen here; semantically, it contains one terminal outcome for every requested coordinate: either a shallow-copied immutable `Chunk` or a networking-agnostic acquisition failure.
 
 For each coordinate in one Collection batch:
 
@@ -295,13 +295,15 @@ For each coordinate in one Collection batch:
 
 The Collection creates its batch `spk::Task<BatchResult>` directly and does **not** submit it to the WorkerPool. It settles that Task from child completion callbacks, so no worker is occupied merely waiting for other workers.
 
-Batch settlement is atomic at the Task-result level:
+Batch settlement waits for every coordinate dependency and preserves per-coordinate outcomes:
 
-- if every requested coordinate resolves successfully, the Collection calls `validate(BatchResult)` once with all requested coordinate/Chunk pairs;
-- if any coordinate acquisition/generation Task fails, the Collection batch Task becomes `Failed` and no partial `BatchResult` is exposed through that Answer.
+- successful coordinate acquisition contributes the coordinate and its shallow-copied immutable Chunk;
+- failed coordinate acquisition contributes a networking-agnostic failure outcome for that coordinate;
+- after every requested coordinate is terminal, the Collection calls `validate(BatchResult)` once with the complete set of outcomes;
+- the Collection batch Task becomes `Failed` only if a batch/aggregation-level failure prevents production of a valid `BatchResult`.
 
 Multiple overlapping Collection requests that include the same Pending coordinate must subscribe to the same in-flight coordinate Answer and must not invoke the Provider a second time for that coordinate.
 
 TerrainNode may group several Collection batch Answers in one `spk::TaskGroup<BatchResult>`. Because TaskGroup accepts arbitrary `Task<TResult>::Answer` values, these manually-settled Collection Tasks compose with the same API as WorkerPool-produced Tasks.
 
-ST-001-09 later refined the terminal protocol representation so `Chunk::Protocol::Response` owns nested `Response::Success { coordinate, chunk }` and `Response::Failure { coordinate, Failure::Code, message }` entries. Collection remains networking-agnostic and must not return those protocol types directly. TerrainNode owns the translation from acquisition outcomes into protocol entries. One interaction remains unresolved: a Failed `Task<BatchResult>` exposes no partial BatchResult, so the selected atomic batch-failure rule currently prevents TerrainNode from recovering successful coordinates that shared a failed batch. That must be resolved before ST-001-09 is Ready.
+ST-001-09 later refined the terminal protocol representation so `Chunk::Protocol::Response` owns nested `Response::Success { coordinate, chunk }` and `Response::Failure { coordinate, Failure::Code, message }` entries. Collection remains networking-agnostic and must not return those protocol types directly. TerrainNode owns the translation from acquisition outcomes into protocol entries. On 26 September 2026 the project owner explicitly selected per-coordinate failure-as-data semantics: ordinary coordinate generation/acquisition failure completes the Collection batch with a failure outcome in `BatchResult`; it does not fail the batch Task. The exact networking-agnostic C++ representation of that failure outcome remains to be resolved before ST-001-09 is Ready.
