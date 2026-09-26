@@ -10,9 +10,9 @@
 
 #include <atomic>
 #include <chrono>
+#include <csignal>
 #include <cstddef>
 #include <cstdint>
-#include <csignal>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
