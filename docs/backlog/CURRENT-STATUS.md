@@ -26,14 +26,14 @@ The merged contract includes:
 - non-zero Sparkle RequestID correlation with protocol-owned atomic Request generation;
 - count-less Request and Error payloads;
 - a three-offset count-less Response summary;
-- Success / Rejected / Unavailable result states;
+- historical ST-001-08 Success / Rejected / Unavailable result states, now superseded as the future target by the ST-001-09 Response::Success / Response::Failure refinement;
 - deterministic state grouping and X/Y/Z ordering;
 - Request/Error/Response declarations split one message per public header while `Chunk::Protocol` remains the semantic nested scope;
 - nested Request/Error/Response Builders owning temporary construction containers, with finalized protocol values using only their `spk::Message` payload as persistent storage;
 - one-shot `resize()` + `edit()` encoding;
 - Debug-only Request Builder duplicate validation plus defensive on-demand duplicate inspection from finalized/raw Request payloads;
-- distinct duplicate-coordinate diagnostics;
-- `ChunkError` before the terminal `ChunkResponse`;
+- historical distinct duplicate-coordinate `ChunkError` diagnostics; ST-001-09 now plans to move non-terminal diagnostics to a future generic diagnostic message whose wire contract is still unresolved;
+- historical `ChunkError` before the terminal `ChunkResponse` ordering;
 - safe session-scoped RequestID reuse only after all outstanding terminal Responses;
 - strict Core malformed-input validation;
 - the approved typed construction APIs and exact Core test matrix.
@@ -55,7 +55,9 @@ The approved direction is:
 - if any coordinate Task fails, the entire Collection batch Task is Failed and no partial BatchResult is exposed;
 - TerrainNode groups the Collection batch Answers in one Sparkle TaskGroup.
 
-The remaining ST-001-09 blockers are now Server-specific: the internal batch-size rule; the mapping from a failed Collection batch / failed outer TaskGroup onto the fixed DR-022 wire protocol; and outstanding-request/reply/disconnect/shutdown lifetime behavior. DR-022 currently has only per-coordinate Success / Rejected / Unavailable Response states and DuplicateCoordinate as a ChunkError code, so no new request-level failure representation may be invented implicitly.
+ST-001-09 has additionally refined the terminal wire model: `Chunk::Protocol::Response` owns nested `Response::Success { coordinate, chunk }` and `Response::Failure { coordinate, Failure::Code, message }` entries. Finalized Responses remain Message-backed. The old `Rejected/Unavailable` grouping and Chunk-specific Error message are no longer the preferred future target; non-terminal diagnostics are expected to move to a generic diagnostic message, whose exact contract is still unresolved.
+
+The remaining ST-001-09 blockers are Server/protocol-specific: the internal batch-size rule; reconciling atomic failed Collection batches with preservation of successful coordinate results for Response construction; the `Response::Failure::Code` set and variable-length failure-string wire encoding; the future generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
 
 The temporary Erelia-local TaskGroup scaffold currently on the feature branch is now obsolete and should be removed when implementation is reconciled with the merged Sparkle dependency.
 
