@@ -95,7 +95,7 @@ Finalized Response objects remain Message-backed. Builder-side temporary Success
 
 The previous Chunk-specific Error message is planned for replacement by a generic diagnostic-message mechanism for non-terminal technical diagnostics such as duplicate coordinates and malformed requests. The exact generic diagnostic wire contract is still unresolved.
 
-This ticket remains Blocked on the internal batch-size rule; the failure-message string wire encoding; the generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
+This ticket remains Blocked on the internal batch-size rule; the exact exception-to-human-readable-message mapping; the generic diagnostic-message contract; and outstanding-request/reply/disconnect/shutdown lifetime behavior.
 
 ## Invariants
 
@@ -142,11 +142,11 @@ The TerrainNode's outer `spk::TaskGroup<BatchResult>` therefore remains successf
 
 This preserves successful coordinates from the same internal batch and prevents the internal batch partition from changing Client-visible success/failure semantics.
 
-`Chunk::Protocol::Response` now owns terminal `Success` and `Failure` semantic entries. A Failure carries the coordinate, `Response::Failure::Code::AcquisitionFailed`, and a human-readable string. `AcquisitionFailed` is exactly numeric value 0. The variable-length string encoding remains unresolved.
+`Chunk::Protocol::Response` now owns terminal `Success` and `Failure` semantic entries. A Failure carries the coordinate, `Response::Failure::Code::AcquisitionFailed`, and a human-readable string. `AcquisitionFailed` is exactly numeric value 0. The string uses Sparkle's existing Message encoding: `uint32_t` byte length followed by the exact message bytes, with no null terminator.
 
 The old `Rejected` / `Unavailable` terminal state split is no longer the target ST-001-09 response model.
 
-Remaining failure behavior to resolve before Ready is Server-specific: translate `BatchResult::Failed::exception` into the human-readable Failure message while using `Response::Failure::Code::AcquisitionFailed`; define failure-string byte encoding; settle reply/send failure handling; and settle outstanding-request/disconnect/shutdown lifecycle.
+Remaining failure behavior to resolve before Ready is Server-specific: translate `BatchResult::Failed::exception` into the human-readable Failure message while using `Response::Failure::Code::AcquisitionFailed`; settle reply/send failure handling; and settle outstanding-request/disconnect/shutdown lifecycle.
 
 ## Determinism / ordering
 
@@ -187,7 +187,7 @@ Server validates and returns canonical results. Client only requests coordinates
 - The grouped completion callback may execute outside the TerrainNode dispatch thread. Any captured Endpoint/request state must have safe lifetime and any network operation performed there must follow Sparkle's thread-safety contract.
 - `Chunk::Protocol::Response` owns nested `Success` and `Failure` semantic entries; Collection must stay networking-agnostic and must not depend on those protocol types.
 - The finalized Response remains Message-backed; temporary Builder Success/Failure containers are construction-only.
-- `Response::Failure::Code` is fixed to `AcquisitionFailed = 0` for ST-001-09. Do not invent additional codes. The failure-string wire-length encoding remains unresolved.
+- `Response::Failure::Code` is fixed to `AcquisitionFailed = 0` for ST-001-09. Do not invent additional codes. Failure strings use Sparkle's `uint32_t` byte-length-prefixed Message string representation with no null terminator.
 - Treat the future generic diagnostic message as unresolved infrastructure; do not retain `Chunk::Protocol::Error` as the assumed final design merely because ST-001-08 currently implements it.
 
 ## Exact test fixtures
