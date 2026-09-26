@@ -173,8 +173,7 @@ namespace
 					try
 					{
 						_application.run();
-					}
-					catch (...)
+					} catch (...)
 					{
 					}
 				})
@@ -294,7 +293,6 @@ TEST(TerrainNodeApplication, StopsCleanlyOnTerminationSignal)
 {
 	expectApplicationStopsOnSignal(SIGTERM);
 }
-
 
 TEST(TerrainNodeIntegration, ReturnsOneResponseForMultiCoordinateRequest)
 {
