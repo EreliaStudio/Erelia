@@ -32,15 +32,35 @@ function Write-JsonFile {
 function Wait-TcpEndpoint {
     param(
         [Parameter(Mandatory = $true)][int]$Port,
+        [Parameter(Mandatory = $true)][System.Diagnostics.Process]$Process,
+        [Parameter(Mandatory = $true)][string]$StandardOutputPath,
+        [Parameter(Mandatory = $true)][string]$StandardErrorPath,
         [int]$TimeoutMilliseconds = 5000
     )
 
     $deadline = [DateTime]::UtcNow.AddMilliseconds($TimeoutMilliseconds)
     while ([DateTime]::UtcNow -lt $deadline) {
+        if ($Process.HasExited) {
+            $stdout = if (Test-Path -LiteralPath $StandardOutputPath) {
+                Get-Content -LiteralPath $StandardOutputPath -Raw
+            }
+            else {
+                ''
+            }
+            $stderr = if (Test-Path -LiteralPath $StandardErrorPath) {
+                Get-Content -LiteralPath $StandardErrorPath -Raw
+            }
+            else {
+                ''
+            }
+
+            throw "Server exited before opening port $Port. Exit code: $($Process.ExitCode).`nstdout:`n$stdout`nstderr:`n$stderr"
+        }
+
         $client = [System.Net.Sockets.TcpClient]::new()
         try {
-            $connection = $client.ConnectAsync('127.0.0.1', $Port)
-            if ($connection.Wait(100) -and $client.Connected) {
+            $client.Connect('127.0.0.1', $Port)
+            if ($client.Connected) {
                 return
             }
         }
@@ -53,7 +73,7 @@ function Wait-TcpEndpoint {
         Start-Sleep -Milliseconds 20
     }
 
-    throw "Server endpoint did not become reachable on port $Port."
+    throw "Server endpoint did not become reachable on port $Port before the deadline."
 }
 
 function Wait-LogText {
@@ -114,11 +134,11 @@ try {
     $clientOut = Join-Path $tempRoot 'client.out.log'
     $clientErr = Join-Path $tempRoot 'client.err.log'
 
-    $serverProcess = Start-Process -FilePath $ServerExecutable -ArgumentList @("--config=$serverConfigPath") -RedirectStandardOutput $serverOut -RedirectStandardError $serverErr -PassThru
+    $serverProcess = Start-Process -FilePath $ServerExecutable -WorkingDirectory (Split-Path -Parent $ServerExecutable) -ArgumentList @("--config=$serverConfigPath") -RedirectStandardOutput $serverOut -RedirectStandardError $serverErr -PassThru
 
-    Wait-TcpEndpoint -Port $port
+    Wait-TcpEndpoint -Port $port -Process $serverProcess -StandardOutputPath $serverOut -StandardErrorPath $serverErr
 
-    $clientProcess = Start-Process -FilePath $ClientExecutable -ArgumentList @("--config=$clientConfigPath") -RedirectStandardOutput $clientOut -RedirectStandardError $clientErr -PassThru
+    $clientProcess = Start-Process -FilePath $ClientExecutable -WorkingDirectory (Split-Path -Parent $ClientExecutable) -ArgumentList @("--config=$clientConfigPath") -RedirectStandardOutput $clientOut -RedirectStandardError $clientErr -PassThru
 
     Wait-LogText -Path $clientErr -Text 'Connected to dedicated Server' -Process $clientProcess
 
