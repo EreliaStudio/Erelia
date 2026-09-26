@@ -585,3 +585,43 @@ TEST(ChunkCollection, ConcurrentLookupAndReplacementReturnPublishedSnapshots)
 		failed.load(std::memory_order_relaxed));
 	EXPECT_TRUE(requests(providerState).empty());
 }
+
+
+TEST(ChunkCollection, CompletionAfterCollectionDestructionDoesNotAccessDestroyedState)
+{
+	auto providerState =
+		std::make_shared<ProviderState>();
+	const Chunk::Coordinate coordinate{12, -4, 9};
+
+	std::optional<
+		spk::Task<Chunk::Collection::BatchResult>::Answer>
+		answer;
+	{
+		Chunk::Collection collection{
+			TestProvider(providerState)};
+		answer.emplace(
+			collection.request({coordinate}));
+		EXPECT_EQ(
+			answer->status(),
+			spk::Task<Chunk::Collection::BatchResult>::
+				Status::Pending);
+	}
+
+	auto task = taskFor(
+		providerState,
+		coordinate);
+	ASSERT_NE(task, nullptr);
+	task->validate(makeChunk(515u));
+
+	ASSERT_EQ(
+		answer->status(),
+		spk::Task<Chunk::Collection::BatchResult>::
+			Status::Completed);
+	ASSERT_EQ(answer->result().acquired.size(), 1u);
+	EXPECT_EQ(
+		answer->result().acquired.front().coordinate,
+		coordinate);
+	EXPECT_EQ(
+		answer->result().acquired.front().chunk.at({0, 0, 0}).packed(),
+		515u);
+}
