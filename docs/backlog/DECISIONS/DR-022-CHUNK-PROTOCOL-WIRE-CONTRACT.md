@@ -297,7 +297,7 @@ This refinement supersedes the earlier terminal `Response::State { Success, Reje
 
 ### ChunkError / diagnostic direction
 
-The Chunk-specific `Chunk::Protocol::Error` message is no longer the preferred long-term home for non-terminal diagnostics.
+The Chunk-specific `Chunk::Protocol::Error` is no longer an independent diagnostic format. It is retained as a Chunk-specific specialization of the generic `Networking::Diagnostic` contract.
 
 The current direction is to replace it with a more general Erelia diagnostic message that can carry technical information at Trace / Info / Warning / Error severity, optionally correlated with a Sparkle RequestID. Duplicate coordinates and malformed requests are examples of diagnostics rather than terminal Chunk results.
 
@@ -325,7 +325,9 @@ enum class Networking::Diagnostic::Severity : std::uint8_t
 };
 ```
 
-Byte-level payload encoding beyond the already-approved severity + string semantics, correlation rules, and the `Networking::MessageType` value remain unresolved.
+`Chunk::Protocol::Error` is retained as a specialized diagnostic and derives from `Networking::Diagnostic`. Its only additional semantic data for ST-001-09 is a list of problematic `Chunk::Coordinate` values. The generic Diagnostic serialization is reused as the prefix of the specialized Error serialization; Chunk::Protocol::Error then appends its coordinate list. Additional Chunk-specific contextual fields are not part of this ticket.
+
+The exact fixed-width coordinate-count field, correlation rules, and the `Networking::MessageType` value remain unresolved.
 
 Duplicate-coordinate semantics remain: the first occurrence participates in normal Chunk resolution; later duplicate occurrences do not trigger duplicate generation. The misuse should be observable through the future generic diagnostic mechanism rather than by making the coordinate itself a failed terminal Chunk result.
 
