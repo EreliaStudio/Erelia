@@ -20,9 +20,11 @@ TEST(ConsoleEntryTest, OrdinaryTextUsesLogger)
 			level = receivedLevel;
 			message = receivedMessage;
 		});
-	ConsoleEntry entry("Entry", [&](std::string value) {
-		local.emplace_back(std::move(value));
-	});
+	ConsoleEntry entry("Entry");
+	auto submissionContract = entry.subscribeToSubmission(
+		[&](std::string value) {
+			local.emplace_back(std::move(value));
+		});
 
 	entry.submit("hello");
 
@@ -39,9 +41,11 @@ TEST(ConsoleEntryTest, GlobalHelpIsLocalAndDoesNotUseLogger)
 		[&](const spk::Logger::Level &, const std::string &) {
 			++loggerCalls;
 		});
-	ConsoleEntry entry("Entry", [&](std::string value) {
-		local.emplace_back(std::move(value));
-	});
+	ConsoleEntry entry("Entry");
+	auto submissionContract = entry.subscribeToSubmission(
+		[&](std::string value) {
+			local.emplace_back(std::move(value));
+		});
 	loggerCalls = 0;
 
 	entry.submit("/help");
@@ -55,9 +59,11 @@ TEST(ConsoleEntryTest, CommandHelpIsLocalAndDoesNotEmitConnectRequest)
 {
 	std::vector<std::string> local;
 	std::size_t requestCount = 0;
-	ConsoleEntry entry("Entry", [&](std::string value) {
-		local.emplace_back(std::move(value));
-	});
+	ConsoleEntry entry("Entry");
+	auto submissionContract = entry.subscribeToSubmission(
+		[&](std::string value) {
+			local.emplace_back(std::move(value));
+		});
 	auto contract = entry.subscribeToConnectRequest(
 		[&](const ConnectCommand::Request &) {
 			++requestCount;
@@ -79,9 +85,11 @@ TEST(ConsoleEntryTest, MalformedKnownCommandAddsDiagnosticAndUsageLocally)
 		[&](const spk::Logger::Level &, const std::string &) {
 			++loggerCalls;
 		});
-	ConsoleEntry entry("Entry", [&](std::string value) {
-		local.emplace_back(std::move(value));
-	});
+	ConsoleEntry entry("Entry");
+	auto submissionContract = entry.subscribeToSubmission(
+		[&](std::string value) {
+			local.emplace_back(std::move(value));
+		});
 	auto requestContract = entry.subscribeToConnectRequest(
 		[&](const ConnectCommand::Request &) {
 			++requestCount;
@@ -105,9 +113,11 @@ TEST(ConsoleEntryTest, UnknownCommandReportsLocallyWithoutLogger)
 		[&](const spk::Logger::Level &, const std::string &) {
 			++loggerCalls;
 		});
-	ConsoleEntry entry("Entry", [&](std::string value) {
-		local.emplace_back(std::move(value));
-	});
+	ConsoleEntry entry("Entry");
+	auto submissionContract = entry.subscribeToSubmission(
+		[&](std::string value) {
+			local.emplace_back(std::move(value));
+		});
 	loggerCalls = 0;
 
 	entry.submit("/missing");
@@ -120,9 +130,11 @@ TEST(ConsoleEntryTest, UnknownCommandReportsLocallyWithoutLogger)
 TEST(ConsoleEntryTest, ConnectParametersAreOptionalAndShownInHelp)
 {
 	std::vector<std::string> local;
-	ConsoleEntry entry("Entry", [&](std::string value) {
-		local.emplace_back(std::move(value));
-	});
+	ConsoleEntry entry("Entry");
+	auto submissionContract = entry.subscribeToSubmission(
+		[&](std::string value) {
+			local.emplace_back(std::move(value));
+		});
 
 	entry.submit("/connect --help");
 
@@ -134,8 +146,7 @@ TEST(ConsoleEntryTest, ConnectParametersAreOptionalAndShownInHelp)
 TEST(ConsoleEntryTest, ConnectWithoutOverridesEmitsEmptyRequest)
 {
 	std::optional<ConnectCommand::Request> received;
-	ConsoleEntry entry("Entry", [](std::string) {
-	});
+	ConsoleEntry entry("Entry");
 	auto contract = entry.subscribeToConnectRequest(
 		[&](const ConnectCommand::Request &request) {
 			received = request;
@@ -151,8 +162,7 @@ TEST(ConsoleEntryTest, ConnectWithoutOverridesEmitsEmptyRequest)
 TEST(ConsoleEntryTest, ConnectAddressOverrideEmitsAddressOnly)
 {
 	std::optional<ConnectCommand::Request> received;
-	ConsoleEntry entry("Entry", [](std::string) {
-	});
+	ConsoleEntry entry("Entry");
 	auto contract = entry.subscribeToConnectRequest(
 		[&](const ConnectCommand::Request &request) {
 			received = request;
@@ -169,8 +179,7 @@ TEST(ConsoleEntryTest, ConnectAddressOverrideEmitsAddressOnly)
 TEST(ConsoleEntryTest, ConnectPortOverrideEmitsPortOnly)
 {
 	std::optional<ConnectCommand::Request> received;
-	ConsoleEntry entry("Entry", [](std::string) {
-	});
+	ConsoleEntry entry("Entry");
 	auto contract = entry.subscribeToConnectRequest(
 		[&](const ConnectCommand::Request &request) {
 			received = request;
@@ -188,9 +197,11 @@ TEST(ConsoleEntryTest, ConnectRejectsInvalidPortLocally)
 {
 	std::vector<std::string> local;
 	std::size_t requestCount = 0;
-	ConsoleEntry entry("Entry", [&](std::string value) {
-		local.emplace_back(std::move(value));
-	});
+	ConsoleEntry entry("Entry");
+	auto submissionContract = entry.subscribeToSubmission(
+		[&](std::string value) {
+			local.emplace_back(std::move(value));
+		});
 	auto contract = entry.subscribeToConnectRequest(
 		[&](const ConnectCommand::Request &) {
 			++requestCount;
@@ -207,9 +218,11 @@ TEST(ConsoleEntryTest, ConnectRejectsOutOfRangePortLocally)
 {
 	std::vector<std::string> local;
 	std::size_t requestCount = 0;
-	ConsoleEntry entry("Entry", [&](std::string value) {
-		local.emplace_back(std::move(value));
-	});
+	ConsoleEntry entry("Entry");
+	auto submissionContract = entry.subscribeToSubmission(
+		[&](std::string value) {
+			local.emplace_back(std::move(value));
+		});
 	auto contract = entry.subscribeToConnectRequest(
 		[&](const ConnectCommand::Request &) {
 			++requestCount;
@@ -220,4 +233,38 @@ TEST(ConsoleEntryTest, ConnectRejectsOutOfRangePortLocally)
 	ASSERT_EQ(local.size(), 1u);
 	EXPECT_EQ(local.front(), "Invalid port: 65536");
 	EXPECT_EQ(requestCount, 0u);
+}
+
+
+TEST(ConsoleEntryTest, SubmissionContractReceivesLocalOutput)
+{
+	ConsoleEntry entry("Entry");
+	std::vector<std::string> submissions;
+	auto contract = entry.subscribeToSubmission(
+		[&](std::string value) {
+			submissions.emplace_back(std::move(value));
+		});
+
+	entry.submit("/help");
+
+	ASSERT_EQ(submissions.size(), 1u);
+	EXPECT_NE(submissions.front().find("/connect"), std::string::npos);
+}
+
+TEST(ConsoleEntryTest, ResignedSubmissionContractStopsReceivingLocalOutput)
+{
+	ConsoleEntry entry("Entry");
+	std::size_t submissionCount = 0;
+	auto contract = entry.subscribeToSubmission(
+		[&](std::string) {
+			++submissionCount;
+		});
+
+	entry.submit("/help");
+	ASSERT_EQ(submissionCount, 1u);
+
+	contract.resign();
+	entry.submit("/help");
+
+	EXPECT_EQ(submissionCount, 1u);
 }

@@ -7,11 +7,12 @@
 
 ConsoleEntry::ConsoleEntry(
 	std::string name,
-	LocalOutputCallback localOutput,
 	spk::Widget *parent) :
 	spk::TextEdit(std::move(name), parent),
-	_localOutput(std::move(localOutput)),
-	_connectCommand(_commandParser.addCommand<ConnectCommand>(_localOutput))
+	_connectCommand(_commandParser.addCommand<ConnectCommand>(
+		[this](std::string message) {
+			_emitLocal(std::move(message));
+		}))
 {
 	setPlaceholder("Enter text or /help");
 	setMaximalSize({std::numeric_limits<float>::max(), maximalSize().y});
@@ -19,10 +20,7 @@ ConsoleEntry::ConsoleEntry(
 
 void ConsoleEntry::_emitLocal(std::string message)
 {
-	if (_localOutput)
-	{
-		_localOutput(std::move(message));
-	}
+	_submissionProvider.trigger(std::move(message));
 }
 
 void ConsoleEntry::_emitFailure(const spk::CommandParser::Result &result)
@@ -97,6 +95,11 @@ void ConsoleEntry::submit(std::string input)
 	{
 		_emitFailure(result);
 	}
+}
+
+ConsoleEntry::SubmissionContract ConsoleEntry::subscribeToSubmission(SubmissionCallback callback)
+{
+	return _submissionProvider.subscribe(std::move(callback));
 }
 
 ConnectCommand::RequestContract ConsoleEntry::subscribeToConnectRequest(ConnectCommand::RequestCallback callback)

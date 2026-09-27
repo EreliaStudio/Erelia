@@ -19,6 +19,7 @@ private:
 	spk::Panel _entryBackground;
 	spk::TextModelView _entries;
 	ConsoleEntry _commandEntry;
+	ConsoleEntry::SubmissionContract _submissionContract;
 	spk::VerticalLayout _layout;
 	spk::Logger::OnEntryContract _loggerContract;
 	spk::ThreadSafeFIFO<std::string> _pendingEntries;

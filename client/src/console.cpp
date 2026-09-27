@@ -34,10 +34,10 @@ Console::Console(
 	spk::Widget(std::move(name), parent),
 	_entryBackground("Console.entries.background", this),
 	_entries("Console.entries", &_entryModel, this),
-	_commandEntry("Console.command", [this](std::string entry) {
+	_commandEntry("Console.command", this),
+	_submissionContract(_commandEntry.subscribeToSubmission([this](std::string entry) {
 		_appendLocalEntry(std::move(entry));
-	},
-				  this),
+	})),
 	_loggerContract(spk::logger.subscribeToEntry([this](const spk::Logger::Level &level, const std::string &message) {
 		_queueEntry(level, message);
 	}))
