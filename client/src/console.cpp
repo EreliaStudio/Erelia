@@ -1,6 +1,9 @@
 #include "erelia/client/console.hpp"
 
+#include "erelia/client/service.hpp"
+
 #include <core/context/update_context.hpp>
+#include <system/translator.hpp>
 
 #include <utility>
 #include <vector>
@@ -35,12 +38,19 @@ void Console::_queueEntry(
 {
 	if (level == spk::Logger::Level::UserValueA)
 	{
-		_pendingEntries.emplace("User : " + message);
+		_pendingEntries.emplace(
+			Service::translator()->translate(
+				"client.console.user_label") +
+			" : " + message);
 		return;
 	}
 	if (level == spk::Logger::Level::UserValueB)
 	{
-		_pendingEntries.emplace("[Command] : " + message);
+		_pendingEntries.emplace(
+			"[" +
+			Service::translator()->translate(
+				"client.console.command_label") +
+			"] : " + message);
 	}
 }
 

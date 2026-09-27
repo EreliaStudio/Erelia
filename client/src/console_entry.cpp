@@ -1,8 +1,10 @@
 #include "erelia/client/console_entry.hpp"
 
 #include "erelia/client/command/connect_command.hpp"
+#include "erelia/client/service.hpp"
 
 #include <diagnostics/logger.hpp>
+#include <system/translator.hpp>
 
 #include <limits>
 #include <utility>
@@ -17,7 +19,9 @@ ConsoleEntry::ConsoleEntry(
 			_emitLocal(std::move(message));
 		});
 
-	setPlaceholder("Enter text or /help");
+	setPlaceholder(
+		Service::translator()->translate(
+			"client.console.placeholder"));
 	setMaximalSize({std::numeric_limits<float>::max(), maximalSize().y});
 }
 
@@ -32,28 +36,45 @@ void ConsoleEntry::_emitFailure(const spk::CommandParser::Result &result)
 	switch (result.status)
 	{
 	case spk::CommandParser::Status::UnknownCommand:
-		message = "Unknown command: /" + result.command;
+		message = Service::translator()->translate(
+			"client.console.command.unknown",
+			result.command);
 		break;
 	case spk::CommandParser::Status::InvalidFormat:
-		message = "Invalid command format.";
+		message = Service::translator()->translate(
+			"client.console.command.invalid_format");
 		break;
 	case spk::CommandParser::Status::UnknownParameter:
-		message = "Unknown parameter: --" + result.parameter;
+		message = Service::translator()->translate(
+			"client.console.command.parameter_unknown",
+			result.parameter);
 		break;
 	case spk::CommandParser::Status::DuplicateParameter:
-		message = "Duplicate parameter: --" + result.parameter;
+		message = Service::translator()->translate(
+			"client.console.command.parameter_duplicate",
+			result.parameter);
 		break;
 	case spk::CommandParser::Status::MissingParameter:
-		message = "Missing parameter: --" + result.parameter;
+		message = Service::translator()->translate(
+			"client.console.command.parameter_missing",
+			result.parameter);
 		break;
 	case spk::CommandParser::Status::MissingValue:
-		message = "Missing value for --" + result.parameter + " (expected " + std::to_string(result.expectedValueCount) + ").";
+		message = Service::translator()->translate(
+			"client.console.command.value_missing",
+			result.parameter,
+			result.expectedValueCount);
 		break;
 	case spk::CommandParser::Status::TooManyValues:
-		message = "Too many values for --" + result.parameter + " (expected " + std::to_string(result.expectedValueCount) + ", received " + std::to_string(result.actualValueCount) + ").";
+		message = Service::translator()->translate(
+			"client.console.command.too_many_values",
+			result.parameter,
+			result.expectedValueCount,
+			result.actualValueCount);
 		break;
 	case spk::CommandParser::Status::TooManyParameters:
-		message = "Too many parameters.";
+		message = Service::translator()->translate(
+			"client.console.command.too_many_parameters");
 		break;
 	case spk::CommandParser::Status::Accepted:
 	case spk::CommandParser::Status::HelpRequested:

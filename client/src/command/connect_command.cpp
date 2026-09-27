@@ -1,5 +1,9 @@
 #include "erelia/client/command/connect_command.hpp"
 
+#include "erelia/client/service.hpp"
+
+#include <system/translator.hpp>
+
 #include <charconv>
 #include <cstdint>
 #include <limits>
@@ -9,10 +13,19 @@
 ConnectCommand::ConnectCommand(LocalOutputCallback localOutput) :
 	Command(
 		"connect",
-		"Starts a new dedicated Server connection cycle.",
+		Service::translator()->translate(
+			"client.command.connect.description"),
 		{
-			{.name = "address", .description = "Dedicated Server address", .optional = true},
-			{.name = "port", .description = "Dedicated Server port", .optional = true},
+			{
+				.name = "address",
+				.description = Service::translator()->translate(
+					"client.command.connect.address.description"),
+				.optional = true},
+			{
+				.name = "port",
+				.description = Service::translator()->translate(
+					"client.command.connect.port.description"),
+				.optional = true},
 		}),
 	_localOutput(std::move(localOutput))
 {
@@ -42,7 +55,10 @@ void ConnectCommand::execute(const spk::CommandParser::Invocation &invocation)
 		{
 			if (_localOutput)
 			{
-				_localOutput("Invalid port: " + value);
+				_localOutput(
+					Service::translator()->translate(
+						"client.command.connect.invalid_port",
+						value));
 			}
 			return;
 		}

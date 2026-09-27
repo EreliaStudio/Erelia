@@ -1,7 +1,9 @@
 #include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/console_entry.hpp"
+#include "erelia/client/service.hpp"
 
 #include <diagnostics/logger.hpp>
+#include <system/translator.hpp>
 
 #include <gtest/gtest.h>
 
@@ -10,7 +12,42 @@
 #include <utility>
 #include <vector>
 
-TEST(ConsoleEntryTest, OrdinaryTextUsesLogger)
+namespace
+{
+	void installConsoleEntryTranslations()
+	{
+		Service::translator()->append("client.console.placeholder", "Enter text or /help");
+		Service::translator()->append("client.console.command.unknown", "Unknown command: /{}");
+		Service::translator()->append("client.console.command.invalid_format", "Invalid command format.");
+		Service::translator()->append("client.console.command.parameter_unknown", "Unknown parameter: --{}");
+		Service::translator()->append("client.console.command.parameter_duplicate", "Duplicate parameter: --{}");
+		Service::translator()->append("client.console.command.parameter_missing", "Missing parameter: --{}");
+		Service::translator()->append("client.console.command.value_missing", "Missing value for --{} (expected {}).");
+		Service::translator()->append("client.console.command.too_many_values", "Too many values for --{} (expected {}, received {}).");
+		Service::translator()->append("client.console.command.too_many_parameters", "Too many parameters.");
+		Service::translator()->append("client.command.connect.description", "Starts a new dedicated Server connection cycle.");
+		Service::translator()->append("client.command.connect.address.description", "Dedicated Server address");
+		Service::translator()->append("client.command.connect.port.description", "Dedicated Server port");
+		Service::translator()->append("client.command.connect.invalid_port", "Invalid port: {}");
+	}
+
+	class ConsoleEntryTest : public testing::Test
+	{
+	protected:
+		void SetUp() override
+		{
+			Service::translator()->clear();
+			installConsoleEntryTranslations();
+		}
+
+		void TearDown() override
+		{
+			Service::translator()->clear();
+		}
+	};
+}
+
+TEST_F(ConsoleEntryTest, OrdinaryTextUsesLogger)
 {
 	std::vector<std::string> local;
 	spk::Logger::Level level = spk::Logger::Level::Trace;
@@ -33,7 +70,7 @@ TEST(ConsoleEntryTest, OrdinaryTextUsesLogger)
 	EXPECT_TRUE(local.empty());
 }
 
-TEST(ConsoleEntryTest, GlobalHelpIsLocalAndDoesNotUseLogger)
+TEST_F(ConsoleEntryTest, GlobalHelpIsLocalAndDoesNotUseLogger)
 {
 	std::vector<std::string> local;
 	std::size_t loggerCalls = 0;
@@ -55,7 +92,7 @@ TEST(ConsoleEntryTest, GlobalHelpIsLocalAndDoesNotUseLogger)
 	EXPECT_EQ(loggerCalls, 0u);
 }
 
-TEST(ConsoleEntryTest, CommandHelpIsLocalAndDoesNotEmitConnectRequest)
+TEST_F(ConsoleEntryTest, CommandHelpIsLocalAndDoesNotEmitConnectRequest)
 {
 	std::vector<std::string> local;
 	std::size_t requestCount = 0;
@@ -76,7 +113,7 @@ TEST(ConsoleEntryTest, CommandHelpIsLocalAndDoesNotEmitConnectRequest)
 	EXPECT_EQ(requestCount, 0u);
 }
 
-TEST(ConsoleEntryTest, MalformedKnownCommandAddsDiagnosticAndUsageLocally)
+TEST_F(ConsoleEntryTest, MalformedKnownCommandAddsDiagnosticAndUsageLocally)
 {
 	std::vector<std::string> local;
 	std::size_t loggerCalls = 0;
@@ -105,7 +142,7 @@ TEST(ConsoleEntryTest, MalformedKnownCommandAddsDiagnosticAndUsageLocally)
 	EXPECT_EQ(requestCount, 0u);
 }
 
-TEST(ConsoleEntryTest, UnknownCommandReportsLocallyWithoutLogger)
+TEST_F(ConsoleEntryTest, UnknownCommandReportsLocallyWithoutLogger)
 {
 	std::vector<std::string> local;
 	std::size_t loggerCalls = 0;
@@ -127,7 +164,7 @@ TEST(ConsoleEntryTest, UnknownCommandReportsLocallyWithoutLogger)
 	EXPECT_EQ(loggerCalls, 0u);
 }
 
-TEST(ConsoleEntryTest, ConnectParametersAreOptionalAndShownInHelp)
+TEST_F(ConsoleEntryTest, ConnectParametersAreOptionalAndShownInHelp)
 {
 	std::vector<std::string> local;
 	ConsoleEntry entry("Entry");
@@ -143,7 +180,7 @@ TEST(ConsoleEntryTest, ConnectParametersAreOptionalAndShownInHelp)
 	EXPECT_NE(local.front().find("--port"), std::string::npos);
 }
 
-TEST(ConsoleEntryTest, ConnectWithoutOverridesEmitsEmptyRequest)
+TEST_F(ConsoleEntryTest, ConnectWithoutOverridesEmitsEmptyRequest)
 {
 	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry");
@@ -159,7 +196,7 @@ TEST(ConsoleEntryTest, ConnectWithoutOverridesEmitsEmptyRequest)
 	EXPECT_FALSE(received->port.has_value());
 }
 
-TEST(ConsoleEntryTest, ConnectAddressOverrideEmitsAddressOnly)
+TEST_F(ConsoleEntryTest, ConnectAddressOverrideEmitsAddressOnly)
 {
 	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry");
@@ -176,7 +213,7 @@ TEST(ConsoleEntryTest, ConnectAddressOverrideEmitsAddressOnly)
 	EXPECT_FALSE(received->port.has_value());
 }
 
-TEST(ConsoleEntryTest, ConnectPortOverrideEmitsPortOnly)
+TEST_F(ConsoleEntryTest, ConnectPortOverrideEmitsPortOnly)
 {
 	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry");
@@ -193,7 +230,7 @@ TEST(ConsoleEntryTest, ConnectPortOverrideEmitsPortOnly)
 	EXPECT_EQ(*received->port, 2550u);
 }
 
-TEST(ConsoleEntryTest, ConnectRejectsInvalidPortLocally)
+TEST_F(ConsoleEntryTest, ConnectRejectsInvalidPortLocally)
 {
 	std::vector<std::string> local;
 	std::size_t requestCount = 0;
@@ -214,7 +251,7 @@ TEST(ConsoleEntryTest, ConnectRejectsInvalidPortLocally)
 	EXPECT_EQ(requestCount, 0u);
 }
 
-TEST(ConsoleEntryTest, ConnectRejectsOutOfRangePortLocally)
+TEST_F(ConsoleEntryTest, ConnectRejectsOutOfRangePortLocally)
 {
 	std::vector<std::string> local;
 	std::size_t requestCount = 0;
@@ -236,7 +273,7 @@ TEST(ConsoleEntryTest, ConnectRejectsOutOfRangePortLocally)
 }
 
 
-TEST(ConsoleEntryTest, SubmissionContractReceivesLocalOutput)
+TEST_F(ConsoleEntryTest, SubmissionContractReceivesLocalOutput)
 {
 	ConsoleEntry entry("Entry");
 	std::vector<std::string> submissions;
@@ -251,7 +288,7 @@ TEST(ConsoleEntryTest, SubmissionContractReceivesLocalOutput)
 	EXPECT_NE(submissions.front().find("/connect"), std::string::npos);
 }
 
-TEST(ConsoleEntryTest, ResignedSubmissionContractStopsReceivingLocalOutput)
+TEST_F(ConsoleEntryTest, ResignedSubmissionContractStopsReceivingLocalOutput)
 {
 	ConsoleEntry entry("Entry");
 	std::size_t submissionCount = 0;
@@ -267,4 +304,49 @@ TEST(ConsoleEntryTest, ResignedSubmissionContractStopsReceivingLocalOutput)
 	entry.submit("/help");
 
 	EXPECT_EQ(submissionCount, 1u);
+}
+
+
+TEST_F(ConsoleEntryTest, UsesTranslatedCommandFailure)
+{
+	Service::translator()->clear();
+	Service::translator()->append("client.console.placeholder", "Commande");
+	Service::translator()->append("client.console.command.unknown", "Commande inconnue : /{}");
+	Service::translator()->append("client.command.connect.description", "Connexion");
+	Service::translator()->append("client.command.connect.address.description", "Adresse");
+	Service::translator()->append("client.command.connect.port.description", "Port");
+
+	ConsoleEntry entry("Entry");
+	std::vector<std::string> local;
+	auto contract = entry.subscribeToSubmission(
+		[&](std::string value) {
+			local.emplace_back(std::move(value));
+		});
+
+	entry.submit("/missing");
+
+	ASSERT_EQ(local.size(), 1u);
+	EXPECT_EQ(local.front(), "Commande inconnue : /missing");
+}
+
+TEST_F(ConsoleEntryTest, UsesTranslatedConnectValidation)
+{
+	Service::translator()->clear();
+	Service::translator()->append("client.console.placeholder", "Commande");
+	Service::translator()->append("client.command.connect.description", "Connexion");
+	Service::translator()->append("client.command.connect.address.description", "Adresse");
+	Service::translator()->append("client.command.connect.port.description", "Port");
+	Service::translator()->append("client.command.connect.invalid_port", "Port invalide : {}");
+
+	ConsoleEntry entry("Entry");
+	std::vector<std::string> local;
+	auto contract = entry.subscribeToSubmission(
+		[&](std::string value) {
+			local.emplace_back(std::move(value));
+		});
+
+	entry.submit("/connect --port invalid");
+
+	ASSERT_EQ(local.size(), 1u);
+	EXPECT_EQ(local.front(), "Port invalide : invalid");
 }
