@@ -9,8 +9,12 @@
 #include <system/command_parser.hpp>
 #include <ui/widget/text_edit.hpp>
 
+class ConnectCommand;
+
 class ConsoleEntry final : public spk::TextEdit
 {
+	friend class ConnectCommand;
+
 public:
 	using LocalOutputCallback = std::function<void(std::string)>;
 
@@ -25,8 +29,6 @@ public:
 	using ConnectRequestContract = ConnectRequestProvider::Contract;
 
 private:
-	class ConnectCommand;
-
 	spk::CommandParser _commandParser;
 	LocalOutputCallback _localOutput;
 	ConnectRequestProvider _connectRequestProvider;

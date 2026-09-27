@@ -1,5 +1,6 @@
 add_library(EreliaClientLibrary STATIC
     src/client_configuration.cpp
+    src/command/connect_command.cpp
     src/connection_manager.cpp
     src/console.cpp
     src/console_entry.cpp
