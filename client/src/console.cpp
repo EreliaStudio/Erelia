@@ -16,6 +16,10 @@ namespace
 			return "Trace";
 		case spk::Logger::Level::Info:
 			return "Info";
+		case spk::Logger::Level::UserValueA:
+			return "UserValueA";
+		case spk::Logger::Level::UserValueB:
+			return "UserValueB";
 		case spk::Logger::Level::Warning:
 			return "Warning";
 		case spk::Logger::Level::Error:
@@ -111,10 +115,10 @@ void Console::submit(std::string command)
 
 	if (command == "/connect")
 	{
-		SPK_LOG(Info) << "Console command: /connect" << std::endl;
+		SPK_LOG(UserValueB) << "Starting a new dedicated Server connection cycle" << std::endl;
 		_connectionManager.connect();
 		return;
 	}
 
-	SPK_LOG(Info) << command << std::endl;
+	SPK_LOG(UserValueA) << command << std::endl;
 }
