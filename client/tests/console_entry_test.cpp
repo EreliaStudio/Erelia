@@ -136,3 +136,71 @@ TEST_F(ConsoleEntryTest, UnknownCommandReportsLocallyWithoutLogger)
 	EXPECT_EQ(local.front(), "Unknown command: /missing");
 	EXPECT_EQ(loggerCalls, 0u);
 }
+
+
+TEST_F(ConsoleEntryTest, ConnectParametersAreOptionalAndShownInHelp)
+{
+	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	std::vector<std::string> local;
+	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+		local.emplace_back(std::move(value));
+	});
+
+	entry.submit("/connect --help");
+
+	ASSERT_EQ(local.size(), 1u);
+	EXPECT_NE(local.front().find("--address"), std::string::npos);
+	EXPECT_NE(local.front().find("--port"), std::string::npos);
+}
+
+TEST_F(ConsoleEntryTest, ConnectAddressOverrideKeepsCurrentPort)
+{
+	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	ConsoleEntry entry("Entry", manager, [](std::string) {});
+
+	entry.submit("/connect --address 192.0.2.1");
+
+	EXPECT_EQ(manager.endpoint().address, "192.0.2.1");
+	EXPECT_EQ(manager.endpoint().port, 1u);
+}
+
+TEST_F(ConsoleEntryTest, ConnectPortOverrideKeepsCurrentAddress)
+{
+	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	ConsoleEntry entry("Entry", manager, [](std::string) {});
+
+	entry.submit("/connect --port 2550");
+
+	EXPECT_EQ(manager.endpoint().address, "127.0.0.1");
+	EXPECT_EQ(manager.endpoint().port, 2550u);
+}
+
+TEST_F(ConsoleEntryTest, ConnectRejectsInvalidPortLocally)
+{
+	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	std::vector<std::string> local;
+	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+		local.emplace_back(std::move(value));
+	});
+
+	entry.submit("/connect --port invalid");
+
+	ASSERT_EQ(local.size(), 1u);
+	EXPECT_EQ(local.front(), "Invalid port: invalid");
+	EXPECT_EQ(manager.endpoint().port, 1u);
+}
+
+TEST_F(ConsoleEntryTest, ConnectRejectsOutOfRangePortLocally)
+{
+	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	std::vector<std::string> local;
+	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+		local.emplace_back(std::move(value));
+	});
+
+	entry.submit("/connect --port 65536");
+
+	ASSERT_EQ(local.size(), 1u);
+	EXPECT_EQ(local.front(), "Invalid port: 65536");
+	EXPECT_EQ(manager.endpoint().port, 1u);
+}
