@@ -48,6 +48,7 @@ private:
 
 public:
 	ConnectionManager(std::string name, Endpoint endpoint, spk::Widget *parent = nullptr);
+	~ConnectionManager();
 
 	void connect();
 	[[nodiscard]] bool isCycleStopped() const noexcept;
