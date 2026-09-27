@@ -57,6 +57,9 @@ EreliaClientApplication::EreliaClientApplication(
 		spk::Singleton<spk::Client>::instanciate(new spk::Client());
 	}
 
+	spk::logger.setLevelIdentifier(spk::Logger::Level::UserValueA, "User message");
+	spk::logger.setLevelIdentifier(spk::Logger::Level::UserValueB, "Command");
+
 	spk::Window &mainWindow = createWindow(
 		WindowIdentifier,
 		spk::Window::Configuration{
