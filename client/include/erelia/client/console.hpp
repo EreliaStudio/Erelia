@@ -2,7 +2,6 @@
 
 #include <string>
 
-#include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/console_entry.hpp"
 #include <container/data_model.hpp>
 #include <container/thread_safe_fifo.hpp>
@@ -43,7 +42,8 @@ public:
 	Console(std::string name, spk::Widget *parent = nullptr);
 
 	void submit(std::string command);
-	[[nodiscard]] ConnectCommand::RequestContract subscribeToConnectRequest(ConnectCommand::RequestCallback callback);
+	[[nodiscard]] spk::CommandParser &commandParser() noexcept;
+	[[nodiscard]] const spk::CommandParser &commandParser() const noexcept;
 	[[nodiscard]] ConsoleEntry &commandEntry() noexcept;
 	[[nodiscard]] const ConsoleEntry &commandEntry() const noexcept;
 };

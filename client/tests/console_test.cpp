@@ -122,14 +122,17 @@ TEST(ConsoleTest, GlobalHelpDoesNotStoreTrailingEmptyModelRow)
 	EXPECT_EQ(console.entries().data(0), "/connect - Starts a new dedicated Server connection cycle.");
 }
 
-TEST(ConsoleTest, ConnectRequestIsForwardedFromCommandEntry)
+TEST(ConsoleTest, CommandParserExposesRegisteredConnectCommand)
 {
 	std::optional<ConnectCommand::Request> received;
 	Console console("Console");
-	auto contract = console.subscribeToConnectRequest(
-		[&](const ConnectCommand::Request &request) {
-			received = request;
-		});
+	auto contract =
+		console.commandParser()
+			.command<ConnectCommand>()
+			.subscribeToRequest(
+				[&](const ConnectCommand::Request &request) {
+					received = request;
+				});
 
 	console.submit("/connect --address 192.0.2.1 --port 2550");
 
@@ -138,4 +141,14 @@ TEST(ConsoleTest, ConnectRequestIsForwardedFromCommandEntry)
 	ASSERT_TRUE(received->port.has_value());
 	EXPECT_EQ(*received->address, "192.0.2.1");
 	EXPECT_EQ(*received->port, 2550u);
+}
+
+TEST(ConsoleTest, ConstCommandParserExposesRegisteredConnectCommand)
+{
+	Console console("Console");
+	const Console &constConsole = console;
+
+	EXPECT_EQ(
+		constConsole.commandParser().command<ConnectCommand>().name(),
+		"connect");
 }

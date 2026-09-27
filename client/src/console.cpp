@@ -164,9 +164,14 @@ void Console::submit(std::string command)
 	_commandEntry.submit(std::move(command));
 }
 
-ConnectCommand::RequestContract Console::subscribeToConnectRequest(ConnectCommand::RequestCallback callback)
+spk::CommandParser &Console::commandParser() noexcept
 {
-	return _commandEntry.subscribeToConnectRequest(std::move(callback));
+	return _commandEntry.commandParser();
+}
+
+const spk::CommandParser &Console::commandParser() const noexcept
+{
+	return _commandEntry.commandParser();
 }
 
 ConsoleEntry &Console::commandEntry() noexcept

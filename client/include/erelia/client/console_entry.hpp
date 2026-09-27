@@ -1,7 +1,5 @@
 #pragma once
 
-#include "erelia/client/command/connect_command.hpp"
-
 #include <string>
 
 #include <design_pattern/contract_provider.hpp>
@@ -18,7 +16,6 @@ public:
 private:
 	spk::CommandParser _commandParser;
 	SubmissionProvider _submissionProvider;
-	ConnectCommand &_connectCommand;
 
 	void _emitLocal(std::string message);
 	void _emitFailure(const spk::CommandParser::Result &result);
@@ -30,7 +27,6 @@ public:
 
 	void submit(std::string input);
 	[[nodiscard]] SubmissionContract subscribeToSubmission(SubmissionCallback callback);
-	[[nodiscard]] ConnectCommand::RequestContract subscribeToConnectRequest(ConnectCommand::RequestCallback callback);
 	[[nodiscard]] spk::CommandParser &commandParser() noexcept;
 	[[nodiscard]] const spk::CommandParser &commandParser() const noexcept;
 };

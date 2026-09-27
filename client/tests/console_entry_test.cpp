@@ -64,7 +64,7 @@ TEST(ConsoleEntryTest, CommandHelpIsLocalAndDoesNotEmitConnectRequest)
 		[&](std::string value) {
 			local.emplace_back(std::move(value));
 		});
-	auto contract = entry.subscribeToConnectRequest(
+	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
 		[&](const ConnectCommand::Request &) {
 			++requestCount;
 		});
@@ -90,7 +90,7 @@ TEST(ConsoleEntryTest, MalformedKnownCommandAddsDiagnosticAndUsageLocally)
 		[&](std::string value) {
 			local.emplace_back(std::move(value));
 		});
-	auto requestContract = entry.subscribeToConnectRequest(
+	auto requestContract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
 		[&](const ConnectCommand::Request &) {
 			++requestCount;
 		});
@@ -147,7 +147,7 @@ TEST(ConsoleEntryTest, ConnectWithoutOverridesEmitsEmptyRequest)
 {
 	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry");
-	auto contract = entry.subscribeToConnectRequest(
+	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
 		[&](const ConnectCommand::Request &request) {
 			received = request;
 		});
@@ -163,7 +163,7 @@ TEST(ConsoleEntryTest, ConnectAddressOverrideEmitsAddressOnly)
 {
 	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry");
-	auto contract = entry.subscribeToConnectRequest(
+	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
 		[&](const ConnectCommand::Request &request) {
 			received = request;
 		});
@@ -180,7 +180,7 @@ TEST(ConsoleEntryTest, ConnectPortOverrideEmitsPortOnly)
 {
 	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry");
-	auto contract = entry.subscribeToConnectRequest(
+	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
 		[&](const ConnectCommand::Request &request) {
 			received = request;
 		});
@@ -202,7 +202,7 @@ TEST(ConsoleEntryTest, ConnectRejectsInvalidPortLocally)
 		[&](std::string value) {
 			local.emplace_back(std::move(value));
 		});
-	auto contract = entry.subscribeToConnectRequest(
+	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
 		[&](const ConnectCommand::Request &) {
 			++requestCount;
 		});
@@ -223,7 +223,7 @@ TEST(ConsoleEntryTest, ConnectRejectsOutOfRangePortLocally)
 		[&](std::string value) {
 			local.emplace_back(std::move(value));
 		});
-	auto contract = entry.subscribeToConnectRequest(
+	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
 		[&](const ConnectCommand::Request &) {
 			++requestCount;
 		});

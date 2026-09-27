@@ -9,9 +9,13 @@ MainApplicationWidget::MainApplicationWidget(
 	spk::Widget("MainApplicationWidget", parent),
 	_connectionManager("ConnectionManager", std::move(endpoint), retryDelay, this),
 	_console("Console", this),
-	_connectRequestContract(_console.subscribeToConnectRequest([this](const ConnectCommand::Request &request) {
-		_connect(request);
-	}))
+	_connectRequestContract(
+		_console.commandParser()
+			.command<ConnectCommand>()
+			.subscribeToRequest(
+				[this](const ConnectCommand::Request &request) {
+					_connect(request);
+				}))
 {
 	_layout.addWidget(
 		&_connectionManager,
