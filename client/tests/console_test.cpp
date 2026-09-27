@@ -120,3 +120,28 @@ TEST_F(ConsoleTest, NewEntriesFollowTailOnlyWhileTailIsVisible)
 	EXPECT_TRUE(console.entryView().isLastRowVisible());
 	EXPECT_EQ(console.entries().data(console.entries().rowCount() - 1), "User : following-restored");
 }
+
+TEST_F(ConsoleTest, CommandHelpIsStoredAsIndependentModelRows)
+{
+	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	Console console("Console", manager);
+	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
+
+	console.submit("/connect --help");
+
+	ASSERT_EQ(console.entries().rowCount(), 2u);
+	EXPECT_EQ(console.entries().data(0), "Usage: /connect");
+	EXPECT_EQ(console.entries().data(1), "Starts a new dedicated Server connection cycle.");
+}
+
+TEST_F(ConsoleTest, GlobalHelpDoesNotStoreTrailingEmptyModelRow)
+{
+	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	Console console("Console", manager);
+	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
+
+	console.submit("/help");
+
+	ASSERT_EQ(console.entries().rowCount(), 1u);
+	EXPECT_EQ(console.entries().data(0), "/connect - Starts a new dedicated Server connection cycle.");
+}
