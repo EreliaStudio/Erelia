@@ -5,29 +5,6 @@
 #include <utility>
 #include <vector>
 
-namespace
-{
-	[[nodiscard]] const char *levelName(spk::Logger::Level level) noexcept
-	{
-		switch (level)
-		{
-		case spk::Logger::Level::Trace:
-			return "Trace";
-		case spk::Logger::Level::Info:
-			return "Info";
-		case spk::Logger::Level::UserValueA:
-			return "User";
-		case spk::Logger::Level::UserValueB:
-			return "Command";
-		case spk::Logger::Level::Warning:
-			return "Warning";
-		case spk::Logger::Level::Error:
-			return "Error";
-		}
-		return "Unknown";
-	}
-}
-
 Console::Console(
 	std::string name,
 	spk::Widget *parent) :
@@ -59,11 +36,11 @@ void Console::_queueEntry(
 	if (level == spk::Logger::Level::UserValueA)
 	{
 		_pendingEntries.emplace("User : " + message);
+		return;
 	}
-	else
+	if (level == spk::Logger::Level::UserValueB)
 	{
-		_pendingEntries.emplace(
-			"[" + std::string(levelName(level)) + "] : " + message);
+		_pendingEntries.emplace("[Command] : " + message);
 	}
 }
 

@@ -152,3 +152,23 @@ TEST(ConsoleTest, ConstCommandParserExposesRegisteredConnectCommand)
 		constConsole.commandParser().command<ConnectCommand>().name(),
 		"connect");
 }
+
+
+TEST(ConsoleTest, OnlyUserDataLoggerLevelsReachDataModel)
+{
+	Console console("Console");
+	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
+
+	SPK_LOG(Trace) << "trace" << std::endl;
+	SPK_LOG(Info) << "info" << std::endl;
+	SPK_LOG(UserValueA) << "user" << std::endl;
+	SPK_LOG(UserValueB) << "command" << std::endl;
+	SPK_LOG(Warning) << "warning" << std::endl;
+	SPK_LOG(Error) << "error" << std::endl;
+
+	advance(console);
+
+	ASSERT_EQ(console.entries().rowCount(), 2u);
+	EXPECT_EQ(console.entries().data(0), "User : user");
+	EXPECT_EQ(console.entries().data(1), "[Command] : command");
+}
