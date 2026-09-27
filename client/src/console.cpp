@@ -47,6 +47,7 @@ Console::Console(
 	_layout.addWidget(
 		&_commandEntry,
 		{spk::Layout::SizePolicy::Extend, spk::Layout::SizePolicy::Fixed});
+	_updateSizeHint();
 	activate();
 }
 
@@ -109,9 +110,16 @@ const spk::TextModelView &Console::entryView() const noexcept
 	return _entries;
 }
 
+void Console::_updateSizeHint()
+{
+	setSizeHint(_layout.sizeHint());
+}
+
 void Console::_onGeometryChange()
 {
-	_layout.setGeometry(geometry());
+	_layout.setGeometry(spk::Rect2D{
+		.anchor = {0, 0},
+		.size = geometry().size});
 }
 
 void Console::_updateState(spk::UpdateContext &)
