@@ -35,11 +35,13 @@ Console::Console(
 	spk::Widget *parent) :
 	spk::Widget(std::move(name), parent),
 	_entries("Console.entries", &_entryModel, this),
-	_commandEntry("Console.command", connectionManager, [this](std::string entry) { _appendLocalEntry(std::move(entry)); }, this),
-	_loggerContract(spk::logger.subscribeToEntry(
-		[this](const spk::Logger::Level &level, const std::string &message) {
-			_queueEntry(level, message);
-		}))
+	_commandEntry("Console.command", connectionManager, [this](std::string entry) {
+		_appendLocalEntry(std::move(entry));
+	},
+				  this),
+	_loggerContract(spk::logger.subscribeToEntry([this](const spk::Logger::Level &level, const std::string &message) {
+		_queueEntry(level, message);
+	}))
 {
 	_layout.addWidget(&_entries);
 	_layout.addWidget(

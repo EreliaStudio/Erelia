@@ -22,7 +22,7 @@ namespace
 		explicit TemporaryJsonFile(const std::string &content)
 		{
 			_path = std::filesystem::temp_directory_path() /
-				("erelia-client-" + spk::UUID::generate().toString() + ".json");
+					("erelia-client-" + spk::UUID::generate().toString() + ".json");
 			std::ofstream stream(_path);
 			stream << content;
 		}

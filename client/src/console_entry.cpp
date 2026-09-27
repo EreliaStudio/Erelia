@@ -21,13 +21,10 @@ ConsoleEntry::ConsoleEntry(
 
 void ConsoleEntry::_registerCommands()
 {
-	_commandParser.addCommand({
-		.name = "connect",
-		.description = "Starts a new dedicated Server connection cycle.",
-		.callback = [this](const spk::CommandParser::Invocation &) {
-			SPK_LOG(UserValueB) << "Starting a new dedicated Server connection cycle" << std::endl;
-			_connectionManager.connect();
-		}});
+	_commandParser.addCommand({.name = "connect", .description = "Starts a new dedicated Server connection cycle.", .callback = [this](const spk::CommandParser::Invocation &) {
+								   SPK_LOG(UserValueB) << "Starting a new dedicated Server connection cycle" << std::endl;
+								   _connectionManager.connect();
+							   }});
 }
 
 void ConsoleEntry::_emitLocal(std::string message)

@@ -4,11 +4,11 @@
 #include <string>
 #include <vector>
 
+#include "erelia/client/console_entry.hpp"
+#include <container/data_model.hpp>
 #include <diagnostics/logger.hpp>
 #include <ui/layout/linear_layout.hpp>
-#include <container/data_model.hpp>
 #include <ui/text_model_view.hpp>
-#include "erelia/client/console_entry.hpp"
 #include <ui/widget.hpp>
 
 class ConnectionManager;

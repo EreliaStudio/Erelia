@@ -46,7 +46,9 @@ TEST_F(ConsoleEntryTest, OrdinaryTextUsesLogger)
 			level = receivedLevel;
 			message = receivedMessage;
 		});
-	ConsoleEntry entry("Entry", manager, [&](std::string value) { local.emplace_back(std::move(value)); });
+	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+		local.emplace_back(std::move(value));
+	});
 
 	entry.submit("hello");
 
@@ -61,8 +63,12 @@ TEST_F(ConsoleEntryTest, GlobalHelpIsLocalAndDoesNotUseLogger)
 	std::vector<std::string> local;
 	std::size_t loggerCalls = 0;
 	auto contract = spk::logger.subscribeToEntry(
-		[&](const spk::Logger::Level &, const std::string &) { ++loggerCalls; });
-	ConsoleEntry entry("Entry", manager, [&](std::string value) { local.emplace_back(std::move(value)); });
+		[&](const spk::Logger::Level &, const std::string &) {
+			++loggerCalls;
+		});
+	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+		local.emplace_back(std::move(value));
+	});
 	loggerCalls = 0;
 
 	entry.submit("/help");
@@ -77,7 +83,9 @@ TEST_F(ConsoleEntryTest, CommandHelpIsLocalAndDoesNotExecuteCommand)
 	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
 	const std::size_t attempts = manager.attemptCount();
 	std::vector<std::string> local;
-	ConsoleEntry entry("Entry", manager, [&](std::string value) { local.emplace_back(std::move(value)); });
+	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+		local.emplace_back(std::move(value));
+	});
 
 	entry.submit("/connect --help");
 
@@ -92,8 +100,12 @@ TEST_F(ConsoleEntryTest, MalformedKnownCommandAddsDiagnosticAndUsageLocally)
 	std::vector<std::string> local;
 	std::size_t loggerCalls = 0;
 	auto contract = spk::logger.subscribeToEntry(
-		[&](const spk::Logger::Level &, const std::string &) { ++loggerCalls; });
-	ConsoleEntry entry("Entry", manager, [&](std::string value) { local.emplace_back(std::move(value)); });
+		[&](const spk::Logger::Level &, const std::string &) {
+			++loggerCalls;
+		});
+	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+		local.emplace_back(std::move(value));
+	});
 	loggerCalls = 0;
 
 	entry.submit("/connect --unknown value");
@@ -110,8 +122,12 @@ TEST_F(ConsoleEntryTest, UnknownCommandReportsLocallyWithoutLogger)
 	std::vector<std::string> local;
 	std::size_t loggerCalls = 0;
 	auto contract = spk::logger.subscribeToEntry(
-		[&](const spk::Logger::Level &, const std::string &) { ++loggerCalls; });
-	ConsoleEntry entry("Entry", manager, [&](std::string value) { local.emplace_back(std::move(value)); });
+		[&](const spk::Logger::Level &, const std::string &) {
+			++loggerCalls;
+		});
+	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+		local.emplace_back(std::move(value));
+	});
 	loggerCalls = 0;
 
 	entry.submit("/missing");

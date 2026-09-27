@@ -1,7 +1,7 @@
 #include "erelia/client/application.hpp"
 #include "erelia/client/connection_manager.hpp"
-#include "erelia/client/main_application_widget.hpp"
 #include "erelia/client/console.hpp"
+#include "erelia/client/main_application_widget.hpp"
 
 #include <core/context/update_context.hpp>
 #include <design_pattern/singleton.hpp>
@@ -149,7 +149,6 @@ TEST_F(ClientGoldenImageTest, ApplicationStartup)
 	spk::Widget &root = application.window("main").root();
 	expectWidgetImage(root, "application", "startup");
 }
-
 
 TEST_F(ClientGoldenImageTest, ApplicationMixedConsole)
 {
