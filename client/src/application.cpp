@@ -74,6 +74,16 @@ EreliaClientApplication::EreliaClientApplication(
 
 EreliaClientApplication::~EreliaClientApplication() = default;
 
+MainApplicationWidget &EreliaClientApplication::mainWidget() noexcept
+{
+	return *_mainWidget;
+}
+
+const MainApplicationWidget &EreliaClientApplication::mainWidget() const noexcept
+{
+	return *_mainWidget;
+}
+
 int runClient(int argc, char **argv)
 {
 	try
