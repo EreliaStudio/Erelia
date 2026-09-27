@@ -86,6 +86,11 @@ namespace
 				std::filesystem::path{ERELIA_CLIENT_TEST_RESOURCES_DIR},
 				std::filesystem::path{ERELIA_CLIENT_TEST_RESULTS_DIR});
 			ensureClientServices();
+			spk::logger.muteConsole();
+		}
+		static void TearDownTestSuite()
+		{
+			spk::logger.unmuteConsole();
 		}
 	};
 }
