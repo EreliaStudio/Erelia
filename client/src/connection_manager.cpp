@@ -1,27 +1,25 @@
 #include "erelia/client/connection_manager.hpp"
 
 #include "erelia/client/service.hpp"
+#include "erelia/core/service.hpp"
 
 #include <core/context/update_context.hpp>
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
+#include <network/client.hpp>
+#include <threading/worker_pool.hpp>
 
+#include <chrono>
 #include <utility>
 
 ConnectionManager::ConnectionManager(
 	std::string name,
 	Endpoint endpoint,
+	spk::Timer::Duration retryDelay,
 	spk::Widget *parent) :
 	spk::Widget(std::move(name), parent),
 	_endpoint(std::move(endpoint)),
-	_workerPool(*Service::workerPool()),
-	_client(*Service::client()),
-	_connectionContract(_client.subscribeToConnection([this] {
-		SPK_LOG(Info) << "Connected to dedicated Server" << std::endl;
-	})),
-	_disconnectionContract(_client.subscribeToDisconnection([this] {
-		_disconnected.store(true, std::memory_order_release);
-	}))
+	_retryTimer(retryDelay)
 {
 	if (_endpoint.address.empty() == true)
 	{
@@ -45,30 +43,33 @@ ConnectionManager::~ConnectionManager()
 		_connectionAttempt->wait();
 	}
 
-	if (_client.isConnected() == true)
+	if (Service::client()->isConnected() == true)
 	{
-		_client.disconnect();
+		Service::client()->disconnect();
 	}
 }
 
 void ConnectionManager::_launchAttempt()
 {
-	if (_client.isConnected() == true || _connectionAttempt.has_value() == true)
+	if (
+		Service::client()->isConnected() == true ||
+		_connectionAttempt.has_value() == true)
 	{
 		return;
 	}
 
 	++_attemptCount;
-	_retryScheduled = false;
-	_retryElapsed = {};
+	_retryTimer.reset();
+
 	SPK_LOG(Info)
 		<< "Connecting to dedicated Server (attempt "
 		<< _attemptCount << '/' << MaximumAttemptCount << ')'
 		<< std::endl;
 
+	const Endpoint endpoint = _endpoint;
 	_connectionAttempt.emplace(
-		_workerPool.submit([this] {
-			_client.connect(_endpoint.address, _endpoint.port);
+		Service::workerPool()->submit([endpoint] {
+			Service::client()->connect(endpoint.address, endpoint.port);
 			return true;
 		}));
 }
@@ -81,18 +82,23 @@ void ConnectionManager::_scheduleRetry()
 		return;
 	}
 
-	_retryElapsed = {};
-	_retryScheduled = true;
+	_retryTimer.reset();
+	_retryTimer.start();
+
+	const auto retryDelay =
+		std::chrono::duration_cast<std::chrono::milliseconds>(
+			_retryTimer.duration());
+
 	SPK_LOG(Warning)
 		<< "Dedicated Server connection attempt failed; retrying in "
-		<< RetryDelay.count() << " seconds"
+		<< retryDelay.count() << " ms"
 		<< std::endl;
 }
 
 void ConnectionManager::_stopCycle()
 {
-	_retryScheduled = false;
-	_cycleStopped = true;
+	_retryTimer.reset();
+
 	SPK_LOG(Error)
 		<< "Unable to connect to dedicated Server after "
 		<< MaximumAttemptCount
@@ -113,40 +119,58 @@ void ConnectionManager::_processAttempt()
 		return;
 	}
 
+	const bool completed =
+		status == ConnectionTask::Status::Completed;
 	const bool connected =
-		status == ConnectionTask::Status::Completed &&
-		_client.isConnected() == true;
+		completed == true &&
+		Service::client()->isConnected() == true;
+
 	_connectionAttempt.reset();
 
-	if (connected == false)
+	if (connected == true)
 	{
-		_scheduleRetry();
+		_attemptCount = 0;
+		_retryTimer.reset();
+		SPK_LOG(Info) << "Connected to dedicated Server" << std::endl;
+		return;
 	}
+
+	if (completed == true)
+	{
+		_attemptCount = 0;
+		_retryTimer.reset();
+		SPK_LOG(Warning) << "Dedicated Server connection was lost" << std::endl;
+		connect();
+		return;
+	}
+
+	_scheduleRetry();
 }
 
-void ConnectionManager::_updateState(spk::UpdateContext &context)
+void ConnectionManager::_updateState(spk::UpdateContext &)
 {
-	if (_disconnected.exchange(false, std::memory_order_acq_rel) == true)
+	_processAttempt();
+
+	if (
+		Service::client()->isConnected() == false &&
+		_connectionAttempt.has_value() == false &&
+		_retryTimer.state() == spk::Timer::State::Off &&
+		_attemptCount == 0)
 	{
 		SPK_LOG(Warning) << "Dedicated Server connection was lost" << std::endl;
 		connect();
+		return;
 	}
 
-	_processAttempt();
-
-	if (_retryScheduled == true)
+	if (_retryTimer.state() == spk::Timer::State::TimedOut)
 	{
-		_retryElapsed += context.deltaTime;
-		if (_retryElapsed >= RetryDelay)
-		{
-			_launchAttempt();
-		}
+		_launchAttempt();
 	}
 }
 
 void ConnectionManager::connect()
 {
-	if (_client.isConnected() == true)
+	if (Service::client()->isConnected() == true)
 	{
 		SPK_LOG(Info) << "Client is already connected to the dedicated Server" << std::endl;
 		return;
@@ -160,16 +184,17 @@ void ConnectionManager::connect()
 	}
 
 	_attemptCount = 0;
-	_retryElapsed = {};
-	_retryScheduled = false;
-	_cycleStopped = false;
+	_retryTimer.reset();
 	_connectionAttempt.reset();
 	_launchAttempt();
 }
 
 bool ConnectionManager::isCycleStopped() const noexcept
 {
-	return _cycleStopped;
+	return
+		_attemptCount >= MaximumAttemptCount &&
+		_connectionAttempt.has_value() == false &&
+		_retryTimer.state() == spk::Timer::State::Off;
 }
 
 std::size_t ConnectionManager::attemptCount() const noexcept
@@ -189,7 +214,7 @@ void ConnectionManager::connect(Endpoint endpoint)
 	}
 
 	if (
-		_client.isConnected() == true &&
+		Service::client()->isConnected() == true &&
 		_endpoint.address == endpoint.address &&
 		_endpoint.port == endpoint.port)
 	{
@@ -197,10 +222,9 @@ void ConnectionManager::connect(Endpoint endpoint)
 		return;
 	}
 
-	if (_client.isConnected() == true)
+	if (Service::client()->isConnected() == true)
 	{
-		_client.disconnect();
-		_disconnected.store(false, std::memory_order_release);
+		Service::client()->disconnect();
 	}
 
 	_endpoint = std::move(endpoint);

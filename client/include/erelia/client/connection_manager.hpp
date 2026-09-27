@@ -1,16 +1,13 @@
 #pragma once
 
-#include <atomic>
-#include <chrono>
+#include <core/platform/timer.hpp>
+#include <threading/task.hpp>
+#include <ui/widget.hpp>
+
 #include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string>
-
-#include <network/client.hpp>
-#include <threading/task.hpp>
-#include <threading/worker_pool.hpp>
-#include <ui/widget.hpp>
 
 class ConnectionManager final : public spk::Widget
 {
@@ -22,23 +19,15 @@ public:
 	};
 
 	static constexpr std::size_t MaximumAttemptCount = 3;
-	static constexpr std::chrono::seconds RetryDelay{15};
 
 private:
 	using ConnectionTask = spk::Task<bool>;
 	using ConnectionAnswer = ConnectionTask::Answer;
 
 	Endpoint _endpoint;
-	spk::WorkerPool &_workerPool;
-	spk::Client &_client;
 	std::optional<ConnectionAnswer> _connectionAttempt;
-	std::chrono::steady_clock::duration _retryElapsed{};
+	spk::Timer _retryTimer;
 	std::size_t _attemptCount = 0;
-	bool _retryScheduled = false;
-	bool _cycleStopped = false;
-	std::atomic_bool _disconnected{false};
-	spk::Client::ConnectionContract _connectionContract;
-	spk::Client::DisconnectionContract _disconnectionContract;
 
 	void _launchAttempt();
 	void _processAttempt();
@@ -47,7 +36,11 @@ private:
 	void _updateState(spk::UpdateContext &context) override;
 
 public:
-	ConnectionManager(std::string name, Endpoint endpoint, spk::Widget *parent = nullptr);
+	ConnectionManager(
+		std::string name,
+		Endpoint endpoint,
+		spk::Timer::Duration retryDelay,
+		spk::Widget *parent = nullptr);
 	~ConnectionManager();
 
 	void connect();

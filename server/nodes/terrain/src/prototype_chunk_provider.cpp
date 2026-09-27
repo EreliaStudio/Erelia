@@ -1,6 +1,7 @@
 #include "prototype_chunk_provider.hpp"
 
 #include "erelia/core/chunk_builder.hpp"
+#include "erelia/core/service.hpp"
 #include "erelia/core/voxel/cell.hpp"
 
 #include <array>
@@ -8,7 +9,6 @@
 #include <functional>
 #include <utility>
 
-#include <design_pattern/singleton.hpp>
 #include <threading/worker_pool.hpp>
 
 namespace
@@ -135,10 +135,7 @@ namespace
 spk::Task<Chunk>::Answer PrototypeChunkProvider::request(
 	const Chunk::Coordinate &coordinate)
 {
-	spk::WorkerPool &workerPool =
-		spk::Singleton<spk::WorkerPool>::instance();
-
-	return workerPool.submit(
+	return Service::workerPool()->submit(
 		[coordinate] {
 			return generateChunk(coordinate);
 		});
