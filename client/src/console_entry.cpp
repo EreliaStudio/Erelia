@@ -15,6 +15,7 @@ private:
 public:
 	explicit ConnectCommand(ConsoleEntry &owner) :
 		Command(
+			"connect",
 			"Starts a new dedicated Server connection cycle.",
 			{
 				{.name = "address", .description = "Dedicated Server address", .optional = true},
@@ -71,7 +72,6 @@ ConsoleEntry::ConsoleEntry(
 void ConsoleEntry::_registerCommands()
 {
 	_commandParser.addCommand(
-		"connect",
 		std::make_unique<ConnectCommand>(*this));
 }
 
