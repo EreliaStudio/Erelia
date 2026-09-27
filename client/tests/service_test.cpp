@@ -103,26 +103,23 @@ TEST_F(ClientTranslatorServiceTest, FileAppendLoadsCatalogThroughClientService)
 		"Second 2");
 }
 
-TEST_F(ClientTranslatorServiceTest, ReplacingTranslationMidRunChangesSubsequentOutput)
+TEST_F(ClientTranslatorServiceTest, DuplicateDirectKeyIsRejected)
 {
 	Service::translator()->append(
 		"client.status",
 		"Initial");
 
+	EXPECT_THROW(
+		Service::translator()->append(
+			"client.status",
+			"Updated"),
+		spk::Exception);
 	EXPECT_EQ(
 		Service::translator()->translate("client.status"),
 		"Initial");
-
-	Service::translator()->append(
-		"client.status",
-		"Updated");
-
-	EXPECT_EQ(
-		Service::translator()->translate("client.status"),
-		"Updated");
 }
 
-TEST_F(ClientTranslatorServiceTest, FileAppendCanReplaceSubsetWithoutClearingOtherEntries)
+TEST_F(ClientTranslatorServiceTest, FileAppendRejectsDuplicateKeyWithoutPartialMutation)
 {
 	const TemporaryTranslationFile file(
 		R"({"client.shared":"From file","client.added":"Added"})");
@@ -134,17 +131,18 @@ TEST_F(ClientTranslatorServiceTest, FileAppendCanReplaceSubsetWithoutClearingOth
 		"client.preserved",
 		"Preserved");
 
-	Service::translator()->append(file.path());
-
+	EXPECT_THROW(
+		Service::translator()->append(file.path()),
+		spk::Exception);
 	EXPECT_EQ(
 		Service::translator()->translate("client.shared"),
-		"From file");
-	EXPECT_EQ(
-		Service::translator()->translate("client.added"),
-		"Added");
+		"Initial");
 	EXPECT_EQ(
 		Service::translator()->translate("client.preserved"),
 		"Preserved");
+	EXPECT_THROW(
+		(void)Service::translator()->translate("client.added"),
+		spk::Exception);
 }
 
 TEST_F(ClientTranslatorServiceTest, ClearRemovesTranslationsForEveryServiceLookup)
