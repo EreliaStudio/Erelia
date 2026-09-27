@@ -1,13 +1,11 @@
 #include "erelia/client/client_configuration.hpp"
 #include "erelia/client/console.hpp"
 #include "erelia/client/main_application_widget.hpp"
-#include "erelia/client/service.hpp"
 
 #include <core/application.hpp>
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
 #include <gtest/gtest.h>
-#include <system/translator.hpp>
 #include <type/uuid.hpp>
 
 #include <chrono>
@@ -123,12 +121,4 @@ TEST(ClientBootstrap, InitializesWidgetHierarchyFromConfiguredWindowGeometry)
 	EXPECT_EQ(mainWidget.console().geometry(), expectedGeometry);
 	EXPECT_EQ(mainWidget.console().entryView().geometry().width, 640u);
 	EXPECT_GT(mainWidget.console().entryView().geometry().height, 0u);
-}
-
-
-TEST(ClientService, ProvidesStableTranslatorInstance)
-{
-	EXPECT_EQ(
-		Service::translator(),
-		Service::translator());
 }

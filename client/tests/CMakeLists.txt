@@ -4,6 +4,7 @@ add_executable(EreliaClientTestSuite
     console_test.cpp
     console_entry_test.cpp
     golden_image_test.cpp
+    service_test.cpp
     test_environment.cpp
 )
 target_compile_features(EreliaClientTestSuite PRIVATE cxx_std_23)
