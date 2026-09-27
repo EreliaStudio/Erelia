@@ -35,7 +35,7 @@ Console::Console(
 	spk::Widget *parent) :
 	spk::Widget(std::move(name), parent),
 	_connectionManager(connectionManager),
-	_entries("Console.entries", this),
+	_entries("Console.entries", &_entryModel, this),
 	_commandEdit("Console.command", this),
 	_loggerContract(spk::logger.subscribeToEntry(
 		[this](const spk::Logger::Level &level, const std::string &message) {
@@ -79,15 +79,34 @@ void Console::_flushEntries()
 		return;
 	}
 
-	for (const std::string &entry : entries)
+	const bool followTail =
+		_entryModel.empty() == true ||
+		_entries.isLastRowVisible() == true;
+
+	for (std::string &entry : entries)
 	{
-		if (_displayedEntries.empty() == false)
-		{
-			_displayedEntries += '\n';
-		}
-		_displayedEntries += entry;
+		_entryModel.append(std::move(entry));
 	}
-	_entries.contentObject().setText(_displayedEntries);
+
+	if (followTail == true && _entryModel.empty() == false)
+	{
+		_entries.scrollTo(_entryModel.rowCount() - 1);
+	}
+}
+
+const spk::DataModel<std::string> &Console::entries() const noexcept
+{
+	return _entryModel;
+}
+
+spk::TextModelView &Console::entryView() noexcept
+{
+	return _entries;
+}
+
+const spk::TextModelView &Console::entryView() const noexcept
+{
+	return _entries;
 }
 
 void Console::_onGeometryChange()
