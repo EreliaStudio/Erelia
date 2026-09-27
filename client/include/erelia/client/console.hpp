@@ -16,19 +16,9 @@ class ConnectionManager;
 class Console final : public spk::Widget
 {
 private:
-	class CommandEdit final : public spk::TextEdit
-	{
-	private:
-		Console &_console;
-		void _onKeyPressedEvent(spk::KeyPressedEvent &event) override;
-
-	public:
-		CommandEdit(std::string name, Console &console, spk::Widget *parent);
-	};
-
 	ConnectionManager &_connectionManager;
 	spk::ScrollArea<spk::TextArea> _entries;
-	CommandEdit _commandEdit;
+	spk::TextEdit _commandEdit;
 	spk::VerticalLayout _layout;
 	spk::Logger::OnEntryContract _loggerContract;
 	std::mutex _pendingMutex;
@@ -39,6 +29,7 @@ private:
 	void _flushEntries();
 	void _onGeometryChange() override;
 	void _updateState(spk::UpdateContext &context) override;
+	void _onPassiveKeyPressedEvent(spk::KeyPressedEvent &event) override;
 
 public:
 	Console(std::string name, ConnectionManager &connectionManager, spk::Widget *parent = nullptr);
