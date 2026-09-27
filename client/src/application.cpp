@@ -71,7 +71,7 @@ EreliaClientApplication::EreliaClientApplication(
 	_mainWidget = std::make_unique<MainApplicationWidget>(
 		std::move(endpoint),
 		&mainWindow.root());
-	_mainWidget->setGeometry(mainWindow.geometry());
+	_mainWidget->setGeometry(mainWindow.root().geometry());
 }
 
 EreliaClientApplication::~EreliaClientApplication() = default;
