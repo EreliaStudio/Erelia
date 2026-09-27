@@ -25,31 +25,6 @@ namespace
 	}
 }
 
-Console::CommandEdit::CommandEdit(
-	std::string name,
-	Console &console,
-	spk::Widget *parent) :
-	spk::TextEdit(std::move(name), parent),
-	_console(console)
-{
-}
-
-void Console::CommandEdit::_onKeyPressedEvent(spk::KeyPressedEvent &event)
-{
-	if (
-		event.record.key == spk::Keyboard::Return &&
-		isFocused() == true)
-	{
-		const std::string command = textAsUTF8();
-		setText("");
-		_console.submit(command);
-		event.consumed = true;
-		return;
-	}
-
-	spk::TextEdit::_onKeyPressedEvent(event);
-}
-
 Console::Console(
 	std::string name,
 	ConnectionManager &connectionManager,
@@ -57,7 +32,7 @@ Console::Console(
 	spk::Widget(std::move(name), parent),
 	_connectionManager(connectionManager),
 	_entries("Console.entries", this),
-	_commandEdit("Console.command", *this, this),
+	_commandEdit("Console.command", this),
 	_loggerContract(spk::logger.subscribeToEntry(
 		[this](const spk::Logger::Level &level, const std::string &message) {
 			_queueEntry(level, message);
@@ -112,6 +87,19 @@ void Console::_onGeometryChange()
 void Console::_updateState(spk::UpdateContext &)
 {
 	_flushEntries();
+}
+
+void Console::_onPassiveKeyPressedEvent(spk::KeyPressedEvent &event)
+{
+	if (
+		event.record.key == spk::Keyboard::Return &&
+		_commandEdit.isFocused() == true)
+	{
+		const std::string command = _commandEdit.textAsUTF8();
+		_commandEdit.setText("");
+		submit(command);
+		event.consumed = true;
+	}
 }
 
 void Console::submit(std::string command)
