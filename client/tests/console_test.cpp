@@ -129,9 +129,13 @@ TEST_F(ConsoleTest, CommandHelpIsStoredAsIndependentModelRows)
 
 	console.submit("/connect --help");
 
-	ASSERT_EQ(console.entries().rowCount(), 2u);
-	EXPECT_EQ(console.entries().data(0), "Usage: /connect");
+	ASSERT_EQ(console.entries().rowCount(), 4u);
+	EXPECT_EQ(
+		console.entries().data(0),
+		"Usage: /connect [--address <1 value>] [--port <1 value>]");
 	EXPECT_EQ(console.entries().data(1), "Starts a new dedicated Server connection cycle.");
+	EXPECT_EQ(console.entries().data(2), "  --address: Dedicated Server address");
+	EXPECT_EQ(console.entries().data(3), "  --port: Dedicated Server port");
 }
 
 TEST_F(ConsoleTest, GlobalHelpDoesNotStoreTrailingEmptyModelRow)
