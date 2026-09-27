@@ -28,7 +28,7 @@ namespace
 		}
 	}
 
-	void advance(ConnectionManager &manager, std::chrono::steady_clock::duration delta)
+	void advanceConnectionManager(ConnectionManager &manager, std::chrono::steady_clock::duration delta)
 	{
 		spk::UpdateContext context{.time = {}, .deltaTime = delta};
 		spk::Keyboard keyboard;
@@ -42,7 +42,7 @@ namespace
 	{
 		for (std::size_t iteration = 0; iteration < 400 && manager.isCycleStopped() == false; ++iteration)
 		{
-			advance(manager, ConnectionManager::RetryDelay);
+			advanceConnectionManager(manager, ConnectionManager::RetryDelay);
 			std::this_thread::sleep_for(std::chrono::milliseconds(5));
 		}
 		return manager.isCycleStopped();
@@ -91,7 +91,7 @@ TEST_F(ConnectionManagerTest, FailedCycleStopsAfterExactlyThreeAttempts)
 
 	for (std::size_t iteration = 0; iteration < 10; ++iteration)
 	{
-		advance(manager, ConnectionManager::RetryDelay);
+		advanceConnectionManager(manager, ConnectionManager::RetryDelay);
 	}
 	EXPECT_EQ(manager.attemptCount(), ConnectionManager::MaximumAttemptCount);
 }
