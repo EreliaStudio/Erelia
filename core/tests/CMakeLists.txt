@@ -7,7 +7,6 @@ add_executable(EreliaCoreTestSuite
     networking_diagnostic_test.cpp
     status_test.cpp
     terrain_coordinate_test.cpp
-    translation_engine_test.cpp
     voxel_catalog_test.cpp
     voxel_cell_test.cpp
     voxel_definition_test.cpp

@@ -1,7 +1,5 @@
 #pragma once
 
-class TranslationEngine;
-
 namespace spk
 {
 	class WorkerPool;
@@ -10,5 +8,4 @@ namespace spk
 namespace Service
 {
 	[[nodiscard]] spk::WorkerPool *workerPool();
-	[[nodiscard]] TranslationEngine *translationEngine();
 }
