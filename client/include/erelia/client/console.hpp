@@ -24,7 +24,6 @@ private:
 	spk::Logger::OnEntryContract _loggerContract;
 	std::mutex _pendingMutex;
 	std::vector<std::string> _pendingEntries;
-	bool _followTail = true;
 
 	void _queueEntry(const spk::Logger::Level &level, const std::string &message);
 	void _flushEntries();
