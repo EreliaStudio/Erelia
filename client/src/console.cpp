@@ -34,18 +34,16 @@ Console::Console(
 	ConnectionManager &connectionManager,
 	spk::Widget *parent) :
 	spk::Widget(std::move(name), parent),
-	_connectionManager(connectionManager),
 	_entries("Console.entries", &_entryModel, this),
-	_commandEdit("Console.command", this),
+	_commandEntry("Console.command", connectionManager, [this](std::string entry) { _appendLocalEntry(std::move(entry)); }, this),
 	_loggerContract(spk::logger.subscribeToEntry(
 		[this](const spk::Logger::Level &level, const std::string &message) {
 			_queueEntry(level, message);
 		}))
 {
-	_commandEdit.setPlaceholder("Enter text or /connect");
 	_layout.addWidget(&_entries);
 	_layout.addWidget(
-		&_commandEdit,
+		&_commandEntry,
 		{spk::Layout::SizePolicy::Extend, spk::Layout::SizePolicy::Fixed});
 	activate();
 }
@@ -123,28 +121,38 @@ void Console::_onPassiveKeyPressedEvent(spk::KeyPressedEvent &event)
 {
 	if (
 		event.record.key == spk::Keyboard::Return &&
-		_commandEdit.isFocused() == true)
+		_commandEntry.isFocused() == true)
 	{
-		const std::string command = _commandEdit.textAsUTF8();
-		_commandEdit.setText("");
+		const std::string command = _commandEntry.textAsUTF8();
+		_commandEntry.setText("");
 		submit(command);
 		event.consumed = true;
 	}
 }
 
+void Console::_appendLocalEntry(std::string entry)
+{
+	const bool followTail =
+		_entryModel.empty() == true ||
+		_entries.isLastRowVisible() == true;
+	_entryModel.append(std::move(entry));
+	if (followTail == true)
+	{
+		_entries.scrollTo(_entryModel.rowCount() - 1);
+	}
+}
+
 void Console::submit(std::string command)
 {
-	if (command.empty() == true)
-	{
-		return;
-	}
+	_commandEntry.submit(std::move(command));
+}
 
-	if (command == "/connect")
-	{
-		SPK_LOG(UserValueB) << "Starting a new dedicated Server connection cycle" << std::endl;
-		_connectionManager.connect();
-		return;
-	}
+ConsoleEntry &Console::commandEntry() noexcept
+{
+	return _commandEntry;
+}
 
-	SPK_LOG(UserValueA) << command << std::endl;
+const ConsoleEntry &Console::commandEntry() const noexcept
+{
+	return _commandEntry;
 }
