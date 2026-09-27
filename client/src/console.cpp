@@ -145,8 +145,19 @@ void Console::_appendLocalEntry(std::string entry)
 	const bool followTail =
 		_entryModel.empty() == true ||
 		_entries.isLastRowVisible() == true;
-	_entryModel.append(std::move(entry));
-	if (followTail == true)
+	std::size_t begin = 0;
+	while (begin < entry.size())
+	{
+		const std::size_t end = entry.find('\n', begin);
+		_entryModel.append(entry.substr(begin, end - begin));
+		if (end == std::string::npos)
+		{
+			break;
+		}
+		begin = end + 1;
+	}
+
+	if (followTail == true && _entryModel.empty() == false)
 	{
 		_entries.scrollTo(_entryModel.rowCount() - 1);
 	}
