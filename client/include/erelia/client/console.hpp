@@ -8,7 +8,7 @@
 #include <ui/layout/linear_layout.hpp>
 #include <container/data_model.hpp>
 #include <ui/text_model_view.hpp>
-#include <ui/widget/text_edit.hpp>
+#include "erelia/client/console_entry.hpp"
 #include <ui/widget.hpp>
 
 class ConnectionManager;
@@ -16,10 +16,9 @@ class ConnectionManager;
 class Console final : public spk::Widget
 {
 private:
-	ConnectionManager &_connectionManager;
 	spk::DataModel<std::string> _entryModel;
 	spk::TextModelView _entries;
-	spk::TextEdit _commandEdit;
+	ConsoleEntry _commandEntry;
 	spk::VerticalLayout _layout;
 	spk::Logger::OnEntryContract _loggerContract;
 	std::mutex _pendingMutex;
@@ -27,6 +26,7 @@ private:
 
 	void _queueEntry(const spk::Logger::Level &level, const std::string &message);
 	void _flushEntries();
+	void _appendLocalEntry(std::string entry);
 
 public:
 	[[nodiscard]] const spk::DataModel<std::string> &entries() const noexcept;
@@ -42,4 +42,6 @@ public:
 	Console(std::string name, ConnectionManager &connectionManager, spk::Widget *parent = nullptr);
 
 	void submit(std::string command);
+	[[nodiscard]] ConsoleEntry &commandEntry() noexcept;
+	[[nodiscard]] const ConsoleEntry &commandEntry() const noexcept;
 };
