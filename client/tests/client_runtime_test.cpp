@@ -1,5 +1,6 @@
 #include "erelia/client/application.hpp"
 #include "erelia/client/console.hpp"
+#include "erelia/client/main_application_widget.hpp"
 
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
@@ -87,4 +88,19 @@ TEST(ClientConsole, OrdinarySubmissionUsesUserValueA)
 
 	EXPECT_EQ(receivedLevel, spk::Logger::Level::UserValueA);
 	EXPECT_EQ(receivedMessage, "player input");
+}
+
+
+TEST(ClientApplication, InitializesWidgetHierarchyFromConfiguredWindowGeometry)
+{
+	EreliaClientApplication application({"127.0.0.1", 1});
+	const spk::Rect2D expectedGeometry{
+		.anchor = {0, 0},
+		.size = {640, 480}};
+
+	EXPECT_EQ(application.window("main").root().geometry(), expectedGeometry);
+	EXPECT_EQ(application.mainWidget().geometry(), expectedGeometry);
+	EXPECT_EQ(application.mainWidget().console().geometry(), expectedGeometry);
+	EXPECT_EQ(application.mainWidget().console().entryView().geometry().width, 640u);
+	EXPECT_GT(application.mainWidget().console().entryView().geometry().height, 0u);
 }
