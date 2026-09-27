@@ -49,7 +49,7 @@ TEST(ClientConfiguration, LoadsExactExternalContract)
 		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":15000}})");
 
 	const ClientConfiguration configuration =
-		ClientConfiguration::load(file.path().string());
+		ClientConfiguration::load(file.path());
 
 	EXPECT_EQ(configuration.server.address, "127.0.0.1");
 	EXPECT_EQ(configuration.server.port, 2550u);
@@ -75,7 +75,7 @@ TEST(ClientConfiguration, RejectsInvalidContracts)
 	{
 		const TemporaryJsonFile file(fixture);
 		EXPECT_THROW(
-			(void)ClientConfiguration::load(file.path().string()),
+			(void)ClientConfiguration::load(file.path()),
 			spk::Exception);
 	}
 }

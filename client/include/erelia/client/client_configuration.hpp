@@ -3,12 +3,12 @@
 #include "erelia/client/connection_manager.hpp"
 
 #include <chrono>
-#include <string>
+#include <filesystem>
 
 struct ClientConfiguration
 {
 	ConnectionManager::Endpoint server;
 	std::chrono::milliseconds retryDelay;
 
-	[[nodiscard]] static ClientConfiguration load(const std::string &path);
+	[[nodiscard]] static ClientConfiguration load(const std::filesystem::path &path);
 };

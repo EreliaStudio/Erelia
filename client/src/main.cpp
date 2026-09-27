@@ -7,6 +7,7 @@
 #include <system/argument_parser.hpp>
 
 #include <cstdlib>
+#include <filesystem>
 #include <exception>
 #include <utility>
 
@@ -44,7 +45,7 @@ int main(int argc, char **argv)
 					.size = {640, 480}}});
 
 		const ClientConfiguration configuration =
-			ClientConfiguration::load(arguments.get("config").values.front());
+			ClientConfiguration::load(std::filesystem::path(arguments.get("config").values.front()));
 
 		MainApplicationWidget mainWidget(
 			std::move(configuration.server),

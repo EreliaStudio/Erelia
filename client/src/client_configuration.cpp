@@ -6,11 +6,10 @@
 #include <cstdint>
 #include <filesystem>
 
-ClientConfiguration ClientConfiguration::load(const std::string &path)
+ClientConfiguration ClientConfiguration::load(const std::filesystem::path &path)
 {
-	const std::filesystem::path file(path);
-	const spk::JSON::Value document = spk::JSON::Loader::parseFile(file);
-	const spk::JSON::Reader root(document, file);
+	const spk::JSON::Value document = spk::JSON::Loader::parseFile(path);
+	const spk::JSON::Reader root(document, path);
 	root.forbidUnknown({"server config"});
 
 	const spk::JSON::Reader server = root.child("server config");
