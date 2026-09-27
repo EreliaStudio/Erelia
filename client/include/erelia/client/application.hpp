@@ -17,6 +17,9 @@ private:
 public:
 	explicit EreliaClientApplication(ConnectionManager::Endpoint endpoint);
 	~EreliaClientApplication();
+
+	[[nodiscard]] MainApplicationWidget &mainWidget() noexcept;
+	[[nodiscard]] const MainApplicationWidget &mainWidget() const noexcept;
 };
 
 struct ClientConfiguration
