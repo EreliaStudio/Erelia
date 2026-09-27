@@ -4,6 +4,7 @@
 
 #include <diagnostics/logger.hpp>
 
+#include <limits>
 #include <utility>
 
 ConsoleEntry::ConsoleEntry(
@@ -16,6 +17,7 @@ ConsoleEntry::ConsoleEntry(
 	_localOutput(std::move(localOutput))
 {
 	setPlaceholder("Enter text or /help");
+	setMaximalSize({std::numeric_limits<float>::max(), maximalSize().y});
 	_registerCommands();
 }
 
