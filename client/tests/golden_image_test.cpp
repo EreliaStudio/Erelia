@@ -45,9 +45,8 @@ namespace
 	spk::Widget &prepareApplication(EreliaClientApplication &application)
 	{
 		spk::Widget &root = application.window("main").root();
-		root.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
-		application.mainWidget().setGeometry(root.geometry());
-		advance(application.mainWidget());
+		root.resize({.anchor = {0, 0}, .size = {640, 480}});
+		advance(root);
 		return root;
 	}
 
