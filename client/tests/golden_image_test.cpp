@@ -1,13 +1,81 @@
-#include <filesystem>
-#include <string>
+#include "erelia/client/application.hpp"
+#include "erelia/client/connection_manager.hpp"
+#include "erelia/client/console.hpp"
+
+#include <core/context/update_context.hpp>
+#include <design_pattern/singleton.hpp>
+#include <diagnostics/logger.hpp>
+#include <input/device_context.hpp>
+#include <network/client.hpp>
+#include <rendering/render_snapshot.hpp>
+#include <sparkle_test.hpp>
+#include <threading/worker_pool.hpp>
 
 #include <gtest/gtest.h>
 
-#include "rendering/command/clear_render_command.hpp"
-#include "sparkle_test.hpp"
+#include <chrono>
+#include <filesystem>
+#include <string>
 
 namespace
 {
+	void ensureClientServices()
+	{
+		if (spk::Singleton<spk::WorkerPool>::isInstanciated() == false)
+		{
+			spk::Singleton<spk::WorkerPool>::instanciate(new spk::WorkerPool());
+		}
+		if (spk::Singleton<spk::Client>::isInstanciated() == false)
+		{
+			spk::Singleton<spk::Client>::instanciate(new spk::Client());
+		}
+	}
+
+	void advance(spk::Widget &widget)
+	{
+		spk::UpdateContext context{.time = {}, .deltaTime = std::chrono::milliseconds(16)};
+		spk::Keyboard keyboard;
+		spk::Mouse mouse;
+		spk::DeviceContext devices{.keyboard = keyboard, .mouse = mouse};
+		widget.updateState(context);
+		widget.updateState(context, devices);
+	}
+
+	void expectWidgetImage(
+		spk::Widget &widget,
+		const std::filesystem::path &category,
+		const std::string &name)
+	{
+		auto &context = sparkle_test::OpenGLTestContext::instance();
+		context.reset();
+		context.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
+
+		spk::RenderSnapshot::Builder builder;
+		widget.buildRenderSnapshot(builder);
+		builder.build().execute(context.renderContext());
+
+		const auto actual = sparkle_test::resultImagePath(category, name);
+		const auto expected = sparkle_test::expectedImagePath(category, name);
+		const auto difference = sparkle_test::resultImagePath(category, name + "_difference");
+		context.save(actual);
+
+		ASSERT_TRUE(std::filesystem::exists(expected))
+			<< "Missing golden image: " << expected << "\n"
+			<< "The generated candidate was saved to: " << actual;
+
+		const auto result = sparkle_test::compareImages(actual, expected, difference);
+		EXPECT_EQ(result.actualWidth, 640);
+		EXPECT_EQ(result.actualHeight, 480);
+		EXPECT_EQ(result.expectedWidth, 640);
+		EXPECT_EQ(result.expectedHeight, 480);
+		EXPECT_TRUE(result.matches)
+			<< "Golden image mismatch for [" << category.string() << '/' << name << "]\n"
+			<< "Different pixels: " << result.differentPixelCount << "\n"
+			<< "Actual image: " << actual << "\n"
+			<< "Expected image: " << expected << "\n"
+			<< "Difference image: " << difference;
+	}
+
 	class ClientGoldenImageTest : public ::testing::Test
 	{
 	protected:
@@ -16,57 +84,67 @@ namespace
 			sparkle_test::configurePaths(
 				std::filesystem::path{ERELIA_CLIENT_TEST_RESOURCES_DIR},
 				std::filesystem::path{ERELIA_CLIENT_TEST_RESULTS_DIR});
-		}
-
-		void expectSolidFrame(spk::Vector2UInt size, spk::Color color, const std::string &name)
-		{
-			auto &context = sparkle_test::OpenGLTestContext::instance();
-			context.reset();
-			context.setGeometry({.anchor = {0, 0}, .size = size});
-
-			spk::ClearRenderCommand(color, spk::ClearRenderCommand::Mask::Color)
-				.execute(context.renderContext());
-
-			const std::filesystem::path category = "golden_image";
-			const std::filesystem::path actual = sparkle_test::resultImagePath(category, name);
-			const std::filesystem::path expected = sparkle_test::expectedImagePath(category, name);
-			const std::filesystem::path difference =
-				sparkle_test::resultImagePath(category, name + "_difference");
-
-			context.save(actual);
-
-			ASSERT_TRUE(std::filesystem::exists(expected))
-				<< "Missing golden image: " << expected << "\n"
-				<< "The generated candidate was saved to: " << actual;
-
-			const sparkle_test::ImageComparisonResult result =
-				sparkle_test::compareImages(actual, expected, difference);
-
-			EXPECT_EQ(result.actualWidth, static_cast<int>(size.x));
-			EXPECT_EQ(result.actualHeight, static_cast<int>(size.y));
-			EXPECT_EQ(result.expectedWidth, static_cast<int>(size.x));
-			EXPECT_EQ(result.expectedHeight, static_cast<int>(size.y));
-			EXPECT_TRUE(result.matches)
-				<< "Golden image mismatch for [" << name << "]\n"
-				<< "Different pixels: " << result.differentPixelCount << "\n"
-				<< "Actual image: " << actual << "\n"
-				<< "Expected image: " << expected << "\n"
-				<< "Difference image: " << difference;
+			ensureClientServices();
 		}
 	};
 }
 
-TEST_F(ClientGoldenImageTest, Compares64By64Image)
+TEST_F(ClientGoldenImageTest, ConsoleEmpty)
 {
-	expectSolidFrame({64, 64}, {1.0f, 0.0f, 0.0f, 1.0f}, "solid_red_64x64");
+	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	Console console("Console", manager);
+	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
+	expectWidgetImage(console, "console", "empty");
 }
 
-TEST_F(ClientGoldenImageTest, Compares320By180Image)
+TEST_F(ClientGoldenImageTest, ConsoleUserAndCommandMessages)
 {
-	expectSolidFrame({320, 180}, {0.0f, 1.0f, 0.0f, 1.0f}, "solid_green_320x180");
+	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	Console console("Console", manager);
+	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
+	SPK_LOG(UserValueA) << "Hello from the player" << std::endl;
+	SPK_LOG(UserValueB) << "Connection cycle started" << std::endl;
+	advance(console);
+	expectWidgetImage(console, "console", "user_and_command");
 }
 
-TEST_F(ClientGoldenImageTest, Compares640By480Image)
+TEST_F(ClientGoldenImageTest, ConsoleAllLoggerLevels)
 {
-	expectSolidFrame({640, 480}, {0.0f, 0.0f, 1.0f, 1.0f}, "solid_blue_640x480");
+	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	Console console("Console", manager);
+	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
+	SPK_LOG(Trace) << "Trace message" << std::endl;
+	SPK_LOG(Info) << "Info message" << std::endl;
+	SPK_LOG(UserValueA) << "User message" << std::endl;
+	SPK_LOG(UserValueB) << "Command result" << std::endl;
+	SPK_LOG(Warning) << "Warning message" << std::endl;
+	SPK_LOG(Error) << "Error message" << std::endl;
+	advance(console);
+	expectWidgetImage(console, "console", "all_levels");
+}
+
+TEST_F(ClientGoldenImageTest, ConsoleOverflowTopMiddleAndBottom)
+{
+	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	Console console("Console", manager);
+	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
+	for (std::size_t index = 0; index < 200; ++index)
+	{
+		SPK_LOG(UserValueA) << "history-" << index << std::endl;
+	}
+	advance(console);
+
+	console.entryView().scrollTo(0);
+	expectWidgetImage(console, "console", "overflow_top");
+	console.entryView().scrollTo(100);
+	expectWidgetImage(console, "console", "overflow_middle");
+	console.entryView().scrollTo(199);
+	expectWidgetImage(console, "console", "overflow_bottom");
+}
+
+TEST_F(ClientGoldenImageTest, ApplicationStartup)
+{
+	EreliaClientApplication application({"127.0.0.1", 1});
+	spk::Widget &root = application.window("main").root();
+	expectWidgetImage(root, "application", "startup");
 }
