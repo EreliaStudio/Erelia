@@ -51,6 +51,8 @@ public:
 	~ConnectionManager();
 
 	void connect();
+	void connect(Endpoint endpoint);
+	[[nodiscard]] const Endpoint &endpoint() const noexcept;
 	[[nodiscard]] bool isCycleStopped() const noexcept;
 	[[nodiscard]] std::size_t attemptCount() const noexcept;
 };
