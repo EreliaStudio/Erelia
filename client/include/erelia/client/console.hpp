@@ -10,6 +10,7 @@
 #include <ui/layout/linear_layout.hpp>
 #include <ui/text_model_view.hpp>
 #include <ui/widget.hpp>
+#include <ui/widget/panel.hpp>
 
 class Console final : public spk::Widget
 {
@@ -20,6 +21,7 @@ public:
 
 private:
 	spk::DataModel<std::string> _entryModel;
+	spk::Panel _entryBackground;
 	spk::TextModelView _entries;
 	ConsoleEntry _commandEntry;
 	spk::VerticalLayout _layout;

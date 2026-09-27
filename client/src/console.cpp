@@ -31,6 +31,7 @@ Console::Console(
 	std::string name,
 	spk::Widget *parent) :
 	spk::Widget(std::move(name), parent),
+	_entryBackground("Console.entries.background", this),
 	_entries("Console.entries", &_entryModel, this),
 	_commandEntry("Console.command", [this](std::string entry) {
 		_appendLocalEntry(std::move(entry));
@@ -40,7 +41,9 @@ Console::Console(
 		_queueEntry(level, message);
 	}))
 {
-	_layout.addWidget(&_entries);
+	_entryBackground.setZOrder(0.0f);
+	_entries.setZOrder(1.0f);
+	_layout.addWidget(&_entryBackground);
 	_layout.addWidget(
 		&_commandEntry,
 		{spk::Layout::SizePolicy::Extend, spk::Layout::SizePolicy::Fixed});
@@ -115,6 +118,7 @@ void Console::_updateSizeHint()
 void Console::_onGeometryChange()
 {
 	_layout.setGeometry(spk::Rect2D{.anchor = {0, 0}, .size = geometry().size});
+	_entries.setGeometry(spk::Rect2D{.anchor = {0, 0}, .size = _entryBackground.geometry().size});
 }
 
 void Console::_updateState(spk::UpdateContext &)
