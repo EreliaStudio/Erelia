@@ -64,7 +64,7 @@ EreliaClientApplication::EreliaClientApplication(
 		WindowIdentifier,
 		spk::Window::Configuration{
 			.title = "Erelia",
-			.area = {{0, 0}, {640, 480}}});
+			.area = spk::Rect2D{\n\t\t\t\t.anchor = {0, 0},\n\t\t\t\t.size = {640, 480}}});
 
 	_mainWidget = std::make_unique<MainApplicationWidget>(
 		std::move(endpoint),
