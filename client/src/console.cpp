@@ -17,9 +17,9 @@ namespace
 		case spk::Logger::Level::Info:
 			return "Info";
 		case spk::Logger::Level::UserValueA:
-			return "UserValueA";
+			return "User";
 		case spk::Logger::Level::UserValueB:
-			return "UserValueB";
+			return "Command";
 		case spk::Logger::Level::Warning:
 			return "Warning";
 		case spk::Logger::Level::Error:
@@ -55,8 +55,15 @@ void Console::_queueEntry(
 	const std::string &message)
 {
 	const std::scoped_lock lock(_pendingMutex);
-	_pendingEntries.emplace_back(
-		"[" + std::string(levelName(level)) + "] " + message);
+	if (level == spk::Logger::Level::UserValueA)
+	{
+		_pendingEntries.emplace_back("User : " + message);
+	}
+	else
+	{
+		_pendingEntries.emplace_back(
+			"[" + std::string(levelName(level)) + "] : " + message);
+	}
 }
 
 void Console::_flushEntries()
