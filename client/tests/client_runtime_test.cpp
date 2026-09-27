@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 #include <type/uuid.hpp>
 
+#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -44,26 +45,30 @@ namespace
 TEST(ClientConfiguration, LoadsExactExternalContract)
 {
 	const TemporaryJsonFile file(
-		R"({"server config":{"address":"127.0.0.1","port":2550}})");
+		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":15000}})");
 
 	const ClientConfiguration configuration =
 		ClientConfiguration::load(file.path().string());
 
 	EXPECT_EQ(configuration.server.address, "127.0.0.1");
 	EXPECT_EQ(configuration.server.port, 2550u);
+	EXPECT_EQ(configuration.retryDelay, std::chrono::milliseconds(15000));
 }
 
 TEST(ClientConfiguration, RejectsInvalidContracts)
 {
 	const std::string fixtures[] = {
 		R"({})",
-		R"({"server config":{"address":"127.0.0.1"}})",
-		R"({"server config":{"port":2550}})",
-		R"({"server config":{"address":"","port":2550}})",
-		R"({"server config":{"address":"127.0.0.1","port":0}})",
-		R"({"server config":{"address":"127.0.0.1","port":70000}})",
-		R"({"server config":{"address":"127.0.0.1","port":2550,"extra":true}})",
-		R"({"server config":{"address":"127.0.0.1","port":2550},"extra":true})"};
+		R"({"server config":{"address":"127.0.0.1","port":2550}})",
+		R"({"server config":{"port":2550,"retryDelayMs":15000}})",
+		R"({"server config":{"address":"127.0.0.1","retryDelayMs":15000}})",
+		R"({"server config":{"address":"","port":2550,"retryDelayMs":15000}})",
+		R"({"server config":{"address":"127.0.0.1","port":0,"retryDelayMs":15000}})",
+		R"({"server config":{"address":"127.0.0.1","port":70000,"retryDelayMs":15000}})",
+		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":0}})",
+		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":-1}})",
+		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":15000,"extra":true}})",
+		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":15000},"extra":true})"};
 
 	for (const std::string &fixture : fixtures)
 	{
@@ -92,7 +97,9 @@ TEST(ClientConsole, OrdinarySubmissionUsesUserValueA)
 
 TEST(ClientApplication, InitializesWidgetHierarchyFromConfiguredWindowGeometry)
 {
-	EreliaClientApplication application({"127.0.0.1", 1});
+	EreliaClientApplication application(
+		{"127.0.0.1", 1},
+		std::chrono::milliseconds(1));
 	const spk::Rect2D expectedGeometry{
 		.anchor = {0, 0},
 		.size = {640, 480}};

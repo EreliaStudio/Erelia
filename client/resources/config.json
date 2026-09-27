@@ -1,6 +1,7 @@
 {
   "server config": {
     "address": "127.0.0.1",
-    "port": 2550
+    "port": 2550,
+    "retryDelayMs": 15000
   }
 }

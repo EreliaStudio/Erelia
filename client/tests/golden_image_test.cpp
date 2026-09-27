@@ -137,14 +137,14 @@ TEST_F(ClientGoldenImageTest, ConsoleOverflowTopMiddleAndBottom)
 
 TEST_F(ClientGoldenImageTest, ApplicationStartup)
 {
-	EreliaClientApplication application({"127.0.0.1", 1});
+	EreliaClientApplication application({"127.0.0.1", 1}, std::chrono::milliseconds(1));
 	spk::Widget &root = prepareApplication(application);
 	expectWidgetImage(root, "application", "startup");
 }
 
 TEST_F(ClientGoldenImageTest, ApplicationMixedConsole)
 {
-	EreliaClientApplication application({"127.0.0.1", 1});
+	EreliaClientApplication application({"127.0.0.1", 1}, std::chrono::milliseconds(1));
 	spk::Widget &root = prepareApplication(application);
 	Console &console = application.mainWidget().console();
 	SPK_LOG(UserValueA) << "Player message" << std::endl;
@@ -157,7 +157,7 @@ TEST_F(ClientGoldenImageTest, ApplicationMixedConsole)
 
 TEST_F(ClientGoldenImageTest, ApplicationConsoleOverflow)
 {
-	EreliaClientApplication application({"127.0.0.1", 1});
+	EreliaClientApplication application({"127.0.0.1", 1}, std::chrono::milliseconds(1));
 	spk::Widget &root = prepareApplication(application);
 	Console &console = application.mainWidget().console();
 	for (std::size_t index = 0; index < 200; ++index)

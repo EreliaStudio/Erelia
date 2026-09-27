@@ -4,6 +4,7 @@
 
 #include <core/application.hpp>
 
+#include <chrono>
 #include <memory>
 #include <string>
 
@@ -15,7 +16,9 @@ private:
 	std::unique_ptr<MainApplicationWidget> _mainWidget;
 
 public:
-	explicit EreliaClientApplication(ConnectionManager::Endpoint endpoint);
+	EreliaClientApplication(
+		ConnectionManager::Endpoint endpoint,
+		std::chrono::milliseconds retryDelay);
 	~EreliaClientApplication();
 
 	[[nodiscard]] MainApplicationWidget &mainWidget() noexcept;
@@ -25,6 +28,7 @@ public:
 struct ClientConfiguration
 {
 	ConnectionManager::Endpoint server;
+	std::chrono::milliseconds retryDelay;
 
 	[[nodiscard]] static ClientConfiguration load(const std::string &path);
 };

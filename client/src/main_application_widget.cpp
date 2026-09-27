@@ -4,9 +4,10 @@
 
 MainApplicationWidget::MainApplicationWidget(
 	ConnectionManager::Endpoint endpoint,
+	spk::Timer::Duration retryDelay,
 	spk::Widget *parent) :
 	spk::Widget("MainApplicationWidget", parent),
-	_connectionManager("ConnectionManager", std::move(endpoint), this),
+	_connectionManager("ConnectionManager", std::move(endpoint), retryDelay, this),
 	_console("Console", this),
 	_connectRequestContract(_console.subscribeToConnectRequest([this](const Console::ConnectRequest &request) {
 		_connect(request);

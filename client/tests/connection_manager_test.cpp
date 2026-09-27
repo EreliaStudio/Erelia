@@ -13,9 +13,11 @@
 
 namespace
 {
-	void advanceConnectionManager(ConnectionManager &manager, std::chrono::steady_clock::duration delta)
+	constexpr std::chrono::milliseconds TestRetryDelay{1};
+
+	void advanceConnectionManager(ConnectionManager &manager)
 	{
-		spk::UpdateContext context{.time = {}, .deltaTime = delta};
+		spk::UpdateContext context{.time = {}, .deltaTime = {}};
 		spk::Keyboard keyboard;
 		spk::Mouse mouse;
 		spk::DeviceContext devices{.keyboard = keyboard, .mouse = mouse};
@@ -25,10 +27,13 @@ namespace
 
 	bool advanceUntilStopped(ConnectionManager &manager)
 	{
-		for (std::size_t iteration = 0; iteration < 400 && manager.isCycleStopped() == false; ++iteration)
+		for (
+			std::size_t iteration = 0;
+			iteration < 400 && manager.isCycleStopped() == false;
+			++iteration)
 		{
-			advanceConnectionManager(manager, ConnectionManager::RetryDelay);
-			std::this_thread::sleep_for(std::chrono::milliseconds(5));
+			advanceConnectionManager(manager);
+			std::this_thread::sleep_for(std::chrono::milliseconds(2));
 		}
 		return manager.isCycleStopped();
 	}
@@ -40,7 +45,10 @@ namespace
 
 TEST_F(ConnectionManagerTest, ConstructionStartsFirstConnectionAttempt)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	ConnectionManager manager(
+		"ConnectionManager",
+		{"127.0.0.1", 1},
+		TestRetryDelay);
 	EXPECT_EQ(manager.attemptCount(), 1u);
 	EXPECT_FALSE(manager.isCycleStopped());
 }
@@ -53,7 +61,10 @@ TEST_F(ConnectionManagerTest, FailedCycleStopsAfterExactlyThreeAttempts)
 			entries.emplace_back(level, message);
 		});
 
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	ConnectionManager manager(
+		"ConnectionManager",
+		{"127.0.0.1", 1},
+		TestRetryDelay);
 	ASSERT_TRUE(advanceUntilStopped(manager));
 	EXPECT_EQ(manager.attemptCount(), ConnectionManager::MaximumAttemptCount);
 
@@ -71,14 +82,17 @@ TEST_F(ConnectionManagerTest, FailedCycleStopsAfterExactlyThreeAttempts)
 
 	for (std::size_t iteration = 0; iteration < 10; ++iteration)
 	{
-		advanceConnectionManager(manager, ConnectionManager::RetryDelay);
+		advanceConnectionManager(manager);
 	}
 	EXPECT_EQ(manager.attemptCount(), ConnectionManager::MaximumAttemptCount);
 }
 
 TEST_F(ConnectionManagerTest, ConnectStartsFreshCycleAfterBudgetIsExhausted)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	ConnectionManager manager(
+		"ConnectionManager",
+		{"127.0.0.1", 1},
+		TestRetryDelay);
 	ASSERT_TRUE(advanceUntilStopped(manager));
 	ASSERT_EQ(manager.attemptCount(), ConnectionManager::MaximumAttemptCount);
 
@@ -90,7 +104,10 @@ TEST_F(ConnectionManagerTest, ConnectStartsFreshCycleAfterBudgetIsExhausted)
 
 TEST_F(ConnectionManagerTest, ConnectDoesNotLaunchConcurrentAttempt)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
+	ConnectionManager manager(
+		"ConnectionManager",
+		{"127.0.0.1", 1},
+		TestRetryDelay);
 	ASSERT_EQ(manager.attemptCount(), 1u);
 
 	manager.connect();

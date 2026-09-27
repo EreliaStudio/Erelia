@@ -18,7 +18,10 @@ private:
 	void _onGeometryChange() override;
 
 public:
-	MainApplicationWidget(ConnectionManager::Endpoint endpoint, spk::Widget *parent);
+	MainApplicationWidget(
+		ConnectionManager::Endpoint endpoint,
+		spk::Timer::Duration retryDelay,
+		spk::Widget *parent);
 
 	[[nodiscard]] ConnectionManager &connectionManager() noexcept;
 	[[nodiscard]] Console &console() noexcept;

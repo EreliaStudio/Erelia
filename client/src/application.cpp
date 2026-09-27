@@ -7,6 +7,8 @@
 #include <exception.hpp>
 #include <system/argument_parser.hpp>
 
+#include <chrono>
+#include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <utility>
@@ -24,12 +26,14 @@ ClientConfiguration ClientConfiguration::load(const std::string &path)
 	root.forbidUnknown({"server config"});
 
 	const spk::JSON::Reader server = root.child("server config");
-	server.forbidUnknown({"address", "port"});
+	server.forbidUnknown({"address", "port", "retryDelayMs"});
 
 	ClientConfiguration result{
 		.server = {
 			.address = server.require<std::string>("address"),
-			.port = server.require<std::uint16_t>("port")}};
+			.port = server.require<std::uint16_t>("port")},
+		.retryDelay = std::chrono::milliseconds(
+			server.require<std::uint32_t>("retryDelayMs"))};
 
 	if (result.server.address.empty() == true)
 	{
@@ -39,11 +43,16 @@ ClientConfiguration ClientConfiguration::load(const std::string &path)
 	{
 		throw spk::Exception("Client Server port cannot be zero");
 	}
+	if (result.retryDelay.count() <= 0)
+	{
+		throw spk::Exception("Client retryDelayMs must be greater than zero");
+	}
 	return result;
 }
 
 EreliaClientApplication::EreliaClientApplication(
-	ConnectionManager::Endpoint endpoint)
+	ConnectionManager::Endpoint endpoint,
+	std::chrono::milliseconds retryDelay)
 {
 	spk::logger.setLevelIdentifier(spk::Logger::Level::UserValueA, "User message");
 	spk::logger.setLevelIdentifier(spk::Logger::Level::UserValueB, "Command");
@@ -58,6 +67,7 @@ EreliaClientApplication::EreliaClientApplication(
 
 	_mainWidget = std::make_unique<MainApplicationWidget>(
 		std::move(endpoint),
+		retryDelay,
 		&mainWindow.root());
 	_mainWidget->setGeometry(mainWindow.root().geometry());
 }
@@ -96,7 +106,9 @@ int runClient(int argc, char **argv)
 
 		const ClientConfiguration configuration =
 			ClientConfiguration::load(arguments.get("config").values.front());
-		EreliaClientApplication application(configuration.server);
+		EreliaClientApplication application(
+			configuration.server,
+			configuration.retryDelay);
 		return application.run();
 	} catch (const std::exception &exception)
 	{
