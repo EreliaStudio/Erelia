@@ -117,9 +117,7 @@ void Console::_updateSizeHint()
 
 void Console::_onGeometryChange()
 {
-	_layout.setGeometry(spk::Rect2D{
-		.anchor = {0, 0},
-		.size = geometry().size});
+	_layout.setGeometry(spk::Rect2D{.anchor = {0, 0}, .size = geometry().size});
 }
 
 void Console::_updateState(spk::UpdateContext &)

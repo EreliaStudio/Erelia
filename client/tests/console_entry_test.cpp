@@ -137,7 +137,6 @@ TEST_F(ConsoleEntryTest, UnknownCommandReportsLocallyWithoutLogger)
 	EXPECT_EQ(loggerCalls, 0u);
 }
 
-
 TEST_F(ConsoleEntryTest, ConnectParametersAreOptionalAndShownInHelp)
 {
 	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
@@ -156,7 +155,8 @@ TEST_F(ConsoleEntryTest, ConnectParametersAreOptionalAndShownInHelp)
 TEST_F(ConsoleEntryTest, ConnectAddressOverrideKeepsCurrentPort)
 {
 	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
-	ConsoleEntry entry("Entry", manager, [](std::string) {});
+	ConsoleEntry entry("Entry", manager, [](std::string) {
+	});
 
 	entry.submit("/connect --address 192.0.2.1");
 
@@ -167,7 +167,8 @@ TEST_F(ConsoleEntryTest, ConnectAddressOverrideKeepsCurrentPort)
 TEST_F(ConsoleEntryTest, ConnectPortOverrideKeepsCurrentAddress)
 {
 	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
-	ConsoleEntry entry("Entry", manager, [](std::string) {});
+	ConsoleEntry entry("Entry", manager, [](std::string) {
+	});
 
 	entry.submit("/connect --port 2550");
 

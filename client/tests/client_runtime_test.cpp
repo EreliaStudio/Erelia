@@ -90,7 +90,6 @@ TEST(ClientConsole, OrdinarySubmissionUsesUserValueA)
 	EXPECT_EQ(receivedMessage, "player input");
 }
 
-
 TEST(ClientApplication, InitializesWidgetHierarchyFromConfiguredWindowGeometry)
 {
 	EreliaClientApplication application({"127.0.0.1", 1});
