@@ -1,7 +1,8 @@
-#include "erelia/client/application.hpp"
+#include "erelia/client/client_configuration.hpp"
 #include "erelia/client/console.hpp"
 #include "erelia/client/main_application_widget.hpp"
 
+#include <core/application.hpp>
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
 #include <gtest/gtest.h>
@@ -95,18 +96,29 @@ TEST(ClientConsole, OrdinarySubmissionUsesUserValueA)
 	EXPECT_EQ(receivedMessage, "player input");
 }
 
-TEST(ClientApplication, InitializesWidgetHierarchyFromConfiguredWindowGeometry)
+TEST(ClientBootstrap, InitializesWidgetHierarchyFromConfiguredWindowGeometry)
 {
-	EreliaClientApplication application(
+	spk::Application application;
+	spk::Window &mainWindow = application.createWindow(
+		"main",
+		spk::Window::Configuration{
+			.title = "Erelia",
+			.area = spk::Rect2D{
+				.anchor = {0, 0},
+				.size = {640, 480}}});
+	MainApplicationWidget mainWidget(
 		{"127.0.0.1", 1},
-		std::chrono::milliseconds(1));
+		std::chrono::milliseconds(1),
+		&mainWindow.root());
+	mainWidget.setGeometry(mainWindow.root().geometry());
+
 	const spk::Rect2D expectedGeometry{
 		.anchor = {0, 0},
 		.size = {640, 480}};
 
-	EXPECT_EQ(application.window("main").root().geometry(), expectedGeometry);
-	EXPECT_EQ(application.mainWidget().geometry(), expectedGeometry);
-	EXPECT_EQ(application.mainWidget().console().geometry(), expectedGeometry);
-	EXPECT_EQ(application.mainWidget().console().entryView().geometry().width, 640u);
-	EXPECT_GT(application.mainWidget().console().entryView().geometry().height, 0u);
+	EXPECT_EQ(mainWindow.root().geometry(), expectedGeometry);
+	EXPECT_EQ(mainWidget.geometry(), expectedGeometry);
+	EXPECT_EQ(mainWidget.console().geometry(), expectedGeometry);
+	EXPECT_EQ(mainWidget.console().entryView().geometry().width, 640u);
+	EXPECT_GT(mainWidget.console().entryView().geometry().height, 0u);
 }

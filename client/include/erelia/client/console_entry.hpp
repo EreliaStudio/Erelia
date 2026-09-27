@@ -25,6 +25,8 @@ public:
 	using ConnectRequestContract = ConnectRequestProvider::Contract;
 
 private:
+	class ConnectCommand;
+
 	spk::CommandParser _commandParser;
 	LocalOutputCallback _localOutput;
 	ConnectRequestProvider _connectRequestProvider;

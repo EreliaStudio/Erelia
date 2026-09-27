@@ -1,7 +1,7 @@
-#include "erelia/client/application.hpp"
 #include "erelia/client/console.hpp"
 #include "erelia/client/main_application_widget.hpp"
 
+#include <core/application.hpp>
 #include <core/context/update_context.hpp>
 #include <diagnostics/logger.hpp>
 #include <input/device_context.hpp>
@@ -26,15 +26,43 @@ namespace
 		widget.updateState(context, devices);
 	}
 
-	spk::Widget &prepareApplication(EreliaClientApplication &application)
+	class PreparedApplication final
 	{
-		spk::Widget &root = application.window("main").root();
+	public:
+		spk::Application application;
+		MainApplicationWidget mainWidget;
+
+		PreparedApplication() :
+			mainWidget(
+				{"127.0.0.1", 1},
+				std::chrono::milliseconds(1),
+				&application.createWindow(
+					"main",
+					spk::Window::Configuration{
+						.title = "Erelia",
+						.area = spk::Rect2D{
+							.anchor = {0, 0},
+							.size = {640, 480}}})
+					 .root())
+		{
+			mainWidget.setGeometry(application.window("main").root().geometry());
+		}
+
+		[[nodiscard]] spk::Widget &root()
+		{
+			return application.window("main").root();
+		}
+	};
+
+	spk::Widget &prepareApplication(PreparedApplication &prepared)
+	{
+		spk::Widget &root = prepared.root();
 		const spk::Rect2D expectedGeometry{
 			.anchor = {0, 0},
 			.size = {640, 480}};
 		EXPECT_EQ(root.geometry(), expectedGeometry);
-		EXPECT_EQ(application.mainWidget().geometry(), expectedGeometry);
-		EXPECT_EQ(application.mainWidget().console().geometry(), expectedGeometry);
+		EXPECT_EQ(prepared.mainWidget.geometry(), expectedGeometry);
+		EXPECT_EQ(prepared.mainWidget.console().geometry(), expectedGeometry);
 		advance(root);
 		return root;
 	}
@@ -137,16 +165,16 @@ TEST_F(ClientGoldenImageTest, ConsoleOverflowTopMiddleAndBottom)
 
 TEST_F(ClientGoldenImageTest, ApplicationStartup)
 {
-	EreliaClientApplication application({"127.0.0.1", 1}, std::chrono::milliseconds(1));
+	PreparedApplication application;
 	spk::Widget &root = prepareApplication(application);
 	expectWidgetImage(root, "application", "startup");
 }
 
 TEST_F(ClientGoldenImageTest, ApplicationMixedConsole)
 {
-	EreliaClientApplication application({"127.0.0.1", 1}, std::chrono::milliseconds(1));
+	PreparedApplication application;
 	spk::Widget &root = prepareApplication(application);
-	Console &console = application.mainWidget().console();
+	Console &console = application.mainWidget.console();
 	SPK_LOG(UserValueA) << "Player message" << std::endl;
 	SPK_LOG(UserValueB) << "Command result" << std::endl;
 	SPK_LOG(Info) << "System information" << std::endl;
@@ -157,9 +185,9 @@ TEST_F(ClientGoldenImageTest, ApplicationMixedConsole)
 
 TEST_F(ClientGoldenImageTest, ApplicationConsoleOverflow)
 {
-	EreliaClientApplication application({"127.0.0.1", 1}, std::chrono::milliseconds(1));
+	PreparedApplication application;
 	spk::Widget &root = prepareApplication(application);
-	Console &console = application.mainWidget().console();
+	Console &console = application.mainWidget.console();
 	for (std::size_t index = 0; index < 200; ++index)
 	{
 		SPK_LOG(UserValueA) << "application-history-" << index << std::endl;
