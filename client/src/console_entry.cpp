@@ -1,7 +1,5 @@
 #include "erelia/client/console_entry.hpp"
 
-#include "erelia/client/connection_manager.hpp"
-
 #include <diagnostics/logger.hpp>
 
 #include <charconv>
@@ -10,11 +8,9 @@
 
 ConsoleEntry::ConsoleEntry(
 	std::string name,
-	ConnectionManager &connectionManager,
 	LocalOutputCallback localOutput,
 	spk::Widget *parent) :
 	spk::TextEdit(std::move(name), parent),
-	_connectionManager(connectionManager),
 	_localOutput(std::move(localOutput))
 {
 	setPlaceholder("Enter text or /help");
@@ -25,11 +21,11 @@ ConsoleEntry::ConsoleEntry(
 void ConsoleEntry::_registerCommands()
 {
 	_commandParser.addCommand({.name = "connect", .description = "Starts a new dedicated Server connection cycle.", .parameters = {{.name = "address", .description = "Dedicated Server address", .optional = true}, {.name = "port", .description = "Dedicated Server port", .optional = true}}, .callback = [this](const spk::CommandParser::Invocation &invocation) {
-								   ConnectionManager::Endpoint endpoint = _connectionManager.endpoint();
+								   ConnectRequest request;
 
 								   if (invocation.parameters.contains("address") == true)
 								   {
-									   endpoint.address = invocation.get("address").front();
+									   request.address = invocation.get("address").front();
 								   }
 								   if (invocation.parameters.contains("port") == true)
 								   {
@@ -41,20 +37,10 @@ void ConsoleEntry::_registerCommands()
 										   _emitLocal("Invalid port: " + value);
 										   return;
 									   }
-									   endpoint.port = static_cast<std::uint16_t>(port);
+									   request.port = static_cast<std::uint16_t>(port);
 								   }
 
-								   const ConnectionManager::Endpoint &current = _connectionManager.endpoint();
-								   if (
-									   current.address == endpoint.address &&
-									   current.port == endpoint.port)
-								   {
-									   _connectionManager.connect();
-									   return;
-								   }
-
-								   SPK_LOG(UserValueB) << "Starting a new dedicated Server connection cycle" << std::endl;
-								   _connectionManager.connect(std::move(endpoint));
+								   _connectRequestProvider.trigger(request);
 							   }});
 }
 
@@ -138,6 +124,11 @@ void ConsoleEntry::submit(std::string input)
 	{
 		_emitFailure(result);
 	}
+}
+
+ConsoleEntry::ConnectRequestContract ConsoleEntry::subscribeToConnectRequest(ConnectRequestCallback callback)
+{
+	return _connectRequestProvider.subscribe(std::move(callback));
 }
 
 spk::CommandParser &ConsoleEntry::commandParser() noexcept

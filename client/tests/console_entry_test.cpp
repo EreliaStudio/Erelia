@@ -1,43 +1,16 @@
-#include "erelia/client/connection_manager.hpp"
 #include "erelia/client/console_entry.hpp"
 
-#include <design_pattern/singleton.hpp>
 #include <diagnostics/logger.hpp>
-#include <network/client.hpp>
-#include <threading/worker_pool.hpp>
 
 #include <gtest/gtest.h>
 
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
-namespace
+TEST(ConsoleEntryTest, OrdinaryTextUsesLogger)
 {
-	void ensureClientServices()
-	{
-		if (spk::Singleton<spk::WorkerPool>::isInstanciated() == false)
-		{
-			spk::Singleton<spk::WorkerPool>::instanciate(new spk::WorkerPool());
-		}
-		if (spk::Singleton<spk::Client>::isInstanciated() == false)
-		{
-			spk::Singleton<spk::Client>::instanciate(new spk::Client());
-		}
-	}
-
-	class ConsoleEntryTest : public ::testing::Test
-	{
-	protected:
-		static void SetUpTestSuite()
-		{
-			ensureClientServices();
-		}
-	};
-}
-
-TEST_F(ConsoleEntryTest, OrdinaryTextUsesLogger)
-{
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
 	std::vector<std::string> local;
 	spk::Logger::Level level = spk::Logger::Level::Trace;
 	std::string message;
@@ -46,7 +19,7 @@ TEST_F(ConsoleEntryTest, OrdinaryTextUsesLogger)
 			level = receivedLevel;
 			message = receivedMessage;
 		});
-	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+	ConsoleEntry entry("Entry", [&](std::string value) {
 		local.emplace_back(std::move(value));
 	});
 
@@ -57,16 +30,15 @@ TEST_F(ConsoleEntryTest, OrdinaryTextUsesLogger)
 	EXPECT_TRUE(local.empty());
 }
 
-TEST_F(ConsoleEntryTest, GlobalHelpIsLocalAndDoesNotUseLogger)
+TEST(ConsoleEntryTest, GlobalHelpIsLocalAndDoesNotUseLogger)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
 	std::vector<std::string> local;
 	std::size_t loggerCalls = 0;
 	auto contract = spk::logger.subscribeToEntry(
 		[&](const spk::Logger::Level &, const std::string &) {
 			++loggerCalls;
 		});
-	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+	ConsoleEntry entry("Entry", [&](std::string value) {
 		local.emplace_back(std::move(value));
 	});
 	loggerCalls = 0;
@@ -78,34 +50,41 @@ TEST_F(ConsoleEntryTest, GlobalHelpIsLocalAndDoesNotUseLogger)
 	EXPECT_EQ(loggerCalls, 0u);
 }
 
-TEST_F(ConsoleEntryTest, CommandHelpIsLocalAndDoesNotExecuteCommand)
+TEST(ConsoleEntryTest, CommandHelpIsLocalAndDoesNotEmitConnectRequest)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
-	const std::size_t attempts = manager.attemptCount();
 	std::vector<std::string> local;
-	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+	std::size_t requestCount = 0;
+	ConsoleEntry entry("Entry", [&](std::string value) {
 		local.emplace_back(std::move(value));
 	});
+	auto contract = entry.subscribeToConnectRequest(
+		[&](const ConsoleEntry::ConnectRequest &) {
+			++requestCount;
+		});
 
 	entry.submit("/connect --help");
 
 	ASSERT_EQ(local.size(), 1u);
 	EXPECT_NE(local.front().find("Usage: /connect"), std::string::npos);
-	EXPECT_EQ(manager.attemptCount(), attempts);
+	EXPECT_EQ(requestCount, 0u);
 }
 
-TEST_F(ConsoleEntryTest, MalformedKnownCommandAddsDiagnosticAndUsageLocally)
+TEST(ConsoleEntryTest, MalformedKnownCommandAddsDiagnosticAndUsageLocally)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
 	std::vector<std::string> local;
 	std::size_t loggerCalls = 0;
-	auto contract = spk::logger.subscribeToEntry(
+	std::size_t requestCount = 0;
+	auto loggerContract = spk::logger.subscribeToEntry(
 		[&](const spk::Logger::Level &, const std::string &) {
 			++loggerCalls;
 		});
-	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+	ConsoleEntry entry("Entry", [&](std::string value) {
 		local.emplace_back(std::move(value));
 	});
+	auto requestContract = entry.subscribeToConnectRequest(
+		[&](const ConsoleEntry::ConnectRequest &) {
+			++requestCount;
+		});
 	loggerCalls = 0;
 
 	entry.submit("/connect --unknown value");
@@ -114,18 +93,18 @@ TEST_F(ConsoleEntryTest, MalformedKnownCommandAddsDiagnosticAndUsageLocally)
 	EXPECT_EQ(local[0], "Unknown parameter: --unknown");
 	EXPECT_NE(local[1].find("Usage: /connect"), std::string::npos);
 	EXPECT_EQ(loggerCalls, 0u);
+	EXPECT_EQ(requestCount, 0u);
 }
 
-TEST_F(ConsoleEntryTest, UnknownCommandReportsLocallyWithoutLogger)
+TEST(ConsoleEntryTest, UnknownCommandReportsLocallyWithoutLogger)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
 	std::vector<std::string> local;
 	std::size_t loggerCalls = 0;
 	auto contract = spk::logger.subscribeToEntry(
 		[&](const spk::Logger::Level &, const std::string &) {
 			++loggerCalls;
 		});
-	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+	ConsoleEntry entry("Entry", [&](std::string value) {
 		local.emplace_back(std::move(value));
 	});
 	loggerCalls = 0;
@@ -137,11 +116,10 @@ TEST_F(ConsoleEntryTest, UnknownCommandReportsLocallyWithoutLogger)
 	EXPECT_EQ(loggerCalls, 0u);
 }
 
-TEST_F(ConsoleEntryTest, ConnectParametersAreOptionalAndShownInHelp)
+TEST(ConsoleEntryTest, ConnectParametersAreOptionalAndShownInHelp)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
 	std::vector<std::string> local;
-	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+	ConsoleEntry entry("Entry", [&](std::string value) {
 		local.emplace_back(std::move(value));
 	});
 
@@ -152,56 +130,93 @@ TEST_F(ConsoleEntryTest, ConnectParametersAreOptionalAndShownInHelp)
 	EXPECT_NE(local.front().find("--port"), std::string::npos);
 }
 
-TEST_F(ConsoleEntryTest, ConnectAddressOverrideKeepsCurrentPort)
+TEST(ConsoleEntryTest, ConnectWithoutOverridesEmitsEmptyRequest)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
-	ConsoleEntry entry("Entry", manager, [](std::string) {
+	std::optional<ConsoleEntry::ConnectRequest> received;
+	ConsoleEntry entry("Entry", [](std::string) {
 	});
+	auto contract = entry.subscribeToConnectRequest(
+		[&](const ConsoleEntry::ConnectRequest &request) {
+			received = request;
+		});
+
+	entry.submit("/connect");
+
+	ASSERT_TRUE(received.has_value());
+	EXPECT_FALSE(received->address.has_value());
+	EXPECT_FALSE(received->port.has_value());
+}
+
+TEST(ConsoleEntryTest, ConnectAddressOverrideEmitsAddressOnly)
+{
+	std::optional<ConsoleEntry::ConnectRequest> received;
+	ConsoleEntry entry("Entry", [](std::string) {
+	});
+	auto contract = entry.subscribeToConnectRequest(
+		[&](const ConsoleEntry::ConnectRequest &request) {
+			received = request;
+		});
 
 	entry.submit("/connect --address 192.0.2.1");
 
-	EXPECT_EQ(manager.endpoint().address, "192.0.2.1");
-	EXPECT_EQ(manager.endpoint().port, 1u);
+	ASSERT_TRUE(received.has_value());
+	ASSERT_TRUE(received->address.has_value());
+	EXPECT_EQ(*received->address, "192.0.2.1");
+	EXPECT_FALSE(received->port.has_value());
 }
 
-TEST_F(ConsoleEntryTest, ConnectPortOverrideKeepsCurrentAddress)
+TEST(ConsoleEntryTest, ConnectPortOverrideEmitsPortOnly)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
-	ConsoleEntry entry("Entry", manager, [](std::string) {
+	std::optional<ConsoleEntry::ConnectRequest> received;
+	ConsoleEntry entry("Entry", [](std::string) {
 	});
+	auto contract = entry.subscribeToConnectRequest(
+		[&](const ConsoleEntry::ConnectRequest &request) {
+			received = request;
+		});
 
 	entry.submit("/connect --port 2550");
 
-	EXPECT_EQ(manager.endpoint().address, "127.0.0.1");
-	EXPECT_EQ(manager.endpoint().port, 2550u);
+	ASSERT_TRUE(received.has_value());
+	EXPECT_FALSE(received->address.has_value());
+	ASSERT_TRUE(received->port.has_value());
+	EXPECT_EQ(*received->port, 2550u);
 }
 
-TEST_F(ConsoleEntryTest, ConnectRejectsInvalidPortLocally)
+TEST(ConsoleEntryTest, ConnectRejectsInvalidPortLocally)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
 	std::vector<std::string> local;
-	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+	std::size_t requestCount = 0;
+	ConsoleEntry entry("Entry", [&](std::string value) {
 		local.emplace_back(std::move(value));
 	});
+	auto contract = entry.subscribeToConnectRequest(
+		[&](const ConsoleEntry::ConnectRequest &) {
+			++requestCount;
+		});
 
 	entry.submit("/connect --port invalid");
 
 	ASSERT_EQ(local.size(), 1u);
 	EXPECT_EQ(local.front(), "Invalid port: invalid");
-	EXPECT_EQ(manager.endpoint().port, 1u);
+	EXPECT_EQ(requestCount, 0u);
 }
 
-TEST_F(ConsoleEntryTest, ConnectRejectsOutOfRangePortLocally)
+TEST(ConsoleEntryTest, ConnectRejectsOutOfRangePortLocally)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
 	std::vector<std::string> local;
-	ConsoleEntry entry("Entry", manager, [&](std::string value) {
+	std::size_t requestCount = 0;
+	ConsoleEntry entry("Entry", [&](std::string value) {
 		local.emplace_back(std::move(value));
 	});
+	auto contract = entry.subscribeToConnectRequest(
+		[&](const ConsoleEntry::ConnectRequest &) {
+			++requestCount;
+		});
 
 	entry.submit("/connect --port 65536");
 
 	ASSERT_EQ(local.size(), 1u);
 	EXPECT_EQ(local.front(), "Invalid port: 65536");
-	EXPECT_EQ(manager.endpoint().port, 1u);
+	EXPECT_EQ(requestCount, 0u);
 }

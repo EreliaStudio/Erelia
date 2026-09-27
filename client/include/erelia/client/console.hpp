@@ -11,10 +11,13 @@
 #include <ui/text_model_view.hpp>
 #include <ui/widget.hpp>
 
-class ConnectionManager;
-
 class Console final : public spk::Widget
 {
+public:
+	using ConnectRequest = ConsoleEntry::ConnectRequest;
+	using ConnectRequestCallback = ConsoleEntry::ConnectRequestCallback;
+	using ConnectRequestContract = ConsoleEntry::ConnectRequestContract;
+
 private:
 	spk::DataModel<std::string> _entryModel;
 	spk::TextModelView _entries;
@@ -40,9 +43,10 @@ private:
 	void _onPassiveKeyPressedEvent(spk::KeyPressedEvent &event) override;
 
 public:
-	Console(std::string name, ConnectionManager &connectionManager, spk::Widget *parent = nullptr);
+	Console(std::string name, spk::Widget *parent = nullptr);
 
 	void submit(std::string command);
+	[[nodiscard]] ConnectRequestContract subscribeToConnectRequest(ConnectRequestCallback callback);
 	[[nodiscard]] ConsoleEntry &commandEntry() noexcept;
 	[[nodiscard]] const ConsoleEntry &commandEntry() const noexcept;
 };

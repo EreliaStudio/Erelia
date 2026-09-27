@@ -1,5 +1,4 @@
 #include "erelia/client/application.hpp"
-#include "erelia/client/connection_manager.hpp"
 #include "erelia/client/console.hpp"
 #include "erelia/client/main_application_widget.hpp"
 
@@ -105,16 +104,14 @@ namespace
 
 TEST_F(ClientGoldenImageTest, ConsoleEmpty)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
-	Console console("Console", manager);
+	Console console("Console");
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
 	expectWidgetImage(console, "console", "empty");
 }
 
 TEST_F(ClientGoldenImageTest, ConsoleUserAndCommandMessages)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
-	Console console("Console", manager);
+	Console console("Console");
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
 	SPK_LOG(UserValueA) << "Hello from the player" << std::endl;
 	SPK_LOG(UserValueB) << "Connection cycle started" << std::endl;
@@ -124,8 +121,7 @@ TEST_F(ClientGoldenImageTest, ConsoleUserAndCommandMessages)
 
 TEST_F(ClientGoldenImageTest, ConsoleAllLoggerLevels)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
-	Console console("Console", manager);
+	Console console("Console");
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
 	SPK_LOG(Trace) << "Trace message" << std::endl;
 	SPK_LOG(Info) << "Info message" << std::endl;
@@ -139,8 +135,7 @@ TEST_F(ClientGoldenImageTest, ConsoleAllLoggerLevels)
 
 TEST_F(ClientGoldenImageTest, ConsoleOverflowTopMiddleAndBottom)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
-	Console console("Console", manager);
+	Console console("Console");
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
 	for (std::size_t index = 0; index < 200; ++index)
 	{

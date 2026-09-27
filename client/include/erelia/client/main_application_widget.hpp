@@ -11,8 +11,10 @@ class MainApplicationWidget final : public spk::Widget
 private:
 	ConnectionManager _connectionManager;
 	Console _console;
+	Console::ConnectRequestContract _connectRequestContract;
 	spk::VerticalLayout _layout;
 
+	void _connect(const Console::ConnectRequest &request);
 	void _onGeometryChange() override;
 
 public:

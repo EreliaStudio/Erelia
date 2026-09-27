@@ -1,7 +1,5 @@
 #include "erelia/client/console.hpp"
 
-#include "erelia/client/connection_manager.hpp"
-
 #include <core/context/update_context.hpp>
 
 #include <utility>
@@ -31,11 +29,10 @@ namespace
 
 Console::Console(
 	std::string name,
-	ConnectionManager &connectionManager,
 	spk::Widget *parent) :
 	spk::Widget(std::move(name), parent),
 	_entries("Console.entries", &_entryModel, this),
-	_commandEntry("Console.command", connectionManager, [this](std::string entry) {
+	_commandEntry("Console.command", [this](std::string entry) {
 		_appendLocalEntry(std::move(entry));
 	},
 				  this),
@@ -164,6 +161,11 @@ void Console::_appendLocalEntry(std::string entry)
 void Console::submit(std::string command)
 {
 	_commandEntry.submit(std::move(command));
+}
+
+Console::ConnectRequestContract Console::subscribeToConnectRequest(ConnectRequestCallback callback)
+{
+	return _commandEntry.subscribeToConnectRequest(std::move(callback));
 }
 
 ConsoleEntry &Console::commandEntry() noexcept

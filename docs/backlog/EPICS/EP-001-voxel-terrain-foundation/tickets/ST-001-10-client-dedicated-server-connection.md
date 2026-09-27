@@ -285,7 +285,9 @@ Project-owner decisions approved on 27 September 2026:
 - bounded automatic connection cycle: three attempts, 15 seconds apart;
 - after attempt three fails, stop automatic attempts, log the state, and keep the application alive;
 - `/connect` starts a fresh connection cycle;
-- Console ordinary text uses Logger `UserValueA`; command-result messages use `UserValueB`;
+- Console ordinary text uses Logger `UserValueA`;
+- Console/ConsoleEntry do not depend on `ConnectionManager`: `/connect` emits a typed connect-request contract carrying only explicitly supplied endpoint overrides, and `MainApplicationWidget` resolves that request against the current manager endpoint before invoking `ConnectionManager`;
+- Logger remains the one-way presentation channel from connection lifecycle code to Console: `ConnectionManager` owns its `Info`/`Warning`/`Error` lifecycle messages and Console receives them through its Logger subscription; Logger is not used as a command bus;
 - serialized/idempotent Erelia connection operations;
 - shutdown during a pending attempt waits for task settlement;
 - local signal shutdown succeeds, initial-connect failure and unexpected remote disconnect fail the executable;
@@ -302,8 +304,9 @@ Delivered production behavior:
 - strict JSON endpoint loading rejects missing, unknown, empty-address, zero-port, and invalid-port inputs;
 - `ClientRuntime::connect()` submits Sparkle's synchronous `spk::Client::connect()` to the shared WorkerPool, reuses a Pending attempt, and is a no-op while already connected;
 - `disconnect()` waits for a Pending attempt before transport teardown and is idempotent when already disconnected;
-- the same runtime supports explicit retry/reconnect after failure or disconnect without automatic retry;
+- the same runtime supports explicit retry/reconnect after failure or disconnect while retaining the bounded three-attempt automatic retry cycle;
 - `runClient()` implements explicit-config startup, connected idle lifetime, SIGINT/SIGTERM clean shutdown, initial-connect failure, and unexpected remote-disconnect failure;
+- `ConsoleEntry` emits typed `/connect` intent without knowing `ConnectionManager`; `MainApplicationWidget` owns the subscription contract and composes that intent with the manager, while manager-to-Console feedback remains Logger-based;
 - `main.cpp` remains a thin application entry point;
 - `tools/run-client-server.ps1` now generates the Client endpoint configuration from the dynamically selected Router port and passes it explicitly.
 

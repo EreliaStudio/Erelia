@@ -1,32 +1,17 @@
-#include "erelia/client/connection_manager.hpp"
 #include "erelia/client/console.hpp"
 
 #include <core/context/update_context.hpp>
-#include <design_pattern/singleton.hpp>
 #include <diagnostics/logger.hpp>
 #include <input/device_context.hpp>
-#include <network/client.hpp>
-#include <threading/worker_pool.hpp>
 
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <optional>
 #include <string>
 
 namespace
 {
-	void ensureClientServices()
-	{
-		if (spk::Singleton<spk::WorkerPool>::isInstanciated() == false)
-		{
-			spk::Singleton<spk::WorkerPool>::instanciate(new spk::WorkerPool());
-		}
-		if (spk::Singleton<spk::Client>::isInstanciated() == false)
-		{
-			spk::Singleton<spk::Client>::instanciate(new spk::Client());
-		}
-	}
-
 	void advance(spk::Widget &widget)
 	{
 		spk::UpdateContext context{.time = {}, .deltaTime = std::chrono::milliseconds(16)};
@@ -36,21 +21,11 @@ namespace
 		widget.updateState(context);
 		widget.updateState(context, devices);
 	}
-
-	class ConsoleTest : public ::testing::Test
-	{
-	protected:
-		static void SetUpTestSuite()
-		{
-			ensureClientServices();
-		}
-	};
 }
 
-TEST_F(ConsoleTest, LoggerEntriesAreStoredAsIndependentModelRows)
+TEST(ConsoleTest, LoggerEntriesAreStoredAsIndependentModelRows)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
-	Console console("Console", manager);
+	Console console("Console");
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
 
 	SPK_LOG(UserValueA) << "hello" << std::endl;
@@ -62,10 +37,9 @@ TEST_F(ConsoleTest, LoggerEntriesAreStoredAsIndependentModelRows)
 	EXPECT_EQ(console.entries().data(1), "[Command] : done");
 }
 
-TEST_F(ConsoleTest, TenThousandLoggerEntriesArePreservedAndReachable)
+TEST(ConsoleTest, TenThousandLoggerEntriesArePreservedAndReachable)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
-	Console console("Console", manager);
+	Console console("Console");
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
 
 	for (std::size_t index = 0; index < 10'000; ++index)
@@ -88,10 +62,9 @@ TEST_F(ConsoleTest, TenThousandLoggerEntriesArePreservedAndReachable)
 	EXPECT_EQ(console.entries().data(9'999), "User : line-9999");
 }
 
-TEST_F(ConsoleTest, NewEntriesFollowTailOnlyWhileTailIsVisible)
+TEST(ConsoleTest, NewEntriesFollowTailOnlyWhileTailIsVisible)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
-	Console console("Console", manager);
+	Console console("Console");
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 200}});
 
 	for (std::size_t index = 0; index < 40; ++index)
@@ -121,10 +94,9 @@ TEST_F(ConsoleTest, NewEntriesFollowTailOnlyWhileTailIsVisible)
 	EXPECT_EQ(console.entries().data(console.entries().rowCount() - 1), "User : following-restored");
 }
 
-TEST_F(ConsoleTest, CommandHelpIsStoredAsIndependentModelRows)
+TEST(ConsoleTest, CommandHelpIsStoredAsIndependentModelRows)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
-	Console console("Console", manager);
+	Console console("Console");
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
 
 	console.submit("/connect --help");
@@ -138,14 +110,31 @@ TEST_F(ConsoleTest, CommandHelpIsStoredAsIndependentModelRows)
 	EXPECT_EQ(console.entries().data(3), "  --port: Dedicated Server port");
 }
 
-TEST_F(ConsoleTest, GlobalHelpDoesNotStoreTrailingEmptyModelRow)
+TEST(ConsoleTest, GlobalHelpDoesNotStoreTrailingEmptyModelRow)
 {
-	ConnectionManager manager("ConnectionManager", {"127.0.0.1", 1});
-	Console console("Console", manager);
+	Console console("Console");
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
 
 	console.submit("/help");
 
 	ASSERT_EQ(console.entries().rowCount(), 1u);
 	EXPECT_EQ(console.entries().data(0), "/connect - Starts a new dedicated Server connection cycle.");
+}
+
+TEST(ConsoleTest, ConnectRequestIsForwardedFromCommandEntry)
+{
+	std::optional<Console::ConnectRequest> received;
+	Console console("Console");
+	auto contract = console.subscribeToConnectRequest(
+		[&](const Console::ConnectRequest &request) {
+			received = request;
+		});
+
+	console.submit("/connect --address 192.0.2.1 --port 2550");
+
+	ASSERT_TRUE(received.has_value());
+	ASSERT_TRUE(received->address.has_value());
+	ASSERT_TRUE(received->port.has_value());
+	EXPECT_EQ(*received->address, "192.0.2.1");
+	EXPECT_EQ(*received->port, 2550u);
 }
