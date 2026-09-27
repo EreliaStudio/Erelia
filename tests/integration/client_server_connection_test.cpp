@@ -1,12 +1,11 @@
 #include "erelia/client/connection_manager.hpp"
+#include "erelia/client/service.hpp"
 #include "erelia/server/router.hpp"
 
 #include <core/context/update_context.hpp>
-#include <design_pattern/singleton.hpp>
 #include <gtest/gtest.h>
 #include <input/device_context.hpp>
 #include <network/client.hpp>
-#include <threading/worker_pool.hpp>
 
 #include <chrono>
 #include <thread>
@@ -33,21 +32,6 @@ namespace
 		return predicate();
 	}
 
-	void ensureConnectionServices()
-	{
-		if (
-			spk::Singleton<spk::WorkerPool>::isInstanciated() ==
-			false)
-		{
-			spk::Singleton<spk::WorkerPool>::instanciate(
-				new spk::WorkerPool());
-		}
-		if (spk::Singleton<spk::Client>::isInstanciated() == false)
-		{
-			spk::Singleton<spk::Client>::instanciate(new spk::Client());
-		}
-	}
-
 	void advanceConnectionManager(ConnectionManager &manager)
 	{
 		spk::UpdateContext context{.time = {}, .deltaTime = 5ms};
@@ -61,8 +45,6 @@ namespace
 
 TEST(ClientServerConnectionIntegration, ConnectionManagerConnectsToRouter)
 {
-	ensureConnectionServices();
-
 	Router router(
 		Router::Configuration{
 			.port = 0,
@@ -75,8 +57,9 @@ TEST(ClientServerConnectionIntegration, ConnectionManagerConnectsToRouter)
 		"ConnectionManager",
 		ConnectionManager::Endpoint{
 			.address = "127.0.0.1",
-			.port = router.port()});
-	spk::Client &client = spk::Singleton<spk::Client>::instance();
+			.port = router.port()},
+		5ms);
+	spk::Client &client = *Service::client();
 
 	EXPECT_TRUE(
 		waitUntilConnection(

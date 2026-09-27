@@ -6,10 +6,8 @@
 
 #include <system/argument_parser.hpp>
 
-#include <design_pattern/singleton.hpp>
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
-#include <threading/worker_pool.hpp>
 
 #include <chrono>
 #include <csignal>
@@ -51,9 +49,6 @@ int runServer(int argc, char **argv)
 			throw spk::Exception(
 				"Missing required option --config");
 		}
-
-		spk::Singleton<spk::WorkerPool>::instanciate(
-			new spk::WorkerPool());
 
 		Router router(
 			Router::Configuration::load(

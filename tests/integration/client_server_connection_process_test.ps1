@@ -138,6 +138,7 @@ try {
         'server config' = [ordered]@{
             address = '127.0.0.1'
             port = $port
+            retryDelayMs = 25
         }
     })
 

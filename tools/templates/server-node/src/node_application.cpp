@@ -2,10 +2,8 @@
 
 #include <system/argument_parser.hpp>
 
-#include <design_pattern/singleton.hpp>
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
-#include <threading/worker_pool.hpp>
 
 #include <chrono>
 #include <csignal>
@@ -110,9 +108,6 @@ int run__NODE_NAME__Node(int argc, char **argv)
 			throw spk::Exception(
 				"Missing required option --config");
 		}
-
-		spk::Singleton<spk::WorkerPool>::instanciate(
-			new spk::WorkerPool());
 
 		__NODE_NAME__NodeApplication application(
 			__NODE_NAME__Node::Configuration::load(

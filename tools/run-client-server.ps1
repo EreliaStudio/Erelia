@@ -149,6 +149,7 @@ $clientConfig = [ordered]@{
     'server config' = [ordered]@{
         address = '127.0.0.1'
         port = $routerConfig.'server config'.port
+        retryDelayMs = 15000
     }
 }
 $clientRuntimeConfig = Join-Path $runtimeConfigRoot 'client.json'

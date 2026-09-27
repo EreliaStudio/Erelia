@@ -41,7 +41,7 @@ This ticket establishes:
 - a `MainApplicationWidget` containing a reusable Logger-backed `Console` and a `ConnectionManager` widget;
 - asynchronous scheduling of the synchronous Sparkle connection attempt on the shared WorkerPool;
 - observable connection-attempt Task state and live connected/disconnected state;
-- automatic connection cycles of at most three attempts, with 15 seconds between failed attempts;
+- automatic connection cycles of at most three attempts, using the configured `retryDelayMs` between failed attempts;
 - automatic retry stop after the third failed attempt while the graphical Client remains running;
 - `/connect` Console command starting a fresh three-attempt connection cycle;
 - Client executable startup, connected idle lifetime, signal shutdown, initial-failure handling, and unexpected remote-disconnect handling;
@@ -61,7 +61,8 @@ The Client JSON configuration is:
 {
   "server config": {
     "address": "127.0.0.1",
-    "port": 2550
+    "port": 2550,
+    "retryDelayMs": 15000
   }
 }
 ```
@@ -69,6 +70,7 @@ The Client JSON configuration is:
 Contract:
 - `server config.address` is required and must be non-empty;
 - `server config.port` is required and must be non-zero;
+- `server config.retryDelayMs` is required, is expressed as an integer number of milliseconds, and must be greater than zero;
 - unknown JSON fields are rejected;
 - there is no compiled-in production configuration path and no hidden address/port default;
 - the executable accepts `--config <path>`, `--config=<path>`, and `-c <path>`;
@@ -78,7 +80,7 @@ Contract:
 
 ### Connection attempt
 
-The Client runtime owns one `spk::Client`. It does not introduce a separate connection RAII abstraction.
+The Client process exposes one `spk::Client` through the Client `Service` API. It does not introduce a separate connection RAII abstraction.
 
 A connection request submits the blocking `spk::Client::connect(address, port)` call to `spk::WorkerPool` and returns/stores a Task Answer for that attempt.
 
@@ -96,7 +98,7 @@ No additional Client connection-state enum is introduced.
 - A connection request while already connected is an Erelia-level no-op and must not tear down/reconnect the underlying Sparkle Client.
 - A connection request while a previous attempt is still `Pending` returns/reuses that outstanding attempt rather than submitting concurrent `connect()` calls against the same `spk::Client`.
 - Initial connection failure leaves the Client disconnected.
-- A failed attempt schedules the next attempt after 15 seconds until three attempts have been made.
+- A failed attempt schedules the next attempt after the configured `retryDelayMs` until three attempts have been made.
 - Remote disconnection leaves the Client disconnected.
 - A remote disconnection starts a fresh connection cycle.
 - The same Client runtime may explicitly submit a new connection attempt after a failed attempt or later disconnection.
@@ -131,7 +133,7 @@ Observable connection-attempt/liveness transitions are:
 - connected -> remote loss -> disconnected;
 - failed/disconnected -> explicit new connection request -> new Task `Pending`.
 
-After a failed attempt, the manager transitions back to connecting after 15 seconds while fewer than three attempts have run. After attempt three it remains stopped until `/connect` starts a fresh cycle.
+After a failed attempt, the manager transitions back to connecting after the configured retry delay while fewer than three attempts have run. After attempt three it remains stopped until `/connect` starts a fresh cycle.
 
 ## Failure behavior
 
@@ -150,10 +152,11 @@ For one Client runtime, connection attempts are serialized: a second attempt can
 
 The Client runtime owns:
 - endpoint configuration;
-- one `spk::Client`;
-- the current connection-attempt Task Answer when one exists.
+- the configured retry delay;
+- the current connection-attempt Task Answer when one exists;
+- an `spk::Timer` representing the delay before the next automatic attempt.
 
-The process owns/instantiates the shared `spk::WorkerPool` required to execute the connection Task.
+Process-wide Sparkle dependencies are accessed through `Service`: Erelia Core provides the shared `spk::WorkerPool` service, while the Client layer provides its Client-only `spk::Client` service. Each service lazily guarantees the corresponding Sparkle singleton exists before returning it.
 
 The connection Task never owns the whole connected lifetime. Sparkle's internal Client receive worker owns transport receive activity after `connect()` succeeds.
 
@@ -244,7 +247,7 @@ Strict Client endpoint JSON parsing is covered.
 
 ### Retry / idempotency
 
-Automatic retry is bounded to three attempts per cycle with 15 seconds between failed attempts. `/connect` starts a new cycle after automatic attempts stop. Connect-while-connected remains an Erelia-level no-op.
+Automatic retry is bounded to three attempts per cycle with the configured `retryDelayMs` between failed attempts. `/connect` starts a new cycle after automatic attempts stop. Connect-while-connected remains an Erelia-level no-op.
 
 ### Concurrency / cancellation
 
@@ -282,12 +285,14 @@ Project-owner decisions approved on 27 September 2026:
 - WorkerPool Task for the synchronous Sparkle connection attempt rather than a dedicated connection RAII class;
 - Task state represents only attempt progress/result; `spk::Client::isConnected()` represents current liveness;
 - graphical `spk::Application` Client with initial `640x480` window;
-- bounded automatic connection cycle: three attempts, 15 seconds apart;
+- bounded automatic connection cycle: three attempts, with an integer millisecond retry delay supplied by `retryDelayMs`;
 - after attempt three fails, stop automatic attempts, log the state, and keep the application alive;
 - `/connect` starts a fresh connection cycle;
 - Console ordinary text uses Logger `UserValueA`;
 - Console/ConsoleEntry do not depend on `ConnectionManager`: `/connect` emits a typed connect-request contract carrying only explicitly supplied endpoint overrides, and `MainApplicationWidget` resolves that request against the current manager endpoint before invoking `ConnectionManager`;
 - Logger remains the one-way presentation channel from connection lifecycle code to Console: `ConnectionManager` owns its `Info`/`Warning`/`Error` lifecycle messages and Console receives them through its Logger subscription; Logger is not used as a command bus;
+- `spk::Timer` is the retry scheduler/state instead of duplicated elapsed/scheduled flags, and live disconnect state is derived from the Client service;
+- shared WorkerPool access lives in Erelia Core `Service`, while the Client-only network Client lives in Client `Service`; nodes use the Core service directly unless they later acquire node-specific services;
 - serialized/idempotent Erelia connection operations;
 - shutdown during a pending attempt waits for task settlement;
 - local signal shutdown succeeds, initial-connect failure and unexpected remote disconnect fail the executable;
@@ -301,8 +306,8 @@ Implementation is complete on `feat/st-001-10-client-dedicated-server-connection
 
 Delivered production behavior:
 - `ClientRuntime` owns the explicit endpoint configuration, one `spk::Client`, and the current connection-attempt Task Answer;
-- strict JSON endpoint loading rejects missing, unknown, empty-address, zero-port, and invalid-port inputs;
-- `ClientRuntime::connect()` submits Sparkle's synchronous `spk::Client::connect()` to the shared WorkerPool, reuses a Pending attempt, and is a no-op while already connected;
+- strict JSON endpoint loading rejects missing, unknown, empty-address, zero-port, invalid-port, missing retry-delay, and non-positive retry-delay inputs;
+- `ConnectionManager::connect()` submits Sparkle's synchronous `spk::Client::connect()` through the shared Core WorkerPool service, reuses a Pending attempt, and is a no-op while already connected;
 - `disconnect()` waits for a Pending attempt before transport teardown and is idempotent when already disconnected;
 - the same runtime supports explicit retry/reconnect after failure or disconnect while retaining the bounded three-attempt automatic retry cycle;
 - `runClient()` implements explicit-config startup, connected idle lifetime, SIGINT/SIGTERM clean shutdown, initial-connect failure, and unexpected remote-disconnect failure;
