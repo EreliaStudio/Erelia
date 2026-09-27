@@ -1,16 +1,34 @@
 #pragma once
 
-#include <system/command_parser.hpp>
+#include <cstdint>
+#include <functional>
+#include <optional>
+#include <string>
 
-class ConsoleEntry;
+#include <design_pattern/contract_provider.hpp>
+#include <system/command_parser.hpp>
 
 class ConnectCommand final : public spk::CommandParser::Command
 {
+public:
+	struct Request
+	{
+		std::optional<std::string> address;
+		std::optional<std::uint16_t> port;
+	};
+
+	using RequestProvider = spk::ContractProvider<const Request &>;
+	using RequestCallback = RequestProvider::callback_type;
+	using RequestContract = RequestProvider::Contract;
+	using LocalOutputCallback = std::function<void(std::string)>;
+
 private:
-	ConsoleEntry &_owner;
+	LocalOutputCallback _localOutput;
+	RequestProvider _requestProvider;
 
 public:
-	explicit ConnectCommand(ConsoleEntry &owner);
+	explicit ConnectCommand(LocalOutputCallback localOutput);
 
 	void execute(const spk::CommandParser::Invocation &invocation) override;
+	[[nodiscard]] RequestContract subscribeToRequest(RequestCallback callback);
 };

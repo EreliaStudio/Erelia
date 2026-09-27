@@ -1,7 +1,5 @@
 #include "erelia/client/console_entry.hpp"
 
-#include "erelia/client/command/connect_command.hpp"
-
 #include <diagnostics/logger.hpp>
 
 #include <limits>
@@ -12,16 +10,11 @@ ConsoleEntry::ConsoleEntry(
 	LocalOutputCallback localOutput,
 	spk::Widget *parent) :
 	spk::TextEdit(std::move(name), parent),
-	_localOutput(std::move(localOutput))
+	_localOutput(std::move(localOutput)),
+	_connectCommand(_commandParser.addCommand<ConnectCommand>(_localOutput))
 {
 	setPlaceholder("Enter text or /help");
 	setMaximalSize({std::numeric_limits<float>::max(), maximalSize().y});
-	_registerCommands();
-}
-
-void ConsoleEntry::_registerCommands()
-{
-	_commandParser.addCommand<ConnectCommand>(*this);
 }
 
 void ConsoleEntry::_emitLocal(std::string message)
@@ -106,9 +99,9 @@ void ConsoleEntry::submit(std::string input)
 	}
 }
 
-ConsoleEntry::ConnectRequestContract ConsoleEntry::subscribeToConnectRequest(ConnectRequestCallback callback)
+ConnectCommand::RequestContract ConsoleEntry::subscribeToConnectRequest(ConnectCommand::RequestCallback callback)
 {
-	return _connectRequestProvider.subscribe(std::move(callback));
+	return _connectCommand.subscribeToRequest(std::move(callback));
 }
 
 spk::CommandParser &ConsoleEntry::commandParser() noexcept

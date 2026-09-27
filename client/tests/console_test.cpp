@@ -1,3 +1,4 @@
+#include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/console.hpp"
 
 #include <core/context/update_context.hpp>
@@ -123,10 +124,10 @@ TEST(ConsoleTest, GlobalHelpDoesNotStoreTrailingEmptyModelRow)
 
 TEST(ConsoleTest, ConnectRequestIsForwardedFromCommandEntry)
 {
-	std::optional<Console::ConnectRequest> received;
+	std::optional<ConnectCommand::Request> received;
 	Console console("Console");
 	auto contract = console.subscribeToConnectRequest(
-		[&](const Console::ConnectRequest &request) {
+		[&](const ConnectCommand::Request &request) {
 			received = request;
 		});
 

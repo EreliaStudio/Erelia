@@ -167,7 +167,7 @@ void Console::submit(std::string command)
 	_commandEntry.submit(std::move(command));
 }
 
-Console::ConnectRequestContract Console::subscribeToConnectRequest(ConnectRequestCallback callback)
+ConnectCommand::RequestContract Console::subscribeToConnectRequest(ConnectCommand::RequestCallback callback)
 {
 	return _commandEntry.subscribeToConnectRequest(std::move(callback));
 }

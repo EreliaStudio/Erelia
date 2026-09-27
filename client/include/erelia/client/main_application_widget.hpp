@@ -1,5 +1,6 @@
 #pragma once
 
+#include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/connection_manager.hpp"
 #include "erelia/client/console.hpp"
 
@@ -11,10 +12,10 @@ class MainApplicationWidget final : public spk::Widget
 private:
 	ConnectionManager _connectionManager;
 	Console _console;
-	Console::ConnectRequestContract _connectRequestContract;
+	ConnectCommand::RequestContract _connectRequestContract;
 	spk::VerticalLayout _layout;
 
-	void _connect(const Console::ConnectRequest &request);
+	void _connect(const ConnectCommand::Request &request);
 	void _onGeometryChange() override;
 
 public:

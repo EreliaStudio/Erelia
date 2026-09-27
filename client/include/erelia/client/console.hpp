@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/console_entry.hpp"
 #include <container/data_model.hpp>
 #include <diagnostics/logger.hpp>
@@ -14,11 +15,6 @@
 
 class Console final : public spk::Widget
 {
-public:
-	using ConnectRequest = ConsoleEntry::ConnectRequest;
-	using ConnectRequestCallback = ConsoleEntry::ConnectRequestCallback;
-	using ConnectRequestContract = ConsoleEntry::ConnectRequestContract;
-
 private:
 	spk::DataModel<std::string> _entryModel;
 	spk::Panel _entryBackground;
@@ -48,7 +44,7 @@ public:
 	Console(std::string name, spk::Widget *parent = nullptr);
 
 	void submit(std::string command);
-	[[nodiscard]] ConnectRequestContract subscribeToConnectRequest(ConnectRequestCallback callback);
+	[[nodiscard]] ConnectCommand::RequestContract subscribeToConnectRequest(ConnectCommand::RequestCallback callback);
 	[[nodiscard]] ConsoleEntry &commandEntry() noexcept;
 	[[nodiscard]] const ConsoleEntry &commandEntry() const noexcept;
 };

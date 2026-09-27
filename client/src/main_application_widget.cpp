@@ -9,7 +9,7 @@ MainApplicationWidget::MainApplicationWidget(
 	spk::Widget("MainApplicationWidget", parent),
 	_connectionManager("ConnectionManager", std::move(endpoint), retryDelay, this),
 	_console("Console", this),
-	_connectRequestContract(_console.subscribeToConnectRequest([this](const Console::ConnectRequest &request) {
+	_connectRequestContract(_console.subscribeToConnectRequest([this](const ConnectCommand::Request &request) {
 		_connect(request);
 	}))
 {
@@ -20,7 +20,7 @@ MainApplicationWidget::MainApplicationWidget(
 	activate();
 }
 
-void MainApplicationWidget::_connect(const Console::ConnectRequest &request)
+void MainApplicationWidget::_connect(const ConnectCommand::Request &request)
 {
 	ConnectionManager::Endpoint endpoint = _connectionManager.endpoint();
 	if (request.address.has_value() == true)

@@ -1,13 +1,12 @@
 #include "erelia/client/command/connect_command.hpp"
 
-#include "erelia/client/console_entry.hpp"
-
 #include <charconv>
 #include <cstdint>
 #include <limits>
 #include <string>
+#include <utility>
 
-ConnectCommand::ConnectCommand(ConsoleEntry &owner) :
+ConnectCommand::ConnectCommand(LocalOutputCallback localOutput) :
 	Command(
 		"connect",
 		"Starts a new dedicated Server connection cycle.",
@@ -15,13 +14,13 @@ ConnectCommand::ConnectCommand(ConsoleEntry &owner) :
 			{.name = "address", .description = "Dedicated Server address", .optional = true},
 			{.name = "port", .description = "Dedicated Server port", .optional = true},
 		}),
-	_owner(owner)
+	_localOutput(std::move(localOutput))
 {
 }
 
 void ConnectCommand::execute(const spk::CommandParser::Invocation &invocation)
 {
-	ConsoleEntry::ConnectRequest request;
+	Request request;
 
 	if (invocation.parameters.contains("address") == true)
 	{
@@ -41,11 +40,19 @@ void ConnectCommand::execute(const spk::CommandParser::Invocation &invocation)
 			port == 0 ||
 			port > std::numeric_limits<std::uint16_t>::max())
 		{
-			_owner._emitLocal("Invalid port: " + value);
+			if (_localOutput)
+			{
+				_localOutput("Invalid port: " + value);
+			}
 			return;
 		}
 		request.port = static_cast<std::uint16_t>(port);
 	}
 
-	_owner._connectRequestProvider.trigger(request);
+	_requestProvider.trigger(request);
+}
+
+ConnectCommand::RequestContract ConnectCommand::subscribeToRequest(RequestCallback callback)
+{
+	return _requestProvider.subscribe(std::move(callback));
 }

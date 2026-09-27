@@ -1,3 +1,4 @@
+#include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/console_entry.hpp"
 
 #include <diagnostics/logger.hpp>
@@ -58,7 +59,7 @@ TEST(ConsoleEntryTest, CommandHelpIsLocalAndDoesNotEmitConnectRequest)
 		local.emplace_back(std::move(value));
 	});
 	auto contract = entry.subscribeToConnectRequest(
-		[&](const ConsoleEntry::ConnectRequest &) {
+		[&](const ConnectCommand::Request &) {
 			++requestCount;
 		});
 
@@ -82,7 +83,7 @@ TEST(ConsoleEntryTest, MalformedKnownCommandAddsDiagnosticAndUsageLocally)
 		local.emplace_back(std::move(value));
 	});
 	auto requestContract = entry.subscribeToConnectRequest(
-		[&](const ConsoleEntry::ConnectRequest &) {
+		[&](const ConnectCommand::Request &) {
 			++requestCount;
 		});
 	loggerCalls = 0;
@@ -132,11 +133,11 @@ TEST(ConsoleEntryTest, ConnectParametersAreOptionalAndShownInHelp)
 
 TEST(ConsoleEntryTest, ConnectWithoutOverridesEmitsEmptyRequest)
 {
-	std::optional<ConsoleEntry::ConnectRequest> received;
+	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry", [](std::string) {
 	});
 	auto contract = entry.subscribeToConnectRequest(
-		[&](const ConsoleEntry::ConnectRequest &request) {
+		[&](const ConnectCommand::Request &request) {
 			received = request;
 		});
 
@@ -149,11 +150,11 @@ TEST(ConsoleEntryTest, ConnectWithoutOverridesEmitsEmptyRequest)
 
 TEST(ConsoleEntryTest, ConnectAddressOverrideEmitsAddressOnly)
 {
-	std::optional<ConsoleEntry::ConnectRequest> received;
+	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry", [](std::string) {
 	});
 	auto contract = entry.subscribeToConnectRequest(
-		[&](const ConsoleEntry::ConnectRequest &request) {
+		[&](const ConnectCommand::Request &request) {
 			received = request;
 		});
 
@@ -167,11 +168,11 @@ TEST(ConsoleEntryTest, ConnectAddressOverrideEmitsAddressOnly)
 
 TEST(ConsoleEntryTest, ConnectPortOverrideEmitsPortOnly)
 {
-	std::optional<ConsoleEntry::ConnectRequest> received;
+	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry", [](std::string) {
 	});
 	auto contract = entry.subscribeToConnectRequest(
-		[&](const ConsoleEntry::ConnectRequest &request) {
+		[&](const ConnectCommand::Request &request) {
 			received = request;
 		});
 
@@ -191,7 +192,7 @@ TEST(ConsoleEntryTest, ConnectRejectsInvalidPortLocally)
 		local.emplace_back(std::move(value));
 	});
 	auto contract = entry.subscribeToConnectRequest(
-		[&](const ConsoleEntry::ConnectRequest &) {
+		[&](const ConnectCommand::Request &) {
 			++requestCount;
 		});
 
@@ -210,7 +211,7 @@ TEST(ConsoleEntryTest, ConnectRejectsOutOfRangePortLocally)
 		local.emplace_back(std::move(value));
 	});
 	auto contract = entry.subscribeToConnectRequest(
-		[&](const ConsoleEntry::ConnectRequest &) {
+		[&](const ConnectCommand::Request &) {
 			++requestCount;
 		});
 
