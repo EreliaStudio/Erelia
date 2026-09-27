@@ -1,5 +1,7 @@
 add_executable(EreliaClientTestSuite
     client_runtime_test.cpp
+    connection_manager_test.cpp
+    console_test.cpp
     golden_image_test.cpp
 )
 target_compile_features(EreliaClientTestSuite PRIVATE cxx_std_23)
