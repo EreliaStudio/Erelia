@@ -7,7 +7,7 @@
 
 ## Intent
 
-Replace the Client smoke-only runtime with the minimal Sparkle Client connection lifecycle required to reach the dedicated EP-001 Server.
+Replace the Client smoke-only runtime with the first graphical Sparkle application shell and the Client connection lifecycle required to reach the dedicated EP-001 Server.
 
 ## User / system value
 
@@ -37,15 +37,19 @@ In-process Server authority, raw socket wrappers, extra networking libraries, Cl
 
 This ticket establishes:
 - explicit Client endpoint configuration;
+- a graphical `spk::Application` with an initial `640x480` `Erelia` window;
+- a `MainApplicationWidget` containing a reusable Logger-backed `Console` and a `ConnectionManager` widget;
 - asynchronous scheduling of the synchronous Sparkle connection attempt on the shared WorkerPool;
 - observable connection-attempt Task state and live connected/disconnected state;
-- explicit disconnect and explicit reconnect using the same owned `spk::Client`;
+- automatic connection cycles of at most three attempts, with 15 seconds between failed attempts;
+- automatic retry stop after the third failed attempt while the graphical Client remains running;
+- `/connect` Console command starting a fresh three-attempt connection cycle;
 - Client executable startup, connected idle lifetime, signal shutdown, initial-failure handling, and unexpected remote-disconnect handling;
 - deterministic component, integration, and separate-process connection coverage.
 
 ## Explicitly not owned
 
-Chunk request/cache coordination, protocol payload forwarding APIs, cache policy, automatic reconnect/retry, terrain generation, meshing/rendering, production session/account identity.
+Chunk request/cache coordination, protocol payload forwarding APIs, cache policy, terrain generation, terrain rendering, production session/account identity.
 
 ## Public contract
 
@@ -92,9 +96,9 @@ No additional Client connection-state enum is introduced.
 - A connection request while already connected is an Erelia-level no-op and must not tear down/reconnect the underlying Sparkle Client.
 - A connection request while a previous attempt is still `Pending` returns/reuses that outstanding attempt rather than submitting concurrent `connect()` calls against the same `spk::Client`.
 - Initial connection failure leaves the Client disconnected.
-- There is no automatic retry.
+- A failed attempt schedules the next attempt after 15 seconds until three attempts have been made.
 - Remote disconnection leaves the Client disconnected.
-- There is no automatic reconnect.
+- A remote disconnection starts a fresh connection cycle.
 - The same Client runtime may explicitly submit a new connection attempt after a failed attempt or later disconnection.
 - Disconnect while already disconnected is a no-op.
 - A deliberate reconnect is therefore `disconnect()` followed by a new connection request.
@@ -127,14 +131,14 @@ Observable connection-attempt/liveness transitions are:
 - connected -> remote loss -> disconnected;
 - failed/disconnected -> explicit new connection request -> new Task `Pending`.
 
-There is no automatic transition from disconnected back to connecting.
+After a failed attempt, the manager transitions back to connecting after 15 seconds while fewer than three attempts have run. After attempt three it remains stopped until `/connect` starts a fresh cycle.
 
 ## Failure behavior
 
 - Invalid/missing configuration throws/fails startup before connection is attempted.
 - Refused/unavailable Server causes the connection Task to fail and leaves `isConnected() == false`.
-- The Client executable treats initial connection failure as `EXIT_FAILURE`.
-- Unexpected remote Server disconnect during the executable's connected idle lifetime causes `EXIT_FAILURE`.
+- After three failed attempts the automatic cycle stops, logs the stopped state, and the graphical Client remains running.
+- Unexpected remote Server disconnect starts a fresh connection cycle.
 - SIGINT/SIGTERM-requested local shutdown disconnects cleanly and returns `EXIT_SUCCESS`.
 - Shutdown requested while the connect Task is pending waits for terminal Task state before destroying/disconnecting the Client.
 
@@ -240,7 +244,7 @@ Strict Client endpoint JSON parsing is covered.
 
 ### Retry / idempotency
 
-No automatic retry/reconnect. Explicit reconnect is supported. Disconnect and connect-while-connected are idempotent at the Erelia API boundary.
+Automatic retry is bounded to three attempts per cycle with 15 seconds between failed attempts. `/connect` starts a new cycle after automatic attempts stop. Connect-while-connected remains an Erelia-level no-op.
 
 ### Concurrency / cancellation
 
@@ -277,7 +281,11 @@ Project-owner decisions approved on 27 September 2026:
 - strict explicit JSON endpoint configuration and CLI config path;
 - WorkerPool Task for the synchronous Sparkle connection attempt rather than a dedicated connection RAII class;
 - Task state represents only attempt progress/result; `spk::Client::isConnected()` represents current liveness;
-- no automatic retry/reconnect;
+- graphical `spk::Application` Client with initial `640x480` window;
+- bounded automatic connection cycle: three attempts, 15 seconds apart;
+- after attempt three fails, stop automatic attempts, log the state, and keep the application alive;
+- `/connect` starts a fresh connection cycle;
+- Console ordinary text uses Logger `UserValueA`; command-result messages use `UserValueB`;
 - serialized/idempotent Erelia connection operations;
 - shutdown during a pending attempt waits for task settlement;
 - local signal shutdown succeeds, initial-connect failure and unexpected remote disconnect fail the executable;
