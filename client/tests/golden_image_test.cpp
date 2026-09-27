@@ -45,11 +45,12 @@ namespace
 	spk::Widget &prepareApplication(EreliaClientApplication &application)
 	{
 		spk::Widget &root = application.window("main").root();
-		EXPECT_EQ(
-			root.geometry(),
-			(spk::Rect2D{
-				.anchor = {0, 0},
-				.size = {640, 480}}));
+		const spk::Rect2D expectedGeometry{
+			.anchor = {0, 0},
+			.size = {640, 480}};
+		EXPECT_EQ(root.geometry(), expectedGeometry);
+		EXPECT_EQ(application.mainWidget().geometry(), expectedGeometry);
+		EXPECT_EQ(application.mainWidget().console().geometry(), expectedGeometry);
 		advance(root);
 		return root;
 	}
