@@ -2,6 +2,7 @@ add_library(EreliaClientLibrary STATIC
     src/application.cpp
     src/connection_manager.cpp
     src/console.cpp
+    src/console_entry.cpp
     src/main_application_widget.cpp
 )
 target_compile_features(EreliaClientLibrary PUBLIC cxx_std_23)
@@ -11,7 +12,6 @@ target_link_libraries(
     PUBLIC
         EreliaCore
         sparkle::core
-    PRIVATE
         sparkle::sparkle
 )
 
