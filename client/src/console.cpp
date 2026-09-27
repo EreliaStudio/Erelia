@@ -3,6 +3,7 @@
 #include <core/context/update_context.hpp>
 
 #include <utility>
+#include <vector>
 
 namespace
 {
@@ -55,14 +56,13 @@ void Console::_queueEntry(
 	const spk::Logger::Level &level,
 	const std::string &message)
 {
-	const std::scoped_lock lock(_pendingMutex);
 	if (level == spk::Logger::Level::UserValueA)
 	{
-		_pendingEntries.emplace_back("User : " + message);
+		_pendingEntries.emplace("User : " + message);
 	}
 	else
 	{
-		_pendingEntries.emplace_back(
+		_pendingEntries.emplace(
 			"[" + std::string(levelName(level)) + "] : " + message);
 	}
 }
@@ -70,10 +70,7 @@ void Console::_queueEntry(
 void Console::_flushEntries()
 {
 	std::vector<std::string> entries;
-	{
-		const std::scoped_lock lock(_pendingMutex);
-		entries.swap(_pendingEntries);
-	}
+	_pendingEntries.drain(entries);
 
 	if (entries.empty() == true)
 	{

@@ -1,12 +1,11 @@
 #pragma once
 
-#include <mutex>
 #include <string>
-#include <vector>
 
 #include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/console_entry.hpp"
 #include <container/data_model.hpp>
+#include <container/thread_safe_fifo.hpp>
 #include <diagnostics/logger.hpp>
 #include <ui/layout/linear_layout.hpp>
 #include <ui/text_model_view.hpp>
@@ -22,8 +21,7 @@ private:
 	ConsoleEntry _commandEntry;
 	spk::VerticalLayout _layout;
 	spk::Logger::OnEntryContract _loggerContract;
-	std::mutex _pendingMutex;
-	std::vector<std::string> _pendingEntries;
+	spk::ThreadSafeFIFO<std::string> _pendingEntries;
 
 	void _queueEntry(const spk::Logger::Level &level, const std::string &message);
 	void _flushEntries();
