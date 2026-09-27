@@ -1,10 +1,12 @@
 #include "erelia/client/client_configuration.hpp"
 #include "erelia/client/main_application_widget.hpp"
+#include "erelia/client/service.hpp"
 
 #include <core/application.hpp>
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
 #include <system/argument_parser.hpp>
+#include <system/translator.hpp>
 
 #include <cstdlib>
 #include <filesystem>
@@ -18,8 +20,19 @@ int main(int argc, char **argv)
 		spk::ArgumentParser arguments;
 
 		arguments.setSynopsis("EreliaClient --config <path>");
-		arguments.addOption({"config", 'c', "Path to the Client JSON configuration", 1});
-		arguments.addOption({"help", 'h', "Print this help"});
+		arguments.addOption(
+			{
+				"config",
+				'c',
+				Service::translator()->translate(
+					"client.cli.config.description"),
+				1});
+		arguments.addOption(
+			{
+				"help",
+				'h',
+				Service::translator()->translate(
+					"client.cli.help.description")});
 		arguments.parse(argc, argv);
 
 		if (arguments.has("help") == true)
@@ -29,7 +42,9 @@ int main(int argc, char **argv)
 		}
 		if (arguments.has("config") == false)
 		{
-			throw spk::Exception("Missing required option --config");
+			throw spk::Exception(
+				Service::translator()->translate(
+					"client.cli.config.missing"));
 		}
 
 		spk::logger.setLevelIdentifier(spk::Logger::Level::UserValueA, "User message");

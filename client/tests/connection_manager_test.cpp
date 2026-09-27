@@ -160,3 +160,24 @@ TEST_F(ConnectionManagerTest, UsesRegisteredTranslationForConnectionAttempt)
 
 	EXPECT_TRUE(translatedAttemptFound);
 }
+
+
+TEST_F(ConnectionManagerTest, UsesTranslatedEndpointValidationMessage)
+{
+	Service::translator()->append(
+		"client.connection.endpoint.port_zero",
+		"Translated zero port");
+
+	try
+	{
+		ConnectionManager manager(
+			"ConnectionManager",
+			{"127.0.0.1", 0},
+			TestRetryDelay);
+		FAIL() << "Expected spk::Exception";
+	}
+	catch (const spk::Exception &exception)
+	{
+		EXPECT_STREQ(exception.what(), "Translated zero port");
+	}
+}

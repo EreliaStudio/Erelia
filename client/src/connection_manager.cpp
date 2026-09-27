@@ -24,11 +24,15 @@ ConnectionManager::ConnectionManager(
 {
 	if (_endpoint.address.empty() == true)
 	{
-		throw spk::Exception("Client Server address cannot be empty");
+		throw spk::Exception(
+			Service::translator()->translate(
+				"client.connection.endpoint.address_empty"));
 	}
 	if (_endpoint.port == 0)
 	{
-		throw spk::Exception("Client Server port cannot be zero");
+		throw spk::Exception(
+			Service::translator()->translate(
+				"client.connection.endpoint.port_zero"));
 	}
 
 	activate();
@@ -225,11 +229,15 @@ void ConnectionManager::connect(Endpoint endpoint)
 {
 	if (endpoint.address.empty() == true)
 	{
-		throw spk::Exception("Client Server address cannot be empty");
+		throw spk::Exception(
+			Service::translator()->translate(
+				"client.connection.endpoint.address_empty"));
 	}
 	if (endpoint.port == 0)
 	{
-		throw spk::Exception("Client Server port cannot be zero");
+		throw spk::Exception(
+			Service::translator()->translate(
+				"client.connection.endpoint.port_zero"));
 	}
 
 	if (

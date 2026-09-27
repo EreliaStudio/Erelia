@@ -1,7 +1,10 @@
 #include "erelia/client/client_configuration.hpp"
 
+#include "erelia/client/service.hpp"
+
 #include <container/json/reader.hpp>
 #include <exception.hpp>
+#include <system/translator.hpp>
 
 #include <cstdint>
 #include <filesystem>
@@ -24,15 +27,21 @@ ClientConfiguration ClientConfiguration::load(const std::filesystem::path &path)
 
 	if (result.server.address.empty() == true)
 	{
-		throw spk::Exception("Client Server address cannot be empty");
+		throw spk::Exception(
+			Service::translator()->translate(
+				"client.connection.endpoint.address_empty"));
 	}
 	if (result.server.port == 0)
 	{
-		throw spk::Exception("Client Server port cannot be zero");
+		throw spk::Exception(
+			Service::translator()->translate(
+				"client.connection.endpoint.port_zero"));
 	}
 	if (result.retryDelay.count() <= 0)
 	{
-		throw spk::Exception("Client retryDelayMs must be greater than zero");
+		throw spk::Exception(
+			Service::translator()->translate(
+				"client.configuration.retry_delay_non_positive"));
 	}
 	return result;
 }
