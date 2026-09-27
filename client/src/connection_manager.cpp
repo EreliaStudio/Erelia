@@ -35,6 +35,21 @@ ConnectionManager::ConnectionManager(
 	connect();
 }
 
+ConnectionManager::~ConnectionManager()
+{
+	if (
+		_connectionAttempt.has_value() == true &&
+		_connectionAttempt->status() == ConnectionTask::Status::Pending)
+	{
+		_connectionAttempt->wait();
+	}
+
+	if (_client.isConnected() == true)
+	{
+		_client.disconnect();
+	}
+}
+
 void ConnectionManager::_launchAttempt()
 {
 	if (_client.isConnected() == true || _connectionAttempt.has_value() == true)
