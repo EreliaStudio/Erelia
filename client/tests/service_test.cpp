@@ -140,12 +140,12 @@ TEST_F(ClientTranslatorServiceTest, FileAppendRejectsDuplicateKeyWithoutPartialM
 	EXPECT_EQ(
 		Service::translator()->translate("client.preserved"),
 		"Preserved");
-	EXPECT_THROW(
-		(void)Service::translator()->translate("client.added"),
-		spk::Exception);
+	EXPECT_EQ(
+		Service::translator()->translate("client.added"),
+		"client.added");
 }
 
-TEST_F(ClientTranslatorServiceTest, ClearRemovesTranslationsForEveryServiceLookup)
+TEST_F(ClientTranslatorServiceTest, ClearFallsBackToKeyForEveryServiceLookup)
 {
 	Service::translator()->append(
 		"client.message",
@@ -153,9 +153,9 @@ TEST_F(ClientTranslatorServiceTest, ClearRemovesTranslationsForEveryServiceLooku
 
 	Service::translator()->clear();
 
-	EXPECT_THROW(
-		(void)Service::translator()->translate("client.message"),
-		spk::Exception);
+	EXPECT_EQ(
+		Service::translator()->translate("client.message"),
+		"client.message");
 }
 
 TEST_F(ClientTranslatorServiceTest, TranslatorCanBeRepopulatedAfterClear)
@@ -199,9 +199,9 @@ TEST_F(ClientTranslatorServiceTest, ClearThenAppendSupportsFullLanguageReplaceme
 	EXPECT_EQ(
 		Service::translator()->translate("client.french_only"),
 		"Français seulement");
-	EXPECT_THROW(
-		(void)Service::translator()->translate("client.english_only"),
-		spk::Exception);
+	EXPECT_EQ(
+		Service::translator()->translate("client.english_only"),
+		"client.english_only");
 }
 
 TEST_F(ClientTranslatorServiceTest, FailedCatalogAppendKeepsCurrentClientTranslations)
@@ -219,9 +219,9 @@ TEST_F(ClientTranslatorServiceTest, FailedCatalogAppendKeepsCurrentClientTransla
 	EXPECT_EQ(
 		Service::translator()->translate("client.existing"),
 		"Existing");
-	EXPECT_THROW(
-		(void)Service::translator()->translate("client.valid"),
-		spk::Exception);
+	EXPECT_EQ(
+		Service::translator()->translate("client.valid"),
+		"client.valid");
 }
 
 TEST_F(ClientTranslatorServiceTest, FailedFormatPropagatesThroughClientService)
@@ -235,4 +235,14 @@ TEST_F(ClientTranslatorServiceTest, FailedFormatPropagatesThroughClientService)
 			"client.invalid",
 			42),
 		spk::Exception);
+}
+
+
+TEST_F(ClientTranslatorServiceTest, MissingTranslationFallsBackToKey)
+{
+	EXPECT_EQ(
+		Service::translator()->translate(
+			"client.connection.missing",
+			42),
+		"client.connection.missing");
 }
