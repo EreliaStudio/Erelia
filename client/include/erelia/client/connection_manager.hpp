@@ -29,8 +29,8 @@ private:
 	using ConnectionAnswer = ConnectionTask::Answer;
 
 	Endpoint _endpoint;
-	spk::Client &_client;
 	spk::WorkerPool &_workerPool;
+	spk::Client &_client;
 	std::optional<ConnectionAnswer> _connectionAttempt;
 	std::chrono::steady_clock::duration _retryElapsed{};
 	std::size_t _attemptCount = 0;

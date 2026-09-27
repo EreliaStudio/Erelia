@@ -4,6 +4,7 @@ add_library(EreliaClientLibrary STATIC
     src/console.cpp
     src/console_entry.cpp
     src/main_application_widget.cpp
+    src/service.cpp
 )
 target_compile_features(EreliaClientLibrary PUBLIC cxx_std_23)
 target_include_directories(EreliaClientLibrary PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

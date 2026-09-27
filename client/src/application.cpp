@@ -3,12 +3,9 @@
 #include "erelia/client/main_application_widget.hpp"
 
 #include <container/json/reader.hpp>
-#include <design_pattern/singleton.hpp>
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
-#include <network/client.hpp>
 #include <system/argument_parser.hpp>
-#include <threading/worker_pool.hpp>
 
 #include <cstdlib>
 #include <filesystem>
@@ -48,15 +45,6 @@ ClientConfiguration ClientConfiguration::load(const std::string &path)
 EreliaClientApplication::EreliaClientApplication(
 	ConnectionManager::Endpoint endpoint)
 {
-	if (spk::Singleton<spk::WorkerPool>::isInstanciated() == false)
-	{
-		spk::Singleton<spk::WorkerPool>::instanciate(new spk::WorkerPool());
-	}
-	if (spk::Singleton<spk::Client>::isInstanciated() == false)
-	{
-		spk::Singleton<spk::Client>::instanciate(new spk::Client());
-	}
-
 	spk::logger.setLevelIdentifier(spk::Logger::Level::UserValueA, "User message");
 	spk::logger.setLevelIdentifier(spk::Logger::Level::UserValueB, "Command");
 

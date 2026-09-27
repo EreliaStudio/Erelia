@@ -1,11 +1,8 @@
 #include "erelia/client/connection_manager.hpp"
 
 #include <core/context/update_context.hpp>
-#include <design_pattern/singleton.hpp>
 #include <diagnostics/logger.hpp>
 #include <input/device_context.hpp>
-#include <network/client.hpp>
-#include <threading/worker_pool.hpp>
 
 #include <gtest/gtest.h>
 
@@ -16,18 +13,6 @@
 
 namespace
 {
-	void ensureClientServices()
-	{
-		if (spk::Singleton<spk::WorkerPool>::isInstanciated() == false)
-		{
-			spk::Singleton<spk::WorkerPool>::instanciate(new spk::WorkerPool());
-		}
-		if (spk::Singleton<spk::Client>::isInstanciated() == false)
-		{
-			spk::Singleton<spk::Client>::instanciate(new spk::Client());
-		}
-	}
-
 	void advanceConnectionManager(ConnectionManager &manager, std::chrono::steady_clock::duration delta)
 	{
 		spk::UpdateContext context{.time = {}, .deltaTime = delta};
@@ -50,11 +35,6 @@ namespace
 
 	class ConnectionManagerTest : public ::testing::Test
 	{
-	protected:
-		static void SetUpTestSuite()
-		{
-			ensureClientServices();
-		}
 	};
 }
 

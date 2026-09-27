@@ -1,7 +1,8 @@
 #include "erelia/client/connection_manager.hpp"
 
+#include "erelia/client/service.hpp"
+
 #include <core/context/update_context.hpp>
-#include <design_pattern/singleton.hpp>
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
 
@@ -13,8 +14,8 @@ ConnectionManager::ConnectionManager(
 	spk::Widget *parent) :
 	spk::Widget(std::move(name), parent),
 	_endpoint(std::move(endpoint)),
-	_client(spk::Singleton<spk::Client>::instance()),
-	_workerPool(spk::Singleton<spk::WorkerPool>::instance()),
+	_workerPool(*Service::workerPool()),
+	_client(*Service::client()),
 	_connectionContract(_client.subscribeToConnection([this] {
 		SPK_LOG(Info) << "Connected to dedicated Server" << std::endl;
 	})),

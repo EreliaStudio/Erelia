@@ -3,13 +3,10 @@
 #include "erelia/client/main_application_widget.hpp"
 
 #include <core/context/update_context.hpp>
-#include <design_pattern/singleton.hpp>
 #include <diagnostics/logger.hpp>
 #include <input/device_context.hpp>
-#include <network/client.hpp>
 #include <rendering/render_snapshot.hpp>
 #include <sparkle_test.hpp>
-#include <threading/worker_pool.hpp>
 
 #include <gtest/gtest.h>
 
@@ -19,18 +16,6 @@
 
 namespace
 {
-	void ensureClientServices()
-	{
-		if (spk::Singleton<spk::WorkerPool>::isInstanciated() == false)
-		{
-			spk::Singleton<spk::WorkerPool>::instanciate(new spk::WorkerPool());
-		}
-		if (spk::Singleton<spk::Client>::isInstanciated() == false)
-		{
-			spk::Singleton<spk::Client>::instanciate(new spk::Client());
-		}
-	}
-
 	void advance(spk::Widget &widget)
 	{
 		spk::UpdateContext context{.time = {}, .deltaTime = std::chrono::milliseconds(16)};
@@ -97,7 +82,6 @@ namespace
 			sparkle_test::configurePaths(
 				std::filesystem::path{ERELIA_CLIENT_TEST_RESOURCES_DIR},
 				std::filesystem::path{ERELIA_CLIENT_TEST_RESULTS_DIR});
-			ensureClientServices();
 		}
 	};
 }
