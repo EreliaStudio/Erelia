@@ -1,8 +1,11 @@
-#include "erelia/client/client_runtime.hpp"
+#include "erelia/client/connection_manager.hpp"
 #include "erelia/server/router.hpp"
 
+#include <core/context/update_context.hpp>
 #include <design_pattern/singleton.hpp>
 #include <gtest/gtest.h>
+#include <input/device_context.hpp>
+#include <network/client.hpp>
 #include <threading/worker_pool.hpp>
 
 #include <chrono>
@@ -30,7 +33,7 @@ namespace
 		return predicate();
 	}
 
-	void ensureConnectionWorkerPool()
+	void ensureConnectionServices()
 	{
 		if (
 			spk::Singleton<spk::WorkerPool>::isInstanciated() ==
@@ -39,12 +42,26 @@ namespace
 			spk::Singleton<spk::WorkerPool>::instanciate(
 				new spk::WorkerPool());
 		}
+		if (spk::Singleton<spk::Client>::isInstanciated() == false)
+		{
+			spk::Singleton<spk::Client>::instanciate(new spk::Client());
+		}
+	}
+
+	void advanceConnectionManager(ConnectionManager &manager)
+	{
+		spk::UpdateContext context{.time = {}, .deltaTime = 5ms};
+		spk::Keyboard keyboard;
+		spk::Mouse mouse;
+		spk::DeviceContext devices{.keyboard = keyboard, .mouse = mouse};
+		manager.updateState(context);
+		manager.updateState(context, devices);
 	}
 }
 
-TEST(ClientServerConnectionIntegration, EreliaClientRuntimeConnectsToRouter)
+TEST(ClientServerConnectionIntegration, ConnectionManagerConnectsToRouter)
 {
-	ensureConnectionWorkerPool();
+	ensureConnectionServices();
 
 	Router router(
 		Router::Configuration{
@@ -54,23 +71,26 @@ TEST(ClientServerConnectionIntegration, EreliaClientRuntimeConnectsToRouter)
 	router.start();
 	ASSERT_TRUE(router.isRunning());
 
-	ClientRuntime client(
-		ClientRuntime::Configuration{
+	ConnectionManager manager(
+		"ConnectionManager",
+		ConnectionManager::Endpoint{
 			.address = "127.0.0.1",
 			.port = router.port()});
+	spk::Client &client = spk::Singleton<spk::Client>::instance();
 
-	ClientRuntime::ConnectionAnswer connection =
-		client.connect();
-	EXPECT_TRUE(connection.get());
-	EXPECT_TRUE(client.isConnected());
+	EXPECT_TRUE(
+		waitUntilConnection(
+			[&] {
+				advanceConnectionManager(manager);
+				return client.isConnected();
+			}));
 
 	router.stop();
 
 	EXPECT_TRUE(
 		waitUntilConnection(
-			[&client] {
+			[&] {
+				advanceConnectionManager(manager);
 				return client.isConnected() == false;
 			}));
-
-	client.disconnect();
 }
