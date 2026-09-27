@@ -5,6 +5,7 @@
 #include <diagnostics/logger.hpp>
 
 #include <limits>
+#include <charconv>
 #include <utility>
 
 ConsoleEntry::ConsoleEntry(
@@ -23,10 +24,44 @@ ConsoleEntry::ConsoleEntry(
 
 void ConsoleEntry::_registerCommands()
 {
-	_commandParser.addCommand({.name = "connect", .description = "Starts a new dedicated Server connection cycle.", .callback = [this](const spk::CommandParser::Invocation &) {
-								   SPK_LOG(UserValueB) << "Starting a new dedicated Server connection cycle" << std::endl;
-								   _connectionManager.connect();
-							   }});
+	_commandParser.addCommand({
+		.name = "connect",
+		.description = "Starts a new dedicated Server connection cycle.",
+		.parameters = {
+			{.name = "address", .description = "Dedicated Server address", .optional = true},
+			{.name = "port", .description = "Dedicated Server port", .optional = true}},
+		.callback = [this](const spk::CommandParser::Invocation &invocation) {
+			ConnectionManager::Endpoint endpoint = _connectionManager.endpoint();
+
+			if (invocation.parameters.contains("address") == true)
+			{
+				endpoint.address = invocation.get("address").front();
+			}
+			if (invocation.parameters.contains("port") == true)
+			{
+				const std::string &value = invocation.get("port").front();
+				unsigned int port = 0;
+				const auto [end, error] = std::from_chars(value.data(), value.data() + value.size(), port);
+				if (error != std::errc{} || end != value.data() + value.size() || port == 0 || port > std::numeric_limits<std::uint16_t>::max())
+				{
+					_emitLocal("Invalid port: " + value);
+					return;
+				}
+				endpoint.port = static_cast<std::uint16_t>(port);
+			}
+
+			const ConnectionManager::Endpoint &current = _connectionManager.endpoint();
+			if (
+				current.address == endpoint.address &&
+				current.port == endpoint.port)
+			{
+				_connectionManager.connect();
+				return;
+			}
+
+			SPK_LOG(UserValueB) << "Starting a new dedicated Server connection cycle" << std::endl;
+			_connectionManager.connect(std::move(endpoint));
+		}});
 }
 
 void ConsoleEntry::_emitLocal(std::string message)
