@@ -85,7 +85,7 @@ void Console::_flushEntries()
 
 void Console::_onGeometryChange()
 {
-	_layout.setGeometry(geometry());
+	_layout.resize(geometry());
 }
 
 void Console::_updateState(spk::UpdateContext &)
