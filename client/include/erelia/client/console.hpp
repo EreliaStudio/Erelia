@@ -34,6 +34,7 @@ public:
 	[[nodiscard]] const spk::TextModelView &entryView() const noexcept;
 
 private:
+	void _updateSizeHint() override;
 	void _onGeometryChange() override;
 	void _updateState(spk::UpdateContext &context) override;
 	void _onPassiveKeyPressedEvent(spk::KeyPressedEvent &event) override;
