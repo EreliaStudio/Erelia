@@ -42,6 +42,15 @@ namespace
 		widget.updateState(context, devices);
 	}
 
+	spk::Widget &prepareApplication(EreliaClientApplication &application)
+	{
+		spk::Widget &root = application.window("main").root();
+		root.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
+		application.mainWidget().setGeometry(root.geometry());
+		advance(application.mainWidget());
+		return root;
+	}
+
 	void expectWidgetImage(
 		spk::Widget &widget,
 		const std::filesystem::path &category,
@@ -146,25 +155,27 @@ TEST_F(ClientGoldenImageTest, ConsoleOverflowTopMiddleAndBottom)
 TEST_F(ClientGoldenImageTest, ApplicationStartup)
 {
 	EreliaClientApplication application({"127.0.0.1", 1});
-	spk::Widget &root = application.window("main").root();
+	spk::Widget &root = prepareApplication(application);
 	expectWidgetImage(root, "application", "startup");
 }
 
 TEST_F(ClientGoldenImageTest, ApplicationMixedConsole)
 {
 	EreliaClientApplication application({"127.0.0.1", 1});
+	spk::Widget &root = prepareApplication(application);
 	Console &console = application.mainWidget().console();
 	SPK_LOG(UserValueA) << "Player message" << std::endl;
 	SPK_LOG(UserValueB) << "Command result" << std::endl;
 	SPK_LOG(Info) << "System information" << std::endl;
 	SPK_LOG(Warning) << "System warning" << std::endl;
 	advance(console);
-	expectWidgetImage(application.window("main").root(), "application", "mixed_console");
+	expectWidgetImage(root, "application", "mixed_console");
 }
 
 TEST_F(ClientGoldenImageTest, ApplicationConsoleOverflow)
 {
 	EreliaClientApplication application({"127.0.0.1", 1});
+	spk::Widget &root = prepareApplication(application);
 	Console &console = application.mainWidget().console();
 	for (std::size_t index = 0; index < 200; ++index)
 	{
@@ -172,5 +183,5 @@ TEST_F(ClientGoldenImageTest, ApplicationConsoleOverflow)
 	}
 	advance(console);
 	ASSERT_TRUE(console.entryView().isLastRowVisible());
-	expectWidgetImage(application.window("main").root(), "application", "console_overflow");
+	expectWidgetImage(root, "application", "console_overflow");
 }
