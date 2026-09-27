@@ -18,7 +18,7 @@ MainApplicationWidget::MainApplicationWidget(
 
 void MainApplicationWidget::_onGeometryChange()
 {
-	_layout.resize(geometry());
+	_layout.setGeometry(geometry());
 }
 
 ConnectionManager &MainApplicationWidget::connectionManager() noexcept
