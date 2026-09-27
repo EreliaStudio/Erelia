@@ -175,3 +175,38 @@ std::size_t ConnectionManager::attemptCount() const noexcept
 {
 	return _attemptCount;
 }
+
+void ConnectionManager::connect(Endpoint endpoint)
+{
+	if (endpoint.address.empty() == true)
+	{
+		throw spk::Exception("Client Server address cannot be empty");
+	}
+	if (endpoint.port == 0)
+	{
+		throw spk::Exception("Client Server port cannot be zero");
+	}
+
+	if (
+		_client.isConnected() == true &&
+		_endpoint.address == endpoint.address &&
+		_endpoint.port == endpoint.port)
+	{
+		SPK_LOG(Info) << "Client is already connected to the dedicated Server" << std::endl;
+		return;
+	}
+
+	if (_client.isConnected() == true)
+	{
+		_client.disconnect();
+		_disconnected.store(false, std::memory_order_release);
+	}
+
+	_endpoint = std::move(endpoint);
+	connect();
+}
+
+const ConnectionManager::Endpoint &ConnectionManager::endpoint() const noexcept
+{
+	return _endpoint;
+}
