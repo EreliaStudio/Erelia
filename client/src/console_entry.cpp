@@ -4,7 +4,6 @@
 
 #include <charconv>
 #include <limits>
-#include <memory>
 #include <utility>
 
 class ConsoleEntry::ConnectCommand final : public spk::CommandParser::Command
@@ -71,8 +70,7 @@ ConsoleEntry::ConsoleEntry(
 
 void ConsoleEntry::_registerCommands()
 {
-	_commandParser.addCommand(
-		std::make_unique<ConnectCommand>(*this));
+	_commandParser.addCommand<ConnectCommand>(*this);
 }
 
 void ConsoleEntry::_emitLocal(std::string message)
