@@ -558,4 +558,7 @@ A `Column::Response` returns a bundle of keyed Column values. Each serialized Co
 
 The coordinate belongs to the response/collection entry, not to the `Column` value itself.
 
-The response begins with an offset/index table that provides deserialization entry points at 50-Column intervals. The Client will use those offsets to partition response deserialization into multiple asynchronous tasks. The exact binary header layout and exact meaning/type of the per-Column serialized size remain to be fixed before implementation.
+The response begins with an offset/index table that provides deserialization entry points at 50-Column intervals. The Client will use those offsets to partition response deserialization into multiple asynchronous tasks. The per-Column serialized `size` is the number of `Chunk::Coordinate` entries that immediately follow for that Column; it is not a byte length. The exact integer type used for this count and the exact response offset-table header layout remain to be fixed before implementation.
+
+
+The per-Column serialized count is semantic: it is exactly the number of `Chunk::Coordinate` values in the serialized Column content. A reader consumes that count and then reads exactly that many contiguous Chunk coordinates for the entry.
