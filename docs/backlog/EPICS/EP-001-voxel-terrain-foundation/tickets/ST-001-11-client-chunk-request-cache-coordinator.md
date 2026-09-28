@@ -656,3 +656,25 @@ Ordinary per-Column Provider failure does not fail the whole request and does no
 A true outer Collection batch / TaskGroup aggregation failure that prevents construction of a valid terminal Column result mirrors the Chunk path: emit one correlated generic `Networking::Diagnostic` with severity `Error`, using the stable key `"Column_Request_Aggregation_Failure"`, and emit no `Column::Response` for that request.
 
 No dedicated `ColumnError` message type is required by this contract. Malformed Column requests use generic `Networking::Diagnostic`, while terminal per-Column acquisition failures live inside `Column::Response`, exactly as terminal Chunk acquisition failures live inside `Chunk::Protocol::Response`.
+
+
+### Approved Column-specific diagnostic direction — 28 September 2026
+
+The earlier conclusion that no dedicated Column error message was needed is superseded. Column request-level validation and misuse diagnostics should mirror the existing Chunk diagnostic architecture.
+
+`Column::Error` is a Column-specific specialization of `Networking::Diagnostic`, analogous to `Chunk::Protocol::Error`. It is distinct from terminal per-Column acquisition failures, which remain represented inside `Column::Response::Failure`.
+
+The intended separation is:
+
+```text
+Malformed / invalid / semantically inconsistent Column request
+    -> Column::Error / diagnostic path
+
+Column Provider acquisition failure
+    -> Column::Response::Failure
+
+Outer aggregation failure preventing any valid terminal response
+    -> generic Networking::Diagnostic
+```
+
+Examples of request-level Column errors include invalidly formatted requests and a player world position inconsistent with the requested Column range. The exact Column-specific payload carried by `Column::Error`, its stable diagnostic keys, and its message-type numeric assignment still need to be fixed explicitly.
