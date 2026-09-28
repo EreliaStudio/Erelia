@@ -215,3 +215,17 @@ Approved column-storage direction: Chunk acquisition and storage are revised aro
 This intentionally supersedes the earlier cubic 3D request-region direction for ST-001-11. Client interest becomes horizontal X/Z range selection over Columns; vertical Chunk selection belongs to the authoritative Column provider/generator. The protocol/Core/Server consequences must be revised explicitly rather than treated as Client-only behavior.
 
 Still unresolved before Ready: desired-offset/request ordering and batching, request/retry/disconnect/response/recycle policies, and the exact public coordinator composition/API.
+
+
+### Approved Provider granularity — 28 September 2026
+
+`Chunk::Collection::Provider` is column-based. Provider acquisition receives an X/Z Column coordinate and returns the complete sparse Column containing every non-empty canonical Chunk for that Column. Collection lookup remains available by full `Chunk::Coordinate` for external consumers.
+
+The temporary prototype terrain must also exercise multi-Chunk Columns rather than only one populated Y layer. Approved non-empty elevated layer membership is:
+
+- Column `(3,3)`: additionally non-empty at Chunk Y = 1;
+- Column `(3,4)`: additionally non-empty at Chunk Y = 1 and 2;
+- Column `(4,3)`: additionally non-empty at Chunk Y = 1 and 2;
+- Column `(4,4)`: additionally non-empty at Chunk Y = 1, 2 and 3.
+
+These memberships define which elevated Chunks must be non-empty. Their exact Cell contents are not yet specified and must be fixed before implementation; no geometry is invented by this ticket.
