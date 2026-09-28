@@ -15,8 +15,8 @@ The Client can request only the terrain it needs and maintain coherent local can
 
 ## Starting state / prerequisites
 
-- Depends on ST-001-06 Core Chunk::Collection/Provider foundation, ST-001-08, and ST-001-10.
-- OQ-038/DR-022 establish the batched Client-driven direction and RequestID correlation. ST-001-09 planning later refines terminal Chunk responses toward `Response::Success` / `Response::Failure`; exact failure-code/string encoding and the generic diagnostic-message contract remain open.
+- Depends on ST-001-06 Core Chunk::Collection/Provider foundation, ST-001-08, and completed ST-001-10 Client connection lifecycle.
+- OQ-038/DR-022 establish the batched Client-driven direction and RequestID correlation. ST-001-09 is Done and fixes terminal `Response::Success` / `Response::Failure`, failure-code/string encoding, and the generic diagnostic-message contract.
 
 ## Product ownership
 
@@ -64,7 +64,7 @@ Need exact Client contract for missing -> outstanding -> cached/failed/retryable
 
 ## Failure behavior
 
-Blocked by OQ-038, plus final ST-001-10 disconnect behavior.
+Blocked only by this ticket's remaining Client coordinator policy: duplicate-outstanding suppression, cache retention/eviction, request retry behavior, disconnect/outstanding cleanup, and stale/unsolicited response handling. OQ-038 and the ST-001-10 connection/disconnect lifecycle are resolved.
 
 ## Determinism / ordering
 

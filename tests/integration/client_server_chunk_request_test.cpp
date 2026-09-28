@@ -5,9 +5,9 @@
 #include "erelia/core/chunk_protocol_response.hpp"
 #include "erelia/core/networking/diagnostic.hpp"
 #include "erelia/core/networking/message_type.hpp"
+#include "erelia/core/service.hpp"
 #include "erelia/server/router.hpp"
 
-#include <design_pattern/singleton.hpp>
 #include <gtest/gtest.h>
 #include <network/client.hpp>
 #include <network/remote_node.hpp>
@@ -44,15 +44,6 @@ namespace
 		return predicate();
 	}
 
-	void ensureWorkerPool()
-	{
-		if (!spk::Singleton<spk::WorkerPool>::isInstanciated())
-		{
-			spk::Singleton<spk::WorkerPool>::instanciate(
-				new spk::WorkerPool());
-		}
-	}
-
 	class WorkerPoolBlocker final
 	{
 	private:
@@ -66,8 +57,7 @@ namespace
 	public:
 		WorkerPoolBlocker()
 		{
-			spk::WorkerPool &workerPool =
-				spk::Singleton<spk::WorkerPool>::instance();
+			spk::WorkerPool &workerPool = Service::workerPool();
 			_workerCount = workerPool.workerCount();
 
 			for (std::size_t index = 0u;
@@ -223,7 +213,6 @@ namespace
 
 TEST(ClientServerIntegration, ChunkRequestReturnsCanonicalTerrainChunk)
 {
-	ensureWorkerPool();
 	const std::uint16_t terrainPort = availablePort();
 	TerrainApplicationRunner application(terrainPort);
 	ASSERT_TRUE(application.waitUntilRunning());
@@ -297,7 +286,6 @@ TEST(ClientServerIntegration, ChunkRequestReturnsCanonicalTerrainChunk)
 
 TEST(ClientServerIntegration, MultiCoordinateRequestReturnsEveryCanonicalChunk)
 {
-	ensureWorkerPool();
 	const std::uint16_t terrainPort = availablePort();
 	TerrainApplicationRunner application(terrainPort);
 	ASSERT_TRUE(application.waitUntilRunning());
@@ -391,7 +379,6 @@ TEST(ClientServerIntegration, MultiCoordinateRequestReturnsEveryCanonicalChunk)
 
 TEST(ClientServerIntegration, ConcurrentClientsReceiveOnlyTheirOwnChunkResponses)
 {
-	ensureWorkerPool();
 	const std::uint16_t terrainPort = availablePort();
 	TerrainApplicationRunner application(terrainPort);
 	ASSERT_TRUE(application.waitUntilRunning());
@@ -485,7 +472,6 @@ TEST(ClientServerIntegration, ConcurrentClientsReceiveOnlyTheirOwnChunkResponses
 
 TEST(ClientServerIntegration, DisconnectDuringOutstandingRequestKeepsTerrainOperational)
 {
-	ensureWorkerPool();
 	WorkerPoolBlocker workerPoolBlocker;
 	ASSERT_TRUE(workerPoolBlocker.waitUntilBlocked());
 
@@ -594,7 +580,6 @@ TEST(ClientServerIntegration, DisconnectDuringOutstandingRequestKeepsTerrainOper
 
 TEST(ClientServerIntegration, DuplicateRequestReceivesDiagnosticThenCanonicalResponse)
 {
-	ensureWorkerPool();
 	const std::uint16_t terrainPort = availablePort();
 	TerrainApplicationRunner application(terrainPort);
 	ASSERT_TRUE(application.waitUntilRunning());
@@ -655,7 +640,6 @@ TEST(ClientServerIntegration, DuplicateRequestReceivesDiagnosticThenCanonicalRes
 
 TEST(ClientServerIntegration, MalformedRequestReceivesDiagnosticWithoutChunkResponse)
 {
-	ensureWorkerPool();
 	const std::uint16_t terrainPort = availablePort();
 	TerrainApplicationRunner application(terrainPort);
 	ASSERT_TRUE(application.waitUntilRunning());

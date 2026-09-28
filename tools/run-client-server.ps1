@@ -145,6 +145,16 @@ $routerConfig.nodes = @($routerNodes)
 $routerRuntimeConfig = Join-Path $runtimeConfigRoot 'router.json'
 Write-JsonFile -Value $routerConfig -Path $routerRuntimeConfig
 
+$clientConfig = [ordered]@{
+    'server config' = [ordered]@{
+        address = '127.0.0.1'
+        port = $routerConfig.'server config'.port
+        retryDelayMs = 15000
+    }
+}
+$clientRuntimeConfig = Join-Path $runtimeConfigRoot 'client.json'
+Write-JsonFile -Value $clientConfig -Path $clientRuntimeConfig
+
 $serverExecutable = Join-Path $repoRoot "build/$preset/server/EreliaServer.exe"
 $clientExecutable = Join-Path $repoRoot "build/$preset/client/EreliaClient.exe"
 
@@ -232,4 +242,4 @@ Write-Host '[Erelia] Launching main Server router...'
 Start-EreliaConsole -Name 'Server' -Executable $serverExecutable -Arguments @("--config=$routerRuntimeConfig")
 
 Write-Host '[Erelia] Launching Client...'
-Start-EreliaConsole -Name 'Client' -Executable $clientExecutable -AdditionalPath $clientRuntimePath
+Start-EreliaConsole -Name 'Client' -Executable $clientExecutable -Arguments @("--config=$clientRuntimeConfig") -AdditionalPath $clientRuntimePath

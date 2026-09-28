@@ -1,6 +1,11 @@
 add_executable(EreliaClientTestSuite
-    status_test.cpp
+    client_runtime_test.cpp
+    connection_manager_test.cpp
+    console_test.cpp
+    console_entry_test.cpp
     golden_image_test.cpp
+    service_test.cpp
+    test_environment.cpp
 )
 target_compile_features(EreliaClientTestSuite PRIVATE cxx_std_23)
 target_compile_definitions(EreliaClientTestSuite PRIVATE
@@ -16,5 +21,13 @@ target_link_libraries(EreliaClientTestSuite
 add_test(NAME EreliaClientTestSuite COMMAND EreliaClientTestSuite)
 set_tests_properties(EreliaClientTestSuite PROPERTIES LABELS "client;graphics")
 
-add_test(NAME EreliaClientSmoke COMMAND EreliaClient)
+add_test(NAME EreliaClientSmoke COMMAND EreliaClient --help)
 set_tests_properties(EreliaClientSmoke PROPERTIES LABELS "client;graphics")
+
+add_test(NAME EreliaClientMissingConfig COMMAND EreliaClient)
+set_tests_properties(
+    EreliaClientMissingConfig
+    PROPERTIES
+        LABELS "client;graphics"
+        WILL_FAIL TRUE
+)

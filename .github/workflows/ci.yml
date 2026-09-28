@@ -123,6 +123,14 @@ jobs:
           ctest --preset $preset --output-on-failure --no-tests=error -LE integration
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      - name: Upload Client visual-test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-visual-results-${{ matrix.configuration }}
+          path: build/*/client/tests/results
+          if-no-files-found: ignore
+
   integration:
     name: Integration (Windows, ${{ matrix.configuration }})
     runs-on: windows-2022

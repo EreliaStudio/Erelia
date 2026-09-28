@@ -1,16 +1,18 @@
 # Current Status
 
-**Updated:** 26 September 2026
+**Updated:** 28 September 2026
 **Default baseline:** `master`
-**Active ticket branch:** none
+**Active ticket branch:** none; `master` is the current implementation baseline
 
 ## Branch state
 
-ST-001-01 through ST-001-09 are completed on `master`.
+ST-001-01 through ST-001-10 are completed on `master`.
 
 ST-001-07 is **Done** and merged through PR #14. Its current topology is the DR-021 model: one Client-facing `spk::NodeRouter` in `EreliaServer`, with terrain running as a separate process behind `spk::RemoteNode` / `spk::RemoteNode::Endpoint`; the earlier in-process `spk::LocalNode` bootstrap described by DR-016 is superseded for deployment.
 
 ST-001-09 is merged into `master` through PR #17. The delivered implementation consumes Sparkle Version-0.1.3 directly for generic Task settlement, direct-callable WorkerPool execution, thread-safe ContractProvider, and `spk::TaskGroup<TResult>`. The obsolete Erelia-local `task_group.hpp` and duplicate Core tests are removed. Sparkle Version-0.1.3 also moved `ArgumentParser` to the dedicated `<system/argument_parser.hpp>` path; Erelia and its server-node template use that path.
+
+ST-001-10 is **Done** and merged into `master` through PR #18 on 28 September 2026. Final PR CI run #604 (run ID `36409915048`) passed the complete matrix on reviewed head `16e313a54237b107504caefcc743293110872204`, including clang-format, Core/Server Linux Debug+Release, Core/Server Windows Debug+Release, Client Windows Debug+Release, and Integration Windows Debug+Release.
 
 ST-001-08 is merged through PR #16 and provides the historically reviewed first batched Chunk Request/Response/Error protocol implementation and dedicated tests. ST-001-09 subsequently refined and implemented the terminal Response and diagnostic model without invalidating that historical completion evidence.
 
@@ -44,9 +46,11 @@ The merged contract includes:
 
 ST-001-09 — Server Chunk request handler is **Done** and merged into `master` through PR #17 on 26 September 2026. Final PR CI run #478 (run ID `36260702871`) passed the full matrix on reviewed head `18a2a52dbd43215c4a9a51d42e872ff7d32731f7`, including clang-format, Core/Server Linux Debug+Release, Core/Server Windows Debug+Release, Client Windows Debug+Release, and dedicated Integration Windows Debug+Release.
 
-A dedicated cross-system integration layer now lives under `tests/integration/`. `EreliaIntegrationTestSuite` links `EreliaClientLibrary`, `EreliaServerLibrary`, and the required Server-node libraries, and is registered with the CTest `integration` label. The delivered Chunk fixtures exercise the real network route through Router and TerrainNode and validate canonical DR-015 single- and multi-coordinate Chunk results, duplicate-coordinate diagnostics, malformed-request diagnostics, two concurrent Clients with correctly correlated responses, and disconnect during an outstanding acquisition followed by a successful request from a new Client. Until ST-001-10/ST-001-11 provide the Erelia Client networking API, the outer transport edge uses `spk::Client`; the integration harness is explicitly intended to switch to the real Erelia Client API once available. Final PR CI run #478 (run ID `36260702871`) validated this integration coverage in dedicated `Integration (Windows, Debug)` and `Integration (Windows, Release)` GitHub Actions jobs, while Client jobs ran component tests separately.
+A dedicated cross-system integration layer now lives under `tests/integration/`. `EreliaIntegrationTestSuite` links `EreliaClientLibrary`, `EreliaServerLibrary`, and the required Server-node libraries, and is registered with the CTest `integration` label. The delivered Chunk fixtures exercise the real network route through Router and TerrainNode and validate canonical DR-015 single- and multi-coordinate Chunk results, duplicate-coordinate diagnostics, malformed-request diagnostics, two concurrent Clients with correctly correlated responses, and disconnect during an outstanding acquisition followed by a successful request from a new Client. ST-001-10 now provides the Erelia Client connection lifecycle at the outer transport edge through `ClientRuntime`; the existing ST-001-09 Chunk request fixtures intentionally continue to use raw `spk::Client` only where send/message/request coordination is owned by ST-001-11. Final PR CI run #478 (run ID `36260702871`) validated this integration coverage in dedicated `Integration (Windows, Debug)` and `Integration (Windows, Release)` GitHub Actions jobs, while Client jobs ran component tests separately.
 
-The next dependency-ordered ticket is **ST-001-10 — Client dedicated-Server connection**, which remains Draft pending its own endpoint/connection-lifecycle specification.
+**ST-001-10 — Client dedicated-Server connection** is **Done** on `master` through PR #18. The delivered Client uses explicit endpoint configuration, process-wide Service-owned Sparkle dependencies, `MainApplicationWidget` composition, and a `ConnectionManager` that serializes synchronous Sparkle connection attempts through the shared WorkerPool, distinguishes Task settlement from live `isConnected()` state, performs bounded three-attempt automatic retry, and exposes `/connect` for a fresh cycle. Client component coverage, real Router integration, and the separate-process `EreliaClient -> EreliaServer` smoke are included. Final PR CI run #604 (run ID `36409915048`) is green across the full required matrix.
+
+ST-001-11 is now the next dependency-ordered implementation area. It remains **Blocked** on its own Client cache/retry/recycle policy specification; ST-001-10 is no longer a blocker.
 
 The implemented ST-001-09 contract reports a true Collection batch/outer TaskGroup aggregation failure as one correlated generic Diagnostic with severity `Error`, translation key `"Chunk_Request_Aggregation_Failure"`, and the original RequestID; no ChunkResponse is emitted because no valid BatchResult exists. Sparkle Version-0.1.3 provides the generic manually-settled `spk::Task<TResult>`, direct-callable WorkerPool execution, completion subscriptions, thread-safe ContractProvider, and `spk::TaskGroup<TResult>` used by the implementation.
 
