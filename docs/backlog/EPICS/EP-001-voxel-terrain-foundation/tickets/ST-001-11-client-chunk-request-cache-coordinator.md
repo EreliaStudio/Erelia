@@ -585,4 +585,7 @@ Each offset identifies the start of one deserialization block containing up to 5
 [Chunk::Coordinate × count]
 ```
 
-The exact integer widths used for `offsetCount`, offsets, and the per-Column Chunk-coordinate count remain to be fixed explicitly before implementation.
+`offsetCount`, every block offset, and every per-Column Chunk-coordinate count are serialized as `std::uint32_t`.
+
+
+All `Column::Response` framing integers are fixed as `std::uint32_t`: the offset-table count, each offset entry, and each serialized Column's `Chunk::Coordinate` count.
