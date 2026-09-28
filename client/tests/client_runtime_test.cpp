@@ -1,13 +1,10 @@
 #include "erelia/client/client_configuration.hpp"
 #include "erelia/client/console.hpp"
 #include "erelia/client/main_application_widget.hpp"
-#include "erelia/client/service.hpp"
-
 #include <core/application.hpp>
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
 #include <gtest/gtest.h>
-#include <system/translator.hpp>
 #include <type/uuid.hpp>
 
 #include <chrono>
@@ -82,13 +79,8 @@ TEST(ClientConfiguration, RejectsInvalidContracts)
 	}
 }
 
-TEST(ClientConfiguration, UsesTranslatedEndpointValidationMessage)
+TEST(ClientConfiguration, ValidationExceptionRemainsStable)
 {
-	Service::translator()->clear();
-	Service::translator()->append(
-		"client.connection.endpoint.address_empty",
-		"Translated empty address");
-
 	const TemporaryJsonFile file(
 		R"({"server config":{"address":"","port":2550,"retryDelayMs":15000}})");
 
@@ -99,10 +91,10 @@ TEST(ClientConfiguration, UsesTranslatedEndpointValidationMessage)
 	}
 	catch (const spk::Exception &exception)
 	{
-		EXPECT_STREQ(exception.what(), "Translated empty address");
+		EXPECT_STREQ(
+			exception.what(),
+			"Client Server address cannot be empty");
 	}
-
-	Service::translator()->clear();
 }
 
 TEST(ClientConsole, OrdinarySubmissionUsesUserValueA)

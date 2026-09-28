@@ -7,7 +7,6 @@
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
 #include <network/client.hpp>
-#include <system/translator.hpp>
 #include <threading/worker_pool.hpp>
 
 #include <chrono>
@@ -24,15 +23,11 @@ ConnectionManager::ConnectionManager(
 {
 	if (_endpoint.address.empty() == true)
 	{
-		throw spk::Exception(
-			Service::translator()->translate(
-				"client.connection.endpoint.address_empty"));
+		throw spk::Exception("Client Server address cannot be empty");
 	}
 	if (_endpoint.port == 0)
 	{
-		throw spk::Exception(
-			Service::translator()->translate(
-				"client.connection.endpoint.port_zero"));
+		throw spk::Exception("Client Server port cannot be zero");
 	}
 
 	activate();
@@ -67,10 +62,8 @@ void ConnectionManager::_launchAttempt()
 	_retryTimer.reset();
 
 	SPK_LOG(Info)
-		<< Service::translator()->translate(
-			"client.connection.attempt",
-			_attemptCount,
-			MaximumAttemptCount)
+		<< "Connecting to dedicated Server (attempt "
+		<< _attemptCount << '/' << MaximumAttemptCount << ')'
 		<< std::endl;
 
 	const Endpoint endpoint = _endpoint;
@@ -97,9 +90,8 @@ void ConnectionManager::_scheduleRetry()
 			_retryTimer.duration());
 
 	SPK_LOG(Warning)
-		<< Service::translator()->translate(
-			"client.connection.retry",
-			retryDelay.count())
+		<< "Dedicated Server connection attempt failed; retrying in "
+		<< retryDelay.count() << " ms"
 		<< std::endl;
 }
 
@@ -108,9 +100,9 @@ void ConnectionManager::_stopCycle()
 	_retryTimer.reset();
 
 	SPK_LOG(Error)
-		<< Service::translator()->translate(
-			"client.connection.maximum_attempts_reached",
-			MaximumAttemptCount)
+		<< "Unable to connect to dedicated Server after "
+		<< MaximumAttemptCount
+		<< " attempts; automatic connection attempts stopped. Use /connect to start a new connection cycle"
 		<< std::endl;
 }
 
@@ -139,10 +131,7 @@ void ConnectionManager::_processAttempt()
 	{
 		_attemptCount = 0;
 		_retryTimer.reset();
-		SPK_LOG(Info)
-			<< Service::translator()->translate(
-				"client.connection.connected")
-			<< std::endl;
+		SPK_LOG(Info) << "Connected to dedicated Server" << std::endl;
 		return;
 	}
 
@@ -150,10 +139,7 @@ void ConnectionManager::_processAttempt()
 	{
 		_attemptCount = 0;
 		_retryTimer.reset();
-		SPK_LOG(Warning)
-			<< Service::translator()->translate(
-				"client.connection.lost")
-			<< std::endl;
+		SPK_LOG(Warning) << "Dedicated Server connection was lost" << std::endl;
 		connect();
 		return;
 	}
@@ -171,10 +157,7 @@ void ConnectionManager::_updateState(spk::UpdateContext &)
 		_retryTimer.state() == spk::Timer::State::Off &&
 		_attemptCount == 0)
 	{
-		SPK_LOG(Warning)
-			<< Service::translator()->translate(
-				"client.connection.lost")
-			<< std::endl;
+		SPK_LOG(Warning) << "Dedicated Server connection was lost" << std::endl;
 		connect();
 		return;
 	}
@@ -189,20 +172,14 @@ void ConnectionManager::connect()
 {
 	if (Service::client()->isConnected() == true)
 	{
-		SPK_LOG(Info)
-			<< Service::translator()->translate(
-				"client.connection.already_connected")
-			<< std::endl;
+		SPK_LOG(Info) << "Client is already connected to the dedicated Server" << std::endl;
 		return;
 	}
 	if (
 		_connectionAttempt.has_value() == true &&
 		_connectionAttempt->status() == ConnectionTask::Status::Pending)
 	{
-		SPK_LOG(Info)
-			<< Service::translator()->translate(
-				"client.connection.attempt_already_running")
-			<< std::endl;
+		SPK_LOG(Info) << "A dedicated Server connection attempt is already running" << std::endl;
 		return;
 	}
 
@@ -229,15 +206,11 @@ void ConnectionManager::connect(Endpoint endpoint)
 {
 	if (endpoint.address.empty() == true)
 	{
-		throw spk::Exception(
-			Service::translator()->translate(
-				"client.connection.endpoint.address_empty"));
+		throw spk::Exception("Client Server address cannot be empty");
 	}
 	if (endpoint.port == 0)
 	{
-		throw spk::Exception(
-			Service::translator()->translate(
-				"client.connection.endpoint.port_zero"));
+		throw spk::Exception("Client Server port cannot be zero");
 	}
 
 	if (
@@ -245,10 +218,7 @@ void ConnectionManager::connect(Endpoint endpoint)
 		_endpoint.address == endpoint.address &&
 		_endpoint.port == endpoint.port)
 	{
-		SPK_LOG(Info)
-			<< Service::translator()->translate(
-				"client.connection.already_connected")
-			<< std::endl;
+		SPK_LOG(Info) << "Client is already connected to the dedicated Server" << std::endl;
 		return;
 	}
 

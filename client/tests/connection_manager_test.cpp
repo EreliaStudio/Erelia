@@ -1,10 +1,8 @@
 #include "erelia/client/connection_manager.hpp"
-#include "erelia/client/service.hpp"
 
 #include <core/context/update_context.hpp>
 #include <diagnostics/logger.hpp>
 #include <input/device_context.hpp>
-#include <system/translator.hpp>
 
 #include <gtest/gtest.h>
 
@@ -42,16 +40,6 @@ namespace
 
 	class ConnectionManagerTest : public ::testing::Test
 	{
-	protected:
-		void SetUp() override
-		{
-			Service::translator()->clear();
-		}
-
-		void TearDown() override
-		{
-			Service::translator()->clear();
-		}
 	};
 }
 
@@ -85,7 +73,7 @@ TEST_F(ConnectionManagerTest, FailedCycleStopsAfterExactlyThreeAttempts)
 	{
 		if (
 			level == spk::Logger::Level::Error &&
-			message == "client.connection.maximum_attempts_reached")
+			message.find("automatic connection attempts stopped") != std::string::npos)
 		{
 			stopMessageFound = true;
 		}
@@ -128,12 +116,26 @@ TEST_F(ConnectionManagerTest, ConnectDoesNotLaunchConcurrentAttempt)
 }
 
 
-TEST_F(ConnectionManagerTest, UsesRegisteredTranslationForConnectionAttempt)
+TEST_F(ConnectionManagerTest, ValidationExceptionRemainsStable)
 {
-	Service::translator()->append(
-		"client.connection.attempt",
-		"Attempt {}/{}");
+	try
+	{
+		ConnectionManager manager(
+			"ConnectionManager",
+			{"127.0.0.1", 0},
+			TestRetryDelay);
+		FAIL() << "Expected spk::Exception";
+	}
+	catch (const spk::Exception &exception)
+	{
+		EXPECT_STREQ(
+			exception.what(),
+			"Client Server port cannot be zero");
+	}
+}
 
+TEST_F(ConnectionManagerTest, ConnectionAttemptDiagnosticRemainsStable)
+{
 	std::vector<std::pair<spk::Logger::Level, std::string>> entries;
 	auto contract = spk::logger.subscribeToEntry(
 		[&entries](const spk::Logger::Level &level, const std::string &message) {
@@ -145,39 +147,19 @@ TEST_F(ConnectionManagerTest, UsesRegisteredTranslationForConnectionAttempt)
 		{"127.0.0.1", 1},
 		TestRetryDelay);
 
-	bool translatedAttemptFound = false;
+	bool diagnosticFound = false;
 	for (const auto &[level, message] : entries)
 	{
 		if (
 			level == spk::Logger::Level::Info &&
 			message ==
-				"Attempt 1/" +
-				std::to_string(ConnectionManager::MaximumAttemptCount))
+				"Connecting to dedicated Server (attempt 1/" +
+				std::to_string(ConnectionManager::MaximumAttemptCount) +
+				')')
 		{
-			translatedAttemptFound = true;
+			diagnosticFound = true;
 		}
 	}
 
-	EXPECT_TRUE(translatedAttemptFound);
-}
-
-
-TEST_F(ConnectionManagerTest, UsesTranslatedEndpointValidationMessage)
-{
-	Service::translator()->append(
-		"client.connection.endpoint.port_zero",
-		"Translated zero port");
-
-	try
-	{
-		ConnectionManager manager(
-			"ConnectionManager",
-			{"127.0.0.1", 0},
-			TestRetryDelay);
-		FAIL() << "Expected spk::Exception";
-	}
-	catch (const spk::Exception &exception)
-	{
-		EXPECT_STREQ(exception.what(), "Translated zero port");
-	}
+	EXPECT_TRUE(diagnosticFound);
 }
