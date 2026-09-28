@@ -133,7 +133,7 @@ Approved Column membership:
 
 The existing Y=0 baseline remains non-empty in those Columns, so their complete non-empty Chunk-layer sets are respectively `{0,1}`, `{0,1,2}`, `{0,1,2}`, and `{0,1,2,3}`.
 
-This decision fixes only Column membership. The exact Cell geometry/content inside the added Y=1..3 Chunks remains unresolved and must be approved before the validation scene can be implemented under the revised Column provider contract.
+Every added elevated Chunk at Y=1..3 is completely filled with Definition 1 (`cube`) Cells across all 16×16×16 local coordinates. There are no Air cells inside those added Chunks. This makes the elevated Column fixture deterministic and intentionally simple for validating multi-Chunk Column acquisition, storage, serialization, lookup, and rendering.
 
 ### Empty world rule
 
