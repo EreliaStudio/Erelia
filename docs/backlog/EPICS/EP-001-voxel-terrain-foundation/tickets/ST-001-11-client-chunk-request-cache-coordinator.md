@@ -352,3 +352,38 @@ Terrain Server only:
 
 
 The Core discovery reply type is fixed as `Area::Response`, matching the existing Request/Response naming convention. It is correlated to the originating `Area::Request` through the Sparkle RequestID and contains only the returned `Chunk::Coordinate` sequence.
+
+
+### Approved Column discovery namespace — 28 September 2026
+
+The previously proposed `Area` discovery namespace is superseded. The domain is named `Column` because the abstraction describes and indexes terrain Chunk columns.
+
+Core owns the shared Column discovery types:
+
+```text
+namespace Column
+    Coordinate
+    ColumnContent
+    Request
+    Response
+```
+
+`Column::Coordinate` identifies one Chunk column by X/Z. Its exact representation (`spk::Vector2Int` versus a dedicated X/Z struct) is still to be fixed. `Column::ColumnContent` represents the full set of non-empty `Chunk::Coordinate` values belonging to one Column.
+
+`Column::Request` retains the already-approved discovery request fields directly: player world position, center Chunk-column X/Z, Circle/Square type, and non-negative size. The Circle/Square shape selects which Column coordinates around the center are queried; `size == 0` selects only the center Column and boundaries are inclusive.
+
+`Column::Response` is correlated through the originating Sparkle RequestID and returns only the resolved Chunk-coordinate data; it does not carry Chunk values or repeat the request geometry.
+
+The terrain Server owns `Column::Collection`. Core does not declare or implement the Collection. The Server reopens namespace `Column` and provides the authoritative mapping from `Column::Coordinate` to `Column::ColumnContent`. `Chunk::Collection` remains unchanged and continues to own Chunk values by full `Chunk::Coordinate`.
+
+The resulting flow is:
+
+```text
+Column::Request
+    -> Server Column::Collection
+    -> Column::Response
+    -> Client filters returned Chunk coordinates against Chunk::Collection
+    -> existing Chunk::Protocol::Request for Absent coordinates only
+```
+
+All earlier references to `Area::Request`, `Area::Response`, or `Area::Collection` in ST-001-11 are superseded by these `Column::*` names.
