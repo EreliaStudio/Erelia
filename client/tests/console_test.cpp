@@ -4,6 +4,7 @@
 
 #include <core/context/update_context.hpp>
 #include <diagnostics/logger.hpp>
+#include <exception.hpp>
 #include <input/device_context.hpp>
 #include <system/translator.hpp>
 
@@ -15,6 +16,11 @@
 
 namespace
 {
+	void registerConnectCommand(Console &console)
+	{
+		console.commandParser().addCommand<ConnectCommand>();
+	}
+
 	void installConsoleTranslations()
 	{
 		Service::translator()->append("client.console.placeholder", "Enter text or /help");
@@ -125,6 +131,7 @@ TEST_F(ConsoleTest, NewEntriesFollowTailOnlyWhileTailIsVisible)
 TEST_F(ConsoleTest, CommandHelpIsStoredAsIndependentModelRows)
 {
 	Console console("Console");
+	registerConnectCommand(console);
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
 
 	console.submit("/connect --help");
@@ -141,6 +148,7 @@ TEST_F(ConsoleTest, CommandHelpIsStoredAsIndependentModelRows)
 TEST_F(ConsoleTest, GlobalHelpDoesNotStoreTrailingEmptyModelRow)
 {
 	Console console("Console");
+	registerConnectCommand(console);
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
 
 	console.submit("/help");
@@ -149,10 +157,11 @@ TEST_F(ConsoleTest, GlobalHelpDoesNotStoreTrailingEmptyModelRow)
 	EXPECT_EQ(console.entries().data(0), "/connect - Starts a new dedicated Server connection cycle.");
 }
 
-TEST_F(ConsoleTest, CommandParserExposesRegisteredConnectCommand)
+TEST_F(ConsoleTest, CommandParserExposesExplicitlyRegisteredConnectCommand)
 {
 	std::optional<ConnectCommand::Request> received;
 	Console console("Console");
+	registerConnectCommand(console);
 	auto contract =
 		console.commandParser()
 			.command<ConnectCommand>()
@@ -173,6 +182,7 @@ TEST_F(ConsoleTest, CommandParserExposesRegisteredConnectCommand)
 TEST_F(ConsoleTest, ConstCommandParserExposesRegisteredConnectCommand)
 {
 	Console console("Console");
+	registerConnectCommand(console);
 	const Console &constConsole = console;
 
 	EXPECT_EQ(
@@ -227,6 +237,7 @@ TEST_F(ConsoleTest, UsesTranslatedUserDataLabels)
 TEST_F(ConsoleTest, ConnectValidationReachesConsoleThroughUserValueB)
 {
 	Console console("Console");
+	registerConnectCommand(console);
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
 
 	console.submit("/connect --port invalid");
@@ -239,14 +250,14 @@ TEST_F(ConsoleTest, ConnectValidationReachesConsoleThroughUserValueB)
 }
 
 
-TEST_F(ConsoleTest, OwnsCommandRegistrationAndHierarchicalChildNames)
+TEST_F(ConsoleTest, DoesNotOwnConcreteCommandsAndUsesHierarchicalChildNames)
 {
 	Console console("/Client/Console");
 
 	EXPECT_EQ(console.name(), "/Client/Console");
 	EXPECT_EQ(console.entryView().name(), "/Client/Console/entries");
 	EXPECT_EQ(console.commandEntry().name(), "/Client/Console/command");
-	EXPECT_EQ(
-		console.commandParser().command<ConnectCommand>().name(),
-		"connect");
+	EXPECT_THROW(
+		(void)console.commandParser().command<ConnectCommand>(),
+		spk::Exception);
 }

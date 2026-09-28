@@ -8,15 +8,16 @@ MainApplicationWidget::MainApplicationWidget(
 	spk::Widget *parent) :
 	spk::Widget("/MainApplicationWidget", parent),
 	_connectionManager(name() + "/ConnectionManager", std::move(endpoint), retryDelay, this),
-	_console(name() + "/Console", this),
-	_connectRequestContract(
-		_console.commandParser()
-			.command<ConnectCommand>()
-			.subscribeToRequest(
-				[this](const ConnectCommand::Request &request) {
-					_connect(request);
-				}))
+	_console(name() + "/Console", this)
 {
+	auto &connectCommand =
+		_console.commandParser().addCommand<ConnectCommand>();
+	_connectRequestContract =
+		connectCommand.subscribeToRequest(
+			[this](const ConnectCommand::Request &request) {
+				_connect(request);
+			});
+
 	_layout.addWidget(
 		&_connectionManager,
 		{spk::Layout::SizePolicy::Extend, spk::Layout::SizePolicy::Fixed});

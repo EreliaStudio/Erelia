@@ -1,6 +1,5 @@
 #include "erelia/client/console.hpp"
 
-#include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/service.hpp"
 
 #include <core/context/update_context.hpp>
@@ -23,8 +22,6 @@ Console::Console(
 		_queueEntry(level, message);
 	}))
 {
-	_commandEntry.commandParser().addCommand<ConnectCommand>();
-
 	_entryBackground.setZOrder(0.0f);
 	_entries.setZOrder(1.0f);
 	_layout.addWidget(&_entryBackground);
