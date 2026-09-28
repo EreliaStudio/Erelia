@@ -643,3 +643,16 @@ Diagnostic      = 4,
 ColumnRequest   = 5,
 ColumnResponse  = 6
 ```
+
+
+### Approved Column acquisition failure semantics — 28 September 2026
+
+`Column::Response` mirrors the existing terminal `Chunk::Protocol::Response` success/failure model for Provider acquisition outcomes.
+
+A successful requested Column is represented as a success entry carrying the external `Column::Coordinate` key and the serialized `Column` value. A failed requested Column is represented as a failure entry carrying the same Column coordinate, a typed failure code, and a human-readable failure message. The initial failure-code domain mirrors Chunk acquisition with `AcquisitionFailed = 0`.
+
+Ordinary per-Column Provider failure does not fail the whole request and does not use a diagnostic message. Successful and failed Columns may coexist in one terminal `Column::Response`.
+
+A true outer Collection batch / TaskGroup aggregation failure that prevents construction of a valid terminal Column result mirrors the Chunk path: emit one correlated generic `Networking::Diagnostic` with severity `Error`, using the stable key `"Column_Request_Aggregation_Failure"`, and emit no `Column::Response` for that request.
+
+No dedicated `ColumnError` message type is required by this contract. Malformed Column requests use generic `Networking::Diagnostic`, while terminal per-Column acquisition failures live inside `Column::Response`, exactly as terminal Chunk acquisition failures live inside `Chunk::Protocol::Response`.
