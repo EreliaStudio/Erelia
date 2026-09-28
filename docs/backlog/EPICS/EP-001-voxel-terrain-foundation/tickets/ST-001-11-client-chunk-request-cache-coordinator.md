@@ -592,3 +592,15 @@ All `Column::Response` framing integers are fixed as `std::uint32_t`: the offset
 
 
 Each `Column::Response` block offset is absolute from byte 0 of the response payload. Offsets are not relative to the end of the offset table or to the start of the serialized Column stream. A reader can therefore seek directly to `payload.data() + offset` for the corresponding 50-Column deserialization block.
+
+
+### Approved Column::Response block boundaries — 28 September 2026
+
+Each deserialization block uses the absolute offset table to define an independent byte range. For block `i`:
+
+```text
+start = offsets[i]
+end   = offsets[i + 1]
+```
+
+For the final block, `end` is the total `Column::Response` payload size. This lets the Client assign each block to an independent asynchronous deserialization task without scanning preceding Columns.
