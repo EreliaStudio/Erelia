@@ -488,3 +488,50 @@ public:
 The Client does not need an authoritative Column cache. It consumes `Column::Response` transiently, filters the returned Chunk coordinates against its current desired area and local `Chunk::Collection`, and then requests only the still-valid Absent Chunks.
 
 `Column::Collection` and `Column::Provider` remain terrain-Server concerns. Core may forward-declare those nested types on `Column` to preserve the `Column::Collection` / `Column::Provider` names, while their concrete definitions live only in the terrain Server and reuse the generic `Cache<TKey, TValue>` machinery with `Column::Coordinate` and `Column::Content`.
+
+
+### Approved generic Collection<T> domain model — 28 September 2026
+
+The earlier `Cache<TKey, TValue>` / domain-alias direction is superseded by a generic Core `Collection<T>` abstraction used directly at call sites.
+
+`Collection<T>` owns its asynchronous acquisition contract, including its nested `Provider`. Callers therefore use `Collection<Chunk>::Provider` and `Collection<Column>::Provider`; `Chunk::Provider`, `Column::Provider`, `Chunk::Collection`, and `Column::Collection` aliases are not required.
+
+Each domain type supplies the coordinate/key type and stored content type required by the generic Collection. The intended shape is:
+
+```cpp
+struct Chunk
+{
+    using Coordinate = spk::Vector3Int;
+    using Content = Chunk;
+    // ...
+};
+
+struct Column
+{
+    struct Coordinate
+    {
+        std::int32_t x;
+        std::int32_t z;
+    };
+
+    using Content = std::set<Chunk::Coordinate>;
+
+    class Request;
+    class Response;
+};
+```
+
+`Collection<T>` derives its public types from `T::Coordinate` and `T::Content` and provides the generic `State`, `BatchResult`, nested asynchronous `Provider`, `state`, `tryGet`, batched `request`, replacement, pending reuse, and stale-completion protection currently implemented by `Chunk::Collection`.
+
+The prototype terrain provider therefore implements both acquisition contracts:
+
+```cpp
+class PrototypeChunkProvider final
+    : public Collection<Chunk>::Provider,
+      public Collection<Column>::Provider
+{
+    // ...
+};
+```
+
+`Collection<Chunk>` may be instantiated by both Client and Server. `Collection<Column>` is instantiated only by the terrain Server even though the generic `Collection<T>` template and `Column` domain type live in Core.
