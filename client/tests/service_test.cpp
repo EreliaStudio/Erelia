@@ -237,7 +237,6 @@ TEST_F(ClientTranslatorServiceTest, FailedFormatPropagatesThroughClientService)
 		spk::Exception);
 }
 
-
 TEST_F(ClientTranslatorServiceTest, MissingTranslationFallsBackToKey)
 {
 	EXPECT_EQ(

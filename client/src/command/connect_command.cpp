@@ -17,16 +17,14 @@ ConnectCommand::ConnectCommand() :
 		Service::translator().translate(
 			"client.command.connect.description"),
 		{
-			{
-				.name = "address",
-				.description = Service::translator().translate(
-					"client.command.connect.address.description"),
-				.optional = true},
-			{
-				.name = "port",
-				.description = Service::translator().translate(
-					"client.command.connect.port.description"),
-				.optional = true},
+			{.name = "address",
+			 .description = Service::translator().translate(
+				 "client.command.connect.address.description"),
+			 .optional = true},
+			{.name = "port",
+			 .description = Service::translator().translate(
+				 "client.command.connect.port.description"),
+			 .optional = true},
 		})
 {
 }
@@ -55,8 +53,8 @@ void ConnectCommand::execute(const spk::CommandParser::Invocation &invocation)
 		{
 			SPK_LOG(UserValueB)
 				<< Service::translator().translate(
-					"client.command.connect.invalid_port",
-					value)
+					   "client.command.connect.invalid_port",
+					   value)
 				<< std::endl;
 			return;
 		}

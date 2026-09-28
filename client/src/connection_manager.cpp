@@ -191,10 +191,9 @@ void ConnectionManager::connect()
 
 bool ConnectionManager::isCycleStopped() const noexcept
 {
-	return
-		_attemptCount >= MaximumAttemptCount &&
-		_connectionAttempt.has_value() == false &&
-		_retryTimer.state() == spk::Timer::State::Off;
+	return _attemptCount >= MaximumAttemptCount &&
+		   _connectionAttempt.has_value() == false &&
+		   _retryTimer.state() == spk::Timer::State::Off;
 }
 
 std::size_t ConnectionManager::attemptCount() const noexcept

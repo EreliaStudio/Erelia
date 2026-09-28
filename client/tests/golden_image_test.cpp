@@ -37,12 +37,12 @@ namespace
 				{"127.0.0.1", 1},
 				std::chrono::milliseconds(1),
 				&application.createWindow(
-					"main",
-					spk::Window::Configuration{
-						.title = "Erelia",
-						.area = spk::Rect2D{
-							.anchor = {0, 0},
-							.size = {640, 480}}})
+								"main",
+								spk::Window::Configuration{
+									.title = "Erelia",
+									.area = spk::Rect2D{
+										.anchor = {0, 0},
+										.size = {640, 480}}})
 					 .root())
 		{
 			mainWidget.setGeometry(application.window("main").root().geometry());

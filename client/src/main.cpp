@@ -7,8 +7,8 @@
 #include <system/argument_parser.hpp>
 
 #include <cstdlib>
-#include <filesystem>
 #include <exception>
+#include <filesystem>
 #include <utility>
 
 int main(int argc, char **argv)
@@ -54,8 +54,7 @@ int main(int argc, char **argv)
 		mainWidget.setGeometry(mainWindow.root().geometry());
 
 		return application.run();
-	}
-	catch (const std::exception &exception)
+	} catch (const std::exception &exception)
 	{
 		SPK_LOG(Error) << exception.what() << std::endl;
 		return EXIT_FAILURE;

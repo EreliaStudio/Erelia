@@ -19,8 +19,7 @@ ClientConfiguration ClientConfiguration::load(const std::filesystem::path &path)
 		.server = {
 			.address = server.require<std::string>("address"),
 			.port = server.require<std::uint16_t>("port")},
-		.retryDelay = std::chrono::milliseconds(
-			server.require<std::uint32_t>("retryDelayMs"))};
+		.retryDelay = std::chrono::milliseconds(server.require<std::uint32_t>("retryDelayMs"))};
 
 	if (result.server.address.empty() == true)
 	{
