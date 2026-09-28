@@ -2,6 +2,7 @@
 
 #include "erelia/client/service.hpp"
 
+#include <diagnostics/logger.hpp>
 #include <system/translator.hpp>
 
 #include <charconv>
@@ -10,7 +11,7 @@
 #include <string>
 #include <utility>
 
-ConnectCommand::ConnectCommand(LocalOutputCallback localOutput) :
+ConnectCommand::ConnectCommand() :
 	Command(
 		"connect",
 		Service::translator()->translate(
@@ -26,8 +27,7 @@ ConnectCommand::ConnectCommand(LocalOutputCallback localOutput) :
 				.description = Service::translator()->translate(
 					"client.command.connect.port.description"),
 				.optional = true},
-		}),
-	_localOutput(std::move(localOutput))
+		})
 {
 }
 
@@ -53,13 +53,11 @@ void ConnectCommand::execute(const spk::CommandParser::Invocation &invocation)
 			port == 0 ||
 			port > std::numeric_limits<std::uint16_t>::max())
 		{
-			if (_localOutput)
-			{
-				_localOutput(
-					Service::translator()->translate(
-						"client.command.connect.invalid_port",
-						value));
-			}
+			SPK_LOG(UserValueB)
+				<< Service::translator()->translate(
+					"client.command.connect.invalid_port",
+					value)
+				<< std::endl;
 			return;
 		}
 		request.port = static_cast<std::uint16_t>(port);

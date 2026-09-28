@@ -222,3 +222,18 @@ TEST_F(ConsoleTest, UsesTranslatedUserDataLabels)
 	EXPECT_EQ(console.entries().data(0), "Joueur : bonjour");
 	EXPECT_EQ(console.entries().data(1), "[Commande] : connect");
 }
+
+
+TEST_F(ConsoleTest, ConnectValidationReachesConsoleThroughUserValueB)
+{
+	Console console("Console");
+	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
+
+	console.submit("/connect --port invalid");
+	advance(console);
+
+	ASSERT_EQ(console.entries().rowCount(), 1u);
+	EXPECT_EQ(
+		console.entries().data(0),
+		"[Command] : Invalid port: invalid");
+}

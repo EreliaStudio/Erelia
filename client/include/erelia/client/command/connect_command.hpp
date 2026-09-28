@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <functional>
 #include <optional>
 #include <string>
 
@@ -20,14 +19,12 @@ public:
 	using RequestProvider = spk::ContractProvider<const Request &>;
 	using RequestCallback = RequestProvider::callback_type;
 	using RequestContract = RequestProvider::Contract;
-	using LocalOutputCallback = std::function<void(std::string)>;
 
 private:
-	LocalOutputCallback _localOutput;
 	RequestProvider _requestProvider;
 
 public:
-	explicit ConnectCommand(LocalOutputCallback localOutput);
+	ConnectCommand();
 
 	void execute(const spk::CommandParser::Invocation &invocation) override;
 	[[nodiscard]] RequestContract subscribeToRequest(RequestCallback callback);

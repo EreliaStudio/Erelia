@@ -230,45 +230,49 @@ TEST_F(ConsoleEntryTest, ConnectPortOverrideEmitsPortOnly)
 	EXPECT_EQ(*received->port, 2550u);
 }
 
-TEST_F(ConsoleEntryTest, ConnectRejectsInvalidPortLocally)
+TEST_F(ConsoleEntryTest, ConnectRejectsInvalidPortThroughCommandLogger)
 {
-	std::vector<std::string> local;
 	std::size_t requestCount = 0;
-	ConsoleEntry entry("Entry");
-	auto submissionContract = entry.subscribeToSubmission(
-		[&](std::string value) {
-			local.emplace_back(std::move(value));
+	spk::Logger::Level level = spk::Logger::Level::Trace;
+	std::string message;
+	auto loggerContract = spk::logger.subscribeToEntry(
+		[&](const spk::Logger::Level &receivedLevel, const std::string &receivedMessage) {
+			level = receivedLevel;
+			message = receivedMessage;
 		});
-	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
+	ConsoleEntry entry("Entry");
+	auto requestContract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
 		[&](const ConnectCommand::Request &) {
 			++requestCount;
 		});
 
 	entry.submit("/connect --port invalid");
 
-	ASSERT_EQ(local.size(), 1u);
-	EXPECT_EQ(local.front(), "Invalid port: invalid");
+	EXPECT_EQ(level, spk::Logger::Level::UserValueB);
+	EXPECT_EQ(message, "Invalid port: invalid");
 	EXPECT_EQ(requestCount, 0u);
 }
 
-TEST_F(ConsoleEntryTest, ConnectRejectsOutOfRangePortLocally)
+TEST_F(ConsoleEntryTest, ConnectRejectsOutOfRangePortThroughCommandLogger)
 {
-	std::vector<std::string> local;
 	std::size_t requestCount = 0;
-	ConsoleEntry entry("Entry");
-	auto submissionContract = entry.subscribeToSubmission(
-		[&](std::string value) {
-			local.emplace_back(std::move(value));
+	spk::Logger::Level level = spk::Logger::Level::Trace;
+	std::string message;
+	auto loggerContract = spk::logger.subscribeToEntry(
+		[&](const spk::Logger::Level &receivedLevel, const std::string &receivedMessage) {
+			level = receivedLevel;
+			message = receivedMessage;
 		});
-	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
+	ConsoleEntry entry("Entry");
+	auto requestContract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
 		[&](const ConnectCommand::Request &) {
 			++requestCount;
 		});
 
 	entry.submit("/connect --port 65536");
 
-	ASSERT_EQ(local.size(), 1u);
-	EXPECT_EQ(local.front(), "Invalid port: 65536");
+	EXPECT_EQ(level, spk::Logger::Level::UserValueB);
+	EXPECT_EQ(message, "Invalid port: 65536");
 	EXPECT_EQ(requestCount, 0u);
 }
 
@@ -329,7 +333,7 @@ TEST_F(ConsoleEntryTest, UsesTranslatedCommandFailure)
 	EXPECT_EQ(local.front(), "Commande inconnue : /missing");
 }
 
-TEST_F(ConsoleEntryTest, UsesTranslatedConnectValidation)
+TEST_F(ConsoleEntryTest, UsesTranslatedConnectValidationThroughCommandLogger)
 {
 	Service::translator()->clear();
 	Service::translator()->append("client.console.placeholder", "Commande");
@@ -338,15 +342,17 @@ TEST_F(ConsoleEntryTest, UsesTranslatedConnectValidation)
 	Service::translator()->append("client.command.connect.port.description", "Port");
 	Service::translator()->append("client.command.connect.invalid_port", "Port invalide : {}");
 
-	ConsoleEntry entry("Entry");
-	std::vector<std::string> local;
-	auto contract = entry.subscribeToSubmission(
-		[&](std::string value) {
-			local.emplace_back(std::move(value));
+	spk::Logger::Level level = spk::Logger::Level::Trace;
+	std::string message;
+	auto loggerContract = spk::logger.subscribeToEntry(
+		[&](const spk::Logger::Level &receivedLevel, const std::string &receivedMessage) {
+			level = receivedLevel;
+			message = receivedMessage;
 		});
+	ConsoleEntry entry("Entry");
 
 	entry.submit("/connect --port invalid");
 
-	ASSERT_EQ(local.size(), 1u);
-	EXPECT_EQ(local.front(), "Port invalide : invalid");
+	EXPECT_EQ(level, spk::Logger::Level::UserValueB);
+	EXPECT_EQ(message, "Port invalide : invalid");
 }

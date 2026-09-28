@@ -14,10 +14,7 @@ ConsoleEntry::ConsoleEntry(
 	spk::Widget *parent) :
 	spk::TextEdit(std::move(name), parent)
 {
-	_commandParser.addCommand<ConnectCommand>(
-		[this](std::string message) {
-			_emitLocal(std::move(message));
-		});
+	_commandParser.addCommand<ConnectCommand>();
 
 	setPlaceholder(
 		Service::translator()->translate(
