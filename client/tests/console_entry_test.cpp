@@ -14,6 +14,11 @@
 
 namespace
 {
+	void registerConnectCommand(ConsoleEntry &entry)
+	{
+		entry.commandParser().addCommand<ConnectCommand>();
+	}
+
 	void installConsoleEntryTranslations()
 	{
 		Service::translator()->append("client.console.placeholder", "Enter text or /help");
@@ -58,6 +63,7 @@ TEST_F(ConsoleEntryTest, OrdinaryTextUsesLogger)
 			message = receivedMessage;
 		});
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 	auto submissionContract = entry.subscribeToSubmission(
 		[&](std::string value) {
 			local.emplace_back(std::move(value));
@@ -79,6 +85,7 @@ TEST_F(ConsoleEntryTest, GlobalHelpIsLocalAndDoesNotUseLogger)
 			++loggerCalls;
 		});
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 	auto submissionContract = entry.subscribeToSubmission(
 		[&](std::string value) {
 			local.emplace_back(std::move(value));
@@ -97,6 +104,7 @@ TEST_F(ConsoleEntryTest, CommandHelpIsLocalAndDoesNotEmitConnectRequest)
 	std::vector<std::string> local;
 	std::size_t requestCount = 0;
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 	auto submissionContract = entry.subscribeToSubmission(
 		[&](std::string value) {
 			local.emplace_back(std::move(value));
@@ -123,6 +131,7 @@ TEST_F(ConsoleEntryTest, MalformedKnownCommandAddsDiagnosticAndUsageLocally)
 			++loggerCalls;
 		});
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 	auto submissionContract = entry.subscribeToSubmission(
 		[&](std::string value) {
 			local.emplace_back(std::move(value));
@@ -151,6 +160,7 @@ TEST_F(ConsoleEntryTest, UnknownCommandReportsLocallyWithoutLogger)
 			++loggerCalls;
 		});
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 	auto submissionContract = entry.subscribeToSubmission(
 		[&](std::string value) {
 			local.emplace_back(std::move(value));
@@ -168,6 +178,7 @@ TEST_F(ConsoleEntryTest, ConnectParametersAreOptionalAndShownInHelp)
 {
 	std::vector<std::string> local;
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 	auto submissionContract = entry.subscribeToSubmission(
 		[&](std::string value) {
 			local.emplace_back(std::move(value));
@@ -184,6 +195,7 @@ TEST_F(ConsoleEntryTest, ConnectWithoutOverridesEmitsEmptyRequest)
 {
 	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
 		[&](const ConnectCommand::Request &request) {
 			received = request;
@@ -200,6 +212,7 @@ TEST_F(ConsoleEntryTest, ConnectAddressOverrideEmitsAddressOnly)
 {
 	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
 		[&](const ConnectCommand::Request &request) {
 			received = request;
@@ -217,6 +230,7 @@ TEST_F(ConsoleEntryTest, ConnectPortOverrideEmitsPortOnly)
 {
 	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
 		[&](const ConnectCommand::Request &request) {
 			received = request;
@@ -241,6 +255,7 @@ TEST_F(ConsoleEntryTest, ConnectRejectsInvalidPortThroughCommandLogger)
 			message = receivedMessage;
 		});
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 	auto requestContract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
 		[&](const ConnectCommand::Request &) {
 			++requestCount;
@@ -264,6 +279,7 @@ TEST_F(ConsoleEntryTest, ConnectRejectsOutOfRangePortThroughCommandLogger)
 			message = receivedMessage;
 		});
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 	auto requestContract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
 		[&](const ConnectCommand::Request &) {
 			++requestCount;
@@ -280,6 +296,7 @@ TEST_F(ConsoleEntryTest, ConnectRejectsOutOfRangePortThroughCommandLogger)
 TEST_F(ConsoleEntryTest, SubmissionContractReceivesLocalOutput)
 {
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 	std::vector<std::string> submissions;
 	auto contract = entry.subscribeToSubmission(
 		[&](std::string value) {
@@ -295,6 +312,7 @@ TEST_F(ConsoleEntryTest, SubmissionContractReceivesLocalOutput)
 TEST_F(ConsoleEntryTest, ResignedSubmissionContractStopsReceivingLocalOutput)
 {
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 	std::size_t submissionCount = 0;
 	auto contract = entry.subscribeToSubmission(
 		[&](std::string) {
@@ -321,6 +339,7 @@ TEST_F(ConsoleEntryTest, UsesTranslatedCommandFailure)
 	Service::translator()->append("client.command.connect.port.description", "Port");
 
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 	std::vector<std::string> local;
 	auto contract = entry.subscribeToSubmission(
 		[&](std::string value) {
@@ -350,9 +369,20 @@ TEST_F(ConsoleEntryTest, UsesTranslatedConnectValidationThroughCommandLogger)
 			message = receivedMessage;
 		});
 	ConsoleEntry entry("Entry");
+	registerConnectCommand(entry);
 
 	entry.submit("/connect --port invalid");
 
 	EXPECT_EQ(level, spk::Logger::Level::UserValueB);
 	EXPECT_EQ(message, "Port invalide : invalid");
+}
+
+
+TEST_F(ConsoleEntryTest, DoesNotRegisterConcreteCommands)
+{
+	ConsoleEntry entry("Entry");
+
+	EXPECT_THROW(
+		(void)entry.commandParser().command<ConnectCommand>(),
+		spk::Exception);
 }

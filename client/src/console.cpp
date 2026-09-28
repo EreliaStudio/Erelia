@@ -1,5 +1,6 @@
 #include "erelia/client/console.hpp"
 
+#include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/service.hpp"
 
 #include <core/context/update_context.hpp>
@@ -12,9 +13,9 @@ Console::Console(
 	std::string name,
 	spk::Widget *parent) :
 	spk::Widget(std::move(name), parent),
-	_entryBackground("Console.entries.background", this),
-	_entries("Console.entries", &_entryModel, this),
-	_commandEntry("Console.command", this),
+	_entryBackground(this->name() + "/entries/background", this),
+	_entries(this->name() + "/entries", &_entryModel, this),
+	_commandEntry(this->name() + "/command", this),
 	_submissionContract(_commandEntry.subscribeToSubmission([this](std::string entry) {
 		_appendLocalEntry(std::move(entry));
 	})),
@@ -22,6 +23,8 @@ Console::Console(
 		_queueEntry(level, message);
 	}))
 {
+	_commandEntry.commandParser().addCommand<ConnectCommand>();
+
 	_entryBackground.setZOrder(0.0f);
 	_entries.setZOrder(1.0f);
 	_layout.addWidget(&_entryBackground);

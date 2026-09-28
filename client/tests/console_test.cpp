@@ -237,3 +237,16 @@ TEST_F(ConsoleTest, ConnectValidationReachesConsoleThroughUserValueB)
 		console.entries().data(0),
 		"[Command] : Invalid port: invalid");
 }
+
+
+TEST_F(ConsoleTest, OwnsCommandRegistrationAndHierarchicalChildNames)
+{
+	Console console("/Client/Console");
+
+	EXPECT_EQ(console.name(), "/Client/Console");
+	EXPECT_EQ(console.entryView().name(), "/Client/Console/entries");
+	EXPECT_EQ(console.commandEntry().name(), "/Client/Console/command");
+	EXPECT_EQ(
+		console.commandParser().command<ConnectCommand>().name(),
+		"connect");
+}

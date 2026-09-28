@@ -135,6 +135,19 @@ TEST(ClientBootstrap, InitializesWidgetHierarchyFromConfiguredWindowGeometry)
 
 	EXPECT_EQ(mainWindow.root().geometry(), expectedGeometry);
 	EXPECT_EQ(mainWidget.geometry(), expectedGeometry);
+	EXPECT_EQ(mainWidget.name(), "/MainApplicationWidget");
+	EXPECT_EQ(
+		mainWidget.connectionManager().name(),
+		"/MainApplicationWidget/ConnectionManager");
+	EXPECT_EQ(
+		mainWidget.console().name(),
+		"/MainApplicationWidget/Console");
+	EXPECT_EQ(
+		mainWidget.console().entryView().name(),
+		"/MainApplicationWidget/Console/entries");
+	EXPECT_EQ(
+		mainWidget.console().commandEntry().name(),
+		"/MainApplicationWidget/Console/command");
 	EXPECT_EQ(mainWidget.console().geometry(), expectedGeometry);
 	EXPECT_EQ(mainWidget.console().entryView().geometry().width, 640u);
 	EXPECT_GT(mainWidget.console().entryView().geometry().height, 0u);

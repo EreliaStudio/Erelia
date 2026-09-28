@@ -1,6 +1,5 @@
 #include "erelia/client/console_entry.hpp"
 
-#include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/service.hpp"
 
 #include <diagnostics/logger.hpp>
@@ -14,8 +13,6 @@ ConsoleEntry::ConsoleEntry(
 	spk::Widget *parent) :
 	spk::TextEdit(std::move(name), parent)
 {
-	_commandParser.addCommand<ConnectCommand>();
-
 	setPlaceholder(
 		Service::translator()->translate(
 			"client.console.placeholder"));
