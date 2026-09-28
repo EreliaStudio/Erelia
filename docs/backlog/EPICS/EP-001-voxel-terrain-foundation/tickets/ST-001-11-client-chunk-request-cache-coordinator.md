@@ -439,3 +439,43 @@ The request/batch API, pending reuse, completion lifetime protection, and stale-
 
 
 The target `Column::Collection` API is intentionally kept in structural parity with `Chunk::Collection`: state lookup, optional value lookup through `tryGet(...)`, asynchronous batched `request(...)`, Provider-backed Absent/Pending/Available handling, and whole-value replacement semantics where needed. No additional `at(...)` or `operator[](...)` surface is required unless a later concrete use case justifies it.
+
+
+### Approved generic asynchronous cache abstraction — 28 September 2026
+
+The duplicated asynchronous acquisition/cache mechanics currently implemented by `Chunk::Collection` are extracted into a generic Core abstraction named `Cache<TKey, TValue>`.
+
+The template parameter naming is fixed as `TKey` and `TValue`.
+
+Conceptually, `Cache<TKey, TValue>` owns the shared behavior currently implemented by `Chunk::Collection`:
+
+- `State { Absent, Pending, Available }`;
+- Provider-backed asynchronous acquisition through `spk::Task<TValue>::Answer`;
+- `state(key)` and `tryGet(key)`;
+- asynchronous batched `request(std::vector<TKey>)`;
+- `BatchResult` with per-key acquired values and failures;
+- reuse of already-Pending requests;
+- reuse of already-Available values;
+- whole-value `replace(key, value)`;
+- generation-based stale-completion protection;
+- shared Batch/Acquisition implementation details.
+
+The intended generic Provider contract is:
+
+```cpp
+template <typename TKey, typename TValue>
+class Cache
+{
+public:
+    class Provider
+    {
+    public:
+        virtual ~Provider() = default;
+
+        [[nodiscard]] virtual spk::Task<TValue>::Answer request(
+            const TKey& key) = 0;
+    };
+};
+```
+
+`Chunk::Collection` becomes the Chunk-domain alias/specialization over `Cache<Chunk::Coordinate, Chunk>`. The Server-side `Column::Collection` becomes the Column-domain alias/specialization over `Cache<Column::Coordinate, Column::Content>`. `Column::Provider` is the corresponding Provider type for that cache. This keeps `Column` as a namespace; no artificial domain-trait type is introduced solely to enable `Collection<Column>` syntax.
