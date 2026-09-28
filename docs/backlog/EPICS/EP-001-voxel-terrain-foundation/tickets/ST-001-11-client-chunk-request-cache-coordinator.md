@@ -414,3 +414,25 @@ The earlier `Column::Generator` name was a terminology mistake and is superseded
 
 
 `Column::Provider` acquisition is asynchronous. Its public contract mirrors `Chunk::Collection::Provider`: `request(const Column::Coordinate&)` returns `spk::Task<Column::Content>::Answer`. The prototype terrain provider implements both asynchronous provider interfaces, using the shared WorkerPool-backed terrain generation path as appropriate.
+
+
+### Approved Column::Collection parity with Chunk::Collection — 28 September 2026
+
+`Column::Collection` mirrors the existing `Chunk::Collection` acquisition/state model for Column metadata.
+
+It owns the same public state domain:
+
+```cpp
+enum class State
+{
+    Absent,
+    Pending,
+    Available
+};
+```
+
+A request for an `Available` Column reuses the stored `Column::Content`; a request for a `Pending` Column reuses the existing pending Provider answer; only an `Absent` Column invokes `Column::Provider::request(...)`. Provider completion publishes the complete `Column::Content` atomically. Provider failure leaves the coordinate non-Available and is represented through the Collection request result in the same style as `Chunk::Collection`.
+
+`Column::Collection` also keeps the previously approved map-like access surface for stored Column content: `tryGet`, `at`, and `operator[]`; `operator[]` creates an empty `Column::Content` when the coordinate is absent. These direct access operations do not replace the asynchronous Provider-backed request path.
+
+The request/batch API, pending reuse, completion lifetime protection, and stale-completion behavior should follow the existing `Chunk::Collection` implementation pattern unless a Column-specific semantic difference is explicitly approved later.
