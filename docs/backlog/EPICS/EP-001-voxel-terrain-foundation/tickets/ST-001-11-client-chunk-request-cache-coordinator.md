@@ -400,10 +400,10 @@ All earlier references to `Area::Request`, `Area::Response`, or `Area::Collectio
 
 The terrain Server owns `Column::Collection`. Its public lookup surface should follow ordinary map-like naming, including `tryGet`, `at`, and `operator[]`. `operator[]` is mutating and creates an empty `Column::Content` for an absent coordinate, matching standard associative-container expectations.
 
-Column generation is separated behind a polymorphic `Column::Provider` abstraction with a virtual operation conceptually equivalent to:
+Column acquisition is separated behind a polymorphic asynchronous `Column::Provider` abstraction mirroring the existing Chunk provider contract:
 
 ```cpp
-[[nodiscard]] virtual Column::Content generateColumn(
+[[nodiscard]] virtual spk::Task<Column::Content>::Answer request(
     const Column::Coordinate& coordinate) = 0;
 ```
 
@@ -411,3 +411,6 @@ The Server prototype terrain implementation is intended to provide both Chunk ac
 
 
 The earlier `Column::Generator` name was a terminology mistake and is superseded. The abstraction is `Column::Provider`. The existing Server `PrototypeChunkProvider` is intended to implement both `Chunk::Collection::Provider` and `Column::Provider` so Chunk data and Column metadata are derived from the same prototype terrain rules.
+
+
+`Column::Provider` acquisition is asynchronous. Its public contract mirrors `Chunk::Collection::Provider`: `request(const Column::Coordinate&)` returns `spk::Task<Column::Content>::Answer`. The prototype terrain provider implements both asynchronous provider interfaces, using the shared WorkerPool-backed terrain generation path as appropriate.
