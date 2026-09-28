@@ -400,11 +400,14 @@ All earlier references to `Area::Request`, `Area::Response`, or `Area::Collectio
 
 The terrain Server owns `Column::Collection`. Its public lookup surface should follow ordinary map-like naming, including `tryGet`, `at`, and `operator[]`. `operator[]` is mutating and creates an empty `Column::Content` for an absent coordinate, matching standard associative-container expectations.
 
-Column generation is separated behind a polymorphic `Column::Generator` abstraction with a virtual operation conceptually equivalent to:
+Column generation is separated behind a polymorphic `Column::Provider` abstraction with a virtual operation conceptually equivalent to:
 
 ```cpp
 [[nodiscard]] virtual Column::Content generateColumn(
     const Column::Coordinate& coordinate) = 0;
 ```
 
-The Server prototype terrain implementation is intended to provide both Chunk generation and Column generation from the same deterministic terrain rules because the two outputs are correlated. The exact relationship to the currently implemented `PrototypeChunkProvider : Chunk::Collection::Provider` remains to be reconciled before implementation, because Core currently has no distinct `Chunk::Generator` base type.
+The Server prototype terrain implementation is intended to provide both Chunk acquisition and Column-content generation from the same deterministic terrain rules because the two outputs are correlated. The existing `PrototypeChunkProvider` should therefore implement both `Chunk::Collection::Provider` and `Column::Provider`; no new `Chunk::Generator` abstraction is introduced.
+
+
+The earlier `Column::Generator` name was a terminology mistake and is superseded. The abstraction is `Column::Provider`. The existing Server `PrototypeChunkProvider` is intended to implement both `Chunk::Collection::Provider` and `Column::Provider` so Chunk data and Column metadata are derived from the same prototype terrain rules.
