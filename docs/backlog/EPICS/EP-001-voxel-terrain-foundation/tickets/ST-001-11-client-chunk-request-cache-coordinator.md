@@ -296,3 +296,30 @@ This design eliminates empty-sky Chunk probing while preserving the existing 3D 
 
 The previously approved DR-015 multi-layer prototype columns remain useful discovery fixtures. Their non-empty Chunk coordinates must appear in the Server manifest for any queried area that contains those X/Z columns.
 
+
+
+### Approved area-discovery request payload — 28 September 2026
+
+The Client discovery request carries exactly these semantic fields:
+
+```cpp
+struct AreaRequest
+{
+    spk::Vector3 playerWorldPosition;
+    std::int32_t centerX;
+    std::int32_t centerZ;
+
+    enum class Type : std::uint8_t
+    {
+        Circle = 0,
+        Square = 1
+    };
+
+    Type type;
+    std::int32_t size;
+};
+```
+
+`playerWorldPosition` is the player's world-space position. `centerX` and `centerZ` are Chunk-column coordinates, not world-space coordinates. `type` selects the horizontal area geometry. `size` is the one shared shape parameter: for `Circle` it is the radius; for `Square` it is the half-size. No shape-specific trailing payload is serialized; both current shapes use the same fixed-size request layout.
+
+The exact validation domain for `size` (including whether zero is legal) and the exact discrete edge-membership rule for `Circle` remain unresolved and must be approved before implementation.
