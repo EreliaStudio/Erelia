@@ -589,3 +589,6 @@ Each offset identifies the start of one deserialization block containing up to 5
 
 
 All `Column::Response` framing integers are fixed as `std::uint32_t`: the offset-table count, each offset entry, and each serialized Column's `Chunk::Coordinate` count.
+
+
+Each `Column::Response` block offset is absolute from byte 0 of the response payload. Offsets are not relative to the end of the offset table or to the start of the serialized Column stream. A reader can therefore seek directly to `payload.data() + offset` for the corresponding 50-Column deserialization block.
