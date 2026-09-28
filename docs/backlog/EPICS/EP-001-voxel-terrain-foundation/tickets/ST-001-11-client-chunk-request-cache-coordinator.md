@@ -368,13 +368,13 @@ namespace Column
     Response
 ```
 
-`Column::Coordinate` identifies one Chunk column by X/Z. Its exact representation (`spk::Vector2Int` versus a dedicated X/Z struct) is still to be fixed. `Column::ColumnContent` represents the full set of non-empty `Chunk::Coordinate` values belonging to one Column.
+`Column::Coordinate` identifies one Chunk column by X/Z. Its exact representation (`spk::Vector2Int` versus a dedicated X/Z struct) is still to be fixed. `Column::Content` represents the full set of non-empty `Chunk::Coordinate` values belonging to one Column.
 
 `Column::Request` retains the already-approved discovery request fields directly: player world position, center Chunk-column X/Z, Circle/Square type, and non-negative size. The Circle/Square shape selects which Column coordinates around the center are queried; `size == 0` selects only the center Column and boundaries are inclusive.
 
 `Column::Response` is correlated through the originating Sparkle RequestID and returns only the resolved Chunk-coordinate data; it does not carry Chunk values or repeat the request geometry.
 
-The terrain Server owns `Column::Collection`. Core does not declare or implement the Collection. The Server reopens namespace `Column` and provides the authoritative mapping from `Column::Coordinate` to `Column::ColumnContent`. `Chunk::Collection` remains unchanged and continues to own Chunk values by full `Chunk::Coordinate`.
+The terrain Server owns `Column::Collection`. Core does not declare or implement the Collection. The Server reopens namespace `Column` and provides the authoritative mapping from `Column::Coordinate` to `Column::Content`. `Chunk::Collection` remains unchanged and continues to own Chunk values by full `Chunk::Coordinate`.
 
 The resulting flow is:
 
@@ -387,3 +387,6 @@ Column::Request
 ```
 
 All earlier references to `Area::Request`, `Area::Response`, or `Area::Collection` in ST-001-11 are superseded by these `Column::*` names.
+
+
+`Column::Content` is fixed as the Core semantic type representing the complete set of non-empty `Chunk::Coordinate` values belonging to one Column. The previous `Column::ColumnContent` working name is superseded.
