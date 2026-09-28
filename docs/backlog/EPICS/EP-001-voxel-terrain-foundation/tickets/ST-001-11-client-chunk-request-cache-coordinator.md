@@ -322,4 +322,4 @@ struct AreaRequest
 
 `playerWorldPosition` is the player's world-space position. `centerX` and `centerZ` are Chunk-column coordinates, not world-space coordinates. `type` selects the horizontal area geometry. `size` is the one shared shape parameter: for `Circle` it is the radius; for `Square` it is the half-size. No shape-specific trailing payload is serialized; both current shapes use the same fixed-size request layout.
 
-The exact validation domain for `size` (including whether zero is legal) and the exact discrete edge-membership rule for `Circle` remain unresolved and must be approved before implementation.
+`size` is a non-negative integer. `size == 0` is valid and resolves only the center/player Chunk column. Area boundaries are inclusive: a column exactly on the selected area's boundary belongs to the area. The exact discrete `Circle` membership metric is still to be fixed explicitly before implementation.
