@@ -624,3 +624,8 @@ requestID = originating Column RequestID when available
 ```
 
 No `Column::Error` message type is introduced for this case. No `Collection<Column>` acquisition starts after validation failure.
+
+
+### Approved Column response ordering — 28 September 2026
+
+`Column::Response` serializes Column entries in deterministic X-major order: sort by `Column::Coordinate::x` first, then by `Column::Coordinate::z` within each X value. The 50-Column deserialization blocks are cut from this ordered sequence.
