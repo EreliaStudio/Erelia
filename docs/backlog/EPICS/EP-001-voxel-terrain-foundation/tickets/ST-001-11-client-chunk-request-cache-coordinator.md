@@ -341,7 +341,7 @@ The resulting ownership is:
 Core:
     namespace Area
         Request
-        discovery reply/answer message
+        Response
 
 Terrain Server only:
     namespace Area
@@ -349,3 +349,6 @@ Terrain Server only:
 ```
 
 `Area::Collection` stores/indexes Chunk coordinate identity only. It does not own Chunk values and does not store raw pointers into `Chunk::Collection`.
+
+
+The Core discovery reply type is fixed as `Area::Response`, matching the existing Request/Response naming convention. It is correlated to the originating `Area::Request` through the Sparkle RequestID and contains only the returned `Chunk::Coordinate` sequence.
