@@ -629,3 +629,17 @@ No `Column::Error` message type is introduced for this case. No `Collection<Colu
 ### Approved Column response ordering — 28 September 2026
 
 `Column::Response` serializes Column entries in deterministic X-major order: sort by `Column::Coordinate::x` first, then by `Column::Coordinate::z` within each X value. The 50-Column deserialization blocks are cut from this ordered sequence.
+
+
+### Approved Column message type IDs — 28 September 2026
+
+`Networking::MessageType` preserves the existing values and adds the Column discovery messages as:
+
+```cpp
+ChunkRequest    = 1,
+ChunkResponse   = 2,
+ChunkError      = 3,
+Diagnostic      = 4,
+ColumnRequest   = 5,
+ColumnResponse  = 6
+```
