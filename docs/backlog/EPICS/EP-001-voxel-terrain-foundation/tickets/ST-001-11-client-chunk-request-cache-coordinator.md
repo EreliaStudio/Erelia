@@ -678,3 +678,26 @@ Outer aggregation failure preventing any valid terminal response
 ```
 
 Examples of request-level Column errors include invalidly formatted requests and a player world position inconsistent with the requested Column range. The exact Column-specific payload carried by `Column::Error`, its stable diagnostic keys, and its message-type numeric assignment still need to be fixed explicitly.
+
+
+### Approved Column::Error wire contract — 28 September 2026
+
+`Column::Error` mirrors `Chunk::Protocol::Error` as closely as possible. It derives from `Networking::Diagnostic` and appends a Column-specific coordinate list encoded as:
+
+```text
+[Networking::Diagnostic prefix]
+[coordinateCount:uint32]
+[Column::Coordinate × coordinateCount]
+```
+
+The coordinate list is contextual and may be empty when a malformed request cannot be decoded far enough to recover safe Column coordinates.
+
+Approved request-validation mappings are:
+
+- malformed/invalidly encoded Column request -> severity `Error`, key `"Column_Request_Malformed"`; append any safely decoded relevant coordinates, otherwise an empty list;
+- invalid corner ordering -> severity `Error`, key `"Column_Request_Malformed"`; append the two supplied corners in request order;
+- player world position outside the requested rectangular Column range -> severity `Error`, key `"Column_Player_Outside_Request_Range"`; append the derived player `Column::Coordinate` followed by the request's minimum and maximum corners.
+
+`Column::Error` requires the originating non-zero RequestID when it is available, matching the correlated Chunk-specific error model. These validation failures do not start `Collection<Column>` acquisition.
+
+`Networking::MessageType` adds `ColumnError = 7`, after `ColumnRequest = 5` and `ColumnResponse = 6`.
