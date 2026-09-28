@@ -197,4 +197,6 @@ The project owner selected a player-centered Client streaming model:
 - `unloadRange` is required to be greater than or equal to `viewRange` and provides hysteresis so Chunks may remain cached after leaving the immediate view region, while Chunks beyond the unload boundary are removed to bound memory/resource growth;
 - movement/input ownership is separate: ST-001-14 may later move this entity, while ST-001-11 owns observation and Chunk streaming consequences.
 
-Still unresolved before Ready: exact floating-point world-position conversion, exact three-dimensional range shape/distance metric and inclusive boundaries, numeric/configuration source for both ranges, plus the previously listed request/retry/disconnect/response/recycle policies.
+Approved floating-point conversion: each component of the streaming-center world position is mathematically floored to its containing global terrain Cell coordinate, then converted through the existing `Chunk::toCoordinate(...)` floor-division contract. This therefore preserves exact negative-boundary behavior (for example `-0.1 -> cell -1 -> chunk -1`).
+
+Still unresolved before Ready: exact three-dimensional range shape/distance metric and inclusive boundaries, numeric/configuration source for both ranges, plus the previously listed request/retry/disconnect/response/recycle policies.
