@@ -701,3 +701,29 @@ Approved request-validation mappings are:
 `Column::Error` requires the originating non-zero RequestID when it is available, matching the correlated Chunk-specific error model. These validation failures do not start `Collection<Column>` acquisition.
 
 `Networking::MessageType` adds `ColumnError = 7`, after `ColumnRequest = 5` and `ColumnResponse = 6`.
+
+
+### Approved Client/Server Collection<Column> provider architecture — 29 September 2026
+
+The Column abstraction remains part of the shared Core domain and is not replaced by a separate Interest/AOI protocol abstraction. A Column is exactly the sparse vertical Chunk membership data the Client needs in order to know which full `Chunk::Coordinate` values are worth acquiring.
+
+Both Client and Server may instantiate `Collection<Column>`, but with different Provider implementations:
+
+```text
+Client Collection<Column>
+    -> network-backed Collection<Column>::Provider
+    -> Column request message
+    -> Server
+
+Server Collection<Column>
+    -> terrain-generation Collection<Column>::Provider
+    -> authoritative Column value
+```
+
+The player/streaming controller does not manually own Column networking. It requests the desired Column coordinates from the Client `Collection<Column>`. The generic Collection returns cached Available values, reuses Pending acquisitions, and delegates only Absent values to its Provider. The Client Column Provider owns request/response correlation and settles the `spk::Task<Column>` Answers returned to the Collection when network responses arrive.
+
+After a requested Column becomes Available, the controller iterates that Column's contained full `Chunk::Coordinate` values and submits them to the Client `Collection<Chunk>`. That Collection follows the same pattern: cached/Pending Chunks are reused and Absent Chunks are delegated to its Client network-backed Provider.
+
+The terrain Server uses its local deterministic terrain Provider(s) for both `Collection<Column>` and `Collection<Chunk>`, so Column membership and generated Chunk data are derived from the same canonical terrain rules.
+
+This architecture deliberately exposes Column as the actual shared terrain occupancy domain rather than introducing an additional protocol concept whose only purpose would be to hide Column from the Client.
