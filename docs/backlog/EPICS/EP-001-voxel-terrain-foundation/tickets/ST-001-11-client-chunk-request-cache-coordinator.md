@@ -199,4 +199,8 @@ The project owner selected a player-centered Client streaming model:
 
 Approved floating-point conversion: each component of the streaming-center world position is mathematically floored to its containing global terrain Cell coordinate, then converted through the existing `Chunk::toCoordinate(...)` floor-division contract. This therefore preserves exact negative-boundary behavior (for example `-0.1 -> cell -1 -> chunk -1`).
 
+Approved Collection lifetime support: ST-001-11 may extend generic `Chunk::Collection` with an explicit coordinate-removal operation required by Client `unloadRange` eviction. The Collection owns safe removal mechanics; the Client coordinator owns the policy deciding when a coordinate is outside the unload boundary. Exact removal behavior for Available and Pending entries must be covered by focused Core tests, including stale completion after removal.
+
+Server-side bounded Chunk caching is explicitly deferred from ST-001-11 to a future Server scalability/resource-management Epic. That later work will own TerrainNode cache budgets, Server eviction-selection policy, active/in-flight considerations, regeneration/thrashing policy, observability, and load validation. ST-001-11 must not introduce a Server cache budget or Server eviction policy.
+
 Still unresolved before Ready: exact three-dimensional range shape/distance metric and inclusive boundaries, numeric/configuration source for both ranges, plus the previously listed request/retry/disconnect/response/recycle policies.
