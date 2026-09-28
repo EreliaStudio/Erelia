@@ -390,3 +390,21 @@ All earlier references to `Area::Request`, `Area::Response`, or `Area::Collectio
 
 
 `Column::Content` is fixed as the Core semantic type representing the complete set of non-empty `Chunk::Coordinate` values belonging to one Column. The previous `Column::ColumnContent` working name is superseded.
+
+
+### Approved Column coordinate/content/storage direction — 28 September 2026
+
+`Column::Coordinate` is a dedicated Core type rather than an alias to `spk::Vector2Int`. It represents one terrain Chunk column with semantically named signed integer `x` and `z` components. It must support the comparison/hash behavior required by the chosen associative containers.
+
+`Column::Content` is a Core type whose semantic value is the set of all non-empty `Chunk::Coordinate` values belonging to one Column. Its storage is `std::set<Chunk::Coordinate>`, giving uniqueness and deterministic coordinate ordering by construction.
+
+The terrain Server owns `Column::Collection`. Its public lookup surface should follow ordinary map-like naming, including `tryGet`, `at`, and `operator[]`. `operator[]` is mutating and creates an empty `Column::Content` for an absent coordinate, matching standard associative-container expectations.
+
+Column generation is separated behind a polymorphic `Column::Generator` abstraction with a virtual operation conceptually equivalent to:
+
+```cpp
+[[nodiscard]] virtual Column::Content generateColumn(
+    const Column::Coordinate& coordinate) = 0;
+```
+
+The Server prototype terrain implementation is intended to provide both Chunk generation and Column generation from the same deterministic terrain rules because the two outputs are correlated. The exact relationship to the currently implemented `PrototypeChunkProvider : Chunk::Collection::Provider` remains to be reconciled before implementation, because Core currently has no distinct `Chunk::Generator` base type.
