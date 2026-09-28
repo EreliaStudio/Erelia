@@ -610,4 +610,17 @@ For the final block, `end` is the total `Column::Response` payload size. This le
 
 `Column::Request` carries an already-normalized rectangular Column range. The first corner is the minimum X/Z corner and the second corner is the maximum X/Z corner; therefore a valid request satisfies `first.x <= second.x` and `first.z <= second.z`.
 
-The Server must not silently reorder malformed corners. A request whose corners violate that ordering is invalid and must be rejected through the existing diagnostic-message mechanism, correlated with the originating RequestID when available. No Column acquisition is started for such an invalid request. The exact stable diagnostic key is still to be fixed with the remaining Column protocol diagnostics.
+The Server must not silently reorder malformed corners. A request whose corners violate that ordering is invalid and must be rejected through the existing diagnostic-message mechanism, correlated with the originating RequestID when available. No Column acquisition is started for such an invalid request. The stable diagnostic contract mirrors malformed Chunk requests: severity `Networking::Diagnostic::Severity::Error`, translation key exactly `"Column_Request_Malformed"`, and the originating RequestID when available.
+
+
+### Approved Column malformed-request diagnostic — 28 September 2026
+
+Column request validation mirrors the existing malformed Chunk request path. A malformed `Column::Request`, including incorrectly ordered rectangular corners, is rejected with a generic `Networking::Diagnostic` using:
+
+```text
+severity = Networking::Diagnostic::Severity::Error
+message  = "Column_Request_Malformed"
+requestID = originating Column RequestID when available
+```
+
+No `Column::Error` message type is introduced for this case. No `Collection<Column>` acquisition starts after validation failure.
