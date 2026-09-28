@@ -236,3 +236,14 @@ These memberships define the complete elevated prototype fixture. Every added el
 Provider acquisition and completion are Column-granular only: a Provider request targets one X/Z Column and successful Provider completion publishes the complete authoritative `Chunk::Column` for that coordinate atomically.
 
 The Collection must nevertheless support targeted modification of one Chunk inside an already Available Column without requiring the Provider to re-emit/reacquire the entire Column. This targeted operation is whole immutable-Chunk replacement: callers construct a complete replacement `Chunk` and replace the value at one full `Chunk::Coordinate`. Published Chunk Cells are never mutated in place. The operation is valid only when the owning X/Z Column is already `Available`; it must not synthesize an `Available` Column from one isolated Chunk because an Available Column represents the complete known set of non-empty Y layers. Existing copied Chunk values remain valid through their shared immutable backing after replacement.
+
+
+### Approved sparse per-Chunk update semantics — 28 September 2026
+
+Within an already `Available` Column, the targeted whole-Chunk update API is allowed to change sparse Column membership. It must support all three cases while preserving immutable Chunk values:
+
+- a previously absent/known-empty Y receives a non-empty replacement Chunk and is inserted into the Column;
+- an existing non-empty Y receives another non-empty replacement Chunk and is replaced atomically;
+- an existing non-empty Y receives an empty replacement and is removed from the Column so the sparse representation continues to store only non-empty Chunks.
+
+The owning Column remains `Available` throughout these targeted updates. These operations never create an Available Column when the Column itself is Absent or Pending; complete Column acquisition/publication remains the Provider boundary.
