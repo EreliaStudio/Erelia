@@ -604,3 +604,10 @@ end   = offsets[i + 1]
 ```
 
 For the final block, `end` is the total `Column::Response` payload size. This lets the Client assign each block to an independent asynchronous deserialization task without scanning preceding Columns.
+
+
+### Approved Column::Request corner ordering — 28 September 2026
+
+`Column::Request` carries an already-normalized rectangular Column range. The first corner is the minimum X/Z corner and the second corner is the maximum X/Z corner; therefore a valid request satisfies `first.x <= second.x` and `first.z <= second.z`.
+
+The Server must not silently reorder malformed corners. A request whose corners violate that ordering is invalid and must be rejected through the existing diagnostic-message mechanism, correlated with the originating RequestID when available. No Column acquisition is started for such an invalid request. The exact stable diagnostic key is still to be fixed with the remaining Column protocol diagnostics.
