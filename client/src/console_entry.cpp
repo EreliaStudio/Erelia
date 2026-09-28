@@ -16,7 +16,6 @@ ConsoleEntry::ConsoleEntry(
 	setPlaceholder(
 		Service::translator().translate(
 			"client.console.placeholder"));
-	setMaximalSize({std::numeric_limits<float>::max(), maximalSize().y});
 }
 
 void ConsoleEntry::_emitFailure(const spk::CommandParser::Result &result)

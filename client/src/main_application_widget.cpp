@@ -18,10 +18,7 @@ MainApplicationWidget::MainApplicationWidget(
 				_connect(request);
 			});
 
-	_layout.addWidget(
-		&_connectionManager,
-		{spk::Layout::SizePolicy::Extend, spk::Layout::SizePolicy::Fixed});
-	_layout.addWidget(&_console);
+	_layout.addWidget(&_console, {spk::Layout::SizePolicy::Extend, spk::Layout::SizePolicy::Extend});
 	activate();
 }
 

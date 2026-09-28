@@ -19,6 +19,7 @@ Console::Console(
 		_queueEntry(level, message);
 	}))
 {
+	_entryBackground.setCornerSize({6, 6});
 	_entryBackground.setZOrder(0.0f);
 	_entries.setZOrder(1.0f);
 	_layout.addWidget(&_entryBackground);
@@ -121,7 +122,7 @@ void Console::_updateSizeHint()
 void Console::_onGeometryChange()
 {
 	_layout.setGeometry(spk::Rect2D{.anchor = {0, 0}, .size = geometry().size});
-	_entries.setGeometry(_entryBackground.geometry());
+	_entries.setGeometry(_entryBackground.geometry().shrink(_entryBackground.cornerSize()));
 }
 
 void Console::_updateState(spk::UpdateContext &)

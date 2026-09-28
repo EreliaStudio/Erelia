@@ -9,6 +9,9 @@
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "environment": [{ "name": "PATH", "value": "${workspaceFolder}/build/debug/vcpkg_installed/x64-windows/debug/bin;${env:PATH}" }],
+	  "args":[
+		"--config", "${workspaceFolder}/client/resources/config.json"
+	  ],
       "preLaunchTask": "Build Debug Client"
     },
     {
@@ -19,6 +22,9 @@
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "environment": [{ "name": "PATH", "value": "${workspaceFolder}/build/release/vcpkg_installed/x64-windows/bin;${env:PATH}" }],
+	  "args":[
+		"--config", "${workspaceFolder}/client/resources/config.json"
+	  ],
       "preLaunchTask": "Build Release Client"
     },
     {
@@ -26,6 +32,9 @@
       "type": "cppvsdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/server/EreliaServer.exe",
+	  "args":[
+		"--config", "${workspaceFolder}/client/resources/config.json"
+	  ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "preLaunchTask": "Build Debug Server"
@@ -35,6 +44,9 @@
       "type": "cppvsdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/release/server/EreliaServer.exe",
+	  "args":[
+		"--config", "${workspaceFolder}/client/resources/config.json"
+	  ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "preLaunchTask": "Build Release Server"
@@ -44,6 +56,9 @@
       "type": "cppvsdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/core/tests/EreliaCoreTestSuite.exe",
+	  "args":[
+		"--config", "${workspaceFolder}/client/resources/config.json"
+	  ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "preLaunchTask": "Build Debug Core Tests"
@@ -53,6 +68,9 @@
       "type": "cppvsdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/release/core/tests/EreliaCoreTestSuite.exe",
+	  "args":[
+		"--config", "${workspaceFolder}/client/resources/config.json"
+	  ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "preLaunchTask": "Build Release Core Tests"
@@ -62,6 +80,9 @@
       "type": "cppvsdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/debug/server/tests/EreliaServerTestSuite.exe",
+	  "args":[
+		"--config", "${workspaceFolder}/client/resources/config.json"
+	  ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "preLaunchTask": "Build Debug Server Tests"
@@ -71,6 +92,9 @@
       "type": "cppvsdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/release/server/tests/EreliaServerTestSuite.exe",
+	  "args":[
+		"--config", "${workspaceFolder}/client/resources/config.json"
+	  ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "preLaunchTask": "Build Release Server Tests"
@@ -83,6 +107,9 @@
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "environment": [{ "name": "PATH", "value": "${workspaceFolder}/build/debug/vcpkg_installed/x64-windows/debug/bin;${env:PATH}" }],
+	  "args":[
+		"--config", "${workspaceFolder}/client/resources/config.json"
+	  ],
       "preLaunchTask": "Build Debug Client Tests"
     },
     {
@@ -93,6 +120,9 @@
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "environment": [{ "name": "PATH", "value": "${workspaceFolder}/build/release/vcpkg_installed/x64-windows/bin;${env:PATH}" }],
+	  "args":[
+		"--config", "${workspaceFolder}/client/resources/config.json"
+	  ],
       "preLaunchTask": "Build Release Client Tests"
     }
   ]
