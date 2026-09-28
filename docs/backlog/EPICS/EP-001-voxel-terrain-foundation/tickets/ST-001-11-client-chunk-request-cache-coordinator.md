@@ -39,8 +39,10 @@ The final ticket should own:
 - a retained subscription to that entity's `spk::Transform3D` edition notifications;
 - deriving the current center Chunk coordinate from the entity's world position;
 - recomputing streaming demand only when the derived center Chunk coordinate changes;
-- a `viewRange` that determines which Chunk coordinates around the center must be available/requested;
-- an `unloadRange`, greater than or equal to `viewRange`, that determines which cached coordinates are eligible to be removed when they are too far from the center;
+- Client-configured `viewRange` and `unloadRange` values loaded from the Client configuration file, allowing different Clients to choose different streaming ranges;
+- one precomputed set of relative `Chunk::Coordinate` offsets for the cubic view region and one for the cubic unload region, generated once from configuration rather than recomputing distances after every player movement;
+- applying those precomputed offsets to the current center Chunk coordinate to derive absolute desired/retained coordinates;
+- an `unloadRange`, greater than or equal to `viewRange`, that determines which cached coordinates are eligible to be removed when they are outside the cubic unload region;
 - identification of missing cached coordinates;
 - batching request coordinates under final limits;
 - outstanding-request suppression/retry behavior;
@@ -74,7 +76,7 @@ Blocked only by this ticket's remaining Client coordinator policy: duplicate-out
 
 ## Determinism / ordering
 
-The desired set is derived from the designated streaming-center Chunk coordinate plus the approved `viewRange`; it is not supplied as an arbitrary external coordinate collection. Desired-coordinate ordering into request batches must still be explicit if observable/tested.
+The desired set is derived by translating a precomputed relative-offset set by the designated streaming-center Chunk coordinate; it is not supplied as an arbitrary external coordinate collection. Both view and unload regions are axis-aligned cubes in Chunk space. Desired-coordinate ordering into request batches must still be explicit if observable/tested.
 
 ## Lifecycle / ownership
 
@@ -97,6 +99,9 @@ Client chooses coordinates to request; Server remains canonical source of data.
 ## Implementation constraints
 
 - Server must not choose Client view/loading radius.
+- View/unload range values come from Client configuration rather than protocol or Server configuration.
+- View/unload membership offsets are precomputed once from configuration and reused across center-Chunk changes.
+- Both regions are axis-aligned cubes in Chunk space.
 - Keep cache/request logic separate from GPU mesh resources.
 - Do not add production movement or world interest-management scope.
 
@@ -203,4 +208,6 @@ Approved Collection lifetime support: ST-001-11 may extend generic `Chunk::Colle
 
 Server-side bounded Chunk caching is explicitly deferred from ST-001-11 to a future Server scalability/resource-management Epic. That later work will own TerrainNode cache budgets, Server eviction-selection policy, active/in-flight considerations, regeneration/thrashing policy, observability, and load validation. ST-001-11 must not introduce a Server cache budget or Server eviction policy.
 
-Still unresolved before Ready: exact three-dimensional range shape/distance metric and inclusive boundaries, numeric/configuration source for both ranges, plus the previously listed request/retry/disconnect/response/recycle policies.
+Approved range geometry/source direction: `viewRange` and `unloadRange` are Client-owned configuration values. The Client precomputes the relative Chunk-coordinate offsets for both regions once after loading configuration. Both regions are axis-aligned cubes centered on the current player Chunk, so membership is determined per axis rather than by Euclidean distance. `unloadRange >= viewRange` remains required. The exact configured numeric type and inclusive range interpretation remain to be fixed.
+
+Still unresolved before Ready: exact configured range type/boundary semantics, desired-offset/request ordering, request/retry/disconnect/response/recycle policies, and the exact public coordinator composition/API.
