@@ -229,3 +229,10 @@ The temporary prototype terrain must also exercise multi-Chunk Columns rather th
 - Column `(4,4)`: additionally non-empty at Chunk Y = 1, 2 and 3.
 
 These memberships define the complete elevated prototype fixture. Every added elevated Chunk at Y=1..3 is fully filled with Definition 1 (`cube`) Cells across all 16×16×16 local coordinates; no Air cells exist inside those added Chunks.
+
+
+### Approved publication/update split — 28 September 2026
+
+Provider acquisition and completion are Column-granular only: a Provider request targets one X/Z Column and successful Provider completion publishes the complete authoritative `Chunk::Column` for that coordinate atomically.
+
+The Collection must nevertheless support targeted modification of one Chunk inside an already Available Column without requiring the Provider to re-emit/reacquire the entire Column. The exact public API and whether this means whole-Chunk immutable replacement versus introducing mutable Cell editing remain to be fixed before implementation. Existing immutable Chunk/Volume semantics remain authoritative until explicitly superseded.
