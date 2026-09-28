@@ -535,3 +535,6 @@ class PrototypeChunkProvider final
 ```
 
 `Collection<Chunk>` may be instantiated by both Client and Server. `Collection<Column>` is instantiated only by the terrain Server even though the generic `Collection<T>` template and `Column` domain type live in Core.
+
+
+The project owner explicitly approved this `Collection<T>` architecture. The intended migration is to replace the existing `Chunk::Collection` implementation with the generic `Collection<Chunk>` specialization, preserving its existing behavior while moving the shared asynchronous cache/acquisition mechanics into the generic template. `Collection<Column>` will reuse the same implementation on the terrain Server.
