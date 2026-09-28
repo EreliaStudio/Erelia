@@ -479,3 +479,12 @@ public:
 ```
 
 `Chunk::Collection` becomes the Chunk-domain alias/specialization over `Cache<Chunk::Coordinate, Chunk>`. The Server-side `Column::Collection` becomes the Column-domain alias/specialization over `Cache<Column::Coordinate, Column::Content>`. `Column::Provider` is the corresponding Provider type for that cache. This keeps `Column` as a namespace; no artificial domain-trait type is introduced solely to enable `Collection<Column>` syntax.
+
+
+### Approved Column type and Server-only collection direction — 28 September 2026
+
+`Column` is a Core type rather than a namespace. It acts as the domain scope for the shared Column discovery types, including `Column::Coordinate`, `Column::Content`, `Column::Request`, and `Column::Response`.
+
+The Client does not need an authoritative Column cache. It consumes `Column::Response` transiently, filters the returned Chunk coordinates against its current desired area and local `Chunk::Collection`, and then requests only the still-valid Absent Chunks.
+
+`Column::Collection` and `Column::Provider` remain terrain-Server concerns. Core may forward-declare those nested types on `Column` to preserve the `Column::Collection` / `Column::Provider` names, while their concrete definitions live only in the terrain Server and reuse the generic `Cache<TKey, TValue>` machinery with `Column::Coordinate` and `Column::Content`.
