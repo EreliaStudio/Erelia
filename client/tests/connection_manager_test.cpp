@@ -25,6 +25,7 @@ namespace
 {
 	constexpr std::chrono::milliseconds TestRetryDelay{1};
 	constexpr std::chrono::milliseconds TestTimeout{2'000};
+	constexpr std::chrono::milliseconds ConnectionCycleTimeout{15'000};
 	constexpr std::chrono::milliseconds PollInterval{1};
 
 	template <typename TPredicate>
@@ -80,7 +81,8 @@ namespace
 			[&manager] {
 				advanceConnectionManager(manager);
 				return manager.isCycleStopped();
-			});
+			},
+			ConnectionCycleTimeout);
 	}
 
 	class WorkerPoolBlocker final
