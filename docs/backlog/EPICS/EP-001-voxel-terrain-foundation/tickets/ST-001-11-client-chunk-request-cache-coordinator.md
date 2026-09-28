@@ -228,4 +228,4 @@ The temporary prototype terrain must also exercise multi-Chunk Columns rather th
 - Column `(4,3)`: additionally non-empty at Chunk Y = 1 and 2;
 - Column `(4,4)`: additionally non-empty at Chunk Y = 1, 2 and 3.
 
-These memberships define which elevated Chunks must be non-empty. Their exact Cell contents are not yet specified and must be fixed before implementation; no geometry is invented by this ticket.
+These memberships define the complete elevated prototype fixture. Every added elevated Chunk at Y=1..3 is fully filled with Definition 1 (`cube`) Cells across all 16×16×16 local coordinates; no Air cells exist inside those added Chunks.
