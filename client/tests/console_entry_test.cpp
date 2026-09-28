@@ -3,6 +3,7 @@
 #include "erelia/client/service.hpp"
 
 #include <diagnostics/logger.hpp>
+#include <exception.hpp>
 #include <system/translator.hpp>
 
 #include <gtest/gtest.h>
@@ -14,6 +15,8 @@
 
 namespace
 {
+	using LogEntry = std::pair<spk::Logger::Level, std::string>;
+
 	void registerConnectCommand(ConsoleEntry &entry)
 	{
 		entry.commandParser().addCommand<ConnectCommand>();
@@ -52,143 +55,107 @@ namespace
 	};
 }
 
-TEST_F(ConsoleEntryTest, OrdinaryTextUsesLogger)
+TEST_F(ConsoleEntryTest, OrdinaryTextUsesUserValueA)
 {
-	std::vector<std::string> local;
-	spk::Logger::Level level = spk::Logger::Level::Trace;
-	std::string message;
+	std::vector<LogEntry> entries;
 	auto contract = spk::logger.subscribeToEntry(
-		[&](const spk::Logger::Level &receivedLevel, const std::string &receivedMessage) {
-			level = receivedLevel;
-			message = receivedMessage;
+		[&](const spk::Logger::Level &level, const std::string &message) {
+			entries.emplace_back(level, message);
 		});
 	ConsoleEntry entry("Entry");
-	registerConnectCommand(entry);
-	auto submissionContract = entry.subscribeToSubmission(
-		[&](std::string value) {
-			local.emplace_back(std::move(value));
-		});
 
 	entry.submit("hello");
 
-	EXPECT_EQ(level, spk::Logger::Level::UserValueA);
-	EXPECT_EQ(message, "hello");
-	EXPECT_TRUE(local.empty());
+	ASSERT_EQ(entries.size(), 1u);
+	EXPECT_EQ(entries[0].first, spk::Logger::Level::UserValueA);
+	EXPECT_EQ(entries[0].second, "hello");
 }
 
-TEST_F(ConsoleEntryTest, GlobalHelpIsLocalAndDoesNotUseLogger)
+TEST_F(ConsoleEntryTest, GlobalHelpUsesUserValueB)
 {
-	std::vector<std::string> local;
-	std::size_t loggerCalls = 0;
+	std::vector<LogEntry> entries;
 	auto contract = spk::logger.subscribeToEntry(
-		[&](const spk::Logger::Level &, const std::string &) {
-			++loggerCalls;
+		[&](const spk::Logger::Level &level, const std::string &message) {
+			entries.emplace_back(level, message);
 		});
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
-	auto submissionContract = entry.subscribeToSubmission(
-		[&](std::string value) {
-			local.emplace_back(std::move(value));
-		});
-	loggerCalls = 0;
 
 	entry.submit("/help");
 
-	ASSERT_EQ(local.size(), 1u);
-	EXPECT_NE(local.front().find("/connect"), std::string::npos);
-	EXPECT_EQ(loggerCalls, 0u);
+	ASSERT_EQ(entries.size(), 1u);
+	EXPECT_EQ(entries[0].first, spk::Logger::Level::UserValueB);
+	EXPECT_NE(entries[0].second.find("/connect"), std::string::npos);
 }
 
-TEST_F(ConsoleEntryTest, CommandHelpIsLocalAndDoesNotEmitConnectRequest)
+TEST_F(ConsoleEntryTest, CommandHelpUsesUserValueBWithoutRequest)
 {
-	std::vector<std::string> local;
+	std::vector<LogEntry> entries;
 	std::size_t requestCount = 0;
+	auto loggerContract = spk::logger.subscribeToEntry(
+		[&](const spk::Logger::Level &level, const std::string &message) {
+			entries.emplace_back(level, message);
+		});
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
-	auto submissionContract = entry.subscribeToSubmission(
-		[&](std::string value) {
-			local.emplace_back(std::move(value));
-		});
-	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
-		[&](const ConnectCommand::Request &) {
-			++requestCount;
-		});
+	auto requestContract =
+		entry.commandParser()
+			.command<ConnectCommand>()
+			.subscribeToRequest(
+				[&](const ConnectCommand::Request &) {
+					++requestCount;
+				});
 
 	entry.submit("/connect --help");
 
-	ASSERT_EQ(local.size(), 1u);
-	EXPECT_NE(local.front().find("Usage: /connect"), std::string::npos);
+	ASSERT_EQ(entries.size(), 1u);
+	EXPECT_EQ(entries[0].first, spk::Logger::Level::UserValueB);
+	EXPECT_NE(entries[0].second.find("Usage: /connect"), std::string::npos);
 	EXPECT_EQ(requestCount, 0u);
 }
 
-TEST_F(ConsoleEntryTest, MalformedKnownCommandAddsDiagnosticAndUsageLocally)
+TEST_F(ConsoleEntryTest, MalformedKnownCommandLogsDiagnosticAndUsage)
 {
-	std::vector<std::string> local;
-	std::size_t loggerCalls = 0;
+	std::vector<LogEntry> entries;
 	std::size_t requestCount = 0;
 	auto loggerContract = spk::logger.subscribeToEntry(
-		[&](const spk::Logger::Level &, const std::string &) {
-			++loggerCalls;
+		[&](const spk::Logger::Level &level, const std::string &message) {
+			entries.emplace_back(level, message);
 		});
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
-	auto submissionContract = entry.subscribeToSubmission(
-		[&](std::string value) {
-			local.emplace_back(std::move(value));
-		});
-	auto requestContract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
-		[&](const ConnectCommand::Request &) {
-			++requestCount;
-		});
-	loggerCalls = 0;
+	auto requestContract =
+		entry.commandParser()
+			.command<ConnectCommand>()
+			.subscribeToRequest(
+				[&](const ConnectCommand::Request &) {
+					++requestCount;
+				});
 
 	entry.submit("/connect --unknown value");
 
-	ASSERT_EQ(local.size(), 2u);
-	EXPECT_EQ(local[0], "Unknown parameter: --unknown");
-	EXPECT_NE(local[1].find("Usage: /connect"), std::string::npos);
-	EXPECT_EQ(loggerCalls, 0u);
+	ASSERT_EQ(entries.size(), 2u);
+	EXPECT_EQ(entries[0].first, spk::Logger::Level::UserValueB);
+	EXPECT_EQ(entries[0].second, "Unknown parameter: --unknown");
+	EXPECT_EQ(entries[1].first, spk::Logger::Level::UserValueB);
+	EXPECT_NE(entries[1].second.find("Usage: /connect"), std::string::npos);
 	EXPECT_EQ(requestCount, 0u);
 }
 
-TEST_F(ConsoleEntryTest, UnknownCommandReportsLocallyWithoutLogger)
+TEST_F(ConsoleEntryTest, UnknownCommandUsesUserValueB)
 {
-	std::vector<std::string> local;
-	std::size_t loggerCalls = 0;
+	std::vector<LogEntry> entries;
 	auto contract = spk::logger.subscribeToEntry(
-		[&](const spk::Logger::Level &, const std::string &) {
-			++loggerCalls;
+		[&](const spk::Logger::Level &level, const std::string &message) {
+			entries.emplace_back(level, message);
 		});
 	ConsoleEntry entry("Entry");
-	registerConnectCommand(entry);
-	auto submissionContract = entry.subscribeToSubmission(
-		[&](std::string value) {
-			local.emplace_back(std::move(value));
-		});
-	loggerCalls = 0;
 
 	entry.submit("/missing");
 
-	ASSERT_EQ(local.size(), 1u);
-	EXPECT_EQ(local.front(), "Unknown command: /missing");
-	EXPECT_EQ(loggerCalls, 0u);
-}
-
-TEST_F(ConsoleEntryTest, ConnectParametersAreOptionalAndShownInHelp)
-{
-	std::vector<std::string> local;
-	ConsoleEntry entry("Entry");
-	registerConnectCommand(entry);
-	auto submissionContract = entry.subscribeToSubmission(
-		[&](std::string value) {
-			local.emplace_back(std::move(value));
-		});
-
-	entry.submit("/connect --help");
-
-	ASSERT_EQ(local.size(), 1u);
-	EXPECT_NE(local.front().find("--address"), std::string::npos);
-	EXPECT_NE(local.front().find("--port"), std::string::npos);
+	ASSERT_EQ(entries.size(), 1u);
+	EXPECT_EQ(entries[0].first, spk::Logger::Level::UserValueB);
+	EXPECT_EQ(entries[0].second, "Unknown command: /missing");
 }
 
 TEST_F(ConsoleEntryTest, ConnectWithoutOverridesEmitsEmptyRequest)
@@ -196,10 +163,13 @@ TEST_F(ConsoleEntryTest, ConnectWithoutOverridesEmitsEmptyRequest)
 	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
-	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
-		[&](const ConnectCommand::Request &request) {
-			received = request;
-		});
+	auto contract =
+		entry.commandParser()
+			.command<ConnectCommand>()
+			.subscribeToRequest(
+				[&](const ConnectCommand::Request &request) {
+					received = request;
+				});
 
 	entry.submit("/connect");
 
@@ -213,10 +183,13 @@ TEST_F(ConsoleEntryTest, ConnectAddressOverrideEmitsAddressOnly)
 	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
-	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
-		[&](const ConnectCommand::Request &request) {
-			received = request;
-		});
+	auto contract =
+		entry.commandParser()
+			.command<ConnectCommand>()
+			.subscribeToRequest(
+				[&](const ConnectCommand::Request &request) {
+					received = request;
+				});
 
 	entry.submit("/connect --address 192.0.2.1");
 
@@ -231,10 +204,13 @@ TEST_F(ConsoleEntryTest, ConnectPortOverrideEmitsPortOnly)
 	std::optional<ConnectCommand::Request> received;
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
-	auto contract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
-		[&](const ConnectCommand::Request &request) {
-			received = request;
-		});
+	auto contract =
+		entry.commandParser()
+			.command<ConnectCommand>()
+			.subscribeToRequest(
+				[&](const ConnectCommand::Request &request) {
+					received = request;
+				});
 
 	entry.submit("/connect --port 2550");
 
@@ -244,139 +220,77 @@ TEST_F(ConsoleEntryTest, ConnectPortOverrideEmitsPortOnly)
 	EXPECT_EQ(*received->port, 2550u);
 }
 
-TEST_F(ConsoleEntryTest, ConnectRejectsInvalidPortThroughCommandLogger)
+TEST_F(ConsoleEntryTest, ConnectRejectsInvalidPortThroughUserValueB)
 {
+	std::vector<LogEntry> entries;
 	std::size_t requestCount = 0;
-	spk::Logger::Level level = spk::Logger::Level::Trace;
-	std::string message;
 	auto loggerContract = spk::logger.subscribeToEntry(
-		[&](const spk::Logger::Level &receivedLevel, const std::string &receivedMessage) {
-			level = receivedLevel;
-			message = receivedMessage;
+		[&](const spk::Logger::Level &level, const std::string &message) {
+			entries.emplace_back(level, message);
 		});
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
-	auto requestContract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
-		[&](const ConnectCommand::Request &) {
-			++requestCount;
-		});
+	auto requestContract =
+		entry.commandParser()
+			.command<ConnectCommand>()
+			.subscribeToRequest(
+				[&](const ConnectCommand::Request &) {
+					++requestCount;
+				});
 
 	entry.submit("/connect --port invalid");
 
-	EXPECT_EQ(level, spk::Logger::Level::UserValueB);
-	EXPECT_EQ(message, "Invalid port: invalid");
+	ASSERT_EQ(entries.size(), 1u);
+	EXPECT_EQ(entries[0].first, spk::Logger::Level::UserValueB);
+	EXPECT_EQ(entries[0].second, "Invalid port: invalid");
 	EXPECT_EQ(requestCount, 0u);
 }
 
-TEST_F(ConsoleEntryTest, ConnectRejectsOutOfRangePortThroughCommandLogger)
+TEST_F(ConsoleEntryTest, ConnectRejectsOutOfRangePortThroughUserValueB)
 {
+	std::vector<LogEntry> entries;
 	std::size_t requestCount = 0;
-	spk::Logger::Level level = spk::Logger::Level::Trace;
-	std::string message;
 	auto loggerContract = spk::logger.subscribeToEntry(
-		[&](const spk::Logger::Level &receivedLevel, const std::string &receivedMessage) {
-			level = receivedLevel;
-			message = receivedMessage;
+		[&](const spk::Logger::Level &level, const std::string &message) {
+			entries.emplace_back(level, message);
 		});
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
-	auto requestContract = entry.commandParser().command<ConnectCommand>().subscribeToRequest(
-		[&](const ConnectCommand::Request &) {
-			++requestCount;
-		});
+	auto requestContract =
+		entry.commandParser()
+			.command<ConnectCommand>()
+			.subscribeToRequest(
+				[&](const ConnectCommand::Request &) {
+					++requestCount;
+				});
 
 	entry.submit("/connect --port 65536");
 
-	EXPECT_EQ(level, spk::Logger::Level::UserValueB);
-	EXPECT_EQ(message, "Invalid port: 65536");
+	ASSERT_EQ(entries.size(), 1u);
+	EXPECT_EQ(entries[0].first, spk::Logger::Level::UserValueB);
+	EXPECT_EQ(entries[0].second, "Invalid port: 65536");
 	EXPECT_EQ(requestCount, 0u);
 }
 
-
-TEST_F(ConsoleEntryTest, SubmissionContractReceivesLocalOutput)
-{
-	ConsoleEntry entry("Entry");
-	registerConnectCommand(entry);
-	std::vector<std::string> submissions;
-	auto contract = entry.subscribeToSubmission(
-		[&](std::string value) {
-			submissions.emplace_back(std::move(value));
-		});
-
-	entry.submit("/help");
-
-	ASSERT_EQ(submissions.size(), 1u);
-	EXPECT_NE(submissions.front().find("/connect"), std::string::npos);
-}
-
-TEST_F(ConsoleEntryTest, ResignedSubmissionContractStopsReceivingLocalOutput)
-{
-	ConsoleEntry entry("Entry");
-	registerConnectCommand(entry);
-	std::size_t submissionCount = 0;
-	auto contract = entry.subscribeToSubmission(
-		[&](std::string) {
-			++submissionCount;
-		});
-
-	entry.submit("/help");
-	ASSERT_EQ(submissionCount, 1u);
-
-	contract.resign();
-	entry.submit("/help");
-
-	EXPECT_EQ(submissionCount, 1u);
-}
-
-
-TEST_F(ConsoleEntryTest, UsesTranslatedCommandFailure)
+TEST_F(ConsoleEntryTest, UsesTranslatedParserFailureThroughUserValueB)
 {
 	Service::translator()->clear();
 	Service::translator()->append("client.console.placeholder", "Commande");
 	Service::translator()->append("client.console.command.unknown", "Commande inconnue : /{}");
-	Service::translator()->append("client.command.connect.description", "Connexion");
-	Service::translator()->append("client.command.connect.address.description", "Adresse");
-	Service::translator()->append("client.command.connect.port.description", "Port");
 
-	ConsoleEntry entry("Entry");
-	registerConnectCommand(entry);
-	std::vector<std::string> local;
-	auto contract = entry.subscribeToSubmission(
-		[&](std::string value) {
-			local.emplace_back(std::move(value));
+	std::vector<LogEntry> entries;
+	auto contract = spk::logger.subscribeToEntry(
+		[&](const spk::Logger::Level &level, const std::string &message) {
+			entries.emplace_back(level, message);
 		});
+	ConsoleEntry entry("Entry");
 
 	entry.submit("/missing");
 
-	ASSERT_EQ(local.size(), 1u);
-	EXPECT_EQ(local.front(), "Commande inconnue : /missing");
+	ASSERT_EQ(entries.size(), 1u);
+	EXPECT_EQ(entries[0].first, spk::Logger::Level::UserValueB);
+	EXPECT_EQ(entries[0].second, "Commande inconnue : /missing");
 }
-
-TEST_F(ConsoleEntryTest, UsesTranslatedConnectValidationThroughCommandLogger)
-{
-	Service::translator()->clear();
-	Service::translator()->append("client.console.placeholder", "Commande");
-	Service::translator()->append("client.command.connect.description", "Connexion");
-	Service::translator()->append("client.command.connect.address.description", "Adresse");
-	Service::translator()->append("client.command.connect.port.description", "Port");
-	Service::translator()->append("client.command.connect.invalid_port", "Port invalide : {}");
-
-	spk::Logger::Level level = spk::Logger::Level::Trace;
-	std::string message;
-	auto loggerContract = spk::logger.subscribeToEntry(
-		[&](const spk::Logger::Level &receivedLevel, const std::string &receivedMessage) {
-			level = receivedLevel;
-			message = receivedMessage;
-		});
-	ConsoleEntry entry("Entry");
-	registerConnectCommand(entry);
-
-	entry.submit("/connect --port invalid");
-
-	EXPECT_EQ(level, spk::Logger::Level::UserValueB);
-	EXPECT_EQ(message, "Port invalide : invalid");
-}
-
 
 TEST_F(ConsoleEntryTest, DoesNotRegisterConcreteCommands)
 {

@@ -14,18 +14,22 @@
 class Console final : public spk::Widget
 {
 private:
+	struct PendingEntry
+	{
+		spk::Logger::Level level;
+		std::string message;
+	};
+
 	spk::DataModel<std::string> _entryModel;
 	spk::Panel _entryBackground;
 	spk::TextModelView _entries;
 	ConsoleEntry _commandEntry;
-	ConsoleEntry::SubmissionContract _submissionContract;
 	spk::VerticalLayout _layout;
 	spk::Logger::OnEntryContract _loggerContract;
-	spk::ThreadSafeFIFO<std::string> _pendingEntries;
+	spk::ThreadSafeFIFO<PendingEntry> _pendingEntries;
 
 	void _queueEntry(const spk::Logger::Level &level, const std::string &message);
 	void _flushEntries();
-	void _appendLocalEntry(std::string entry);
 
 public:
 	[[nodiscard]] const spk::DataModel<std::string> &entries() const noexcept;

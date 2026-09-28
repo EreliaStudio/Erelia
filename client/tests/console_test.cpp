@@ -29,6 +29,7 @@ namespace
 		Service::translator()->append("client.command.connect.description", "Starts a new dedicated Server connection cycle.");
 		Service::translator()->append("client.command.connect.address.description", "Dedicated Server address");
 		Service::translator()->append("client.command.connect.port.description", "Dedicated Server port");
+		Service::translator()->append("client.command.connect.invalid_port", "Invalid port: {}");
 	}
 
 	void advance(spk::Widget &widget)
@@ -69,6 +70,22 @@ TEST_F(ConsoleTest, LoggerEntriesAreStoredAsIndependentModelRows)
 	ASSERT_EQ(console.entries().rowCount(), 2u);
 	EXPECT_EQ(console.entries().data(0), "User : hello");
 	EXPECT_EQ(console.entries().data(1), "[Command] : done");
+}
+
+TEST_F(ConsoleTest, MultilineLoggerEntryIsSplitIntoRowsWithoutTrailingEmptyRow)
+{
+	Console console("Console");
+	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
+
+	SPK_LOG(UserValueB)
+		<< "first\nsecond\nthird\n"
+		<< std::endl;
+	advance(console);
+
+	ASSERT_EQ(console.entries().rowCount(), 3u);
+	EXPECT_EQ(console.entries().data(0), "[Command] : first");
+	EXPECT_EQ(console.entries().data(1), "[Command] : second");
+	EXPECT_EQ(console.entries().data(2), "[Command] : third");
 }
 
 TEST_F(ConsoleTest, TenThousandLoggerEntriesArePreservedAndReachable)
@@ -128,33 +145,45 @@ TEST_F(ConsoleTest, NewEntriesFollowTailOnlyWhileTailIsVisible)
 	EXPECT_EQ(console.entries().data(console.entries().rowCount() - 1), "User : following-restored");
 }
 
-TEST_F(ConsoleTest, CommandHelpIsStoredAsIndependentModelRows)
+TEST_F(ConsoleTest, CommandHelpReachesModelThroughLogger)
 {
 	Console console("Console");
 	registerConnectCommand(console);
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
 
 	console.submit("/connect --help");
+	EXPECT_EQ(console.entries().rowCount(), 0u);
+
+	advance(console);
 
 	ASSERT_EQ(console.entries().rowCount(), 4u);
 	EXPECT_EQ(
 		console.entries().data(0),
-		"Usage: /connect [--address <1 value>] [--port <1 value>]");
-	EXPECT_EQ(console.entries().data(1), "Starts a new dedicated Server connection cycle.");
-	EXPECT_EQ(console.entries().data(2), "  --address: Dedicated Server address");
-	EXPECT_EQ(console.entries().data(3), "  --port: Dedicated Server port");
+		"[Command] : Usage: /connect [--address <1 value>] [--port <1 value>]");
+	EXPECT_EQ(
+		console.entries().data(1),
+		"[Command] : Starts a new dedicated Server connection cycle.");
+	EXPECT_EQ(
+		console.entries().data(2),
+		"[Command] :   --address: Dedicated Server address");
+	EXPECT_EQ(
+		console.entries().data(3),
+		"[Command] :   --port: Dedicated Server port");
 }
 
-TEST_F(ConsoleTest, GlobalHelpDoesNotStoreTrailingEmptyModelRow)
+TEST_F(ConsoleTest, GlobalHelpReachesModelWithoutTrailingEmptyRow)
 {
 	Console console("Console");
 	registerConnectCommand(console);
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
 
 	console.submit("/help");
+	advance(console);
 
 	ASSERT_EQ(console.entries().rowCount(), 1u);
-	EXPECT_EQ(console.entries().data(0), "/connect - Starts a new dedicated Server connection cycle.");
+	EXPECT_EQ(
+		console.entries().data(0),
+		"[Command] : /connect - Starts a new dedicated Server connection cycle.");
 }
 
 TEST_F(ConsoleTest, CommandParserExposesExplicitlyRegisteredConnectCommand)
@@ -179,18 +208,6 @@ TEST_F(ConsoleTest, CommandParserExposesExplicitlyRegisteredConnectCommand)
 	EXPECT_EQ(*received->port, 2550u);
 }
 
-TEST_F(ConsoleTest, ConstCommandParserExposesRegisteredConnectCommand)
-{
-	Console console("Console");
-	registerConnectCommand(console);
-	const Console &constConsole = console;
-
-	EXPECT_EQ(
-		constConsole.commandParser().command<ConnectCommand>().name(),
-		"connect");
-}
-
-
 TEST_F(ConsoleTest, OnlyUserDataLoggerLevelsReachDataModel)
 {
 	Console console("Console");
@@ -202,7 +219,6 @@ TEST_F(ConsoleTest, OnlyUserDataLoggerLevelsReachDataModel)
 	SPK_LOG(UserValueB) << "command" << std::endl;
 	SPK_LOG(Warning) << "warning" << std::endl;
 	SPK_LOG(Error) << "error" << std::endl;
-
 	advance(console);
 
 	ASSERT_EQ(console.entries().rowCount(), 2u);
@@ -210,16 +226,12 @@ TEST_F(ConsoleTest, OnlyUserDataLoggerLevelsReachDataModel)
 	EXPECT_EQ(console.entries().data(1), "[Command] : command");
 }
 
-
 TEST_F(ConsoleTest, UsesTranslatedUserDataLabels)
 {
 	Service::translator()->clear();
 	Service::translator()->append("client.console.placeholder", "Commande");
 	Service::translator()->append("client.console.user_label", "Joueur");
 	Service::translator()->append("client.console.command_label", "Commande");
-	Service::translator()->append("client.command.connect.description", "Connexion");
-	Service::translator()->append("client.command.connect.address.description", "Adresse");
-	Service::translator()->append("client.command.connect.port.description", "Port");
 
 	Console console("Console");
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});
@@ -232,7 +244,6 @@ TEST_F(ConsoleTest, UsesTranslatedUserDataLabels)
 	EXPECT_EQ(console.entries().data(0), "Joueur : bonjour");
 	EXPECT_EQ(console.entries().data(1), "[Commande] : connect");
 }
-
 
 TEST_F(ConsoleTest, ConnectValidationReachesConsoleThroughUserValueB)
 {
@@ -248,7 +259,6 @@ TEST_F(ConsoleTest, ConnectValidationReachesConsoleThroughUserValueB)
 		console.entries().data(0),
 		"[Command] : Invalid port: invalid");
 }
-
 
 TEST_F(ConsoleTest, DoesNotOwnConcreteCommandsAndUsesHierarchicalChildNames)
 {

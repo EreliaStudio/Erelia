@@ -15,9 +15,6 @@ Console::Console(
 	_entryBackground(this->name() + "/entries/background", this),
 	_entries(this->name() + "/entries", &_entryModel, this),
 	_commandEntry(this->name() + "/command", this),
-	_submissionContract(_commandEntry.subscribeToSubmission([this](std::string entry) {
-		_appendLocalEntry(std::move(entry));
-	})),
 	_loggerContract(spk::logger.subscribeToEntry([this](const spk::Logger::Level &level, const std::string &message) {
 		_queueEntry(level, message);
 	}))
@@ -36,28 +33,23 @@ void Console::_queueEntry(
 	const spk::Logger::Level &level,
 	const std::string &message)
 {
-	if (level == spk::Logger::Level::UserValueA)
+	if (
+		level != spk::Logger::Level::UserValueA &&
+		level != spk::Logger::Level::UserValueB)
 	{
-		_pendingEntries.emplace(
-			Service::translator()->translate(
-				"client.console.user_label") +
-			" : " + message);
 		return;
 	}
-	if (level == spk::Logger::Level::UserValueB)
-	{
-		_pendingEntries.emplace(
-			"[" +
-			Service::translator()->translate(
-				"client.console.command_label") +
-			"] : " + message);
-	}
+
+	_pendingEntries.publish(
+		PendingEntry{
+			.level = level,
+			.message = message});
 }
 
 void Console::_flushEntries()
 {
-	std::vector<std::string> entries;
-	_pendingEntries.drain(entries);
+	std::vector<PendingEntry> entries;
+	(void)_pendingEntries.drain(entries);
 
 	if (entries.empty() == true)
 	{
@@ -68,9 +60,36 @@ void Console::_flushEntries()
 		_entryModel.empty() == true ||
 		_entries.isLastRowVisible() == true;
 
-	for (std::string &entry : entries)
+	for (PendingEntry &entry : entries)
 	{
-		_entryModel.append(std::move(entry));
+		const std::string prefix =
+			entry.level == spk::Logger::Level::UserValueA
+				? Service::translator()->translate(
+					  "client.console.user_label") +
+					  " : "
+				: "[" +
+					  Service::translator()->translate(
+						  "client.console.command_label") +
+					  "] : ";
+
+		std::size_t begin = 0;
+		while (begin < entry.message.size())
+		{
+			const std::size_t end =
+				entry.message.find('\n', begin);
+
+			_entryModel.append(
+				prefix +
+				entry.message.substr(
+					begin,
+					end - begin));
+
+			if (end == std::string::npos)
+			{
+				break;
+			}
+			begin = end + 1;
+		}
 	}
 
 	if (followTail == true && _entryModel.empty() == false)
@@ -120,29 +139,6 @@ void Console::_onPassiveKeyPressedEvent(spk::KeyPressedEvent &event)
 		_commandEntry.setText("");
 		submit(command);
 		event.consumed = true;
-	}
-}
-
-void Console::_appendLocalEntry(std::string entry)
-{
-	const bool followTail =
-		_entryModel.empty() == true ||
-		_entries.isLastRowVisible() == true;
-	std::size_t begin = 0;
-	while (begin < entry.size())
-	{
-		const std::size_t end = entry.find('\n', begin);
-		_entryModel.append(entry.substr(begin, end - begin));
-		if (end == std::string::npos)
-		{
-			break;
-		}
-		begin = end + 1;
-	}
-
-	if (followTail == true && _entryModel.empty() == false)
-	{
-		_entries.scrollTo(_entryModel.rowCount() - 1);
 	}
 }
 

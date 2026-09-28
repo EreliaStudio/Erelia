@@ -19,11 +19,6 @@ ConsoleEntry::ConsoleEntry(
 	setMaximalSize({std::numeric_limits<float>::max(), maximalSize().y});
 }
 
-void ConsoleEntry::_emitLocal(std::string message)
-{
-	_submissionProvider.trigger(std::move(message));
-}
-
 void ConsoleEntry::_emitFailure(const spk::CommandParser::Result &result)
 {
 	std::string message;
@@ -75,13 +70,14 @@ void ConsoleEntry::_emitFailure(const spk::CommandParser::Result &result)
 		return;
 	}
 
-	_emitLocal(std::move(message));
+	SPK_LOG(UserValueB) << message << std::endl;
+
 	if (result.command.empty() == false)
 	{
 		const std::string usage = _commandParser.help(result.command);
 		if (usage.empty() == false)
 		{
-			_emitLocal(usage);
+			SPK_LOG(UserValueB) << usage << std::endl;
 		}
 	}
 }
@@ -94,7 +90,7 @@ void ConsoleEntry::submit(std::string input)
 	}
 	if (input == "/help")
 	{
-		_emitLocal(_commandParser.help());
+		SPK_LOG(UserValueB) << _commandParser.help() << std::endl;
 		return;
 	}
 	if (input.front() != '/')
@@ -106,18 +102,15 @@ void ConsoleEntry::submit(std::string input)
 	const spk::CommandParser::Result result = _commandParser.execute(input);
 	if (result.status == spk::CommandParser::Status::HelpRequested)
 	{
-		_emitLocal(_commandParser.help(result.command));
+		SPK_LOG(UserValueB)
+			<< _commandParser.help(result.command)
+			<< std::endl;
 		return;
 	}
 	if (result.status != spk::CommandParser::Status::Accepted)
 	{
 		_emitFailure(result);
 	}
-}
-
-ConsoleEntry::SubmissionContract ConsoleEntry::subscribeToSubmission(SubmissionCallback callback)
-{
-	return _submissionProvider.subscribe(std::move(callback));
 }
 
 spk::CommandParser &ConsoleEntry::commandParser() noexcept
