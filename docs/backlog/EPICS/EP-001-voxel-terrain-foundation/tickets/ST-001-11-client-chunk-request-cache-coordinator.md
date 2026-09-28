@@ -562,3 +562,27 @@ The response begins with an offset/index table that provides deserialization ent
 
 
 The per-Column serialized count is semantic: it is exactly the number of `Chunk::Coordinate` values in the serialized Column content. A reader consumes that count and then reads exactly that many contiguous Chunk coordinates for the entry.
+
+
+### Approved Column::Response offset-table framing — 28 September 2026
+
+`Column::Response` begins with an explicit integer count describing how many block offsets follow. The payload is therefore framed conceptually as:
+
+```text
+[offsetCount]
+[offset 0]
+[offset 1]
+...
+[offset offsetCount - 1]
+[serialized Column stream]
+```
+
+Each offset identifies the start of one deserialization block containing up to 50 serialized Columns. Each serialized Column entry remains:
+
+```text
+[Column::Coordinate]
+[Chunk-coordinate count]
+[Chunk::Coordinate × count]
+```
+
+The exact integer widths used for `offsetCount`, offsets, and the per-Column Chunk-coordinate count remain to be fixed explicitly before implementation.
