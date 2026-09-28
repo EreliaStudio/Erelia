@@ -64,11 +64,11 @@ void Console::_flushEntries()
 	{
 		const std::string prefix =
 			entry.level == spk::Logger::Level::UserValueA
-				? Service::translator()->translate(
+				? Service::translator().translate(
 					  "client.console.user_label") +
 					  " : "
 				: "[" +
-					  Service::translator()->translate(
+					  Service::translator().translate(
 						  "client.console.command_label") +
 					  "] : ";
 

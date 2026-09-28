@@ -59,7 +59,7 @@ TEST(ClientServerConnectionIntegration, ConnectionManagerConnectsToRouter)
 			.address = "127.0.0.1",
 			.port = router.port()},
 		5ms);
-	spk::Client &client = *Service::client();
+	spk::Client &client = Service::client();
 
 	EXPECT_TRUE(
 		waitUntilConnection(

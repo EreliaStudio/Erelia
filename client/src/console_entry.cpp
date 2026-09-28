@@ -14,7 +14,7 @@ ConsoleEntry::ConsoleEntry(
 	spk::TextEdit(std::move(name), parent)
 {
 	setPlaceholder(
-		Service::translator()->translate(
+		Service::translator().translate(
 			"client.console.placeholder"));
 	setMaximalSize({std::numeric_limits<float>::max(), maximalSize().y});
 }
@@ -25,44 +25,44 @@ void ConsoleEntry::_emitFailure(const spk::CommandParser::Result &result)
 	switch (result.status)
 	{
 	case spk::CommandParser::Status::UnknownCommand:
-		message = Service::translator()->translate(
+		message = Service::translator().translate(
 			"client.console.command.unknown",
 			result.command);
 		break;
 	case spk::CommandParser::Status::InvalidFormat:
-		message = Service::translator()->translate(
+		message = Service::translator().translate(
 			"client.console.command.invalid_format");
 		break;
 	case spk::CommandParser::Status::UnknownParameter:
-		message = Service::translator()->translate(
+		message = Service::translator().translate(
 			"client.console.command.parameter_unknown",
 			result.parameter);
 		break;
 	case spk::CommandParser::Status::DuplicateParameter:
-		message = Service::translator()->translate(
+		message = Service::translator().translate(
 			"client.console.command.parameter_duplicate",
 			result.parameter);
 		break;
 	case spk::CommandParser::Status::MissingParameter:
-		message = Service::translator()->translate(
+		message = Service::translator().translate(
 			"client.console.command.parameter_missing",
 			result.parameter);
 		break;
 	case spk::CommandParser::Status::MissingValue:
-		message = Service::translator()->translate(
+		message = Service::translator().translate(
 			"client.console.command.value_missing",
 			result.parameter,
 			result.expectedValueCount);
 		break;
 	case spk::CommandParser::Status::TooManyValues:
-		message = Service::translator()->translate(
+		message = Service::translator().translate(
 			"client.console.command.too_many_values",
 			result.parameter,
 			result.expectedValueCount,
 			result.actualValueCount);
 		break;
 	case spk::CommandParser::Status::TooManyParameters:
-		message = Service::translator()->translate(
+		message = Service::translator().translate(
 			"client.console.command.too_many_parameters");
 		break;
 	case spk::CommandParser::Status::Accepted:

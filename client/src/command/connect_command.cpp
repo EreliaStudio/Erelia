@@ -14,17 +14,17 @@
 ConnectCommand::ConnectCommand() :
 	Command(
 		"connect",
-		Service::translator()->translate(
+		Service::translator().translate(
 			"client.command.connect.description"),
 		{
 			{
 				.name = "address",
-				.description = Service::translator()->translate(
+				.description = Service::translator().translate(
 					"client.command.connect.address.description"),
 				.optional = true},
 			{
 				.name = "port",
-				.description = Service::translator()->translate(
+				.description = Service::translator().translate(
 					"client.command.connect.port.description"),
 				.optional = true},
 		})
@@ -54,7 +54,7 @@ void ConnectCommand::execute(const spk::CommandParser::Invocation &invocation)
 			port > std::numeric_limits<std::uint16_t>::max())
 		{
 			SPK_LOG(UserValueB)
-				<< Service::translator()->translate(
+				<< Service::translator().translate(
 					"client.command.connect.invalid_port",
 					value)
 				<< std::endl;

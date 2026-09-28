@@ -57,7 +57,7 @@ namespace
 	public:
 		WorkerPoolBlocker()
 		{
-			spk::WorkerPool &workerPool = *Service::workerPool();
+			spk::WorkerPool &workerPool = Service::workerPool();
 			_workerCount = workerPool.workerCount();
 
 			for (std::size_t index = 0u;

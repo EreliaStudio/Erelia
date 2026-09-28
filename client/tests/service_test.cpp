@@ -47,12 +47,12 @@ namespace
 	protected:
 		void SetUp() override
 		{
-			Service::translator()->clear();
+			Service::translator().clear();
 		}
 
 		void TearDown() override
 		{
-			Service::translator()->clear();
+			Service::translator().clear();
 		}
 	};
 }
@@ -60,29 +60,29 @@ namespace
 TEST_F(ClientTranslatorServiceTest, ProvidesStableTranslatorInstance)
 {
 	EXPECT_EQ(
-		Service::translator(),
-		Service::translator());
+		&Service::translator(),
+		&Service::translator());
 }
 
 TEST_F(ClientTranslatorServiceTest, DirectAppendPersistsAcrossServiceLookups)
 {
-	Service::translator()->append(
+	Service::translator().append(
 		"client.message",
 		"Message");
 
 	EXPECT_EQ(
-		Service::translator()->translate("client.message"),
+		Service::translator().translate("client.message"),
 		"Message");
 }
 
 TEST_F(ClientTranslatorServiceTest, FormattingWorksThroughClientService)
 {
-	Service::translator()->append(
+	Service::translator().append(
 		"client.connection.maximum_attempts_reached",
 		"Unable to connect after {} attempts");
 
 	EXPECT_EQ(
-		Service::translator()->translate(
+		Service::translator().translate(
 			"client.connection.maximum_attempts_reached",
 			5),
 		"Unable to connect after 5 attempts");
@@ -93,29 +93,29 @@ TEST_F(ClientTranslatorServiceTest, FileAppendLoadsCatalogThroughClientService)
 	const TemporaryTranslationFile file(
 		R"({"client.first":"First","client.second":"Second {}"})");
 
-	Service::translator()->append(file.path());
+	Service::translator().append(file.path());
 
 	EXPECT_EQ(
-		Service::translator()->translate("client.first"),
+		Service::translator().translate("client.first"),
 		"First");
 	EXPECT_EQ(
-		Service::translator()->translate("client.second", 2),
+		Service::translator().translate("client.second", 2),
 		"Second 2");
 }
 
 TEST_F(ClientTranslatorServiceTest, DuplicateDirectKeyIsRejected)
 {
-	Service::translator()->append(
+	Service::translator().append(
 		"client.status",
 		"Initial");
 
 	EXPECT_THROW(
-		Service::translator()->append(
+		Service::translator().append(
 			"client.status",
 			"Updated"),
 		spk::Exception);
 	EXPECT_EQ(
-		Service::translator()->translate("client.status"),
+		Service::translator().translate("client.status"),
 		"Initial");
 }
 
@@ -124,53 +124,53 @@ TEST_F(ClientTranslatorServiceTest, FileAppendRejectsDuplicateKeyWithoutPartialM
 	const TemporaryTranslationFile file(
 		R"({"client.shared":"From file","client.added":"Added"})");
 
-	Service::translator()->append(
+	Service::translator().append(
 		"client.shared",
 		"Initial");
-	Service::translator()->append(
+	Service::translator().append(
 		"client.preserved",
 		"Preserved");
 
 	EXPECT_THROW(
-		Service::translator()->append(file.path()),
+		Service::translator().append(file.path()),
 		spk::Exception);
 	EXPECT_EQ(
-		Service::translator()->translate("client.shared"),
+		Service::translator().translate("client.shared"),
 		"Initial");
 	EXPECT_EQ(
-		Service::translator()->translate("client.preserved"),
+		Service::translator().translate("client.preserved"),
 		"Preserved");
 	EXPECT_EQ(
-		Service::translator()->translate("client.added"),
+		Service::translator().translate("client.added"),
 		"client.added");
 }
 
 TEST_F(ClientTranslatorServiceTest, ClearFallsBackToKeyForEveryServiceLookup)
 {
-	Service::translator()->append(
+	Service::translator().append(
 		"client.message",
 		"Message");
 
-	Service::translator()->clear();
+	Service::translator().clear();
 
 	EXPECT_EQ(
-		Service::translator()->translate("client.message"),
+		Service::translator().translate("client.message"),
 		"client.message");
 }
 
 TEST_F(ClientTranslatorServiceTest, TranslatorCanBeRepopulatedAfterClear)
 {
-	Service::translator()->append(
+	Service::translator().append(
 		"client.message",
 		"Before");
 
-	Service::translator()->clear();
-	Service::translator()->append(
+	Service::translator().clear();
+	Service::translator().append(
 		"client.message",
 		"After");
 
 	EXPECT_EQ(
-		Service::translator()->translate("client.message"),
+		Service::translator().translate("client.message"),
 		"After");
 }
 
@@ -181,26 +181,26 @@ TEST_F(ClientTranslatorServiceTest, ClearThenAppendSupportsFullLanguageReplaceme
 	const TemporaryTranslationFile french(
 		R"({"client.common":"Français","client.french_only":"Français seulement"})");
 
-	Service::translator()->append(english.path());
+	Service::translator().append(english.path());
 
 	EXPECT_EQ(
-		Service::translator()->translate("client.common"),
+		Service::translator().translate("client.common"),
 		"English");
 	EXPECT_EQ(
-		Service::translator()->translate("client.english_only"),
+		Service::translator().translate("client.english_only"),
 		"English only");
 
-	Service::translator()->clear();
-	Service::translator()->append(french.path());
+	Service::translator().clear();
+	Service::translator().append(french.path());
 
 	EXPECT_EQ(
-		Service::translator()->translate("client.common"),
+		Service::translator().translate("client.common"),
 		"Français");
 	EXPECT_EQ(
-		Service::translator()->translate("client.french_only"),
+		Service::translator().translate("client.french_only"),
 		"Français seulement");
 	EXPECT_EQ(
-		Service::translator()->translate("client.english_only"),
+		Service::translator().translate("client.english_only"),
 		"client.english_only");
 }
 
@@ -209,29 +209,29 @@ TEST_F(ClientTranslatorServiceTest, FailedCatalogAppendKeepsCurrentClientTransla
 	const TemporaryTranslationFile invalid(
 		R"({"client.valid":"Would be added","client.invalid":42})");
 
-	Service::translator()->append(
+	Service::translator().append(
 		"client.existing",
 		"Existing");
 
 	EXPECT_THROW(
-		Service::translator()->append(invalid.path()),
+		Service::translator().append(invalid.path()),
 		spk::Exception);
 	EXPECT_EQ(
-		Service::translator()->translate("client.existing"),
+		Service::translator().translate("client.existing"),
 		"Existing");
 	EXPECT_EQ(
-		Service::translator()->translate("client.valid"),
+		Service::translator().translate("client.valid"),
 		"client.valid");
 }
 
 TEST_F(ClientTranslatorServiceTest, FailedFormatPropagatesThroughClientService)
 {
-	Service::translator()->append(
+	Service::translator().append(
 		"client.invalid",
 		"Value {");
 
 	EXPECT_THROW(
-		(void)Service::translator()->translate(
+		(void)Service::translator().translate(
 			"client.invalid",
 			42),
 		spk::Exception);
@@ -241,7 +241,7 @@ TEST_F(ClientTranslatorServiceTest, FailedFormatPropagatesThroughClientService)
 TEST_F(ClientTranslatorServiceTest, MissingTranslationFallsBackToKey)
 {
 	EXPECT_EQ(
-		Service::translator()->translate(
+		Service::translator().translate(
 			"client.connection.missing",
 			42),
 		"client.connection.missing");

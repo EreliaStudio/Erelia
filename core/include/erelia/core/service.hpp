@@ -7,5 +7,5 @@ namespace spk
 
 namespace Service
 {
-	[[nodiscard]] spk::WorkerPool *workerPool();
+	[[nodiscard]] spk::WorkerPool &workerPool();
 }

@@ -24,19 +24,19 @@ namespace
 
 	void installConsoleEntryTranslations()
 	{
-		Service::translator()->append("client.console.placeholder", "Enter text or /help");
-		Service::translator()->append("client.console.command.unknown", "Unknown command: /{}");
-		Service::translator()->append("client.console.command.invalid_format", "Invalid command format.");
-		Service::translator()->append("client.console.command.parameter_unknown", "Unknown parameter: --{}");
-		Service::translator()->append("client.console.command.parameter_duplicate", "Duplicate parameter: --{}");
-		Service::translator()->append("client.console.command.parameter_missing", "Missing parameter: --{}");
-		Service::translator()->append("client.console.command.value_missing", "Missing value for --{} (expected {}).");
-		Service::translator()->append("client.console.command.too_many_values", "Too many values for --{} (expected {}, received {}).");
-		Service::translator()->append("client.console.command.too_many_parameters", "Too many parameters.");
-		Service::translator()->append("client.command.connect.description", "Starts a new dedicated Server connection cycle.");
-		Service::translator()->append("client.command.connect.address.description", "Dedicated Server address");
-		Service::translator()->append("client.command.connect.port.description", "Dedicated Server port");
-		Service::translator()->append("client.command.connect.invalid_port", "Invalid port: {}");
+		Service::translator().append("client.console.placeholder", "Enter text or /help");
+		Service::translator().append("client.console.command.unknown", "Unknown command: /{}");
+		Service::translator().append("client.console.command.invalid_format", "Invalid command format.");
+		Service::translator().append("client.console.command.parameter_unknown", "Unknown parameter: --{}");
+		Service::translator().append("client.console.command.parameter_duplicate", "Duplicate parameter: --{}");
+		Service::translator().append("client.console.command.parameter_missing", "Missing parameter: --{}");
+		Service::translator().append("client.console.command.value_missing", "Missing value for --{} (expected {}).");
+		Service::translator().append("client.console.command.too_many_values", "Too many values for --{} (expected {}, received {}).");
+		Service::translator().append("client.console.command.too_many_parameters", "Too many parameters.");
+		Service::translator().append("client.command.connect.description", "Starts a new dedicated Server connection cycle.");
+		Service::translator().append("client.command.connect.address.description", "Dedicated Server address");
+		Service::translator().append("client.command.connect.port.description", "Dedicated Server port");
+		Service::translator().append("client.command.connect.invalid_port", "Invalid port: {}");
 	}
 
 	class ConsoleEntryTest : public testing::Test
@@ -44,13 +44,13 @@ namespace
 	protected:
 		void SetUp() override
 		{
-			Service::translator()->clear();
+			Service::translator().clear();
 			installConsoleEntryTranslations();
 		}
 
 		void TearDown() override
 		{
-			Service::translator()->clear();
+			Service::translator().clear();
 		}
 	};
 }
@@ -274,9 +274,9 @@ TEST_F(ConsoleEntryTest, ConnectRejectsOutOfRangePortThroughUserValueB)
 
 TEST_F(ConsoleEntryTest, UsesTranslatedParserFailureThroughUserValueB)
 {
-	Service::translator()->clear();
-	Service::translator()->append("client.console.placeholder", "Commande");
-	Service::translator()->append("client.console.command.unknown", "Commande inconnue : /{}");
+	Service::translator().clear();
+	Service::translator().append("client.console.placeholder", "Commande");
+	Service::translator().append("client.console.command.unknown", "Commande inconnue : /{}");
 
 	std::vector<LogEntry> entries;
 	auto contract = spk::logger.subscribeToEntry(

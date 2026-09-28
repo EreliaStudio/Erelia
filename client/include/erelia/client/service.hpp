@@ -8,6 +8,6 @@ namespace spk
 
 namespace Service
 {
-	[[nodiscard]] spk::Client *client();
-	[[nodiscard]] spk::Translator *translator();
+	[[nodiscard]] spk::Client &client();
+	[[nodiscard]] spk::Translator &translator();
 }

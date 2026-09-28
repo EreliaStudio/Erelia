@@ -43,16 +43,16 @@ ConnectionManager::~ConnectionManager()
 		_connectionAttempt->wait();
 	}
 
-	if (Service::client()->isConnected() == true)
+	if (Service::client().isConnected() == true)
 	{
-		Service::client()->disconnect();
+		Service::client().disconnect();
 	}
 }
 
 void ConnectionManager::_launchAttempt()
 {
 	if (
-		Service::client()->isConnected() == true ||
+		Service::client().isConnected() == true ||
 		_connectionAttempt.has_value() == true)
 	{
 		return;
@@ -68,8 +68,8 @@ void ConnectionManager::_launchAttempt()
 
 	const Endpoint endpoint = _endpoint;
 	_connectionAttempt.emplace(
-		Service::workerPool()->submit([endpoint] {
-			Service::client()->connect(endpoint.address, endpoint.port);
+		Service::workerPool().submit([endpoint] {
+			Service::client().connect(endpoint.address, endpoint.port);
 			return true;
 		}));
 }
@@ -123,7 +123,7 @@ void ConnectionManager::_processAttempt()
 		status == ConnectionTask::Status::Completed;
 	const bool connected =
 		completed == true &&
-		Service::client()->isConnected() == true;
+		Service::client().isConnected() == true;
 
 	_connectionAttempt.reset();
 
@@ -152,7 +152,7 @@ void ConnectionManager::_updateState(spk::UpdateContext &)
 	_processAttempt();
 
 	if (
-		Service::client()->isConnected() == false &&
+		Service::client().isConnected() == false &&
 		_connectionAttempt.has_value() == false &&
 		_retryTimer.state() == spk::Timer::State::Off &&
 		_attemptCount == 0)
@@ -170,7 +170,7 @@ void ConnectionManager::_updateState(spk::UpdateContext &)
 
 void ConnectionManager::connect()
 {
-	if (Service::client()->isConnected() == true)
+	if (Service::client().isConnected() == true)
 	{
 		SPK_LOG(Info) << "Client is already connected to the dedicated Server" << std::endl;
 		return;
@@ -214,7 +214,7 @@ void ConnectionManager::connect(Endpoint endpoint)
 	}
 
 	if (
-		Service::client()->isConnected() == true &&
+		Service::client().isConnected() == true &&
 		_endpoint.address == endpoint.address &&
 		_endpoint.port == endpoint.port)
 	{
@@ -222,9 +222,9 @@ void ConnectionManager::connect(Endpoint endpoint)
 		return;
 	}
 
-	if (Service::client()->isConnected() == true)
+	if (Service::client().isConnected() == true)
 	{
-		Service::client()->disconnect();
+		Service::client().disconnect();
 	}
 
 	_endpoint = std::move(endpoint);

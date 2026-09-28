@@ -23,13 +23,13 @@ namespace
 
 	void installConsoleTranslations()
 	{
-		Service::translator()->append("client.console.placeholder", "Enter text or /help");
-		Service::translator()->append("client.console.user_label", "User");
-		Service::translator()->append("client.console.command_label", "Command");
-		Service::translator()->append("client.command.connect.description", "Starts a new dedicated Server connection cycle.");
-		Service::translator()->append("client.command.connect.address.description", "Dedicated Server address");
-		Service::translator()->append("client.command.connect.port.description", "Dedicated Server port");
-		Service::translator()->append("client.command.connect.invalid_port", "Invalid port: {}");
+		Service::translator().append("client.console.placeholder", "Enter text or /help");
+		Service::translator().append("client.console.user_label", "User");
+		Service::translator().append("client.console.command_label", "Command");
+		Service::translator().append("client.command.connect.description", "Starts a new dedicated Server connection cycle.");
+		Service::translator().append("client.command.connect.address.description", "Dedicated Server address");
+		Service::translator().append("client.command.connect.port.description", "Dedicated Server port");
+		Service::translator().append("client.command.connect.invalid_port", "Invalid port: {}");
 	}
 
 	void advance(spk::Widget &widget)
@@ -47,13 +47,13 @@ namespace
 	protected:
 		void SetUp() override
 		{
-			Service::translator()->clear();
+			Service::translator().clear();
 			installConsoleTranslations();
 		}
 
 		void TearDown() override
 		{
-			Service::translator()->clear();
+			Service::translator().clear();
 		}
 	};
 }
@@ -228,10 +228,10 @@ TEST_F(ConsoleTest, OnlyUserDataLoggerLevelsReachDataModel)
 
 TEST_F(ConsoleTest, UsesTranslatedUserDataLabels)
 {
-	Service::translator()->clear();
-	Service::translator()->append("client.console.placeholder", "Commande");
-	Service::translator()->append("client.console.user_label", "Joueur");
-	Service::translator()->append("client.console.command_label", "Commande");
+	Service::translator().clear();
+	Service::translator().append("client.console.placeholder", "Commande");
+	Service::translator().append("client.console.user_label", "Joueur");
+	Service::translator().append("client.console.command_label", "Commande");
 
 	Console console("Console");
 	console.setGeometry({.anchor = {0, 0}, .size = {640, 480}});

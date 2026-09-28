@@ -135,7 +135,7 @@ namespace
 spk::Task<Chunk>::Answer PrototypeChunkProvider::request(
 	const Chunk::Coordinate &coordinate)
 {
-	return Service::workerPool()->submit(
+	return Service::workerPool().submit(
 		[coordinate] {
 			return generateChunk(coordinate);
 		});
