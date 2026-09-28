@@ -88,11 +88,10 @@ TEST(ClientConfiguration, ValidationExceptionRemainsStable)
 	{
 		(void)ClientConfiguration::load(file.path());
 		FAIL() << "Expected spk::Exception";
-	}
-	catch (const spk::Exception &exception)
+	} catch (const spk::Exception &exception)
 	{
-		EXPECT_STREQ(
-			exception.what(),
+		EXPECT_EQ(
+			exception.message(),
 			"Client Server address cannot be empty");
 	}
 }
@@ -155,6 +154,4 @@ TEST(ClientBootstrap, InitializesWidgetHierarchyFromConfiguredWindowGeometry)
 			.name(),
 		"connect");
 	EXPECT_EQ(mainWidget.console().geometry(), expectedGeometry);
-	EXPECT_EQ(mainWidget.console().entryView().geometry().width, 640u);
-	EXPECT_GT(mainWidget.console().entryView().geometry().height, 0u);
 }

@@ -115,7 +115,6 @@ TEST_F(ConnectionManagerTest, ConnectDoesNotLaunchConcurrentAttempt)
 	EXPECT_EQ(manager.attemptCount(), 1u);
 }
 
-
 TEST_F(ConnectionManagerTest, ValidationExceptionRemainsStable)
 {
 	try
@@ -125,11 +124,10 @@ TEST_F(ConnectionManagerTest, ValidationExceptionRemainsStable)
 			{"127.0.0.1", 0},
 			TestRetryDelay);
 		FAIL() << "Expected spk::Exception";
-	}
-	catch (const spk::Exception &exception)
+	} catch (const spk::Exception &exception)
 	{
-		EXPECT_STREQ(
-			exception.what(),
+		EXPECT_EQ(
+			exception.message(),
 			"Client Server port cannot be zero");
 	}
 }
@@ -154,8 +152,8 @@ TEST_F(ConnectionManagerTest, ConnectionAttemptDiagnosticRemainsStable)
 			level == spk::Logger::Level::Info &&
 			message ==
 				"Connecting to dedicated Server (attempt 1/" +
-				std::to_string(ConnectionManager::MaximumAttemptCount) +
-				')')
+					std::to_string(ConnectionManager::MaximumAttemptCount) +
+					')')
 		{
 			diagnosticFound = true;
 		}
