@@ -247,3 +247,52 @@ Within an already `Available` Column, the targeted whole-Chunk update API is all
 - an existing non-empty Y receives an empty replacement and is removed from the Column so the sparse representation continues to store only non-empty Chunks.
 
 The owning Column remains `Available` throughout these targeted updates. These operations never create an Available Column when the Column itself is Absent or Pending; complete Column acquisition/publication remains the Provider boundary.
+
+
+### Approved area-discovery architecture — 28 September 2026
+
+This direction supersedes the earlier ST-001-11 notes that proposed making `Chunk::Collection` storage or its `Provider` column-based.
+
+`Chunk::Collection` remains unchanged in its fundamental identity and ownership model:
+
+- storage remains keyed by full `Chunk::Coordinate` / `spk::Vector3Int`;
+- `Chunk::Collection::Provider` remains a single-Chunk provider;
+- external lookup/state/request/replacement remain Chunk-coordinate based;
+- DR-019 remains authoritative for Collection/Provider semantics.
+
+The existing Chunk acquisition protocol also remains a specific-Chunk protocol:
+
+- `Chunk::Protocol::Request` continues to request explicit full Chunk coordinates;
+- `Chunk::Protocol::Response` continues to return canonical Chunk results for those coordinates;
+- DR-022/ST-001-08/ST-001-09 are not redefined into a column protocol.
+
+A separate discovery layer is introduced above Chunk acquisition.
+
+The Client derives a horizontal X/Z interest area from its streaming center and configured horizontal view range. It sends that area to the Server without inventing candidate Y coordinates.
+
+The Server owns an authoritative terrain/world spatial index or equivalent wrapper capable of resolving that horizontal area into the complete set of non-empty `Chunk::Coordinate` values that exist inside it. The discovery layer does not own Chunk values and does not replace `Chunk::Collection`; it describes Chunk identity only.
+
+The Server returns that coordinate manifest to the Client. The Client compares each returned coordinate against its local `Chunk::Collection`:
+
+- `Available`: already cached, do not request again;
+- `Pending`: already being acquired, do not request again;
+- `Absent`: include in the normal existing Chunk request flow.
+
+Therefore the network flow is:
+
+```text
+Client horizontal interest area
+    -> area-discovery request
+    -> Server world/terrain spatial index
+    -> manifest of non-empty Chunk::Coordinate values
+    -> Client local Collection-state filtering
+    -> existing Chunk::Protocol::Request for missing coordinates only
+    -> existing Chunk::Protocol::Response
+```
+
+The Server's internal spatial index may be organized by columns or another implementation-specific structure, but it should store/return coordinate identity rather than raw pointers to Chunks. Chunk ownership remains in `Chunk::Collection`.
+
+This design eliminates empty-sky Chunk probing while preserving the existing 3D Chunk cache and wire acquisition contracts.
+
+The previously approved DR-015 multi-layer prototype columns remain useful discovery fixtures. Their non-empty Chunk coordinates must appear in the Server manifest for any queried area that contains those X/Z columns.
+
