@@ -538,3 +538,24 @@ class PrototypeChunkProvider final
 
 
 The project owner explicitly approved this `Collection<T>` architecture. The intended migration is to replace the existing `Chunk::Collection` implementation with the generic `Collection<Chunk>` specialization, preserving its existing behavior while moving the shared asynchronous cache/acquisition mechanics into the generic template. `Collection<Column>` will reuse the same implementation on the terrain Server.
+
+
+### Approved Column value and bundled response entry model — 28 September 2026
+
+A `Column` value does not contain its own `Column::Coordinate`. The coordinate is the external key used by `Collection<Column>`, exactly as `Chunk::Coordinate` is external identity for a `Chunk` value.
+
+The Column value itself contains only the complete sparse set of non-empty full `Chunk::Coordinate` values belonging to that X/Z terrain column.
+
+The Column discovery request no longer uses Circle/Square geometry. It carries the player world-space position plus two `Column::Coordinate` corners describing the requested rectangular Column area. This supersedes the earlier Circle/Square/type/size request contract.
+
+A `Column::Response` returns a bundle of keyed Column values. Each serialized Column entry is conceptually:
+
+```text
+[Column::Coordinate]
+[serialized Column size]
+[serialized Column content bytes]
+```
+
+The coordinate belongs to the response/collection entry, not to the `Column` value itself.
+
+The response begins with an offset/index table that provides deserialization entry points at 50-Column intervals. The Client will use those offsets to partition response deserialization into multiple asynchronous tasks. The exact binary header layout and exact meaning/type of the per-Column serialized size remain to be fixed before implementation.
