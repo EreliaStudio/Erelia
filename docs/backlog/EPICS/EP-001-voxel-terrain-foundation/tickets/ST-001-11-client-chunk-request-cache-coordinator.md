@@ -727,3 +727,22 @@ After a requested Column becomes Available, the controller iterates that Column'
 The terrain Server uses its local deterministic terrain Provider(s) for both `Collection<Column>` and `Collection<Chunk>`, so Column membership and generated Chunk data are derived from the same canonical terrain rules.
 
 This architecture deliberately exposes Column as the actual shared terrain occupancy domain rather than introducing an additional protocol concept whose only purpose would be to hide Column from the Client.
+
+
+### Approved single terminal response policy — 29 September 2026
+
+For ST-001-11, one valid Collection protocol request produces exactly one terminal response message. The protocol does not yet split one logical response across multiple network messages.
+
+The response payload may still be divided into internal serialized sections through section offsets so the Client can deserialize independent sections in parallel. `elementsPerSection` therefore controls payload sectioning only; it does not create additional response messages.
+
+Any future support for splitting oversized logical responses across multiple network messages is explicitly deferred. No response index/count/final-message framing is introduced in ST-001-11.
+
+Accordingly, generic request treatment should conceptually return one response rather than `std::vector<Response>`:
+
+```cpp
+Response treatRequest(
+    const Request& request,
+    const ResponsePolicy& policy);
+```
+
+`ResponsePolicy` may still contain limits such as maximum accepted/requested element count and elements per serialized section. Exceeding a protocol/request limit is handled as validation/diagnostic behavior rather than by automatically emitting multiple response messages.
