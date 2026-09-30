@@ -180,6 +180,62 @@ No numeric budget; structural request de-duplication/cache policy only after OQ-
 
 Not applicable.
 
+
+## Implementation plan
+
+The implementation order for the approved ST-001-11 architecture is:
+
+1. Introduce the generic `Collection<TKey, TElement>` foundation and migrate the existing Chunk collection behavior onto it, including generic Provider pending lifecycle, `tryRead`, strict `insert` / `replace` / `remove`, single-key request, and ordered TaskGroup batch request.
+
+2. Introduce the generic Collection protocol framing and MessageType family declaration:
+   - `COLLECTION_MESSAGES(Name)` expands to Request / Response / Update / Error;
+   - `Networking::Diagnostic` becomes a serializable payload value without an independent MessageID;
+   - `TKey` and `TElement` provide `spk::Message` insertion/extraction.
+
+3. Introduce the generic `GeneratingProvider`, `RequestingProvider`, and `Updater` implementations:
+   - `RequestingProvider` owns outgoing Request MessageID, RequestID correlation, request batching, Pending Tasks, and Response parsing;
+   - `Updater` parses canonical unsolicited Set / Remove updates;
+   - Update wins atomically over a still-Pending acquisition;
+   - disconnect fails every network-backed Pending acquisition.
+
+4. Add the Erelia network-manager widgets:
+   - `ClientNetworkManager : spk::Widget`;
+   - `ServerNetworkManager : spk::Widget`;
+   - neither widget owns or instantiates the underlying transport;
+   - the Client widget accesses `Service::client()`;
+   - the Server widget accesses the Server transport through the corresponding Erelia Service;
+   - each widget is the unique drainer of its transport receive FIFO during its update pass.
+
+5. Add MessageID subscription support to the network-manager widgets using `spk::ContractProvider`:
+   - `ClientNetworkManager::subscribeToMessage(MessageID, callback)` returns a retained Contract and invokes callbacks with `const spk::Message&`;
+   - `ServerNetworkManager::subscribeToMessage(MessageID, callback)` returns a retained Contract and invokes callbacks with the originating `spk::ConnectionID` plus `const spk::Message&`;
+   - multiple subscribers to one MessageID are allowed;
+   - destroying the returned Contract removes that subscription;
+   - protocol parsers never drain Sparkle network FIFOs directly.
+
+6. Configure protocol routing only from executable/application composition roots. The Client and Server main-level setup creates/owns the relevant protocol objects and retains the MessageID subscription Contracts. The intended bindings are conceptually:
+
+```text
+Client:
+    ChunkResponse  -> Chunk RequestingProvider
+    ChunkUpdate    -> Chunk Updater
+    ChunkError     -> Chunk error receiver
+
+    ColumnResponse -> Column RequestingProvider
+    ColumnUpdate   -> Column Updater
+    ColumnError    -> Column error receiver
+
+Server / terrain-side composition:
+    ChunkRequest   -> Chunk request parser/handler
+    ColumnRequest  -> Column request parser/handler
+```
+
+The RequestingProvider, Updater, and protocol handlers do not know which incoming MessageID routes to them. That association belongs to the application composition layer.
+
+7. Integrate the Client streaming coordinator on top of `Collection<Column::Coordinate, Column>` and `Collection<Chunk::Coordinate, Chunk>`, applying the approved view/unload policy and using the generic network-backed providers.
+
+8. Complete focused Core, Client, Server-node, and cross-system integration tests for protocol framing, Pending reuse, request splitting, Response handling, Update precedence, disconnect failure, stale-response rejection, MessageID dispatch subscriptions, and retained Contract lifetime.
+
 ## Decisions / unresolved questions
 
 - [DR-014](../../../DECISIONS/DR-014-BATCHED-CHUNK-PROTOCOL-DIRECTION.md)
