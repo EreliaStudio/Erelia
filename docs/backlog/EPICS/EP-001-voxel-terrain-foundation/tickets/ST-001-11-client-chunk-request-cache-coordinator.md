@@ -2015,3 +2015,75 @@ successful Chunk completion
 The Collection/Provider layer therefore continues to own caching, Pending reuse, remembered Response::Failure suppression, RequestID correlation, protocol serialization, and network transmission.
 
 The Behaviour owns only Player-centered streaming demand and the asynchronous Column-to-Chunk request chain.
+
+
+### Approved transform-edition-driven streaming Behaviour — 30 September 2026
+
+The polling/update-driven streaming behavior described in the preceding Client Behaviour decision is superseded.
+
+The Player streaming Behaviour retains the Player Transform edition subscription:
+
+```cpp
+spk::Transform3D::OnEditionContract _transformEditionContract;
+```
+
+and subscribes through the actual Sparkle Version-0.1.3 API:
+
+```cpp
+_transformEditionContract =
+    owner()->transform().subscribeToEdition(
+        [this](const spk::Transform3D& transform)
+        {
+            // react to streaming-center movement
+        });
+```
+
+The callback reads the Player world-space position:
+
+```cpp
+transform.position(spk::ReferenceFrame::World)
+```
+
+and converts it to the containing `Chunk::Coordinate` using the already-approved floor/Chunk conversion contract.
+
+`Transform3D::subscribeToEdition(...)` may also fire for non-position edits such as rotation or scale. Therefore the Behaviour stores the last processed streaming-center Chunk coordinate and compares the newly derived coordinate against it.
+
+If the derived Chunk coordinate is unchanged:
+
+```text
+Transform edition
+    -> same Chunk::Coordinate
+    -> no Column request
+    -> no Chunk request
+    -> no unload
+```
+
+If the derived Chunk coordinate changed:
+
+```text
+Transform edition
+    -> new Chunk::Coordinate
+    -> update stored streaming-center coordinate
+    -> recompute desired Column region
+    -> request required Columns
+    -> successful Column completions request relevant Chunks
+    -> recompute unload boundary around the new center
+    -> unload cached Chunks outside unloadRange
+```
+
+Chunk unload is therefore emitted from the same Chunk-coordinate transition that refreshes streaming demand. It is not polled every Engine update and is not triggered by transform edits that keep the Player inside the same Chunk.
+
+The previously approved `unloadRange` geometry remains authoritative: the unload region is centered on the new streaming-center Chunk coordinate, and cached Chunks outside that region are eligible for removal through the Chunk Collection's removal mechanics. Removal of a Pending Chunk acquisition follows the already-approved Collection removal semantics and prevents a late response from republishing the unloaded Chunk.
+
+The asynchronous Column -> Chunk completion chain remains unchanged:
+
+```text
+Chunk-coordinate transition
+    -> Collection<Column>::request(...)
+        -> successful Column completion
+            -> Collection<Chunk>::request(...)
+                -> successful Chunk completion
+                    -> SPK_LOG(UserValueB)
+```
+
+The Behaviour retains both the Transform edition Contract and any asynchronous completion Contracts required by the outstanding Column/Chunk request chain.
