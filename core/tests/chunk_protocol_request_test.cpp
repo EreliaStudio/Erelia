@@ -24,15 +24,15 @@ namespace
 		spk::Message::RequestID requestID,
 		const std::vector<Chunk::Coordinate> &coordinates)
 	{
-		spk::Message message(requestMessageType());
-		message.setRequestID(requestID);
+		spk::Message::Writer writer(requestMessageType());
+		writer.setRequestID(requestID);
 
 		for (const auto &coordinate : coordinates)
 		{
-			message.append(coordinate);
+			writer.append(coordinate);
 		}
 
-		return message;
+		return std::move(writer).build();
 	}
 
 	Chunk::Protocol::Request buildRequest(
@@ -137,7 +137,7 @@ TEST(ChunkProtocolRequest, BuildSerializesExactlyOneCoordinateWithoutCount)
 	EXPECT_EQ(request.size(), sizeof(Chunk::Coordinate));
 	EXPECT_EQ(request.coordinateCount(), 1u);
 	EXPECT_EQ(request.coordinate(0u), coordinate);
-	EXPECT_EQ(request.readAt<Chunk::Coordinate>(0u), coordinate);
+	EXPECT_EQ(request.reader().readAt<Chunk::Coordinate>(0u), coordinate);
 	EXPECT_TRUE(request.duplicateCoordinates().empty());
 }
 
@@ -260,37 +260,42 @@ TEST(ChunkProtocolRequest, RejectsDerived1025CoordinatePayload)
 
 TEST(ChunkProtocolRequest, RejectsWrongMessageType)
 {
-	spk::Message raw(
-		static_cast<spk::Message::Type>(Networking::MessageType::ChunkResponse));
-	raw.setRequestID(1u);
-	raw.append(Chunk::Coordinate{1, 2, 3});
+	spk::Message::Writer writer(
+		static_cast<spk::Message::Type>(
+			Networking::MessageType::ChunkResponse));
+	writer.setRequestID(1u);
+	writer.append(Chunk::Coordinate{1, 2, 3});
+	const spk::Message raw = std::move(writer).build();
 
 	EXPECT_THROW((void)Chunk::Protocol::Request(raw), spk::Exception);
 }
 
 TEST(ChunkProtocolRequest, RejectsZeroRequestID)
 {
-	spk::Message raw(requestMessageType());
-	raw.append(Chunk::Coordinate{1, 2, 3});
+	spk::Message::Writer writer(requestMessageType());
+	writer.append(Chunk::Coordinate{1, 2, 3});
+	const spk::Message raw = std::move(writer).build();
 
 	EXPECT_THROW((void)Chunk::Protocol::Request(raw), spk::Exception);
 }
 
 TEST(ChunkProtocolRequest, RejectsEmptyIncomingPayload)
 {
-	spk::Message raw(requestMessageType());
-	raw.setRequestID(1u);
+	spk::Message::Writer writer(requestMessageType());
+	writer.setRequestID(1u);
+	const spk::Message raw = std::move(writer).build();
 
 	EXPECT_THROW((void)Chunk::Protocol::Request(raw), spk::Exception);
 }
 
 TEST(ChunkProtocolRequest, RejectsMisalignedAndTruncatedCoordinatePayload)
 {
-	spk::Message raw(requestMessageType());
-	raw.setRequestID(1u);
+	spk::Message::Writer writer(requestMessageType());
+	writer.setRequestID(1u);
 
 	const Chunk::Coordinate coordinate{1, 2, 3};
-	raw.append(&coordinate, sizeof(coordinate) - 1u);
+	writer.append(&coordinate, sizeof(coordinate) - 1u);
+	const spk::Message raw = std::move(writer).build();
 
 	EXPECT_THROW((void)Chunk::Protocol::Request(raw), spk::Exception);
 }
@@ -302,31 +307,37 @@ TEST(ChunkProtocolRequest, CoordinateRejectsOutOfRangeIndex)
 	EXPECT_THROW((void)request.coordinate(1u), spk::Exception);
 }
 
-TEST(ChunkProtocolRequest, AccessorsReadTheMessagePayloadAsTheirSourceOfTruth)
+TEST(ChunkProtocolRequest, AccessorsReadTheImmutableMessagePayloadAsTheirSourceOfTruth)
 {
-	auto request = buildRequest(
+	spk::Message raw = buildRequest(
 		{{1, 2, 3}, {4, 5, 6}});
 	const Chunk::Coordinate replacement{-7, 8, 9};
 
-	request.edit(0u, replacement);
+	spk::Message::Writer writer(std::move(raw));
+	writer.edit(0u, replacement);
+	const Chunk::Protocol::Request request(
+		std::move(writer).build());
 
 	EXPECT_EQ(request.coordinate(0u), replacement);
 	EXPECT_EQ(request.coordinate(1u), (Chunk::Coordinate{4, 5, 6}));
 	EXPECT_TRUE(request.duplicateCoordinates().empty());
 }
 
-TEST(ChunkProtocolRequest, DecodeUsesCursorIndependentReads)
+TEST(ChunkProtocolRequest, DecodeUsesIndependentReaders)
 {
-	spk::Message raw = requestMessage(
+	const spk::Message raw = requestMessage(
 		45u,
 		{{1, 2, 3}, {4, 5, 6}});
-	raw.skip<Chunk::Coordinate>();
-	const auto originalReadOffset = raw.readOffset();
+	auto externalReader = raw.reader();
+	externalReader.skip<Chunk::Coordinate>();
+	const auto originalReadOffset =
+		externalReader.readOffset();
 
 	const Chunk::Protocol::Request request(raw);
 
-	EXPECT_EQ(raw.readOffset(), originalReadOffset);
-	EXPECT_EQ(request.readOffset(), originalReadOffset);
+	EXPECT_EQ(
+		externalReader.readOffset(),
+		originalReadOffset);
 	EXPECT_EQ(request.coordinate(0u), (Chunk::Coordinate{1, 2, 3}));
 	EXPECT_EQ(request.coordinate(1u), (Chunk::Coordinate{4, 5, 6}));
 }
