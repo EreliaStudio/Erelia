@@ -870,3 +870,364 @@ The request correlation ID remains the `spk::Message::RequestID` of the enclosin
 Collection request-level validation, misuse, malformed-request, and outer aggregation failures are carried by the Collection family's Error message. That Error message embeds a `Networking::Diagnostic` payload and may additionally carry the contextual Collection keys that can safely be identified. Terminal per-element acquisition failures remain inside the normal Collection Response failure section and are not converted to Error messages.
 
 Consequently, the standalone `Networking::MessageType::Diagnostic` entry is removed. Earlier ST-001-11 planning text that emits a generic standalone `Networking::Diagnostic` message for malformed or aggregation failures is superseded by this payload-only Diagnostic contract.
+
+
+### Approved generic Collection protocol and API freeze — 30 September 2026
+
+The generic Collection networking and public API are now frozen for ST-001-11.
+
+#### Collection MessageType declaration
+
+Collection protocol MessageIDs are declared as one contiguous enum block per Collection family. No family/subtype bit partitioning is introduced at this stage.
+
+```cpp
+#define COLLECTION_MESSAGES(Name) \
+    Name##Request,                 \
+    Name##Response,                \
+    Name##Update,                  \
+    Name##Error
+
+enum class MessageType : spk::Message::Type
+{
+    Invalid = 0,
+
+    COLLECTION_MESSAGES(Chunk),
+    COLLECTION_MESSAGES(Column)
+};
+```
+
+The declaration is append-only: existing Collection families and the ordering of the generated Request/Response/Update/Error entries must not be reordered once published.
+
+Both `TKey` and `TElement` must be serializable through `spk::Message` insertion/extraction operators.
+
+#### Generic Request wire contract
+
+A Collection Request uses the normal `spk::Message` header for MessageID and non-zero RequestID. Its payload contains only the serialized requested keys:
+
+```text
+[TKey]
+[TKey]
+[TKey]
+...
+```
+
+No separate key count is required while the serialized TKey contract lets the parser consume complete keys until the end of the payload.
+
+A network-backed RequestingProvider owns RequestID generation and request splitting. If one logical Collection request exceeds `maxElementsPerRequest`, the Provider emits multiple network Request messages, each with its own RequestID, while the caller still observes one logical TaskGroup.
+
+#### Generic Response wire contract
+
+The Response preserves the current Chunk success/failure section model:
+
+```text
+[failureOffset:uint32]
+
+Success section:
+    [TKey][TElement]
+    [TKey][TElement]
+    ...
+
+Failure section:
+    [TKey][Failure]
+    [TKey][Failure]
+    ...
+```
+
+The RequestID remains in the `spk::Message` header.
+
+The initial generic Failure model is:
+
+```cpp
+struct Failure
+{
+    enum class Code : std::uint8_t
+    {
+        AcquisitionFailed = 0
+    };
+
+    Code code;
+    std::string message;
+};
+```
+
+A received Response entry is applied only while the RequestingProvider still owns the matching Pending acquisition. A late/stale Response for a key whose Pending state has already been removed or superseded is ignored.
+
+A Response Failure settles the corresponding `spk::Task<TElement>` through the generic network-failure conversion path.
+
+#### Generic Update wire contract
+
+Update is unsolicited canonical Server state and carries no acquisition correlation. Its `spk::Message::RequestID` is zero.
+
+Its payload mirrors the Response section layout:
+
+```text
+[removeOffset:uint32]
+
+Set section:
+    [TKey][TElement]
+    [TKey][TElement]
+    ...
+
+Remove section:
+    [TKey][Failure]
+    [TKey][Failure]
+    ...
+```
+
+Update semantics are authoritative:
+
+```text
+Set + Absent
+    -> insert canonical value
+
+Set + Available
+    -> replace canonical value
+
+Set + Pending
+    -> Update wins
+    -> settle the existing Task successfully with the Update value
+    -> normal Provider completion publishes the value
+    -> later original Response is ignored
+```
+
+```text
+Remove + Available
+    -> remove value
+
+Remove + Absent
+    -> no-op
+
+Remove + Pending
+    -> Update wins
+    -> settle the existing Task as Failed through the same Failure model
+       used by Response::Failure
+    -> any containing TaskGroup becomes Failed according to normal Sparkle semantics
+    -> later original Response is ignored
+```
+
+#### Generic Error wire contract
+
+Each Collection family owns an Error MessageID. Collection request validation, misuse, malformed-request handling, and outer aggregation failure use that Error message.
+
+```text
+Header:
+    MessageID
+    RequestID
+
+Payload:
+    [Networking::Diagnostic]
+    [keyCount:uint32]
+    [TKey × keyCount]
+```
+
+The contextual key list may be empty when no safe key can be recovered.
+
+Terminal per-element acquisition failures remain inside the normal Response Failure section and do not use Error messages.
+
+`Networking::Diagnostic` is a serializable payload value only and has no MessageID of its own, as fixed by the preceding Diagnostic decision.
+
+#### Frozen Collection<TKey, TElement> public API
+
+The intended public shape is:
+
+```cpp
+template <
+    MessageSerializable TKey,
+    MessageSerializable TElement>
+class Collection
+{
+public:
+    enum class State
+    {
+        Absent,
+        Pending,
+        Available
+    };
+
+    class Provider;
+    class GeneratingProvider;
+    class RequestingProvider;
+    class Updater;
+
+    [[nodiscard]]
+    State state(const TKey& key) const;
+
+    template <typename TCallback>
+    bool tryRead(
+        const TKey& key,
+        TCallback&& callback) const;
+
+    [[nodiscard]]
+    spk::Task<TElement>::Answer request(
+        const TKey& key);
+
+    [[nodiscard]]
+    spk::TaskGroup<TElement>::Answer request(
+        const std::vector<TKey>& keys);
+
+    void insert(
+        const TKey& key,
+        TElement element);
+
+    void replace(
+        const TKey& key,
+        TElement element);
+
+    void remove(
+        const TKey& key);
+};
+```
+
+`state(key)` is derived from available Collection storage first, then Provider Pending state, otherwise Absent.
+
+`tryRead` acquires the Collection's `spk::ProtectedData` Reader and keeps that Reader alive for the full callback invocation. The callback receives `const TElement&`. No generic element copy is required, and callers must not retain the reference beyond the callback.
+
+Single-key `request(key)` follows:
+
+```text
+Available
+    -> return an already-completed Answer containing the current value
+
+Pending
+    -> reuse and return the existing Provider Answer
+
+Absent
+    -> start Provider acquisition and return the new Answer
+```
+
+Batch `request(keys)` returns `spk::TaskGroup<TElement>::Answer` with exactly one child Answer per requested key. Input order is preserved exactly: `keys[i] <-> group.at(i)`. Available children are immediately completed, Pending children reuse existing Answers, and Absent children start new acquisitions.
+
+Manual Collection mutation is authoritative over Pending acquisition:
+
+```text
+insert(key, element):
+    Available -> throw spk::Exception
+    Pending   -> invalidate/fail the Pending acquisition, then insert
+    Absent    -> insert
+
+replace(key, element):
+    Available -> replace
+    Pending   -> invalidate/fail the Pending acquisition, then replace only if an Available
+                 value exists under the operation's strict replace precondition
+    Absent    -> throw spk::Exception
+
+remove(key):
+    Available -> remove
+    Pending   -> invalidate/fail the Pending acquisition and remove any Available value
+    Absent    -> no-op
+```
+
+A late network Response after insert/replace/remove does not republish stale data because it no longer finds the corresponding active Pending acquisition.
+
+### Approved Provider, RequestingProvider, and Updater freeze — 30 September 2026
+
+Pending acquisition lifecycle is generic and owned by `Collection<TKey, TElement>::Provider`. Collection storage contains only Available data.
+
+Conceptually, each Pending entry retains the acquisition Answer and completion subscription Contract:
+
+```cpp
+struct Pending
+{
+    spk::Task<TElement>::Answer answer;
+    spk::Task<TElement>::Answer::CompletionContract contract;
+};
+```
+
+The Provider owns synchronized TKey -> Pending lookup, Pending reuse, completion subscription, successful publication into Collection storage, failure cleanup, and Pending state reporting.
+
+Pending registration keeps the already-approved ordering required for synchronous completion safety:
+
+1. create/obtain the acquisition Answer;
+2. insert Pending before subscribing;
+3. subscribe to completion;
+4. reacquire Pending bookkeeping;
+5. if the entry still exists, store the returned Contract;
+6. otherwise discard the returned Contract because completion already removed the Pending entry.
+
+On successful completion, the Provider publishes the element into Collection storage before removing Pending state. On failed completion, no value is published and Pending is removed.
+
+#### GeneratingProvider
+
+`GeneratingProvider` reuses the generic Provider lifecycle and specializes only how a new acquisition is produced locally.
+
+#### RequestingProvider
+
+`Collection<TKey, TElement>::RequestingProvider` is a generic concrete network-backed provider. No Chunk- or Column-specific subclass is required when TKey and TElement satisfy the message serialization contract.
+
+It is configured with at least:
+
+```cpp
+RequestingProvider(
+    spk::Message::Type requestMessageID,
+    std::size_t maxElementsPerRequest);
+```
+
+The request MessageID is constructor configuration rather than a mutable post-construction requirement because a RequestingProvider without an outgoing Request MessageID is not usable.
+
+The RequestingProvider knows only the MessageID it emits for Request messages. It does not own the Response, Update, or Error MessageIDs used for incoming routing.
+
+For every new network acquisition it creates a real `spk::Task<TElement>` and retains the corresponding Answer through generic Pending state. The acquisition Task remains `Task::Status::Pending` while waiting for the network; no WorkerPool thread blocks waiting for the response.
+
+RequestingProvider maintains both:
+
+```text
+TKey -> active Pending acquisition
+RequestID -> keys/acquisitions represented by one emitted network Request
+```
+
+The first mapping supports Collection state, duplicate suppression, mutation, and Update arbitration. The second supports response correlation.
+
+For a batch request the Provider reuses already-Pending Answers, creates Tasks only for new Absent keys, partitions those new acquisitions by `maxElementsPerRequest`, generates one RequestID per emitted network message, serializes each TKey through `operator<<`, and sends the requests. The caller still receives one TaskGroup representing the full logical input order.
+
+Incoming Response routing is external. The dispatcher invokes:
+
+```cpp
+requestingProvider.receive(message);
+```
+
+The Provider may submit one WorkerPool parsing job for the complete Response message. That job parses all Success and Failure entries and settles the already-created per-element Tasks:
+
+```text
+Success(key, element)
+    -> if matching active Pending still exists
+       -> task.validate(element)
+    -> otherwise ignore as stale
+
+Failure(key, failure)
+    -> if matching active Pending still exists
+       -> task.fail(convertFailure(failure))
+    -> otherwise ignore as stale
+```
+
+One parsed Response may therefore settle many individual Tasks. The generic Provider completion path subsequently publishes successful values into Collection storage.
+
+#### Updater
+
+`Collection<TKey, TElement>::Updater` is generic and requires no Chunk- or Column-specific subclass.
+
+The Updater is bound to one Collection instance. It does not expose or require direct public access to the Provider.
+
+Incoming Update routing is external:
+
+```text
+ChunkUpdate  -> chunkCollectionUpdater.receive(message)
+ColumnUpdate -> columnCollectionUpdater.receive(message)
+```
+
+The Updater parses generic Set/Remove entries and delegates semantic application to private Collection operations. The Collection decides whether the operation mutates storage directly or settles an active Provider Pending Task.
+
+The ownership relationship is therefore:
+
+```text
+Updater
+    -> Collection
+
+Collection
+    -> Storage
+    -> Provider
+
+Updater
+    does not manage Provider internals directly
+```
+
+Update always wins over a manually requested Pending acquisition. Taking ownership of a Pending acquisition for Response versus Update settlement must be atomic so that only one path can settle that Task. Once Update has won, the later original Response finds no active Pending acquisition and is ignored.
