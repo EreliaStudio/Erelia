@@ -169,18 +169,6 @@ namespace
 	}
 }
 
-Chunk::Protocol::Response::Response(
-	spk::Message::RequestID requestID) :
-	spk::Message(responseMessageType())
-{
-	if (requestID == 0u)
-	{
-		throw spk::Exception(
-			"Chunk::Protocol::Response requires a non-zero RequestID");
-	}
-	setRequestID(requestID);
-}
-
 Chunk::Protocol::Response::Response(spk::Message message) :
 	spk::Message(std::move(message))
 {
@@ -225,7 +213,7 @@ void Chunk::Protocol::Response::_validate() const
 		offset += SuccessEntrySize)
 	{
 		const Coordinate current =
-			readAt<Coordinate>(offset);
+			reader().readAt<Coordinate>(offset);
 		validateOrderedCoordinate(
 			current,
 			previous,
@@ -246,7 +234,7 @@ void Chunk::Protocol::Response::_validate() const
 		}
 
 		const Coordinate current =
-			readAt<Coordinate>(offset);
+			reader().readAt<Coordinate>(offset);
 		validateOrderedCoordinate(
 			current,
 			previous,
@@ -254,7 +242,7 @@ void Chunk::Protocol::Response::_validate() const
 			seen);
 
 		const auto rawCode =
-			readAt<std::uint8_t>(
+			reader().readAt<std::uint8_t>(
 				offset + sizeof(Coordinate));
 		if (!validFailureCode(rawCode))
 		{
@@ -345,9 +333,10 @@ Chunk::Protocol::Response Chunk::Protocol::Response::Builder::build() &&
 			failureEntrySize(failure));
 	}
 
-	Response result(_requestID);
-	result.resize(finalSize);
-	result.edit(
+	spk::Message::Writer writer(responseMessageType());
+	writer.setRequestID(_requestID);
+	writer.resize(finalSize);
+	writer.edit(
 		0u,
 		static_cast<std::uint32_t>(
 			failureOffsetValue));
@@ -355,7 +344,7 @@ Chunk::Protocol::Response Chunk::Protocol::Response::Builder::build() &&
 	std::size_t offset = SummarySize;
 	for (const Success &current : _successes)
 	{
-		result.edit(offset, current.coordinate);
+		writer.edit(offset, current.coordinate);
 		offset += sizeof(Coordinate);
 
 		const auto cells = current.chunk.cells();
@@ -365,7 +354,7 @@ Chunk::Protocol::Response Chunk::Protocol::Response::Builder::build() &&
 				"Chunk::Protocol::Response Success Chunk must contain exactly 4096 Cells");
 		}
 
-		result.edit(
+		writer.edit(
 			offset,
 			cells.data(),
 			ChunkCellBytes);
@@ -374,10 +363,10 @@ Chunk::Protocol::Response Chunk::Protocol::Response::Builder::build() &&
 
 	for (const Failure &current : _failures)
 	{
-		result.edit(offset, current.coordinate);
+		writer.edit(offset, current.coordinate);
 		offset += sizeof(Coordinate);
 
-		result.edit(
+		writer.edit(
 			offset,
 			static_cast<std::uint8_t>(
 				current.code));
@@ -386,23 +375,22 @@ Chunk::Protocol::Response Chunk::Protocol::Response::Builder::build() &&
 		const auto messageLength =
 			static_cast<std::uint32_t>(
 				current.message.size());
-		result.edit(offset, messageLength);
+		writer.edit(offset, messageLength);
 		offset += SerializedStringLengthSize;
 
-		result.edit(
+		writer.edit(
 			offset,
 			current.message.data(),
 			current.message.size());
 		offset += current.message.size();
 	}
 
-	result._validate();
-	return result;
+	return Response(std::move(writer).build());
 }
 
 std::uint32_t Chunk::Protocol::Response::failureOffset() const
 {
-	return readAt<std::uint32_t>(0u);
+	return reader().readAt<std::uint32_t>(0u);
 }
 
 std::size_t Chunk::Protocol::Response::successCount() const
@@ -424,7 +412,7 @@ Chunk::Protocol::Response::success(
 		SummarySize +
 		index * SuccessEntrySize;
 	const Coordinate coordinate =
-		readAt<Coordinate>(offset);
+		reader().readAt<Coordinate>(offset);
 
 	Chunk::Builder builder;
 	const std::size_t cellOffset =
@@ -435,7 +423,7 @@ Chunk::Protocol::Response::success(
 		++cellIndex)
 	{
 		const auto packed =
-			readAt<Voxel::Cell::PackedType>(
+			reader().readAt<Voxel::Cell::PackedType>(
 				cellOffset +
 				cellIndex *
 					sizeof(Voxel::Cell::PackedType));
@@ -475,14 +463,14 @@ Chunk::Protocol::Response::failure(
 		if (currentIndex == index)
 		{
 			const Coordinate coordinate =
-				readAt<Coordinate>(offset);
+				reader().readAt<Coordinate>(offset);
 			const auto code =
 				static_cast<Failure::Code>(
-					readAt<std::uint8_t>(
+					reader().readAt<std::uint8_t>(
 						offset +
 						sizeof(Coordinate)));
 			const auto messageLength =
-				readAt<std::uint32_t>(
+				reader().readAt<std::uint32_t>(
 					offset +
 					sizeof(Coordinate) +
 					SerializedFailureCodeSize);
@@ -491,7 +479,7 @@ Chunk::Protocol::Response::failure(
 				static_cast<std::size_t>(
 					messageLength),
 				'\0');
-			readAt(
+			reader().readAt(
 				offset +
 					FailureFixedSize,
 				message.data(),
