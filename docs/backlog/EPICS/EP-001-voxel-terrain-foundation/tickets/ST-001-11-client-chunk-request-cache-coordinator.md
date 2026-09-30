@@ -1450,3 +1450,85 @@ _chunkUpdateContract =
 The same mechanism is used for Column Response/Update/Error messages and for Server-side Collection Request handlers.
 
 Multiple subscribers to one MessageID are permitted by the ContractProvider model. A parser must not independently drain `spk::Client::messages()` or `spk::Server::messages()`; the network-manager widget is the unique queue-draining point for its transport.
+
+
+### Approved positional message parsing and non-Widget dispatcher core — 30 September 2026
+
+All Collection protocol parsing must treat the received `spk::Message` payload as immutable shared data and use positional reads through `readAt(offset, ...)` / `readAt<T>(offset)` rather than advancing the mutable `spk::Message::readOffset()` through `operator>>`.
+
+This deliberately follows the existing `Chunk::Protocol::Response` implementation, which already validates and decodes entries through explicit offsets.
+
+The previous generic serialization wording requiring extraction through `message >> value` is superseded. The write side may still use the normal message append/edit/insertion facilities, but every generic TKey/TElement protocol decoder must support positional deserialization from an explicit byte offset.
+
+Consequences:
+
+- parsing one message never mutates shared parser position;
+- several WorkerPool tasks may safely read disjoint sections of the same immutable message payload concurrently;
+- response section offsets can be handed directly to independent parsing tasks;
+- each task owns its local offsets/ranges rather than sharing a global cursor;
+- the underlying message storage must remain alive until all parsing tasks that reference it have completed;
+- multiple MessageID subscribers are not prohibited by parser-cursor mutation, because callbacks/readers do not consume a shared read offset.
+
+The exact helper/codec function signature used to express generic positional TKey/TElement deserialization is an implementation API detail still to be named; the semantic requirement is fixed: decoding is offset-based and non-consuming.
+
+### Approved dispatcher core and runtime adapters — 30 September 2026
+
+MessageID routing is not intrinsically a Widget concern.
+
+Erelia introduces a reusable non-Widget dispatcher core that owns the `MessageID -> ContractProvider` routing/subscription mechanics. Runtime-specific managers/adapters feed messages into that dispatcher.
+
+The architecture is:
+
+```text
+generic MessageDispatcher
+    -> MessageID subscription / Contract lifetime
+    -> no transport ownership
+    -> no Widget dependency
+```
+
+Client runtime:
+
+```text
+ClientNetworkManager : spk::Widget
+    -> obtains Service::client()
+    -> drains spk::Client::messages() from its update pass
+    -> forwards each message to MessageDispatcher
+```
+
+The Widget inheritance exists only because the graphical Client already has an `spk::Application`/Widget update tree.
+
+Dedicated Server runtime:
+
+```text
+Server network manager / dispatcher adapter
+    -> no Widget requirement
+    -> advanced explicitly from the Server run loop
+    -> uses the Server/Router transport already owned by the Server composition
+    -> must not instantiate a second spk::Server
+```
+
+Node runtime:
+
+```text
+Node network manager / dispatcher adapter
+    -> no Widget requirement
+    -> advanced explicitly from the node run loop
+    -> works on spk::RemoteNode::Endpoint
+    -> calls Endpoint::dispatch()
+    -> drains Endpoint::requests()
+    -> dispatches by request.message.type()
+```
+
+For nodes, the full `spk::RemoteNode::Endpoint::Request` context is preserved through dispatch because handlers need its proxy/origin connection data for `Endpoint::reply(...)`.
+
+This replaces the current TerrainNodeApplication manual:
+
+```text
+drain requests
+    -> switch(message.type())
+    -> call parser
+```
+
+with retained MessageID subscriptions.
+
+The Client/Server/Node managers therefore share the same routing/subscription core while differing only in how their runtime obtains and advances the underlying Sparkle transport queue.
