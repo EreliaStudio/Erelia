@@ -1596,3 +1596,53 @@ reader >> element;
 Direct `readAt(...)` remains available for fixed-layout validation, offset-table access, and other genuinely positional reads.
 
 The received Message storage must remain alive for the lifetime of every Reader and parsing task referencing it.
+
+
+### Approved Server network services — 30 September 2026
+
+The dedicated Server exposes its existing Sparkle router/transport through Erelia services. No second `spk::NodeRouter` or `spk::Server` instance is created.
+
+The Server service API is:
+
+```cpp
+namespace Service
+{
+    [[nodiscard]]
+    spk::NodeRouter& router();
+
+    [[nodiscard]]
+    spk::Server& server();
+}
+```
+
+`Service::router()` owns/returns the single Server-side `spk::NodeRouter`.
+
+`Service::server()` is only a convenience view onto that router's existing Client-facing Server:
+
+```cpp
+spk::Server& Service::server()
+{
+    return router().server();
+}
+```
+
+The ownership relationship is therefore:
+
+```text
+Service::router()
+    -> single spk::NodeRouter
+        -> owns single spk::Server
+
+Service::server()
+    -> Service::router().server()
+    -> no additional Server ownership
+```
+
+Responsibilities:
+
+- Server routing/redirection/node topology uses `Service::router()`;
+- `ServerNetworkManager` drains the Client-facing receive queue through `Service::server().messages()`;
+- code that only needs Server transport operations may depend on `Service::server()` without knowing about NodeRouter;
+- code that configures or advances node routing uses `Service::router()`.
+
+The Server run loop advances the same service-owned router and network-manager/dispatcher stack; it must not construct an independent Router transport instance in parallel with the Service.
