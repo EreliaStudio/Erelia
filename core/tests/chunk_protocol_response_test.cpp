@@ -73,23 +73,23 @@ namespace
 		return std::move(builder).build();
 	}
 
-	spk::Message responseMessage(
+	spk::Message::Writer responseWriter(
 		spk::Message::RequestID requestID)
 	{
-		spk::Message result(responseMessageType());
-		result.setRequestID(requestID);
-		return result;
+		spk::Message::Writer writer(responseMessageType());
+		writer.setRequestID(requestID);
+		return writer;
 	}
 
 	void appendFailure(
-		spk::Message &message,
+		spk::Message::Writer &writer,
 		const Chunk::Coordinate &coordinate,
 		std::uint8_t code,
 		const std::string &text)
 	{
-		message << coordinate;
-		message << code;
-		message << text;
+		writer << coordinate;
+		writer << code;
+		writer << text;
 	}
 
 	void expectPayloadsEqual(
@@ -156,7 +156,7 @@ TEST(ChunkProtocolResponse, SuccessOnlyUsesFixedChunkEntryAndCellOrder)
 	for (std::size_t index = 0u; index < CellCount; ++index)
 	{
 		EXPECT_EQ(
-			response.readAt<Voxel::Cell::PackedType>(
+			response.reader().readAt<Voxel::Cell::PackedType>(
 				cellOffset +
 				index *
 					sizeof(Voxel::Cell::PackedType)),
@@ -192,7 +192,7 @@ TEST(ChunkProtocolResponse, FailureOnlyUsesSparkleStringEncoding)
 			AcquisitionFailed);
 	EXPECT_EQ(failure.message, text);
 	EXPECT_EQ(
-		response.readAt<std::uint32_t>(
+		response.reader().readAt<std::uint32_t>(
 			SummarySize +
 			sizeof(Chunk::Coordinate) +
 			sizeof(std::uint8_t)),
@@ -296,7 +296,7 @@ TEST(ChunkProtocolResponse, RoundTripPreservesSemanticAccessors)
 		"failure");
 }
 
-TEST(ChunkProtocolResponse, DecodingAndAccessorsDoNotMoveSourceCursor)
+TEST(ChunkProtocolResponse, DecodingAndAccessorsDoNotMoveExternalReader)
 {
 	Chunk::Protocol::Response::Builder builder(106u);
 	builder.addFailure(
@@ -306,19 +306,17 @@ TEST(ChunkProtocolResponse, DecodingAndAccessorsDoNotMoveSourceCursor)
 		"failure");
 	const auto source = std::move(builder).build();
 
-	spk::Message raw = source;
-	raw.skip<std::uint32_t>();
+	const spk::Message raw = source;
+	auto externalReader = raw.reader();
+	externalReader.skip<std::uint32_t>();
 	const auto originalReadOffset =
-		raw.readOffset();
+		externalReader.readOffset();
 
 	const Chunk::Protocol::Response decoded(raw);
 	(void)decoded.failure(0u);
 
 	EXPECT_EQ(
-		decoded.readOffset(),
-		originalReadOffset);
-	EXPECT_EQ(
-		raw.readOffset(),
+		externalReader.readOffset(),
 		originalReadOffset);
 }
 
@@ -369,9 +367,11 @@ TEST(ChunkProtocolResponse, RejectsWrongMessageType)
 	Chunk::Protocol::Response::Builder builder(110u);
 	auto valid = std::move(builder).build();
 	spk::Message raw = valid;
-	raw.setType(
+	spk::Message::Writer writer(std::move(raw));
+	writer.setType(
 		static_cast<spk::Message::Type>(
 			Networking::MessageType::ChunkRequest));
+	raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Chunk::Protocol::Response(raw),
@@ -383,7 +383,9 @@ TEST(ChunkProtocolResponse, RejectsZeroRequestID)
 	Chunk::Protocol::Response::Builder builder(111u);
 	auto valid = std::move(builder).build();
 	spk::Message raw = valid;
-	raw.setRequestID(0u);
+	spk::Message::Writer writer(std::move(raw));
+	writer.setRequestID(0u);
+	raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Chunk::Protocol::Response(raw),
@@ -392,91 +394,98 @@ TEST(ChunkProtocolResponse, RejectsZeroRequestID)
 
 TEST(ChunkProtocolResponse, RejectsMissingFailureOffset)
 {
-	spk::Message raw = responseMessage(112u);
+	spk::Message::Writer writer = responseWriter(112u);
 
 	EXPECT_THROW(
-		(void)Chunk::Protocol::Response(raw),
+		(void)Chunk::Protocol::Response(
+			std::move(writer).build()),
 		spk::Exception);
 }
 
 TEST(ChunkProtocolResponse, RejectsFailureOffsetBeforeHeader)
 {
-	spk::Message raw = responseMessage(113u);
-	raw << std::uint32_t{0u};
+	spk::Message::Writer writer = responseWriter(113u);
+	writer << std::uint32_t{0u};
 
 	EXPECT_THROW(
-		(void)Chunk::Protocol::Response(raw),
+		(void)Chunk::Protocol::Response(
+			std::move(writer).build()),
 		spk::Exception);
 }
 
 TEST(ChunkProtocolResponse, RejectsFailureOffsetBeyondPayload)
 {
-	spk::Message raw = responseMessage(114u);
-	raw << std::uint32_t{100u};
+	spk::Message::Writer writer = responseWriter(114u);
+	writer << std::uint32_t{100u};
 
 	EXPECT_THROW(
-		(void)Chunk::Protocol::Response(raw),
+		(void)Chunk::Protocol::Response(
+			std::move(writer).build()),
 		spk::Exception);
 }
 
 TEST(ChunkProtocolResponse, RejectsMisalignedSuccessSection)
 {
-	spk::Message raw = responseMessage(115u);
-	raw << std::uint32_t{
+	spk::Message::Writer writer = responseWriter(115u);
+	writer << std::uint32_t{
 		static_cast<std::uint32_t>(
 			SummarySize + 1u)};
-	raw << std::uint8_t{0u};
+	writer << std::uint8_t{0u};
 
 	EXPECT_THROW(
-		(void)Chunk::Protocol::Response(raw),
+		(void)Chunk::Protocol::Response(
+			std::move(writer).build()),
 		spk::Exception);
 }
 
 TEST(ChunkProtocolResponse, RejectsTruncatedFailureFixedFields)
 {
-	spk::Message raw = responseMessage(116u);
-	raw << std::uint32_t{
+	spk::Message::Writer writer = responseWriter(116u);
+	writer << std::uint32_t{
 		static_cast<std::uint32_t>(SummarySize)};
-	raw << Chunk::Coordinate{1, 2, 3};
-	raw << static_cast<std::uint8_t>(
+	writer << Chunk::Coordinate{1, 2, 3};
+	writer << static_cast<std::uint8_t>(
 		Chunk::Protocol::Response::Failure::Code::
 			AcquisitionFailed);
 
 	EXPECT_THROW(
-		(void)Chunk::Protocol::Response(raw),
+		(void)Chunk::Protocol::Response(
+			std::move(writer).build()),
 		spk::Exception);
 }
 
 TEST(ChunkProtocolResponse, RejectsUnknownFailureCode)
 {
-	spk::Message raw = responseMessage(117u);
-	raw << std::uint32_t{
+	spk::Message::Writer writer = responseWriter(117u);
+	writer << std::uint32_t{
 		static_cast<std::uint32_t>(SummarySize)};
 	appendFailure(
-		raw,
+		writer,
 		{1, 2, 3},
 		99u,
 		"failure");
 
 	EXPECT_THROW(
-		(void)Chunk::Protocol::Response(raw),
+		(void)Chunk::Protocol::Response(
+			std::move(writer).build()),
 		spk::Exception);
 }
 
 TEST(ChunkProtocolResponse, RejectsTruncatedFailureMessage)
 {
-	spk::Message raw = responseMessage(118u);
-	raw << std::uint32_t{
+	spk::Message::Writer writer = responseWriter(118u);
+	writer << std::uint32_t{
 		static_cast<std::uint32_t>(SummarySize)};
-	raw << Chunk::Coordinate{1, 2, 3};
-	raw << static_cast<std::uint8_t>(
+	writer << Chunk::Coordinate{1, 2, 3};
+	writer << static_cast<std::uint8_t>(
 		Chunk::Protocol::Response::Failure::Code::
 			AcquisitionFailed);
-	raw << std::uint32_t{5u};
-	raw.append("abc", 3u);
+	writer << std::uint32_t{5u};
+	writer.append("abc", 3u);
 
 	EXPECT_THROW(
-		(void)Chunk::Protocol::Response(raw),
+		(void)Chunk::Protocol::Response(
+			std::move(writer).build()),
 		spk::Exception);
 }
 
@@ -489,13 +498,15 @@ TEST(ChunkProtocolResponse, RejectsDuplicateCoordinateAcrossSections)
 	const auto valid = std::move(builder).build();
 
 	spk::Message raw = valid;
+	spk::Message::Writer writer(std::move(raw));
 	appendFailure(
-		raw,
+		writer,
 		{1, 2, 3},
 		static_cast<std::uint8_t>(
 			Chunk::Protocol::Response::Failure::Code::
 				AcquisitionFailed),
 		"failure");
+	raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Chunk::Protocol::Response(raw),
@@ -511,12 +522,14 @@ TEST(ChunkProtocolResponse, RejectsUnsortedSuccessCoordinates)
 	auto valid = std::move(builder).build();
 
 	spk::Message raw = valid;
-	raw.edit(
+	spk::Message::Writer writer(std::move(raw));
+	writer.edit(
 		SummarySize,
 		Chunk::Coordinate{2, 0, 0});
-	raw.edit(
+	writer.edit(
 		SummarySize + SuccessEntrySize,
 		Chunk::Coordinate{1, 0, 0});
+	raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Chunk::Protocol::Response(raw),
@@ -539,18 +552,20 @@ TEST(ChunkProtocolResponse, RejectsUnsortedFailureCoordinates)
 	auto valid = std::move(builder).build();
 
 	spk::Message raw = valid;
+	spk::Message::Writer writer(std::move(raw));
 	const std::size_t firstOffset =
 		valid.failureOffset();
 	const std::size_t secondOffset =
 		firstOffset +
 		FailureFixedSize +
 		1u;
-	raw.edit(
+	writer.edit(
 		firstOffset,
 		Chunk::Coordinate{2, 0, 0});
-	raw.edit(
+	writer.edit(
 		secondOffset,
 		Chunk::Coordinate{1, 0, 0});
+	raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Chunk::Protocol::Response(raw),
