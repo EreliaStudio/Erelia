@@ -1231,3 +1231,69 @@ Updater
 ```
 
 Update always wins over a manually requested Pending acquisition. Taking ownership of a Pending acquisition for Response versus Update settlement must be atomic so that only one path can settle that Task. Once Update has won, the later original Response finds no active Pending acquisition and is ignored.
+
+
+### Approved disconnect and message-dispatch integration — 30 September 2026
+
+All active network-backed Collection acquisitions become terminally Failed when the underlying Client connection is lost.
+
+For every `Collection<TKey, TElement>::RequestingProvider` attached to that connection:
+
+```text
+Client disconnection
+    -> every active Pending acquisition is settled as Failed
+    -> no value is published into Collection storage
+    -> generic Provider completion removes Pending state
+    -> any TaskGroup containing one of those Tasks becomes Failed through normal Sparkle semantics
+    -> a later explicit request for the same Absent key may start a fresh acquisition
+```
+
+No Pending Task survives a disconnected transport waiting for an old response. Responses from the previous connection that arrive after the Pending state has been cleared cannot republish data because they no longer match an active acquisition.
+
+The failure used for this transition is a local transport/disconnection failure, not a fabricated Server `Response::Failure`.
+
+#### Message dispatch integration
+
+Sparkle Version-0.1.3 does not expose MessageID-specific callbacks on `spk::Client` or `spk::Server`. Their networking contract is queue-based:
+
+- `spk::Client::messages()` exposes a FIFO of `spk::Message`;
+- `spk::Server::messages()` exposes a FIFO of `spk::ReceivedMessage`;
+- connection/disconnection notifications are exposed separately through retained ContractProvider subscriptions.
+
+Erelia therefore keeps Sparkle unchanged and owns a thin message-dispatch layer above those queues.
+
+That layer drains the appropriate Sparkle message queue, inspects each `spk::Message::Type`, and forwards the message to the parser/receiver object registered for that MessageID.
+
+Application composition is intentionally explicit. Each executable composition root / main-level application setup binds protocol MessageIDs to the concrete objects that know how to parse them. For example, on the Client side:
+
+```text
+ChunkResponse  -> Collection<Chunk::Coordinate, Chunk>::RequestingProvider
+ChunkUpdate    -> Collection<Chunk::Coordinate, Chunk>::Updater
+ChunkError     -> Collection<Chunk::Coordinate, Chunk> network error handling
+
+ColumnResponse -> Collection<Column::Coordinate, Column>::RequestingProvider
+ColumnUpdate   -> Collection<Column::Coordinate, Column>::Updater
+ColumnError    -> Collection<Column::Coordinate, Column> network error handling
+```
+
+The parser objects themselves do not know the incoming MessageID used to reach them. Routing knowledge belongs to the executable/application composition layer.
+
+The Server side follows the same principle while preserving `spk::ReceivedMessage::emitter`: the dispatcher routes by the contained message type and forwards the originating `ConnectionID` together with the message to the registered request parser/handler.
+
+This keeps responsibilities separated:
+
+```text
+spk::Client / spk::Server
+    -> transport + receive FIFO + connection lifecycle
+
+Erelia dispatcher
+    -> MessageID routing
+
+RequestingProvider / Updater / request handler
+    -> protocol parsing and semantic handling
+
+main / application composition root
+    -> binds MessageID to parser object
+```
+
+No Collection protocol parser needs its own network receive loop, and multiple parsers must never independently drain the same Sparkle receive FIFO.
