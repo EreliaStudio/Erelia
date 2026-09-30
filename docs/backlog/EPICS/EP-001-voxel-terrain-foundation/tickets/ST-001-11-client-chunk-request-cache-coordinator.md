@@ -2177,3 +2177,29 @@ later Transform edition
 ```
 
 This keeps initialization and runtime movement on exactly the same code path without fabricating a Transform edit, without forcing cache invalidation inside Sparkle, and without requiring the initial Player position to differ from the default Transform position.
+
+
+### Approved Client Column unload and Server retention — 30 September 2026
+
+Client-side unload applies to both terrain data layers.
+
+Whenever the Player streaming Behaviour observes a change of streaming-center Chunk coordinate, it recomputes the approved `unloadRange` and removes both:
+
+- cached `Chunk` values outside the unload region;
+- cached `Column` values outside the corresponding horizontal X/Z unload region.
+
+This prevents both Client Collections from growing indefinitely as the Player moves through the world.
+
+The same transition therefore conceptually performs:
+
+```text
+new streaming-center Chunk::Coordinate
+    -> refresh desired Column demand
+    -> launch Column -> Chunk acquisition chain
+    -> unload Client Chunks outside unloadRange
+    -> unload Client Columns outside horizontal unloadRange
+```
+
+Collection removal semantics remain authoritative for Pending entries: removing a Pending Client acquisition invalidates/fails that acquisition so a late response cannot republish data that has left the retained streaming region.
+
+For ST-001-11, the Server and terrain node do not evict cached/generated Chunk or Column data. Server-side retention is unbounded for the current prototype/runtime scope. Server cache budgets and eviction policy remain deferred to later scalability/resource-management work.
