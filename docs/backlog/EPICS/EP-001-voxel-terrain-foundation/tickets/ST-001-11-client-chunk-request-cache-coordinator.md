@@ -1646,3 +1646,70 @@ Responsibilities:
 - code that configures or advances node routing uses `Service::router()`.
 
 The Server run loop advances the same service-owned router and network-manager/dispatcher stack; it must not construct an independent Router transport instance in parallel with the Service.
+
+
+### Approved Node network services — 30 September 2026
+
+Each dedicated Server-node executable follows the same service ownership pattern as the dedicated Server.
+
+The node executable exposes its single concrete node instance through a node service, and exposes that node's existing `spk::RemoteNode::Endpoint` through a convenience endpoint service.
+
+For the terrain node, the intended service API is conceptually:
+
+```cpp
+namespace Service
+{
+    [[nodiscard]]
+    TerrainNode& node();
+
+    [[nodiscard]]
+    spk::RemoteNode::Endpoint& endpoint();
+}
+```
+
+The endpoint service delegates to the service-owned node:
+
+```cpp
+spk::RemoteNode::Endpoint& Service::endpoint()
+{
+    return node().endpoint();
+}
+```
+
+The ownership relationship is:
+
+```text
+Service::node()
+    -> single TerrainNode
+        -> owns single spk::RemoteNode::Endpoint
+
+Service::endpoint()
+    -> Service::node().endpoint()
+    -> no additional Endpoint ownership
+```
+
+The concrete node class therefore exposes its existing Endpoint by reference for service delegation; it does not transfer ownership.
+
+Responsibilities are separated as follows:
+
+- node-specific domain behavior uses `Service::node()`;
+- the node network-manager/dispatcher adapter advances and drains the transport through `Service::endpoint()`;
+- request handlers may reply through the node or Endpoint according to their domain-level responsibility;
+- the executable composition root configures MessageID subscriptions against the node network manager;
+- no parser independently drains `Endpoint::requests()`;
+- no second `spk::RemoteNode::Endpoint` is instantiated by the service or network manager.
+
+This creates the same service pattern across runtimes:
+
+```text
+Client:
+    Service::client()
+
+Server:
+    Service::router()
+        -> Service::server()
+
+Node:
+    Service::node()
+        -> Service::endpoint()
+```
