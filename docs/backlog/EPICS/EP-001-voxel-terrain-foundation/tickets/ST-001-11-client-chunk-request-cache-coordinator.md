@@ -1532,3 +1532,67 @@ drain requests
 with retained MessageID subscriptions.
 
 The Client/Server/Node managers therefore share the same routing/subscription core while differing only in how their runtime obtains and advances the underlying Sparkle transport queue.
+
+
+### Approved Sparkle Message Reader model — 30 September 2026
+
+The earlier ST-001-11 requirement that generic protocol parsing use only direct `Message::readAt(offset, ...)` calls is superseded by the Sparkle Message Reader model implemented on `Sparkle/Version-0.1.3`.
+
+`spk::Message` keeps its legacy sequential-reading API unchanged, but that API now delegates to an internal mutable `spk::Message::Reader` owned by the Message. The read cursor therefore no longer belongs directly to the Message payload state.
+
+Existing code remains valid:
+
+```cpp
+message >> value;
+const auto value = message.get<T>();
+message.skip<T>();
+message.reset();
+message.readOffset();
+```
+
+Those operations affect only the Message's internal Reader.
+
+Additional independent Readers can be created from the same Message:
+
+```cpp
+auto reader = message.reader();
+auto sectionReader = message.reader(sectionOffset);
+```
+
+Each Reader owns its own read offset and exposes the same sequential parsing semantics:
+
+```cpp
+reader >> key;
+reader >> element;
+const auto value = reader.get<T>();
+reader.skip<T>();
+reader.reset();
+reader.seek(offset);
+reader.readOffset();
+```
+
+All Readers reference the same immutable Message payload but advance independently. This is the required model for parallel protocol parsing:
+
+```text
+one received spk::Message
+    -> Reader A at section A offset -> WorkerPool Task A
+    -> Reader B at section B offset -> WorkerPool Task B
+    -> Reader C at section C offset -> WorkerPool Task C
+```
+
+No thread-local cursor is used. Reader ownership makes the parsing position explicit and independent of which WorkerPool thread executes a task.
+
+The generic Collection serialization contract may therefore retain streaming syntax:
+
+```cpp
+message << key;
+message << element;
+
+auto reader = message.reader(offset);
+reader >> key;
+reader >> element;
+```
+
+Direct `readAt(...)` remains available for fixed-layout validation, offset-table access, and other genuinely positional reads.
+
+The received Message storage must remain alive for the lifetime of every Reader and parsing task referencing it.
