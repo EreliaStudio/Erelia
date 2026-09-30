@@ -79,7 +79,7 @@ TEST(ChunkProtocolError, BuilderSortsCoordinatesAndSerializesUint32Count)
 
 	ASSERT_EQ(error.coordinateCount(), 3u);
 	EXPECT_EQ(
-		error.readAt<std::uint32_t>(DiagnosticPrefixSize),
+		error.reader().readAt<std::uint32_t>(DiagnosticPrefixSize),
 		3u);
 	EXPECT_EQ(error.coordinate(0u), low);
 	EXPECT_EQ(error.coordinate(1u), middle);
@@ -122,17 +122,21 @@ TEST(ChunkProtocolError, RoundTripsAndOwnsDecodedPayload)
 	EXPECT_EQ(decoded.coordinate(1u), source.coordinate(1u));
 }
 
-TEST(ChunkProtocolError, DecodingDoesNotMoveSourceCursor)
+TEST(ChunkProtocolError, DecodingDoesNotMoveExternalReader)
 {
-	auto source = buildError(15u);
-	spk::Message raw = source;
-	raw.skip<std::uint8_t>();
-	const auto originalReadOffset = raw.readOffset();
+	const auto source = buildError(15u);
+	const spk::Message raw = source;
+	auto externalReader = raw.reader();
+	externalReader.skip<std::uint8_t>();
+	const auto originalReadOffset =
+		externalReader.readOffset();
 
 	const Chunk::Protocol::Error decoded(raw);
 
-	EXPECT_EQ(raw.readOffset(), originalReadOffset);
-	EXPECT_EQ(decoded.readOffset(), originalReadOffset);
+	EXPECT_EQ(
+		externalReader.readOffset(),
+		originalReadOffset);
+	EXPECT_EQ(decoded.requestID(), 15u);
 }
 
 TEST(ChunkProtocolError, CoordinateRejectsOutOfRangeIndex)
@@ -146,14 +150,15 @@ TEST(ChunkProtocolError, CoordinateRejectsOutOfRangeIndex)
 
 TEST(ChunkProtocolError, RejectsWrongMessageType)
 {
-	spk::Message raw(
+	spk::Message::Writer writer(
 		static_cast<spk::Message::Type>(
 			Networking::MessageType::Diagnostic));
-	raw.setRequestID(1u);
-	raw << static_cast<std::uint8_t>(
+	writer.setRequestID(1u);
+	writer << static_cast<std::uint8_t>(
 		Networking::Diagnostic::Severity::Warning);
-	raw << std::string(DuplicateKey);
-	raw << std::uint32_t{0u};
+	writer << std::string(DuplicateKey);
+	writer << std::uint32_t{0u};
+	const spk::Message raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Chunk::Protocol::Error(raw),
@@ -163,7 +168,9 @@ TEST(ChunkProtocolError, RejectsWrongMessageType)
 TEST(ChunkProtocolError, RejectsZeroRequestID)
 {
 	spk::Message raw = buildError(2u);
-	raw.setRequestID(0u);
+	spk::Message::Writer writer(std::move(raw));
+	writer.setRequestID(0u);
+	raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Chunk::Protocol::Error(raw),
@@ -172,11 +179,12 @@ TEST(ChunkProtocolError, RejectsZeroRequestID)
 
 TEST(ChunkProtocolError, RejectsUnknownSeverity)
 {
-	spk::Message raw(errorMessageType());
-	raw.setRequestID(3u);
-	raw << std::uint8_t{99u};
-	raw << std::string(DuplicateKey);
-	raw << std::uint32_t{0u};
+	spk::Message::Writer writer(errorMessageType());
+	writer.setRequestID(3u);
+	writer << std::uint8_t{99u};
+	writer << std::string(DuplicateKey);
+	writer << std::uint32_t{0u};
+	const spk::Message raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Chunk::Protocol::Error(raw),
@@ -185,9 +193,11 @@ TEST(ChunkProtocolError, RejectsUnknownSeverity)
 
 TEST(ChunkProtocolError, RejectsMissingCoordinateCount)
 {
-	auto valid = buildError(4u);
+	const auto valid = buildError(4u);
 	spk::Message raw = valid;
-	raw.resize(DiagnosticPrefixSize);
+	spk::Message::Writer writer(std::move(raw));
+	writer.resize(DiagnosticPrefixSize);
+	raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Chunk::Protocol::Error(raw),
@@ -204,9 +214,11 @@ TEST(ChunkProtocolError, RejectsCoordinateCountMismatch)
 	auto valid = std::move(builder).build();
 
 	spk::Message raw = valid;
-	raw.edit(
+	spk::Message::Writer writer(std::move(raw));
+	writer.edit(
 		DiagnosticPrefixSize,
 		std::uint32_t{2u});
+	raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Chunk::Protocol::Error(raw),
@@ -223,11 +235,13 @@ TEST(ChunkProtocolError, RejectsDuplicateCoordinates)
 	auto valid = std::move(builder).build();
 
 	spk::Message raw = valid;
-	raw.edit(
+	spk::Message::Writer writer(std::move(raw));
+	writer.edit(
 		DiagnosticPrefixSize,
 		std::uint32_t{2u});
-	raw.append(
+	writer.append(
 		valid.coordinate(0u));
+	raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Chunk::Protocol::Error(raw),
@@ -245,15 +259,17 @@ TEST(ChunkProtocolError, RejectsUnsortedCoordinates)
 	auto valid = std::move(builder).build();
 
 	spk::Message raw = valid;
+	spk::Message::Writer writer(std::move(raw));
 	const std::size_t firstCoordinateOffset =
 		DiagnosticPrefixSize +
 		sizeof(std::uint32_t);
-	raw.edit(
+	writer.edit(
 		firstCoordinateOffset,
 		Chunk::Coordinate{2, 0, 0});
-	raw.edit(
+	writer.edit(
 		firstCoordinateOffset + sizeof(Chunk::Coordinate),
 		Chunk::Coordinate{1, 0, 0});
+	raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Chunk::Protocol::Error(raw),
