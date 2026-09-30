@@ -61,17 +61,6 @@ namespace
 	}
 }
 
-Chunk::Protocol::Request::Request(spk::Message::RequestID requestID) :
-	spk::Message(requestMessageType())
-{
-	if (requestID == 0u)
-	{
-		throw spk::Exception("Chunk::Protocol::Request requires a non-zero RequestID");
-	}
-
-	setRequestID(requestID);
-}
-
 Chunk::Protocol::Request::Request(spk::Message message) :
 	spk::Message(std::move(message))
 {
@@ -120,13 +109,15 @@ Chunk::Protocol::Request Chunk::Protocol::Request::Builder::build() &&
 		throw spk::Exception("Chunk::Protocol::Request cannot be built without coordinates");
 	}
 
-	Request result(generateRequestID());
-	const std::size_t payloadSize = _coordinates.size() * sizeof(Coordinate);
+	spk::Message::Writer writer(requestMessageType());
+	writer.setRequestID(generateRequestID());
+	const std::size_t payloadSize =
+		_coordinates.size() * sizeof(Coordinate);
 
-	result.resize(payloadSize);
-	result.edit(0u, _coordinates.data(), payloadSize);
+	writer.resize(payloadSize);
+	writer.edit(0u, _coordinates.data(), payloadSize);
 
-	return result;
+	return Request(std::move(writer).build());
 }
 
 std::size_t Chunk::Protocol::Request::coordinateCount() const noexcept
@@ -141,7 +132,8 @@ Chunk::Coordinate Chunk::Protocol::Request::coordinate(std::size_t index) const
 		throw spk::Exception("Chunk::Protocol::Request coordinate index is outside the payload");
 	}
 
-	return readAt<Coordinate>(index * sizeof(Coordinate));
+	return reader().readAt<Coordinate>(
+		index * sizeof(Coordinate));
 }
 
 std::set<Chunk::Coordinate> Chunk::Protocol::Request::duplicateCoordinates() const
