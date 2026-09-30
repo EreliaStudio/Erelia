@@ -73,32 +73,19 @@ Chunk::Protocol::Error Chunk::Protocol::Error::Builder::build() &&
 			"Chunk::Protocol::Error coordinate count exceeds uint32 capacity");
 	}
 
-	Error result(_requestID);
-	result << static_cast<const Networking::Diagnostic &>(
+	spk::Message::Writer writer(errorMessageType());
+	writer.setRequestID(_requestID);
+	writer << static_cast<const Networking::Diagnostic &>(
 		diagnostic);
 
 	const auto coordinateCount =
 		static_cast<std::uint32_t>(_coordinates.size());
-	result << coordinateCount;
-	result.append(
+	writer << coordinateCount;
+	writer.append(
 		_coordinates.data(),
 		_coordinates.size() * sizeof(Coordinate));
 
-	result._validate();
-	return result;
-}
-
-Chunk::Protocol::Error::Error(
-	spk::Message::RequestID requestID) :
-	Networking::Diagnostic(
-		errorMessageType(),
-		requestID)
-{
-	if (requestID == 0u)
-	{
-		throw spk::Exception(
-			"Chunk::Protocol::Error requires a non-zero RequestID");
-	}
+	return Error(std::move(writer).build());
 }
 
 Chunk::Protocol::Error::Error(spk::Message message) :
@@ -126,7 +113,7 @@ void Chunk::Protocol::Error::_validate() const
 	}
 
 	const auto count =
-		readAt<std::uint32_t>(prefixSize);
+		reader().readAt<std::uint32_t>(prefixSize);
 	const std::size_t coordinateBytes =
 		size() - prefixSize - SerializedCoordinateCountSize;
 	const std::uint64_t expectedCoordinateBytes =
@@ -170,7 +157,7 @@ void Chunk::Protocol::Error::_validate() const
 std::size_t Chunk::Protocol::Error::coordinateCount() const
 {
 	return static_cast<std::size_t>(
-		readAt<std::uint32_t>(diagnosticSize()));
+		reader().readAt<std::uint32_t>(diagnosticSize()));
 }
 
 Chunk::Coordinate Chunk::Protocol::Error::coordinate(
@@ -183,7 +170,7 @@ Chunk::Coordinate Chunk::Protocol::Error::coordinate(
 			"Chunk::Protocol::Error coordinate index is outside the payload");
 	}
 
-	return readAt<Coordinate>(
+	return reader().readAt<Coordinate>(
 		diagnosticSize() +
 		SerializedCoordinateCountSize +
 		index * sizeof(Coordinate));
