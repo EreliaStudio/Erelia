@@ -789,3 +789,43 @@ On acquisition failure, no value is published into the Collection. Once the fail
 Collection storage remains synchronized through its existing `spk::ProtectedData<Storage>`. Task completion may therefore publish acquired data from a WorkerPool thread by obtaining `Storage::write()`; updater/rendering-side reads continue to use the corresponding protected read access. No additional Collection-wide asynchronous handoff or second synchronization layer is required.
 
 This supersedes earlier planning text that stored an `std::optional<Task<TElement>::Answer>` inside each Collection entry to represent Pending state.
+
+
+### Approved generic Provider pending Answer/Contract lifecycle — 30 September 2026
+
+Pending acquisition bookkeeping is implemented once in the generic `Collection<TKey, TElement>::Provider` base class rather than separately in Chunk, Column, GeneratingProvider, or RequestingProvider implementations.
+
+For every pending key, the generic Provider retains both the acquisition Answer and the completion subscription Contract:
+
+```cpp
+struct Pending
+{
+    spk::Task<TElement>::Answer answer;
+    spk::Task<TElement>::Answer::CompletionContract contract;
+};
+```
+
+The Provider's pending state is synchronized and keyed by `TKey`. The Collection itself does not retain a duplicate pending Answer.
+
+The generic Provider is bound to the owning Collection storage only for the generic completion transition. Derived providers do not publish directly into Collection storage.
+
+Pending registration uses the following exact order to remain correct when a Task completes immediately:
+
+1. create/obtain the acquisition Answer;
+2. insert the pending entry containing that Answer before subscribing to completion;
+3. subscribe to the Answer completion callback;
+4. after subscription returns, reacquire the pending bookkeeping state;
+5. if the key is still pending, move the returned Contract into that pending entry;
+6. if the key has already completed and the completion callback already removed the pending entry, discard the returned Contract.
+
+This order avoids a race where completion occurs synchronously during `subscribeToCompletion(...)` before the Provider has established its pending state.
+
+The generic completion callback performs the Provider-to-Collection state handoff:
+
+- on successful completion, acquire Collection `Storage::write()`, publish the completed `TElement` under its key, release the Collection writer, then remove the Provider's pending entry;
+- on failed completion, publish nothing and remove the Provider's pending entry;
+- the successful publication must occur before the key stops being reported as Pending, preventing an observable Absent/non-Pending gap that could start a duplicate request.
+
+Removing the pending entry destroys its retained completion Contract. Sparkle's ContractProvider supports Contract resignation/destruction during its own callback by deferring the corresponding registration removal until callback dispatch completes.
+
+`GeneratingProvider` and `RequestingProvider` therefore inherit the same generic pending Answer/Contract reuse and completion behavior. Their only specialization is how a new acquisition is started. `RequestingProvider` additionally owns network-specific request correlation and message batching; it does not duplicate the generic pending lifecycle.
