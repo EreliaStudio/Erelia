@@ -829,3 +829,44 @@ The generic completion callback performs the Provider-to-Collection state handof
 Removing the pending entry destroys its retained completion Contract. Sparkle's ContractProvider supports Contract resignation/destruction during its own callback by deferring the corresponding registration removal until callback dispatch completes.
 
 `GeneratingProvider` and `RequestingProvider` therefore inherit the same generic pending Answer/Contract reuse and completion behavior. Their only specialization is how a new acquisition is started. `RequestingProvider` additionally owns network-specific request correlation and message batching; it does not duplicate the generic pending lifecycle.
+
+
+### Approved Diagnostic payload-only networking contract — 30 September 2026
+
+`Networking::Diagnostic` is no longer an independently routable network message and therefore owns no `Networking::MessageType` / MessageID of its own.
+
+It becomes a reusable serializable diagnostic value containing only the diagnostic semantics:
+
+```cpp
+class Networking::Diagnostic
+{
+public:
+    enum class Severity : std::uint8_t
+    {
+        Trace = 0,
+        Info = 1,
+        Warning = 2,
+        Error = 3
+    };
+
+    // severity + message payload
+};
+```
+
+`Networking::Diagnostic` must support insertion/extraction through `spk::Message` so it can be embedded by higher-level protocol messages:
+
+```cpp
+spk::Message& operator<<(
+    spk::Message& message,
+    const Networking::Diagnostic& diagnostic);
+
+const spk::Message& operator>>(
+    const spk::Message& message,
+    Networking::Diagnostic& diagnostic);
+```
+
+The request correlation ID remains the `spk::Message::RequestID` of the enclosing protocol message; it is not part of the `Diagnostic` value.
+
+Collection request-level validation, misuse, malformed-request, and outer aggregation failures are carried by the Collection family's Error message. That Error message embeds a `Networking::Diagnostic` payload and may additionally carry the contextual Collection keys that can safely be identified. Terminal per-element acquisition failures remain inside the normal Collection Response failure section and are not converted to Error messages.
+
+Consequently, the standalone `Networking::MessageType::Diagnostic` entry is removed. Earlier ST-001-11 planning text that emits a generic standalone `Networking::Diagnostic` message for malformed or aggregation failures is superseded by this payload-only Diagnostic contract.
