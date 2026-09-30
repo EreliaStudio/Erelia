@@ -1844,20 +1844,21 @@ A `Collection Response::Failure` means that the Server does not provide/generate
 
 Such a failure is terminal for that key for the lifetime of the current Client connection and must be remembered so the Client does not repeatedly request the same unavailable data.
 
-The Client-side acquisition state therefore conceptually distinguishes:
+The frozen public `Collection::State` remains exactly:
 
 ```text
 Absent
 Pending
 Available
-Failed
 ```
 
-where `Failed` is remembered outside the Available Collection storage and suppresses new network acquisition for that key.
+No new public `Failed` Collection state is introduced.
 
-A later request for a key currently remembered as Failed must not emit another network Request during the same connection.
+Instead, `RequestingProvider` retains a per-key remembered terminal `Response::Failure` refusal outside Collection storage and outside active Pending state.
 
-The Failure payload/reason is retained with that remembered failed state so the refusal is not lost and can be inspected/used by the acquisition layer as needed.
+A later `request(key)` for a key with a remembered refusal must not emit another network Request during the same connection. It resolves through the retained failure information so callers still observe the acquisition failure without causing repeated Server requests.
+
+The Failure payload/reason is retained by the RequestingProvider so the refusal is not lost and can be reused for later same-connection requests.
 
 This failure state is created only from terminal per-element `Response::Failure` entries. Family `*Error` messages never create it.
 
@@ -1884,7 +1885,7 @@ Therefore:
 - transport-disconnection failure of an in-flight Pending acquisition is not itself remembered as a permanent Server refusal;
 - stale responses from the previous connection remain unable to publish because their active Pending correlations were cleared.
 
-No automatic resend is required merely because reconnection happened. The next normal Collection/coordinator request for an Absent key may start a fresh acquisition.
+After reconnection, those keys are requestable again. If they remain part of the Client's normal desired acquisition set, the coordinator may request them again through the normal Collection request path.
 
 #### ClientNetworkManager owns Client disconnection observation
 
