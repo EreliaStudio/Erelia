@@ -36,9 +36,6 @@ namespace Networking
 		};
 
 	protected:
-		explicit Diagnostic(
-			spk::Message::Type type,
-			spk::Message::RequestID requestID);
 		Diagnostic(
 			spk::Message message,
 			spk::Message::Type expectedType,
@@ -58,7 +55,7 @@ namespace Networking
 		[[nodiscard]] std::string message() const;
 	};
 
-	spk::Message &operator<<(
-		spk::Message &message,
+	spk::Message::Writer &operator<<(
+		spk::Message::Writer &writer,
 		const Diagnostic &diagnostic);
 }
