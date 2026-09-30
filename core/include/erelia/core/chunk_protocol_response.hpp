@@ -56,8 +56,6 @@ public:
 	};
 
 private:
-	explicit Response(spk::Message::RequestID requestID);
-
 	void _validate() const;
 
 public:
