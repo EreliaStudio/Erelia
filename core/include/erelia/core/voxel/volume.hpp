@@ -39,11 +39,11 @@ namespace Voxel
 		[[nodiscard]] static Buffer::Lease obtainCellBuffer(std::size_t expectedSize);
 		[[nodiscard]] std::size_t _index(const LocalCoordinate &coordinate) const;
 
-		friend spk::Message &operator<<(
-			spk::Message &message,
+		friend spk::Message::Writer &operator<<(
+			spk::Message::Writer &writer,
 			const Volume &volume);
-		friend const spk::Message &operator>>(
-			const spk::Message &message,
+		friend const spk::Message::Reader &operator>>(
+			const spk::Message::Reader &reader,
 			Volume &volume);
 
 	protected:
