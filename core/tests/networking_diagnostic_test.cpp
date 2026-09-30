@@ -74,30 +74,30 @@ TEST(NetworkingDiagnostic, UsesSeverityThenSparkleStringEncoding)
 			sizeof(std::uint32_t) +
 			key.size());
 	EXPECT_EQ(
-		diagnostic.readAt<std::uint8_t>(0u),
+		diagnostic.reader().readAt<std::uint8_t>(0u),
 		static_cast<std::uint8_t>(
 			Networking::Diagnostic::Severity::Info));
 	EXPECT_EQ(
-		diagnostic.readAt<std::uint32_t>(
+		diagnostic.reader().readAt<std::uint32_t>(
 			sizeof(std::uint8_t)),
 		key.size());
 }
 
-TEST(NetworkingDiagnostic, RoundTripIsCursorIndependent)
+TEST(NetworkingDiagnostic, RoundTripIsReaderIndependent)
 {
 	const auto source = buildDiagnostic(
 		Networking::Diagnostic::Severity::Trace,
 		"Trace_Key",
 		19u);
 
-	spk::Message raw = source;
-	raw.skip<std::uint8_t>();
-	const auto originalOffset = raw.readOffset();
+	const spk::Message raw = source;
+	auto externalReader = raw.reader();
+	externalReader.skip<std::uint8_t>();
+	const auto originalOffset = externalReader.readOffset();
 
 	const Networking::Diagnostic decoded(raw);
 
-	EXPECT_EQ(raw.readOffset(), originalOffset);
-	EXPECT_EQ(decoded.readOffset(), originalOffset);
+	EXPECT_EQ(externalReader.readOffset(), originalOffset);
 	EXPECT_EQ(decoded.requestID(), 19u);
 	EXPECT_EQ(
 		decoded.severity(),
@@ -112,15 +112,17 @@ TEST(NetworkingDiagnostic, SerializerReusesDiagnosticPrefix)
 		"Shared_Prefix",
 		5u);
 
-	spk::Message destination(99u);
-	destination << diagnostic;
+	spk::Message::Writer writer(99u);
+	writer << diagnostic;
+	const spk::Message destination =
+		std::move(writer).build();
 
 	EXPECT_EQ(
-		destination.readAt<std::uint8_t>(0u),
+		destination.reader().readAt<std::uint8_t>(0u),
 		static_cast<std::uint8_t>(
 			Networking::Diagnostic::Severity::Warning));
 	EXPECT_EQ(
-		destination.readAt<std::uint32_t>(
+		destination.reader().readAt<std::uint32_t>(
 			sizeof(std::uint8_t)),
 		std::string("Shared_Prefix").size());
 }
@@ -131,9 +133,11 @@ TEST(NetworkingDiagnostic, RejectsWrongMessageType)
 		Networking::Diagnostic::Severity::Info,
 		"Key");
 	spk::Message raw = source;
-	raw.setType(
+	spk::Message::Writer writer(std::move(raw));
+	writer.setType(
 		static_cast<spk::Message::Type>(
 			Networking::MessageType::ChunkError));
+	raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Networking::Diagnostic(raw),
@@ -142,9 +146,10 @@ TEST(NetworkingDiagnostic, RejectsWrongMessageType)
 
 TEST(NetworkingDiagnostic, RejectsUnknownSeverity)
 {
-	spk::Message raw(diagnosticMessageType());
-	raw << std::uint8_t{99u};
-	raw << std::string("Key");
+	spk::Message::Writer writer(diagnosticMessageType());
+	writer << std::uint8_t{99u};
+	writer << std::string("Key");
+	const spk::Message raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Networking::Diagnostic(raw),
@@ -153,11 +158,12 @@ TEST(NetworkingDiagnostic, RejectsUnknownSeverity)
 
 TEST(NetworkingDiagnostic, RejectsTruncatedString)
 {
-	spk::Message raw(diagnosticMessageType());
-	raw << static_cast<std::uint8_t>(
+	spk::Message::Writer writer(diagnosticMessageType());
+	writer << static_cast<std::uint8_t>(
 		Networking::Diagnostic::Severity::Error);
-	raw << std::uint32_t{5u};
-	raw.append("abc", 3u);
+	writer << std::uint32_t{5u};
+	writer.append("abc", 3u);
+	const spk::Message raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Networking::Diagnostic(raw),
@@ -170,7 +176,9 @@ TEST(NetworkingDiagnostic, RejectsTrailingBytes)
 		Networking::Diagnostic::Severity::Error,
 		"Key");
 	spk::Message raw = source;
-	raw << std::uint8_t{0u};
+	spk::Message::Writer writer(std::move(raw));
+	writer << std::uint8_t{0u};
+	raw = std::move(writer).build();
 
 	EXPECT_THROW(
 		(void)Networking::Diagnostic(raw),
