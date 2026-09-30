@@ -1809,3 +1809,99 @@ Node:
 The reusable Erelia `MessageDispatcher` is therefore used only by runtimes that consume and interpret protocol messages locally. The central Server only routes them.
 
 This supersedes the earlier plan entry that introduced a `ServerNetworkManager`.
+
+
+### Approved Error, Failure, disconnect, and Update scope semantics — 30 September 2026
+
+The remaining Client-side Error/Failure semantics are finalized as follows.
+
+#### Collection family Error messages are diagnostic-only for ST-001-11
+
+Incoming `ChunkError` / `ColumnError` messages do not participate in acquisition state and must not settle, fail, remove, retry, or otherwise mutate Collection Pending/Available/failed acquisition state.
+
+For ST-001-11 they are only decoded and logged as warnings.
+
+The receiver parses the embedded `Networking::Diagnostic` plus any contextual payload data carried by the family Error message, then composes one warning string using `std::format` so that the diagnostic message is augmented with the payload context before it is written to the log.
+
+Conceptually:
+
+```text
+ChunkError / ColumnError
+    -> decode Diagnostic
+    -> decode contextual payload
+    -> std::format(...) diagnostic text + payload data
+    -> SPK_LOG(Warning)
+    -> no Collection/Provider state transition
+```
+
+The exact user-facing formatting string may follow the concrete payload shape implemented for that Error family, but the semantic behavior is fixed: Error messages are warnings only for this ticket.
+
+This is intentionally distinct from `Response::Failure`.
+
+#### Response::Failure is a remembered terminal acquisition refusal
+
+A `Collection Response::Failure` means that the Server does not provide/generate that requested data.
+
+Such a failure is terminal for that key for the lifetime of the current Client connection and must be remembered so the Client does not repeatedly request the same unavailable data.
+
+The Client-side acquisition state therefore conceptually distinguishes:
+
+```text
+Absent
+Pending
+Available
+Failed
+```
+
+where `Failed` is remembered outside the Available Collection storage and suppresses new network acquisition for that key.
+
+A later request for a key currently remembered as Failed must not emit another network Request during the same connection.
+
+The Failure payload/reason is retained with that remembered failed state so the refusal is not lost and can be inspected/used by the acquisition layer as needed.
+
+This failure state is created only from terminal per-element `Response::Failure` entries. Family `*Error` messages never create it.
+
+#### Disconnect resets remembered network failures
+
+Client disconnection defines a new network-acquisition epoch.
+
+On disconnection:
+
+```text
+active Pending acquisitions
+    -> settle Failed locally because transport was lost
+    -> Pending correlation removed
+
+remembered Response::Failure keys
+    -> clear remembered failure/refusal state
+    -> become requestable again after reconnection
+```
+
+Therefore:
+
+- a Server `Response::Failure` suppresses repeated requests while the current connection remains alive;
+- after a disconnect/reconnect cycle, those previously refused keys may be requested again;
+- transport-disconnection failure of an in-flight Pending acquisition is not itself remembered as a permanent Server refusal;
+- stale responses from the previous connection remain unable to publish because their active Pending correlations were cleared.
+
+No automatic resend is required merely because reconnection happened. The next normal Collection/coordinator request for an Absent key may start a fresh acquisition.
+
+#### ClientNetworkManager owns Client disconnection observation
+
+`ClientNetworkManager` retains the `spk::Client::DisconnectionContract`.
+
+When the Client transport disconnects, the network manager propagates the disconnect event to the Client-side network-backed acquisition components so they can:
+
+- fail/clear active Pending network acquisitions;
+- clear remembered `Response::Failure` refusals;
+- leave Collection Available values untouched.
+
+The concrete fan-out storage/API used by `ClientNetworkManager` to notify multiple RequestingProviders is an implementation detail; the ownership/responsibility is fixed here.
+
+#### Server Update production is deferred
+
+ST-001-11 implements the generic Update wire contract and Client-side Update receiving/application semantics, but the Server does not yet produce or broadcast Collection Update messages.
+
+Server-side Update generation/broadcast policy is deferred to later work.
+
+The Client-side Updater remains part of the architecture so the receive/apply path is ready and testable independently of production Server emission.
