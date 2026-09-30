@@ -38,19 +38,11 @@ Networking::Diagnostic::Builder::Builder(
 
 Networking::Diagnostic Networking::Diagnostic::Builder::build() &&
 {
-	Diagnostic result(diagnosticMessageType(), _requestID);
-	result << static_cast<std::uint8_t>(_severity);
-	result << _message;
-	result._validate(diagnosticMessageType(), false);
-	return result;
-}
-
-Networking::Diagnostic::Diagnostic(
-	spk::Message::Type type,
-	spk::Message::RequestID requestID) :
-	spk::Message(type)
-{
-	setRequestID(requestID);
+	spk::Message::Writer writer(diagnosticMessageType());
+	writer.setRequestID(_requestID);
+	writer << static_cast<std::uint8_t>(_severity);
+	writer << _message;
+	return Diagnostic(std::move(writer).build());
 }
 
 Networking::Diagnostic::Diagnostic(
@@ -85,7 +77,7 @@ void Networking::Diagnostic::_validate(
 			"Networking::Diagnostic payload is truncated");
 	}
 
-	const auto rawSeverity = readAt<std::uint8_t>(0u);
+	const auto rawSeverity = reader().readAt<std::uint8_t>(0u);
 	if (!validSeverity(rawSeverity))
 	{
 		throw spk::Exception(
@@ -93,7 +85,7 @@ void Networking::Diagnostic::_validate(
 	}
 
 	const auto messageLength =
-		readAt<std::uint32_t>(SerializedSeveritySize);
+		reader().readAt<std::uint32_t>(SerializedSeveritySize);
 	const std::size_t availableBytes =
 		size() - DiagnosticHeaderSize;
 	if (messageLength > availableBytes)
@@ -115,36 +107,36 @@ void Networking::Diagnostic::_validate(
 std::size_t Networking::Diagnostic::diagnosticSize() const
 {
 	const auto messageLength =
-		readAt<std::uint32_t>(SerializedSeveritySize);
+		reader().readAt<std::uint32_t>(SerializedSeveritySize);
 	return DiagnosticHeaderSize + static_cast<std::size_t>(messageLength);
 }
 
 Networking::Diagnostic::Severity Networking::Diagnostic::severity() const
 {
 	return static_cast<Severity>(
-		readAt<std::uint8_t>(0u));
+		reader().readAt<std::uint8_t>(0u));
 }
 
 std::string Networking::Diagnostic::message() const
 {
 	const auto messageLength =
-		readAt<std::uint32_t>(SerializedSeveritySize);
+		reader().readAt<std::uint32_t>(SerializedSeveritySize);
 	std::string result(
 		static_cast<std::size_t>(messageLength),
 		'\0');
-	readAt(
+	reader().readAt(
 		DiagnosticHeaderSize,
 		result.data(),
 		result.size());
 	return result;
 }
 
-spk::Message &Networking::operator<<(
-	spk::Message &message,
+spk::Message::Writer &Networking::operator<<(
+	spk::Message::Writer &writer,
 	const Diagnostic &diagnostic)
 {
-	message << static_cast<std::uint8_t>(
+	writer << static_cast<std::uint8_t>(
 		diagnostic.severity());
-	message << diagnostic.message();
-	return message;
+	writer << diagnostic.message();
+	return writer;
 }
