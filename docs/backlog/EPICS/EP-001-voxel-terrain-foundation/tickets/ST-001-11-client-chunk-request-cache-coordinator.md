@@ -1906,3 +1906,112 @@ ST-001-11 implements the generic Update wire contract and Client-side Update rec
 Server-side Update generation/broadcast policy is deferred to later work.
 
 The Client-side Updater remains part of the architecture so the receive/apply path is ready and testable independently of production Server emission.
+
+
+### Approved Client streaming Behaviour composition — 30 September 2026
+
+The earlier proposal for a dedicated Client `TerrainStreamingCoordinator` object and the earlier requirement to drive streaming from a retained `Transform3D::OnEditionContract` are superseded.
+
+ST-001-11 uses the normal Sparkle Engine/Entity/Behaviour model directly.
+
+#### Ownership
+
+For the initial implementation, long-lived Client runtime objects remain owned explicitly by `main`, outside the streaming Behaviour.
+
+Conceptually:
+
+```text
+main
+    -> spk::Application / Window
+    -> spk::Engine
+    -> Player spk::Entity3D
+    -> Client Collection<Column>
+    -> Client Collection<Chunk>
+    -> their Providers / network-facing helpers
+    -> other required runtime objects
+
+spk::Engine
+    -> references/registers Player through Engine::addEntity(...)
+
+Player
+    -> owns the streaming Behaviour through Entity::addBehaviour(...)
+```
+
+This matches Sparkle Version-0.1.3 ownership: `Engine::addEntity(Entity*)` registers/attaches an externally-owned Entity and does not take ownership, while `Entity::addBehaviour<T>()` owns the created Behaviour.
+
+No equivalent Server-side ownership refactor is required by this decision. Existing Server/node ownership remains unchanged unless later implementation work demonstrates a concrete need.
+
+#### Streaming Behaviour
+
+The Player receives one 3D Behaviour dedicated to terrain streaming. The exact concrete class name is an implementation naming detail; no separate coordinator object is introduced.
+
+During its normal Engine update, the Behaviour:
+
+1. reads the Player's current world-space position from `owner()->transform()`;
+2. converts that position to the containing Chunk coordinate using the already-approved floor/Chunk conversion contract;
+3. compares the resulting Chunk coordinate with the last Chunk coordinate for which streaming demand was issued;
+4. if the Chunk coordinate is unchanged, performs no new Column/Chunk acquisition work;
+5. if the Chunk coordinate changed, computes the currently desired Column coordinates and requests them through the Client `Collection<Column>`.
+
+The first update has no previous Chunk coordinate and therefore establishes the initial streaming demand.
+
+Streaming demand is therefore driven by Player Chunk transitions, not by every frame and not by every sub-Chunk transform movement.
+
+#### Column -> Chunk asynchronous chain
+
+Column acquisition remains the first stage.
+
+For every requested Column acquisition Answer, the Behaviour retains a completion subscription Contract. The completion callback examines the completed Column acquisition.
+
+When a Column acquisition completes successfully:
+
+```text
+Column completion
+    -> read the resolved Column
+    -> enumerate its contained full Chunk::Coordinate values
+    -> apply the current desired-area filtering required by the streaming policy
+    -> request the relevant Chunks through Client Collection<Chunk>
+```
+
+A failed Column acquisition does not launch Chunk requests from that failed Column.
+
+The Behaviour likewise retains any asynchronous completion Contracts needed for the resulting Chunk acquisitions; temporary Contracts must not be discarded before completion.
+
+#### Chunk completion placeholder
+
+For ST-001-11 there is no mesher integration yet.
+
+When an individual Chunk acquisition completes successfully, the Behaviour only emits a log entry at:
+
+```cpp
+spk::Logger::Level::UserValueB
+```
+
+This log is the temporary observable placeholder for the later meshing/rendering handoff.
+
+No meshing, render-entity creation, or Chunk view ownership is introduced by ST-001-11.
+
+The exact human-readable Chunk-completion log text is not part of the protocol/architecture contract unless a focused test later requires a stable string.
+
+#### Separation from networking
+
+The streaming Behaviour never sends protocol messages directly.
+
+It depends on the Client Collections and invokes their normal request API:
+
+```text
+Player streaming Behaviour
+    -> Collection<Column>::request(...)
+        -> network-backed Provider if Absent
+
+successful Column completion
+    -> Collection<Chunk>::request(...)
+        -> network-backed Provider if Absent
+
+successful Chunk completion
+    -> UserValueB log placeholder
+```
+
+The Collection/Provider layer therefore continues to own caching, Pending reuse, remembered Response::Failure suppression, RequestID correlation, protocol serialization, and network transmission.
+
+The Behaviour owns only Player-centered streaming demand and the asynchronous Column-to-Chunk request chain.
