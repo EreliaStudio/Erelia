@@ -30,8 +30,6 @@ public:
 	};
 
 private:
-	explicit Error(spk::Message::RequestID requestID);
-
 	void _validate() const;
 
 public:
