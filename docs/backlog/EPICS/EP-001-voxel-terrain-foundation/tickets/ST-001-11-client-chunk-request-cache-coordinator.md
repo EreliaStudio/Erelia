@@ -746,3 +746,46 @@ Response treatRequest(
 ```
 
 `ResponsePolicy` may still contain limits such as maximum accepted/requested element count and elements per serialized section. Exceeding a protocol/request limit is handled as validation/diagnostic behavior rather than by automatically emitting multiple response messages.
+
+
+### Approved Provider-owned pending acquisition state — 30 September 2026
+
+The generic Collection must not duplicate pending acquisition Answers inside its own storage. Pending acquisition state belongs to the Provider.
+
+The Collection storage owns only data that has actually become available. Conceptually, the Collection state for a key is derived as follows:
+
+```text
+Collection contains key
+    -> Available
+
+Collection does not contain key
+and Provider reports key as pending
+    -> Pending
+
+Collection does not contain key
+and Provider does not report key as pending
+    -> Absent
+```
+
+The Provider therefore owns the pending Answer/correlation state required by its acquisition mechanism. In particular, a network-backed RequestingProvider retains the Answers needed to represent outstanding requests and correlate received responses. The Collection does not retain a second copy of those Answers merely to represent Pending state.
+
+Repeated acquisition of an already-pending key must reuse the Provider's existing Answer rather than create a duplicate acquisition.
+
+Successful acquisition performs an explicit ownership handoff from Provider-pending state to Collection-available state:
+
+```text
+Provider owns pending acquisition
+    -> Task completes successfully
+    -> Collection completion callback acquires write access to Collection storage
+    -> acquired element is published into Collection storage
+    -> Collection write access is released
+    -> Provider pending Answer/correlation may be removed
+```
+
+The ordering is significant: the available value must be published before the Provider stops reporting the key as Pending. There must be no observable intermediate state in which the key is absent from the Collection and no longer pending in the Provider, because that could incorrectly start a duplicate request.
+
+On acquisition failure, no value is published into the Collection. Once the failed acquisition is settled, the Provider removes its pending Answer/correlation and the key becomes Absent/retryable.
+
+Collection storage remains synchronized through its existing `spk::ProtectedData<Storage>`. Task completion may therefore publish acquired data from a WorkerPool thread by obtaining `Storage::write()`; updater/rendering-side reads continue to use the corresponding protected read access. No additional Collection-wide asynchronous handoff or second synchronization layer is required.
+
+This supersedes earlier planning text that stored an `std::optional<Task<TElement>::Answer>` inside each Collection entry to represent Pending state.
