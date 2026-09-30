@@ -1297,3 +1297,100 @@ main / application composition root
 ```
 
 No Collection protocol parser needs its own network receive loop, and multiple parsers must never independently drain the same Sparkle receive FIFO.
+
+
+### Approved network-manager MessageID subscription API — 30 September 2026
+
+The Erelia Client and Server network-manager widgets expose MessageID-specific subscriptions directly. Their role is inspired by the former JGL2 ClientManager/ServerManager update widgets, but adapted to the current Sparkle queue-based networking and Erelia Service access.
+
+The managers own no Client/Server transport instance. They access the transport through the relevant Erelia Service and drain its receive queue during their update step.
+
+Each MessageID owns a `spk::ContractProvider`. Subscribing returns a retained Contract; destroying that Contract removes the corresponding callback exactly like other Sparkle subscription APIs.
+
+The Client-side API is conceptually:
+
+```cpp
+class ClientNetworkManager : public spk::Widget
+{
+public:
+    using MessageProvider =
+        spk::ContractProvider<const spk::Message&>;
+    using MessageCallback =
+        MessageProvider::callback_type;
+    using MessageContract =
+        MessageProvider::Contract;
+
+    [[nodiscard]]
+    MessageContract subscribeToMessage(
+        spk::Message::Type messageID,
+        MessageCallback callback);
+};
+```
+
+During update:
+
+```text
+Service::client().messages()
+    -> drain messages
+    -> lookup MessageProvider by message.type()
+    -> trigger provider with const spk::Message&
+```
+
+The Server-side API preserves the sender identity:
+
+```cpp
+class ServerNetworkManager : public spk::Widget
+{
+public:
+    using MessageProvider =
+        spk::ContractProvider<
+            spk::ConnectionID,
+            const spk::Message&>;
+    using MessageCallback =
+        MessageProvider::callback_type;
+    using MessageContract =
+        MessageProvider::Contract;
+
+    [[nodiscard]]
+    MessageContract subscribeToMessage(
+        spk::Message::Type messageID,
+        MessageCallback callback);
+};
+```
+
+During update:
+
+```text
+Service::server().messages()
+    -> drain spk::ReceivedMessage values
+    -> lookup MessageProvider by received.message.type()
+    -> trigger provider(received.emitter, received.message)
+```
+
+The exact Service ownership/plumbing for the Server transport must remain consistent with the Server composition already in use; the network manager itself must not instantiate or own a second `spk::Server`.
+
+Application composition retains the returned Contracts. Example bindings are conceptually:
+
+```cpp
+_chunkResponseContract =
+    networkManager.subscribeToMessage(
+        static_cast<spk::Message::Type>(
+            Networking::MessageType::ChunkResponse),
+        [&chunkProvider](const spk::Message& message)
+        {
+            chunkProvider.receive(message);
+        });
+
+_chunkUpdateContract =
+    networkManager.subscribeToMessage(
+        static_cast<spk::Message::Type>(
+            Networking::MessageType::ChunkUpdate),
+        [&chunkUpdater](const spk::Message& message)
+        {
+            chunkUpdater.receive(message);
+        });
+```
+
+The same mechanism is used for Column Response/Update/Error messages and for Server-side Collection Request handlers.
+
+Multiple subscribers to one MessageID are permitted by the ContractProvider model. A parser must not independently drain `spk::Client::messages()` or `spk::Server::messages()`; the network-manager widget is the unique queue-draining point for its transport.
