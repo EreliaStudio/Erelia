@@ -2087,3 +2087,39 @@ Chunk-coordinate transition
 ```
 
 The Behaviour retains both the Transform edition Contract and any asynchronous completion Contracts required by the outstanding Column/Chunk request chain.
+
+
+### Approved initial streaming trigger — 30 September 2026
+
+No dedicated initialization hook is introduced for the first terrain-streaming request.
+
+The Client composition root performs setup in this order:
+
+```text
+construct Engine / Player / Collections / Providers
+    -> attach the streaming Behaviour to Player
+    -> Behaviour retains Transform3D edition subscription
+    -> register/configure remaining runtime objects
+    -> place Player at its initial world-space position
+```
+
+The initial call:
+
+```cpp
+player.transform().place(initialPosition);
+```
+
+is the first normal Transform edition event and therefore drives the same streaming path as every later Player movement:
+
+```text
+initial place(...)
+    -> Transform edition
+    -> derive Chunk::Coordinate
+    -> request desired Columns
+    -> successful Column completion requests Chunks
+    -> apply unloadRange
+```
+
+No special first-load code path exists inside the streaming Behaviour.
+
+Sparkle Version-0.1.3 `Transform3D::place(...)` does not emit an edition when the supplied position is already identical to the current position. Therefore the initial Player position must be applied after the Behaviour subscription and must represent an actual transform change if the default transform position would otherwise be identical.
