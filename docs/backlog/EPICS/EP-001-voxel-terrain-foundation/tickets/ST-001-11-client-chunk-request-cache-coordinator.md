@@ -1713,3 +1713,99 @@ Node:
     Service::node()
         -> Service::endpoint()
 ```
+
+
+### Approved final dispatch topology — 30 September 2026
+
+The Server-side dispatch design is finalized after verification against `Sparkle/Version-0.1.3`.
+
+There is no Erelia `ServerNetworkManager`.
+
+The dedicated Server does not parse Collection protocol messages locally. It uses the existing `spk::NodeRouter` routing API exclusively to declare which node receives each incoming MessageID.
+
+The Server services remain:
+
+```cpp
+namespace Service
+{
+    [[nodiscard]]
+    spk::NodeRouter& router();
+
+    [[nodiscard]]
+    spk::Server& server();
+}
+```
+
+with:
+
+```cpp
+spk::Server& Service::server()
+{
+    return router().server();
+}
+```
+
+Server composition declares routes explicitly:
+
+```cpp
+Service::router().redirect(
+    static_cast<spk::Message::Type>(
+        Networking::MessageType::ChunkRequest),
+    "terrain");
+
+Service::router().redirect(
+    static_cast<spk::Message::Type>(
+        Networking::MessageType::ColumnRequest),
+    "terrain");
+```
+
+An incoming MessageID without a configured `spk::NodeRouter::redirect(...)` route is intentionally invalid and may raise the existing Sparkle exception. This strict behavior is desired and must not be hidden by a fallback route.
+
+The verified Sparkle path is:
+
+```text
+Client
+    -> spk::NodeRouter::server()
+    -> NodeRouter MessageID redirection
+    -> spk::RemoteNode
+    -> spk::RemoteNode::Endpoint
+    -> node-side parser/handler
+    -> Endpoint::reply(...)
+    -> spk::RemoteNode
+    -> spk::NodeRouter
+    -> originating Client
+```
+
+`spk::NodeRouter::dispatch()` handles Server incoming/outgoing routing, while the Erelia `Router::dispatch()` continues to advance each connected `spk::RemoteNode::dispatch()` as required by Sparkle's current implementation.
+
+The final runtime dispatch topology is therefore:
+
+```text
+Client:
+    ClientNetworkManager : spk::Widget
+        -> Service::client()
+        -> drains Client messages
+        -> MessageDispatcher
+        -> MessageID subscriptions
+        -> RequestingProvider / Updater / Error receiver
+
+Server:
+    Erelia Router
+        -> Service::router()
+        -> spk::NodeRouter::redirect(MessageID, nodeName)
+        -> no local protocol parser
+        -> no ServerNetworkManager
+
+Node:
+    NodeNetworkManager
+        -> Service::endpoint()
+        -> Endpoint::dispatch()
+        -> drains Endpoint requests
+        -> MessageDispatcher
+        -> MessageID subscriptions
+        -> node request handlers
+```
+
+The reusable Erelia `MessageDispatcher` is therefore used only by runtimes that consume and interpret protocol messages locally. The central Server only routes them.
+
+This supersedes the earlier plan entry that introduced a `ServerNetworkManager`.
