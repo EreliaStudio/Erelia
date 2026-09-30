@@ -2123,3 +2123,57 @@ initial place(...)
 No special first-load code path exists inside the streaming Behaviour.
 
 Sparkle Version-0.1.3 `Transform3D::place(...)` does not emit an edition when the supplied position is already identical to the current position. Therefore the initial Player position must be applied after the Behaviour subscription and must represent an actual transform change if the default transform position would otherwise be identical.
+
+
+### Approved Behaviour initialization without forced Transform edition — 30 September 2026
+
+The preceding initial-streaming-trigger decision based on calling `player.transform().place(initialPosition)` after setup is superseded.
+
+No `Transform3D::forceTriggerEdition()` API is added to Sparkle for ST-001-11.
+
+The Player streaming Behaviour factors all streaming reaction logic into one internal routine, conceptually:
+
+```cpp
+void _updateStreaming(
+    const spk::Transform3D& transform);
+```
+
+During Behaviour setup/attachment, it:
+
+1. retains the Player Transform edition subscription;
+2. routes every later Transform edition through `_updateStreaming(...)`;
+3. immediately invokes `_updateStreaming(owner()->transform())` once after the subscription is established.
+
+Conceptually:
+
+```cpp
+_transformEditionContract =
+    owner()->transform().subscribeToEdition(
+        [this](const spk::Transform3D& transform)
+        {
+            _updateStreaming(transform);
+        });
+
+_updateStreaming(owner()->transform());
+```
+
+The Behaviour stores the last processed streaming-center `Chunk::Coordinate`, for example as an optional value.
+
+Therefore:
+
+```text
+Behaviour initialization
+    -> current Chunk coordinate has not been processed yet
+    -> _updateStreaming(current transform)
+    -> initial Column/Chunk streaming + unload evaluation
+
+later Transform edition
+    -> _updateStreaming(edited transform)
+    -> same Chunk coordinate: no-op
+    -> different Chunk coordinate:
+         refresh Column demand
+         launch resulting Chunk demand
+         unload Chunks outside unloadRange
+```
+
+This keeps initialization and runtime movement on exactly the same code path without fabricating a Transform edit, without forcing cache invalidation inside Sparkle, and without requiring the initial Player position to differ from the default Transform position.
