@@ -135,7 +135,7 @@ namespace
 		}
 
 		const auto messageLength =
-			message.readAt<std::uint32_t>(
+			message.reader().readAt<std::uint32_t>(
 				offset +
 				sizeof(Chunk::Coordinate) +
 				SerializedFailureCodeSize);
