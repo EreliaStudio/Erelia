@@ -1,8 +1,8 @@
 # Current Status
 
-**Updated:** 28 September 2026
+**Updated:** 1 October 2026
 **Default baseline:** `master`
-**Active ticket branch:** none; `master` is the current implementation baseline
+**Active ticket branch:** `feat/st-001-11-client-chunk-request-cache-coordinator`; `master` remains the completed ST-001-01 through ST-001-10 baseline
 
 ## Branch state
 
@@ -50,7 +50,7 @@ A dedicated cross-system integration layer now lives under `tests/integration/`.
 
 **ST-001-10 — Client dedicated-Server connection** is **Done** on `master` through PR #18. The delivered Client uses explicit endpoint configuration, process-wide Service-owned Sparkle dependencies, `MainApplicationWidget` composition, and a `ConnectionManager` that serializes synchronous Sparkle connection attempts through the shared WorkerPool, distinguishes Task settlement from live `isConnected()` state, performs bounded three-attempt automatic retry, and exposes `/connect` for a fresh cycle. Client component coverage, real Router integration, and the separate-process `EreliaClient -> EreliaServer` smoke are included. Final PR CI run #604 (run ID `36409915048`) is green across the full required matrix.
 
-ST-001-11 is now the next dependency-ordered implementation area. It remains **Blocked** on its own Client cache/retry/recycle policy specification; ST-001-10 is no longer a blocker.
+ST-001-11 is the next dependency-ordered implementation area and is now **Ready** on `feat/st-001-11-client-chunk-request-cache-coordinator`. Its Client cache/streaming/network policy is finalized: generic `Collection<TKey, TElement>`, Provider-owned Pending state, Column -> Chunk streaming, Client view/unload retention, per-request-type monotonic non-recycled RequestIDs, generic Collection Request/Response/Update/Error families, payload-only `Networking::Diagnostic`, generic Response offset-table sectioning across Success and Failure, and explicit accepted debt for Error-without-Response Pending settlement.
 
 The implemented ST-001-09 contract reports a true Collection batch/outer TaskGroup aggregation failure as one correlated generic Diagnostic with severity `Error`, translation key `"Chunk_Request_Aggregation_Failure"`, and the original RequestID; no ChunkResponse is emitted because no valid BatchResult exists. Sparkle Version-0.1.3 provides the generic manually-settled `spk::Task<TResult>`, direct-callable WorkerPool execution, completion subscriptions, thread-safe ContractProvider, and `spk::TaskGroup<TResult>` used by the implementation.
 
@@ -71,6 +71,16 @@ The internal batch size is fixed at 1024 coordinates as a TerrainNode implementa
 
 The Core implementation is now reconciled with Sparkle: `Networking::Diagnostic`, specialized `Chunk::Protocol::Error`, the refined Success/Failure `Chunk::Protocol::Response`, the batched asynchronous `Chunk::Collection`, and single-coordinate WorkerPool-backed `PrototypeChunkProvider` are implemented with dedicated deterministic tests. Main Server routing now registers `ChunkRequest -> "terrain"`, and `TerrainNode` exposes its Endpoint request queue for the application dispatcher.
 
+
+## ST-001-11 readiness update — 1 October 2026
+
+The merged Sparkle Version-0.1.3 Message redesign is incorporated into the ST-001-11 branch: finalized Messages are immutable, construction uses `spk::Message::Writer`, and decoding uses independent `spk::Message::Reader` instances backed by shared pooled storage.
+
+The ST-001-11 protocol intentionally supersedes the historical fixed Chunk MessageID values and standalone Diagnostic MessageID. Chunk and Column now each use the generic Collection Request/Response/Update/Error family; Diagnostic is payload-only. Chunk and Column RequestID sequences are independent, each starts at 1, increments monotonically as `uint64_t`, and is never recycled.
+
+Chunk and Column own static compile-time tuning constants for maximum elements per Request and elements per Response section. Numeric values are implementation tuning knobs rather than durable protocol identifiers.
+
+The generic Collection Response owns the offset table used for both Success and Failure section entry points. Error messages remain diagnostic-only on the Client for ST-001-11; the case where an Error is emitted without a terminal Response and leaves Pending work unresolved is explicitly accepted technical debt for later reliability work.
 
 ## Explicit non-goals
 
