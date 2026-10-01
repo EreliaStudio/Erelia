@@ -1,7 +1,7 @@
 #pragma once
 #include "erelia/core/collection.hpp"
+#include "erelia/core/networking/collection_protocol_types.hpp"
 #include "erelia/core/networking/diagnostic.hpp"
-#include "erelia/core/networking/message_type.hpp"
 #include <algorithm>
 #include <limits>
 #include <set>
@@ -9,12 +9,11 @@
 
 namespace Networking
 {
-	template <typename TElement>
-	struct CollectionMessageTypes;
-	template <MessageSerializable TKey, MessageSerializable TElement>
-	struct CollectionProtocol
+	template <typename TKey, typename TElement>
+	struct CollectionProtocol::Codec
 	{
-		using Types = CollectionMessageTypes<TElement>;
+		static_assert(MessageSerializable<TKey> && MessageSerializable<TElement>);
+		using Types = typename TElement::Protocol::MessageTypes;
 		struct Failure
 		{
 			enum class Code : std::uint8_t

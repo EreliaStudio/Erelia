@@ -2,12 +2,21 @@
 
 #include <cstdint>
 
+#include "erelia/core/networking/collection_protocol_types.hpp"
 #include "erelia/core/voxel/cell.hpp"
 #include "erelia/core/voxel/volume.hpp"
 
 struct Chunk : public Voxel::Volume
 {
 	using Coordinate = spk::Vector3Int;
+	struct Protocol
+	{
+		using MessageTypes = Networking::CollectionProtocol::MessageTypes<
+			Networking::MessageType::ChunkRequest,
+			Networking::MessageType::ChunkResponse,
+			Networking::MessageType::ChunkUpdate,
+			Networking::MessageType::ChunkError>;
+	};
 
 	class Builder;
 

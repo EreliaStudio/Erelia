@@ -7,7 +7,7 @@ template <typename TKey, typename TElement>
 class Collection<TKey, TElement>::RequestingProvider : public Collection<TKey, TElement>::Provider
 {
 	using Base = typename Collection::Provider;
-	using Protocol = Networking::CollectionProtocol<TKey, TElement>;
+	using Protocol = Networking::CollectionProtocol::Codec<TKey, TElement>;
 	using ID = spk::Message::RequestID;
 	struct Parsing
 	{

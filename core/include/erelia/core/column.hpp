@@ -11,6 +11,14 @@ struct Column
 		std::int32_t z = 0;
 		auto operator<=>(const Coordinate &) const = default;
 	};
+	struct Protocol
+	{
+		using MessageTypes = Networking::CollectionProtocol::MessageTypes<
+			Networking::MessageType::ColumnRequest,
+			Networking::MessageType::ColumnResponse,
+			Networking::MessageType::ColumnUpdate,
+			Networking::MessageType::ColumnError>;
+	};
 	inline static constexpr std::size_t MaximumElementsPerRequest = 1024;
 	inline static constexpr std::size_t ElementsPerResponseSection = 32;
 	std::vector<Chunk::Coordinate> chunks;

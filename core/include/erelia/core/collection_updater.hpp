@@ -12,7 +12,7 @@ public:
 	}
 	void receive(const spk::Message &message)
 	{
-		using Protocol = Networking::CollectionProtocol<TKey, TElement>;
+		using Protocol = Networking::CollectionProtocol::Codec<TKey, TElement>;
 		const typename Protocol::Update update(message);
 		const auto state = _collection._provider->_state;
 		for (std::size_t index = 0; index < update.sectionCount(); ++index)

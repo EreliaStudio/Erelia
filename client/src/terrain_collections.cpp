@@ -19,7 +19,7 @@ TerrainCollections::TerrainCollections(ClientNetworkManager &manager) :
 template <typename TKey, typename TElement>
 void TerrainCollections::_bind(ClientNetworkManager &manager, Collection<TKey, TElement> &collection, typename Collection<TKey, TElement>::Updater &updater)
 {
-	using Types = Networking::CollectionMessageTypes<TElement>;
+	using Types = typename TElement::Protocol::MessageTypes;
 	auto &provider = static_cast<typename Collection<TKey, TElement>::RequestingProvider &>(collection.provider());
 	_subscriptions.push_back(manager.dispatcher().subscribe(static_cast<spk::Message::Type>(Types::Response), [&provider](const spk::Message &message) {
 		provider.receive(message);

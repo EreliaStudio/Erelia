@@ -115,7 +115,7 @@ void TerrainNode::dispatch()
 template <typename TKey, typename TElement>
 void TerrainNode::_request(const Request &request, Collection<TKey, TElement> &collection)
 {
-	using Protocol = Networking::CollectionProtocol<TKey, TElement>;
+	using Protocol = Networking::CollectionProtocol::Codec<TKey, TElement>;
 	const std::string domain = std::is_same_v<TElement, Chunk> == true ? "Chunk" : "Column";
 	std::vector<TKey> keys;
 	try

@@ -276,6 +276,9 @@ The generated ordering is the current protocol contract. No compatibility requir
 
 There is no standalone `Networking::MessageType::Diagnostic`.
 
+Each domain declares its family directly inside `Chunk::Protocol::MessageTypes` or `Column::Protocol::MessageTypes`, using the four-parameter `Networking::CollectionProtocol::MessageTypes<Request, Response, Update, Error>` template. Generic codecs and Client subscription bindings read `TElement::Protocol::MessageTypes`; no external per-element specialization is required. The lightweight declaration header is separate from the full `CollectionProtocol::Codec<TKey, TElement>` implementation to avoid circular domain/Collection includes. `Networking::ChunkProtocol` and `Networking::ColumnProtocol` remain convenience aliases for those codecs. This owner-requested declaration refactor preserves all MessageID values and wire formats.
+
+
 ### Diagnostic
 
 `Networking::Diagnostic` is a serializable payload value, not a routable Message.
@@ -577,6 +580,7 @@ The Behaviour never serializes or sends protocol Messages directly.
 ### Protocol
 
 - Chunk and Column family MessageIDs generated from the macro;
+- domain-owned four-parameter message families, including a custom domain whose IDs drive all four codecs without an external specialization;
 - no standalone Diagnostic MessageID;
 - Writer/Reader serialization round trips;
 - Request split at domain static request limit;
@@ -693,3 +697,9 @@ The project owner confirmed the implemented reconnect/stay-alive behavior and re
 The revised process smoke observes Server loss, exactly three ordered reconnect attempts, the stopped-cycle marker and continued Client liveness. The routed ConnectionManager fixture verifies exhaustion and explicit recovery against a restored Server on the same endpoint. Production connection policy is unchanged. The Client now bundles and loads `i18n/en.json` before UI construction; the smoke also rejects missing Client translation keys.
 
 The prior CI failures remain historical evidence. Revised Windows Debug/Release CI and final owner review are still required; this ticket remains In Progress.
+
+### Domain-owned message families — 1 October 2026
+
+The owner requested replacing external `CollectionMessageTypes<TElement>` specializations with four-parameter family declarations directly inside Chunk and Column. Both domains now own `Protocol::MessageTypes`; the generic `CollectionProtocol::Codec` and subscription bindings consume that declaration. All existing wire IDs and payload layouts are preserved.
+
+Validation: a local GCC 13 C++23 executable linked to the real Sparkle Message/Exception implementation passes 13 focused protocol tests, including custom-domain IDs for all four message families and existing Request/Response/Update/Error malformed-input regressions. Core protocol/RequestingProvider tests and TerrainNode pass syntax checks. `git diff --check` passes. Client syntax validation is blocked locally by missing OpenGL/GLEW headers; full Client and cross-process runtime checks remain Windows CI responsibilities. clang-format is unavailable locally, so its CI check remains required.
