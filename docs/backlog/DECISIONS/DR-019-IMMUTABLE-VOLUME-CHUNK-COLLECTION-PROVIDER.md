@@ -329,3 +329,29 @@ Multiple overlapping Collection requests that include the same Pending coordinat
 TerrainNode may group several Collection batch Answers in one `spk::TaskGroup<BatchResult>`. Because TaskGroup accepts arbitrary `Task<TResult>::Answer` values, these manually-settled Collection Tasks compose with the same API as WorkerPool-produced Tasks.
 
 ST-001-09 later refined the terminal protocol representation so `Chunk::Protocol::Response` owns nested `Response::Success { coordinate, chunk }` and `Response::Failure { coordinate, Failure::Code, message }` entries. Collection remains networking-agnostic and must not return those protocol types directly. TerrainNode owns the translation from acquisition outcomes into protocol entries. On 26 September 2026 the project owner explicitly selected per-coordinate failure-as-data semantics and fixed the Collection result names as `Chunk::Collection::BatchResult::Acquired` and `Chunk::Collection::BatchResult::Failed`; `Failed` preserves the originating `std::exception_ptr`. Ordinary coordinate generation/acquisition failure completes the Collection batch with a `Failed` entry; it does not fail the batch Task.
+
+## ST-001-11 generic Collection refinement — 2026-10-01
+
+ST-001-11 generalizes the asynchronous acquisition/storage mechanics established here from `Chunk::Collection` into `Collection<TKey, TElement>`.
+
+The immutable-value/lifetime decisions of DR-019 remain unchanged. The generic refinement supersedes only the Chunk-specific Collection API/implementation shape:
+
+- Collection storage owns Available values only;
+- Provider owns synchronized Pending Answers and their completion Contracts;
+- `Collection::state(key)` derives Available from storage, otherwise Pending from Provider state, otherwise Absent;
+- Pending acquisition reuse and successful Provider -> Collection publication are implemented once in the generic Provider lifecycle;
+- successful publication occurs before Pending disappears, avoiding an observable Absent/non-Pending gap;
+- `insert`, `replace`, and `remove` invalidate conflicting Pending work so late completion cannot republish stale values;
+- Client and Server may instantiate the same generic Collection with different Provider implementations.
+
+ST-001-11 uses at least:
+
+```cpp
+Collection<Chunk::Coordinate, Chunk>
+Collection<Column::Coordinate, Column>
+```
+
+The previous ST-001-09 `Chunk::Collection::BatchResult` model remains historical completion evidence for the delivered Server handler. ST-001-11 migrates callers to single-key `Task<TElement>::Answer` plus ordered `TaskGroup<TElement>::Answer` batch composition.
+
+Networking remains outside generic Collection storage itself. Network-specific correlation, remembered Response failures, batching, and Message parsing live in `Collection<TKey, TElement>::RequestingProvider`; unsolicited canonical Set/Remove application lives in the generic `Updater`.
+
