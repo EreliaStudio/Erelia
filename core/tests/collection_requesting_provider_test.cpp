@@ -256,9 +256,10 @@ TEST(RequestingProvider, ReplacementPendingInLaunchWindowEmitsOnlyOneRequest)
 	spk::WorkerPool pool(1);
 	std::vector<spk::Message> sent;
 	auto gate = std::make_shared<Gate>();
-	Cache cache{Delayed(pool, [&](const auto &message) {
+	auto send = [&](const auto &message) {
 		sent.push_back(message);
-	}, gate)};
+	};
+	Cache cache{Delayed(pool, send, gate)};
 	std::optional<Cache::Answer> old;
 	std::jthread first([&] {
 		old = cache.request(Column::Coordinate{1, 0});
