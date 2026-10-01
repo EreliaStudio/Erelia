@@ -1,1090 +1,67 @@
 # ST-001-11 — Client Chunk request/cache coordinator
 
-**Status:** Blocked
+**Status:** Ready
 **Epic:** EP-001
-**Production target(s):** Client
-**Test suite(s):** EreliaClientTestSuite
+**Production target(s):** Core + Client + Terrain node
+**Test suite(s):** EreliaCoreTestSuite, EreliaClientTestSuite, EreliaServerTestSuite, EreliaIntegrationTestSuite
 
 ## Intent
 
-Own Client-side Chunk identity, player-centered desired-region tracking, missing-Chunk request batching, outstanding-request tracking, canonical response replacement, and retention/eviction behavior for EP-001 inspection.
+Introduce the generic asynchronous Collection foundation required by Client terrain streaming, migrate Chunk acquisition onto it, add the shared Column occupancy domain, provide generic Collection request/response/update/error networking, and integrate player-centered Client Column -> Chunk streaming with bounded Client retention.
 
 ## User / system value
 
-The Client can request only the terrain it needs and maintain coherent local canonical Chunk data while moving the inspection position.
+The Client requests only terrain that is relevant to its current inspection position, reuses cached or already-Pending acquisitions, receives canonical Server data through one generic Collection protocol model, and bounds its local Column/Chunk storage while moving through the world.
 
 ## Starting state / prerequisites
 
-- Depends on ST-001-06 Core Chunk::Collection/Provider foundation, ST-001-08, and completed ST-001-10 Client connection lifecycle.
-- OQ-038/DR-022 establish the batched Client-driven direction and RequestID correlation. ST-001-09 is Done and fixes terminal `Response::Success` / `Response::Failure`, failure-code/string encoding, and the generic diagnostic-message contract.
-- Sparkle Version-0.1.3 provides `spk::Engine`, `spk::Entity3D`, `spk::Transform3D::subscribeToEdition(...)`, and world-frame transform positions. ST-001-11 uses those existing engine contracts for its streaming center rather than inventing an Erelia-local transform notification mechanism.
+- ST-001-06, ST-001-08, ST-001-09, and ST-001-10 are Done on `master`.
+- DR-019 fixes immutable shared Chunk/Volume lifetime and the asynchronous Collection/Provider direction.
+- DR-022 records the historical ST-001-08/ST-001-09 Chunk wire contract. ST-001-11 intentionally supersedes its fixed Chunk MessageID numbering, standalone Diagnostic MessageID, request-ID recycling policy, and Chunk-specific protocol framing with the generic Collection protocol defined here.
+- Sparkle Version-0.1.3 now exposes immutable `spk::Message` values, `spk::Message::Writer` for construction, and independent `spk::Message::Reader` objects for decoding.
+- ST-001-10 owns connection establishment/reconnection. ST-001-11 consumes the existing `Service::client()` transport and its connection/disconnection notifications.
 
 ## Product ownership
 
-Client owns loading/view policy, request coordination, and Client-side cache state.
-
-## Allowed dependencies
-
-EreliaClientLibrary, EreliaCore, Sparkle Client networking, standard library.
-
-## Forbidden dependencies
-
-Server-selected view radius, Client terrain generation as canonical data, Server/Client cross-dependency, rendering ownership inside the cache.
-
-## Owned behavior
-
-The final ticket should own:
-
-- one designated Client `spk::Entity3D` acting as the Chunk-streaming center;
-- a retained subscription to that entity's `spk::Transform3D` edition notifications;
-- deriving the current center Chunk coordinate from the entity's world position;
-- recomputing streaming demand only when the derived center Chunk coordinate changes;
-- Client-configured `viewRange` and `unloadRange` values loaded from the Client configuration file, allowing different Clients to choose different streaming ranges;
-- one precomputed set of relative `Chunk::Coordinate` offsets for the cubic view region and one for the cubic unload region, generated once from configuration rather than recomputing distances after every player movement;
-- applying those precomputed offsets to the current center Chunk coordinate to derive absolute desired/retained coordinates;
-- an `unloadRange`, greater than or equal to `viewRange`, that determines which cached coordinates are eligible to be removed when they are outside the cubic unload region;
-- identification of missing cached coordinates;
-- batching request coordinates under final limits;
-- outstanding-request suppression/retry behavior;
-- insertion/replacement of canonical responses;
-- retention/eviction policy;
-- disconnect/outstanding-request cleanup;
-- application of terminal `Response::Success` / `Response::Failure` entries once the refined protocol contract is finalized.
+- Core owns the generic `Collection<TKey, TElement>` abstraction, shared Column/Chunk protocol codecs, generic Collection protocol framing, and payload-level diagnostics.
+- Client owns view/unload policy, Client Collection instances, network-backed Providers, message dispatch, and player-centered streaming behavior.
+- Terrain node owns authoritative Column/Chunk generation and request handling.
+- The central Server only routes Collection Request MessageIDs to the terrain node through `spk::NodeRouter`.
 
 ## Explicitly not owned
 
-How the streaming-center entity is moved or controlled, meshing/rendering, Server generation, production interest management. ST-001-14 may later move the same designated entity through temporary free-flight input without taking ownership of Chunk streaming policy.
-
-## Public contract
-
-Blocked by remaining Client policy plus the refined ST-001-09 protocol details: exact floating world-position -> Chunk-coordinate conversion, exact view/unload range geometry and boundary semantics, duplicate outstanding suppression, cache retention/eviction mechanics, request batching policy, retry behavior, Response Failure handling, generic diagnostic handling where relevant, and response replacement rules.
-
-## Invariants
-
-- Cache identity is by Chunk coordinate.
-- Server response data is canonical.
-- Client never treats a locally fabricated/placeholder Chunk as authoritative Server terrain.
-- A received response remains associated with its declared coordinate.
-
-## State transitions
-
-Designated `spk::Entity3D` Transform edition -> derive world-space center Chunk coordinate -> if unchanged, no streaming-region transition -> if changed, recompute the view region and unload boundary -> request missing desired coordinates and evict coordinates outside the approved unload boundary. Exact missing -> outstanding -> cached/failed/retryable/evicted transitions still require the remaining policy decisions.
-
-## Failure behavior
-
-Blocked only by this ticket's remaining Client coordinator policy: duplicate-outstanding suppression, cache retention/eviction, request retry behavior, disconnect/outstanding cleanup, and stale/unsolicited response handling. OQ-038 and the ST-001-10 connection/disconnect lifecycle are resolved.
-
-## Determinism / ordering
-
-The desired set is derived by translating a precomputed relative-offset set by the designated streaming-center Chunk coordinate; it is not supplied as an arbitrary external coordinate collection. Both view and unload regions are axis-aligned cubes in Chunk space. Desired-coordinate ordering into request batches must still be explicit if observable/tested.
-
-## Lifecycle / ownership
-
-Core `Chunk::Collection` owns coordinate->immutable-Chunk storage and returns cheap Chunk values whose backing Cell content is shared immutably (DR-019).
-
-Pending acquisition uses the implemented Core Collection `Absent / Pending / Available` state; no fake empty Chunk placeholder is published. When canonical Server data arrives, the Client publishes/replaces the complete Collection Chunk value. Any renderer/mesher still holding an older copied Chunk keeps its old immutable content alive.
-
-The coordinator retains the `spk::Transform3D::OnEditionContract` for as long as it observes the designated entity. ST-001-14 may later change that transform through input, but does not own the subscription or streaming policy.
-
-OQ-038/DR-022 fixes the shared wire contract and terminal-response semantics. Exact floating-position conversion, range geometry/boundaries, eviction mechanics, retry timing, recycle threshold, disconnect handling, and stale/unsolicited response policy remain this ticket's own unresolved Client-coordinator specification.
-
-## Serialization / persistence
-
-Uses ST-001-08 protocol; no persistence.
-
-## Networking / authority
-
-Client chooses coordinates to request; Server remains canonical source of data.
-
-## Implementation constraints
-
-- Server must not choose Client view/loading radius.
-- View/unload range values come from Client configuration rather than protocol or Server configuration.
-- View/unload membership offsets are precomputed once from configuration and reused across center-Chunk changes.
-- Both regions are axis-aligned cubes in Chunk space.
-- Keep cache/request logic separate from GPU mesh resources.
-- Do not add production movement or world interest-management scope.
-
-## Exact test fixtures
-
-Final Ready fixture set must include:
-
-- desired set containing already cached, outstanding, and missing coordinates;
-- repeated desired update;
-- transform edits that stay inside the current center Chunk and therefore do not recompute the streaming region;
-- transform edits crossing positive and negative Chunk boundaries;
-- exact `viewRange` membership once its geometry is approved;
-- exact `unloadRange` retention/eviction boundary once its geometry is approved;
-- full successful batch response;
-- mixed terminal Response containing Success and Failure entries once that wire contract is finalized;
-- failed coordinate carrying `Response::Failure::Code` and message;
-- disconnect while outstanding;
-- retention/eviction boundary;
-- retry behavior if approved.
-
-## Acceptance tests
-
-### Nominal
-
-Exact final desired/request/cache state transitions.
-
-### Boundaries
-
-Final batch/cache/load-retain boundaries.
-
-### Invalid / rejected operations
-
-Unexpected/duplicate/stale response behavior per final contract.
-
-### Failure atomicity
-
-Failed coordinates or failed requests cannot corrupt unrelated cached Chunks; successful Response entries remain authoritative for their own coordinates under the final refined contract.
-
-### Determinism
-
-Equivalent desired sets produce equivalent request/cache state under the final ordering contract.
-
-### Lifecycle / ownership
-
-Eviction and replacement invalidate dependent state exactly as documented.
-
-### Serialization / persistence
-
-Not independently owned.
-
-### Retry / idempotency
-
-Primary blocked area under OQ-038.
-
-### Concurrency / cancellation
-
-Outstanding requests and disconnect/cancel behavior must be explicit.
-
-### Authority / trust boundary
-
-Only decoded Server responses enter the canonical Client Chunk cache.
-
-### Dependency failure
-
-Connection loss, terminal Failure entries, and malformed/diagnostic paths.
-
-### Cross-system integration
-
-Later mesher consumes copied immutable Chunk values from the Core Collection; integration must not bypass this coordinator.
-
-### Performance
-
-No numeric budget; structural request de-duplication/cache policy only after OQ-038.
-
-### Client-visible / golden-image validation
-
-Not applicable.
-
-
-## Implementation plan
-
-The implementation order for the approved ST-001-11 architecture is:
-
-1. Introduce the generic `Collection<TKey, TElement>` foundation and migrate the existing Chunk collection behavior onto it, including generic Provider pending lifecycle, `tryRead`, strict `insert` / `replace` / `remove`, single-key request, and ordered TaskGroup batch request.
-
-2. Introduce the generic Collection protocol framing and MessageType family declaration:
-   - `COLLECTION_MESSAGES(Name)` expands to Request / Response / Update / Error;
-   - `Networking::Diagnostic` becomes a serializable payload value without an independent MessageID;
-   - `TKey` and `TElement` provide `spk::Message` insertion/extraction.
-
-3. Introduce the generic `GeneratingProvider`, `RequestingProvider`, and `Updater` implementations:
-   - `RequestingProvider` owns outgoing Request MessageID, RequestID correlation, request batching, Pending Tasks, and Response parsing;
-   - `Updater` parses canonical unsolicited Set / Remove updates;
-   - Update wins atomically over a still-Pending acquisition;
-   - disconnect fails every network-backed Pending acquisition.
-
-4. Add the Erelia network-manager widgets:
-   - `ClientNetworkManager : spk::Widget`;
-   - `ServerNetworkManager : spk::Widget`;
-   - neither widget owns or instantiates the underlying transport;
-   - the Client widget accesses `Service::client()`;
-   - the Server widget accesses the Server transport through the corresponding Erelia Service;
-   - each widget is the unique drainer of its transport receive FIFO during its update pass.
-
-5. Add MessageID subscription support to the network-manager widgets using `spk::ContractProvider`:
-   - `ClientNetworkManager::subscribeToMessage(MessageID, callback)` returns a retained Contract and invokes callbacks with `const spk::Message&`;
-   - `ServerNetworkManager::subscribeToMessage(MessageID, callback)` returns a retained Contract and invokes callbacks with the originating `spk::ConnectionID` plus `const spk::Message&`;
-   - multiple subscribers to one MessageID are allowed;
-   - destroying the returned Contract removes that subscription;
-   - protocol parsers never drain Sparkle network FIFOs directly.
-
-6. Configure protocol routing only from executable/application composition roots. The Client and Server main-level setup creates/owns the relevant protocol objects and retains the MessageID subscription Contracts. The intended bindings are conceptually:
-
-```text
-Client:
-    ChunkResponse  -> Chunk RequestingProvider
-    ChunkUpdate    -> Chunk Updater
-    ChunkError     -> Chunk error receiver
-
-    ColumnResponse -> Column RequestingProvider
-    ColumnUpdate   -> Column Updater
-    ColumnError    -> Column error receiver
-
-Server / terrain-side composition:
-    ChunkRequest   -> Chunk request parser/handler
-    ColumnRequest  -> Column request parser/handler
-```
-
-The RequestingProvider, Updater, and protocol handlers do not know which incoming MessageID routes to them. That association belongs to the application composition layer.
-
-7. Integrate the Client streaming coordinator on top of `Collection<Column::Coordinate, Column>` and `Collection<Chunk::Coordinate, Chunk>`, applying the approved view/unload policy and using the generic network-backed providers.
-
-8. Complete focused Core, Client, Server-node, and cross-system integration tests for protocol framing, Pending reuse, request splitting, Response handling, Update precedence, disconnect failure, stale-response rejection, MessageID dispatch subscriptions, and retained Contract lifetime.
-
-## Decisions / unresolved questions
-
-- [DR-014](../../../DECISIONS/DR-014-BATCHED-CHUNK-PROTOCOL-DIRECTION.md)
-- [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
-- [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — resolved by DR-022 for the shared Chunk protocol.
-
-## Completion evidence
-
-Promote to Ready only when the streaming-center conversion/range boundaries and every cache/outstanding/retry/Success/Failure transition have exact test fixtures, the refined Response/diagnostic contracts are stable, and no Server-side view policy is introduced.
-
-### Approved ST-001-11 direction — 28 September 2026
-
-The project owner selected a player-centered Client streaming model:
-
-- the Client introduces/uses a Sparkle game `Engine` containing a designated `spk::Entity3D` streaming-center object;
-- the coordinator observes that entity through a retained subscription to its `spk::Transform3D` edition contract;
-- the coordinator reads the transform in world space and derives the Chunk coordinate containing that position;
-- transform edits that do not change the containing Chunk coordinate do not trigger a streaming-region change;
-- crossing into another Chunk causes the Client to derive the required surrounding Chunk set from `viewRange`;
-- `unloadRange` is required to be greater than or equal to `viewRange` and provides hysteresis so Chunks may remain cached after leaving the immediate view region, while Chunks beyond the unload boundary are removed to bound memory/resource growth;
-- movement/input ownership is separate: ST-001-14 may later move this entity, while ST-001-11 owns observation and Chunk streaming consequences.
-
-Approved floating-point conversion: each component of the streaming-center world position is mathematically floored to its containing global terrain Cell coordinate, then converted through the existing `Chunk::toCoordinate(...)` floor-division contract. This therefore preserves exact negative-boundary behavior (for example `-0.1 -> cell -1 -> chunk -1`).
-
-Approved Collection lifetime support: ST-001-11 may extend generic `Chunk::Collection` with an explicit coordinate-removal operation required by Client `unloadRange` eviction. The Collection owns safe removal mechanics; the Client coordinator owns the policy deciding when a coordinate is outside the unload boundary. Exact removal behavior for Available and Pending entries must be covered by focused Core tests, including stale completion after removal.
-
-Server-side bounded Chunk caching is explicitly deferred from ST-001-11 to a future Server scalability/resource-management Epic. That later work will own TerrainNode cache budgets, Server eviction-selection policy, active/in-flight considerations, regeneration/thrashing policy, observability, and load validation. ST-001-11 must not introduce a Server cache budget or Server eviction policy.
-
-Approved range geometry/source contract: `viewRange` and `unloadRange` are strictly positive integer Client-owned configuration values. The Client precomputes the relative Chunk-coordinate offsets for both regions once after loading configuration. Both regions are axis-aligned cubes centered on the current player Chunk, with inclusive per-axis bounds `[-range, +range]`. Therefore a range `N` contains `(2N + 1)^3` Chunk coordinates. `unloadRange >= viewRange` is required. Configuration loading must reject zero/negative values and `unloadRange < viewRange`.
-
-Approved column-storage direction: Chunk acquisition and storage are revised around sparse X/Z columns rather than independent 3D Chunk coordinates. A resolved Column contains every non-empty canonical Chunk for one (x,z) Chunk-column coordinate. Therefore, once a Column is Available, a missing Y entry is authoritatively known to be empty rather than unknown or Pending. External consumers such as meshing/rendering may continue querying the Collection by full Chunk::Coordinate; the Collection resolves that lookup through the stored Column. Provider acquisition and Client streaming/unloading operate at Column granularity.
-
-This intentionally supersedes the earlier cubic 3D request-region direction for ST-001-11. Client interest becomes horizontal X/Z range selection over Columns; vertical Chunk selection belongs to the authoritative Column provider/generator. The protocol/Core/Server consequences must be revised explicitly rather than treated as Client-only behavior.
-
-Still unresolved before Ready: desired-offset/request ordering and batching, request/retry/disconnect/response/recycle policies, and the exact public coordinator composition/API.
-
-
-### Approved Provider granularity — 28 September 2026
-
-`Chunk::Collection::Provider` is column-based. Provider acquisition receives an X/Z Column coordinate and returns the complete sparse Column containing every non-empty canonical Chunk for that Column. Collection lookup remains available by full `Chunk::Coordinate` for external consumers.
-
-The temporary prototype terrain must also exercise multi-Chunk Columns rather than only one populated Y layer. Approved non-empty elevated layer membership is:
-
-- Column `(3,3)`: additionally non-empty at Chunk Y = 1;
-- Column `(3,4)`: additionally non-empty at Chunk Y = 1 and 2;
-- Column `(4,3)`: additionally non-empty at Chunk Y = 1 and 2;
-- Column `(4,4)`: additionally non-empty at Chunk Y = 1, 2 and 3.
-
-These memberships define the complete elevated prototype fixture. Every added elevated Chunk at Y=1..3 is fully filled with Definition 1 (`cube`) Cells across all 16×16×16 local coordinates; no Air cells exist inside those added Chunks.
-
-
-### Approved publication/update split — 28 September 2026
-
-Provider acquisition and completion are Column-granular only: a Provider request targets one X/Z Column and successful Provider completion publishes the complete authoritative `Chunk::Column` for that coordinate atomically.
-
-The Collection must nevertheless support targeted modification of one Chunk inside an already Available Column without requiring the Provider to re-emit/reacquire the entire Column. This targeted operation is whole immutable-Chunk replacement: callers construct a complete replacement `Chunk` and replace the value at one full `Chunk::Coordinate`. Published Chunk Cells are never mutated in place. The operation is valid only when the owning X/Z Column is already `Available`; it must not synthesize an `Available` Column from one isolated Chunk because an Available Column represents the complete known set of non-empty Y layers. Existing copied Chunk values remain valid through their shared immutable backing after replacement.
-
-
-### Approved sparse per-Chunk update semantics — 28 September 2026
-
-Within an already `Available` Column, the targeted whole-Chunk update API is allowed to change sparse Column membership. It must support all three cases while preserving immutable Chunk values:
-
-- a previously absent/known-empty Y receives a non-empty replacement Chunk and is inserted into the Column;
-- an existing non-empty Y receives another non-empty replacement Chunk and is replaced atomically;
-- an existing non-empty Y receives an empty replacement and is removed from the Column so the sparse representation continues to store only non-empty Chunks.
-
-The owning Column remains `Available` throughout these targeted updates. These operations never create an Available Column when the Column itself is Absent or Pending; complete Column acquisition/publication remains the Provider boundary.
-
-
-### Approved area-discovery architecture — 28 September 2026
-
-This direction supersedes the earlier ST-001-11 notes that proposed making `Chunk::Collection` storage or its `Provider` column-based.
-
-`Chunk::Collection` remains unchanged in its fundamental identity and ownership model:
-
-- storage remains keyed by full `Chunk::Coordinate` / `spk::Vector3Int`;
-- `Chunk::Collection::Provider` remains a single-Chunk provider;
-- external lookup/state/request/replacement remain Chunk-coordinate based;
-- DR-019 remains authoritative for Collection/Provider semantics.
-
-The existing Chunk acquisition protocol also remains a specific-Chunk protocol:
-
-- `Chunk::Protocol::Request` continues to request explicit full Chunk coordinates;
-- `Chunk::Protocol::Response` continues to return canonical Chunk results for those coordinates;
-- DR-022/ST-001-08/ST-001-09 are not redefined into a column protocol.
-
-A separate discovery layer is introduced above Chunk acquisition.
-
-The Client derives a horizontal X/Z interest area from its streaming center and configured horizontal view range. It sends that area to the Server without inventing candidate Y coordinates.
-
-The Server owns an authoritative terrain/world spatial index or equivalent wrapper capable of resolving that horizontal area into the complete set of non-empty `Chunk::Coordinate` values that exist inside it. The discovery layer does not own Chunk values and does not replace `Chunk::Collection`; it describes Chunk identity only.
-
-The Server returns that coordinate manifest to the Client. The Client compares each returned coordinate against its local `Chunk::Collection`:
-
-- `Available`: already cached, do not request again;
-- `Pending`: already being acquired, do not request again;
-- `Absent`: include in the normal existing Chunk request flow.
-
-Therefore the network flow is:
-
-```text
-Client horizontal interest area
-    -> area-discovery request
-    -> Server world/terrain spatial index
-    -> manifest of non-empty Chunk::Coordinate values
-    -> Client local Collection-state filtering
-    -> existing Chunk::Protocol::Request for missing coordinates only
-    -> existing Chunk::Protocol::Response
-```
-
-The Server's internal spatial index may be organized by columns or another implementation-specific structure, but it should store/return coordinate identity rather than raw pointers to Chunks. Chunk ownership remains in `Chunk::Collection`.
-
-This design eliminates empty-sky Chunk probing while preserving the existing 3D Chunk cache and wire acquisition contracts.
-
-The previously approved DR-015 multi-layer prototype columns remain useful discovery fixtures. Their non-empty Chunk coordinates must appear in the Server manifest for any queried area that contains those X/Z columns.
-
-
-
-### Approved area-discovery request payload — 28 September 2026
-
-The Client discovery request carries exactly these semantic fields:
+- Server-side cache budgets or eviction;
+- Server production/broadcast policy for unsolicited Collection Update messages;
+- terrain meshing/rendering;
+- free-flight input/control implementation;
+- production gameplay interest management;
+- timeout/recovery semantics for request-level Error messages that do not produce a Response;
+- logical Response splitting across multiple network messages.
+
+## Generic Collection domain
+
+ST-001-11 replaces the Chunk-specific asynchronous cache mechanics with:
 
 ```cpp
-struct AreaRequest
-{
-    spk::Vector3 playerWorldPosition;
-    std::int32_t centerX;
-    std::int32_t centerZ;
-
-    enum class Type : std::uint8_t
-    {
-        Circle = 0,
-        Square = 1
-    };
-
-    Type type;
-    std::int32_t size;
-};
+template <
+    MessageSerializable TKey,
+    MessageSerializable TElement>
+class Collection;
 ```
 
-`playerWorldPosition` is the player's world-space position. `centerX` and `centerZ` are Chunk-column coordinates, not world-space coordinates. `type` selects the horizontal area geometry. `size` is the one shared shape parameter: for `Circle` it is the radius; for `Square` it is the half-size. No shape-specific trailing payload is serialized; both current shapes use the same fixed-size request layout.
-
-`size` is a non-negative integer. `size == 0` is valid and resolves only the center/player Chunk column. Area boundaries are inclusive: a column exactly on the selected area's boundary belongs to the area. `Circle` membership is the Euclidean test in Chunk-column space: for `dx = columnX - centerX` and `dz = columnZ - centerZ`, a column belongs to the Circle when `dx * dx + dz * dz <= size * size`.
-
-
-### Approved Area namespace and ownership split — 28 September 2026
-
-`Area` is a namespace, not a value-owning Core struct/class.
-
-Core owns the shared discovery wire-domain types under that namespace. The request stores the discovery data directly; there is no separate serializable `Area` value object to wrap inside it. The request therefore carries the already-approved fields directly: player world position, center Chunk-column X/Z, area type, and size.
-
-The discovery reply is only the correlated series of non-empty `Chunk::Coordinate` values resolved for the requested area. It does not repeat the request geometry or own Chunk values.
-
-`Area::Collection` is Server-only and belongs to the terrain Server implementation. It resolves an `Area::Request`/its decoded parameters into the authoritative list of non-empty Chunk coordinates. Core does not need to declare or implement `Area::Collection`; C++ namespace `Area` can be reopened by the Server-specific header for that type.
-
-The resulting ownership is:
+The public state remains:
 
 ```text
-Core:
-    namespace Area
-        Request
-        Response
-
-Terrain Server only:
-    namespace Area
-        Collection
+Absent
+Pending
+Available
 ```
 
-`Area::Collection` stores/indexes Chunk coordinate identity only. It does not own Chunk values and does not store raw pointers into `Chunk::Collection`.
+Collection storage contains only Available values. Pending acquisition state belongs to the Collection Provider.
 
+### Public API
 
-The Core discovery reply type is fixed as `Area::Response`, matching the existing Request/Response naming convention. It is correlated to the originating `Area::Request` through the Sparkle RequestID and contains only the returned `Chunk::Coordinate` sequence.
-
-
-### Approved Column discovery namespace — 28 September 2026
-
-The previously proposed `Area` discovery namespace is superseded. The domain is named `Column` because the abstraction describes and indexes terrain Chunk columns.
-
-Core owns the shared Column discovery types:
-
-```text
-namespace Column
-    Coordinate
-    ColumnContent
-    Request
-    Response
-```
-
-`Column::Coordinate` identifies one Chunk column by X/Z. Its exact representation (`spk::Vector2Int` versus a dedicated X/Z struct) is still to be fixed. `Column::Content` represents the full set of non-empty `Chunk::Coordinate` values belonging to one Column.
-
-`Column::Request` retains the already-approved discovery request fields directly: player world position, center Chunk-column X/Z, Circle/Square type, and non-negative size. The Circle/Square shape selects which Column coordinates around the center are queried; `size == 0` selects only the center Column and boundaries are inclusive.
-
-`Column::Response` is correlated through the originating Sparkle RequestID and returns only the resolved Chunk-coordinate data; it does not carry Chunk values or repeat the request geometry.
-
-The terrain Server owns `Column::Collection`. Core does not declare or implement the Collection. The Server reopens namespace `Column` and provides the authoritative mapping from `Column::Coordinate` to `Column::Content`. `Chunk::Collection` remains unchanged and continues to own Chunk values by full `Chunk::Coordinate`.
-
-The resulting flow is:
-
-```text
-Column::Request
-    -> Server Column::Collection
-    -> Column::Response
-    -> Client filters returned Chunk coordinates against Chunk::Collection
-    -> existing Chunk::Protocol::Request for Absent coordinates only
-```
-
-All earlier references to `Area::Request`, `Area::Response`, or `Area::Collection` in ST-001-11 are superseded by these `Column::*` names.
-
-
-`Column::Content` is fixed as the Core semantic type representing the complete set of non-empty `Chunk::Coordinate` values belonging to one Column. The previous `Column::ColumnContent` working name is superseded.
-
-
-### Approved Column coordinate/content/storage direction — 28 September 2026
-
-`Column::Coordinate` is a dedicated Core type rather than an alias to `spk::Vector2Int`. It represents one terrain Chunk column with semantically named signed integer `x` and `z` components. It must support the comparison/hash behavior required by the chosen associative containers.
-
-`Column::Content` is a Core type whose semantic value is the set of all non-empty `Chunk::Coordinate` values belonging to one Column. Its storage is `std::set<Chunk::Coordinate>`, giving uniqueness and deterministic coordinate ordering by construction.
-
-The terrain Server owns `Column::Collection`. Its public lookup surface should follow ordinary map-like naming, including `tryGet`, `at`, and `operator[]`. `operator[]` is mutating and creates an empty `Column::Content` for an absent coordinate, matching standard associative-container expectations.
-
-Column acquisition is separated behind a polymorphic asynchronous `Column::Provider` abstraction mirroring the existing Chunk provider contract:
-
-```cpp
-[[nodiscard]] virtual spk::Task<Column::Content>::Answer request(
-    const Column::Coordinate& coordinate) = 0;
-```
-
-The Server prototype terrain implementation is intended to provide both Chunk acquisition and Column-content generation from the same deterministic terrain rules because the two outputs are correlated. The existing `PrototypeChunkProvider` should therefore implement both `Chunk::Collection::Provider` and `Column::Provider`; no new `Chunk::Generator` abstraction is introduced.
-
-
-The earlier `Column::Generator` name was a terminology mistake and is superseded. The abstraction is `Column::Provider`. The existing Server `PrototypeChunkProvider` is intended to implement both `Chunk::Collection::Provider` and `Column::Provider` so Chunk data and Column metadata are derived from the same prototype terrain rules.
-
-
-`Column::Provider` acquisition is asynchronous. Its public contract mirrors `Chunk::Collection::Provider`: `request(const Column::Coordinate&)` returns `spk::Task<Column::Content>::Answer`. The prototype terrain provider implements both asynchronous provider interfaces, using the shared WorkerPool-backed terrain generation path as appropriate.
-
-
-### Approved Column::Collection parity with Chunk::Collection — 28 September 2026
-
-`Column::Collection` mirrors the existing `Chunk::Collection` acquisition/state model for Column metadata.
-
-It owns the same public state domain:
-
-```cpp
-enum class State
-{
-    Absent,
-    Pending,
-    Available
-};
-```
-
-A request for an `Available` Column reuses the stored `Column::Content`; a request for a `Pending` Column reuses the existing pending Provider answer; only an `Absent` Column invokes `Column::Provider::request(...)`. Provider completion publishes the complete `Column::Content` atomically. Provider failure leaves the coordinate non-Available and is represented through the Collection request result in the same style as `Chunk::Collection`.
-
-`Column::Collection` should duplicate the public acquisition/cache shape of `Chunk::Collection` rather than introduce a separate map-like API. Earlier discussion of `at(...)` and `operator[](...)` is superseded and those operations are not part of the target contract.
-
-The request/batch API, pending reuse, completion lifetime protection, and stale-completion behavior should follow the existing `Chunk::Collection` implementation pattern unless a Column-specific semantic difference is explicitly approved later.
-
-
-The target `Column::Collection` API is intentionally kept in structural parity with `Chunk::Collection`: state lookup, optional value lookup through `tryGet(...)`, asynchronous batched `request(...)`, Provider-backed Absent/Pending/Available handling, and whole-value replacement semantics where needed. No additional `at(...)` or `operator[](...)` surface is required unless a later concrete use case justifies it.
-
-
-### Approved generic asynchronous cache abstraction — 28 September 2026
-
-The duplicated asynchronous acquisition/cache mechanics currently implemented by `Chunk::Collection` are extracted into a generic Core abstraction named `Cache<TKey, TValue>`.
-
-The template parameter naming is fixed as `TKey` and `TValue`.
-
-Conceptually, `Cache<TKey, TValue>` owns the shared behavior currently implemented by `Chunk::Collection`:
-
-- `State { Absent, Pending, Available }`;
-- Provider-backed asynchronous acquisition through `spk::Task<TValue>::Answer`;
-- `state(key)` and `tryGet(key)`;
-- asynchronous batched `request(std::vector<TKey>)`;
-- `BatchResult` with per-key acquired values and failures;
-- reuse of already-Pending requests;
-- reuse of already-Available values;
-- whole-value `replace(key, value)`;
-- generation-based stale-completion protection;
-- shared Batch/Acquisition implementation details.
-
-The intended generic Provider contract is:
-
-```cpp
-template <typename TKey, typename TValue>
-class Cache
-{
-public:
-    class Provider
-    {
-    public:
-        virtual ~Provider() = default;
-
-        [[nodiscard]] virtual spk::Task<TValue>::Answer request(
-            const TKey& key) = 0;
-    };
-};
-```
-
-`Chunk::Collection` becomes the Chunk-domain alias/specialization over `Cache<Chunk::Coordinate, Chunk>`. The Server-side `Column::Collection` becomes the Column-domain alias/specialization over `Cache<Column::Coordinate, Column::Content>`. `Column::Provider` is the corresponding Provider type for that cache. This keeps `Column` as a namespace; no artificial domain-trait type is introduced solely to enable `Collection<Column>` syntax.
-
-
-### Approved Column type and Server-only collection direction — 28 September 2026
-
-`Column` is a Core type rather than a namespace. It acts as the domain scope for the shared Column discovery types, including `Column::Coordinate`, `Column::Content`, `Column::Request`, and `Column::Response`.
-
-The Client does not need an authoritative Column cache. It consumes `Column::Response` transiently, filters the returned Chunk coordinates against its current desired area and local `Chunk::Collection`, and then requests only the still-valid Absent Chunks.
-
-`Column::Collection` and `Column::Provider` remain terrain-Server concerns. Core may forward-declare those nested types on `Column` to preserve the `Column::Collection` / `Column::Provider` names, while their concrete definitions live only in the terrain Server and reuse the generic `Cache<TKey, TValue>` machinery with `Column::Coordinate` and `Column::Content`.
-
-
-### Approved generic Collection<T> domain model — 28 September 2026
-
-The earlier `Cache<TKey, TValue>` / domain-alias direction is superseded by a generic Core `Collection<T>` abstraction used directly at call sites.
-
-`Collection<T>` owns its asynchronous acquisition contract, including its nested `Provider`. Callers therefore use `Collection<Chunk>::Provider` and `Collection<Column>::Provider`; `Chunk::Provider`, `Column::Provider`, `Chunk::Collection`, and `Column::Collection` aliases are not required.
-
-Each domain type supplies the coordinate/key type and stored content type required by the generic Collection. The intended shape is:
-
-```cpp
-struct Chunk
-{
-    using Coordinate = spk::Vector3Int;
-    using Content = Chunk;
-    // ...
-};
-
-struct Column
-{
-    struct Coordinate
-    {
-        std::int32_t x;
-        std::int32_t z;
-    };
-
-    using Content = std::set<Chunk::Coordinate>;
-
-    class Request;
-    class Response;
-};
-```
-
-`Collection<T>` derives its public types from `T::Coordinate` and `T::Content` and provides the generic `State`, `BatchResult`, nested asynchronous `Provider`, `state`, `tryGet`, batched `request`, replacement, pending reuse, and stale-completion protection currently implemented by `Chunk::Collection`.
-
-The prototype terrain provider therefore implements both acquisition contracts:
-
-```cpp
-class PrototypeChunkProvider final
-    : public Collection<Chunk>::Provider,
-      public Collection<Column>::Provider
-{
-    // ...
-};
-```
-
-`Collection<Chunk>` may be instantiated by both Client and Server. `Collection<Column>` is instantiated only by the terrain Server even though the generic `Collection<T>` template and `Column` domain type live in Core.
-
-
-The project owner explicitly approved this `Collection<T>` architecture. The intended migration is to replace the existing `Chunk::Collection` implementation with the generic `Collection<Chunk>` specialization, preserving its existing behavior while moving the shared asynchronous cache/acquisition mechanics into the generic template. `Collection<Column>` will reuse the same implementation on the terrain Server.
-
-
-### Approved Column value and bundled response entry model — 28 September 2026
-
-A `Column` value does not contain its own `Column::Coordinate`. The coordinate is the external key used by `Collection<Column>`, exactly as `Chunk::Coordinate` is external identity for a `Chunk` value.
-
-The Column value itself contains only the complete sparse set of non-empty full `Chunk::Coordinate` values belonging to that X/Z terrain column.
-
-The Column discovery request no longer uses Circle/Square geometry. It carries the player world-space position plus two `Column::Coordinate` corners describing the requested rectangular Column area. This supersedes the earlier Circle/Square/type/size request contract.
-
-A `Column::Response` returns a bundle of keyed Column values. Each serialized Column entry is conceptually:
-
-```text
-[Column::Coordinate]
-[serialized Column size]
-[serialized Column content bytes]
-```
-
-The coordinate belongs to the response/collection entry, not to the `Column` value itself.
-
-The response begins with an offset/index table that provides deserialization entry points at 50-Column intervals. The Client will use those offsets to partition response deserialization into multiple asynchronous tasks. The per-Column serialized `size` is the number of `Chunk::Coordinate` entries that immediately follow for that Column; it is not a byte length. The exact integer type used for this count and the exact response offset-table header layout remain to be fixed before implementation.
-
-
-The per-Column serialized count is semantic: it is exactly the number of `Chunk::Coordinate` values in the serialized Column content. A reader consumes that count and then reads exactly that many contiguous Chunk coordinates for the entry.
-
-
-### Approved Column::Response offset-table framing — 28 September 2026
-
-`Column::Response` begins with an explicit integer count describing how many block offsets follow. The payload is therefore framed conceptually as:
-
-```text
-[offsetCount]
-[offset 0]
-[offset 1]
-...
-[offset offsetCount - 1]
-[serialized Column stream]
-```
-
-Each offset identifies the start of one deserialization block containing up to 50 serialized Columns. Each serialized Column entry remains:
-
-```text
-[Column::Coordinate]
-[Chunk-coordinate count]
-[Chunk::Coordinate × count]
-```
-
-`offsetCount`, every block offset, and every per-Column Chunk-coordinate count are serialized as `std::uint32_t`.
-
-
-All `Column::Response` framing integers are fixed as `std::uint32_t`: the offset-table count, each offset entry, and each serialized Column's `Chunk::Coordinate` count.
-
-
-Each `Column::Response` block offset is absolute from byte 0 of the response payload. Offsets are not relative to the end of the offset table or to the start of the serialized Column stream. A reader can therefore seek directly to `payload.data() + offset` for the corresponding 50-Column deserialization block.
-
-
-### Approved Column::Response block boundaries — 28 September 2026
-
-Each deserialization block uses the absolute offset table to define an independent byte range. For block `i`:
-
-```text
-start = offsets[i]
-end   = offsets[i + 1]
-```
-
-For the final block, `end` is the total `Column::Response` payload size. This lets the Client assign each block to an independent asynchronous deserialization task without scanning preceding Columns.
-
-
-### Approved Column::Request corner ordering — 28 September 2026
-
-`Column::Request` carries an already-normalized rectangular Column range. The first corner is the minimum X/Z corner and the second corner is the maximum X/Z corner; therefore a valid request satisfies `first.x <= second.x` and `first.z <= second.z`.
-
-The Server must not silently reorder malformed corners. A request whose corners violate that ordering is invalid and must be rejected through the existing diagnostic-message mechanism, correlated with the originating RequestID when available. No Column acquisition is started for such an invalid request. The stable diagnostic contract mirrors malformed Chunk requests: severity `Networking::Diagnostic::Severity::Error`, translation key exactly `"Column_Request_Malformed"`, and the originating RequestID when available.
-
-
-### Approved Column malformed-request diagnostic — 28 September 2026
-
-Column request validation mirrors the existing malformed Chunk request path. A malformed `Column::Request`, including incorrectly ordered rectangular corners, is rejected with a generic `Networking::Diagnostic` using:
-
-```text
-severity = Networking::Diagnostic::Severity::Error
-message  = "Column_Request_Malformed"
-requestID = originating Column RequestID when available
-```
-
-No `Column::Error` message type is introduced for this case. No `Collection<Column>` acquisition starts after validation failure.
-
-
-### Approved Column response ordering — 28 September 2026
-
-`Column::Response` serializes Column entries in deterministic X-major order: sort by `Column::Coordinate::x` first, then by `Column::Coordinate::z` within each X value. The 50-Column deserialization blocks are cut from this ordered sequence.
-
-
-### Approved Column message type IDs — 28 September 2026
-
-`Networking::MessageType` preserves the existing values and adds the Column discovery messages as:
-
-```cpp
-ChunkRequest    = 1,
-ChunkResponse   = 2,
-ChunkError      = 3,
-Diagnostic      = 4,
-ColumnRequest   = 5,
-ColumnResponse  = 6
-```
-
-
-### Approved Column acquisition failure semantics — 28 September 2026
-
-`Column::Response` mirrors the existing terminal `Chunk::Protocol::Response` success/failure model for Provider acquisition outcomes.
-
-A successful requested Column is represented as a success entry carrying the external `Column::Coordinate` key and the serialized `Column` value. A failed requested Column is represented as a failure entry carrying the same Column coordinate, a typed failure code, and a human-readable failure message. The initial failure-code domain mirrors Chunk acquisition with `AcquisitionFailed = 0`.
-
-Ordinary per-Column Provider failure does not fail the whole request and does not use a diagnostic message. Successful and failed Columns may coexist in one terminal `Column::Response`.
-
-A true outer Collection batch / TaskGroup aggregation failure that prevents construction of a valid terminal Column result mirrors the Chunk path: emit one correlated generic `Networking::Diagnostic` with severity `Error`, using the stable key `"Column_Request_Aggregation_Failure"`, and emit no `Column::Response` for that request.
-
-No dedicated `ColumnError` message type is required by this contract. Malformed Column requests use generic `Networking::Diagnostic`, while terminal per-Column acquisition failures live inside `Column::Response`, exactly as terminal Chunk acquisition failures live inside `Chunk::Protocol::Response`.
-
-
-### Approved Column-specific diagnostic direction — 28 September 2026
-
-The earlier conclusion that no dedicated Column error message was needed is superseded. Column request-level validation and misuse diagnostics should mirror the existing Chunk diagnostic architecture.
-
-`Column::Error` is a Column-specific specialization of `Networking::Diagnostic`, analogous to `Chunk::Protocol::Error`. It is distinct from terminal per-Column acquisition failures, which remain represented inside `Column::Response::Failure`.
-
-The intended separation is:
-
-```text
-Malformed / invalid / semantically inconsistent Column request
-    -> Column::Error / diagnostic path
-
-Column Provider acquisition failure
-    -> Column::Response::Failure
-
-Outer aggregation failure preventing any valid terminal response
-    -> generic Networking::Diagnostic
-```
-
-Examples of request-level Column errors include invalidly formatted requests and a player world position inconsistent with the requested Column range. The exact Column-specific payload carried by `Column::Error`, its stable diagnostic keys, and its message-type numeric assignment still need to be fixed explicitly.
-
-
-### Approved Column::Error wire contract — 28 September 2026
-
-`Column::Error` mirrors `Chunk::Protocol::Error` as closely as possible. It derives from `Networking::Diagnostic` and appends a Column-specific coordinate list encoded as:
-
-```text
-[Networking::Diagnostic prefix]
-[coordinateCount:uint32]
-[Column::Coordinate × coordinateCount]
-```
-
-The coordinate list is contextual and may be empty when a malformed request cannot be decoded far enough to recover safe Column coordinates.
-
-Approved request-validation mappings are:
-
-- malformed/invalidly encoded Column request -> severity `Error`, key `"Column_Request_Malformed"`; append any safely decoded relevant coordinates, otherwise an empty list;
-- invalid corner ordering -> severity `Error`, key `"Column_Request_Malformed"`; append the two supplied corners in request order;
-- player world position outside the requested rectangular Column range -> severity `Error`, key `"Column_Player_Outside_Request_Range"`; append the derived player `Column::Coordinate` followed by the request's minimum and maximum corners.
-
-`Column::Error` requires the originating non-zero RequestID when it is available, matching the correlated Chunk-specific error model. These validation failures do not start `Collection<Column>` acquisition.
-
-`Networking::MessageType` adds `ColumnError = 7`, after `ColumnRequest = 5` and `ColumnResponse = 6`.
-
-
-### Approved Client/Server Collection<Column> provider architecture — 29 September 2026
-
-The Column abstraction remains part of the shared Core domain and is not replaced by a separate Interest/AOI protocol abstraction. A Column is exactly the sparse vertical Chunk membership data the Client needs in order to know which full `Chunk::Coordinate` values are worth acquiring.
-
-Both Client and Server may instantiate `Collection<Column>`, but with different Provider implementations:
-
-```text
-Client Collection<Column>
-    -> network-backed Collection<Column>::Provider
-    -> Column request message
-    -> Server
-
-Server Collection<Column>
-    -> terrain-generation Collection<Column>::Provider
-    -> authoritative Column value
-```
-
-The player/streaming controller does not manually own Column networking. It requests the desired Column coordinates from the Client `Collection<Column>`. The generic Collection returns cached Available values, reuses Pending acquisitions, and delegates only Absent values to its Provider. The Client Column Provider owns request/response correlation and settles the `spk::Task<Column>` Answers returned to the Collection when network responses arrive.
-
-After a requested Column becomes Available, the controller iterates that Column's contained full `Chunk::Coordinate` values and submits them to the Client `Collection<Chunk>`. That Collection follows the same pattern: cached/Pending Chunks are reused and Absent Chunks are delegated to its Client network-backed Provider.
-
-The terrain Server uses its local deterministic terrain Provider(s) for both `Collection<Column>` and `Collection<Chunk>`, so Column membership and generated Chunk data are derived from the same canonical terrain rules.
-
-This architecture deliberately exposes Column as the actual shared terrain occupancy domain rather than introducing an additional protocol concept whose only purpose would be to hide Column from the Client.
-
-
-### Approved single terminal response policy — 29 September 2026
-
-For ST-001-11, one valid Collection protocol request produces exactly one terminal response message. The protocol does not yet split one logical response across multiple network messages.
-
-The response payload may still be divided into internal serialized sections through section offsets so the Client can deserialize independent sections in parallel. `elementsPerSection` therefore controls payload sectioning only; it does not create additional response messages.
-
-Any future support for splitting oversized logical responses across multiple network messages is explicitly deferred. No response index/count/final-message framing is introduced in ST-001-11.
-
-Accordingly, generic request treatment should conceptually return one response rather than `std::vector<Response>`:
-
-```cpp
-Response treatRequest(
-    const Request& request,
-    const ResponsePolicy& policy);
-```
-
-`ResponsePolicy` may still contain limits such as maximum accepted/requested element count and elements per serialized section. Exceeding a protocol/request limit is handled as validation/diagnostic behavior rather than by automatically emitting multiple response messages.
-
-
-### Approved Provider-owned pending acquisition state — 30 September 2026
-
-The generic Collection must not duplicate pending acquisition Answers inside its own storage. Pending acquisition state belongs to the Provider.
-
-The Collection storage owns only data that has actually become available. Conceptually, the Collection state for a key is derived as follows:
-
-```text
-Collection contains key
-    -> Available
-
-Collection does not contain key
-and Provider reports key as pending
-    -> Pending
-
-Collection does not contain key
-and Provider does not report key as pending
-    -> Absent
-```
-
-The Provider therefore owns the pending Answer/correlation state required by its acquisition mechanism. In particular, a network-backed RequestingProvider retains the Answers needed to represent outstanding requests and correlate received responses. The Collection does not retain a second copy of those Answers merely to represent Pending state.
-
-Repeated acquisition of an already-pending key must reuse the Provider's existing Answer rather than create a duplicate acquisition.
-
-Successful acquisition performs an explicit ownership handoff from Provider-pending state to Collection-available state:
-
-```text
-Provider owns pending acquisition
-    -> Task completes successfully
-    -> Collection completion callback acquires write access to Collection storage
-    -> acquired element is published into Collection storage
-    -> Collection write access is released
-    -> Provider pending Answer/correlation may be removed
-```
-
-The ordering is significant: the available value must be published before the Provider stops reporting the key as Pending. There must be no observable intermediate state in which the key is absent from the Collection and no longer pending in the Provider, because that could incorrectly start a duplicate request.
-
-On acquisition failure, no value is published into the Collection. Once the failed acquisition is settled, the Provider removes its pending Answer/correlation and the key becomes Absent/retryable.
-
-Collection storage remains synchronized through its existing `spk::ProtectedData<Storage>`. Task completion may therefore publish acquired data from a WorkerPool thread by obtaining `Storage::write()`; updater/rendering-side reads continue to use the corresponding protected read access. No additional Collection-wide asynchronous handoff or second synchronization layer is required.
-
-This supersedes earlier planning text that stored an `std::optional<Task<TElement>::Answer>` inside each Collection entry to represent Pending state.
-
-
-### Approved generic Provider pending Answer/Contract lifecycle — 30 September 2026
-
-Pending acquisition bookkeeping is implemented once in the generic `Collection<TKey, TElement>::Provider` base class rather than separately in Chunk, Column, GeneratingProvider, or RequestingProvider implementations.
-
-For every pending key, the generic Provider retains both the acquisition Answer and the completion subscription Contract:
-
-```cpp
-struct Pending
-{
-    spk::Task<TElement>::Answer answer;
-    spk::Task<TElement>::Answer::CompletionContract contract;
-};
-```
-
-The Provider's pending state is synchronized and keyed by `TKey`. The Collection itself does not retain a duplicate pending Answer.
-
-The generic Provider is bound to the owning Collection storage only for the generic completion transition. Derived providers do not publish directly into Collection storage.
-
-Pending registration uses the following exact order to remain correct when a Task completes immediately:
-
-1. create/obtain the acquisition Answer;
-2. insert the pending entry containing that Answer before subscribing to completion;
-3. subscribe to the Answer completion callback;
-4. after subscription returns, reacquire the pending bookkeeping state;
-5. if the key is still pending, move the returned Contract into that pending entry;
-6. if the key has already completed and the completion callback already removed the pending entry, discard the returned Contract.
-
-This order avoids a race where completion occurs synchronously during `subscribeToCompletion(...)` before the Provider has established its pending state.
-
-The generic completion callback performs the Provider-to-Collection state handoff:
-
-- on successful completion, acquire Collection `Storage::write()`, publish the completed `TElement` under its key, release the Collection writer, then remove the Provider's pending entry;
-- on failed completion, publish nothing and remove the Provider's pending entry;
-- the successful publication must occur before the key stops being reported as Pending, preventing an observable Absent/non-Pending gap that could start a duplicate request.
-
-Removing the pending entry destroys its retained completion Contract. Sparkle's ContractProvider supports Contract resignation/destruction during its own callback by deferring the corresponding registration removal until callback dispatch completes.
-
-`GeneratingProvider` and `RequestingProvider` therefore inherit the same generic pending Answer/Contract reuse and completion behavior. Their only specialization is how a new acquisition is started. `RequestingProvider` additionally owns network-specific request correlation and message batching; it does not duplicate the generic pending lifecycle.
-
-
-### Approved Diagnostic payload-only networking contract — 30 September 2026
-
-`Networking::Diagnostic` is no longer an independently routable network message and therefore owns no `Networking::MessageType` / MessageID of its own.
-
-It becomes a reusable serializable diagnostic value containing only the diagnostic semantics:
-
-```cpp
-class Networking::Diagnostic
-{
-public:
-    enum class Severity : std::uint8_t
-    {
-        Trace = 0,
-        Info = 1,
-        Warning = 2,
-        Error = 3
-    };
-
-    // severity + message payload
-};
-```
-
-`Networking::Diagnostic` must support insertion/extraction through `spk::Message` so it can be embedded by higher-level protocol messages:
-
-```cpp
-spk::Message& operator<<(
-    spk::Message& message,
-    const Networking::Diagnostic& diagnostic);
-
-const spk::Message& operator>>(
-    const spk::Message& message,
-    Networking::Diagnostic& diagnostic);
-```
-
-The request correlation ID remains the `spk::Message::RequestID` of the enclosing protocol message; it is not part of the `Diagnostic` value.
-
-Collection request-level validation, misuse, malformed-request, and outer aggregation failures are carried by the Collection family's Error message. That Error message embeds a `Networking::Diagnostic` payload and may additionally carry the contextual Collection keys that can safely be identified. Terminal per-element acquisition failures remain inside the normal Collection Response failure section and are not converted to Error messages.
-
-Consequently, the standalone `Networking::MessageType::Diagnostic` entry is removed. Earlier ST-001-11 planning text that emits a generic standalone `Networking::Diagnostic` message for malformed or aggregation failures is superseded by this payload-only Diagnostic contract.
-
-
-### Approved generic Collection protocol and API freeze — 30 September 2026
-
-The generic Collection networking and public API are now frozen for ST-001-11.
-
-#### Collection MessageType declaration
-
-Collection protocol MessageIDs are declared as one contiguous enum block per Collection family. No family/subtype bit partitioning is introduced at this stage.
-
-```cpp
-#define COLLECTION_MESSAGES(Name) \
-    Name##Request,                 \
-    Name##Response,                \
-    Name##Update,                  \
-    Name##Error
-
-enum class MessageType : spk::Message::Type
-{
-    Invalid = 0,
-
-    COLLECTION_MESSAGES(Chunk),
-    COLLECTION_MESSAGES(Column)
-};
-```
-
-The declaration is append-only: existing Collection families and the ordering of the generated Request/Response/Update/Error entries must not be reordered once published.
-
-Both `TKey` and `TElement` must be serializable through `spk::Message` insertion/extraction operators.
-
-#### Generic Request wire contract
-
-A Collection Request uses the normal `spk::Message` header for MessageID and non-zero RequestID. Its payload contains only the serialized requested keys:
-
-```text
-[TKey]
-[TKey]
-[TKey]
-...
-```
-
-No separate key count is required while the serialized TKey contract lets the parser consume complete keys until the end of the payload.
-
-A network-backed RequestingProvider owns RequestID generation and request splitting. If one logical Collection request exceeds `maxElementsPerRequest`, the Provider emits multiple network Request messages, each with its own RequestID, while the caller still observes one logical TaskGroup.
-
-#### Generic Response wire contract
-
-The Response preserves the current Chunk success/failure section model:
-
-```text
-[failureOffset:uint32]
-
-Success section:
-    [TKey][TElement]
-    [TKey][TElement]
-    ...
-
-Failure section:
-    [TKey][Failure]
-    [TKey][Failure]
-    ...
-```
-
-The RequestID remains in the `spk::Message` header.
-
-The initial generic Failure model is:
-
-```cpp
-struct Failure
-{
-    enum class Code : std::uint8_t
-    {
-        AcquisitionFailed = 0
-    };
-
-    Code code;
-    std::string message;
-};
-```
-
-A received Response entry is applied only while the RequestingProvider still owns the matching Pending acquisition. A late/stale Response for a key whose Pending state has already been removed or superseded is ignored.
-
-A Response Failure settles the corresponding `spk::Task<TElement>` through the generic network-failure conversion path.
-
-#### Generic Update wire contract
-
-Update is unsolicited canonical Server state and carries no acquisition correlation. Its `spk::Message::RequestID` is zero.
-
-Its payload mirrors the Response section layout:
-
-```text
-[removeOffset:uint32]
-
-Set section:
-    [TKey][TElement]
-    [TKey][TElement]
-    ...
-
-Remove section:
-    [TKey][Failure]
-    [TKey][Failure]
-    ...
-```
-
-Update semantics are authoritative:
-
-```text
-Set + Absent
-    -> insert canonical value
-
-Set + Available
-    -> replace canonical value
-
-Set + Pending
-    -> Update wins
-    -> settle the existing Task successfully with the Update value
-    -> normal Provider completion publishes the value
-    -> later original Response is ignored
-```
-
-```text
-Remove + Available
-    -> remove value
-
-Remove + Absent
-    -> no-op
-
-Remove + Pending
-    -> Update wins
-    -> settle the existing Task as Failed through the same Failure model
-       used by Response::Failure
-    -> any containing TaskGroup becomes Failed according to normal Sparkle semantics
-    -> later original Response is ignored
-```
-
-#### Generic Error wire contract
-
-Each Collection family owns an Error MessageID. Collection request validation, misuse, malformed-request handling, and outer aggregation failure use that Error message.
-
-```text
-Header:
-    MessageID
-    RequestID
-
-Payload:
-    [Networking::Diagnostic]
-    [keyCount:uint32]
-    [TKey × keyCount]
-```
-
-The contextual key list may be empty when no safe key can be recovered.
-
-Terminal per-element acquisition failures remain inside the normal Response Failure section and do not use Error messages.
-
-`Networking::Diagnostic` is a serializable payload value only and has no MessageID of its own, as fixed by the preceding Diagnostic decision.
-
-#### Frozen Collection<TKey, TElement> public API
-
-The intended public shape is:
+The target public shape is:
 
 ```cpp
 template <
@@ -1134,52 +111,44 @@ public:
 };
 ```
 
-`state(key)` is derived from available Collection storage first, then Provider Pending state, otherwise Absent.
+`tryRead` retains the Collection protected-data reader during the callback and passes `const TElement&`. The reference must not escape that callback.
 
-`tryRead` acquires the Collection's `spk::ProtectedData` Reader and keeps that Reader alive for the full callback invocation. The callback receives `const TElement&`. No generic element copy is required, and callers must not retain the reference beyond the callback.
-
-Single-key `request(key)` follows:
+Single-key request semantics are:
 
 ```text
-Available
-    -> return an already-completed Answer containing the current value
-
-Pending
-    -> reuse and return the existing Provider Answer
-
-Absent
-    -> start Provider acquisition and return the new Answer
+Available -> immediately completed Answer containing the current value
+Pending   -> reuse the Provider-owned Pending Answer
+Absent    -> start one new Provider acquisition
 ```
 
-Batch `request(keys)` returns `spk::TaskGroup<TElement>::Answer` with exactly one child Answer per requested key. Input order is preserved exactly: `keys[i] <-> group.at(i)`. Available children are immediately completed, Pending children reuse existing Answers, and Absent children start new acquisitions.
+Batch request preserves the caller's key order exactly. It returns one TaskGroup child per input key. Network batching partitions only the newly Absent acquisitions and preserves their relative input order.
 
-Manual Collection mutation is authoritative over Pending acquisition:
+### Mutation semantics
 
 ```text
-insert(key, element):
-    Available -> throw spk::Exception
-    Pending   -> invalidate/fail the Pending acquisition, then insert
+insert:
+    Available -> throw
+    Pending   -> invalidate/fail Pending, then insert
     Absent    -> insert
 
-replace(key, element):
+replace:
     Available -> replace
-    Pending   -> invalidate/fail the Pending acquisition, then replace only if an Available
-                 value exists under the operation's strict replace precondition
-    Absent    -> throw spk::Exception
+    Pending   -> invalidate/fail Pending; strict replace still requires an Available value
+    Absent    -> throw
 
-remove(key):
+remove:
     Available -> remove
-    Pending   -> invalidate/fail the Pending acquisition and remove any Available value
+    Pending   -> invalidate/fail Pending and remove any Available value
     Absent    -> no-op
 ```
 
-A late network Response after insert/replace/remove does not republish stale data because it no longer finds the corresponding active Pending acquisition.
+Once a Pending acquisition has been invalidated/removed, a later network Response for it is stale and cannot republish data.
 
-### Approved Provider, RequestingProvider, and Updater freeze — 30 September 2026
+## Provider lifecycle
 
-Pending acquisition lifecycle is generic and owned by `Collection<TKey, TElement>::Provider`. Collection storage contains only Available data.
+`Collection<TKey, TElement>::Provider` owns synchronized `TKey -> Pending` state.
 
-Conceptually, each Pending entry retains the acquisition Answer and completion subscription Contract:
+Each Pending entry retains both the acquisition Answer and its completion Contract:
 
 ```cpp
 struct Pending
@@ -1189,1017 +158,501 @@ struct Pending
 };
 ```
 
-The Provider owns synchronized TKey -> Pending lookup, Pending reuse, completion subscription, successful publication into Collection storage, failure cleanup, and Pending state reporting.
+Registration order must remain safe for synchronous completion:
 
-Pending registration keeps the already-approved ordering required for synchronous completion safety:
-
-1. create/obtain the acquisition Answer;
-2. insert Pending before subscribing;
+1. create the acquisition Answer;
+2. insert Pending state;
 3. subscribe to completion;
 4. reacquire Pending bookkeeping;
-5. if the entry still exists, store the returned Contract;
-6. otherwise discard the returned Contract because completion already removed the Pending entry.
+5. retain the Contract only if the Pending entry still exists.
 
-On successful completion, the Provider publishes the element into Collection storage before removing Pending state. On failed completion, no value is published and Pending is removed.
+Successful completion publishes the element into Collection storage before Pending state disappears. Failed completion publishes nothing and removes Pending state.
 
-#### GeneratingProvider
+### GeneratingProvider
 
-`GeneratingProvider` reuses the generic Provider lifecycle and specializes only how a new acquisition is produced locally.
+`GeneratingProvider` reuses the generic Provider lifecycle and specializes only local generation/acquisition.
 
-#### RequestingProvider
+### RequestingProvider
 
-`Collection<TKey, TElement>::RequestingProvider` is a generic concrete network-backed provider. No Chunk- or Column-specific subclass is required when TKey and TElement satisfy the message serialization contract.
+`RequestingProvider` is generic and network-backed. It owns:
 
-It is configured with at least:
+- new Pending Tasks;
+- request batching;
+- RequestID generation/correlation;
+- outgoing Request serialization/send;
+- incoming Response parsing;
+- remembered terminal Server refusals for the current connection.
+
+It maintains:
+
+```text
+TKey      -> active Pending acquisition
+RequestID -> keys represented by one emitted Request
+TKey      -> remembered terminal Response::Failure for current connection
+```
+
+A Server `Response::Failure` is remembered for the lifetime of the current Client connection. A later request for that key returns an already-failed acquisition using the retained Failure information and does not emit another network Request.
+
+A transport disconnect:
+
+- fails all active network-backed Pending acquisitions locally;
+- clears RequestID correlation;
+- clears remembered Server refusals;
+- leaves Available Collection values untouched.
+
+After reconnect, previously refused/transport-failed Absent keys are requestable again.
+
+## RequestID contract
+
+RequestID sequences are owned per Collection Request type / RequestingProvider.
+
+- Chunk Requests start at RequestID 1.
+- Column Requests independently start at RequestID 1.
+- Each sequence increments monotonically as `spk::Message::RequestID` / `std::uint64_t`.
+- RequestID 0 remains reserved for uncorrelated messages such as Update.
+- Chunk and Column may therefore use the same numeric RequestID concurrently because routing delivers each Response to the matching RequestingProvider.
+- RequestIDs are not recycled.
+- Disconnect/reconnect does not reset an existing RequestingProvider's sequence.
+- No drain/recycle threshold or reset handshake exists in ST-001-11.
+
+## Domain-owned protocol tuning constants
+
+Chunk and Column each own static compile-time tuning constants for:
+
+- maximum elements per emitted Collection Request;
+- elements per serialized Response section.
+
+These values are implementation tuning knobs rather than durable wire identifiers. Tests should reference the domain constants instead of duplicating their numeric values. They may be adjusted later without changing the generic protocol architecture.
+
+The existing historical Chunk limit may be used as the initial Chunk tuning value during migration; ST-001-11 does not promote numeric tuning values into a new protocol decision record.
+
+## Column domain
+
+`Column::Coordinate` is a Core semantic X/Z key with signed `x` and `z` components and the comparison/hash behavior needed by Collection storage.
+
+A `Column` value is the complete sparse set of non-empty full `Chunk::Coordinate` values for one X/Z terrain column. It does not redundantly contain its own key.
+
+Both Client and terrain Server instantiate:
 
 ```cpp
-RequestingProvider(
-    spk::Message::Type requestMessageID,
-    std::size_t maxElementsPerRequest);
+Collection<Column::Coordinate, Column>
 ```
 
-The request MessageID is constructor configuration rather than a mutable post-construction requirement because a RequestingProvider without an outgoing Request MessageID is not usable.
+The Client uses a network-backed RequestingProvider. The terrain Server uses a generating Provider derived from the same deterministic prototype terrain rules as Chunk generation, so Column membership and Chunk contents remain authoritative and consistent.
 
-The RequestingProvider knows only the MessageID it emits for Request messages. It does not own the Response, Update, or Error MessageIDs used for incoming routing.
-
-For every new network acquisition it creates a real `spk::Task<TElement>` and retains the corresponding Answer through generic Pending state. The acquisition Task remains `Task::Status::Pending` while waiting for the network; no WorkerPool thread blocks waiting for the response.
-
-RequestingProvider maintains both:
-
-```text
-TKey -> active Pending acquisition
-RequestID -> keys/acquisitions represented by one emitted network Request
-```
-
-The first mapping supports Collection state, duplicate suppression, mutation, and Update arbitration. The second supports response correlation.
-
-For a batch request the Provider reuses already-Pending Answers, creates Tasks only for new Absent keys, partitions those new acquisitions by `maxElementsPerRequest`, generates one RequestID per emitted network message, serializes each TKey through `operator<<`, and sends the requests. The caller still receives one TaskGroup representing the full logical input order.
-
-Incoming Response routing is external. The dispatcher invokes:
+Chunk storage/acquisition remains:
 
 ```cpp
-requestingProvider.receive(message);
+Collection<Chunk::Coordinate, Chunk>
 ```
 
-The Provider may submit one WorkerPool parsing job for the complete Response message. That job parses all Success and Failure entries and settles the already-created per-element Tasks:
+Column discovery does not replace full Chunk identity or Chunk acquisition.
 
-```text
-Success(key, element)
-    -> if matching active Pending still exists
-       -> task.validate(element)
-    -> otherwise ignore as stale
+## Generic Collection protocol
 
-Failure(key, failure)
-    -> if matching active Pending still exists
-       -> task.fail(convertFailure(failure))
-    -> otherwise ignore as stale
-```
+### MessageType family
 
-One parsed Response may therefore settle many individual Tasks. The generic Provider completion path subsequently publishes successful values into Collection storage.
+ST-001-11 intentionally supersedes the historical fixed numeric Chunk IDs.
 
-#### Updater
-
-`Collection<TKey, TElement>::Updater` is generic and requires no Chunk- or Column-specific subclass.
-
-The Updater is bound to one Collection instance. It does not expose or require direct public access to the Provider.
-
-Incoming Update routing is external:
-
-```text
-ChunkUpdate  -> chunkCollectionUpdater.receive(message)
-ColumnUpdate -> columnCollectionUpdater.receive(message)
-```
-
-The Updater parses generic Set/Remove entries and delegates semantic application to private Collection operations. The Collection decides whether the operation mutates storage directly or settles an active Provider Pending Task.
-
-The ownership relationship is therefore:
-
-```text
-Updater
-    -> Collection
-
-Collection
-    -> Storage
-    -> Provider
-
-Updater
-    does not manage Provider internals directly
-```
-
-Update always wins over a manually requested Pending acquisition. Taking ownership of a Pending acquisition for Response versus Update settlement must be atomic so that only one path can settle that Task. Once Update has won, the later original Response finds no active Pending acquisition and is ignored.
-
-
-### Approved disconnect and message-dispatch integration — 30 September 2026
-
-All active network-backed Collection acquisitions become terminally Failed when the underlying Client connection is lost.
-
-For every `Collection<TKey, TElement>::RequestingProvider` attached to that connection:
-
-```text
-Client disconnection
-    -> every active Pending acquisition is settled as Failed
-    -> no value is published into Collection storage
-    -> generic Provider completion removes Pending state
-    -> any TaskGroup containing one of those Tasks becomes Failed through normal Sparkle semantics
-    -> a later explicit request for the same Absent key may start a fresh acquisition
-```
-
-No Pending Task survives a disconnected transport waiting for an old response. Responses from the previous connection that arrive after the Pending state has been cleared cannot republish data because they no longer match an active acquisition.
-
-The failure used for this transition is a local transport/disconnection failure, not a fabricated Server `Response::Failure`.
-
-#### Message dispatch integration
-
-Sparkle Version-0.1.3 does not expose MessageID-specific callbacks on `spk::Client` or `spk::Server`. Their networking contract is queue-based:
-
-- `spk::Client::messages()` exposes a FIFO of `spk::Message`;
-- `spk::Server::messages()` exposes a FIFO of `spk::ReceivedMessage`;
-- connection/disconnection notifications are exposed separately through retained ContractProvider subscriptions.
-
-Erelia therefore keeps Sparkle unchanged and owns a thin message-dispatch layer above those queues.
-
-That layer drains the appropriate Sparkle message queue, inspects each `spk::Message::Type`, and forwards the message to the parser/receiver object registered for that MessageID.
-
-Application composition is intentionally explicit. Each executable composition root / main-level application setup binds protocol MessageIDs to the concrete objects that know how to parse them. For example, on the Client side:
-
-```text
-ChunkResponse  -> Collection<Chunk::Coordinate, Chunk>::RequestingProvider
-ChunkUpdate    -> Collection<Chunk::Coordinate, Chunk>::Updater
-ChunkError     -> Collection<Chunk::Coordinate, Chunk> network error handling
-
-ColumnResponse -> Collection<Column::Coordinate, Column>::RequestingProvider
-ColumnUpdate   -> Collection<Column::Coordinate, Column>::Updater
-ColumnError    -> Collection<Column::Coordinate, Column> network error handling
-```
-
-The parser objects themselves do not know the incoming MessageID used to reach them. Routing knowledge belongs to the executable/application composition layer.
-
-The Server side follows the same principle while preserving `spk::ReceivedMessage::emitter`: the dispatcher routes by the contained message type and forwards the originating `ConnectionID` together with the message to the registered request parser/handler.
-
-This keeps responsibilities separated:
-
-```text
-spk::Client / spk::Server
-    -> transport + receive FIFO + connection lifecycle
-
-Erelia dispatcher
-    -> MessageID routing
-
-RequestingProvider / Updater / request handler
-    -> protocol parsing and semantic handling
-
-main / application composition root
-    -> binds MessageID to parser object
-```
-
-No Collection protocol parser needs its own network receive loop, and multiple parsers must never independently drain the same Sparkle receive FIFO.
-
-
-### Approved network-manager MessageID subscription API — 30 September 2026
-
-The Erelia Client and Server network-manager widgets expose MessageID-specific subscriptions directly. Their role is inspired by the former JGL2 ClientManager/ServerManager update widgets, but adapted to the current Sparkle queue-based networking and Erelia Service access.
-
-The managers own no Client/Server transport instance. They access the transport through the relevant Erelia Service and drain its receive queue during their update step.
-
-Each MessageID owns a `spk::ContractProvider`. Subscribing returns a retained Contract; destroying that Contract removes the corresponding callback exactly like other Sparkle subscription APIs.
-
-The Client-side API is conceptually:
+Collection MessageIDs are declared from one family macro:
 
 ```cpp
-class ClientNetworkManager : public spk::Widget
+#define COLLECTION_MESSAGES(Name) \
+    Name##Request,                 \
+    Name##Response,                \
+    Name##Update,                  \
+    Name##Error
+
+enum class Networking::MessageType : spk::Message::Type
 {
-public:
-    using MessageProvider =
-        spk::ContractProvider<const spk::Message&>;
-    using MessageCallback =
-        MessageProvider::callback_type;
-    using MessageContract =
-        MessageProvider::Contract;
+    Invalid = 0,
 
-    [[nodiscard]]
-    MessageContract subscribeToMessage(
-        spk::Message::Type messageID,
-        MessageCallback callback);
+    COLLECTION_MESSAGES(Chunk),
+    COLLECTION_MESSAGES(Column)
 };
 ```
 
-During update:
+The generated ordering is the current protocol contract. No compatibility requirement preserves the old ST-001-08/ST-001-09 numeric values.
 
-```text
-Service::client().messages()
-    -> drain messages
-    -> lookup MessageProvider by message.type()
-    -> trigger provider with const spk::Message&
-```
+There is no standalone `Networking::MessageType::Diagnostic`.
 
-The Server-side API preserves the sender identity:
+### Diagnostic
+
+`Networking::Diagnostic` is a serializable payload value, not a routable Message.
+
+It contains:
 
 ```cpp
-class ServerNetworkManager : public spk::Widget
+enum class Severity : std::uint8_t
 {
-public:
-    using MessageProvider =
-        spk::ContractProvider<
-            spk::ConnectionID,
-            const spk::Message&>;
-    using MessageCallback =
-        MessageProvider::callback_type;
-    using MessageContract =
-        MessageProvider::Contract;
-
-    [[nodiscard]]
-    MessageContract subscribeToMessage(
-        spk::Message::Type messageID,
-        MessageCallback callback);
+    Trace = 0,
+    Info = 1,
+    Warning = 2,
+    Error = 3
 };
+
+Severity severity;
+std::string message;
 ```
 
-During update:
+Request correlation belongs to the enclosing Collection protocol Message header.
 
-```text
-Service::server().messages()
-    -> drain spk::ReceivedMessage values
-    -> lookup MessageProvider by received.message.type()
-    -> trigger provider(received.emitter, received.message)
-```
+### Message serialization model
 
-The exact Service ownership/plumbing for the Server transport must remain consistent with the Server composition already in use; the network manager itself must not instantiate or own a second `spk::Server`.
+Finalized `spk::Message` values are immutable.
 
-Application composition retains the returned Contracts. Example bindings are conceptually:
+Writing uses `spk::Message::Writer`:
 
 ```cpp
-_chunkResponseContract =
-    networkManager.subscribeToMessage(
-        static_cast<spk::Message::Type>(
-            Networking::MessageType::ChunkResponse),
-        [&chunkProvider](const spk::Message& message)
-        {
-            chunkProvider.receive(message);
-        });
-
-_chunkUpdateContract =
-    networkManager.subscribeToMessage(
-        static_cast<spk::Message::Type>(
-            Networking::MessageType::ChunkUpdate),
-        [&chunkUpdater](const spk::Message& message)
-        {
-            chunkUpdater.receive(message);
-        });
+spk::Message::Writer writer(messageType);
+writer.setRequestID(requestID);
+writer << key;
+writer << element;
+spk::Message message = std::move(writer).build();
 ```
 
-The same mechanism is used for Column Response/Update/Error messages and for Server-side Collection Request handlers.
-
-Multiple subscribers to one MessageID are permitted by the ContractProvider model. A parser must not independently drain `spk::Client::messages()` or `spk::Server::messages()`; the network-manager widget is the unique queue-draining point for its transport.
-
-
-### Approved positional message parsing and non-Widget dispatcher core — 30 September 2026
-
-All Collection protocol parsing must treat the received `spk::Message` payload as immutable shared data and use positional reads through `readAt(offset, ...)` / `readAt<T>(offset)` rather than advancing the mutable `spk::Message::readOffset()` through `operator>>`.
-
-This deliberately follows the existing `Chunk::Protocol::Response` implementation, which already validates and decodes entries through explicit offsets.
-
-The previous generic serialization wording requiring extraction through `message >> value` is superseded. The write side may still use the normal message append/edit/insertion facilities, but every generic TKey/TElement protocol decoder must support positional deserialization from an explicit byte offset.
-
-Consequences:
-
-- parsing one message never mutates shared parser position;
-- several WorkerPool tasks may safely read disjoint sections of the same immutable message payload concurrently;
-- response section offsets can be handed directly to independent parsing tasks;
-- each task owns its local offsets/ranges rather than sharing a global cursor;
-- the underlying message storage must remain alive until all parsing tasks that reference it have completed;
-- multiple MessageID subscribers are not prohibited by parser-cursor mutation, because callbacks/readers do not consume a shared read offset.
-
-The exact helper/codec function signature used to express generic positional TKey/TElement deserialization is an implementation API detail still to be named; the semantic requirement is fixed: decoding is offset-based and non-consuming.
-
-### Approved dispatcher core and runtime adapters — 30 September 2026
-
-MessageID routing is not intrinsically a Widget concern.
-
-Erelia introduces a reusable non-Widget dispatcher core that owns the `MessageID -> ContractProvider` routing/subscription mechanics. Runtime-specific managers/adapters feed messages into that dispatcher.
-
-The architecture is:
-
-```text
-generic MessageDispatcher
-    -> MessageID subscription / Contract lifetime
-    -> no transport ownership
-    -> no Widget dependency
-```
-
-Client runtime:
-
-```text
-ClientNetworkManager : spk::Widget
-    -> obtains Service::client()
-    -> drains spk::Client::messages() from its update pass
-    -> forwards each message to MessageDispatcher
-```
-
-The Widget inheritance exists only because the graphical Client already has an `spk::Application`/Widget update tree.
-
-Dedicated Server runtime:
-
-```text
-Server network manager / dispatcher adapter
-    -> no Widget requirement
-    -> advanced explicitly from the Server run loop
-    -> uses the Server/Router transport already owned by the Server composition
-    -> must not instantiate a second spk::Server
-```
-
-Node runtime:
-
-```text
-Node network manager / dispatcher adapter
-    -> no Widget requirement
-    -> advanced explicitly from the node run loop
-    -> works on spk::RemoteNode::Endpoint
-    -> calls Endpoint::dispatch()
-    -> drains Endpoint::requests()
-    -> dispatches by request.message.type()
-```
-
-For nodes, the full `spk::RemoteNode::Endpoint::Request` context is preserved through dispatch because handlers need its proxy/origin connection data for `Endpoint::reply(...)`.
-
-This replaces the current TerrainNodeApplication manual:
-
-```text
-drain requests
-    -> switch(message.type())
-    -> call parser
-```
-
-with retained MessageID subscriptions.
-
-The Client/Server/Node managers therefore share the same routing/subscription core while differing only in how their runtime obtains and advances the underlying Sparkle transport queue.
-
-
-### Approved Sparkle Message Reader model — 30 September 2026
-
-The earlier ST-001-11 requirement that generic protocol parsing use only direct `Message::readAt(offset, ...)` calls is superseded by the Sparkle Message Reader model implemented on `Sparkle/Version-0.1.3`.
-
-`spk::Message` keeps its legacy sequential-reading API unchanged, but that API now delegates to an internal mutable `spk::Message::Reader` owned by the Message. The read cursor therefore no longer belongs directly to the Message payload state.
-
-Existing code remains valid:
-
-```cpp
-message >> value;
-const auto value = message.get<T>();
-message.skip<T>();
-message.reset();
-message.readOffset();
-```
-
-Those operations affect only the Message's internal Reader.
-
-Additional independent Readers can be created from the same Message:
+Decoding uses independent Readers:
 
 ```cpp
 auto reader = message.reader();
-auto sectionReader = message.reader(sectionOffset);
-```
-
-Each Reader owns its own read offset and exposes the same sequential parsing semantics:
-
-```cpp
-reader >> key;
-reader >> element;
-const auto value = reader.get<T>();
-reader.skip<T>();
-reader.reset();
-reader.seek(offset);
-reader.readOffset();
-```
-
-All Readers reference the same immutable Message payload but advance independently. This is the required model for parallel protocol parsing:
-
-```text
-one received spk::Message
-    -> Reader A at section A offset -> WorkerPool Task A
-    -> Reader B at section B offset -> WorkerPool Task B
-    -> Reader C at section C offset -> WorkerPool Task C
-```
-
-No thread-local cursor is used. Reader ownership makes the parsing position explicit and independent of which WorkerPool thread executes a task.
-
-The generic Collection serialization contract may therefore retain streaming syntax:
-
-```cpp
-message << key;
-message << element;
-
-auto reader = message.reader(offset);
 reader >> key;
 reader >> element;
 ```
 
-Direct `readAt(...)` remains available for fixed-layout validation, offset-table access, and other genuinely positional reads.
+A Reader owns its own cursor and retains the immutable pooled Message payload needed for its lifetime. Several parsing jobs may therefore own independent Readers over the same Message storage.
 
-The received Message storage must remain alive for the lifetime of every Reader and parsing task referencing it.
+The generic `MessageSerializable` requirement is defined against `spk::Message::Writer` insertion and `spk::Message::Reader` extraction, not mutable operators on `spk::Message` itself.
 
+### Request
 
-### Approved Server network services — 30 September 2026
-
-The dedicated Server exposes its existing Sparkle router/transport through Erelia services. No second `spk::NodeRouter` or `spk::Server` instance is created.
-
-The Server service API is:
-
-```cpp
-namespace Service
-{
-    [[nodiscard]]
-    spk::NodeRouter& router();
-
-    [[nodiscard]]
-    spk::Server& server();
-}
-```
-
-`Service::router()` owns/returns the single Server-side `spk::NodeRouter`.
-
-`Service::server()` is only a convenience view onto that router's existing Client-facing Server:
-
-```cpp
-spk::Server& Service::server()
-{
-    return router().server();
-}
-```
-
-The ownership relationship is therefore:
+A Collection Request carries a non-zero RequestID in its Message header and serializes only keys:
 
 ```text
-Service::router()
-    -> single spk::NodeRouter
-        -> owns single spk::Server
-
-Service::server()
-    -> Service::router().server()
-    -> no additional Server ownership
+[TKey]
+[TKey]
+...
 ```
 
-Responsibilities:
+`RequestingProvider` splits newly Absent acquisitions according to the domain's static maximum-elements-per-request constant. Each emitted network Request receives its own RequestID. The caller still observes one logical TaskGroup in original input order.
 
-- Server routing/redirection/node topology uses `Service::router()`;
-- `ServerNetworkManager` drains the Client-facing receive queue through `Service::server().messages()`;
-- code that only needs Server transport operations may depend on `Service::server()` without knowing about NodeRouter;
-- code that configures or advances node routing uses `Service::router()`.
+### Response
 
-The Server run loop advances the same service-owned router and network-manager/dispatcher stack; it must not construct an independent Router transport instance in parallel with the Service.
+One valid Collection Request produces exactly one terminal Response Message in ST-001-11. Logical Responses are not split across network Messages.
 
+The generic Response type itself owns an offset table at the beginning of the payload. The table provides absolute entry points for independently deserializable sections across the complete Response, including both Success and Failure data, and identifies the Success/Failure boundary. Chunk and Column do not implement separate response-table formats.
 
-### Approved Node network services — 30 September 2026
-
-Each dedicated Server-node executable follows the same service ownership pattern as the dedicated Server.
-
-The node executable exposes its single concrete node instance through a node service, and exposes that node's existing `spk::RemoteNode::Endpoint` through a convenience endpoint service.
-
-For the terrain node, the intended service API is conceptually:
-
-```cpp
-namespace Service
-{
-    [[nodiscard]]
-    TerrainNode& node();
-
-    [[nodiscard]]
-    spk::RemoteNode::Endpoint& endpoint();
-}
-```
-
-The endpoint service delegates to the service-owned node:
-
-```cpp
-spk::RemoteNode::Endpoint& Service::endpoint()
-{
-    return node().endpoint();
-}
-```
-
-The ownership relationship is:
+Serialized semantic entries are:
 
 ```text
-Service::node()
-    -> single TerrainNode
-        -> owns single spk::RemoteNode::Endpoint
+Success:
+    [TKey][TElement]
 
-Service::endpoint()
-    -> Service::node().endpoint()
-    -> no additional Endpoint ownership
-```
-
-The concrete node class therefore exposes its existing Endpoint by reference for service delegation; it does not transfer ownership.
-
-Responsibilities are separated as follows:
-
-- node-specific domain behavior uses `Service::node()`;
-- the node network-manager/dispatcher adapter advances and drains the transport through `Service::endpoint()`;
-- request handlers may reply through the node or Endpoint according to their domain-level responsibility;
-- the executable composition root configures MessageID subscriptions against the node network manager;
-- no parser independently drains `Endpoint::requests()`;
-- no second `spk::RemoteNode::Endpoint` is instantiated by the service or network manager.
-
-This creates the same service pattern across runtimes:
-
-```text
-Client:
-    Service::client()
-
-Server:
-    Service::router()
-        -> Service::server()
-
-Node:
-    Service::node()
-        -> Service::endpoint()
-```
-
-
-### Approved final dispatch topology — 30 September 2026
-
-The Server-side dispatch design is finalized after verification against `Sparkle/Version-0.1.3`.
-
-There is no Erelia `ServerNetworkManager`.
-
-The dedicated Server does not parse Collection protocol messages locally. It uses the existing `spk::NodeRouter` routing API exclusively to declare which node receives each incoming MessageID.
-
-The Server services remain:
-
-```cpp
-namespace Service
-{
-    [[nodiscard]]
-    spk::NodeRouter& router();
-
-    [[nodiscard]]
-    spk::Server& server();
-}
+Failure:
+    [TKey][Failure]
 ```
 
 with:
 
 ```cpp
-spk::Server& Service::server()
+struct Failure
 {
-    return router().server();
-}
+    enum class Code : std::uint8_t
+    {
+        AcquisitionFailed = 0
+    };
+
+    Code code;
+    std::string message;
+};
 ```
 
-Server composition declares routes explicitly:
+Sections are cut according to the domain's static elements-per-response-section constant. A section never straddles the Success/Failure boundary.
 
-```cpp
-Service::router().redirect(
-    static_cast<spk::Message::Type>(
-        Networking::MessageType::ChunkRequest),
-    "terrain");
+The offset table and section boundaries are generic Response framing; WorkerPool parsing jobs create independent `Message::Reader` instances at those offsets.
 
-Service::router().redirect(
-    static_cast<spk::Message::Type>(
-        Networking::MessageType::ColumnRequest),
-    "terrain");
-```
+A received Success or Failure is applied only while the matching RequestingProvider still owns the corresponding active Pending acquisition. Otherwise it is stale and ignored.
 
-An incoming MessageID without a configured `spk::NodeRouter::redirect(...)` route is intentionally invalid and may raise the existing Sparkle exception. This strict behavior is desired and must not be hidden by a fallback route.
+### Update
 
-The verified Sparkle path is:
+Update is unsolicited canonical Server state. Its RequestID is 0.
+
+Update uses the same generic section/offset-table infrastructure and carries Set and Remove entries.
 
 ```text
-Client
-    -> spk::NodeRouter::server()
-    -> NodeRouter MessageID redirection
-    -> spk::RemoteNode
-    -> spk::RemoteNode::Endpoint
-    -> node-side parser/handler
-    -> Endpoint::reply(...)
-    -> spk::RemoteNode
-    -> spk::NodeRouter
-    -> originating Client
+Set + Absent    -> insert
+Set + Available -> replace
+Set + Pending   -> Update wins and settles Pending successfully
+
+Remove + Available -> remove
+Remove + Absent    -> no-op
+Remove + Pending   -> Update wins and settles Pending as Failed
 ```
 
-`spk::NodeRouter::dispatch()` handles Server incoming/outgoing routing, while the Erelia `Router::dispatch()` continues to advance each connected `spk::RemoteNode::dispatch()` as required by Sparkle's current implementation.
+Response-vs-Update ownership of a Pending acquisition must be claimed atomically so only one path settles it.
 
-The final runtime dispatch topology is therefore:
+ST-001-11 implements generic Update framing and Client receiving/application. The terrain Server does not yet produce/broadcast Updates.
+
+### Error
+
+Each Collection family owns an Error MessageID.
+
+The payload is:
 
 ```text
-Client:
-    ClientNetworkManager : spk::Widget
-        -> Service::client()
-        -> drains Client messages
-        -> MessageDispatcher
-        -> MessageID subscriptions
-        -> RequestingProvider / Updater / Error receiver
-
-Server:
-    Erelia Router
-        -> Service::router()
-        -> spk::NodeRouter::redirect(MessageID, nodeName)
-        -> no local protocol parser
-        -> no ServerNetworkManager
-
-Node:
-    NodeNetworkManager
-        -> Service::endpoint()
-        -> Endpoint::dispatch()
-        -> drains Endpoint requests
-        -> MessageDispatcher
-        -> MessageID subscriptions
-        -> node request handlers
+[Networking::Diagnostic]
+[keyCount:uint32]
+[TKey x keyCount]
 ```
 
-The reusable Erelia `MessageDispatcher` is therefore used only by runtimes that consume and interpret protocol messages locally. The central Server only routes them.
+The key list may be empty when no safe key can be recovered.
 
-This supersedes the earlier plan entry that introduced a `ServerNetworkManager`.
+Error is distinct from terminal per-element `Response::Failure`.
 
+For ST-001-11, incoming ChunkError/ColumnError on the Client are diagnostic-only:
 
-### Approved Error, Failure, disconnect, and Update scope semantics — 30 September 2026
+- decode Diagnostic + contextual keys;
+- format contextual warning text;
+- log at Warning;
+- do not mutate Collection storage;
+- do not settle/fail/retry Pending acquisitions.
 
-The remaining Client-side Error/Failure semantics are finalized as follows.
+This intentionally leaves known technical debt for request-level failures that emit Error without a Response, including outer aggregation failure: the correlated acquisition can remain Pending until another lifecycle event such as disconnect/removal settles it. ST-001-11 accepts this debt; a future networking/reliability ticket will define terminal Error recovery/timeout behavior.
 
-#### Collection family Error messages are diagnostic-only for ST-001-11
+## Message dispatch topology
 
-Incoming `ChunkError` / `ColumnError` messages do not participate in acquisition state and must not settle, fail, remove, retry, or otherwise mutate Collection Pending/Available/failed acquisition state.
+Erelia owns a reusable non-Widget `MessageDispatcher` with MessageID -> `spk::ContractProvider` subscriptions.
 
-For ST-001-11 they are only decoded and logged as warnings.
+Destroying a returned Contract removes the subscription. Multiple subscribers for one MessageID are allowed.
 
-The receiver parses the embedded `Networking::Diagnostic` plus any contextual payload data carried by the family Error message, then composes one warning string using `std::format` so that the diagnostic message is augmented with the payload context before it is written to the log.
+### Client
 
-Conceptually:
+`ClientNetworkManager : spk::Widget`:
+
+- uses `Service::client()`;
+- is the unique drainer of `spk::Client::messages()`;
+- forwards received Messages to `MessageDispatcher`;
+- retains the Client disconnection Contract;
+- propagates disconnect to network-backed RequestingProviders.
+
+Composition root bindings include:
 
 ```text
-ChunkError / ColumnError
-    -> decode Diagnostic
-    -> decode contextual payload
-    -> std::format(...) diagnostic text + payload data
-    -> SPK_LOG(Warning)
-    -> no Collection/Provider state transition
+ChunkResponse  -> Chunk RequestingProvider
+ChunkUpdate    -> Chunk Updater
+ChunkError     -> Chunk error receiver
+
+ColumnResponse -> Column RequestingProvider
+ColumnUpdate   -> Column Updater
+ColumnError    -> Column error receiver
 ```
 
-The exact user-facing formatting string may follow the concrete payload shape implemented for that Error family, but the semantic behavior is fixed: Error messages are warnings only for this ticket.
+### Central Server
 
-This is intentionally distinct from `Response::Failure`.
+There is no `ServerNetworkManager`.
 
-#### Response::Failure is a remembered terminal acquisition refusal
-
-A `Collection Response::Failure` means that the Server does not provide/generate that requested data.
-
-Such a failure is terminal for that key for the lifetime of the current Client connection and must be remembered so the Client does not repeatedly request the same unavailable data.
-
-The frozen public `Collection::State` remains exactly:
+The central Server configures only NodeRouter routes:
 
 ```text
-Absent
-Pending
-Available
+ChunkRequest  -> terrain
+ColumnRequest -> terrain
 ```
 
-No new public `Failed` Collection state is introduced.
+Unconfigured MessageIDs remain invalid under Sparkle's existing strict NodeRouter behavior.
 
-Instead, `RequestingProvider` retains a per-key remembered terminal `Response::Failure` refusal outside Collection storage and outside active Pending state.
+### Terrain node
 
-A later `request(key)` for a key with a remembered refusal must not emit another network Request during the same connection. It resolves through the retained failure information so callers still observe the acquisition failure without causing repeated Server requests.
+A node-side dispatcher adapter:
 
-The Failure payload/reason is retained by the RequestingProvider so the refusal is not lost and can be reused for later same-connection requests.
+- advances the existing service-owned `spk::RemoteNode::Endpoint`;
+- drains `Endpoint::requests()`;
+- preserves the complete Endpoint Request envelope;
+- dispatches by MessageID;
+- lets handlers reply through the same existing Endpoint.
 
-This failure state is created only from terminal per-element `Response::Failure` entries. Family `*Error` messages never create it.
+No parser independently drains a Sparkle receive FIFO.
 
-#### Disconnect resets remembered network failures
+## Client streaming behavior
 
-Client disconnection defines a new network-acquisition epoch.
+The Player owns one terrain-streaming `spk::Behaviour`.
 
-On disconnection:
+The Behaviour retains:
+
+- the Player `spk::Transform3D::OnEditionContract`;
+- the last processed center `Chunk::Coordinate`;
+- completion Contracts required by outstanding Column/Chunk acquisition chains.
+
+Initialization subscribes to Transform edition and immediately invokes the same internal streaming routine with `owner()->transform()`. No artificial Transform edit or Sparkle force-trigger API is required.
+
+For every Transform edition:
+
+1. read world-space position;
+2. mathematically floor each component to its containing global terrain Cell coordinate;
+3. convert through the existing Chunk floor-division coordinate contract;
+4. if the containing Chunk coordinate is unchanged, do nothing;
+5. otherwise refresh Column demand and Client retention.
+
+### View/unload ranges
+
+`viewRange` and `unloadRange` are Client configuration values.
+
+- both are strictly positive integers;
+- `unloadRange >= viewRange`;
+- configuration rejects invalid values;
+- the Client precomputes relative horizontal X/Z Column offsets once and reuses them as the center moves;
+- ranges are inclusive axis-aligned squares in Column space centered on the current player Chunk X/Z.
+
+On a center-Chunk transition:
+
+- request desired Columns in the view region;
+- unload Client Columns outside the horizontal unload region;
+- unload Client Chunks whose X/Z coordinates lie outside that retained region.
+
+Server-side Column/Chunk storage remains unbounded in ST-001-11.
+
+### Column -> Chunk chain
+
+For each requested Column Answer, the Behaviour retains a completion Contract.
+
+Successful Column completion:
 
 ```text
-active Pending acquisitions
-    -> settle Failed locally because transport was lost
-    -> Pending correlation removed
-
-remembered Response::Failure keys
-    -> clear remembered failure/refusal state
-    -> become requestable again after reconnection
+Column
+    -> enumerate contained full Chunk::Coordinate values
+    -> filter against current desired/retained streaming region
+    -> request relevant Chunks through Collection<Chunk::Coordinate, Chunk>
 ```
 
-Therefore:
-
-- a Server `Response::Failure` suppresses repeated requests while the current connection remains alive;
-- after a disconnect/reconnect cycle, those previously refused keys may be requested again;
-- transport-disconnection failure of an in-flight Pending acquisition is not itself remembered as a permanent Server refusal;
-- stale responses from the previous connection remain unable to publish because their active Pending correlations were cleared.
-
-After reconnection, those keys are requestable again. If they remain part of the Client's normal desired acquisition set, the coordinator may request them again through the normal Collection request path.
-
-#### ClientNetworkManager owns Client disconnection observation
-
-`ClientNetworkManager` retains the `spk::Client::DisconnectionContract`.
-
-When the Client transport disconnects, the network manager propagates the disconnect event to the Client-side network-backed acquisition components so they can:
-
-- fail/clear active Pending network acquisitions;
-- clear remembered `Response::Failure` refusals;
-- leave Collection Available values untouched.
-
-The concrete fan-out storage/API used by `ClientNetworkManager` to notify multiple RequestingProviders is an implementation detail; the ownership/responsibility is fixed here.
-
-#### Server Update production is deferred
-
-ST-001-11 implements the generic Update wire contract and Client-side Update receiving/application semantics, but the Server does not yet produce or broadcast Collection Update messages.
-
-Server-side Update generation/broadcast policy is deferred to later work.
-
-The Client-side Updater remains part of the architecture so the receive/apply path is ready and testable independently of production Server emission.
-
-
-### Approved Client streaming Behaviour composition — 30 September 2026
-
-The earlier proposal for a dedicated Client `TerrainStreamingCoordinator` object and the earlier requirement to drive streaming from a retained `Transform3D::OnEditionContract` are superseded.
-
-ST-001-11 uses the normal Sparkle Engine/Entity/Behaviour model directly.
-
-#### Ownership
-
-For the initial implementation, long-lived Client runtime objects remain owned explicitly by `main`, outside the streaming Behaviour.
-
-Conceptually:
-
-```text
-main
-    -> spk::Application / Window
-    -> spk::Engine
-    -> Player spk::Entity3D
-    -> Client Collection<Column>
-    -> Client Collection<Chunk>
-    -> their Providers / network-facing helpers
-    -> other required runtime objects
-
-spk::Engine
-    -> references/registers Player through Engine::addEntity(...)
-
-Player
-    -> owns the streaming Behaviour through Entity::addBehaviour(...)
-```
-
-This matches Sparkle Version-0.1.3 ownership: `Engine::addEntity(Entity*)` registers/attaches an externally-owned Entity and does not take ownership, while `Entity::addBehaviour<T>()` owns the created Behaviour.
-
-No equivalent Server-side ownership refactor is required by this decision. Existing Server/node ownership remains unchanged unless later implementation work demonstrates a concrete need.
-
-#### Streaming Behaviour
-
-The Player receives one 3D Behaviour dedicated to terrain streaming. The exact concrete class name is an implementation naming detail; no separate coordinator object is introduced.
-
-During its normal Engine update, the Behaviour:
-
-1. reads the Player's current world-space position from `owner()->transform()`;
-2. converts that position to the containing Chunk coordinate using the already-approved floor/Chunk conversion contract;
-3. compares the resulting Chunk coordinate with the last Chunk coordinate for which streaming demand was issued;
-4. if the Chunk coordinate is unchanged, performs no new Column/Chunk acquisition work;
-5. if the Chunk coordinate changed, computes the currently desired Column coordinates and requests them through the Client `Collection<Column>`.
-
-The first update has no previous Chunk coordinate and therefore establishes the initial streaming demand.
-
-Streaming demand is therefore driven by Player Chunk transitions, not by every frame and not by every sub-Chunk transform movement.
-
-#### Column -> Chunk asynchronous chain
-
-Column acquisition remains the first stage.
-
-For every requested Column acquisition Answer, the Behaviour retains a completion subscription Contract. The completion callback examines the completed Column acquisition.
-
-When a Column acquisition completes successfully:
-
-```text
-Column completion
-    -> read the resolved Column
-    -> enumerate its contained full Chunk::Coordinate values
-    -> apply the current desired-area filtering required by the streaming policy
-    -> request the relevant Chunks through Client Collection<Chunk>
-```
-
-A failed Column acquisition does not launch Chunk requests from that failed Column.
-
-The Behaviour likewise retains any asynchronous completion Contracts needed for the resulting Chunk acquisitions; temporary Contracts must not be discarded before completion.
-
-#### Chunk completion placeholder
-
-For ST-001-11 there is no mesher integration yet.
-
-When an individual Chunk acquisition completes successfully, the Behaviour only emits a log entry at:
-
-```cpp
-spk::Logger::Level::UserValueB
-```
-
-This log is the temporary observable placeholder for the later meshing/rendering handoff.
-
-No meshing, render-entity creation, or Chunk view ownership is introduced by ST-001-11.
-
-The exact human-readable Chunk-completion log text is not part of the protocol/architecture contract unless a focused test later requires a stable string.
-
-#### Separation from networking
-
-The streaming Behaviour never sends protocol messages directly.
-
-It depends on the Client Collections and invokes their normal request API:
-
-```text
-Player streaming Behaviour
-    -> Collection<Column>::request(...)
-        -> network-backed Provider if Absent
-
-successful Column completion
-    -> Collection<Chunk>::request(...)
-        -> network-backed Provider if Absent
-
-successful Chunk completion
-    -> UserValueB log placeholder
-```
-
-The Collection/Provider layer therefore continues to own caching, Pending reuse, remembered Response::Failure suppression, RequestID correlation, protocol serialization, and network transmission.
-
-The Behaviour owns only Player-centered streaming demand and the asynchronous Column-to-Chunk request chain.
-
-
-### Approved transform-edition-driven streaming Behaviour — 30 September 2026
-
-The polling/update-driven streaming behavior described in the preceding Client Behaviour decision is superseded.
-
-The Player streaming Behaviour retains the Player Transform edition subscription:
-
-```cpp
-spk::Transform3D::OnEditionContract _transformEditionContract;
-```
-
-and subscribes through the actual Sparkle Version-0.1.3 API:
-
-```cpp
-_transformEditionContract =
-    owner()->transform().subscribeToEdition(
-        [this](const spk::Transform3D& transform)
-        {
-            // react to streaming-center movement
-        });
-```
-
-The callback reads the Player world-space position:
-
-```cpp
-transform.position(spk::ReferenceFrame::World)
-```
-
-and converts it to the containing `Chunk::Coordinate` using the already-approved floor/Chunk conversion contract.
-
-`Transform3D::subscribeToEdition(...)` may also fire for non-position edits such as rotation or scale. Therefore the Behaviour stores the last processed streaming-center Chunk coordinate and compares the newly derived coordinate against it.
-
-If the derived Chunk coordinate is unchanged:
-
-```text
-Transform edition
-    -> same Chunk::Coordinate
-    -> no Column request
-    -> no Chunk request
-    -> no unload
-```
-
-If the derived Chunk coordinate changed:
-
-```text
-Transform edition
-    -> new Chunk::Coordinate
-    -> update stored streaming-center coordinate
-    -> recompute desired Column region
-    -> request required Columns
-    -> successful Column completions request relevant Chunks
-    -> recompute unload boundary around the new center
-    -> unload cached Chunks outside unloadRange
-```
-
-Chunk unload is therefore emitted from the same Chunk-coordinate transition that refreshes streaming demand. It is not polled every Engine update and is not triggered by transform edits that keep the Player inside the same Chunk.
-
-The previously approved `unloadRange` geometry remains authoritative: the unload region is centered on the new streaming-center Chunk coordinate, and cached Chunks outside that region are eligible for removal through the Chunk Collection's removal mechanics. Removal of a Pending Chunk acquisition follows the already-approved Collection removal semantics and prevents a late response from republishing the unloaded Chunk.
-
-The asynchronous Column -> Chunk completion chain remains unchanged:
-
-```text
-Chunk-coordinate transition
-    -> Collection<Column>::request(...)
-        -> successful Column completion
-            -> Collection<Chunk>::request(...)
-                -> successful Chunk completion
-                    -> SPK_LOG(UserValueB)
-```
-
-The Behaviour retains both the Transform edition Contract and any asynchronous completion Contracts required by the outstanding Column/Chunk request chain.
-
-
-### Approved initial streaming trigger — 30 September 2026
-
-No dedicated initialization hook is introduced for the first terrain-streaming request.
-
-The Client composition root performs setup in this order:
-
-```text
-construct Engine / Player / Collections / Providers
-    -> attach the streaming Behaviour to Player
-    -> Behaviour retains Transform3D edition subscription
-    -> register/configure remaining runtime objects
-    -> place Player at its initial world-space position
-```
-
-The initial call:
-
-```cpp
-player.transform().place(initialPosition);
-```
-
-is the first normal Transform edition event and therefore drives the same streaming path as every later Player movement:
-
-```text
-initial place(...)
-    -> Transform edition
-    -> derive Chunk::Coordinate
-    -> request desired Columns
-    -> successful Column completion requests Chunks
-    -> apply unloadRange
-```
-
-No special first-load code path exists inside the streaming Behaviour.
-
-Sparkle Version-0.1.3 `Transform3D::place(...)` does not emit an edition when the supplied position is already identical to the current position. Therefore the initial Player position must be applied after the Behaviour subscription and must represent an actual transform change if the default transform position would otherwise be identical.
-
-
-### Approved Behaviour initialization without forced Transform edition — 30 September 2026
-
-The preceding initial-streaming-trigger decision based on calling `player.transform().place(initialPosition)` after setup is superseded.
-
-No `Transform3D::forceTriggerEdition()` API is added to Sparkle for ST-001-11.
-
-The Player streaming Behaviour factors all streaming reaction logic into one internal routine, conceptually:
-
-```cpp
-void _updateStreaming(
-    const spk::Transform3D& transform);
-```
-
-During Behaviour setup/attachment, it:
-
-1. retains the Player Transform edition subscription;
-2. routes every later Transform edition through `_updateStreaming(...)`;
-3. immediately invokes `_updateStreaming(owner()->transform())` once after the subscription is established.
-
-Conceptually:
-
-```cpp
-_transformEditionContract =
-    owner()->transform().subscribeToEdition(
-        [this](const spk::Transform3D& transform)
-        {
-            _updateStreaming(transform);
-        });
-
-_updateStreaming(owner()->transform());
-```
-
-The Behaviour stores the last processed streaming-center `Chunk::Coordinate`, for example as an optional value.
-
-Therefore:
-
-```text
-Behaviour initialization
-    -> current Chunk coordinate has not been processed yet
-    -> _updateStreaming(current transform)
-    -> initial Column/Chunk streaming + unload evaluation
-
-later Transform edition
-    -> _updateStreaming(edited transform)
-    -> same Chunk coordinate: no-op
-    -> different Chunk coordinate:
-         refresh Column demand
-         launch resulting Chunk demand
-         unload Chunks outside unloadRange
-```
-
-This keeps initialization and runtime movement on exactly the same code path without fabricating a Transform edit, without forcing cache invalidation inside Sparkle, and without requiring the initial Player position to differ from the default Transform position.
-
-
-### Approved Client Column unload and Server retention — 30 September 2026
-
-Client-side unload applies to both terrain data layers.
-
-Whenever the Player streaming Behaviour observes a change of streaming-center Chunk coordinate, it recomputes the approved `unloadRange` and removes both:
-
-- cached `Chunk` values outside the unload region;
-- cached `Column` values outside the corresponding horizontal X/Z unload region.
-
-This prevents both Client Collections from growing indefinitely as the Player moves through the world.
-
-The same transition therefore conceptually performs:
-
-```text
-new streaming-center Chunk::Coordinate
-    -> refresh desired Column demand
-    -> launch Column -> Chunk acquisition chain
-    -> unload Client Chunks outside unloadRange
-    -> unload Client Columns outside horizontal unloadRange
-```
-
-Collection removal semantics remain authoritative for Pending entries: removing a Pending Client acquisition invalidates/fails that acquisition so a late response cannot republish data that has left the retained streaming region.
-
-For ST-001-11, the Server and terrain node do not evict cached/generated Chunk or Column data. Server-side retention is unbounded for the current prototype/runtime scope. Server cache budgets and eviction policy remain deferred to later scalability/resource-management work.
+Failed Column acquisition does not launch Chunk requests.
+
+Successful Chunk completion has no mesher integration yet. ST-001-11 emits only the temporary `SPK_LOG(UserValueB)` observable used until later meshing/rendering work.
+
+The Behaviour never serializes or sends protocol Messages directly.
+
+## Determinism / ordering
+
+- Collection batch TaskGroup child order exactly follows caller input order.
+- RequestingProvider preserves relative input order when filtering newly Absent keys and cutting request batches.
+- Column values use deterministic Chunk-coordinate ordering.
+- Generic Response framing is deterministic for an equivalent ordered set of Success/Failure entries.
+- Section boundaries are determined only by the corresponding domain static tuning constant, not asynchronous completion order.
+
+## Failure behavior
+
+- malformed Collection Request -> family Error diagnostic; no acquisition starts for invalid payload;
+- terminal per-element Server refusal -> Response::Failure; remembered by RequestingProvider for current connection;
+- disconnect -> active network Pending fails locally, remembered refusals clear, Available cache survives;
+- stale/unknown Response -> ignored;
+- Update beats Pending atomically;
+- Error Messages are warning-only for ST-001-11;
+- aggregation Error without Response may leave Pending work unresolved as accepted technical debt;
+- one failed acquisition must not corrupt unrelated Available values.
+
+## Implementation order
+
+1. Migrate existing Chunk Collection mechanics to generic `Collection<TKey, TElement>`.
+2. Introduce Column key/value serialization and deterministic prototype Column generation.
+3. Introduce generic Collection Request/Response/Update/Error codecs using Sparkle Writer/Reader and generic Response offset-table sectioning.
+4. Migrate Chunk protocol handling to the generic Collection MessageType family and remove the standalone Diagnostic MessageID.
+5. Implement generic `GeneratingProvider`, `RequestingProvider`, and `Updater`.
+6. Add reusable `MessageDispatcher`, ClientNetworkManager, and node-side dispatcher adapter; keep the central Server router-only.
+7. Wire Chunk/Column protocol subscriptions in executable composition roots.
+8. Integrate Client Collections and terrain-streaming Behaviour.
+9. Migrate the existing Chunk integration fixtures from raw `spk::Client` request coordination to the real Client Collection path where ST-001-11 now owns that behavior.
+10. Add focused Core/Client/Server-node/integration tests.
+
+## Required tests
+
+### Generic Collection
+
+- Absent/Pending/Available state;
+- single-key acquisition;
+- repeated Pending request returns the same Answer;
+- Available request returns immediately completed Answer;
+- ordered TaskGroup batch request;
+- insert/replace/remove strict semantics;
+- Pending invalidation by mutation;
+- late completion cannot republish removed/replaced data;
+- Provider completion Contract lifetime including synchronous completion.
+
+### Protocol
+
+- Chunk and Column family MessageIDs generated from the macro;
+- no standalone Diagnostic MessageID;
+- Writer/Reader serialization round trips;
+- Request split at domain static request limit;
+- independent Chunk/Column RequestID sequences both beginning at 1;
+- RequestID monotonic progression without recycle/reset;
+- generic Response offset table covers Success and Failure sections;
+- section boundaries at domain static section constant;
+- mixed Success/Failure response;
+- malformed offset table / truncated section rejection;
+- Update Set/Remove semantics;
+- family Error diagnostic parsing;
+- stale Response ignored.
+
+### Client networking
+
+- MessageID subscription/Contract lifetime;
+- multiple subscribers allowed;
+- ClientNetworkManager uniquely drains the Client FIFO;
+- disconnection fails active Pending work and clears remembered refusals;
+- Available values survive disconnect.
+
+### Terrain/node
+
+- Node dispatcher uniquely drains Endpoint requests;
+- ChunkRequest and ColumnRequest route through the central NodeRouter to terrain;
+- malformed requests emit family Error;
+- valid request emits one Response;
+- prototype Column membership matches DR-015 fixture.
+
+### Streaming
+
+- initial streaming uses current Transform without a forced edit;
+- transform edits inside the same Chunk are no-op;
+- positive and negative Chunk boundary crossing;
+- view/unload configuration validation;
+- exact inclusive horizontal range membership;
+- repeated view refresh reuses Available/Pending values;
+- successful Column completion requests its relevant Chunks;
+- failed Column does not request Chunks;
+- Client Column and Chunk unload;
+- removed Pending Chunk cannot be republished by a late Response;
+- successful Chunk acquisition emits the UserValueB placeholder log.
+
+### Integration
+
+Preserve the real Client -> NodeRouter -> RemoteNode -> terrain Endpoint path and validate canonical Chunk/Column acquisition through the ST-001-11 Client Collection APIs rather than bypassing the coordinator with raw transport logic.
+
+## Accepted technical debt / deferred work
+
+- Error messages do not settle correlated Pending acquisitions; terminal Error recovery/timeout belongs to later work.
+- Server-side Update production/broadcast is deferred.
+- Server cache budget/eviction is deferred.
+- Logical Response splitting across multiple network Messages is deferred.
+- Meshing/render integration remains ST-001-12/ST-001-13.
+- Production movement/interest management remains outside EP-001.
+
+## Decisions
+
+- [DR-014](../../../DECISIONS/DR-014-BATCHED-CHUNK-PROTOCOL-DIRECTION.md)
+- [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md)
+- [DR-022](../../../DECISIONS/DR-022-CHUNK-PROTOCOL-WIRE-CONTRACT.md) — historical Chunk protocol, partially superseded by this ticket's generic Collection protocol.
+- [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — Resolved; ST-001-11 fixes the remaining Client request/cache/retry/recycle choices.
+
+## Definition of Ready evidence
+
+ST-001-11 is Ready:
+
+- Client streaming ownership and range semantics are explicit;
+- generic Collection API/state transitions are explicit;
+- Provider Pending ownership/lifecycle is explicit;
+- Writer/Reader serialization is aligned with merged Sparkle Version-0.1.3;
+- Collection MessageID family and Diagnostic payload-only direction are explicit;
+- generic Response owns the offset table for both Success and Failure sections;
+- request-level Error non-settlement is explicitly accepted technical debt;
+- RequestIDs are per request type, monotonic uint64 values with no recycle;
+- Chunk/Column request and response-section limits are domain static tuning constants;
+- disconnect, Response::Failure memory, stale Response, Update precedence, and Client eviction semantics are explicit;
+- central Server and node dispatch ownership is explicit;
+- required focused and cross-system test coverage is enumerated.
