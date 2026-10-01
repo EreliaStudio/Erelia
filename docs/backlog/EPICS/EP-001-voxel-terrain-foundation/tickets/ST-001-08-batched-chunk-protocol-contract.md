@@ -66,7 +66,7 @@ The protocol uses typed Erelia messages built on `spk::Message`:
 - only Success entries carry the fixed 4096-Cell Chunk payload;
 - the response payload starts with absolute `std::uint32_t` byte offsets `successOffset`, `rejectedOffset`, and `unavailableOffset`; no redundant response count is serialized because each group count is derived from its byte range and fixed entry size;
 - strict Core decoding throws `spk::Exception` for malformed protocol payloads; later network consumers own Warning logging, dropping the message, and continuing processing;
-- a Client may reuse request IDs only after it has stopped issuing new requests and all outstanding requests in the connection/session have received their terminal `ChunkResponse`; the operational recycle threshold belongs to ST-001-11.
+- historical ST-001-08 safety rule: RequestID reuse would require draining all outstanding terminal Responses first; ST-001-11 later supersedes reuse entirely and uses monotonic non-recycled per-request-type `uint64_t` sequences.
 
 
 ### Public API direction
