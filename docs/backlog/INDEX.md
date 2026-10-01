@@ -65,7 +65,7 @@ EP-001 is the active near-term planning focus.
 
 ST-001-01 through ST-001-10 are Done on `master`. ST-001-10 was merged through PR #18 after project-owner review and final PR CI run #604 (run ID `36409915048`) passed the complete required matrix on head `16e313a54237b107504caefcc743293110872204`.
 
-OQ-038 is Resolved and DR-022 fixes the exact Chunk Request/Response/Error protocol. ST-001-11 is the next dependency-ordered implementation area and remains Blocked on its Client cache/retry/recycle policy specification; other later tickets remain gated by their own dependencies and unresolved ticket-specific decisions.
+OQ-038 is Resolved. DR-022 remains the historical ST-001-08/ST-001-09 Chunk wire record, while ST-001-11 now defines the superseding generic Collection protocol and Client streaming/cache policy. ST-001-11 is Ready and is the next dependency-ordered implementation area; later tickets remain gated by their own dependencies and unresolved ticket-specific decisions.
 
 ## Keyword navigation
 
