@@ -112,10 +112,12 @@ void TerrainStreamingBehaviour::_requestColumns(const std::vector<Column::Coordi
 	{
 		const auto answer = group.at(index);
 		auto producer = _columnCompletions.producer();
-		auto contract = answer.subscribeToCompletion([producer, key = keys[index], answer]() mutable {
+		auto published = std::make_shared<std::atomic_bool>(false);
+		auto contract = answer.subscribeToCompletion([producer, key = keys[index], answer, published]() mutable {
 			producer.publish({key, answer});
+			published->store(true);
 		});
-		_columnSubscriptions.push_back({answer, std::move(contract)});
+		_columnSubscriptions.push_back({answer, std::move(contract), std::move(published)});
 	}
 }
 void TerrainStreamingBehaviour::_requestChunks(const Column &column)
@@ -133,10 +135,12 @@ void TerrainStreamingBehaviour::_requestChunks(const Column &column)
 	{
 		const auto answer = group.at(index);
 		auto producer = _chunkCompletions.producer();
-		auto contract = answer.subscribeToCompletion([producer, key = desired[index], answer]() mutable {
+		auto published = std::make_shared<std::atomic_bool>(false);
+		auto contract = answer.subscribeToCompletion([producer, key = desired[index], answer, published]() mutable {
 			producer.publish({key, answer});
+			published->store(true);
 		});
-		_chunkSubscriptions.push_back({answer, std::move(contract)});
+		_chunkSubscriptions.push_back({answer, std::move(contract), std::move(published)});
 	}
 }
 void TerrainStreamingBehaviour::_updateState(spk::UpdateContext &)
@@ -162,9 +166,9 @@ void TerrainStreamingBehaviour::dispatch()
 	}
 	_drainedChunks.clear();
 	std::erase_if(_columnSubscriptions, [](const auto &subscription) {
-		return subscription.answer.status() != spk::Task<Column>::Status::Pending;
+		return subscription.published->load() == true;
 	});
 	std::erase_if(_chunkSubscriptions, [](const auto &subscription) {
-		return subscription.answer.status() != spk::Task<Chunk>::Status::Pending;
+		return subscription.published->load() == true;
 	});
 }

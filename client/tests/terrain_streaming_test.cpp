@@ -1,10 +1,12 @@
 #include "erelia/client/client_configuration.hpp"
 #include "erelia/client/terrain_streaming_behaviour.hpp"
 #include "erelia/core/chunk_builder.hpp"
+#include <chrono>
 #include <diagnostics/logger.hpp>
 #include <fstream>
 #include <gtest/gtest.h>
 #include <set>
+#include <thread>
 #include <type/uuid.hpp>
 namespace
 {
@@ -168,4 +170,38 @@ TEST(TerrainStreamingRanges, ValidatesBothRangesAndConfiguration)
 		}
 	}
 	std::filesystem::remove(path);
+}
+
+TEST_F(Streaming, RetainsCompletionSubscriptionUntilMailboxPublication)
+{
+	auto pending = columns.request(Column::Coordinate{0, 0});
+	std::atomic_bool entered{false}, release{false}, dispatched{false};
+	auto observer = pending.subscribeToCompletion([&] {
+		entered.store(true);
+		entered.notify_all();
+		release.wait(false);
+	});
+	start();
+	std::jthread completion([&] {
+		columnWork->tasks.at({0, 0})->validate(Column{{{0, 0, 0}}});
+	});
+	entered.wait(false);
+	// Task status is terminal, but our streaming subscriber has not published its event yet.
+	std::jthread dispatch([&] {
+		behaviour->dispatch();
+		dispatched.store(true);
+	});
+	const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+	while (dispatched.load() == false && std::chrono::steady_clock::now() < deadline)
+	{
+		std::this_thread::yield();
+	}
+	const bool returnedBeforePublication = dispatched.load();
+	release.store(true);
+	release.notify_all();
+	completion.join();
+	dispatch.join();
+	EXPECT_EQ(returnedBeforePublication, true);
+	behaviour->dispatch();
+	EXPECT_EQ(chunkWork->requested, (std::vector<Chunk::Coordinate>{{0, 0, 0}}));
 }

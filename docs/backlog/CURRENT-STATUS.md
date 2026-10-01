@@ -6,7 +6,7 @@
 
 ## Active ST-001-11 implementation
 
-[PR #19](https://github.com/EreliaStudio/Erelia/pull/19) contains the implementation on the requested existing branch. ST-001-11 is **In Progress**, implemented but awaiting full Windows CI and project-owner approval. Local Linux Debug/Release headless builds and CTest pass (3/3 each), including Core 121/121 and Server/Terrain 17/17; focused streaming 8/8 and repository clang-format pass. Exact evidence lives in the ticket.
+[PR #19](https://github.com/EreliaStudio/Erelia/pull/19) contains the implementation on the requested existing branch. ST-001-11 is **In Progress**, implemented but awaiting full Windows CI and project-owner approval. Local Linux Debug/Release headless builds and CTest pass (3/3 each), including Core 121/121 and Server/Terrain 17/17; focused streaming 9/9 and repository clang-format pass. Exact evidence lives in the ticket.
 
 The active implementation uses generic Collections/Providers/TaskGroups, shared Column occupancy, generated Collection message families, payload-only diagnostics, independent non-recycled RequestIDs, generic Response section tables and authoritative Client Update handling. ClientNetworkManager uniquely drains the Service Client queue and fans out disconnect; the Player owns the Column -> Chunk streaming Behaviour and horizontal retention policy. TerrainNode uniquely drains its Endpoint; the central Server only redirects ChunkRequest and ColumnRequest.
 

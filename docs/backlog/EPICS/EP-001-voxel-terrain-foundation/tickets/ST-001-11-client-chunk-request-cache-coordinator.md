@@ -666,7 +666,7 @@ Sparkle Version-0.1.3 was inspected and built at `626b86c` (immutable Message re
 | `ctest --test-dir build/headless-debug --output-on-failure` | 3/3 CTest entries pass: Core 121/121, Server/Terrain 17/17, Server smoke |
 | Linux Clang 18 Release, Sparkle Core + Erelia headless build | Pass |
 | `ctest --test-dir build/headless-release --output-on-failure` | 3/3 CTest entries pass |
-| Focused Client `terrain_streaming_test.cpp`, linked against real Sparkle Core Entity/Behaviour and Erelia Core | 8/8 tests pass |
+| Focused Client `terrain_streaming_test.cpp`, linked against real Sparkle Core Entity/Behaviour and Erelia Core | 9/9 tests pass, including delayed completion-mailbox publication |
 | Clang 18 syntax checks of new Client production/networking tests and routed Collection integration fixture | Pass; this is not a substitute for Windows link/runtime validation |
 | [PR CI run #607](https://github.com/EreliaStudio/Erelia/actions/runs/36916682709) | Formatting and all Core/Server and Client configurations pass; routed integration suites pass in both configurations. Release process smoke failed on early Client exit; investigation/rerun in progress. |
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "erelia/client/terrain_collections.hpp"
+#include <atomic>
 #include <container/thread_safe_fifo.hpp>
 #include <engine/behaviour3d.hpp>
 #include <engine/transform3d.hpp>
@@ -31,11 +32,13 @@ private:
 	{
 		ColumnAnswer answer;
 		ColumnAnswer::CompletionContract contract;
+		std::shared_ptr<std::atomic_bool> published;
 	};
 	struct ChunkSubscription
 	{
 		ChunkAnswer answer;
 		ChunkAnswer::CompletionContract contract;
+		std::shared_ptr<std::atomic_bool> published;
 	};
 	TerrainCollections::Columns &_columns;
 	TerrainCollections::Chunks &_chunks;
