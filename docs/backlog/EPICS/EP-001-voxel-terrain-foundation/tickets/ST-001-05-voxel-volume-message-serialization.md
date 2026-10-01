@@ -284,3 +284,31 @@ ST-001-05 remains historically **Done** and its wire order, validation, malforme
 DR-019 supersedes only the successful-decode optimization that overwrote/reused the destination's existing same-size-class Buffer. With shared immutable content, another Volume copy may still observe that Buffer, so future implementation must decode into fresh pooled storage and replace the destination content only after successful validation.
 
 DR-019 also establishes a future dedicated fixed-size Chunk codec for ST-001-08; this does not remove the generic runtime-sized Volume codec implemented by ST-001-05.
+
+### Follow-up Sparkle Message API migration — 1 October 2026
+
+ST-001-05 remains historically **Done** and its logical Volume wire order, validation, malformed-input behavior, destination-preservation, ownership, and same-ABI determinism remain authoritative.
+
+The merged Sparkle Version-0.1.3 Message redesign supersedes only the old mutable call-site form documented above:
+
+```cpp
+spk::Message message;
+message << volume;
+message >> volume;
+```
+
+The current equivalent contract is:
+
+```cpp
+spk::Message::Writer writer;
+writer << volume;
+
+spk::Message message = std::move(writer).build();
+auto reader = message.reader();
+reader >> volume;
+```
+
+The public friend operators now target `spk::Message::Writer` for insertion and `spk::Message::Reader` for extraction. `Volume(const spk::Message&)` creates a Reader and delegates to the same decode contract.
+
+Reader cursor state is independent per Reader; finalized Messages are immutable shared payloads. Focused tests on the ST-001-11 planning branch migrate the historical fixtures to that API without changing the ST-001-05 wire bytes.
+
