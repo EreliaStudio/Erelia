@@ -1,6 +1,6 @@
 # ST-001-11 — Client Chunk request/cache coordinator
 
-**Status:** In Progress — implementation delivered; validation and owner review pending
+**Status:** In Progress — implementation delivered; inherited process-lifecycle conflict and owner review outstanding
 **Epic:** EP-001
 **Production target(s):** Core + Client + Terrain node
 **Test suite(s):** EreliaCoreTestSuite, EreliaClientTestSuite, EreliaServerTestSuite, EreliaIntegrationTestSuite
@@ -642,7 +642,7 @@ Preserve the real Client -> NodeRouter -> RemoteNode -> terrain Endpoint path an
 
 ## Implementation / completion evidence — 1 October 2026
 
-The Ready gate was verified on the existing `feat/st-001-11-client-chunk-request-cache-coordinator` branch before production changes. Implementation is delivered in [PR #19](https://github.com/EreliaStudio/Erelia/pull/19); it is not yet Done because the full Windows validation matrix and required project-owner approval have not been recorded.
+The Ready gate was verified on the existing `feat/st-001-11-client-chunk-request-cache-coordinator` branch before production changes. Implementation is delivered in [PR #19](https://github.com/EreliaStudio/Erelia/pull/19); it is not Done: all production/component and routed integration suites pass, but the inherited executable-disconnect assertion conflicts with the documented/implemented reconnect lifecycle, and project-owner approval is outstanding.
 
 ### Delivered production behavior
 
@@ -654,9 +654,9 @@ The Ready gate was verified on the existing `feat/st-001-11-client-chunk-request
 
 The historical `Chunk::Collection::BatchResult`, Chunk-specific protocol headers/layout, and standalone Diagnostic MessageID are removed. Generic Volume tests use the current Writer/Reader API without weakening their malformed-input checks. Existing golden references are unchanged.
 
-### Validation recorded so far
+### Validation evidence
 
-Sparkle Version-0.1.3 was inspected and built at `626b86c` (immutable Message redesign). Production validation head: `79b7dcd97c51cf57b5d26e584ba3cc5de0bd8809`.
+Sparkle Version-0.1.3 was inspected and built at `626b86c` (immutable Message redesign). Final production validation head: `e5140a13db2ef8ed8d13707acbf54310dd277279`.
 
 | Command / configuration | Result |
 | --- | --- |
@@ -668,14 +668,29 @@ Sparkle Version-0.1.3 was inspected and built at `626b86c` (immutable Message re
 | `ctest --test-dir build/headless-release --output-on-failure` | 3/3 CTest entries pass |
 | Focused Client `terrain_streaming_test.cpp`, linked against real Sparkle Core Entity/Behaviour and Erelia Core | 9/9 tests pass, including delayed completion-mailbox publication |
 | Clang 18 syntax checks of new Client production/networking tests and routed Collection integration fixture | Pass; this is not a substitute for Windows link/runtime validation |
-| [PR CI run #607](https://github.com/EreliaStudio/Erelia/actions/runs/36916682709) | Formatting and all Core/Server and Client configurations pass; routed integration suites pass in both configurations. Release process smoke failed on early Client exit; investigation/rerun in progress. |
+| [PR CI run #610](https://github.com/EreliaStudio/Erelia/actions/runs/36918587887): clang-format | Pass |
+| CI Core/Server Linux Debug + Release and Windows Debug + Release | All four jobs pass; 3/3 CTest entries per configuration |
+| CI Client Windows Debug + Release, `ctest --preset <configuration> --output-on-failure --no-tests=error -LE integration` | Both jobs pass; 6/6 component CTest entries per configuration, including existing golden regressions |
+| CI Integration Windows Debug + Release, `ctest --preset <configuration> --output-on-failure --no-tests=error -L integration` | Routed `EreliaIntegrationTestSuite` passes in both configurations; `EreliaClientServerProcessSmoke` fails in both configurations on its inherited exit-after-disconnect assertion |
 
-Local full graphical Client/integration builds cannot run because Sparkle's graphical window backend is Win32-only. The existing Windows CI jobs own that required evidence, including the existing golden regression checks and three-process smoke.
+
+Local full graphical Client/integration builds cannot run because Sparkle's graphical window backend is Win32-only. The Windows CI results above provide full link/runtime, existing golden regression and routed integration evidence. The process smoke reaches the actual three-process connection and Chunk-acquisition markers before failing on the inherited lifecycle assertion. Earlier runs #607/#608 exposed that Mesa was missing beside the actual Client executable; CI now copies the same approved renderer DLLs there. No image references were replaced.
 
 ### Remaining completion gate
 
-Record the full required CI outcome and project-owner review/approval before changing this ticket to Done. No golden replacement or new visual approval is requested by this ticket.
+Resolve the inherited executable-disconnect conflict, pass the process smoke under the confirmed policy, and record project-owner review/approval before changing this ticket to Done. No golden replacement or new visual approval is requested by this ticket.
 
 The accepted technical debt above remains unchanged: Error without Response may leave Pending indefinitely; Server Update production/broadcast, Server eviction, response splitting, meshing/rendering and movement/production interest management remain deferred.
 
 The next dependency-ordered ticket is ST-001-12, still Blocked by OQ-036 (missing-neighbor/remesh policy). It is not automatically Ready; no later ticket is promoted by this implementation.
+
+### Exact unresolved completion conflict
+
+This is not a replacement ST-001-11 contract or accepted Error-recovery debt:
+
+- ST-001-10's **Failure behavior** states: “Unexpected remote Server disconnect starts a fresh connection cycle.” Its **Repeated operations and reconnect** section says the same; failed automatic cycles stop while the graphical Client remains running.
+- ST-001-10's **Project-owner decisions approved on 27 September 2026** instead records: “initial-connect failure and unexpected remote disconnect fail the executable.” Its historical completion evidence and the inherited process smoke require exit with failure.
+- Current `client/src/connection_manager.cpp::_updateState()` logs loss and calls `connect()`; `_stopCycle()` logs the bounded stop without terminating the application. ST-001-11 explicitly consumes this existing connection/reconnection lifecycle.
+- CI run #610 reaches connection and `Chunk acquired`, then reports “Client did not terminate after the Server connection was lost” in both configurations. The smoke assertion is retained; no production connection policy was changed to force it green.
+
+The owning policy must confirm whether the actual graphical executable retries/stays alive or exits on unexpected Server loss. Only the affected executable-disconnect validation is blocked; the rest of ST-001-11 production behavior and test matrix is implemented and validated. Historical ST-001-10 completion evidence is preserved rather than rewritten.

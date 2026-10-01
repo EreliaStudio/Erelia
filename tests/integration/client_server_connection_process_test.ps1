@@ -178,8 +178,10 @@ try {
     Stop-Process -Id $serverProcess.Id -Force
     $serverProcess.WaitForExit(5000) | Out-Null
 
+    Wait-LogText -Path $clientErr -Text 'Dedicated Server connection was lost' -Process $clientProcess
     if ($clientProcess.WaitForExit(5000) -eq $false) {
-        throw 'Client did not terminate after the Server connection was lost.'
+        $output = Get-Content -LiteralPath $clientErr -Raw
+        throw "Client did not terminate after the Server connection was lost.`nClient log:`n$output"
     }
 
     if ($clientProcess.ExitCode -eq 0) {
