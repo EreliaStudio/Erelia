@@ -50,7 +50,8 @@ int main(int argc, char **argv)
 		MainApplicationWidget mainWidget(
 			std::move(configuration.server),
 			configuration.retryDelay,
-			&mainWindow.root());
+			&mainWindow.root(),
+			configuration.terrain);
 		mainWidget.setGeometry(mainWindow.root().geometry());
 
 		return application.run();

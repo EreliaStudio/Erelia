@@ -45,7 +45,7 @@ namespace
 TEST(ClientConfiguration, LoadsExactExternalContract)
 {
 	const TemporaryJsonFile file(
-		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":15000}})");
+		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":15000},"terrain config":{"viewRange":1,"unloadRange":2}})");
 
 	const ClientConfiguration configuration =
 		ClientConfiguration::load(file.path());
@@ -58,17 +58,17 @@ TEST(ClientConfiguration, LoadsExactExternalContract)
 TEST(ClientConfiguration, RejectsInvalidContracts)
 {
 	const std::string fixtures[] = {
-		R"({})",
-		R"({"server config":{"address":"127.0.0.1","port":2550}})",
-		R"({"server config":{"port":2550,"retryDelayMs":15000}})",
-		R"({"server config":{"address":"127.0.0.1","retryDelayMs":15000}})",
-		R"({"server config":{"address":"","port":2550,"retryDelayMs":15000}})",
-		R"({"server config":{"address":"127.0.0.1","port":0,"retryDelayMs":15000}})",
-		R"({"server config":{"address":"127.0.0.1","port":70000,"retryDelayMs":15000}})",
-		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":0}})",
-		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":-1}})",
-		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":15000,"extra":true}})",
-		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":15000},"extra":true})"};
+		R"({,"terrain config":{"viewRange":1,"unloadRange":2}})",
+		R"({"server config":{"address":"127.0.0.1","port":2550},"terrain config":{"viewRange":1,"unloadRange":2}})",
+		R"({"server config":{"port":2550,"retryDelayMs":15000},"terrain config":{"viewRange":1,"unloadRange":2}})",
+		R"({"server config":{"address":"127.0.0.1","retryDelayMs":15000},"terrain config":{"viewRange":1,"unloadRange":2}})",
+		R"({"server config":{"address":"","port":2550,"retryDelayMs":15000},"terrain config":{"viewRange":1,"unloadRange":2}})",
+		R"({"server config":{"address":"127.0.0.1","port":0,"retryDelayMs":15000},"terrain config":{"viewRange":1,"unloadRange":2}})",
+		R"({"server config":{"address":"127.0.0.1","port":70000,"retryDelayMs":15000},"terrain config":{"viewRange":1,"unloadRange":2}})",
+		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":0},"terrain config":{"viewRange":1,"unloadRange":2}})",
+		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":-1},"terrain config":{"viewRange":1,"unloadRange":2}})",
+		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":15000,"extra":true},"terrain config":{"viewRange":1,"unloadRange":2}})",
+		R"({"server config":{"address":"127.0.0.1","port":2550,"retryDelayMs":15000},"extra":true,"terrain config":{"viewRange":1,"unloadRange":2}})"};
 
 	for (const std::string &fixture : fixtures)
 	{
@@ -82,7 +82,7 @@ TEST(ClientConfiguration, RejectsInvalidContracts)
 TEST(ClientConfiguration, ValidationExceptionRemainsStable)
 {
 	const TemporaryJsonFile file(
-		R"({"server config":{"address":"","port":2550,"retryDelayMs":15000}})");
+		R"({"server config":{"address":"","port":2550,"retryDelayMs":15000},"terrain config":{"viewRange":1,"unloadRange":2}})");
 
 	try
 	{
@@ -125,7 +125,8 @@ TEST(ClientBootstrap, InitializesWidgetHierarchyFromConfiguredWindowGeometry)
 	MainApplicationWidget mainWidget(
 		{"127.0.0.1", 1},
 		std::chrono::milliseconds(1),
-		&mainWindow.root());
+		&mainWindow.root(),
+		{1, 2});
 	mainWidget.setGeometry(mainWindow.root().geometry());
 
 	const spk::Rect2D expectedGeometry{

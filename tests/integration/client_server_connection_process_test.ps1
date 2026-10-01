@@ -1,6 +1,7 @@
 param(
     [Parameter(Mandatory = $true)][string]$ServerExecutable,
-    [Parameter(Mandatory = $true)][string]$ClientExecutable
+    [Parameter(Mandatory = $true)][string]$ClientExecutable,
+    [Parameter(Mandatory = $true)][string]$TerrainExecutable
 )
 
 $ErrorActionPreference = 'Stop'
@@ -111,12 +112,22 @@ New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
 
 $serverProcess = $null
 $clientProcess = $null
+$terrainProcess = $null
 
 try {
     $port = Get-FreeTcpPort
     do {
         $terrainPort = Get-FreeTcpPort
     } while ($terrainPort -eq $port)
+
+    $terrainConfigPath = Join-Path $tempRoot 'terrain.json'
+    Write-JsonFile -Path $terrainConfigPath -Value ([ordered]@{
+        'server config' = [ordered]@{ port = $terrainPort }
+    })
+    $terrainOut = Join-Path $tempRoot 'terrain.out.log'
+    $terrainErr = Join-Path $tempRoot 'terrain.err.log'
+    $terrainProcess = Start-Process -FilePath $TerrainExecutable -WorkingDirectory (Split-Path -Parent $TerrainExecutable) -ArgumentList @("--config=$terrainConfigPath") -RedirectStandardOutput $terrainOut -RedirectStandardError $terrainErr -PassThru
+    Wait-TcpEndpoint -Port $terrainPort -Process $terrainProcess -StandardOutputPath $terrainOut -StandardErrorPath $terrainErr
 
     $serverConfigPath = Join-Path $tempRoot 'server.json'
     Write-JsonFile -Path $serverConfigPath -Value ([ordered]@{
@@ -140,6 +151,7 @@ try {
             port = $port
             retryDelayMs = 25
         }
+        'terrain config' = [ordered]@{ viewRange = 2; unloadRange = 3 }
     })
 
     $serverOut = Join-Path $tempRoot 'server.out.log'
@@ -154,6 +166,7 @@ try {
     $clientProcess = Start-Process -FilePath $ClientExecutable -WorkingDirectory (Split-Path -Parent $ClientExecutable) -ArgumentList @("--config=$clientConfigPath") -RedirectStandardOutput $clientOut -RedirectStandardError $clientErr -PassThru
 
     Wait-LogText -Path $clientErr -Text 'Connected to dedicated Server' -Process $clientProcess
+    Wait-LogText -Path $clientErr -Text 'Chunk acquired' -Process $clientProcess
 
     if ($clientProcess.HasExited) {
         throw "Client did not remain alive after connecting. Exit code: $($clientProcess.ExitCode)"
@@ -176,6 +189,10 @@ finally {
     }
     if ($serverProcess -ne $null -and $serverProcess.HasExited -eq $false) {
         Stop-Process -Id $serverProcess.Id -Force -ErrorAction SilentlyContinue
+    }
+
+    if ($terrainProcess -ne $null -and $terrainProcess.HasExited -eq $false) {
+        Stop-Process -Id $terrainProcess.Id -Force -ErrorAction SilentlyContinue
     }
 
     Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue

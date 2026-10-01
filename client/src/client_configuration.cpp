@@ -10,7 +10,7 @@ ClientConfiguration ClientConfiguration::load(const std::filesystem::path &path)
 {
 	const spk::JSON::Value document = spk::JSON::Loader::parseFile(path);
 	const spk::JSON::Reader root(document, path);
-	root.forbidUnknown({"server config"});
+	root.forbidUnknown({"server config", "terrain config"});
 
 	const spk::JSON::Reader server = root.child("server config");
 	server.forbidUnknown({"address", "port", "retryDelayMs"});
@@ -20,6 +20,11 @@ ClientConfiguration ClientConfiguration::load(const std::filesystem::path &path)
 			.address = server.require<std::string>("address"),
 			.port = server.require<std::uint16_t>("port")},
 		.retryDelay = std::chrono::milliseconds(server.require<std::uint32_t>("retryDelayMs"))};
+
+	const auto terrain = root.child("terrain config");
+	terrain.forbidUnknown({"viewRange", "unloadRange"});
+	result.terrain = {terrain.require<std::int32_t>("viewRange"), terrain.require<std::int32_t>("unloadRange")};
+	result.terrain.validate();
 
 	if (result.server.address.empty() == true)
 	{

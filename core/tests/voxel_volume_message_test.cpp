@@ -60,12 +60,12 @@ namespace
 		}
 	}
 
-	void expectDecodeFailurePreservesDestination(spk::Message &message)
+	void expectDecodeFailurePreservesDestination(const spk::Message::Reader &reader)
 	{
 		Voxel::Volume destination = makeSentinelVolume();
 		const Voxel::Volume expected(destination);
 
-		EXPECT_THROW((message >> destination), spk::Exception);
+		EXPECT_THROW((reader >> destination), spk::Exception);
 		expectVolumesEqual(destination, expected);
 	}
 
@@ -73,17 +73,17 @@ namespace
 		const spk::Vector3UInt &dimensions,
 		Voxel::Volume::UnitSize unitSize)
 	{
-		spk::Message message;
+		spk::Message::Writer message;
 		message << dimensions;
 		message << unitSize;
-		return message;
+		return std::move(message).build();
 	}
 }
 
 TEST(VoxelVolumeMessage, EmptyVolumeRoundTripsThroughDirectOperators)
 {
 	const Voxel::Volume source;
-	spk::Message message(73u);
+	spk::Message::Writer message(73u);
 
 	message << source;
 
@@ -93,9 +93,11 @@ TEST(VoxelVolumeMessage, EmptyVolumeRoundTripsThroughDirectOperators)
 		sizeof(spk::Vector3UInt) + sizeof(Voxel::Volume::UnitSize));
 
 	Voxel::Volume destination = makeSentinelVolume();
-	message >> destination;
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	reader >> destination;
 
-	EXPECT_EQ(message.type(), 73u);
+	EXPECT_EQ(immutable.type(), 73u);
 	EXPECT_EQ(destination.dimensions(), (spk::Vector3UInt{0, 0, 0}));
 	EXPECT_EQ(destination.unitSize(), 0.0f);
 	EXPECT_TRUE(destination.cells().empty());
@@ -104,27 +106,29 @@ TEST(VoxelVolumeMessage, EmptyVolumeRoundTripsThroughDirectOperators)
 TEST(VoxelVolumeMessage, ConstructsVolumeDirectlyFromMessage)
 {
 	const auto source = makeAsymmetricVolume();
-	spk::Message message;
+	spk::Message::Writer message;
 
 	message << source;
 
-	const Voxel::Volume destination(message);
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	const Voxel::Volume destination(immutable);
 
 	expectVolumesEqual(destination, source);
-	EXPECT_EQ(message.readOffset(), message.size());
+	EXPECT_EQ(reader.readOffset(), 0u);
 }
 
 TEST(VoxelVolumeMessage, MessageConstructorUsesTheSameValidationContract)
 {
-	spk::Message message = metadataMessage({0, 1, 1}, 1.0f);
+	spk::Message::Writer message(metadataMessage({0, 1, 1}, 1.0f));
 
-	EXPECT_THROW((void)Voxel::Volume(message), spk::Exception);
+	EXPECT_THROW((void)Voxel::Volume(std::move(message).build()), spk::Exception);
 }
 
 TEST(VoxelVolumeMessage, SerializesNativeMetadataThenContiguousYThenXThenZCells)
 {
 	const auto source = makeAsymmetricVolume();
-	spk::Message message;
+	spk::Message::Writer message;
 
 	message << source;
 
@@ -138,9 +142,11 @@ TEST(VoxelVolumeMessage, SerializesNativeMetadataThenContiguousYThenXThenZCells)
 	Voxel::Volume::UnitSize unitSize = 0.0f;
 	std::array<Voxel::Cell, 12> cells{};
 
-	message >> dimensions;
-	message >> unitSize;
-	message.pull(cells.data(), sizeof(cells));
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	reader >> dimensions;
+	reader >> unitSize;
+	reader.pull(cells.data(), sizeof(cells));
 
 	EXPECT_EQ(dimensions, (spk::Vector3UInt{3, 2, 2}));
 	EXPECT_EQ(unitSize, 0.25f);
@@ -150,7 +156,7 @@ TEST(VoxelVolumeMessage, SerializesNativeMetadataThenContiguousYThenXThenZCells)
 		EXPECT_EQ(cells[index].packed(), index + 1);
 	}
 
-	EXPECT_EQ(message.readOffset(), message.size());
+	EXPECT_EQ(reader.readOffset(), immutable.size());
 }
 
 TEST(VoxelVolumeMessage, LogicalCellPackingRoundTripsExactly)
@@ -174,11 +180,13 @@ TEST(VoxelVolumeMessage, LogicalCellPackingRoundTripsExactly)
 	ASSERT_TRUE(builder.set({2, 0, 0}, third));
 	const auto source = std::move(builder).build();
 
-	spk::Message message;
+	spk::Message::Writer message;
 	message << source;
 
 	Voxel::Volume destination;
-	message >> destination;
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	reader >> destination;
 
 	expectVolumesEqual(destination, source);
 	EXPECT_EQ(destination.cells()[0].packed(), first.packed());
@@ -206,11 +214,13 @@ TEST(VoxelVolumeMessage, ChunkSizedVolumeRoundTripsAll4096Cells)
 	const auto source = std::move(builder).build();
 	ASSERT_EQ(source.cells().size(), 4096u);
 
-	spk::Message message;
+	spk::Message::Writer message;
 	message << source;
 
 	Voxel::Volume destination;
-	message >> destination;
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	reader >> destination;
 
 	expectVolumesEqual(destination, source);
 }
@@ -218,8 +228,8 @@ TEST(VoxelVolumeMessage, ChunkSizedVolumeRoundTripsAll4096Cells)
 TEST(VoxelVolumeMessage, RepeatedSerializationIsByteStableOnCurrentAbi)
 {
 	const auto source = makeAsymmetricVolume();
-	spk::Message first;
-	spk::Message second;
+	spk::Message::Writer first;
+	spk::Message::Writer second;
 
 	first << source;
 	second << source;
@@ -237,7 +247,7 @@ TEST(VoxelVolumeMessage, VolumeRemainsEmbeddableInsideLargerMessage)
 	const std::uint32_t suffix = 0x55667788u;
 	const auto source = makeAsymmetricVolume();
 
-	spk::Message message;
+	spk::Message::Writer message;
 	message << prefix;
 	message << source;
 	message << suffix;
@@ -246,14 +256,16 @@ TEST(VoxelVolumeMessage, VolumeRemainsEmbeddableInsideLargerMessage)
 	std::uint32_t decodedSuffix = 0;
 	Voxel::Volume destination;
 
-	message >> decodedPrefix;
-	message >> destination;
-	message >> decodedSuffix;
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	reader >> decodedPrefix;
+	reader >> destination;
+	reader >> decodedSuffix;
 
 	EXPECT_EQ(decodedPrefix, prefix);
 	expectVolumesEqual(destination, source);
 	EXPECT_EQ(decodedSuffix, suffix);
-	EXPECT_EQ(message.readOffset(), message.size());
+	EXPECT_EQ(reader.readOffset(), immutable.size());
 }
 
 TEST(VoxelVolumeMessage, DecodedStorageOutlivesSourceMessage)
@@ -262,9 +274,11 @@ TEST(VoxelVolumeMessage, DecodedStorageOutlivesSourceMessage)
 	Voxel::Volume destination;
 
 	{
-		spk::Message message;
+		spk::Message::Writer message;
 		message << source;
-		message >> destination;
+		auto immutable = std::move(message).build();
+		auto reader = immutable.reader();
+		reader >> destination;
 	}
 
 	expectVolumesEqual(destination, source);
@@ -273,35 +287,41 @@ TEST(VoxelVolumeMessage, DecodedStorageOutlivesSourceMessage)
 
 TEST(VoxelVolumeMessage, TruncatedDimensionsAreRejectedWithoutChangingDestination)
 {
-	spk::Message::Storage payload(sizeof(spk::Vector3UInt) - 1u);
-	spk::Message message(0u, std::move(payload));
+	spk::Message::Writer message;
+	message.resize(sizeof(spk::Vector3UInt) - 1u);
 
-	expectDecodeFailurePreservesDestination(message);
-	EXPECT_EQ(message.readOffset(), 0u);
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	expectDecodeFailurePreservesDestination(reader);
+	EXPECT_EQ(reader.readOffset(), 0u);
 }
 
 TEST(VoxelVolumeMessage, TruncatedUnitSizeIsRejectedWithoutChangingDestination)
 {
-	spk::Message message;
+	spk::Message::Writer message;
 	const spk::Vector3UInt dimensions{1, 1, 1};
 	message << dimensions;
 
 	const std::byte partialUnitSize{};
 	message.append(&partialUnitSize, 1u);
 
-	expectDecodeFailurePreservesDestination(message);
-	EXPECT_EQ(message.readOffset(), sizeof(spk::Vector3UInt));
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	expectDecodeFailurePreservesDestination(reader);
+	EXPECT_EQ(reader.readOffset(), sizeof(spk::Vector3UInt));
 }
 
 TEST(VoxelVolumeMessage, TruncatedCellBlockIsRejectedBeforeDestinationReplacement)
 {
-	spk::Message message = metadataMessage({2, 1, 1}, 1.0f);
+	spk::Message::Writer message(metadataMessage({2, 1, 1}, 1.0f));
 	const Voxel::Cell firstCell(7u);
 	message.append(&firstCell, sizeof(firstCell));
 
-	expectDecodeFailurePreservesDestination(message);
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	expectDecodeFailurePreservesDestination(reader);
 	EXPECT_EQ(
-		message.readOffset(),
+		reader.readOffset(),
 		sizeof(spk::Vector3UInt) + sizeof(Voxel::Volume::UnitSize));
 }
 
@@ -314,16 +334,20 @@ TEST(VoxelVolumeMessage, MixedZeroDimensionsAreRejected)
 
 	for (const auto &dimensions : invalidDimensions)
 	{
-		spk::Message message = metadataMessage(dimensions, 1.0f);
-		expectDecodeFailurePreservesDestination(message);
+		spk::Message::Writer message(metadataMessage(dimensions, 1.0f));
+		auto immutable = std::move(message).build();
+		auto reader = immutable.reader();
+		expectDecodeFailurePreservesDestination(reader);
 	}
 }
 
 TEST(VoxelVolumeMessage, EmptyDimensionsRequireZeroUnitSize)
 {
-	spk::Message message = metadataMessage({0, 0, 0}, 1.0f);
+	spk::Message::Writer message(metadataMessage({0, 0, 0}, 1.0f));
 
-	expectDecodeFailurePreservesDestination(message);
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	expectDecodeFailurePreservesDestination(reader);
 }
 
 TEST(VoxelVolumeMessage, NonEmptyDimensionsRejectInvalidUnitSizes)
@@ -337,33 +361,41 @@ TEST(VoxelVolumeMessage, NonEmptyDimensionsRejectInvalidUnitSizes)
 
 	for (const auto unitSize : invalidUnitSizes)
 	{
-		spk::Message message = metadataMessage({1, 1, 1}, unitSize);
-		expectDecodeFailurePreservesDestination(message);
+		spk::Message::Writer message(metadataMessage({1, 1, 1}, unitSize));
+		auto immutable = std::move(message).build();
+		auto reader = immutable.reader();
+		expectDecodeFailurePreservesDestination(reader);
 	}
 }
 
 TEST(VoxelVolumeMessage, OverflowingDimensionProductIsRejectedBeforeAllocation)
 {
 	constexpr auto maximum = std::numeric_limits<std::uint32_t>::max();
-	spk::Message message = metadataMessage({maximum, maximum, maximum}, 1.0f);
+	spk::Message::Writer message(metadataMessage({maximum, maximum, maximum}, 1.0f));
 
-	expectDecodeFailurePreservesDestination(message);
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	expectDecodeFailurePreservesDestination(reader);
 }
 
 TEST(VoxelVolumeMessage, OverflowingCellByteSizeIsRejectedBeforeAllocation)
 {
 	constexpr auto maximum = std::numeric_limits<std::uint32_t>::max();
-	spk::Message message = metadataMessage({maximum, maximum, 1u}, 1.0f);
+	spk::Message::Writer message(metadataMessage({maximum, maximum, 1u}, 1.0f));
 
-	expectDecodeFailurePreservesDestination(message);
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	expectDecodeFailurePreservesDestination(reader);
 }
 
 TEST(VoxelVolumeMessage, MissingHugeCellBlockIsRejectedBeforeAllocation)
 {
 	constexpr auto maximum = std::numeric_limits<std::uint32_t>::max();
-	spk::Message message = metadataMessage({maximum, 1u, 1u}, 1.0f);
+	spk::Message::Writer message(metadataMessage({maximum, 1u, 1u}, 1.0f));
 
-	expectDecodeFailurePreservesDestination(message);
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	expectDecodeFailurePreservesDestination(reader);
 }
 
 TEST(VoxelVolumeMessage, DecodePublishesFreshBufferWithinTheSamePoolClass)
@@ -376,9 +408,11 @@ TEST(VoxelVolumeMessage, DecodePublishesFreshBufferWithinTheSamePoolClass)
 	ASSERT_TRUE(sourceBuilder.set({9, 9, 69}, Voxel::Cell(123u)));
 	const Voxel::Volume source = std::move(sourceBuilder).build();
 
-	spk::Message message;
+	spk::Message::Writer message;
 	message << source;
-	message >> destination;
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	reader >> destination;
 
 	EXPECT_NE(destination.cells().data(), originalData);
 	expectVolumesEqual(destination, source);
@@ -396,9 +430,11 @@ TEST(VoxelVolumeMessage, DecodeDoesNotMutateAnotherVolumeSharingOldDestinationCo
 	ASSERT_TRUE(sourceBuilder.set({9, 9, 69}, Voxel::Cell(123u)));
 	const Voxel::Volume source = std::move(sourceBuilder).build();
 
-	spk::Message message;
+	spk::Message::Writer message;
 	message << source;
-	message >> destination;
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	reader >> destination;
 
 	EXPECT_NE(destination.cells().data(), oldStorage);
 	expectVolumesEqual(destination, source);
@@ -416,11 +452,13 @@ TEST(VoxelVolumeMessage, SamePoolTruncationDoesNotMutateDestinationBuffer)
 	const Voxel::Volume expected(destination);
 	const Voxel::Cell *originalData = destination.cells().data();
 
-	spk::Message message = metadataMessage({10, 10, 70}, 0.5f);
+	spk::Message::Writer message(metadataMessage({10, 10, 70}, 0.5f));
 	const Voxel::Cell partialCell(7u);
 	message.append(&partialCell, sizeof(partialCell));
 
-	EXPECT_THROW((message >> destination), spk::Exception);
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	EXPECT_THROW((reader >> destination), spk::Exception);
 	EXPECT_EQ(destination.cells().data(), originalData);
 	expectVolumesEqual(destination, expected);
 }
@@ -435,9 +473,11 @@ TEST(VoxelVolumeMessage, DecodeReplacesDestinationBufferWhenPoolClassChanges)
 	ASSERT_TRUE(sourceBuilder.set({9, 9, 49}, Voxel::Cell(321u)));
 	const Voxel::Volume source = std::move(sourceBuilder).build();
 
-	spk::Message message;
+	spk::Message::Writer message;
 	message << source;
-	message >> destination;
+	auto immutable = std::move(message).build();
+	auto reader = immutable.reader();
+	reader >> destination;
 
 	EXPECT_NE(destination.cells().data(), originalData);
 	expectVolumesEqual(destination, source);
@@ -450,11 +490,13 @@ TEST(VoxelVolumeMessage, RepeatedRoundTripsPreserveLogicalState)
 
 	for (int iteration = 0; iteration < 3; ++iteration)
 	{
-		spk::Message message;
+		spk::Message::Writer message;
 		message << current;
 
 		Voxel::Volume next;
-		message >> next;
+		auto immutable = std::move(message).build();
+		auto reader = immutable.reader();
+		reader >> next;
 		expectVolumesEqual(next, source);
 		current = std::move(next);
 	}

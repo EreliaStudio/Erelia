@@ -151,6 +151,7 @@ $clientConfig = [ordered]@{
         port = $routerConfig.'server config'.port
         retryDelayMs = 15000
     }
+    'terrain config' = [ordered]@{ viewRange = 2; unloadRange = 3 }
 }
 $clientRuntimeConfig = Join-Path $runtimeConfigRoot 'client.json'
 Write-JsonFile -Value $clientConfig -Path $clientRuntimeConfig

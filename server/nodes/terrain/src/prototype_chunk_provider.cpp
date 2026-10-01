@@ -4,6 +4,7 @@
 #include "erelia/core/service.hpp"
 #include "erelia/core/voxel/cell.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <functional>
@@ -122,21 +123,62 @@ namespace
 		}
 	}
 
+	[[nodiscard]] Column generateColumn(const Column::Coordinate &coordinate)
+	{
+		std::int32_t top = 0;
+		if (coordinate.x == 3 && coordinate.z == 3)
+		{
+			top = 1;
+		}
+		if ((coordinate.x == 3 && coordinate.z == 4) || (coordinate.x == 4 && coordinate.z == 3))
+		{
+			top = 2;
+		}
+		if (coordinate.x == 4 && coordinate.z == 4)
+		{
+			top = 3;
+		}
+		Column result;
+		for (std::int32_t y = 0; y <= top; ++y)
+		{
+			result.chunks.push_back({coordinate.x, y, coordinate.z});
+		}
+		return result;
+	}
+
 	[[nodiscard]] Chunk generateChunk(
 		const Chunk::Coordinate &coordinate)
 	{
 		Chunk::Builder builder;
 		populateBaselineAndWalls(builder, coordinate);
 		populateDedicatedFixture(builder, coordinate);
+		const Column column = generateColumn({coordinate.x, coordinate.z});
+		if (coordinate.y > 0 && std::find(column.chunks.begin(), column.chunks.end(), coordinate) != column.chunks.end())
+		{
+			for (std::int32_t z = 0; z < Chunk::Extent; ++z)
+			{
+				for (std::int32_t x = 0; x < Chunk::Extent; ++x)
+				{
+					for (std::int32_t y = 0; y < Chunk::Extent; ++y)
+					{
+						(void)builder.set({x, y, z}, CubeCell);
+					}
+				}
+			}
+		}
 		return std::move(builder).build();
 	}
 }
 
-spk::Task<Chunk>::Answer PrototypeChunkProvider::request(
-	const Chunk::Coordinate &coordinate)
+std::function<Chunk()> PrototypeChunkProvider::_operation(const Chunk::Coordinate &coordinate) const
 {
-	return Service::workerPool().submit(
-		[coordinate] {
-			return generateChunk(coordinate);
-		});
+	return [coordinate] {
+		return generateChunk(coordinate);
+	};
+}
+std::function<Column()> PrototypeColumnProvider::_operation(const Column::Coordinate &coordinate) const
+{
+	return [coordinate] {
+		return generateColumn(coordinate);
+	};
 }

@@ -1,4 +1,5 @@
 add_executable(EreliaCoreTestSuite
+    collection_requesting_provider_test.cpp
     chunk_collection_test.cpp
     chunk_protocol_error_test.cpp
     chunk_protocol_request_test.cpp

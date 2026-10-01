@@ -1,12 +1,17 @@
 #include "erelia/client/main_application_widget.hpp"
 
+#include "erelia/client/service.hpp"
+#include <network/client.hpp>
 #include <utility>
 
 MainApplicationWidget::MainApplicationWidget(
 	ConnectionManager::Endpoint endpoint,
 	spk::Timer::Duration retryDelay,
-	spk::Widget *parent) :
+	spk::Widget *parent,
+	TerrainStreamingBehaviour::Ranges ranges) :
 	spk::Widget("/MainApplicationWidget", parent),
+	_network(this),
+	_ranges(ranges),
 	_connectionManager(name() + "/ConnectionManager", std::move(endpoint), retryDelay, this),
 	_console(name() + "/Console", this)
 {
@@ -59,4 +64,16 @@ ConnectionManager &MainApplicationWidget::connectionManager() noexcept
 Console &MainApplicationWidget::console() noexcept
 {
 	return _console;
+}
+
+void MainApplicationWidget::_updateState(spk::UpdateContext &context)
+{
+	if (Service::client().isConnected() == true && _player == nullptr)
+	{
+		_player = std::make_unique<Player>(_terrain, _ranges);
+	}
+	if (_player != nullptr)
+	{
+		_player->updateState(context);
+	}
 }

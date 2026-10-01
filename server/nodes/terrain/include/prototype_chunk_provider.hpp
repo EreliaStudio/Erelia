@@ -1,23 +1,26 @@
 #pragma once
-
-#include <threading/task.hpp>
-
-#include "erelia/core/chunk_collection.hpp"
-
-class PrototypeChunkProvider final : public Chunk::Collection::Provider
+#include "erelia/core/collection.hpp"
+#include "erelia/core/column.hpp"
+#include "erelia/core/service.hpp"
+class PrototypeChunkProvider final : public Collection<Chunk::Coordinate, Chunk>::GeneratingProvider
 {
+protected:
+	[[nodiscard]] std::function<Chunk()> _operation(const Chunk::Coordinate &coordinate) const override;
+
 public:
-	PrototypeChunkProvider() = default;
-	PrototypeChunkProvider(
-		const PrototypeChunkProvider &) = delete;
-	PrototypeChunkProvider(
-		PrototypeChunkProvider &&) noexcept = default;
+	PrototypeChunkProvider() :
+		GeneratingProvider(Service::workerPool())
+	{
+	}
+};
+class PrototypeColumnProvider final : public Collection<Column::Coordinate, Column>::GeneratingProvider
+{
+protected:
+	[[nodiscard]] std::function<Column()> _operation(const Column::Coordinate &coordinate) const override;
 
-	PrototypeChunkProvider &operator=(
-		const PrototypeChunkProvider &) = delete;
-	PrototypeChunkProvider &operator=(
-		PrototypeChunkProvider &&) noexcept = default;
-
-	[[nodiscard]] spk::Task<Chunk>::Answer request(
-		const Chunk::Coordinate &coordinate) override;
+public:
+	PrototypeColumnProvider() :
+		GeneratingProvider(Service::workerPool())
+	{
+	}
 };

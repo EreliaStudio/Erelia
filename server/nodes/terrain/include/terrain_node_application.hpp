@@ -10,17 +10,12 @@ class TerrainNodeApplication final
 {
 private:
 	TerrainNode _node;
-	std::vector<TerrainNode::Request> _requests;
 	std::atomic_bool _stopRequested{false};
 	std::atomic_bool _running{false};
 
 	inline static volatile std::sig_atomic_t _signalReceived = 0;
 
 	static void _onSignal(int signal);
-
-	void _treatMessages();
-	void _treatMessage(TerrainNode::Request request);
-	void _parseChunkRequest(TerrainNode::Request request);
 
 public:
 	explicit TerrainNodeApplication(

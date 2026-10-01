@@ -43,7 +43,8 @@ namespace
 									.area = spk::Rect2D{
 										.anchor = {0, 0},
 										.size = {640, 480}}})
-					 .root())
+					 .root(),
+				{1, 2})
 		{
 			mainWidget.setGeometry(application.window("main").root().geometry());
 		}

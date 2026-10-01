@@ -1,4 +1,7 @@
 add_library(EreliaClientLibrary STATIC
+    src/client_network_manager.cpp
+    src/terrain_collections.cpp
+    src/terrain_streaming_behaviour.cpp
     src/client_configuration.cpp
     src/command/connect_command.cpp
     src/connection_manager.cpp
