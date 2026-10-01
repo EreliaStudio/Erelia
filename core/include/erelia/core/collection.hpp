@@ -15,17 +15,10 @@
 #include <threading/task_group.hpp>
 #include <threading/worker_pool.hpp>
 
-// Serialization is checked on the actual Writer/Reader API, including ADL.
-template <typename T>
-concept MessageSerializable = requires(spk::Message::Writer &writer, const spk::Message::Reader &reader, const T &input, T &output) {
-	writer << input;
-	reader >> output;
-};
-
 template <typename TKey, typename TElement>
 class Collection
 {
-	static_assert(MessageSerializable<TKey> && MessageSerializable<TElement>);
+	static_assert(spk::MessageSerializable<TKey> && spk::MessageSerializable<TElement>);
 
 public:
 	enum class State

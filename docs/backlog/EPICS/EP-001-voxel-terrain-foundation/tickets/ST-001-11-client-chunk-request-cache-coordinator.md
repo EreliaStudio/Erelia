@@ -44,8 +44,8 @@ ST-001-11 replaces the Chunk-specific asynchronous cache mechanics with:
 
 ```cpp
 template <
-    MessageSerializable TKey,
-    MessageSerializable TElement>
+    spk::MessageSerializable TKey,
+    spk::MessageSerializable TElement>
 class Collection;
 ```
 
@@ -65,8 +65,8 @@ The target public shape is:
 
 ```cpp
 template <
-    MessageSerializable TKey,
-    MessageSerializable TElement>
+    spk::MessageSerializable TKey,
+    spk::MessageSerializable TElement>
 class Collection
 {
 public:

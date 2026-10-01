@@ -12,7 +12,7 @@ namespace Networking
 	template <typename TKey, typename TElement>
 	struct CollectionProtocol::Codec
 	{
-		static_assert(MessageSerializable<TKey> && MessageSerializable<TElement>);
+		static_assert(spk::MessageSerializable<TKey> && spk::MessageSerializable<TElement>);
 		using Types = typename TElement::Protocol::MessageTypes;
 		struct Failure
 		{
