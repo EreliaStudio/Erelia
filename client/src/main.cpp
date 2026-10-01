@@ -1,10 +1,12 @@
 #include "erelia/client/client_configuration.hpp"
 #include "erelia/client/main_application_widget.hpp"
+#include "erelia/client/service.hpp"
 
 #include <core/application.hpp>
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
 #include <system/argument_parser.hpp>
+#include <system/translator.hpp>
 
 #include <cstdlib>
 #include <exception>
@@ -34,6 +36,8 @@ int main(int argc, char **argv)
 
 		spk::logger.setLevelIdentifier(spk::Logger::Level::UserValueA, "User message");
 		spk::logger.setLevelIdentifier(spk::Logger::Level::UserValueB, "Command");
+		Service::translator().append(
+			std::filesystem::absolute(argv[0]).parent_path() / "i18n" / "en.json");
 
 		spk::Application application;
 		spk::Window &mainWindow = application.createWindow(

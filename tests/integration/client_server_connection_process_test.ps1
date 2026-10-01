@@ -179,13 +179,31 @@ try {
     $serverProcess.WaitForExit(5000) | Out-Null
 
     Wait-LogText -Path $clientErr -Text 'Dedicated Server connection was lost' -Process $clientProcess
-    if ($clientProcess.WaitForExit(5000) -eq $false) {
-        $output = Get-Content -LiteralPath $clientErr -Raw
-        throw "Client did not terminate after the Server connection was lost.`nClient log:`n$output"
+    Wait-LogText -Path $clientErr -Text 'automatic connection attempts stopped. Use /connect to start a new connection cycle' -Process $clientProcess -TimeoutMilliseconds 15000
+
+    # A stopped retry cycle keeps the graphical Client available for /connect.
+    # Observe it beyond several configured retry intervals to catch an extra cycle.
+    if ($clientProcess.WaitForExit(500)) {
+        throw "Client must remain alive after exhausting reconnect attempts. Exit code: $($clientProcess.ExitCode)"
     }
 
-    if ($clientProcess.ExitCode -eq 0) {
-        throw 'Unexpected Server loss must terminate EreliaClient with a failure exit code.'
+    $output = Get-Content -LiteralPath $clientErr -Raw
+    $lossOffset = $output.IndexOf('Dedicated Server connection was lost')
+    $reconnectOutput = $output.Substring($lossOffset)
+    $attempts = [regex]::Matches($reconnectOutput, 'Connecting to dedicated Server \(attempt (\d+)/(\d+)\)')
+    if ($attempts.Count -ne 3) {
+        throw "Expected exactly three reconnect attempts after Server loss, received $($attempts.Count).`nClient log:`n$output"
+    }
+    for ($index = 0; $index -lt 3; ++$index) {
+        if ($attempts[$index].Groups[1].Value -ne [string]($index + 1) -or $attempts[$index].Groups[2].Value -ne '3') {
+            throw "Reconnect attempts must run in order from 1/3 through 3/3.`nClient log:`n$output"
+        }
+    }
+    if ($reconnectOutput.Contains('Connected to dedicated Server')) {
+        throw "Client reported a successful connection while the Server was stopped.`nClient log:`n$output"
+    }
+    if ($output.Contains('Missing translation key: client.')) {
+        throw "The Client English catalog must cover all startup and streaming translations.`nClient log:`n$output"
     }
 }
 finally {

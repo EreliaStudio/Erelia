@@ -44,6 +44,6 @@ if(WIN32)
         EreliaClientServerProcessSmoke
         PROPERTIES
             LABELS "integration;client;server;process"
-            TIMEOUT 20
+            TIMEOUT 45
     )
 endif()

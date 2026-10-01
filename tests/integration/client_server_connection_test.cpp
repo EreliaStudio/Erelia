@@ -76,4 +76,32 @@ TEST(ClientServerConnectionIntegration, ConnectionManagerConnectsToRouter)
 				advanceConnectionManager(manager);
 				return client.isConnected() == false;
 			}));
+	ASSERT_TRUE(
+		waitUntilConnection(
+			[&] {
+				advanceConnectionManager(manager);
+				return manager.isCycleStopped();
+			},
+			15s));
+	EXPECT_EQ(manager.attemptCount(), ConnectionManager::MaximumAttemptCount);
+
+	Router recoveredRouter(
+		Router::Configuration{
+			.port = manager.endpoint().port,
+			.nodeReconnectDelay = 10ms,
+			.nodes = {}});
+	recoveredRouter.start();
+	ASSERT_TRUE(recoveredRouter.isRunning());
+	advanceConnectionManager(manager);
+	EXPECT_TRUE(manager.isCycleStopped());
+	EXPECT_FALSE(client.isConnected());
+
+	manager.connect();
+	EXPECT_FALSE(manager.isCycleStopped());
+	ASSERT_TRUE(
+		waitUntilConnection(
+			[&] {
+				advanceConnectionManager(manager);
+				return client.isConnected() && manager.attemptCount() == 0;
+			}));
 }

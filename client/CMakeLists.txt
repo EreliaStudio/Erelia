@@ -22,6 +22,15 @@ target_link_libraries(
 
 add_executable(EreliaClient src/main.cpp)
 target_link_libraries(EreliaClient PRIVATE EreliaClientLibrary)
+add_custom_command(TARGET EreliaClient POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources/i18n
+        $<TARGET_FILE_DIR:EreliaClient>/i18n
+    VERBATIM
+)
+set_property(TARGET EreliaClient APPEND PROPERTY LINK_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources/i18n/en.json
+)
 
 if(BUILD_TESTING)
     add_subdirectory(tests)

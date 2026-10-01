@@ -14,8 +14,10 @@ Malformed/duplicate request diagnostics, one Response per valid Request, and two
 
 ## Connection and process boundaries
 
-`client_server_connection_test.cpp` retains the ST-001-10 ConnectionManager integration through the Router transport.
+`client_server_connection_test.cpp` exercises the ST-001-10 ConnectionManager through the Router transport, including remote loss, exhaustion of the three-attempt retry budget, and explicit recovery against a restored Server on the same endpoint.
 
-`EreliaClientServerProcessSmoke` launches the actual terrain node, central Server and Client with explicit temporary configurations and dynamically allocated ports. It waits for the live Client connection and successful Chunk acquisition markers, verifies Client liveness, then terminates the Server and verifies the Client exits with failure. The test does not replace canonical library-level content assertions or golden-image regression checks.
+`EreliaClientServerProcessSmoke` launches the actual terrain node, central Server and Client with explicit temporary configurations and dynamically allocated ports. It waits for the live Client connection and successful Chunk acquisition markers, then terminates the Server. It verifies detection of remote loss, exactly three ordered reconnect attempts, the stopped-cycle marker, and continued Client liveness beyond several retry intervals. It also checks that the bundled English catalog covers startup and streaming translations. The fixture terminates the still-running Client during cleanup. Explicit reconnect after exhaustion is exercised at the ConnectionManager boundary; the process smoke does not automate Console input. The test does not replace canonical library-level content assertions or golden-image regression checks.
+
+The Client loads `i18n/en.json` beside its executable before constructing the UI. Its source catalog is `client/resources/i18n/en.json`; the build copies the catalog beside the executable.
 
 Windows CI installs the existing approved Mesa software renderer beside both the integration executable and the actual Client executable so the process smoke can create its OpenGL context. No image references are regenerated.

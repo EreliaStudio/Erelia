@@ -1,6 +1,6 @@
 # ST-001-11 — Client Chunk request/cache coordinator
 
-**Status:** In Progress — implementation delivered; inherited process-lifecycle conflict and owner review outstanding
+**Status:** In Progress — implementation delivered; revised integration CI and owner review outstanding
 **Epic:** EP-001
 **Production target(s):** Core + Client + Terrain node
 **Test suite(s):** EreliaCoreTestSuite, EreliaClientTestSuite, EreliaServerTestSuite, EreliaIntegrationTestSuite
@@ -642,7 +642,7 @@ Preserve the real Client -> NodeRouter -> RemoteNode -> terrain Endpoint path an
 
 ## Implementation / completion evidence — 1 October 2026
 
-The Ready gate was verified on the existing `feat/st-001-11-client-chunk-request-cache-coordinator` branch before production changes. Implementation is delivered in [PR #19](https://github.com/EreliaStudio/Erelia/pull/19); it is not Done: all production/component and routed integration suites pass, but the inherited executable-disconnect assertion conflicts with the documented/implemented reconnect lifecycle, and project-owner approval is outstanding.
+The Ready gate was verified on the existing `feat/st-001-11-client-chunk-request-cache-coordinator` branch before production changes. Implementation is delivered in [PR #19](https://github.com/EreliaStudio/Erelia/pull/19); it is not Done: all production/component and routed integration suites passed, but the inherited executable-disconnect assertion failed under the earlier conflicting policy. The owner has since confirmed bounded retries/stay-alive; revised integration CI and project-owner approval are outstanding.
 
 ### Delivered production behavior
 
@@ -680,19 +680,16 @@ Local full graphical Client/integration builds cannot run because Sparkle's grap
 
 ### Remaining completion gate
 
-Resolve the inherited executable-disconnect conflict, pass the process smoke under the confirmed policy, and record project-owner review/approval before changing this ticket to Done. No golden replacement or new visual approval is requested by this ticket.
+Pass the revised process smoke under the owner-confirmed bounded retry/stay-alive policy and record project-owner review/approval before changing this ticket to Done. No golden replacement or new visual approval is requested by this ticket.
 
 The accepted technical debt above remains unchanged: Error without Response may leave Pending indefinitely; Server Update production/broadcast, Server eviction, response splitting, meshing/rendering and movement/production interest management remain deferred.
 
 The next dependency-ordered ticket is ST-001-12, still Blocked by OQ-036 (missing-neighbor/remesh policy). It is not automatically Ready; no later ticket is promoted by this implementation.
 
-### Exact unresolved completion conflict
+### Connection policy resolution — 1 October 2026
 
-This is not a replacement ST-001-11 contract or accepted Error-recovery debt:
+The project owner confirmed the implemented reconnect/stay-alive behavior and requested updating the integration test. This supersedes the contradictory historical exit-on-disconnect expectation in ST-001-10 and its process smoke.
 
-- ST-001-10's **Failure behavior** states: “Unexpected remote Server disconnect starts a fresh connection cycle.” Its **Repeated operations and reconnect** section says the same; failed automatic cycles stop while the graphical Client remains running.
-- ST-001-10's **Project-owner decisions approved on 27 September 2026** instead records: “initial-connect failure and unexpected remote disconnect fail the executable.” Its historical completion evidence and the inherited process smoke require exit with failure.
-- Current `client/src/connection_manager.cpp::_updateState()` logs loss and calls `connect()`; `_stopCycle()` logs the bounded stop without terminating the application. ST-001-11 explicitly consumes this existing connection/reconnection lifecycle.
-- CI run #613 reaches connection and `Chunk acquired`, then reports “Client did not terminate after the Server connection was lost” in both configurations. The smoke assertion is retained; no production connection policy was changed to force it green.
+The revised process smoke observes Server loss, exactly three ordered reconnect attempts, the stopped-cycle marker and continued Client liveness. The routed ConnectionManager fixture verifies exhaustion and explicit recovery against a restored Server on the same endpoint. Production connection policy is unchanged. The Client now bundles and loads `i18n/en.json` before UI construction; the smoke also rejects missing Client translation keys.
 
-The owning policy must confirm whether the actual graphical executable retries/stays alive or exits on unexpected Server loss. Only the affected executable-disconnect validation is blocked; the rest of ST-001-11 production behavior and test matrix is implemented and validated. Historical ST-001-10 completion evidence is preserved rather than rewritten.
+The prior CI failures remain historical evidence. Revised Windows Debug/Release CI and final owner review are still required; this ticket remains In Progress.
