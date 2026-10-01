@@ -18,7 +18,7 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-08 — Batched Chunk request/response protocol contract](ST-001-08-batched-chunk-protocol-contract.md) | **Done** | ST-001-01, ST-001-03, ST-001-05; OQ-038 resolved; DR-022 |
 | [ST-001-09 — Server Chunk request handler](ST-001-09-server-chunk-request-handler.md) | **Done** | ST-001-06, ST-001-07, ST-001-08 |
 | [ST-001-10 — Client dedicated-Server connection](ST-001-10-client-dedicated-server-connection.md) | **Done** | ST-001-07 |
-| [ST-001-11 — Client Chunk request/cache coordinator](ST-001-11-client-chunk-request-cache-coordinator.md) | **Blocked** | ST-001-08, ST-001-10; Client cache/retry/recycle policy specification |
+| [ST-001-11 — Client Chunk request/cache coordinator](ST-001-11-client-chunk-request-cache-coordinator.md) | **Ready** | ST-001-08, ST-001-09, ST-001-10; final generic Collection + Client streaming contract approved |
 | [ST-001-12 — Client terrain mesher](ST-001-12-client-terrain-mesher.md) | **Blocked** | ST-001-03, ST-001-04; OQ-036 |
 | [ST-001-13 — Client terrain rendering integration](ST-001-13-client-terrain-rendering-integration.md) | **Draft** | ST-001-01, ST-001-12; render-fixture/material/lifecycle specification |
 | [ST-001-14 — Temporary free-flight inspection controller](ST-001-14-temporary-free-flight-inspection-controller.md) | **Draft** | ST-001-13; full input/numeric camera-control specification |
@@ -45,12 +45,16 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-10 — Client dedicated-Server connection** is **Done** and merged into `master` through PR #18. The delivered Client uses explicit endpoint configuration, `MainApplicationWidget` composition, Service-owned `spk::WorkerPool` / `spk::Client` / `spk::Translator` instances, serialized WorkerPool connection Tasks, a bounded three-attempt automatic retry cycle, `/connect` restart/endpoint override behavior, pending-attempt-safe destruction, Client component coverage, real Router integration, and a separate-process `EreliaClient -> EreliaServer` smoke. Final PR CI run #604 (run ID `36409915048`) passed the complete required matrix.
 
+## Ready implementation work
+
+**ST-001-11 — Client Chunk request/cache coordinator** is **Ready** on `feat/st-001-11-client-chunk-request-cache-coordinator`. The final plan uses generic `Collection<TKey, TElement>`, Column -> Chunk streaming, Provider-owned Pending state, generic Request/Response/Update/Error families, payload-only diagnostics, per-request-type monotonic non-recycled RequestIDs, generic Response offset-table sectioning, and Client-side view/unload retention.
+
 ## Remaining blockers
 
 Existing OQs:
 
 - OQ-036 — missing-neighbor/remesh policy;
-- OQ-038 — resolved for ST-001-08 by DR-022; later Client cache/retry/recycle-threshold policy remains ST-001-11;
+- OQ-038 — resolved; ST-001-11 now fixes the remaining Client streaming/cache/request-ID policy and uses no RequestID recycling;
 - OQ-039 — resolved exact generator/Definition fixture (DR-015);
 - OQ-029 / OQ-030 — golden platform and comparison policy;
 - OQ-031 — performance evidence methodology.
