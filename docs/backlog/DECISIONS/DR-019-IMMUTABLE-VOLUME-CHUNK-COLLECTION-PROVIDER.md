@@ -159,7 +159,7 @@ This rule is intentionally suitable for the future Client without inventing an "
 - whole-value replacement remains available for later canonical refresh/replacement;
 - the render thread may safely finish work against an older copied Chunk value.
 
-The exact network batching, retry, eviction, unsolicited-response and partial-response policy remains owned by OQ-038 / ST-001-11. The generic Collection already owns duplicate Pending suppression and stale-generation rejection.
+The exact network batching, response, eviction, disconnect, and unsolicited-update policy is finalized by OQ-038 / ST-001-11. The generic Collection owns duplicate Pending suppression and stale-result rejection; network correlation/reliability stays in the network-backed Provider layer.
 
 ### Server implementation
 
@@ -214,7 +214,7 @@ ST-001-06 implementation must update/add Core coverage proving at least:
 - concurrent Collection lookup/replacement follows the implemented synchronization contract without exposing mutable Chunk Cells;
 - generic Volume Message decode replaces content rather than overwriting Cell storage shared with an existing copy.
 
-Future ST-001-08/ST-001-11 tests own dedicated Chunk wire encoding and Client network retry/cache/response semantics. The generic Pending state and stale-generation rejection are already fixed here.
+ST-001-08 historically owns the delivered Chunk wire encoding; ST-001-11 owns the superseding generic Collection protocol and Client network/cache/response semantics. Generic Pending and stale-result protection remain fixed here.
 
 ## Resolution provenance
 
