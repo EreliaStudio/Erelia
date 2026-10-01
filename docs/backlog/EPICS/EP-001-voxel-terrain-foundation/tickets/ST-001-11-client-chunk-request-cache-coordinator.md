@@ -656,7 +656,7 @@ The historical `Chunk::Collection::BatchResult`, Chunk-specific protocol headers
 
 ### Validation evidence
 
-Sparkle Version-0.1.3 was inspected and built at `626b86c` (immutable Message redesign). Final production validation head: `e5140a13db2ef8ed8d13707acbf54310dd277279`.
+Sparkle Version-0.1.3 was inspected and built at `626b86c` (immutable Message redesign). Final production validation head: `d74040aaca401c7f08bf9bcd644b154cba4c58d7` (including acquisition-launch identity protection and notification outside acquisition locks).
 
 | Command / configuration | Result |
 | --- | --- |
@@ -668,11 +668,13 @@ Sparkle Version-0.1.3 was inspected and built at `626b86c` (immutable Message re
 | `ctest --test-dir build/headless-release --output-on-failure` | 3/3 CTest entries pass |
 | Focused Client `terrain_streaming_test.cpp`, linked against real Sparkle Core Entity/Behaviour and Erelia Core | 9/9 tests pass, including delayed completion-mailbox publication |
 | Clang 18 syntax checks of new Client production/networking tests and routed Collection integration fixture | Pass; this is not a substitute for Windows link/runtime validation |
-| [PR CI run #610](https://github.com/EreliaStudio/Erelia/actions/runs/36918587887): clang-format | Pass |
-| CI Core/Server Linux Debug + Release and Windows Debug + Release | All four jobs pass; 3/3 CTest entries per configuration |
+| [PR CI run #613](https://github.com/EreliaStudio/Erelia/actions/runs/36924712583): clang-format | Pass |
+| CI Core/Server Linux Debug + Release and Windows Debug + Release | All four jobs pass; 3/3 CTest entries per configuration (Core 124 tests and Server/Terrain 18 tests) |
 | CI Client Windows Debug + Release, `ctest --preset <configuration> --output-on-failure --no-tests=error -LE integration` | Both jobs pass; 6/6 component CTest entries per configuration, including existing golden regressions |
 | CI Integration Windows Debug + Release, `ctest --preset <configuration> --output-on-failure --no-tests=error -L integration` | Routed `EreliaIntegrationTestSuite` passes in both configurations; `EreliaClientServerProcessSmoke` fails in both configurations on its inherited exit-after-disconnect assertion |
 
+
+The local rows above record completed pre-recovery runs (Core 121 tests). Final local Debug headless validation also passed after the three added Core concurrency regressions; the execution environment disconnected before final local Release/focused streaming revalidation. The final-code CI matrix above supplies that validation; no interrupted local run is reported as passing.
 
 Local full graphical Client/integration builds cannot run because Sparkle's graphical window backend is Win32-only. The Windows CI results above provide full link/runtime, existing golden regression and routed integration evidence. The process smoke reaches the actual three-process connection and Chunk-acquisition markers before failing on the inherited lifecycle assertion. Earlier runs #607/#608 exposed that Mesa was missing beside the actual Client executable; CI now copies the same approved renderer DLLs there. No image references were replaced.
 
@@ -691,6 +693,6 @@ This is not a replacement ST-001-11 contract or accepted Error-recovery debt:
 - ST-001-10's **Failure behavior** states: “Unexpected remote Server disconnect starts a fresh connection cycle.” Its **Repeated operations and reconnect** section says the same; failed automatic cycles stop while the graphical Client remains running.
 - ST-001-10's **Project-owner decisions approved on 27 September 2026** instead records: “initial-connect failure and unexpected remote disconnect fail the executable.” Its historical completion evidence and the inherited process smoke require exit with failure.
 - Current `client/src/connection_manager.cpp::_updateState()` logs loss and calls `connect()`; `_stopCycle()` logs the bounded stop without terminating the application. ST-001-11 explicitly consumes this existing connection/reconnection lifecycle.
-- CI run #610 reaches connection and `Chunk acquired`, then reports “Client did not terminate after the Server connection was lost” in both configurations. The smoke assertion is retained; no production connection policy was changed to force it green.
+- CI run #613 reaches connection and `Chunk acquired`, then reports “Client did not terminate after the Server connection was lost” in both configurations. The smoke assertion is retained; no production connection policy was changed to force it green.
 
 The owning policy must confirm whether the actual graphical executable retries/stays alive or exits on unexpected Server loss. Only the affected executable-disconnect validation is blocked; the rest of ST-001-11 production behavior and test matrix is implemented and validated. Historical ST-001-10 completion evidence is preserved rather than rewritten.
