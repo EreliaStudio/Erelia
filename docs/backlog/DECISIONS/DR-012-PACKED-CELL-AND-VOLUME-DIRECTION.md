@@ -93,7 +93,7 @@ The approved Volume contract is:
 - `Voxel::Volume` is not inherently a world Chunk: world position/Chunk coordinate remains separate semantic information.
 - EP-001 network responses may therefore naturally contain `{chunkCoordinate, volumeData}`.
 - The Volume storage/indexing, Builder, pooled-buffer and contiguous-view contracts remain fixed here; DR-019 supersedes the deep-copy/direct-Lease ownership details. Wire byte-order remains DR-017.
-- `spk::Message << Voxel::Volume` / `>>` is the approved ergonomic serialization direction; see DR-017.
+- `Voxel::Volume` uses Sparkle Message Writer insertion / Reader extraction as the approved ergonomic serialization direction; see DR-017. The original mutable `spk::Message << / >>` call shape was superseded by the merged Version-0.1.3 Message API.
 
 ## Required tests
 
