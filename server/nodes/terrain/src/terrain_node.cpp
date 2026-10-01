@@ -1,5 +1,7 @@
 #include "terrain_node.hpp"
 #include "prototype_chunk_provider.hpp"
+#include "terrain_service.hpp"
+#include <atomic>
 #include <container/json/reader.hpp>
 #include <container/thread_safe_fifo.hpp>
 #include <diagnostics/logger.hpp>
@@ -7,6 +9,7 @@
 #include <set>
 namespace
 {
+	std::atomic_bool drainerOwned = false;
 	std::string failureMessage(std::exception_ptr failure)
 	{
 		try
@@ -51,16 +54,28 @@ TerrainNode::Configuration TerrainNode::Configuration::load(const std::string &p
 }
 TerrainNode::TerrainNode(Configuration configuration) :
 	_configuration(configuration),
+	_endpoint(Service::terrainEndpoint()),
 	_chunks(PrototypeChunkProvider{}),
 	_columns(PrototypeColumnProvider{}),
 	_async(std::make_unique<AsyncState>())
 {
-	_subscriptions.push_back(_dispatcher.subscribe(static_cast<spk::Message::Type>(Networking::MessageType::ChunkRequest), [this](const Request &request) {
-		_request(request, _chunks);
-	}));
-	_subscriptions.push_back(_dispatcher.subscribe(static_cast<spk::Message::Type>(Networking::MessageType::ColumnRequest), [this](const Request &request) {
-		_request(request, _columns);
-	}));
+	if (drainerOwned.exchange(true) == true)
+	{
+		throw spk::Exception("Terrain Endpoint already has a dispatcher");
+	}
+	try
+	{
+		_subscriptions.push_back(_dispatcher.subscribe(static_cast<spk::Message::Type>(Networking::MessageType::ChunkRequest), [this](const Request &request) {
+			_request(request, _chunks);
+		}));
+		_subscriptions.push_back(_dispatcher.subscribe(static_cast<spk::Message::Type>(Networking::MessageType::ColumnRequest), [this](const Request &request) {
+			_request(request, _columns);
+		}));
+	} catch (...)
+	{
+		drainerOwned.store(false);
+		throw;
+	}
 }
 TerrainNode::~TerrainNode()
 {
@@ -70,6 +85,7 @@ TerrainNode::~TerrainNode()
 	} catch (...)
 	{
 	}
+	drainerOwned.store(false);
 }
 void TerrainNode::start()
 {

@@ -649,7 +649,7 @@ The Ready gate was verified on the existing `feat/st-001-11-client-chunk-request
 - Core: generic `Collection<TKey, TElement>`, Provider-owned Pending Answers/Contracts, ordered Sparkle TaskGroups, strict mutations and stale-completion protection; generic generating/requesting/updating providers; shared Column domain and fixed Chunk serialization.
 - Protocol: generated Chunk/Column message families, payload-only Diagnostic, independent monotonic uint64 RequestIDs, generic section offset tables, WorkerPool parsing through independent immutable Message Readers, authoritative Update and diagnostic-only Error handling.
 - Client: one Service Client queue drainer, retained dispatcher subscriptions and disconnect fan-out, both requesting Collections, configured inclusive horizontal view/unload regions, and Player-owned Transform-subscribed terrain streaming Behaviour. Successful Columns launch Chunk acquisition; successful Chunks emit the UserValueB placeholder.
-- Server/Terrain: both NodeRouter redirects, one Endpoint request drainer with complete reply envelopes, shared deterministic Column/Chunk generation, family Errors and one Response per valid Request. No Server Update broadcast or eviction was added.
+- Server/Terrain: both NodeRouter redirects, one Service-owned Endpoint request drainer with complete reply envelopes, shared deterministic Column/Chunk generation, family Errors and one Response per valid Request. No Server Update broadcast or eviction was added.
 - Integration: real Client Collection -> Sparkle Client -> NodeRouter -> RemoteNode -> terrain Endpoint -> generic handler/provider -> Response -> ClientNetworkManager -> RequestingProvider -> Collection fixtures. Process smoke now starts all three executables and observes acquisition before testing Server loss.
 
 The historical `Chunk::Collection::BatchResult`, Chunk-specific protocol headers/layout, and standalone Diagnostic MessageID are removed. Generic Volume tests use the current Writer/Reader API without weakening their malformed-input checks. Existing golden references are unchanged.
@@ -663,7 +663,7 @@ Sparkle Version-0.1.3 was inspected and built at `626b86c` (immutable Message re
 | clang-format 21.1.0 `--style=file --dry-run --Werror` over all active Core/Server/Client/integration C++ sources | Pass |
 | `git diff --check` | Pass |
 | Linux Clang 18 Debug, Sparkle Core + Erelia headless build | Pass |
-| `ctest --test-dir build/headless-debug --output-on-failure` | 3/3 CTest entries pass: Core 121/121, Server/Terrain 17/17, Server smoke |
+| `ctest --test-dir build/headless-debug --output-on-failure` | 3/3 CTest entries pass: Core 121/121, Server/Terrain 18/18, Server smoke |
 | Linux Clang 18 Release, Sparkle Core + Erelia headless build | Pass |
 | `ctest --test-dir build/headless-release --output-on-failure` | 3/3 CTest entries pass |
 | Focused Client `terrain_streaming_test.cpp`, linked against real Sparkle Core Entity/Behaviour and Erelia Core | 9/9 tests pass, including delayed completion-mailbox publication |

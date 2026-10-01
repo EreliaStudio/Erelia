@@ -19,7 +19,7 @@ public:
 private:
 	struct AsyncState;
 	Configuration _configuration;
-	spk::RemoteNode::Endpoint _endpoint;
+	spk::RemoteNode::Endpoint &_endpoint;
 	Collection<Chunk::Coordinate, Chunk> _chunks;
 	Collection<Column::Coordinate, Column> _columns;
 	Networking::MessageDispatcher<Request> _dispatcher;

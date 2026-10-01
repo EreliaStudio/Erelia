@@ -1,5 +1,6 @@
 #include "terrain_node.hpp"
 #include "terrain_node_application.hpp"
+#include "terrain_service.hpp"
 
 #include <exception.hpp>
 #include <gtest/gtest.h>
@@ -179,4 +180,16 @@ TEST(TerrainNodeApplication, StopsCleanlyOnInterruptSignal)
 TEST(TerrainNodeApplication, StopsCleanlyOnTerminationSignal)
 {
 	expectApplicationStopsOnSignal(SIGTERM);
+}
+
+TEST(TerrainNodeRuntime, ServiceEndpointHasExactlyOneDispatcher)
+{
+	{
+		TerrainNode node({.port = 0});
+		EXPECT_THROW((void)TerrainNode({.port = 0}), spk::Exception);
+		node.start();
+		EXPECT_EQ(node.port(), Service::terrainEndpoint().port());
+	}
+	EXPECT_EQ(Service::terrainEndpoint().isRunning(), false);
+	EXPECT_NO_THROW((void)TerrainNode({.port = 0}));
 }

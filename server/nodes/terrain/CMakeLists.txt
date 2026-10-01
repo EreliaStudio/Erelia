@@ -1,5 +1,6 @@
 add_library(EreliaTerrainNodeLibrary STATIC
     src/prototype_chunk_provider.cpp
+    src/terrain_service.cpp
     src/terrain_node.cpp
     src/terrain_node_application.cpp
 )
