@@ -6,82 +6,124 @@
 
 ## Question
 
-What are the first Chunk request / streaming semantics?
+What are the first Client terrain request, caching, correlation, streaming, and retention semantics?
 
-## Problem / context
+## Resolution history
 
-The Client needs to request nearby Chunks efficiently without making the Server responsible for Client view distance or rendering policy.
+OQ-038 originally resolved the first ST-001-08 batched Chunk protocol direction. DR-022 records that historical wire contract, and ST-001-09 subsequently implemented its refined terminal Success/Failure response and diagnostic behavior.
 
-## Known constraints
+ST-001-11 now resolves the remaining Client-side policy that had intentionally been deferred from those tickets and supersedes the older Chunk-only protocol details where its generic Collection protocol is more specific.
 
-- One request can batch multiple Chunk coordinates.
-- Server returns coordinate + immutable `Chunk` results.
-- Client alone owns its view/loading region policy.
+## Final ST-001-11 direction
 
-## Possible solutions
+### Client-driven terrain interest
 
-1. Suppress duplicate outstanding requests and keep a Client cache with a configurable load/retain policy.
-2. Allow duplicate requests initially and keep every received Chunk for the lifetime of the inspection session.
-3. Use a minimal hard-coded radius first, then add configuration/eviction after the end-to-end path works.
+The Client owns view/loading policy. The Server never chooses the Client view radius.
 
-## Remaining ambiguity
+A Player terrain-streaming Behaviour observes the Player Transform, derives the containing Chunk coordinate from world position using mathematical floor + the existing Chunk floor-division contract, and refreshes terrain demand only when that containing Chunk coordinate changes.
 
-Core-local duplicate suppression is already resolved: `Chunk::Collection` owns explicit Absent/Pending/Available state and does not invoke its Provider again while a coordinate is Pending or Available. Each Pending request carries a monotonically increasing generation and stale asynchronous results are rejected.
+The Client requests horizontal Column occupancy first and requests only the full Chunk coordinates returned by successful Column acquisition.
 
-The project owner has now fixed several ST-001-08 protocol details:
+### Client ranges and retention
 
-- Erelia owns a typed `Networking::MessageType` enum whose underlying type is `spk::Message::Type`;
-- the first values are `ChunkRequest = 1` and `ChunkResponse = 2`;
-- top-level Chunk protocol messages are domain types such as `Chunk::Protocol::Request` and `Chunk::Protocol::Response` built on `spk::Message`, set their own message type at construction, and expose Chunk-protocol operations so ordinary callers do not manually serialize raw `spk::Message` fields;
-- one Chunk request contains 1..1024 coordinates; larger Client demand must be split across multiple messages; the request payload contains only the contiguous coordinates with no serialized count because the count is derived from payload size / `sizeof(Chunk::Coordinate)`;
-- duplicate coordinates inside one request are protocol misuse rather than a normal Chunk result state: duplicate occurrences are ignored for Chunk resolution, while a separate correlated `ChunkError` message reports the misuse; `Networking::MessageType::ChunkError = 3`, `Chunk::Protocol::Error::Code : std::uint8_t` initially contains `DuplicateCoordinate = 0`, one diagnostic is emitted for each distinct duplicated coordinate, diagnostics are sorted lexicographically by coordinate (X, then Y, then Z), and the error message is sent before the normal response with the same Sparkle `RequestID`; the Error payload contains only repeated `[code:uint8][coordinate:Chunk::Coordinate]` entries with no serialized count because entry count is derived from payload size / fixed Error-entry size; the `ChunkResponse` is always the terminal protocol message for that request, so no further Chunk-protocol message with that request ID may follow it;
-- a Chunk response entry contains its coordinate plus a typed `Chunk::Protocol::Response::State : std::uint8_t`;
-- the response states are `Success = 0`, `Rejected = 1`, and `Unavailable = 2`;
-- only `Success` is followed by the fixed 4096-Cell Chunk payload; `Rejected` and `Unavailable` carry no Chunk data;
-- `Unavailable` is a normal result state, not a protocol error;
-- malformed network/protocol input must not terminate the Server or Client process: Core `Chunk::Protocol::{Request, Response, Error}` decoding is strict and may throw `spk::Exception`, but it does not log or swallow failures; the later Server/Client network-consumer boundary catches the exception, logs a Sparkle Warning, drops the malformed message, and continues processing later traffic;
-- Sparkle `spk::Message` gains a native `RequestID` field carried in the network frame header, retrievable with `requestID()` and assignable with `setRequestID()`;
-- `spk::Message` does not generate correlation IDs itself: its default `RequestID` is 0, and protocols that require correlation own generation; `Chunk::Protocol::Request` owns a thread-safe atomic monotonically increasing non-zero request-ID sequence, with 0 reserved as the uncorrelated value, and assigns the generated value to its underlying Message;
-- correlated Chunk response/error Messages reuse the originating request ID through `setRequestID()`;
-- because correlation is a Sparkle Message header concern, the Erelia Chunk payload does not redundantly serialize a `RequestID`;
-- Sparkle `spk::Message` gains checked, cursor-independent random-access reads with the approved API shape `readAt(std::size_t offset, void* destination, std::size_t size) const` plus a trivially-copyable typed `readAt<TValue>(std::size_t offset) const`;
-- Chunk responses are grouped by result state in the fixed order `Success`, `Rejected`, then `Unavailable`; inside each state group, entries are sorted lexicographically by `Chunk::Coordinate` components in X, then Y, then Z order, making response encoding deterministic independently of request ordering or asynchronous completion order; the payload begins with three absolute `std::uint32_t` offsets from payload byte 0: `successOffset`, `rejectedOffset`, and `unavailableOffset`; there is no response-entry count because each group cardinality is derived from its byte range and fixed entry size; `successOffset` equals the summary size, empty groups are represented by equal adjacent boundaries, and an empty Unavailable group has `unavailableOffset == message.size()`;
-- an empty Chunk request payload is malformed; request payload size must be an exact multiple of `sizeof(Chunk::Coordinate)` and derive a coordinate count in 1..1024; the protocol decoder rejects invalid sizes, and a network consumer catches/logs/drops the malformed message without sending a Chunk response;
-- Request-ID reuse is connection/session scoped: a Client that decides to recycle its ID space first stops issuing new Chunk requests, then waits until every outstanding request in that session has received its terminal `ChunkResponse`; only when no outstanding request remains may the Chunk request-ID generator be reset so the next generated ID is 1;
-- merely receiving the numerically highest issued response is insufficient because earlier requests may still be in flight; the terminal-response/outstanding-set rule is the safety condition;
-- no Server-side RequestID reset handshake is required, because the Server only echoes the originating ID and the Client can prove the old session ID space is drained locally;
-- the numeric threshold at which the Client chooses to begin draining/recycling IDs is Client policy and is deferred to ST-001-11 rather than being part of the ST-001-08 wire contract;
-- connection-loss handling, retry timing, cache retention/eviction, desired-region policy, and handling policy for already-completed/unknown responses remain deferred to ST-001-11.
+`viewRange` and `unloadRange` are positive Client configuration values with `unloadRange >= viewRange`.
 
-The ST-001-08 wire-level semantics required from OQ-038 are now resolved. The later Client coordinator still owns the operational threshold that triggers request-ID draining/reuse and the disconnect/retry/cache policy, but those choices do not change this Core protocol contract.
+The Client precomputes the horizontal X/Z relative Column offsets for both ranges and reuses them as the streaming center moves.
 
-DR-019 also removes the former empty-Chunk placeholder idea from the generic Collection contract. Pending is represented as state, not as fake voxel content. Existing copied Available Chunk values remain valid through immutable shared Volume content.
+On a center-Chunk transition the Client:
+
+- requests desired Columns inside `viewRange`;
+- requests relevant Chunks from successful Column contents;
+- removes Client Columns outside `unloadRange`;
+- removes Client Chunks whose X/Z coordinates are outside the retained horizontal region.
+
+Server-side Column/Chunk eviction remains deferred.
+
+### Generic Collection state
+
+Client and Server use the generic `Collection<TKey, TElement>` abstraction introduced by ST-001-11.
+
+Collection storage contains only Available values. Provider-owned Pending state suppresses duplicate acquisition and reuses the same Task Answer.
+
+The public state remains:
+
+```text
+Absent
+Pending
+Available
+```
+
+No placeholder Chunk/Column value represents Pending work.
+
+### Response failure
+
+A terminal Collection `Response::Failure` is remembered by the Client RequestingProvider for the lifetime of the current connection. Re-requesting that key during the same connection does not emit another network Request and resolves through the remembered failure.
+
+Disconnect clears remembered Server refusals and fails/clears active network-backed Pending acquisitions. Available values remain cached.
+
+### RequestID
+
+RequestID generation is per Collection Request type / RequestingProvider.
+
+- Chunk starts at 1.
+- Column independently starts at 1.
+- RequestID 0 remains uncorrelated.
+- Each sequence increments monotonically as `std::uint64_t`.
+- RequestIDs are never recycled.
+- Existing provider sequences are not reset by disconnect/reconnect.
+- No drain threshold or reset handshake is required.
+
+### Message family and diagnostics
+
+ST-001-11 supersedes the old fixed Chunk numeric MessageIDs.
+
+Chunk and Column each use the generic Collection family:
+
+```text
+Request
+Response
+Update
+Error
+```
+
+`Networking::Diagnostic` is a serializable payload value inside family Error messages and no longer owns a standalone MessageID.
+
+Family Error messages are diagnostic-only on the Client for ST-001-11: they are decoded/logged and do not settle or mutate Pending/Available acquisition state.
+
+The known case where a request-level Error is emitted without a terminal Response may therefore leave correlated Pending acquisition unresolved until a later lifecycle event such as disconnect/removal. This is accepted ST-001-11 technical debt and is intentionally deferred to future reliability work.
+
+### Generic Response sectioning
+
+The generic Collection Response owns one offset table at the beginning of its payload. The table covers independently parseable sections for both Success and Failure data and identifies their boundary.
+
+Chunk and Column do not define separate Response table formats.
+
+Each domain owns static compile-time tuning constants for:
+
+- maximum elements per emitted Request;
+- elements per serialized Response section.
+
+Their numeric values are implementation tuning knobs rather than durable protocol identifiers.
+
+### Sparkle Message model
+
+Merged Sparkle Version-0.1.3 uses immutable `spk::Message` payloads.
+
+- construction: `spk::Message::Writer`;
+- decoding: independent `spk::Message::Reader` instances over shared pooled immutable storage.
+
+ST-001-11 generic serialization is defined against Writer insertion and Reader extraction rather than mutable `spk::Message << / >>` operations.
 
 ## Chosen solution
 
-Use batched Client-driven Chunk requests. The Client chooses its view region (hard-coded initially or startup-configured).
+Use Client-driven Column -> Chunk terrain acquisition through generic asynchronous Collections and network-backed RequestingProviders.
 
-Use the Core `Chunk::Collection` / nested Provider abstraction established by DR-019 when ST-001-11 is implemented. A missing requested coordinate becomes Pending; no placeholder Chunk is published. The Client Provider may perform asynchronous network work and later publish the canonical complete Chunk only for the matching generation.
+Suppress duplicate Pending work, retain Available canonical data, remember terminal Server refusals for one connection, clear network-only failure state on disconnect, and bound Client storage through configured horizontal view/unload ranges.
 
-Use the approved Erelia typed message/state conventions above. Keep protocol misuse (such as duplicate coordinates) distinct from normal per-coordinate availability/rejection state.
+Use one generic Collection protocol family for Chunk and Column, with per-request-type monotonic non-recycled RequestIDs, generic Response offset-table sectioning, family Error diagnostics, and Sparkle Writer/Reader serialization.
 
-Network retry timing, request-ID recycle threshold, disconnect handling, and cache/retention policy stay outside ST-001-08 and belong to ST-001-11. OQ-038 now fixes the ST-001-08 wire-level correlation, terminal-message, error, ordering, random-access, and malformed-input semantics.
+## Ownership
 
-DR-022 is the durable exact wire-contract record for the ST-001-08 decisions resolved here.
+ST-001-11 is the durable implementation specification for the remaining policy previously deferred from OQ-038.
 
-
-## Later ST-001-09 refinement
-
-OQ-038 remains Resolved for the decisions it originally closed, but ST-001-09 planning later refined the terminal response representation.
-
-The current target is:
-
-- `Chunk::Protocol::Response::Success { coordinate, chunk }` for successful terminal coordinate results;
-- `Chunk::Protocol::Response::Failure { coordinate, Failure::Code, message }` for failed terminal coordinate results;
-- `Failure::Code` is owned by `Response::Failure`; its concrete code set is not yet frozen;
-- finalized Responses remain Message-backed; Builder containers are temporary only;
-- no terminal Pending/Unavailable section is expected because a terminal Response is emitted only after work is terminal;
-- the previous Chunk-specific `Chunk::Protocol::Error` is expected to be replaced by a generic diagnostic-message mechanism for non-terminal technical diagnostics, but that mechanism's exact protocol contract remains unresolved;
-- duplicate occurrences remain protocol misuse and should be diagnosed without causing duplicate generation; the first occurrence continues to participate in normal resolution.
-
-The exact variable-length Failure string encoding and the generic diagnostic-message format must be resolved before the refined protocol is implemented.
+DR-022 remains the historical record of the completed ST-001-08/ST-001-09 Chunk wire implementation and explicitly records which pieces ST-001-11 later supersedes.
