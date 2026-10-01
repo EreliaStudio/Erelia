@@ -354,3 +354,40 @@ The Collection batch-result public shape is fixed by ST-001-09 / DR-019 as `Chun
 
 Ordinary per-coordinate acquisition failure does not fail the Collection batch Task. After all coordinate dependencies are terminal, the BatchResult completes with each requested coordinate represented exactly once as either `Acquired` or `Failed`. TerrainNode can therefore translate successful and failed coordinates independently without the internal batch partition changing Client-visible result semantics.
 
+## ST-001-11 generic Collection protocol supersession — 2026-10-01
+
+DR-022 remains the historical record for the ST-001-08/ST-001-09 Chunk protocol that was implemented and validated before ST-001-11. ST-001-11 intentionally supersedes the following parts for the next protocol generation:
+
+- the fixed numeric assignments `ChunkRequest = 1`, `ChunkResponse = 2`, `ChunkError = 3`, and standalone `Diagnostic = 4`;
+- the standalone routable Diagnostic message;
+- Chunk-only Request/Response/Error framing as the long-term protocol abstraction;
+- request-ID recycling/drain-threshold semantics;
+- the single `failureOffset`-only Response framing as the final generic response layout;
+- direct mutable `spk::Message` construction/reading assumptions.
+
+The ST-001-11 protocol uses one generic Collection family declaration:
+
+```cpp
+#define COLLECTION_MESSAGES(Name) \
+    Name##Request,                 \
+    Name##Response,                \
+    Name##Update,                  \
+    Name##Error
+```
+
+Chunk and Column families are declared from that macro after `Invalid = 0`. Their generated values become the active protocol identifiers; compatibility with the historical DR-022 numeric values is not required.
+
+`Networking::Diagnostic` remains the severity + stable-key semantic value, but is serialized inside each Collection family's Error payload and owns no MessageID of its own.
+
+Collection RequestIDs are owned per RequestingProvider/request type. Chunk and Column each begin at 1 and increase monotonically as `std::uint64_t`. Their numeric spaces are independent, RequestID 0 remains reserved for uncorrelated messages, and ST-001-11 never recycles/reset an existing provider's RequestID sequence.
+
+The generic Collection Response owns its offset-table framing. That table provides section entry points for both Success and Failure data and the Success/Failure boundary so independent Sparkle Readers may parse sections in parallel. Chunk and Column do not maintain independent Response table formats.
+
+Merged Sparkle Version-0.1.3 finalizes network Message construction/decoding as:
+
+- immutable `spk::Message` values after construction;
+- `spk::Message::Writer` for type/RequestID/payload construction;
+- independent `spk::Message::Reader` values for sequential or positional decoding over shared immutable pooled storage.
+
+The historical ST-001-08/ST-001-09 implementation remains valid completion evidence. ST-001-11 owns migration to the generic Collection contract.
+
