@@ -1,55 +1,53 @@
-# DR-017 — Voxel::Volume serializes directly through spk::Message
+# DR-017 — Voxel::Volume Sparkle Message serialization
 
 **Status:** Resolved
 **Date opened:** 2026-09-22
 **Date resolved:** 2026-09-22
-**Last clarified:** 2026-09-24 (DR-019 ownership update)
-**Applies to:** Core voxel representation, EP-001 Chunk payloads, Client/Server serialization
+**Last clarified:** 2026-10-01 (Sparkle Message Writer/Reader migration)
+**Applies to:** Core voxel representation, EP-001 payloads, Client/Server serialization
 
 ## Context
 
-DR-017 defines the generic runtime-sized `Voxel::Volume` codec. EP-001 originally expected Chunk responses to embed this generic Volume representation; DR-019 later supersedes that higher-level assumption with a dedicated fixed-size `Chunk` codec owned by ST-001-08.
+`Voxel::Cell` is exactly 32 bits and trivially copyable. `Voxel::Volume` owns its Cells through pooled storage and is not trivially copyable, so the C++ object itself must never be serialized by copying `sizeof(Voxel::Volume)` bytes.
 
-The desired call-site API is intentionally simple and direct:
+ST-001-05 originally delivered a concise friend insertion/extraction API against the then-current mutable Sparkle Message surface. Sparkle Version-0.1.3 has since changed its Message model:
 
-```cpp
-message << volume;
-message >> volume;
-```
+- finalized `spk::Message` is immutable;
+- construction/serialization uses `spk::Message::Writer`;
+- decoding uses independent `spk::Message::Reader` values;
+- Readers retain shared access to the immutable pooled Message storage.
 
-`Voxel::Cell` is exactly 32 bits and trivially copyable. `Voxel::Volume`, however, owns its cells through `std::vector<Voxel::Cell>`, so the C++ object itself is **not** trivially copyable and must not be transmitted by copying `sizeof(Voxel::Volume)` bytes.
-
-Doing so would serialize the vector's implementation state (pointer/size/capacity), not the owned cells.
+The logical Volume wire format and validation contract remain unchanged.
 
 ## Decision
 
-Provide explicit Erelia/Sparkle message serialization support for `Voxel::Volume` so callers can write/read a complete logical Volume directly using `spk::Message`.
-
-The operators are part of the `Voxel::Volume` public contract and are declared as friends directly on the class:
+`Voxel::Volume` exposes Sparkle Writer/Reader serialization operators:
 
 ```cpp
 namespace Voxel
 {
     class Volume
     {
-        // ...
-
-        friend spk::Message &operator<<(
-            spk::Message &message,
+        friend spk::Message::Writer &operator<<(
+            spk::Message::Writer &writer,
             const Volume &volume);
 
-        friend const spk::Message &operator>>(
-            const spk::Message &message,
+        friend const spk::Message::Reader &operator>>(
+            const spk::Message::Reader &reader,
             Volume &volume);
     };
 }
 ```
 
-The corresponding free-function definitions belong to namespace `Voxel` and are implemented in `core/src/voxel/volume_networking.cpp`, allowing argument-dependent lookup to resolve:
+Definitions belong to namespace `Voxel` so ADL resolves:
 
 ```cpp
-message << volume;
-message >> volume;
+spk::Message::Writer writer;
+writer << volume;
+
+spk::Message message = std::move(writer).build();
+auto reader = message.reader();
+reader >> volume;
 ```
 
 `Voxel::Volume` additionally exposes:
@@ -58,27 +56,25 @@ message >> volume;
 explicit Volume(const spk::Message &message);
 ```
 
-The constructor delegates to `message >> *this`, so it is only a convenience construction form over the same extraction contract and validation rules.
+The constructor creates a Reader from the Message and delegates to the same extraction contract. It is only a convenience form.
 
-This friend-operator form remains the core EP-001 serialization API; an alternative `volume.serialize(message)`, serializer object, or Volume-specific transport Message type does not replace it. `Voxel::Volume::Builder` is not part of networking reconstruction.
+No Volume-specific transport Message type or separate serializer object is introduced.
 
 ### Exact wire order
 
 A serialized Volume contains, in this exact order:
 
 1. `spk::Vector3UInt dimensions` as one Sparkle-native trivially-copyable value;
-2. `Voxel::Volume::UnitSize unitSize` as one Sparkle-native value;
-3. one contiguous native block of `Voxel::Cell` values in the Volume's existing Y-fastest, then X, then Z storage order.
+2. `Voxel::Volume::UnitSize unitSize`;
+3. one contiguous native block of `Voxel::Cell` values in Y-fastest, then X, then Z storage order.
 
-No explicit Cell-count field is present. The decoder derives the expected count from the dimensions using checked multiplication.
+No explicit Cell count is serialized. The decoder derives it from dimensions using checked multiplication.
 
-The format intentionally uses Sparkle-native representation rather than defining an Erelia-specific fixed endian or floating-point wire encoding. Consequently deterministic byte equality is guaranteed for repeated serialization under the same supported ABI/platform representation, not as a cross-endian/cross-floating-representation portability guarantee.
-
-The implementation must assert the native-layout assumptions it relies on where practical; in particular, `Voxel::Cell` remains exactly 32 bits and trivially copyable, and `spk::Vector3UInt` is treated as the native Sparkle value requested by the project owner.
+The format intentionally uses Sparkle-native representation. Cross-endian/platform-independent representation is not part of this contract.
 
 ### Valid and invalid states
 
-The only serialized empty Volume is:
+The only valid serialized empty Volume is:
 
 ```text
 dimensions = {0, 0, 0}
@@ -90,77 +86,62 @@ For a non-empty Volume:
 
 - all three dimensions are strictly positive;
 - `unitSize` is finite and strictly positive;
-- the derived Cell count is representable;
-- the payload contains exactly enough Cell bytes for that derived count before the Cell block is read.
+- derived Cell count/byte size is representable;
+- the Reader contains enough remaining bytes for the complete Cell block.
 
-Mixed-zero dimensions, `{0,0,0}` with non-zero unit size, non-empty dimensions with zero/negative/NaN/infinite unit size, arithmetic overflow, and truncated metadata/Cell data are malformed and throw `spk::Exception`.
+Mixed-zero dimensions, invalid unit sizes, arithmetic overflow, or truncated metadata/Cells throw `spk::Exception`.
 
-Both `operator<<` and `operator>>` validate these invariants. Insertion validates before appending Volume bytes for contract-invalid source state.
+Both Writer insertion and Reader extraction validate the Volume contract.
 
 ### Extraction state and ownership
 
-Extraction reconstructs a temporary valid owning `Voxel::Volume` and assigns/moves it into the destination only after the complete decode succeeds. Therefore a failed extraction leaves the destination Volume unchanged.
+Extraction reconstructs a temporary valid Volume and replaces the destination only after complete decode succeeds. Decode failure leaves the destination unchanged.
 
-The `spk::Message` read cursor follows Sparkle Version-0.1.3's normal sequential extraction semantics: successfully-read earlier fields remain consumed if a later read/validation step throws. This is intentional; callers that need transaction-like replacement of larger application state should decode into temporary domain objects and commit them only after the containing message has fully validated.
+Reader cursor semantics are local to that Reader. Successfully-read fields remain consumed in the Reader if a later extraction step fails; no cursor rollback is required.
 
-Before allocating the Cell buffer, extraction must validate the dimension product and verify that the Message has enough remaining bytes for the derived contiguous Cell block. No additional arbitrary Erelia Volume dimension cap is introduced by this ticket.
+A caller needing transaction-like parsing of a larger message creates/owns its Reader and commits higher-level state only after its complete parse succeeds.
 
-For a non-empty decoded Volume, extraction uses the shared capacity-based Volume buffer-pool implementation. DR-019 changes built Volume ownership to shared immutable Cell content. Extraction therefore **must not overwrite the destination's current backing Buffer in place**, even when the incoming and current logical Cell counts map to the same pool class: another copied Volume may still observe that content.
+Before allocating Cell storage, extraction validates dimensions/unit size, checked byte counts, and remaining Reader bytes.
 
-For every non-empty decode, extraction obtains fresh mutable pooled storage, pulls the contiguous Cell block into that storage, constructs new immutable Volume content, and replaces the destination only after reconstruction succeeds. Existing copies keep the previous immutable content alive. An empty decode replaces the destination with the canonical empty Volume. Networking does not construct a `Volume::Builder`.
+For each non-empty decode, extraction obtains fresh mutable pooled Volume storage, copies the Cell block, constructs immutable Volume content, and only then replaces the destination. It never overwrites existing shared immutable backing in place.
 
-The decoded Volume owns its Cell storage independently of the source Message lifetime. Trailing Message bytes are permitted because Volume is an embeddable payload value rather than a complete transport message.
+A decoded Volume owns its Cell storage independently from the source Message/Reader lifetime. Trailing bytes remain valid because Volume is an embeddable payload value.
 
 ## Consequences
 
-- Chunk/protocol code can remain concise and domain-shaped rather than manually serializing every Cell at each call site.
-- One 16×16×16 terrain Volume contains 4096 Cells, so its Cell block is 16 KiB before Volume metadata.
-- `Voxel::Volume` does **not** need to be trivially copyable.
-- Compact contiguous transfer uses the already-approved packed `Voxel::Cell` representation.
-- Serialization belongs in shared Core code because both Client and Server require it.
-- Higher-level protocol message IDs remain owned by protocol tickets such as ST-001-08 rather than `Voxel::Volume`.
-- DR-019 additionally fixes that a future dedicated `Chunk` codec will omit dimensions/unit size and transfer only the fixed 4096-Cell block; generic `Voxel::Volume` serialization remains available for runtime-sized Volumes.
-- The format inherits Sparkle's native representation assumptions; platform-independent wire encoding is not part of ST-001-05.
+- Core protocol codecs can serialize Volume values through the same Writer/Reader model used by other domain values.
+- Independent Message Readers make serialization compatible with ST-001-11 parallel response-section parsing.
+- `Voxel::Volume` does not need to be trivially copyable.
+- one 16×16×16 Cell block is 4096 Cells / 16 KiB before metadata;
+- DR-019 shared immutable backing remains authoritative;
+- dedicated fixed-size Chunk serialization may omit redundant Volume metadata.
 
 ## Required tests
 
-- `spk::Message message; message << volume;` resolves through ADL.
-- `message >> volume;` resolves through ADL.
-- `Voxel::Volume(message)` delegates to the same extraction/validation contract.
-- default/empty Volume round trip.
-- asymmetric Volume proves exact Y/X/Z Cell order.
-- transformed/non-default packed Cell values round trip exactly.
+- Writer insertion resolves through ADL.
+- Reader extraction resolves through ADL.
+- `Voxel::Volume(message)` uses the same decode contract.
+- canonical empty round trip.
+- asymmetric Volume proves Y/X/Z order.
+- packed Cell variants round trip.
 - 16×16×16 Volume round trip.
-- repeated serialization of the same logical Volume yields the same bytes on the current supported ABI.
-- truncated dimensions metadata is rejected.
-- truncated unit-size metadata is rejected.
-- truncated Cell block is rejected.
-- mixed-zero dimensions are rejected.
-- invalid empty/non-empty unit-size combinations are rejected.
-- impossible/overflowing dimension products are rejected before Cell allocation.
-- decode failure leaves the destination Volume unchanged.
-- decoded Cell storage remains valid after the source Message is destroyed.
-- no test or implementation depends on `sizeof(Voxel::Volume)` or raw `std::vector` object representation.
+- same-ABI repeated serialization produces equal bytes.
+- malformed/truncated dimensions, unit size, and Cell block are rejected.
+- invalid dimension/unit-size combinations are rejected.
+- overflow is rejected before allocation.
+- failed decode leaves destination unchanged.
+- decoded storage survives source Message destruction.
+- independent Readers over the same Message may decode without shared cursor state.
+- no implementation depends on raw `Voxel::Volume` or `std::vector` object representation.
 
 ## Resolution provenance
 
-Resolved directly by the project owner on 2026-09-22: prefer sending a complete `Voxel::Volume` through a simple `MyMessage << myVoxelVolume`-style API.
+The logical format was resolved with the project owner on 2026-09-22/24 and delivered by ST-001-05.
 
-Clarified with the project owner on 24 September 2026 for ST-001-05 readiness:
-
-- retain the direct friend operator API;
-- use Sparkle-native scalar representation;
-- serialize `spk::Vector3UInt` as one native Message value;
-- derive Cell count from dimensions rather than serializing a redundant count;
-- transfer Cells as one contiguous native block;
-- validate the same Volume invariants on insertion and extraction;
-- preserve the destination Volume on failed extraction;
-- retain Sparkle's normal partial read-cursor advancement behavior on failure;
-- expose an explicit Message constructor as a convenience over `operator>>`;
-- keep networking reconstruction independent from `Volume::Builder`.
+The 2026-10-01 clarification updates only the Sparkle call-site/API model after the merged Version-0.1.3 Message redesign: mutable `spk::Message << / >>` is superseded by `Message::Writer <<` and `Message::Reader >>`.
 
 ## Supersession
 
-DR-019 supersedes only the previous in-place same-pool **destination Buffer reuse** optimization. All generic Volume wire-order, validation, destination-preservation-on-failure, Message-cursor, contiguous Cell-block, and native-representation rules remain active.
+DR-019 supersedes the former successful-decode optimization that reused/overwrote the destination's same-size-class Buffer. Shared immutable backing requires fresh decode storage before replacement.
 
-DR-019 also establishes that EP-001's future dedicated Chunk codec is distinct from this generic Volume codec: fixed Chunk dimensions/unit size will not be redundantly serialized. ST-001-08 owns that later protocol work.
+ST-001-08 later introduced a dedicated fixed-size Chunk codec. That does not remove this generic runtime-sized Volume codec.
