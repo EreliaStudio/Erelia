@@ -4,6 +4,16 @@
 **Default baseline:** `master`
 **Active ticket branch:** `feat/st-001-11-client-chunk-request-cache-coordinator`; `master` remains the completed ST-001-01 through ST-001-10 baseline
 
+## Active ST-001-11 implementation
+
+[PR #19](https://github.com/EreliaStudio/Erelia/pull/19) contains the implementation on the requested existing branch. ST-001-11 is **In Progress**, implemented but awaiting full Windows CI and project-owner approval. Local Linux Debug/Release headless builds and CTest pass (3/3 each), including Core 121/121 and Server/Terrain 17/17; focused streaming 8/8 and repository clang-format pass. Exact evidence lives in the ticket.
+
+The active implementation uses generic Collections/Providers/TaskGroups, shared Column occupancy, generated Collection message families, payload-only diagnostics, independent non-recycled RequestIDs, generic Response section tables and authoritative Client Update handling. ClientNetworkManager uniquely drains the Service Client queue and fans out disconnect; the Player owns the Column -> Chunk streaming Behaviour and horizontal retention policy. TerrainNode uniquely drains its Endpoint; the central Server only redirects ChunkRequest and ColumnRequest.
+
+The historical ST-001-08/ST-001-09 implementation summaries below remain completion provenance and do not override ST-001-11's superseding contract. Error-without-Response non-settlement and the other listed deferred work remain accepted debt.
+
+Next in dependency order is ST-001-12, **Blocked by OQ-036** (missing-neighbor/remesh policy). No later ticket is Ready.
+
 ## Branch state
 
 ST-001-01 through ST-001-10 are completed on `master`.
@@ -50,7 +60,7 @@ A dedicated cross-system integration layer now lives under `tests/integration/`.
 
 **ST-001-10 — Client dedicated-Server connection** is **Done** on `master` through PR #18. The delivered Client uses explicit endpoint configuration, process-wide Service-owned Sparkle dependencies, `MainApplicationWidget` composition, and a `ConnectionManager` that serializes synchronous Sparkle connection attempts through the shared WorkerPool, distinguishes Task settlement from live `isConnected()` state, performs bounded three-attempt automatic retry, and exposes `/connect` for a fresh cycle. Client component coverage, real Router integration, and the separate-process `EreliaClient -> EreliaServer` smoke are included. Final PR CI run #604 (run ID `36409915048`) is green across the full required matrix.
 
-ST-001-11 is the next dependency-ordered implementation area and is now **Ready** on `feat/st-001-11-client-chunk-request-cache-coordinator`. Its Client cache/streaming/network policy is finalized: generic `Collection<TKey, TElement>`, Provider-owned Pending state, Column -> Chunk streaming, Client view/unload retention, per-request-type monotonic non-recycled RequestIDs, generic Collection Request/Response/Update/Error families, payload-only `Networking::Diagnostic`, generic Response offset-table sectioning across Success and Failure, and explicit accepted debt for Error-without-Response Pending settlement.
+ST-001-11 is the active implementation area and is now **In Progress** on `feat/st-001-11-client-chunk-request-cache-coordinator`. Its Client cache/streaming/network policy is finalized: generic `Collection<TKey, TElement>`, Provider-owned Pending state, Column -> Chunk streaming, Client view/unload retention, per-request-type monotonic non-recycled RequestIDs, generic Collection Request/Response/Update/Error families, payload-only `Networking::Diagnostic`, generic Response offset-table sectioning across Success and Failure, and explicit accepted debt for Error-without-Response Pending settlement.
 
 The historical implemented ST-001-09 contract reports a true Collection batch/outer TaskGroup aggregation failure as one correlated generic Diagnostic with severity `Error`, translation key `"Chunk_Request_Aggregation_Failure"`, and the original RequestID; no ChunkResponse is emitted because no valid BatchResult exists. ST-001-11 preserves this as delivered behavior until the generic Collection protocol migration replaces the standalone Diagnostic MessageID with family Error messages. Sparkle Version-0.1.3 provides the generic manually-settled `spk::Task<TResult>`, direct-callable WorkerPool execution, completion subscriptions, thread-safe ContractProvider, and `spk::TaskGroup<TResult>` used by the implementation.
 
@@ -72,7 +82,7 @@ In the delivered ST-001-09 implementation, the internal batch size is fixed at 1
 The Core implementation is now reconciled with Sparkle: `Networking::Diagnostic`, specialized `Chunk::Protocol::Error`, the refined Success/Failure `Chunk::Protocol::Response`, the batched asynchronous `Chunk::Collection`, and single-coordinate WorkerPool-backed `PrototypeChunkProvider` are implemented with dedicated deterministic tests. Main Server routing now registers `ChunkRequest -> "terrain"`, and `TerrainNode` exposes its Endpoint request queue for the application dispatcher.
 
 
-## ST-001-11 readiness update — 1 October 2026
+## Approved ST-001-11 contract — 1 October 2026
 
 The merged Sparkle Version-0.1.3 Message redesign is incorporated into the ST-001-11 branch: finalized Messages are immutable, construction uses `spk::Message::Writer`, and decoding uses independent `spk::Message::Reader` instances backed by shared pooled storage.
 
@@ -84,4 +94,4 @@ The generic Collection Response owns the offset table used for both Success and 
 
 ## Explicit non-goals
 
-ST-001-11 Client loading/cache/network implementation may now begin on its Ready branch. Do not start later rendering/meshing, production terrain generation, or gameplay systems before their owning tickets are Ready.
+ST-001-11 implementation is delivered on its existing branch and awaits the completion gate above. Do not start later rendering/meshing, production terrain generation, or gameplay systems before their owning tickets are Ready.

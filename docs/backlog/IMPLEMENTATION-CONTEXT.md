@@ -358,7 +358,7 @@ For EP-001 in particular, the still-partial questions include:
 
 - OQ-036  missing-neighbor/remesh policy for terrain meshing;
 - OQ-037 — resolved generic Volume native-representation contract;
-- OQ-038 — resolved ST-001-08 Chunk wire contract; Client retry/cache/recycle-threshold policy remains in ST-001-11;
+- OQ-038 — resolved; ST-001-11 fixes Client cache/streaming policy and uses monotonic non-recycled RequestIDs;
 - OQ-039 — resolved exact terrain-generator fixture coordinates/Definitions;
 - OQ-029 through OQ-031  golden-image and performance-validation policy.
 
@@ -382,3 +382,13 @@ The current ST-001-09 integration coverage includes canonical single- and multi-
 ST-001-10 adds the real Erelia `ConnectionManager` lifecycle and the integration suite exercises it against the Router transport boundary. The existing ST-001-09 Chunk request fixtures still use Sparkle's network Client at their outer edge because send/message/request-cache behavior belongs to ST-001-11; do not broaden the connection layer solely to remove that raw transport usage.
 
 The library-level integration suite intentionally orchestrates Erelia runtime libraries in one test process while communicating through the real Sparkle network boundary. ST-001-10 additionally registers `EreliaClientServerProcessSmoke` on Windows, which launches real `EreliaServer` and `EreliaClient` processes with temporary explicit configurations, proves the Client reaches the Router endpoint, and verifies unexpected Server loss terminates the Client as a failure. Chunk request/response semantics remain in the library integration fixture rather than being duplicated through process-log inspection.
+
+## ST-001-11 generic Collection convention
+
+The active terrain acquisition API is `Collection<TKey, TElement>`, instantiated for Column and Chunk. Available values belong to Collection storage; synchronized Pending Tasks/Answers and completion Contracts belong to Provider. `request(vector<key>)` returns an ordered `spk::TaskGroup<TElement>::Answer`; historical Chunk BatchResult APIs are removed. Authoritative mutation invalidates Pending identity, and late completion cannot republish stale data. Completion-contract resignation occurs outside the acquisition mutex to avoid inversion with Sparkle callback dispatch.
+
+GeneratingProvider submits independent callable generation jobs; RequestingProvider emits batched network Requests without occupying WorkerPool threads while waiting. Chunk and Column own their tuning constants and independent monotonic uint64 request sequences. Finalized Message payloads are immutable; Writer constructs them and independent Readers parse generic Response offset sections in worker jobs. Diagnostic is payload-only inside family Error; Error does not settle acquisitions. Terminal Response refusals last until disconnect, which fails Pending, clears correlations/refusals and preserves Available data. Update Set/Remove is authoritative and uses RequestID 0.
+
+ClientNetworkManager is the unique `Service::client().messages()` drainer and disconnect observer. Retain MessageDispatcher subscription Contracts in their owners. TerrainNode is the unique Endpoint request drainer and preserves the complete request envelope for replies; the central Server only declares ChunkRequest/ColumnRequest redirects. Integration acquisition assertions use Client Collections through this real route; raw transport is reserved for Server protocol-boundary tests.
+
+Player owns TerrainStreamingBehaviour using Sparkle Entity/Behaviour and a retained Transform edition Contract. Initial attachment processes the current Transform; only containing-Chunk transitions refresh Column demand. Configured positive `viewRange`/`unloadRange` (`unloadRange >= viewRange`) are inclusive horizontal Column-space squares using precomputed offsets. Successful Columns enumerate full Chunk coordinates; successful Chunks currently log UserValueB. Retention includes Pending invalidation. No meshing, Server eviction or Server Update broadcast belongs to this implementation.

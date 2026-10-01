@@ -18,7 +18,7 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-08 — Batched Chunk request/response protocol contract](ST-001-08-batched-chunk-protocol-contract.md) | **Done** | ST-001-01, ST-001-03, ST-001-05; OQ-038 resolved; DR-022 |
 | [ST-001-09 — Server Chunk request handler](ST-001-09-server-chunk-request-handler.md) | **Done** | ST-001-06, ST-001-07, ST-001-08 |
 | [ST-001-10 — Client dedicated-Server connection](ST-001-10-client-dedicated-server-connection.md) | **Done** | ST-001-07 |
-| [ST-001-11 — Client Chunk request/cache coordinator](ST-001-11-client-chunk-request-cache-coordinator.md) | **Ready** | ST-001-08, ST-001-09, ST-001-10; final generic Collection + Client streaming contract approved |
+| [ST-001-11 — Client Chunk request/cache coordinator](ST-001-11-client-chunk-request-cache-coordinator.md) | **In Progress** | Implemented in PR #19; full validation and owner review pending |
 | [ST-001-12 — Client terrain mesher](ST-001-12-client-terrain-mesher.md) | **Blocked** | ST-001-03, ST-001-04; OQ-036 |
 | [ST-001-13 — Client terrain rendering integration](ST-001-13-client-terrain-rendering-integration.md) | **Draft** | ST-001-01, ST-001-12; render-fixture/material/lifecycle specification |
 | [ST-001-14 — Temporary free-flight inspection controller](ST-001-14-temporary-free-flight-inspection-controller.md) | **Draft** | ST-001-13; full input/numeric camera-control specification |
@@ -45,9 +45,9 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-10 — Client dedicated-Server connection** is **Done** and merged into `master` through PR #18. The delivered Client uses explicit endpoint configuration, `MainApplicationWidget` composition, Service-owned `spk::WorkerPool` / `spk::Client` / `spk::Translator` instances, serialized WorkerPool connection Tasks, a bounded three-attempt automatic retry cycle, `/connect` restart/endpoint override behavior, pending-attempt-safe destruction, Client component coverage, real Router integration, and a separate-process `EreliaClient -> EreliaServer` smoke. Final PR CI run #604 (run ID `36409915048`) passed the complete required matrix.
 
-## Ready implementation work
+## Active implementation work
 
-**ST-001-11 — Client Chunk request/cache coordinator** is **Ready** on `feat/st-001-11-client-chunk-request-cache-coordinator`. The final plan uses generic `Collection<TKey, TElement>`, Column -> Chunk streaming, Provider-owned Pending state, generic Request/Response/Update/Error families, payload-only diagnostics, per-request-type monotonic non-recycled RequestIDs, generic Response offset-table sectioning, and Client-side view/unload retention.
+**ST-001-11 — Client Chunk request/cache coordinator** is **In Progress** on `feat/st-001-11-client-chunk-request-cache-coordinator`. PR #19 implements generic `Collection<TKey, TElement>`, Column -> Chunk streaming, Provider-owned Pending state, generic Request/Response/Update/Error families, payload-only diagnostics, per-request-type monotonic non-recycled RequestIDs, generic Response offset-table sectioning, and Client-side view/unload retention.
 
 ## Remaining blockers
 
@@ -65,3 +65,5 @@ Additional Draft-ticket specification gaps exposed by decomposition:
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
 ST-001-01 through ST-001-10 are completed on `master`. OQ-039 and the ST-001-06 readiness decisions are resolved. ST-001-06 is **Done** and merged through PR #13. ST-001-07 is **Done** and merged through PR #14 after project-owner review. ST-001-08 is **Done** and merged through PR #16 after project-owner review. ST-001-09 is **Done** and merged through PR #17 with green final PR CI run #478. ST-001-10 is **Done** and merged through PR #18 after project-owner review; final PR CI run #604 (run ID `36409915048`) passed the full required matrix.
+
+ST-001-11 local evidence: formatting passes; Linux Debug and Release headless CTest 3/3 each; Core 121/121, Server/Terrain 17/17 and focused streaming 8/8 pass. Windows CI and owner approval are pending, so it is not Done. Next: ST-001-12 remains Blocked by OQ-036; there is no next Ready ticket.

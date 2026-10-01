@@ -1,11 +1,49 @@
+#include "erelia/core/service.hpp"
 #include "erelia/server/router.hpp"
 #include "terrain_node.hpp"
+#include <atomic>
 #include <chrono>
 #include <gtest/gtest.h>
 #include <network/client.hpp>
 #include <thread>
 namespace
 {
+	class WorkerBlocker
+	{
+		std::shared_ptr<std::atomic_bool> _release = std::make_shared<std::atomic_bool>(false);
+		std::shared_ptr<std::atomic_size_t> _started = std::make_shared<std::atomic_size_t>(0);
+
+	public:
+		WorkerBlocker()
+		{
+			for (std::size_t index = 0; index < Service::workerPool().workerCount(); ++index)
+			{
+				(void)Service::workerPool().submit([release = _release, started = _started] {
+					started->fetch_add(1);
+					release->wait(false);
+					return true;
+				});
+			}
+		}
+		~WorkerBlocker()
+		{
+			release();
+		}
+		void release()
+		{
+			_release->store(true);
+			_release->notify_all();
+		}
+		bool wait()
+		{
+			const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(2);
+			while (_started->load() < Service::workerPool().workerCount() && std::chrono::steady_clock::now() < deadline)
+			{
+				std::this_thread::yield();
+			}
+			return _started->load() == Service::workerPool().workerCount();
+		}
+	};
 	class TerrainHandlers : public testing::Test
 	{
 	protected:
@@ -126,4 +164,24 @@ TEST_F(TerrainHandlers, TwoClientsUsingSameRequestIDReceiveOnlyTheirOwnValues)
 	EXPECT_EQ(Networking::ColumnProtocol::Response(received.front()).section(0).success.front().element.chunks.size(), 2u);
 	EXPECT_EQ(Networking::ColumnProtocol::Response(secondMessages.front()).section(0).success.front().element.chunks.size(), 4u);
 	second.disconnect();
+}
+
+TEST_F(TerrainHandlers, DisconnectDuringOutstandingGenerationKeepsTerrainOperational)
+{
+	WorkerBlocker blocker;
+	ASSERT_TRUE(blocker.wait());
+	client.send(Networking::ChunkProtocol::Request::build(7, {{1, 0, 1}, {1, 0, 1}}));
+	ASSERT_TRUE(wait(1));
+	ASSERT_EQ(received.size(), 1u);
+	EXPECT_EQ(Networking::ChunkProtocol::Error(received.front()).diagnostic().severity, Networking::Diagnostic::Severity::Warning);
+	// The duplicate warning proves Endpoint dispatch accepted the Request while generation is blocked.
+	client.disconnect();
+	blocker.release();
+	received.clear();
+	client.connect("127.0.0.1", router->port());
+	client.send(Networking::ChunkProtocol::Request::build(8, {{1, 0, 1}}));
+	ASSERT_TRUE(wait(1));
+	ASSERT_EQ(received.size(), 1u);
+	EXPECT_EQ(received.front().requestID(), 8u);
+	EXPECT_EQ(Networking::ChunkProtocol::Response(received.front()).section(0).success.front().element.at({4, 1, 4}).definitionId(), 2u);
 }

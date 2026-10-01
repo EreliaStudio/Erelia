@@ -125,7 +125,7 @@ The Epic will require deliberate contracts for:
 | Server NodeRouter + remote terrain-node runtime | [ST-001-07](tickets/ST-001-07-server-node-router-terrain-node-bootstrap.md) — Done |
 | Client Chunk request / Server response protocol | [ST-001-08](tickets/ST-001-08-batched-chunk-protocol-contract.md) + [ST-001-09](tickets/ST-001-09-server-chunk-request-handler.md) — Done |
 | Dedicated Client -> Server connection | [ST-001-10](tickets/ST-001-10-client-dedicated-server-connection.md) — Done |
-| Client Chunk cache/request coordination | [ST-001-11](tickets/ST-001-11-client-chunk-request-cache-coordinator.md) — Ready |
+| Client Chunk cache/request coordination | [ST-001-11](tickets/ST-001-11-client-chunk-request-cache-coordinator.md) — In Progress (implemented; validation/review pending) |
 | Client voxel terrain meshing | [ST-001-12](tickets/ST-001-12-client-terrain-mesher.md) |
 | Client terrain rendering | [ST-001-13](tickets/ST-001-13-client-terrain-rendering-integration.md) |
 | Temporary 3D free-flight inspection controls | [ST-001-14](tickets/ST-001-14-temporary-free-flight-inspection-controller.md) |
@@ -137,7 +137,7 @@ The Epic will require deliberate contracts for:
 The complete dependency-ordered table is maintained in [tickets/README.md](tickets/README.md).
 
 - **Done:** ST-001-01, ST-001-02, ST-001-03, ST-001-04, ST-001-05, ST-001-06, ST-001-07, ST-001-08, ST-001-09, ST-001-10.
-- **Ready / active:** ST-001-11.
+- **In Progress / active:** ST-001-11 (PR #19; implementation delivered, validation/review pending).
 - **In Progress:** none.
 - **Blocked:** ST-001-12, ST-001-15, ST-001-16.
 - **Draft:** ST-001-13, ST-001-14.
@@ -227,7 +227,7 @@ Epic-specific questions tracked in OPEN_QUESTIONS/:
 
 ## Required user decisions
 
-Resolve the still-open blocking questions above before promoting their corresponding tickets to Ready. OQ-038 and OQ-039 are resolved. ST-001-06 through ST-001-10 are Done on `master`; ST-001-10 was delivered through PR #18 with green final PR CI run #604 (run ID `36409915048`). ST-001-11 is the next dependency-ordered implementation area and is Ready on its dedicated branch.
+Resolve the still-open blocking questions above before promoting their corresponding tickets to Ready. OQ-038 and OQ-039 are resolved. ST-001-06 through ST-001-10 are Done on `master`; ST-001-10 was delivered through PR #18 with green final PR CI run #604 (run ID `36409915048`). ST-001-11 is implemented on its existing dedicated branch in PR #19, with full validation and owner review pending. ST-001-12 is next in dependency order but remains Blocked by OQ-036; no later ticket is promoted to Ready.
 
 The decomposition still exposes Draft-only specification gaps that are not yet represented by a dedicated OQ: the deterministic first render fixture/material binding/resource-failure contract and the complete temporary free-flight input/numeric camera semantics. The former Client connection lifecycle/configuration gap is resolved by the approved ST-001-10 contract; the former Definition/Shape gap is resolved by DR-018 and ST-001-04.
 
@@ -247,3 +247,7 @@ EP-001 is Done only when:
 - required CI/build configurations pass;
 - visual reference images are explicitly reviewed/approved by a human;
 - required Epic performance evidence is captured under the approved methodology.
+
+## ST-001-11 implementation evidence
+
+PR #19 delivers generic Collection storage/acquisition and network providers, Column occupancy consistent with the prototype Chunk fixture, both generic message families, Client dispatcher/disconnect ownership, and Player-owned Column -> Chunk streaming with configured Client retention. Integration fixtures use the Client Collections through the real remote-node route; the process smoke launches Client, Router and terrain. Server Update broadcasts, cache eviction and terrain rendering are deferred. Local Linux Debug/Release headless CTest passes (3/3 each), Core 121/121 and Server/Terrain 17/17 pass, focused streaming 8/8 passes, and formatting passes. Full Windows CI and owner approval are still required; see the ticket for exact evidence. ST-001-11 is not yet Done.

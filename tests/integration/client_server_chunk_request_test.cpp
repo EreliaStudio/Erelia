@@ -56,12 +56,21 @@ namespace
 }
 TEST_F(RoutedTerrain, CanonicalSingleAndMultiChunkAcquisitionUsesClientCollections)
 {
-	auto group = client.chunks().request(std::vector<Chunk::Coordinate>{{0, 0, 0}, {1, 0, 1}, {-1, 0, -1}, {0, -1, 0}});
+	auto group = client.chunks().request(std::vector<Chunk::Coordinate>{{0, 0, 0}, {1, 0, 1}, {-1, 0, -1}, {0, -1, 0}, {2, 0, 1}});
 	ASSERT_TRUE(wait(group));
 	ASSERT_EQ(group.status(), spk::Task<Chunk>::Status::Completed);
 	EXPECT_EQ(group.at(0).result().at({0, 3, 0}).definitionId(), 1u);
 	EXPECT_EQ(group.at(1).result().at({4, 1, 4}).definitionId(), 2u);
 	EXPECT_EQ(group.at(2).result().at({0, 0, 0}).definitionId(), 1u);
+	EXPECT_EQ(group.at(4).result().at({4, 1, 4}).definitionId(), 3u);
+	const auto baseline = group.at(1).result().at({3, 0, 8});
+	EXPECT_EQ(baseline.definitionId(), 1u);
+	EXPECT_EQ(baseline.orientation(), Voxel::Cell::Orientation::PositiveX);
+	EXPECT_EQ(baseline.flipOrientation(), Voxel::Cell::FlipOrientation::PositiveY);
+	const auto slope = group.at(1).result().at({4, 1, 4});
+	EXPECT_EQ(slope.orientation(), Voxel::Cell::Orientation::PositiveX);
+	EXPECT_EQ(slope.flipOrientation(), Voxel::Cell::FlipOrientation::PositiveY);
+	EXPECT_EQ(group.at(1).result().at({3, 1, 8}).packed(), Voxel::Cell::Empty.packed());
 	for (const auto &cell : group.at(3).result().cells())
 	{
 		EXPECT_EQ(cell.packed(), 0u);

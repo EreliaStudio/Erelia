@@ -98,13 +98,16 @@ function Wait-LogText {
         }
 
         if ($Process.HasExited) {
-            throw "Client exited before reporting a successful connection. Exit code: $($Process.ExitCode)"
+            $Process.WaitForExit()
+            $output = if (Test-Path -LiteralPath $Path) { Get-Content -LiteralPath $Path -Raw } else { '' }
+            throw "Client exited before reporting '$Text'. Exit code: $($Process.ExitCode).`nClient log:`n$output"
         }
 
         Start-Sleep -Milliseconds 20
     }
 
-    throw "Client did not report '$Text' before the deadline."
+    $output = if (Test-Path -LiteralPath $Path) { Get-Content -LiteralPath $Path -Raw } else { '' }
+    throw "Client did not report '$Text' before the deadline.`nClient log:`n$output"
 }
 
 $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("erelia-client-server-" + [Guid]::NewGuid().ToString('N'))

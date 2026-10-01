@@ -1,6 +1,6 @@
 # ST-001-11 — Client Chunk request/cache coordinator
 
-**Status:** Ready
+**Status:** In Progress — implementation delivered; validation and owner review pending
 **Epic:** EP-001
 **Production target(s):** Core + Client + Terrain node
 **Test suite(s):** EreliaCoreTestSuite, EreliaClientTestSuite, EreliaServerTestSuite, EreliaIntegrationTestSuite
@@ -640,19 +640,42 @@ Preserve the real Client -> NodeRouter -> RemoteNode -> terrain Endpoint path an
 - [DR-022](../../../DECISIONS/DR-022-CHUNK-PROTOCOL-WIRE-CONTRACT.md) — historical Chunk protocol, partially superseded by this ticket's generic Collection protocol.
 - [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — Resolved; ST-001-11 fixes the remaining Client request/cache/retry/recycle choices.
 
-## Definition of Ready evidence
+## Implementation / completion evidence — 1 October 2026
 
-ST-001-11 is Ready:
+The Ready gate was verified on the existing `feat/st-001-11-client-chunk-request-cache-coordinator` branch before production changes. Implementation is delivered in [PR #19](https://github.com/EreliaStudio/Erelia/pull/19); it is not yet Done because the full Windows validation matrix and required project-owner approval have not been recorded.
 
-- Client streaming ownership and range semantics are explicit;
-- generic Collection API/state transitions are explicit;
-- Provider Pending ownership/lifecycle is explicit;
-- Writer/Reader serialization is aligned with merged Sparkle Version-0.1.3;
-- Collection MessageID family and Diagnostic payload-only direction are explicit;
-- generic Response owns the offset table for both Success and Failure sections;
-- request-level Error non-settlement is explicitly accepted technical debt;
-- RequestIDs are per request type, monotonic uint64 values with no recycle;
-- Chunk/Column request and response-section limits are domain static tuning constants;
-- disconnect, Response::Failure memory, stale Response, Update precedence, and Client eviction semantics are explicit;
-- central Server and node dispatch ownership is explicit;
-- required focused and cross-system test coverage is enumerated.
+### Delivered production behavior
+
+- Core: generic `Collection<TKey, TElement>`, Provider-owned Pending Answers/Contracts, ordered Sparkle TaskGroups, strict mutations and stale-completion protection; generic generating/requesting/updating providers; shared Column domain and fixed Chunk serialization.
+- Protocol: generated Chunk/Column message families, payload-only Diagnostic, independent monotonic uint64 RequestIDs, generic section offset tables, WorkerPool parsing through independent immutable Message Readers, authoritative Update and diagnostic-only Error handling.
+- Client: one Service Client queue drainer, retained dispatcher subscriptions and disconnect fan-out, both requesting Collections, configured inclusive horizontal view/unload regions, and Player-owned Transform-subscribed terrain streaming Behaviour. Successful Columns launch Chunk acquisition; successful Chunks emit the UserValueB placeholder.
+- Server/Terrain: both NodeRouter redirects, one Endpoint request drainer with complete reply envelopes, shared deterministic Column/Chunk generation, family Errors and one Response per valid Request. No Server Update broadcast or eviction was added.
+- Integration: real Client Collection -> Sparkle Client -> NodeRouter -> RemoteNode -> terrain Endpoint -> generic handler/provider -> Response -> ClientNetworkManager -> RequestingProvider -> Collection fixtures. Process smoke now starts all three executables and observes acquisition before testing Server loss.
+
+The historical `Chunk::Collection::BatchResult`, Chunk-specific protocol headers/layout, and standalone Diagnostic MessageID are removed. Generic Volume tests use the current Writer/Reader API without weakening their malformed-input checks. Existing golden references are unchanged.
+
+### Validation recorded so far
+
+Sparkle Version-0.1.3 was inspected and built at `626b86c` (immutable Message redesign). Production validation head: `79b7dcd97c51cf57b5d26e584ba3cc5de0bd8809`.
+
+| Command / configuration | Result |
+| --- | --- |
+| clang-format 21.1.0 `--style=file --dry-run --Werror` over all active Core/Server/Client/integration C++ sources | Pass |
+| `git diff --check` | Pass |
+| Linux Clang 18 Debug, Sparkle Core + Erelia headless build | Pass |
+| `ctest --test-dir build/headless-debug --output-on-failure` | 3/3 CTest entries pass: Core 121/121, Server/Terrain 17/17, Server smoke |
+| Linux Clang 18 Release, Sparkle Core + Erelia headless build | Pass |
+| `ctest --test-dir build/headless-release --output-on-failure` | 3/3 CTest entries pass |
+| Focused Client `terrain_streaming_test.cpp`, linked against real Sparkle Core Entity/Behaviour and Erelia Core | 8/8 tests pass |
+| Clang 18 syntax checks of new Client production/networking tests and routed Collection integration fixture | Pass; this is not a substitute for Windows link/runtime validation |
+| [PR CI run #607](https://github.com/EreliaStudio/Erelia/actions/runs/36916682709) | Formatting and all Core/Server and Client configurations pass; routed integration suites pass in both configurations. Release process smoke failed on early Client exit; investigation/rerun in progress. |
+
+Local full graphical Client/integration builds cannot run because Sparkle's graphical window backend is Win32-only. The existing Windows CI jobs own that required evidence, including the existing golden regression checks and three-process smoke.
+
+### Remaining completion gate
+
+Record the full required CI outcome and project-owner review/approval before changing this ticket to Done. No golden replacement or new visual approval is requested by this ticket.
+
+The accepted technical debt above remains unchanged: Error without Response may leave Pending indefinitely; Server Update production/broadcast, Server eviction, response splitting, meshing/rendering and movement/production interest management remain deferred.
+
+The next dependency-ordered ticket is ST-001-12, still Blocked by OQ-036 (missing-neighbor/remesh policy). It is not automatically Ready; no later ticket is promoted by this implementation.
