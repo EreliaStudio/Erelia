@@ -18,6 +18,7 @@ public:
 		for (std::size_t index = 0; index < update.sectionCount(); ++index)
 		{
 			const auto section = update.section(index, true);
+			std::vector<typename Provider::Completion> completed;
 			{
 				const std::scoped_lock lock(state->mutex);
 				for (const auto &entry : section.success)
@@ -25,13 +26,21 @@ public:
 					auto found = state->pending.find(entry.key);
 					if (found != state->pending.end())
 					{
-						Provider::_settle(state, entry.key, found->second.task, entry.element, nullptr);
+						auto completion = Provider::_claim(state, entry.key, found->second.task, entry.element, nullptr);
+						if (completion.has_value() == true)
+						{
+							completed.push_back(std::move(*completion));
+						}
 					}
 					else
 					{
 						state->storage->write()->insert_or_assign(entry.key, entry.element);
 					}
 				}
+			}
+			for (auto &completion : completed)
+			{
+				Provider::_complete(std::move(completion));
 			}
 			for (const auto &key : section.removed)
 			{

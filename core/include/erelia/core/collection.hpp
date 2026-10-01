@@ -184,6 +184,7 @@ protected:
 		Answer answer;
 		typename Answer::CompletionContract contract;
 		std::shared_ptr<Task> task;
+		bool started = false;
 	};
 	struct AcquisitionState
 	{
@@ -202,10 +203,11 @@ protected:
 			{
 				const std::scoped_lock lock(_state->mutex);
 				auto found = _state->pending.find(key);
-				if (found == _state->pending.end())
+				if (found == _state->pending.end() || found->second.started == true)
 				{
 					continue;
 				}
+				found->second.started = true;
 				task = found->second.task;
 			}
 			try
@@ -217,13 +219,19 @@ protected:
 			}
 		}
 	}
-	static bool _settle(const std::shared_ptr<AcquisitionState> &state, const TKey &key, std::shared_ptr<Task> task, std::optional<TElement> element, std::exception_ptr failure)
+	struct Completion
+	{
+		std::shared_ptr<Task> task;
+		std::optional<TElement> element;
+		std::exception_ptr failure;
+	};
+	static std::optional<Completion> _claim(const std::shared_ptr<AcquisitionState> &state, const TKey &key, std::shared_ptr<Task> task, std::optional<TElement> element, std::exception_ptr failure)
 	{
 		const std::scoped_lock lock(state->mutex);
 		auto found = state->pending.find(key);
 		if (found == state->pending.end() || found->second.task != task)
 		{
-			return false;
+			return std::nullopt;
 		}
 		if (element.has_value() == true)
 		{
@@ -231,14 +239,28 @@ protected:
 		}
 		state->retired.push_back(std::move(found->second.contract));
 		state->pending.erase(found);
-		if (element.has_value() == true)
+		return Completion{std::move(task), std::move(element), std::move(failure)};
+	}
+	static void _complete(Completion completion)
+	{
+		// Notify outside the acquisition mutex: subscribers may acquire or invalidate other keys.
+		if (completion.element.has_value() == true)
 		{
-			task->validate(std::move(*element));
+			completion.task->validate(std::move(*completion.element));
 		}
 		else
 		{
-			task->fail(failure);
+			completion.task->fail(completion.failure);
 		}
+	}
+	static bool _settle(const std::shared_ptr<AcquisitionState> &state, const TKey &key, std::shared_ptr<Task> task, std::optional<TElement> element, std::exception_ptr failure)
+	{
+		auto completion = _claim(state, key, std::move(task), std::move(element), std::move(failure));
+		if (completion.has_value() == false)
+		{
+			return false;
+		}
+		_complete(std::move(*completion));
 		return true;
 	}
 	void _observe(const TKey &key, const std::shared_ptr<Task> &task, Answer source)

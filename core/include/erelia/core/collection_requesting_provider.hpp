@@ -23,6 +23,7 @@ class Collection<TKey, TElement>::RequestingProvider : public Collection<TKey, T
 	};
 	struct NetworkState
 	{
+		std::recursive_mutex sendMutex;
 		ID nextID = 1;
 		bool exhausted = false;
 		std::unordered_map<ID, std::unordered_map<TKey, std::shared_ptr<Task>>> requests;
@@ -40,74 +41,103 @@ protected:
 	}
 	void _start(const std::vector<TKey> &keys) override
 	{
-		const std::scoped_lock lock(this->_state->mutex);
-		std::vector<TKey> batch;
-		for (const auto &key : keys)
+		std::vector<std::pair<TKey, std::shared_ptr<Task>>> acquisitions;
+		std::vector<typename Base::Completion> completed;
 		{
-			auto pending = this->_state->pending.find(key);
-			if (pending == this->_state->pending.end())
+			const std::scoped_lock lock(this->_state->mutex);
+			for (const auto &key : keys)
 			{
-				continue;
-			}
-			auto refused = _network->refused.find(key);
-			if (refused != _network->refused.end())
-			{
-				Base::_settle(this->_state, key, pending->second.task, std::nullopt, std::make_exception_ptr(spk::Exception(refused->second.message)));
-				continue;
-			}
-			batch.push_back(key);
-			if (batch.size() == TElement::MaximumElementsPerRequest)
-			{
-				_emit(batch);
-				batch.clear();
+				auto pending = this->_state->pending.find(key);
+				if (pending == this->_state->pending.end() || pending->second.started == true)
+				{
+					continue;
+				}
+				pending->second.started = true;
+				auto refused = _network->refused.find(key);
+				if (refused != _network->refused.end())
+				{
+					auto completion = Base::_claim(this->_state, key, pending->second.task, std::nullopt, std::make_exception_ptr(spk::Exception(refused->second.message)));
+					if (completion.has_value() == true)
+					{
+						completed.push_back(std::move(*completion));
+					}
+				}
+				else
+				{
+					acquisitions.emplace_back(key, pending->second.task);
+				}
 			}
 		}
-		if (batch.empty() == false)
+		for (std::size_t begin = 0; begin < acquisitions.size(); begin += TElement::MaximumElementsPerRequest)
 		{
-			_emit(batch);
+			const auto end = std::min(begin + TElement::MaximumElementsPerRequest, acquisitions.size());
+			_emit({acquisitions.begin() + begin, acquisitions.begin() + end});
+		}
+		for (auto &completion : completed)
+		{
+			Base::_complete(std::move(completion));
 		}
 	}
 
 private:
-	void _emit(const std::vector<TKey> &keys)
+	void _emit(const std::vector<std::pair<TKey, std::shared_ptr<Task>>> &keys)
 	{
 		std::unordered_map<TKey, std::shared_ptr<Task>> acquisitions;
 		std::vector<TKey> active;
-		for (const auto &key : keys)
+		std::exception_ptr failure;
 		{
-			auto pending = this->_state->pending.find(key);
-			if (pending != this->_state->pending.end())
+			// Serialize ID assignment and emission without holding the acquisition mutex during send.
+			const std::scoped_lock sending(_network->sendMutex);
+			ID id = 0;
 			{
-				acquisitions.emplace(key, pending->second.task);
-				active.push_back(key);
+				const std::scoped_lock lock(this->_state->mutex);
+				for (const auto &[key, task] : keys)
+				{
+					auto pending = this->_state->pending.find(key);
+					if (pending != this->_state->pending.end() && pending->second.task == task)
+					{
+						acquisitions.emplace(key, task);
+						active.push_back(key);
+					}
+				}
+				if (active.empty() == true)
+				{
+					return;
+				}
+				if (_network->exhausted == true)
+				{
+					failure = std::make_exception_ptr(spk::Exception("Collection RequestID exhausted"));
+				}
+				else
+				{
+					id = _network->nextID;
+					if (id == std::numeric_limits<ID>::max())
+					{
+						_network->exhausted = true;
+					}
+					else
+					{
+						++_network->nextID;
+					}
+					_network->requests.emplace(id, acquisitions);
+				}
+			}
+			if (failure == nullptr)
+			{
+				try
+				{
+					_send(Protocol::Request::build(id, active));
+				} catch (...)
+				{
+					failure = std::current_exception();
+					const std::scoped_lock lock(this->_state->mutex);
+					_network->requests.erase(id);
+				}
 			}
 		}
-		if (active.empty() == true)
+		if (failure != nullptr)
 		{
-			return;
-		}
-		if (_network->exhausted == true)
-		{
-			_fail(acquisitions, std::make_exception_ptr(spk::Exception("Collection RequestID exhausted")));
-			return;
-		}
-		const ID id = _network->nextID;
-		if (id == std::numeric_limits<ID>::max())
-		{
-			_network->exhausted = true;
-		}
-		else
-		{
-			++_network->nextID;
-		}
-		_network->requests.emplace(id, acquisitions);
-		try
-		{
-			_send(Protocol::Request::build(id, active));
-		} catch (...)
-		{
-			_network->requests.erase(id);
-			_fail(acquisitions, std::current_exception());
+			_fail(acquisitions, failure);
 		}
 	}
 	void _fail(const std::unordered_map<TKey, std::shared_ptr<Task>> &tasks, std::exception_ptr failure)
@@ -119,72 +149,87 @@ private:
 	}
 	static void apply(const std::shared_ptr<typename Base::AcquisitionState> &state, const std::shared_ptr<NetworkState> &network, const Parsing &parsing)
 	{
-		const std::scoped_lock lock(state->mutex);
-		auto found = network->requests.find(parsing.response.requestID());
-		if (found == network->requests.end())
+		std::vector<typename Base::Completion> completed;
 		{
-			return;
-		}
-		if (parsing.answer.status() == spk::Task<typename Protocol::Section>::Status::Failed)
-		{
-			SPK_LOG(Warning) << "Malformed Collection Response section" << std::endl;
-			return;
-		}
-		std::set<TKey> seen;
-		std::optional<TKey> previous;
-		for (std::size_t index = 0; index < parsing.answer.size(); ++index)
-		{
-			if (index == parsing.response.firstSectionCount())
+			const std::scoped_lock lock(state->mutex);
+			auto found = network->requests.find(parsing.response.requestID());
+			if (found == network->requests.end())
 			{
-				previous.reset();
+				return;
 			}
-			const auto &section = parsing.answer.at(index).result();
-			std::vector<TKey> keys;
-			for (const auto &value : section.success)
+			if (parsing.answer.status() == spk::Task<typename Protocol::Section>::Status::Failed)
 			{
-				keys.push_back(value.key);
+				SPK_LOG(Warning) << "Malformed Collection Response section" << std::endl;
+				return;
 			}
-			for (const auto &value : section.failure)
+			std::set<TKey> seen;
+			std::optional<TKey> previous;
+			for (std::size_t index = 0; index < parsing.answer.size(); ++index)
 			{
-				keys.push_back(value.key);
-			}
-			for (const auto &key : keys)
-			{
-				if (seen.insert(key).second == false || found->second.contains(key) == false || (previous.has_value() == true && (*previous < key) == false))
+				if (index == parsing.response.firstSectionCount())
 				{
-					SPK_LOG(Warning) << "Malformed Collection Response entries" << std::endl;
-					return;
+					previous.reset();
 				}
-				previous = key;
-			}
-		}
-		if (seen.size() != found->second.size())
-		{
-			SPK_LOG(Warning) << "Incomplete Collection Response" << std::endl;
-			return;
-		}
-		const auto acquisitions = std::move(found->second);
-		network->requests.erase(found);
-		for (const auto &answer : parsing.answer.answers())
-		{
-			for (const auto &success : answer.result().success)
-			{
-				auto task = acquisitions.find(success.key);
-				if (task != acquisitions.end())
+				const auto &section = parsing.answer.at(index).result();
+				std::vector<TKey> keys;
+				for (const auto &value : section.success)
 				{
-					Base::_settle(state, success.key, task->second, success.element, nullptr);
+					keys.push_back(value.key);
+				}
+				for (const auto &value : section.failure)
+				{
+					keys.push_back(value.key);
+				}
+				for (const auto &key : keys)
+				{
+					if (seen.insert(key).second == false || found->second.contains(key) == false || (previous.has_value() == true && (*previous < key) == false))
+					{
+						SPK_LOG(Warning) << "Malformed Collection Response entries" << std::endl;
+						return;
+					}
+					previous = key;
 				}
 			}
-			for (const auto &failure : answer.result().failure)
+			if (seen.size() != found->second.size())
 			{
-				auto task = acquisitions.find(failure.key);
-				auto pending = state->pending.find(failure.key);
-				if (task != acquisitions.end() && pending != state->pending.end() && pending->second.task == task->second)
+				SPK_LOG(Warning) << "Incomplete Collection Response" << std::endl;
+				return;
+			}
+			const auto acquisitions = std::move(found->second);
+			network->requests.erase(found);
+			for (const auto &answer : parsing.answer.answers())
+			{
+				for (const auto &success : answer.result().success)
 				{
-					network->refused.insert_or_assign(failure.key, failure.failure);
-					Base::_settle(state, failure.key, task->second, std::nullopt, std::make_exception_ptr(spk::Exception(failure.failure.message)));
+					auto task = acquisitions.find(success.key);
+					if (task != acquisitions.end())
+					{
+						auto completion = Base::_claim(state, success.key, task->second, success.element, nullptr);
+						if (completion.has_value() == true)
+						{
+							completed.push_back(std::move(*completion));
+						}
+					}
+				}
+				for (const auto &failure : answer.result().failure)
+				{
+					auto task = acquisitions.find(failure.key);
+					auto pending = state->pending.find(failure.key);
+					if (task != acquisitions.end() && pending != state->pending.end() && pending->second.task == task->second)
+					{
+						network->refused.insert_or_assign(failure.key, failure.failure);
+						auto completion = Base::_claim(state, failure.key, task->second, std::nullopt, std::make_exception_ptr(spk::Exception(failure.failure.message)));
+						if (completion.has_value() == true)
+						{
+							completed.push_back(std::move(*completion));
+						}
+					}
 				}
 			}
+		}
+		for (auto &completion : completed)
+		{
+			Base::_complete(std::move(completion));
 		}
 	}
 

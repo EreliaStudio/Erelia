@@ -2,6 +2,7 @@
 #include "erelia/core/collection.hpp"
 #include <atomic>
 #include <barrier>
+#include <chrono>
 #include <gtest/gtest.h>
 #include <thread>
 namespace
@@ -185,4 +186,100 @@ TEST(Collection, AuthoritativeInsertPublishesBeforeInvalidationCallbacks)
 	ASSERT_TRUE(observed.has_value());
 	EXPECT_EQ(observed->result(), 99);
 	EXPECT_EQ(tasks->size(), 1u);
+}
+TEST(Collection, RemoveAndRerequestInRegistrationLaunchWindowAcquiresReplacementOnce)
+{
+	struct Gate
+	{
+		std::atomic_bool first{true};
+		std::atomic_bool entered{false};
+		std::atomic_bool release{false};
+		std::atomic_int acquisitions{0};
+	};
+	struct Delayed : Controlled
+	{
+		std::shared_ptr<Gate> gate;
+		Delayed(std::shared_ptr<Tasks> tasks, std::shared_ptr<Gate> value) :
+			Controlled(std::move(tasks)),
+			gate(std::move(value))
+		{
+		}
+		void _start(const std::vector<int> &keys) override
+		{
+			if (gate->first.exchange(false) == true)
+			{
+				gate->entered.store(true);
+				gate->entered.notify_all();
+				gate->release.wait(false);
+			}
+			Cache::Provider::_start(keys);
+		}
+		Cache::Answer _acquire(const int &key) override
+		{
+			++gate->acquisitions;
+			return Controlled::_acquire(key);
+		}
+	};
+	auto tasks = std::make_shared<Tasks>();
+	auto gate = std::make_shared<Gate>();
+	Cache cache{Delayed(tasks, gate)};
+	std::optional<Cache::Answer> old;
+	std::jthread first([&] {
+		old = cache.request(1);
+	});
+	gate->entered.wait(false);
+	cache.remove(1);
+	auto current = cache.request(1);
+	gate->release.store(true);
+	gate->release.notify_all();
+	first.join();
+	EXPECT_EQ(gate->acquisitions.load(), 1);
+	EXPECT_EQ(old->status(), spk::Task<int>::Status::Failed);
+	tasks->at(1)->validate(99);
+	EXPECT_EQ(current.result(), 99);
+}
+TEST(Collection, CompletionCallbacksDoNotHoldAcquisitionMutex)
+{
+	struct Prepared : Cache::Provider
+	{
+		std::shared_ptr<Tasks> tasks;
+		explicit Prepared(std::shared_ptr<Tasks> value) :
+			tasks(std::move(value))
+		{
+		}
+		Cache::Answer _acquire(const int &key) override
+		{
+			return tasks->at(key)->answer();
+		}
+	};
+	auto tasks = std::make_shared<Tasks>();
+	tasks->emplace(1, std::make_shared<spk::Task<int>>());
+	tasks->emplace(2, std::make_shared<spk::Task<int>>());
+	std::atomic_bool entered{false}, release{false};
+	auto sourceObserver = tasks->at(2)->answer().subscribeToCompletion([&] {
+		entered.store(true);
+		entered.notify_all();
+	});
+	Cache cache{Prepared(tasks)};
+	auto answers = cache.request(std::vector<int>{1, 2});
+	bool otherPublished = false;
+	auto observer = answers.at(0).subscribeToCompletion([&] {
+		release.store(true);
+		release.notify_all();
+		entered.wait(false);
+		const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(1);
+		while (answers.at(1).status() == spk::Task<int>::Status::Pending && std::chrono::steady_clock::now() < deadline)
+		{
+			std::this_thread::yield();
+		}
+		otherPublished = answers.at(1).status() == spk::Task<int>::Status::Completed;
+	});
+	std::jthread second([&] {
+		release.wait(false);
+		tasks->at(2)->validate(2);
+	});
+	tasks->at(1)->validate(1);
+	second.join();
+	EXPECT_EQ(otherPublished, true);
+	EXPECT_EQ(answers.at(1).result(), 2);
 }
