@@ -1,11 +1,14 @@
 #pragma once
 
 #include <core/platform/timer.hpp>
+#include <network/client.hpp>
 #include <threading/task.hpp>
 #include <ui/widget.hpp>
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -28,6 +31,9 @@ private:
 	std::optional<ConnectionAnswer> _connectionAttempt;
 	spk::Timer _retryTimer;
 	std::size_t _attemptCount = 0;
+	std::shared_ptr<std::atomic_bool> _disconnected = std::make_shared<std::atomic_bool>(false);
+	spk::Client::DisconnectionContract _disconnectionContract;
+	void _dispatchDisconnection();
 
 	void _launchAttempt();
 	void _processAttempt();

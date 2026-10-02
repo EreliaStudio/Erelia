@@ -1,4 +1,5 @@
 add_library(EreliaCore STATIC
+    src/event_center.cpp
     src/service.cpp
     src/status.cpp
     src/networking/diagnostic.cpp

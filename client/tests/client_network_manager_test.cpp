@@ -3,6 +3,7 @@
 #include "erelia/client/terrain_collections.hpp"
 #include <chrono>
 #include <gtest/gtest.h>
+#include <network/client.hpp>
 #include <network/server.hpp>
 #include <thread>
 TEST(ClientNetworkManager, UniqueDrainerAndMultipleSubscriptions)
@@ -29,7 +30,7 @@ TEST(ClientNetworkManager, UniqueDrainerAndMultipleSubscriptions)
 	std::vector<spk::Message> remaining;
 	EXPECT_TRUE(Service::client().messages().drain(remaining).empty());
 }
-TEST(ClientNetworkManager, DisconnectFansOutAndAvailableCacheSurvives)
+TEST(ClientNetworkManager, ServiceDisconnectEventFailsPendingAndPreservesAvailable)
 {
 	Service::client().disconnect();
 	spk::Server server;
@@ -40,6 +41,7 @@ TEST(ClientNetworkManager, DisconnectFansOutAndAvailableCacheSurvives)
 	terrain.chunks().insert({1, 0, 0}, Chunk{});
 	auto pending = terrain.columns().request(Column::Coordinate{2, 0});
 	Service::client().disconnect();
+	Service::clientEventCenter().clientDisconnected().trigger();
 	manager.dispatch();
 	EXPECT_EQ(pending.status(), spk::Task<Column>::Status::Failed);
 	EXPECT_EQ(terrain.chunks().state({1, 0, 0}), TerrainCollections::Chunks::State::Available);

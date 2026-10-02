@@ -19,7 +19,7 @@ The Client requests only terrain that is relevant to its current inspection posi
 - DR-019 fixes immutable shared Chunk/Volume lifetime and the asynchronous Collection/Provider direction.
 - DR-022 records the historical ST-001-08/ST-001-09 Chunk wire contract. ST-001-11 intentionally supersedes its fixed Chunk MessageID numbering, standalone Diagnostic MessageID, request-ID recycling policy, and Chunk-specific protocol framing with the generic Collection protocol defined here.
 - Sparkle Version-0.1.3 now exposes immutable `spk::Message` values, `spk::Message::Writer` for construction, and independent `spk::Message::Reader` objects for decoding.
-- ST-001-10 owns connection establishment/reconnection. ST-001-11 consumes the existing `Service::client()` transport and its connection/disconnection notifications.
+- ST-001-10 owns connection establishment/reconnection. ST-001-11 consumes the existing `Service::client()` transport and lifecycle events from `Service::clientEventCenter()`.
 
 ## Product ownership
 
@@ -433,9 +433,9 @@ Destroying a returned Contract removes the subscription. Multiple subscribers fo
 
 - uses `Service::client()`;
 - is the unique drainer of `spk::Client::messages()`;
-- forwards received Messages to `MessageDispatcher`;
-- retains the Client disconnection Contract;
-- propagates disconnect to network-backed RequestingProviders.
+- forwards received Messages to `MessageDispatcher`.
+
+ConnectionManager retains the transport disconnection Contract and publishes typed Client::EventCenter lifecycle events. TerrainCollections subscribes to clientDisconnected() to settle network-backed RequestingProviders. The Client connection manager updates before the network drainer.
 
 Composition root bindings include:
 
@@ -652,7 +652,7 @@ The Ready gate was verified on the existing `feat/st-001-11-client-chunk-request
 
 - Core: generic `Collection<TKey, TElement>`, Provider-owned Pending Answers/Contracts, ordered Sparkle TaskGroups, strict mutations and stale-completion protection; generic generating/requesting/updating providers; shared Column domain and fixed Chunk serialization.
 - Protocol: generated Chunk/Column message families, payload-only Diagnostic, independent monotonic uint64 RequestIDs, generic section offset tables, WorkerPool parsing through independent immutable Message Readers, authoritative Update and diagnostic-only Error handling.
-- Client: one Service Client queue drainer, retained dispatcher subscriptions and disconnect fan-out, both requesting Collections, configured inclusive horizontal view/unload regions, and Player-owned Transform-subscribed terrain streaming Behaviour. Successful Columns launch Chunk acquisition; successful Chunks emit the UserValueB placeholder.
+- Client: one Service Client queue drainer, retained dispatcher subscriptions and event-service disconnect subscriptions, both requesting Collections, configured inclusive horizontal view/unload regions, and Player-owned Transform-subscribed terrain streaming Behaviour. Successful Columns launch Chunk acquisition; successful Chunks emit the UserValueB placeholder.
 - Server/Terrain: both NodeRouter redirects, one Service-owned Endpoint request drainer with complete reply envelopes, shared deterministic Column/Chunk generation, family Errors and one Response per valid Request. No Server Update broadcast or eviction was added.
 - Integration: real Client Collection -> Sparkle Client -> NodeRouter -> RemoteNode -> terrain Endpoint -> generic handler/provider -> Response -> ClientNetworkManager -> RequestingProvider -> Collection fixtures. Process smoke now starts all three executables and observes acquisition before testing Server loss.
 
@@ -703,3 +703,7 @@ The prior CI failures remain historical evidence. Revised Windows Debug/Release 
 The owner requested replacing external `CollectionMessageTypes<TElement>` specializations with four-parameter family declarations directly inside Chunk and Column. Both domains now own `Protocol::MessageTypes`; the generic `CollectionProtocol::Codec` and subscription bindings consume that declaration. All existing wire IDs and payload layouts are preserved.
 
 Validation: a local GCC 13 C++23 executable linked to the real Sparkle Message/Exception implementation passes 13 focused protocol tests, including custom-domain IDs for all four message families and existing Request/Response/Update/Error malformed-input regressions. Core protocol/RequestingProvider tests and TerrainNode pass syntax checks. `git diff --check` passes. Client syntax validation is blocked locally by missing OpenGL/GLEW headers; full Client and cross-process runtime checks remain Windows CI responsibilities. clang-format is unavailable locally, so its CI check remains required.
+
+### Owner decision: separate event services
+
+Core, Client and Terrain each expose an independent typed EventCenter service. Core::Event<TArguments...> reuses spk::ContractProvider for subscriptions and synchronous emission. No inheritance or heterogeneous string map is required. Client currently declares connection, disconnection and player chunk-change events; Core and Terrain can gain their own named events as their domain contracts are defined. Event tests cover typed payloads, independent channels, subscription lifetime and the emitting thread. Connection integration checks lifecycle counts and delivery on the update thread; routed acquisition now uses ConnectionManager to exercise disconnect handling through the event service. Windows runtime validation remains a CI responsibility.

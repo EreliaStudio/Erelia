@@ -1,9 +1,11 @@
+#include "erelia/client/connection_manager.hpp"
 #include "erelia/client/service.hpp"
 #include "erelia/client/terrain_collections.hpp"
 #include "erelia/client/terrain_streaming_behaviour.hpp"
 #include "erelia/server/router.hpp"
 #include "terrain_node.hpp"
 #include <chrono>
+#include <core/context/update_context.hpp>
 #include <gtest/gtest.h>
 #include <thread>
 namespace
@@ -16,6 +18,12 @@ namespace
 		std::unique_ptr<Router> router;
 		ClientNetworkManager manager;
 		TerrainCollections client{manager};
+		std::unique_ptr<ConnectionManager> connection;
+		void updateConnection()
+		{
+			spk::UpdateContext context{.time = {}, .deltaTime = 1ms};
+			connection->updateState(context);
+		}
 		void SetUp() override
 		{
 			Service::client().disconnect();
@@ -25,21 +33,37 @@ namespace
 			router->redirect(static_cast<spk::Message::Type>(Networking::MessageType::ChunkRequest), "terrain");
 			router->redirect(static_cast<spk::Message::Type>(Networking::MessageType::ColumnRequest), "terrain");
 			router->start();
-			Service::client().connect("127.0.0.1", router->port());
+			connection = std::make_unique<ConnectionManager>("Connection", ConnectionManager::Endpoint{"127.0.0.1", router->port()}, 1ms);
+			ASSERT_TRUE(waitForConnection());
 		}
 		void TearDown() override
 		{
-			Service::client().disconnect();
+			connection.reset();
 			manager.dispatch();
 			router->stop();
 			terrain.stop();
 		}
 		void pump()
 		{
+			updateConnection();
 			router->dispatch();
 			terrain.dispatch();
 			router->dispatch();
 			manager.dispatch();
+		}
+		bool waitForConnection()
+		{
+			const auto deadline = std::chrono::steady_clock::now() + 2s;
+			while (std::chrono::steady_clock::now() < deadline)
+			{
+				pump();
+				if (Service::client().isConnected() == true && connection->attemptCount() == 0)
+				{
+					return true;
+				}
+				std::this_thread::yield();
+			}
+			return false;
 		}
 		template <typename TAnswer>
 		bool wait(const TAnswer &answer)
@@ -115,10 +139,10 @@ TEST_F(RoutedTerrain, DisconnectFailsPendingPreservesAvailableAndReconnectCanAcq
 	client.chunks().insert({1, 0, 0}, Chunk{});
 	auto pending = client.columns().request(Column::Coordinate{3, 3});
 	Service::client().disconnect();
-	manager.dispatch();
+	updateConnection();
 	EXPECT_EQ(pending.status(), spk::Task<Column>::Status::Failed);
 	EXPECT_EQ(client.chunks().state({1, 0, 0}), TerrainCollections::Chunks::State::Available);
-	Service::client().connect("127.0.0.1", router->port());
+	ASSERT_TRUE(waitForConnection());
 	auto current = client.columns().request(Column::Coordinate{3, 3});
 	ASSERT_TRUE(wait(current));
 	ASSERT_EQ(current.status(), spk::Task<Column>::Status::Completed);

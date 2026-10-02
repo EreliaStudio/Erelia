@@ -1,4 +1,5 @@
 #include "erelia/client/client_configuration.hpp"
+#include "erelia/client/service.hpp"
 #include "erelia/client/terrain_streaming_behaviour.hpp"
 #include "erelia/core/chunk_builder.hpp"
 #include <chrono>
@@ -69,6 +70,10 @@ TEST_F(Streaming, InitialCurrentTransformAndExactInclusiveSquare)
 }
 TEST_F(Streaming, SameChunkNoOpPositiveNegativeAndVerticalCrossingsReusePending)
 {
+	std::vector<spk::Vector3Int> centers;
+	auto changed = Service::clientEventCenter().playerChangedChunkEvent().subscribe([&](spk::Vector3Int center) {
+		centers.push_back(center);
+	});
 	start();
 	owner.transform().place({15.99f, 15.99f, 15.99f});
 	EXPECT_EQ(columnWork->requested.size(), 9u);
@@ -81,6 +86,7 @@ TEST_F(Streaming, SameChunkNoOpPositiveNegativeAndVerticalCrossingsReusePending)
 	owner.transform().place({-0.01f, -0.01f, -0.01f});
 	EXPECT_EQ(behaviour->center(), (Chunk::Coordinate{-1, -1, -1}));
 	EXPECT_EQ(columnWork->requested.size(), calls);
+	EXPECT_EQ(centers, (std::vector<spk::Vector3Int>{{0, 0, 0}, {1, 0, 0}, {-1, 0, -1}, {-1, -1, -1}}));
 }
 TEST_F(Streaming, SuccessfulColumnRequestsFullSparseChunksAndLogsCompletion)
 {

@@ -1,7 +1,6 @@
 #include "erelia/client/main_application_widget.hpp"
 
 #include "erelia/client/service.hpp"
-#include <network/client.hpp>
 #include <utility>
 
 MainApplicationWidget::MainApplicationWidget(
@@ -10,11 +9,17 @@ MainApplicationWidget::MainApplicationWidget(
 	spk::Widget *parent,
 	TerrainStreamingBehaviour::Ranges ranges) :
 	spk::Widget("/MainApplicationWidget", parent),
-	_network(this),
 	_ranges(ranges),
 	_connectionManager(name() + "/ConnectionManager", std::move(endpoint), retryDelay, this),
+	_network(this),
 	_console(name() + "/Console", this)
 {
+	_connectedContract = Service::clientEventCenter().clientConnected().subscribe([this] {
+		if (_player == nullptr)
+		{
+			_player = std::make_unique<Player>(_terrain, _ranges);
+		}
+	});
 	auto &connectCommand =
 		_console.commandParser().addCommand<ConnectCommand>();
 	_connectRequestContract =
@@ -68,10 +73,6 @@ Console &MainApplicationWidget::console() noexcept
 
 void MainApplicationWidget::_updateState(spk::UpdateContext &context)
 {
-	if (Service::client().isConnected() == true && _player == nullptr)
-	{
-		_player = std::make_unique<Player>(_terrain, _ranges);
-	}
 	if (_player != nullptr)
 	{
 		_player->updateState(context);

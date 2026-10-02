@@ -1,6 +1,7 @@
 #include "erelia/client/terrain_collections.hpp"
 #include "erelia/client/service.hpp"
 #include "erelia/core/service.hpp"
+#include <network/client.hpp>
 TerrainCollections::TerrainCollections(ClientNetworkManager &manager) :
 	_chunks(Chunks::RequestingProvider(Service::workerPool(), [](const spk::Message &message) {
 		Service::client().send(message);
@@ -11,7 +12,7 @@ TerrainCollections::TerrainCollections(ClientNetworkManager &manager) :
 {
 	_bind(manager, _chunks, _chunkUpdater);
 	_bind(manager, _columns, _columnUpdater);
-	_disconnect = manager.subscribeToDisconnection([this] {
+	_disconnect = Service::clientEventCenter().clientDisconnected().subscribe([this] {
 		_chunks.provider().disconnect();
 		_columns.provider().disconnect();
 	});

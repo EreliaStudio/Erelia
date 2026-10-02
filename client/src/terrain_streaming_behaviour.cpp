@@ -1,4 +1,5 @@
 #include "erelia/client/terrain_streaming_behaviour.hpp"
+#include "erelia/client/service.hpp"
 #include <algorithm>
 #include <cmath>
 #include <diagnostics/logger.hpp>
@@ -83,6 +84,7 @@ void TerrainStreamingBehaviour::_refresh(const spk::Transform3D &transform)
 		return;
 	}
 	_center = center;
+	Service::clientEventCenter().playerChangedChunkEvent().trigger(center);
 	for (const auto &key : _columns.keys())
 	{
 		if (_inside(key, _ranges.unloadRange) == false)

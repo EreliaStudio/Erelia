@@ -30,6 +30,9 @@ ConnectionManager::ConnectionManager(
 		throw spk::Exception("Client Server port cannot be zero");
 	}
 
+	_disconnectionContract = Service::client().subscribeToDisconnection([flag = _disconnected] {
+		flag->store(true);
+	});
 	activate();
 	connect();
 }
@@ -46,6 +49,15 @@ ConnectionManager::~ConnectionManager()
 	if (Service::client().isConnected() == true)
 	{
 		Service::client().disconnect();
+	}
+	_dispatchDisconnection();
+}
+
+void ConnectionManager::_dispatchDisconnection()
+{
+	if (_disconnected->exchange(false) == true)
+	{
+		Service::clientEventCenter().clientDisconnected().trigger();
 	}
 }
 
@@ -132,6 +144,7 @@ void ConnectionManager::_processAttempt()
 		_attemptCount = 0;
 		_retryTimer.reset();
 		SPK_LOG(Info) << "Connected to dedicated Server" << std::endl;
+		Service::clientEventCenter().clientConnected().trigger();
 		return;
 	}
 
@@ -149,6 +162,7 @@ void ConnectionManager::_processAttempt()
 
 void ConnectionManager::_updateState(spk::UpdateContext &)
 {
+	_dispatchDisconnection();
 	_processAttempt();
 
 	if (
@@ -224,6 +238,7 @@ void ConnectionManager::connect(Endpoint endpoint)
 	if (Service::client().isConnected() == true)
 	{
 		Service::client().disconnect();
+		_dispatchDisconnection();
 	}
 
 	_endpoint = std::move(endpoint);

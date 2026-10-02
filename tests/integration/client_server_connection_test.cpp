@@ -45,6 +45,17 @@ namespace
 
 TEST(ClientServerConnectionIntegration, ConnectionManagerConnectsToRouter)
 {
+	int connectedEvents = 0;
+	int disconnectedEvents = 0;
+	const auto updateThread = std::this_thread::get_id();
+	auto connected = Service::clientEventCenter().clientConnected().subscribe([&] {
+		EXPECT_EQ(std::this_thread::get_id(), updateThread);
+		++connectedEvents;
+	});
+	auto disconnected = Service::clientEventCenter().clientDisconnected().subscribe([&] {
+		EXPECT_EQ(std::this_thread::get_id(), updateThread);
+		++disconnectedEvents;
+	});
 	Router router(
 		Router::Configuration{
 			.port = 0,
@@ -65,8 +76,12 @@ TEST(ClientServerConnectionIntegration, ConnectionManagerConnectsToRouter)
 		waitUntilConnection(
 			[&] {
 				advanceConnectionManager(manager);
-				return client.isConnected();
+				return client.isConnected() == true && manager.attemptCount() == 0;
 			}));
+	EXPECT_EQ(connectedEvents, 1);
+	manager.connect();
+	advanceConnectionManager(manager);
+	EXPECT_EQ(connectedEvents, 1);
 
 	router.stop();
 
@@ -84,6 +99,7 @@ TEST(ClientServerConnectionIntegration, ConnectionManagerConnectsToRouter)
 			},
 			15s));
 	EXPECT_EQ(manager.attemptCount(), ConnectionManager::MaximumAttemptCount);
+	EXPECT_EQ(disconnectedEvents, 1);
 
 	Router recoveredRouter(
 		Router::Configuration{
@@ -104,4 +120,6 @@ TEST(ClientServerConnectionIntegration, ConnectionManagerConnectsToRouter)
 				advanceConnectionManager(manager);
 				return client.isConnected() && manager.attemptCount() == 0;
 			}));
+	EXPECT_EQ(connectedEvents, 2);
+	EXPECT_EQ(disconnectedEvents, 1);
 }

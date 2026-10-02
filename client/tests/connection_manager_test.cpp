@@ -1,5 +1,6 @@
 #include "erelia/client/connection_manager.hpp"
 
+#include "erelia/client/service.hpp"
 #include "erelia/core/service.hpp"
 
 #include <core/context/update_context.hpp>
@@ -176,6 +177,14 @@ TEST_F(ConnectionManagerTest, ConstructionStartsFirstConnectionAttempt)
 
 TEST_F(ConnectionManagerTest, FailedCycleStopsAfterExactlyThreeAttempts)
 {
+	int connectedEvents = 0;
+	int disconnectedEvents = 0;
+	auto connected = Service::clientEventCenter().clientConnected().subscribe([&] {
+		++connectedEvents;
+	});
+	auto disconnected = Service::clientEventCenter().clientDisconnected().subscribe([&] {
+		++disconnectedEvents;
+	});
 	std::vector<std::pair<spk::Logger::Level, std::string>> entries;
 	auto contract = spk::logger.subscribeToEntry(
 		[&entries](const spk::Logger::Level &level, const std::string &message) {
@@ -213,6 +222,8 @@ TEST_F(ConnectionManagerTest, FailedCycleStopsAfterExactlyThreeAttempts)
 	EXPECT_EQ(
 		manager.attemptCount(),
 		ConnectionManager::MaximumAttemptCount);
+	EXPECT_EQ(connectedEvents, 0);
+	EXPECT_EQ(disconnectedEvents, 0);
 }
 
 TEST_F(ConnectionManagerTest, ConnectStartsFreshCycleAfterBudgetIsExhausted)
