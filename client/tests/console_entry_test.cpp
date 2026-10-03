@@ -99,12 +99,10 @@ TEST_F(ConsoleEntryTest, CommandHelpUsesUserValueBWithoutRequest)
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
 	auto requestContract =
-		entry.commandParser()
-			.command<ConnectCommand>()
-			.subscribeToRequest(
-				[&](const ConnectCommand::Request &) {
-					++requestCount;
-				});
+		Service::clientEventCenter().connectionRequested().subscribe(
+			[&](const Client::ConnectionRequest &) {
+				++requestCount;
+			});
 
 	entry.submit("/connect --help");
 
@@ -125,12 +123,10 @@ TEST_F(ConsoleEntryTest, MalformedKnownCommandLogsDiagnosticAndUsage)
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
 	auto requestContract =
-		entry.commandParser()
-			.command<ConnectCommand>()
-			.subscribeToRequest(
-				[&](const ConnectCommand::Request &) {
-					++requestCount;
-				});
+		Service::clientEventCenter().connectionRequested().subscribe(
+			[&](const Client::ConnectionRequest &) {
+				++requestCount;
+			});
 
 	entry.submit("/connect --unknown value");
 
@@ -160,16 +156,14 @@ TEST_F(ConsoleEntryTest, UnknownCommandUsesUserValueB)
 
 TEST_F(ConsoleEntryTest, ConnectWithoutOverridesEmitsEmptyRequest)
 {
-	std::optional<ConnectCommand::Request> received;
+	std::optional<Client::ConnectionRequest> received;
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
 	auto contract =
-		entry.commandParser()
-			.command<ConnectCommand>()
-			.subscribeToRequest(
-				[&](const ConnectCommand::Request &request) {
-					received = request;
-				});
+		Service::clientEventCenter().connectionRequested().subscribe(
+			[&](const Client::ConnectionRequest &request) {
+				received = request;
+			});
 
 	entry.submit("/connect");
 
@@ -180,16 +174,14 @@ TEST_F(ConsoleEntryTest, ConnectWithoutOverridesEmitsEmptyRequest)
 
 TEST_F(ConsoleEntryTest, ConnectAddressOverrideEmitsAddressOnly)
 {
-	std::optional<ConnectCommand::Request> received;
+	std::optional<Client::ConnectionRequest> received;
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
 	auto contract =
-		entry.commandParser()
-			.command<ConnectCommand>()
-			.subscribeToRequest(
-				[&](const ConnectCommand::Request &request) {
-					received = request;
-				});
+		Service::clientEventCenter().connectionRequested().subscribe(
+			[&](const Client::ConnectionRequest &request) {
+				received = request;
+			});
 
 	entry.submit("/connect --address 192.0.2.1");
 
@@ -201,16 +193,14 @@ TEST_F(ConsoleEntryTest, ConnectAddressOverrideEmitsAddressOnly)
 
 TEST_F(ConsoleEntryTest, ConnectPortOverrideEmitsPortOnly)
 {
-	std::optional<ConnectCommand::Request> received;
+	std::optional<Client::ConnectionRequest> received;
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
 	auto contract =
-		entry.commandParser()
-			.command<ConnectCommand>()
-			.subscribeToRequest(
-				[&](const ConnectCommand::Request &request) {
-					received = request;
-				});
+		Service::clientEventCenter().connectionRequested().subscribe(
+			[&](const Client::ConnectionRequest &request) {
+				received = request;
+			});
 
 	entry.submit("/connect --port 2550");
 
@@ -231,12 +221,10 @@ TEST_F(ConsoleEntryTest, ConnectRejectsInvalidPortThroughUserValueB)
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
 	auto requestContract =
-		entry.commandParser()
-			.command<ConnectCommand>()
-			.subscribeToRequest(
-				[&](const ConnectCommand::Request &) {
-					++requestCount;
-				});
+		Service::clientEventCenter().connectionRequested().subscribe(
+			[&](const Client::ConnectionRequest &) {
+				++requestCount;
+			});
 
 	entry.submit("/connect --port invalid");
 
@@ -257,12 +245,10 @@ TEST_F(ConsoleEntryTest, ConnectRejectsOutOfRangePortThroughUserValueB)
 	ConsoleEntry entry("Entry");
 	registerConnectCommand(entry);
 	auto requestContract =
-		entry.commandParser()
-			.command<ConnectCommand>()
-			.subscribeToRequest(
-				[&](const ConnectCommand::Request &) {
-					++requestCount;
-				});
+		Service::clientEventCenter().connectionRequested().subscribe(
+			[&](const Client::ConnectionRequest &) {
+				++requestCount;
+			});
 
 	entry.submit("/connect --port 65536");
 
