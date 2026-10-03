@@ -1,5 +1,5 @@
 #include "erelia/core/world.hpp"
-#include "erelia/core/world_service.hpp"
+#include "erelia/core/world_collection.hpp"
 
 #include <engine/entity3d.hpp>
 #include <gtest/gtest.h>
@@ -57,7 +57,7 @@ namespace
 		std::size_t columnCreations = 0;
 	};
 
-	class TestWorldProvider final : public WorldProvider
+	class TestWorldCollection::Provider final : public WorldCollection::Provider
 	{
 	protected:
 		[[nodiscard]] std::unique_ptr<World> _acquire(
@@ -72,7 +72,7 @@ namespace
 		std::size_t acquisitions = 0;
 	};
 
-	class MismatchedWorldProvider final : public WorldProvider
+	class MismatchedWorldCollection::Provider final : public WorldCollection::Provider
 	{
 	protected:
 		[[nodiscard]] std::unique_ptr<World> _acquire(
@@ -123,10 +123,10 @@ TEST(World, OwnsEntitiesAddedToItsEngine)
 	EXPECT_EQ(world.engine().root().children().front(), entity);
 }
 
-TEST(WorldService, LazilyAcquiresAndOwnsNamedWorlds)
+TEST(WorldCollection, LazilyAcquiresAndOwnsNamedWorlds)
 {
-	WorldService worlds(
-		TestWorldProvider{});
+	WorldCollection worlds(
+		TestWorldCollection::Provider{});
 
 	const WorldIdentifier levelIdentifier{
 		.name = "world.level1"};
@@ -144,7 +144,7 @@ TEST(WorldService, LazilyAcquiresAndOwnsNamedWorlds)
 	EXPECT_EQ(level->identifier(), levelIdentifier);
 	EXPECT_EQ(hub->identifier(), hubIdentifier);
 	EXPECT_EQ(
-		static_cast<TestWorldProvider &>(
+		static_cast<TestWorldCollection::Provider &>(
 			worlds.provider())
 			.acquisitions,
 		2u);
@@ -161,7 +161,7 @@ TEST(WorldService, LazilyAcquiresAndOwnsNamedWorlds)
 	ASSERT_NE(recreated, nullptr);
 	EXPECT_EQ(recreated->identifier(), levelIdentifier);
 	EXPECT_EQ(
-		static_cast<TestWorldProvider &>(
+		static_cast<TestWorldCollection::Provider &>(
 			worlds.provider())
 			.acquisitions,
 		3u);
@@ -170,10 +170,10 @@ TEST(WorldService, LazilyAcquiresAndOwnsNamedWorlds)
 	EXPECT_EQ(worlds.size(), 0u);
 }
 
-TEST(WorldService, RejectsProviderIdentifierMismatch)
+TEST(WorldCollection, RejectsProviderIdentifierMismatch)
 {
-	WorldService worlds(
-		MismatchedWorldProvider{});
+	WorldCollection worlds(
+		MismatchedWorldCollection::Provider{});
 
 	EXPECT_THROW(
 		(void)worlds.world(
