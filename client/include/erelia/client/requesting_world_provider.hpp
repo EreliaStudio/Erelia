@@ -1,10 +1,10 @@
 #pragma once
 
-#include "erelia/core/world_service.hpp"
+#include "erelia/core/world_collection.hpp"
 
 class ClientNetworkManager;
 
-class RequestingWorldProvider final : public WorldProvider
+class RequestingWorldProvider final : public WorldCollection::Provider
 {
 private:
 	ClientNetworkManager *_networkManager = nullptr;
