@@ -68,12 +68,9 @@ TerrainNode::TerrainNode(Configuration configuration) :
 				Service::terrainWorldCollection().provider());
 		provider.define(
 			{
-				.identifier =
-					GeneratingWorldProvider::PrototypeWorld,
-				.generatorType =
-					GeneratingWorldProvider::Type::Prototype,
-				.family = {}
-			});
+				.identifier = GeneratingWorldProvider::PrototypeWorld,
+				.generatorType = GeneratingWorldProvider::Type::Prototype,
+				.family = {}});
 		_world =
 			Service::terrainWorldCollection().world(
 				GeneratingWorldProvider::PrototypeWorld);
