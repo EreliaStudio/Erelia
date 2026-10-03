@@ -35,12 +35,9 @@ private:
 
 public:
 	template <typename TProvider>
-		requires std::derived_from<std::remove_cvref_t<TProvider>, WorldProvider> &&
-				 (std::is_lvalue_reference_v<TProvider> == false)
+		requires std::derived_from<std::remove_cvref_t<TProvider>, WorldProvider> && (std::is_lvalue_reference_v<TProvider> == false)
 	explicit WorldService(TProvider &&provider) :
-		_provider(
-			std::make_unique<std::remove_cvref_t<TProvider>>(
-				std::forward<TProvider>(provider)))
+		_provider(std::make_unique<std::remove_cvref_t<TProvider>>(std::forward<TProvider>(provider)))
 	{
 	}
 
