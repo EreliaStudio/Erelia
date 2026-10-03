@@ -1,5 +1,7 @@
 #pragma once
 
+#include "erelia/core/event_center.hpp"
+
 #include <concepts>
 #include <functional>
 #include <memory>
@@ -29,6 +31,8 @@ public:
 	};
 	using Task = spk::Task<TElement>;
 	using Answer = typename Task::Answer;
+	using AvailableEvent = Core::Event<const TKey &, const TElement &>;
+	using RemovedEvent = Core::Event<const TKey &>;
 	class Provider;
 	class GeneratingProvider;
 	class RequestingProvider;
@@ -56,6 +60,14 @@ public:
 	[[nodiscard]] Provider &provider() noexcept
 	{
 		return *_provider;
+	}
+	[[nodiscard]] AvailableEvent &availableEvent() noexcept
+	{
+		return _provider->_state->available;
+	}
+	[[nodiscard]] RemovedEvent &removedEvent() noexcept
+	{
+		return _provider->_state->removed;
 	}
 	[[nodiscard]] State state(const TKey &key) const
 	{
@@ -109,13 +121,29 @@ public:
 	void remove(const TKey &key)
 	{
 		std::shared_ptr<Task> invalidated;
+		bool removed = false;
 		{
 			const std::scoped_lock lock(_provider->_state->mutex);
 			invalidated = _provider->_invalidate(key);
-			_storage->write()->erase(key);
+			removed = _storage->write()->erase(key) != 0;
+		}
+		std::exception_ptr notificationFailure;
+		if (removed == true)
+		{
+			try
+			{
+				_provider->_state->removed.trigger(key);
+			} catch (...)
+			{
+				notificationFailure = std::current_exception();
+			}
 		}
 		Provider::_failInvalidated(invalidated);
 		_provider->reclaim();
+		if (notificationFailure != nullptr)
+		{
+			std::rethrow_exception(notificationFailure);
+		}
 	}
 	[[nodiscard]] std::vector<TKey> keys() const
 	{
@@ -140,6 +168,7 @@ private:
 	{
 		std::shared_ptr<Task> invalidated;
 		std::exception_ptr failure;
+		std::optional<TElement> published;
 		{
 			const std::scoped_lock lock(_provider->_state->mutex);
 			invalidated = _provider->_invalidate(key);
@@ -151,9 +180,21 @@ private:
 					throw spk::Exception("Collection mutation requires the matching Available state");
 				}
 				writer->insert_or_assign(key, std::move(element));
+				published = writer->at(key);
 			} catch (...)
 			{
 				failure = std::current_exception();
+			}
+		}
+		std::exception_ptr notificationFailure;
+		if (published.has_value() == true)
+		{
+			try
+			{
+				_provider->_state->available.trigger(key, *published);
+			} catch (...)
+			{
+				notificationFailure = std::current_exception();
 			}
 		}
 		Provider::_failInvalidated(invalidated);
@@ -161,6 +202,10 @@ private:
 		if (failure != nullptr)
 		{
 			std::rethrow_exception(failure);
+		}
+		if (notificationFailure != nullptr)
+		{
+			std::rethrow_exception(notificationFailure);
 		}
 	}
 };
@@ -185,6 +230,8 @@ protected:
 		std::unordered_map<TKey, Pending> pending;
 		std::shared_ptr<Storage> storage;
 		std::vector<typename Answer::CompletionContract> retired;
+		AvailableEvent available;
+		RemovedEvent removed;
 	};
 	std::shared_ptr<AcquisitionState> _state = std::make_shared<AcquisitionState>();
 	[[nodiscard]] virtual Answer _acquire(const TKey &key) = 0;
@@ -214,6 +261,8 @@ protected:
 	}
 	struct Completion
 	{
+		std::shared_ptr<AcquisitionState> state;
+		TKey key;
 		std::shared_ptr<Task> task;
 		std::optional<TElement> element;
 		std::exception_ptr failure;
@@ -232,18 +281,30 @@ protected:
 		}
 		state->retired.push_back(std::move(found->second.contract));
 		state->pending.erase(found);
-		return Completion{std::move(task), std::move(element), std::move(failure)};
+		return Completion{state, key, std::move(task), std::move(element), std::move(failure)};
 	}
 	static void _complete(Completion completion)
 	{
 		// Notify outside the acquisition mutex: subscribers may acquire or invalidate other keys.
+		std::exception_ptr notificationFailure;
 		if (completion.element.has_value() == true)
 		{
+			try
+			{
+				completion.state->available.trigger(completion.key, *completion.element);
+			} catch (...)
+			{
+				notificationFailure = std::current_exception();
+			}
 			completion.task->validate(std::move(*completion.element));
 		}
 		else
 		{
 			completion.task->fail(completion.failure);
+		}
+		if (notificationFailure != nullptr)
+		{
+			std::rethrow_exception(notificationFailure);
 		}
 	}
 	static bool _settle(const std::shared_ptr<AcquisitionState> &state, const TKey &key, std::shared_ptr<Task> task, std::optional<TElement> element, std::exception_ptr failure)
