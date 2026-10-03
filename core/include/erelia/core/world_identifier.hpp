@@ -1,6 +1,8 @@
 #pragma once
 
 #include <compare>
+#include <cstddef>
+#include <functional>
 #include <string>
 
 struct WorldIdentifier
