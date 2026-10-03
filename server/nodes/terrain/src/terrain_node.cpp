@@ -1,5 +1,6 @@
 #include "terrain_node.hpp"
 #include "terrain_service.hpp"
+#include "generating_world_provider.hpp"
 #include <atomic>
 #include <container/json/reader.hpp>
 #include <container/thread_safe_fifo.hpp>
@@ -62,11 +63,26 @@ TerrainNode::TerrainNode(Configuration configuration) :
 	}
 	try
 	{
+		auto &provider =
+			static_cast<GeneratingWorldProvider &>(
+				Service::terrainWorldService().provider());
+		provider.define(
+			{
+				.identifier =
+					GeneratingWorldProvider::PrototypeWorld,
+				.generatorType =
+					GeneratingWorldProvider::Type::Prototype,
+				.family = {}
+			});
+		_world =
+			Service::terrainWorldService().world(
+				GeneratingWorldProvider::PrototypeWorld);
+
 		_subscriptions.push_back(_dispatcher.subscribe(static_cast<spk::Message::Type>(Networking::MessageType::ChunkRequest), [this](const Request &request) {
-			_request(request, *_world.chunkCollection());
+			_request(request, *_world->chunkCollection());
 		}));
 		_subscriptions.push_back(_dispatcher.subscribe(static_cast<spk::Message::Type>(Networking::MessageType::ColumnRequest), [this](const Request &request) {
-			_request(request, *_world.columnCollection());
+			_request(request, *_world->columnCollection());
 		}));
 	} catch (...)
 	{
@@ -82,6 +98,9 @@ TerrainNode::~TerrainNode()
 	} catch (...)
 	{
 	}
+	Service::terrainWorldService().remove(
+		GeneratingWorldProvider::PrototypeWorld);
+	_world = nullptr;
 	drainerOwned.store(false);
 }
 void TerrainNode::start()
