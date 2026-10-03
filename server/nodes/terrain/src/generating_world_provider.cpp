@@ -4,6 +4,8 @@
 
 #include <exception.hpp>
 
+#include <utility>
+
 std::unique_ptr<World> GeneratingWorldProvider::_acquire(
 	const WorldIdentifier &identifier)
 {
