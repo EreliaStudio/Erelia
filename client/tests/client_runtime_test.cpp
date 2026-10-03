@@ -1,5 +1,6 @@
 #include "erelia/client/client_configuration.hpp"
 #include "erelia/client/client_runtime.hpp"
+#include "erelia/client/client_world.hpp"
 #include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/main_interface.hpp"
 #include "erelia/client/service.hpp"
@@ -142,9 +143,12 @@ TEST(ClientRuntime, ConnectionStartsPlayerLoadingLifecycle)
 		{"127.0.0.1", 1},
 		std::chrono::milliseconds(1),
 		&mainWindow.root());
+	ClientWorld clientWorld(runtime.networkManager());
 
+	Service::clientEventCenter().worldChanged().trigger(&clientWorld);
 	Service::clientEventCenter().clientConnected().trigger();
 
+	EXPECT_EQ(runtime.world(), &clientWorld);
 	EXPECT_EQ(loadingRequests, 1);
 	EXPECT_EQ(readyPlayers, 1);
 }
@@ -164,9 +168,9 @@ TEST(ClientBootstrap, InitializesSeparatedClientRootsFromConfiguredWindowGeometr
 		{"127.0.0.1", 1},
 		std::chrono::milliseconds(1),
 		&mainWindow.root());
+	ClientWorld clientWorld(runtime.networkManager());
 	WorldManager world(
 		"/WorldManager",
-		runtime.terrainCollections(),
 		{1, 2},
 		&mainWindow.root());
 	MainInterface interface(
@@ -175,6 +179,7 @@ TEST(ClientBootstrap, InitializesSeparatedClientRootsFromConfiguredWindowGeometr
 	interface.console().commandParser().addCommand<ConnectCommand>();
 
 	world.setGeometry(mainWindow.root().geometry());
+	Service::clientEventCenter().worldChanged().trigger(&clientWorld);
 	interface.setGeometry(mainWindow.root().geometry());
 
 	const spk::Rect2D expectedGeometry{
@@ -204,7 +209,9 @@ TEST(ClientBootstrap, InitializesSeparatedClientRootsFromConfiguredWindowGeometr
 	EXPECT_EQ(rootChildren[2], &world);
 	EXPECT_EQ(rootChildren[3], &interface);
 
-	EXPECT_EQ(world.engine(), &world.gameEngine());
+	EXPECT_EQ(runtime.world(), &clientWorld);
+	EXPECT_EQ(world.world(), &clientWorld);
+	EXPECT_EQ(world.engine(), &clientWorld.engine());
 	EXPECT_EQ(world.player(), nullptr);
 	EXPECT_EQ(
 		interface.console().name(),
