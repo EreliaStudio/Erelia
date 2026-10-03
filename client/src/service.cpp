@@ -17,9 +17,9 @@ spk::Translator &Service::translator()
 	return translator;
 }
 
-WorldService &Service::clientWorldService()
+WorldCollection &Service::clientWorldCollection()
 {
-	static WorldService worlds(
+	static WorldCollection worlds(
 		RequestingWorldProvider{});
 	return worlds;
 }
