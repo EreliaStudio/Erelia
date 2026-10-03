@@ -7,4 +7,3 @@ spk::WorkerPool &Service::workerPool()
 	static spk::WorkerPool workerPool;
 	return workerPool;
 }
-
