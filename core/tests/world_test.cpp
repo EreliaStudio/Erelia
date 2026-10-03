@@ -4,6 +4,8 @@
 #include <engine/entity3d.hpp>
 #include <gtest/gtest.h>
 
+#include <utility>
+
 namespace
 {
 	class ChunkProvider final : public World::Chunks::Provider
