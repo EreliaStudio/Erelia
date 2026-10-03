@@ -1,5 +1,6 @@
 #pragma once
 #include "erelia/client/terrain_collections.hpp"
+#include "erelia/core/player_information.hpp"
 #include <atomic>
 #include <container/thread_safe_fifo.hpp>
 #include <engine/behaviour3d.hpp>
@@ -72,9 +73,13 @@ public:
 class Player final : public spk::Entity3D
 {
 public:
-	Player(TerrainCollections &terrain, TerrainStreamingBehaviour::Ranges ranges) :
+	Player(
+		const PlayerInformation &information,
+		TerrainCollections &terrain,
+		TerrainStreamingBehaviour::Ranges ranges) :
 		spk::Entity3D("Player")
 	{
+		(void)information;
 		addBehaviour<TerrainStreamingBehaviour>(terrain.columns(), terrain.chunks(), ranges);
 		activate();
 	}
