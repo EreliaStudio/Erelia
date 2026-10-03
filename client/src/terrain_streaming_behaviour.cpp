@@ -35,7 +35,7 @@ void TerrainStreamingBehaviour::Ranges::validate() const
 		throw spk::Exception("Terrain ranges require 0 < viewRange <= unloadRange");
 	}
 }
-TerrainStreamingBehaviour::TerrainStreamingBehaviour(TerrainCollections::Columns &columns, TerrainCollections::Chunks &chunks, Ranges ranges) :
+TerrainStreamingBehaviour::TerrainStreamingBehaviour(World::Columns &columns, World::Chunks &chunks, Ranges ranges) :
 	spk::Behaviour3D("TerrainStreaming"),
 	_columns(columns),
 	_chunks(chunks),
