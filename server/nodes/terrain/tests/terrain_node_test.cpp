@@ -227,3 +227,16 @@ TEST(TerrainWorldService, GeneratesDefinedWorlds)
 		worlds.remove(identifier),
 		true);
 }
+
+TEST(GeneratingWorldProvider, RejectsUndefinedWorld)
+{
+	WorldService worlds(
+		GeneratingWorldProvider{});
+
+	EXPECT_THROW(
+		(void)worlds.world(
+			WorldIdentifier{
+				.name = "undefined.world"}),
+		spk::Exception);
+	EXPECT_EQ(worlds.size(), 0u);
+}
