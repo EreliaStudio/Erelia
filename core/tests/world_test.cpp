@@ -1,4 +1,3 @@
-#include "erelia/core/service.hpp"
 #include "erelia/core/world.hpp"
 #include "erelia/core/world_collection.hpp"
 
@@ -50,6 +49,20 @@ namespace
 		std::size_t chunkCreations = 0;
 		std::size_t columnCreations = 0;
 	};
+
+	class TestWorldCollection final : public WorldCollection
+	{
+	private:
+		[[nodiscard]] std::unique_ptr<World> _createWorld(
+			const Identifier &) override
+		{
+			++creations;
+			return std::make_unique<TestWorld>();
+		}
+
+	public:
+		std::size_t creations = 0;
+	};
 }
 
 TEST(World, LazilyCreatesStableCollectionPointers)
@@ -85,48 +98,33 @@ TEST(World, OwnsEntitiesAddedToItsEngine)
 	EXPECT_EQ(world.engine().root().children().front(), entity);
 }
 
-TEST(WorldCollection, OwnsMultipleNamedWorlds)
+TEST(WorldCollection, LazilyCreatesAndOwnsNamedWorlds)
 {
-	WorldCollection worlds;
+	TestWorldCollection worlds;
 
-	TestWorld *level =
-		worlds.create<TestWorld>("world.level1");
-	TestWorld *hub =
-		worlds.create<TestWorld>("spawn.hub");
+	World *level = worlds.world("world.level1");
+	World *sameLevel = worlds.world("world.level1");
+	World *hub = worlds.world("spawn.hub");
 
 	ASSERT_NE(level, nullptr);
 	ASSERT_NE(hub, nullptr);
+	EXPECT_EQ(level, sameLevel);
 	EXPECT_NE(level, hub);
+	EXPECT_EQ(worlds.creations, 2u);
 	EXPECT_EQ(worlds.size(), 2u);
 	EXPECT_EQ(worlds.find("world.level1"), level);
 	EXPECT_EQ(worlds.find("spawn.hub"), hub);
 	EXPECT_EQ(worlds.find("missing"), nullptr);
-	EXPECT_THROW(
-		(void)worlds.create<TestWorld>("world.level1"),
-		spk::Exception);
 
 	EXPECT_EQ(worlds.remove("world.level1"), true);
 	EXPECT_EQ(worlds.find("world.level1"), nullptr);
 	EXPECT_EQ(worlds.size(), 1u);
-}
 
-TEST(WorldCollectionService, ProvidesStableProcessCollection)
-{
-	WorldCollection &worlds = Service::worldCollection();
-	(void)worlds.remove("test.world.service");
+	World *recreated = worlds.world("world.level1");
+	ASSERT_NE(recreated, nullptr);
+	EXPECT_EQ(worlds.creations, 3u);
+	EXPECT_EQ(worlds.size(), 2u);
 
-	EXPECT_EQ(
-		&worlds,
-		&Service::worldCollection());
-
-	TestWorld *world =
-		worlds.create<TestWorld>("test.world.service");
-	ASSERT_NE(world, nullptr);
-	EXPECT_EQ(
-		worlds.find("test.world.service"),
-		world);
-
-	EXPECT_EQ(
-		worlds.remove("test.world.service"),
-		true);
+	worlds.clear();
+	EXPECT_EQ(worlds.size(), 0u);
 }
