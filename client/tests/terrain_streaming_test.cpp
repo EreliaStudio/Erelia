@@ -1,4 +1,5 @@
 #include "erelia/client/client_configuration.hpp"
+#include "erelia/core/world.hpp"
 #include "erelia/client/service.hpp"
 #include "erelia/client/terrain_streaming_behaviour.hpp"
 #include "erelia/core/chunk_builder.hpp"
@@ -42,8 +43,8 @@ namespace
 	protected:
 		std::shared_ptr<Acquisition<Column::Coordinate, Column>> columnWork = std::make_shared<Acquisition<Column::Coordinate, Column>>();
 		std::shared_ptr<Acquisition<Chunk::Coordinate, Chunk>> chunkWork = std::make_shared<Acquisition<Chunk::Coordinate, Chunk>>();
-		TerrainCollections::Columns columns{Controlled<Column::Coordinate, Column>(columnWork)};
-		TerrainCollections::Chunks chunks{Controlled<Chunk::Coordinate, Chunk>(chunkWork)};
+		World::Columns columns{Controlled<Column::Coordinate, Column>(columnWork)};
+		World::Chunks chunks{Controlled<Chunk::Coordinate, Chunk>(chunkWork)};
 		spk::Entity3D owner{"Player"};
 		TerrainStreamingBehaviour *behaviour = nullptr;
 		void start(spk::Vector3 position = {})
@@ -121,12 +122,12 @@ TEST_F(Streaming, UnloadsColumnsChunksAndLatePendingCannotRepublish)
 	chunks.insert({1, 0, 0}, Chunk{});
 	auto oldChunk = chunkWork->tasks.at({0, 0, 0});
 	owner.transform().place({64, 0, 0});
-	EXPECT_EQ(columns.state({0, 0}), TerrainCollections::Columns::State::Absent);
-	EXPECT_EQ(chunks.state({0, 0, 0}), TerrainCollections::Chunks::State::Absent);
-	EXPECT_EQ(chunks.state({1, 0, 0}), TerrainCollections::Chunks::State::Absent);
+	EXPECT_EQ(columns.state({0, 0}), World::Columns::State::Absent);
+	EXPECT_EQ(chunks.state({0, 0, 0}), World::Chunks::State::Absent);
+	EXPECT_EQ(chunks.state({1, 0, 0}), World::Chunks::State::Absent);
 	oldChunk->validate(Chunk{});
 	behaviour->dispatch();
-	EXPECT_EQ(chunks.state({0, 0, 0}), TerrainCollections::Chunks::State::Absent);
+	EXPECT_EQ(chunks.state({0, 0, 0}), World::Chunks::State::Absent);
 }
 TEST_F(Streaming, RetainsUnloadBoundaryAndRejectsOutdatedColumnDemand)
 {
@@ -134,7 +135,7 @@ TEST_F(Streaming, RetainsUnloadBoundaryAndRejectsOutdatedColumnDemand)
 	auto oldColumn = columnWork->tasks.at({-1, 0});
 	chunks.insert({0, 1, 0}, Chunk{});
 	owner.transform().place({32, 0, 0});
-	EXPECT_EQ(chunks.state({0, 1, 0}), TerrainCollections::Chunks::State::Available);
+	EXPECT_EQ(chunks.state({0, 1, 0}), World::Chunks::State::Available);
 	oldColumn->validate(Column{{{-1, 0, 0}}});
 	behaviour->dispatch();
 	EXPECT_EQ(chunkWork->requested.size(), 0u);
