@@ -16,6 +16,8 @@ private:
 	std::unique_ptr<Columns::Updater> _columnUpdater;
 	std::vector<Networking::MessageDispatcher<>::Contract> _subscriptions;
 	Core::Event<>::Contract _disconnectContract;
+	Core::Event<World *>::Contract _worldChangedContract;
+	bool _active = false;
 
 	[[nodiscard]] std::unique_ptr<Chunks> _createChunkCollection() override;
 	[[nodiscard]] std::unique_ptr<Columns> _createColumnCollection() override;
@@ -27,4 +29,5 @@ private:
 
 public:
 	explicit ClientWorld(ClientNetworkManager &networkManager);
+	~ClientWorld() override;
 };
