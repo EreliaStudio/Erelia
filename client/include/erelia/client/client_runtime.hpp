@@ -3,7 +3,7 @@
 #include "erelia/client/client_network_manager.hpp"
 #include "erelia/client/connection_manager.hpp"
 #include "erelia/client/event_center.hpp"
-#include "erelia/client/terrain_collections.hpp"
+#include "erelia/core/world.hpp"
 
 #include <ui/widget.hpp>
 
@@ -12,7 +12,8 @@ class ClientRuntime final
 private:
 	ConnectionManager _connectionManager;
 	ClientNetworkManager _networkManager;
-	TerrainCollections _terrainCollections;
+	World *_world = nullptr;
+	Core::Event<World *>::Contract _worldChangedContract;
 	Core::Event<>::Contract _connectedContract;
 	Core::Event<>::Contract _playerLoadingRequestedContract;
 
@@ -24,5 +25,6 @@ public:
 
 	[[nodiscard]] ConnectionManager &connectionManager() noexcept;
 	[[nodiscard]] ClientNetworkManager &networkManager() noexcept;
-	[[nodiscard]] TerrainCollections &terrainCollections() noexcept;
+	[[nodiscard]] World *world() noexcept;
+	[[nodiscard]] const World *world() const noexcept;
 };
