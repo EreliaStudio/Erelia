@@ -8,7 +8,6 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdint>
-#include <memory>
 #include <optional>
 #include <string>
 
@@ -31,9 +30,10 @@ private:
 	std::optional<ConnectionAnswer> _connectionAttempt;
 	spk::Timer _retryTimer;
 	std::size_t _attemptCount = 0;
-	std::shared_ptr<std::atomic_bool> _disconnected = std::make_shared<std::atomic_bool>(false);
+	std::atomic_bool _disconnected = false;
 	spk::Client::DisconnectionContract _disconnectionContract;
-	void _dispatchDisconnection();
+	// Transport callbacks only flag the event; processing stays on the Client update thread.
+	void _processDisconnection();
 
 	void _launchAttempt();
 	void _processAttempt();
