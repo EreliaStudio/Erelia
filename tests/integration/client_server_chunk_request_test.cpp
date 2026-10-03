@@ -1,6 +1,6 @@
+#include "erelia/client/client_world.hpp"
 #include "erelia/client/connection_manager.hpp"
 #include "erelia/client/service.hpp"
-#include "erelia/client/terrain_collections.hpp"
 #include "erelia/client/terrain_streaming_behaviour.hpp"
 #include "erelia/server/router.hpp"
 #include "terrain_node.hpp"
@@ -17,7 +17,7 @@ namespace
 		TerrainNode terrain{{.port = 0}};
 		std::unique_ptr<Router> router;
 		ClientNetworkManager manager;
-		TerrainCollections client{manager};
+		ClientWorld client{manager};
 		std::unique_ptr<ConnectionManager> connection;
 		void updateConnection()
 		{
@@ -80,7 +80,7 @@ namespace
 }
 TEST_F(RoutedTerrain, CanonicalSingleAndMultiChunkAcquisitionUsesClientCollections)
 {
-	auto group = client.chunks().request(std::vector<Chunk::Coordinate>{{0, 0, 0}, {1, 0, 1}, {-1, 0, -1}, {0, -1, 0}, {2, 0, 1}});
+	auto group = client.chunkCollection()->request(std::vector<Chunk::Coordinate>{{0, 0, 0}, {1, 0, 1}, {-1, 0, -1}, {0, -1, 0}, {2, 0, 1}});
 	ASSERT_TRUE(wait(group));
 	ASSERT_EQ(group.status(), spk::Task<Chunk>::Status::Completed);
 	EXPECT_EQ(group.at(0).result().at({0, 3, 0}).definitionId(), 1u);
@@ -99,13 +99,13 @@ TEST_F(RoutedTerrain, CanonicalSingleAndMultiChunkAcquisitionUsesClientCollectio
 	{
 		EXPECT_EQ(cell.packed(), 0u);
 	}
-	const auto cached = client.chunks().request(Chunk::Coordinate{1, 0, 1});
+	const auto cached = client.chunkCollection()->request(Chunk::Coordinate{1, 0, 1});
 	EXPECT_EQ(cached.status(), spk::Task<Chunk>::Status::Completed);
 }
 TEST_F(RoutedTerrain, ColumnsAndChunksUseIndependentRequestIDOne)
 {
-	auto column = client.columns().request(Column::Coordinate{4, 4});
-	auto chunk = client.chunks().request(Chunk::Coordinate{4, 3, 4});
+	auto column = client.columnCollection()->request(Column::Coordinate{4, 4});
+	auto chunk = client.chunkCollection()->request(Chunk::Coordinate{4, 3, 4});
 	ASSERT_TRUE(wait(column));
 	ASSERT_TRUE(wait(chunk));
 	ASSERT_EQ(column.result().chunks.size(), 4u);
@@ -122,38 +122,38 @@ TEST_F(RoutedTerrain, PlayerColumnChunkChainAndUnloadUsesRealNetwork)
 {
 	spk::Entity3D player("Player");
 	player.transform().place({64, 0, 64});
-	auto &streaming = player.addBehaviour<TerrainStreamingBehaviour>(client.columns(), client.chunks(), TerrainStreamingBehaviour::Ranges{1, 2});
+	auto &streaming = player.addBehaviour<TerrainStreamingBehaviour>(*client.columnCollection(), *client.chunkCollection(), TerrainStreamingBehaviour::Ranges{1, 2});
 	const auto deadline = std::chrono::steady_clock::now() + 2s;
-	while (client.chunks().state({4, 3, 4}) != TerrainCollections::Chunks::State::Available && std::chrono::steady_clock::now() < deadline)
+	while (client.chunkCollection()->state({4, 3, 4}) != World::Chunks::State::Available && std::chrono::steady_clock::now() < deadline)
 	{
 		pump();
 		streaming.dispatch();
 		std::this_thread::yield();
 	}
-	ASSERT_EQ(client.chunks().state({4, 3, 4}), TerrainCollections::Chunks::State::Available);
+	ASSERT_EQ(client.chunkCollection()->state({4, 3, 4}), World::Chunks::State::Available);
 	player.transform().place({-64, 0, -64});
-	EXPECT_EQ(client.chunks().state({4, 3, 4}), TerrainCollections::Chunks::State::Absent);
+	EXPECT_EQ(client.chunkCollection()->state({4, 3, 4}), World::Chunks::State::Absent);
 }
 TEST_F(RoutedTerrain, DisconnectFailsPendingPreservesAvailableAndReconnectCanAcquire)
 {
-	client.chunks().insert({1, 0, 0}, Chunk{});
-	auto pending = client.columns().request(Column::Coordinate{3, 3});
+	client.chunkCollection()->insert({1, 0, 0}, Chunk{});
+	auto pending = client.columnCollection()->request(Column::Coordinate{3, 3});
 	Service::client().disconnect();
 	updateConnection();
 	EXPECT_EQ(pending.status(), spk::Task<Column>::Status::Failed);
-	EXPECT_EQ(client.chunks().state({1, 0, 0}), TerrainCollections::Chunks::State::Available);
+	EXPECT_EQ(client.chunkCollection()->state({1, 0, 0}), World::Chunks::State::Available);
 	ASSERT_TRUE(waitForConnection());
-	auto current = client.columns().request(Column::Coordinate{3, 3});
+	auto current = client.columnCollection()->request(Column::Coordinate{3, 3});
 	ASSERT_TRUE(wait(current));
 	ASSERT_EQ(current.status(), spk::Task<Column>::Status::Completed);
 	EXPECT_EQ(current.result().chunks.size(), 2u);
 }
 TEST_F(RoutedTerrain, RemovedPendingCannotBeRepublishedByRoutedResponse)
 {
-	auto pending = client.chunks().request(Chunk::Coordinate{7, 0, 7});
-	client.chunks().remove({7, 0, 7});
+	auto pending = client.chunkCollection()->request(Chunk::Coordinate{7, 0, 7});
+	client.chunkCollection()->remove({7, 0, 7});
 	EXPECT_EQ(pending.status(), spk::Task<Chunk>::Status::Failed);
-	auto healthy = client.chunks().request(Chunk::Coordinate{8, 0, 8});
+	auto healthy = client.chunkCollection()->request(Chunk::Coordinate{8, 0, 8});
 	ASSERT_TRUE(wait(healthy));
-	EXPECT_EQ(client.chunks().state({7, 0, 7}), TerrainCollections::Chunks::State::Absent);
+	EXPECT_EQ(client.chunkCollection()->state({7, 0, 7}), World::Chunks::State::Absent);
 }
