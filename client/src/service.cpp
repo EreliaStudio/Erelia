@@ -14,3 +14,9 @@ spk::Translator &Service::translator()
 	static spk::Translator translator;
 	return translator;
 }
+
+ClientWorldCollection &Service::clientWorldCollection()
+{
+	static ClientWorldCollection worlds;
+	return worlds;
+}
