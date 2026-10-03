@@ -209,10 +209,8 @@ TEST(TerrainWorldCollection, GeneratesDefinedWorlds)
 	provider.define(
 		{
 			.identifier = identifier,
-			.generatorType =
-				GeneratingWorldProvider::Type::Prototype,
-			.family = "test"
-		});
+			.generatorType = GeneratingWorldProvider::Type::Prototype,
+			.family = "test"});
 
 	World *world =
 		worlds.world(identifier);
