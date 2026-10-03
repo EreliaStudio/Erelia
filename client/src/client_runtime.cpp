@@ -1,7 +1,7 @@
 #include "erelia/client/client_runtime.hpp"
 
-#include "erelia/client/service.hpp"
 #include "erelia/client/requesting_world_provider.hpp"
+#include "erelia/client/service.hpp"
 #include "erelia/client/widget_order.hpp"
 #include "erelia/core/player_information.hpp"
 
