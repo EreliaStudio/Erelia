@@ -21,6 +21,20 @@ ClientWorld::ClientWorld(
 					columns->provider().disconnect();
 				}
 			});
+
+	_worldChangedContract =
+		Service::clientEventCenter().worldChanged().subscribe(
+			[this](World *world) {
+				_active = world == this;
+			});
+}
+
+ClientWorld::~ClientWorld()
+{
+	if (_active == true)
+	{
+		Service::clientEventCenter().worldChanged().trigger(nullptr);
+	}
 }
 
 std::unique_ptr<World::Chunks> ClientWorld::_createChunkCollection()
