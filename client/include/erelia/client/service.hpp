@@ -1,5 +1,6 @@
 #pragma once
 
+#include "erelia/client/client_world_collection.hpp"
 #include "erelia/client/event_center.hpp"
 
 namespace spk
@@ -13,4 +14,5 @@ namespace Service
 	[[nodiscard]] Client::EventCenter &clientEventCenter();
 	[[nodiscard]] spk::Client &client();
 	[[nodiscard]] spk::Translator &translator();
+	[[nodiscard]] ClientWorldCollection &clientWorldCollection();
 }
