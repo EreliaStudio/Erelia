@@ -22,6 +22,7 @@ public:
 		ConnectionManager::Endpoint endpoint,
 		spk::Timer::Duration retryDelay,
 		spk::Widget *parent);
+	~ClientRuntime();
 
 	[[nodiscard]] ConnectionManager &connectionManager() noexcept;
 	[[nodiscard]] ClientNetworkManager &networkManager() noexcept;
