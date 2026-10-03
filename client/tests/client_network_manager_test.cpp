@@ -37,7 +37,7 @@ TEST(ClientNetworkManager, ServiceDisconnectEventFailsPendingAndPreservesAvailab
 	server.start(0);
 	Service::client().connect("127.0.0.1", server.port());
 	ClientNetworkManager manager;
-	ClientWorld world(manager);
+	ClientWorld world({.name = "test.network"}, manager);
 	world.chunkCollection()->insert({1, 0, 0}, Chunk{});
 	auto pending = world.columnCollection()->request(Column::Coordinate{2, 0});
 	Service::client().disconnect();
