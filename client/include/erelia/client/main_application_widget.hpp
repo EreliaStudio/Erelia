@@ -20,12 +20,10 @@ private:
 	TerrainCollections _terrain{_network};
 	std::unique_ptr<Player> _player;
 	Console _console;
-	ConnectCommand::RequestContract _connectRequestContract;
 	Core::Event<>::Contract _connectedContract;
 	spk::VerticalLayout _layout;
 
 	void _updateState(spk::UpdateContext &context) override;
-	void _connect(const ConnectCommand::Request &request);
 	void _onGeometryChange() override;
 
 public:
