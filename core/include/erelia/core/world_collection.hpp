@@ -15,7 +15,20 @@
 class WorldCollection
 {
 public:
-	class Provider;
+	class Provider
+	{
+		friend class WorldCollection;
+
+	protected:
+		[[nodiscard]] virtual std::unique_ptr<World> _acquire(
+			const WorldIdentifier &identifier) = 0;
+
+	public:
+		Provider() = default;
+		Provider(Provider &&) noexcept = default;
+		Provider(const Provider &) = delete;
+		virtual ~Provider() = default;
+	};
 
 private:
 	std::unordered_map<WorldIdentifier, std::unique_ptr<World>> _worlds;
@@ -110,19 +123,4 @@ public:
 	{
 		return *_provider;
 	}
-};
-
-class WorldCollection::Provider
-{
-	friend class WorldCollection;
-
-protected:
-	[[nodiscard]] virtual std::unique_ptr<World> _acquire(
-		const WorldIdentifier &identifier) = 0;
-
-public:
-	Provider() = default;
-	Provider(Provider &&) noexcept = default;
-	Provider(const Provider &) = delete;
-	virtual ~Provider() = default;
 };
