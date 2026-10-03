@@ -10,7 +10,7 @@ namespace
 	class ChunkProvider final : public World::Chunks::Provider
 	{
 	protected:
-		[[nodiscard]] Answer _acquire(
+		[[nodiscard]] World::Chunks::Answer _acquire(
 			const Chunk::Coordinate &) override
 		{
 			spk::Task<Chunk> task;
@@ -22,7 +22,7 @@ namespace
 	class ColumnProvider final : public World::Columns::Provider
 	{
 	protected:
-		[[nodiscard]] Answer _acquire(
+		[[nodiscard]] World::Columns::Answer _acquire(
 			const Column::Coordinate &) override
 		{
 			spk::Task<Column> task;
