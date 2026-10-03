@@ -35,6 +35,8 @@ public:
 					else
 					{
 						state->storage->write()->insert_or_assign(entry.key, entry.element);
+						completed.push_back(
+							{state, entry.key, nullptr, entry.element, nullptr});
 					}
 				}
 			}
