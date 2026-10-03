@@ -33,6 +33,22 @@ TEST(EventCenter, ServiceInstanceIsStableAndEventsAreIndependent)
 	Service::clientEventCenter().clientDisconnected().trigger();
 	EXPECT_EQ(connected, 1);
 	EXPECT_EQ(disconnected, 1);
+
+	int playerLoadingRequested = 0;
+	const PlayerInformation *readyInformation = nullptr;
+	auto fourth = Service::clientEventCenter().playerLoadingRequested().subscribe([&] {
+		++playerLoadingRequested;
+	});
+	auto fifth = Service::clientEventCenter().playerReady().subscribe(
+		[&](const PlayerInformation &information) {
+			readyInformation = &information;
+		});
+	PlayerInformation information;
+	Service::clientEventCenter().playerLoadingRequested().trigger();
+	Service::clientEventCenter().playerReady().trigger(information);
+	EXPECT_EQ(playerLoadingRequested, 1);
+	EXPECT_EQ(readyInformation, &information);
+
 	Service::clientEventCenter().connectionRequested().trigger(
 		Client::ConnectionRequest{.address = "192.0.2.1", .port = 2550});
 	ASSERT_TRUE(requested.has_value());
