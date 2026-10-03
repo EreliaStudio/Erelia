@@ -283,7 +283,7 @@ TEST(ClientWorldLifecycle, WorldChangedRebindsRuntimeAndEngineWidget)
 	EXPECT_EQ(currentChunks, nullptr);
 }
 
-TEST(ClientWorldLifecycle, RemovingActiveNamedWorldDetachesSubscribers)
+TEST(ClientWorldLifecycle, DetachesBeforeRemovingActiveNamedWorld)
 {
 	spk::Application application;
 	spk::Window &mainWindow = application.createWindow(
@@ -315,10 +315,12 @@ TEST(ClientWorldLifecycle, RemovingActiveNamedWorldDetachesSubscribers)
 	ASSERT_EQ(manager.world(), world);
 	ASSERT_EQ(manager.engine(), &world->engine());
 
-	EXPECT_EQ(
-		worlds.remove("test.client.world"),
-		true);
+	Service::clientEventCenter().worldChanged().trigger(nullptr);
 	EXPECT_EQ(runtime.world(), nullptr);
 	EXPECT_EQ(manager.world(), nullptr);
 	EXPECT_EQ(manager.engine(), nullptr);
+
+	EXPECT_EQ(
+		worlds.remove("test.client.world"),
+		true);
 }
