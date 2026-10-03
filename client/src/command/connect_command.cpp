@@ -62,4 +62,3 @@ void ConnectCommand::execute(const spk::CommandParser::Invocation &invocation)
 
 	Service::clientEventCenter().connectionRequested().trigger(request);
 }
-
