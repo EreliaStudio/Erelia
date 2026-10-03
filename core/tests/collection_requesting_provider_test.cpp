@@ -115,6 +115,16 @@ TEST(CollectionUpdater, AuthoritativeSetRemoveAndPendingSettlement)
 	Cache cache{Cache::RequestingProvider(pool, [](const auto &) {
 	})};
 	Cache::Updater updater(cache);
+	std::vector<Column::Coordinate> available;
+	std::vector<Column::Coordinate> removed;
+	auto availableContract = cache.availableEvent().subscribe(
+		[&](const Column::Coordinate &key, const Column &) {
+			available.push_back(key);
+		});
+	auto removedContract = cache.removedEvent().subscribe(
+		[&](const Column::Coordinate &key) {
+			removed.push_back(key);
+		});
 	auto pendingSet = cache.request(Column::Coordinate{1, 0});
 	auto pendingRemove = cache.request(Column::Coordinate{2, 0});
 	updater.receive(P::Update::build({{{1, 0}, value(1, 3)}, {{3, 0}, value(3)}}, {{2, 0}, {4, 0}}));
@@ -125,6 +135,10 @@ TEST(CollectionUpdater, AuthoritativeSetRemoveAndPendingSettlement)
 	updater.receive(P::Update::build({{{1, 0}, value(1, 4)}}, {{3, 0}}));
 	EXPECT_EQ(cache.request(Column::Coordinate{1, 0}).result().chunks.front().y, 4);
 	EXPECT_EQ(cache.state({3, 0}), Cache::State::Absent);
+	EXPECT_EQ(
+		available,
+		(std::vector<Column::Coordinate>{{1, 0}, {3, 0}, {1, 0}}));
+	EXPECT_EQ(removed, (std::vector<Column::Coordinate>{{3, 0}}));
 }
 TEST(CollectionUpdater, ResponseUpdateClaimIsAtomic)
 {
