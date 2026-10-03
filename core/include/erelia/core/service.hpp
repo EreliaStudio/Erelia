@@ -1,7 +1,6 @@
 #pragma once
 
 #include "erelia/core/event_center.hpp"
-#include "erelia/core/world_collection.hpp"
 
 namespace spk
 {
@@ -12,5 +11,4 @@ namespace Service
 {
 	[[nodiscard]] spk::WorkerPool &workerPool();
 	[[nodiscard]] Core::EventCenter &coreEventCenter();
-	[[nodiscard]] WorldCollection &worldCollection();
 }
