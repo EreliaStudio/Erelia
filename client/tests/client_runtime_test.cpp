@@ -300,8 +300,8 @@ TEST(ClientWorldLifecycle, DetachesBeforeRemovingActiveNamedWorld)
 		{1, 2},
 		&mainWindow.root());
 
-	WorldService &worlds =
-		Service::clientWorldService();
+	WorldCollection &worlds =
+		Service::clientWorldCollection();
 	const WorldIdentifier identifier{
 		.name = "test.client.world"};
 	(void)worlds.remove(identifier);
