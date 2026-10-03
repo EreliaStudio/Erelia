@@ -196,6 +196,14 @@ TEST(ClientBootstrap, InitializesSeparatedClientRootsFromConfiguredWindowGeometr
 		Client::WidgetOrder::Network);
 	EXPECT_EQ(world.zOrder(), Client::WidgetOrder::World);
 	EXPECT_EQ(interface.zOrder(), Client::WidgetOrder::Interface);
+
+	const auto &rootChildren = mainWindow.root().children();
+	ASSERT_EQ(rootChildren.size(), 4u);
+	EXPECT_EQ(rootChildren[0], &runtime.connectionManager());
+	EXPECT_EQ(rootChildren[1], &runtime.networkManager());
+	EXPECT_EQ(rootChildren[2], &world);
+	EXPECT_EQ(rootChildren[3], &interface);
+
 	EXPECT_EQ(world.engine(), &world.gameEngine());
 	EXPECT_EQ(world.player(), nullptr);
 	EXPECT_EQ(
