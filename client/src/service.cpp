@@ -1,5 +1,7 @@
 #include "erelia/client/service.hpp"
 
+#include "erelia/client/requesting_world_provider.hpp"
+
 #include <network/client.hpp>
 #include <system/translator.hpp>
 
@@ -15,8 +17,9 @@ spk::Translator &Service::translator()
 	return translator;
 }
 
-ClientWorldCollection &Service::clientWorldCollection()
+WorldService &Service::clientWorldService()
 {
-	static ClientWorldCollection worlds;
+	static WorldService worlds(
+		RequestingWorldProvider{});
 	return worlds;
 }
