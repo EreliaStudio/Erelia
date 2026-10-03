@@ -1,5 +1,6 @@
 #include "erelia/client/client_configuration.hpp"
 #include "erelia/client/client_runtime.hpp"
+#include "erelia/client/client_world.hpp"
 #include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/main_interface.hpp"
 #include "erelia/client/service.hpp"
@@ -59,9 +60,10 @@ int main(int argc, char **argv)
 			configuration.retryDelay,
 			&mainWindow.root());
 
+		ClientWorld clientWorld(runtime.networkManager());
+
 		WorldManager world(
 			"/WorldManager",
-			runtime.terrainCollections(),
 			configuration.terrain,
 			&mainWindow.root());
 
@@ -72,6 +74,10 @@ int main(int argc, char **argv)
 
 		world.setGeometry(mainWindow.root().geometry());
 		interface.setGeometry(mainWindow.root().geometry());
+
+		// The prototype client has no authoritative world identifier yet.
+		// Keep selection explicit through the Client world lifecycle event.
+		Service::clientEventCenter().worldChanged().trigger(&clientWorld);
 
 		return application.run();
 	} catch (const std::exception &exception)
