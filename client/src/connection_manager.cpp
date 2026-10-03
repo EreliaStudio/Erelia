@@ -43,6 +43,8 @@ ConnectionManager::ConnectionManager(
 
 ConnectionManager::~ConnectionManager()
 {
+	_connectionRequestContract.resign();
+
 	if (
 		_connectionAttempt.has_value() == true &&
 		_connectionAttempt->status() == ConnectionTask::Status::Pending)
