@@ -6,7 +6,6 @@
 #include "erelia/client/service.hpp"
 #include "erelia/client/widget_order.hpp"
 #include "erelia/client/world_manager.hpp"
-#include "erelia/core/service.hpp"
 
 #include <core/application.hpp>
 #include <diagnostics/logger.hpp>
@@ -301,13 +300,13 @@ TEST(ClientWorldLifecycle, DetachesBeforeRemovingActiveNamedWorld)
 		{1, 2},
 		&mainWindow.root());
 
-	WorldCollection &worlds = Service::worldCollection();
+	ClientWorldCollection &worlds =
+		Service::clientWorldCollection();
 	(void)worlds.remove("test.client.world");
-	ClientWorld *world =
-		worlds.create<ClientWorld>(
-			"test.client.world",
-			runtime.networkManager());
+	World *world =
+		worlds.world("test.client.world");
 
+	ASSERT_NE(dynamic_cast<ClientWorld *>(world), nullptr);
 	Service::clientEventCenter().worldChanged().trigger(world);
 	ASSERT_EQ(runtime.world(), world);
 	ASSERT_EQ(manager.world(), world);
