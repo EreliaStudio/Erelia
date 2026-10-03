@@ -1,6 +1,7 @@
 #pragma once
 
 #include "erelia/core/event_center.hpp"
+#include "erelia/core/player_information.hpp"
 
 #include <cstdint>
 #include <optional>
@@ -22,6 +23,8 @@ namespace Client
 		Core::Event<const ConnectionRequest &> _connectionRequested;
 		Core::Event<> _clientDisconnected;
 		Core::Event<> _clientConnected;
+		Core::Event<> _playerLoadingRequested;
+		Core::Event<const PlayerInformation &> _playerReady;
 
 	public:
 		[[nodiscard]] Core::Event<spk::Vector3Int> &playerChangedChunkEvent() noexcept
@@ -39,6 +42,14 @@ namespace Client
 		[[nodiscard]] Core::Event<> &clientConnected() noexcept
 		{
 			return _clientConnected;
+		}
+		[[nodiscard]] Core::Event<> &playerLoadingRequested() noexcept
+		{
+			return _playerLoadingRequested;
+		}
+		[[nodiscard]] Core::Event<const PlayerInformation &> &playerReady() noexcept
+		{
+			return _playerReady;
 		}
 	};
 }
