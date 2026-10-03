@@ -38,12 +38,12 @@ TEST(ClientNetworkManager, ServiceDisconnectEventFailsPendingAndPreservesAvailab
 	Service::client().connect("127.0.0.1", server.port());
 	ClientNetworkManager manager;
 	ClientWorld world(manager);
-	world.chunkCollection()->.insert({1, 0, 0}, Chunk{});
-	auto pending = world.columnCollection()->.request(Column::Coordinate{2, 0});
+	world.chunkCollection()->insert({1, 0, 0}, Chunk{});
+	auto pending = world.columnCollection()->request(Column::Coordinate{2, 0});
 	Service::client().disconnect();
 	Service::clientEventCenter().clientDisconnected().trigger();
 	manager.dispatch();
 	EXPECT_EQ(pending.status(), spk::Task<Column>::Status::Failed);
-	EXPECT_EQ(world.chunkCollection()->.state({1, 0, 0}), World::Chunks::State::Available);
+	EXPECT_EQ(world.chunkCollection()->state({1, 0, 0}), World::Chunks::State::Available);
 	server.stop();
 }
