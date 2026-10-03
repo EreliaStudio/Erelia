@@ -49,12 +49,15 @@ TEST(EventCenter, ServiceInstanceIsStableAndEventsAreIndependent)
 	EXPECT_EQ(playerLoadingRequested, 1);
 	EXPECT_EQ(readyInformation, &information);
 
-	World *changedWorld = reinterpret_cast<World *>(1);
+	bool worldChanged = false;
+	World *changedWorld = nullptr;
 	auto sixth = Service::clientEventCenter().worldChanged().subscribe(
 		[&](World *world) {
+			worldChanged = true;
 			changedWorld = world;
 		});
 	Service::clientEventCenter().worldChanged().trigger(nullptr);
+	EXPECT_EQ(worldChanged, true);
 	EXPECT_EQ(changedWorld, nullptr);
 
 	Service::clientEventCenter().connectionRequested().trigger(
