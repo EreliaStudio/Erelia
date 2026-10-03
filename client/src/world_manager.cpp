@@ -7,15 +7,18 @@
 
 WorldManager::WorldManager(
 	std::string name,
-	TerrainCollections &terrainCollections,
 	TerrainStreamingBehaviour::Ranges ranges,
 	spk::Widget *parent) :
 	spk::EngineWidget(std::move(name), parent),
-	_terrainCollections(terrainCollections),
 	_ranges(ranges)
 {
-	setEngine(&_engine);
 	setZOrder(Client::WidgetOrder::World);
+
+	_worldChangedContract =
+		Service::clientEventCenter().worldChanged().subscribe(
+			[this](World *world) {
+				_changeWorld(world);
+			});
 
 	_playerReadyContract =
 		Service::clientEventCenter().playerReady().subscribe(
@@ -31,36 +34,48 @@ WorldManager::~WorldManager()
 	setEngine(nullptr);
 }
 
-void WorldManager::_instantiatePlayer(const PlayerInformation &information)
+void WorldManager::_changeWorld(World *world)
 {
-	if (_player != nullptr)
+	setEngine(nullptr);
+	_world = world;
+	_player = nullptr;
+
+	if (_world != nullptr)
+	{
+		setEngine(&_world->engine());
+	}
+}
+
+void WorldManager::_instantiatePlayer(
+	const PlayerInformation &information)
+{
+	if (_world == nullptr || _player != nullptr)
 	{
 		return;
 	}
 
-	_player = std::make_unique<Player>(
+	_player = _world->addEntity<Player>(
 		information,
-		_terrainCollections,
+		*_world,
 		_ranges);
-	_engine.addEntity(_player.get());
 }
 
-spk::Engine &WorldManager::gameEngine() noexcept
+World *WorldManager::world() noexcept
 {
-	return _engine;
+	return _world;
 }
 
-const spk::Engine &WorldManager::gameEngine() const noexcept
+const World *WorldManager::world() const noexcept
 {
-	return _engine;
+	return _world;
 }
 
 Player *WorldManager::player() noexcept
 {
-	return _player.get();
+	return _player;
 }
 
 const Player *WorldManager::player() const noexcept
 {
-	return _player.get();
+	return _player;
 }
