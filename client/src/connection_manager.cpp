@@ -30,8 +30,8 @@ ConnectionManager::ConnectionManager(
 		throw spk::Exception("Client Server port cannot be zero");
 	}
 
-	_disconnectionContract = Service::client().subscribeToDisconnection([flag = _disconnected] {
-		flag->store(true);
+	_disconnectionContract = Service::client().subscribeToDisconnection([this] {
+		_disconnected.store(true);
 	});
 	activate();
 	connect();
@@ -50,12 +50,12 @@ ConnectionManager::~ConnectionManager()
 	{
 		Service::client().disconnect();
 	}
-	_dispatchDisconnection();
+	_processDisconnection();
 }
 
-void ConnectionManager::_dispatchDisconnection()
+void ConnectionManager::_processDisconnection()
 {
-	if (_disconnected->exchange(false) == true)
+	if (_disconnected.exchange(false) == true)
 	{
 		Service::clientEventCenter().clientDisconnected().trigger();
 	}
@@ -162,7 +162,7 @@ void ConnectionManager::_processAttempt()
 
 void ConnectionManager::_updateState(spk::UpdateContext &)
 {
-	_dispatchDisconnection();
+	_processDisconnection();
 	_processAttempt();
 
 	if (
@@ -238,7 +238,7 @@ void ConnectionManager::connect(Endpoint endpoint)
 	if (Service::client().isConnected() == true)
 	{
 		Service::client().disconnect();
-		_dispatchDisconnection();
+		_processDisconnection();
 	}
 
 	_endpoint = std::move(endpoint);
