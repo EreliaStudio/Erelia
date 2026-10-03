@@ -2,6 +2,7 @@
 #include "erelia/core/service.hpp"
 
 #include <gtest/gtest.h>
+#include <optional>
 #include <string>
 #include <thread>
 #include <type_traits>
@@ -15,18 +16,28 @@ TEST(EventCenter, ServiceInstanceIsStableAndEventsAreIndependent)
 	EXPECT_EQ(&Service::coreEventCenter(), &Service::coreEventCenter());
 	int connected = 0;
 	int disconnected = 0;
+	std::optional<Client::ConnectionRequest> requested;
 	auto first = Service::clientEventCenter().clientConnected().subscribe([&] {
 		++connected;
 	});
 	auto second = Service::clientEventCenter().clientDisconnected().subscribe([&] {
 		++disconnected;
 	});
+	auto third = Service::clientEventCenter().connectionRequested().subscribe(
+		[&](const Client::ConnectionRequest &request) {
+			requested = request;
+		});
 	Service::clientEventCenter().clientConnected().trigger();
 	EXPECT_EQ(connected, 1);
 	EXPECT_EQ(disconnected, 0);
 	Service::clientEventCenter().clientDisconnected().trigger();
 	EXPECT_EQ(connected, 1);
 	EXPECT_EQ(disconnected, 1);
+	Service::clientEventCenter().connectionRequested().trigger(
+		Client::ConnectionRequest{.address = "192.0.2.1", .port = 2550});
+	ASSERT_TRUE(requested.has_value());
+	EXPECT_EQ(requested->address, "192.0.2.1");
+	EXPECT_EQ(requested->port, 2550u);
 }
 
 TEST(EventCenter, SubscriptionLifetimeAndTypedPayload)
