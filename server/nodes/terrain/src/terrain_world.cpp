@@ -2,6 +2,13 @@
 
 #include "prototype_chunk_provider.hpp"
 
+#include <utility>
+
+TerrainWorld::TerrainWorld(WorldIdentifier identifier) :
+	World(std::move(identifier))
+{
+}
+
 std::unique_ptr<World::Chunks> TerrainWorld::_createChunkCollection()
 {
 	return std::make_unique<Chunks>(
