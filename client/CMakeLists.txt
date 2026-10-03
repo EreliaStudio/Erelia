@@ -1,6 +1,7 @@
 add_library(EreliaClientLibrary STATIC
     src/event_center.cpp
     src/client_network_manager.cpp
+    src/client_runtime.cpp
     src/terrain_collections.cpp
     src/terrain_streaming_behaviour.cpp
     src/client_configuration.cpp
@@ -8,7 +9,8 @@ add_library(EreliaClientLibrary STATIC
     src/connection_manager.cpp
     src/console.cpp
     src/console_entry.cpp
-    src/main_application_widget.cpp
+    src/main_interface.cpp
+    src/world_manager.cpp
     src/service.cpp
 )
 target_compile_features(EreliaClientLibrary PUBLIC cxx_std_23)
