@@ -30,6 +30,10 @@ ConnectionManager::ConnectionManager(
 		throw spk::Exception("Client Server port cannot be zero");
 	}
 
+	_connectionRequestContract = Service::clientEventCenter().connectionRequested().subscribe(
+		[this](const Client::ConnectionRequest &request) {
+			_processConnectionRequest(request);
+		});
 	_disconnectionContract = Service::client().subscribeToDisconnection([this] {
 		_disconnected.store(true);
 	});
@@ -59,6 +63,29 @@ void ConnectionManager::_processDisconnection()
 	{
 		Service::clientEventCenter().clientDisconnected().trigger();
 	}
+}
+
+void ConnectionManager::_processConnectionRequest(const Client::ConnectionRequest &request)
+{
+	Endpoint endpoint = _endpoint;
+	if (request.address.has_value() == true)
+	{
+		endpoint.address = *request.address;
+	}
+	if (request.port.has_value() == true)
+	{
+		endpoint.port = *request.port;
+	}
+
+	if (
+		_endpoint.address == endpoint.address &&
+		_endpoint.port == endpoint.port)
+	{
+		connect();
+		return;
+	}
+
+	connect(std::move(endpoint));
 }
 
 void ConnectionManager::_launchAttempt()
