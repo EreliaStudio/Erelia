@@ -2,6 +2,7 @@
 
 #include "erelia/core/event_center.hpp"
 #include "erelia/core/player_information.hpp"
+#include "erelia/core/world.hpp"
 
 #include <cstdint>
 #include <optional>
@@ -25,6 +26,7 @@ namespace Client
 		Core::Event<> _clientConnected;
 		Core::Event<> _playerLoadingRequested;
 		Core::Event<const PlayerInformation &> _playerReady;
+		Core::Event<World *> _worldChanged;
 
 	public:
 		[[nodiscard]] Core::Event<spk::Vector3Int> &playerChangedChunkEvent() noexcept
@@ -50,6 +52,10 @@ namespace Client
 		[[nodiscard]] Core::Event<const PlayerInformation &> &playerReady() noexcept
 		{
 			return _playerReady;
+		}
+		[[nodiscard]] Core::Event<World *> &worldChanged() noexcept
+		{
+			return _worldChanged;
 		}
 	};
 }
