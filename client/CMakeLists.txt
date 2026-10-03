@@ -3,7 +3,7 @@ add_library(EreliaClientLibrary STATIC
     src/client_network_manager.cpp
     src/client_runtime.cpp
     src/client_world.cpp
-    src/client_world_collection.cpp
+    src/requesting_world_provider.cpp
     src/terrain_streaming_behaviour.cpp
     src/client_configuration.cpp
     src/command/connect_command.cpp
