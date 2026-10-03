@@ -2,14 +2,11 @@
 
 #include "erelia/core/world.hpp"
 
-#include <concepts>
 #include <cstddef>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>
-
-#include <exception.hpp>
 
 class WorldCollection
 {
@@ -19,25 +16,33 @@ public:
 private:
 	std::unordered_map<Identifier, std::unique_ptr<World>> _worlds;
 
+	[[nodiscard]] virtual std::unique_ptr<World> _createWorld(
+		const Identifier &identifier) = 0;
+
 public:
-	template <typename TWorld, typename... TArguments>
-		requires std::derived_from<TWorld, World>
-	[[nodiscard]] TWorld *create(
-		Identifier identifier,
-		TArguments &&...arguments)
+	virtual ~WorldCollection() = default;
+
+	WorldCollection() = default;
+	WorldCollection(const WorldCollection &) = delete;
+	WorldCollection &operator=(const WorldCollection &) = delete;
+	WorldCollection(WorldCollection &&) = delete;
+	WorldCollection &operator=(WorldCollection &&) = delete;
+
+	[[nodiscard]] World *world(
+		const Identifier &identifier)
 	{
-		if (_worlds.contains(identifier) == true)
+		auto found = _worlds.find(identifier);
+		if (found != _worlds.end())
 		{
-			throw spk::Exception(
-				"World already exists: " + identifier);
+			return found->second.get();
 		}
 
-		auto world = std::make_unique<TWorld>(
-			std::forward<TArguments>(arguments)...);
-		TWorld *result = world.get();
+		std::unique_ptr<World> created =
+			_createWorld(identifier);
+		World *result = created.get();
 		_worlds.emplace(
-			std::move(identifier),
-			std::move(world));
+			identifier,
+			std::move(created));
 		return result;
 	}
 
@@ -69,6 +74,11 @@ public:
 		const Identifier &identifier)
 	{
 		return _worlds.erase(identifier) != 0;
+	}
+
+	void clear()
+	{
+		_worlds.clear();
 	}
 
 	[[nodiscard]] std::size_t size() const noexcept
