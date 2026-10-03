@@ -65,7 +65,7 @@ TerrainNode::TerrainNode(Configuration configuration) :
 	{
 		auto &provider =
 			static_cast<GeneratingWorldProvider &>(
-				Service::terrainWorldService().provider());
+				Service::terrainWorldCollection().provider());
 		provider.define(
 			{
 				.identifier =
@@ -75,7 +75,7 @@ TerrainNode::TerrainNode(Configuration configuration) :
 				.family = {}
 			});
 		_world =
-			Service::terrainWorldService().world(
+			Service::terrainWorldCollection().world(
 				GeneratingWorldProvider::PrototypeWorld);
 
 		_subscriptions.push_back(_dispatcher.subscribe(static_cast<spk::Message::Type>(Networking::MessageType::ChunkRequest), [this](const Request &request) {
@@ -86,7 +86,7 @@ TerrainNode::TerrainNode(Configuration configuration) :
 		}));
 	} catch (...)
 	{
-		(void)Service::terrainWorldService().remove(
+		(void)Service::terrainWorldCollection().remove(
 			GeneratingWorldProvider::PrototypeWorld);
 		_world = nullptr;
 		drainerOwned.store(false);
@@ -101,7 +101,7 @@ TerrainNode::~TerrainNode()
 	} catch (...)
 	{
 	}
-	(void)Service::terrainWorldService().remove(
+	(void)Service::terrainWorldCollection().remove(
 		GeneratingWorldProvider::PrototypeWorld);
 	_world = nullptr;
 	drainerOwned.store(false);
