@@ -7,9 +7,9 @@ spk::RemoteNode::Endpoint &Service::terrainEndpoint()
 	return endpoint;
 }
 
-WorldService &Service::terrainWorldService()
+WorldCollection &Service::terrainWorldCollection()
 {
-	static WorldService worlds(
+	static WorldCollection worlds(
 		GeneratingWorldProvider{});
 	return worlds;
 }
