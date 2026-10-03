@@ -26,5 +26,5 @@ private:
 		typename Collection<TKey, TElement>::Updater &updater);
 
 public:
-	explicit ClientWorld(ClientNetworkManager &networkManager);
+	ClientWorld(WorldIdentifier identifier, ClientNetworkManager &networkManager);
 };
