@@ -16,7 +16,7 @@ TEST(PrototypeTerrainColumns, SparseMembershipMatchesEveryGeneratedChunk)
 				GeneratingWorldProvider::Type::Prototype,
 			.family = {}
 		});
-	WorldService worlds(
+	WorldCollection worlds(
 		std::move(provider));
 	World *world =
 		worlds.world(
