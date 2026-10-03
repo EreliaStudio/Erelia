@@ -81,8 +81,15 @@ public:
 		auto entity = std::make_unique<TEntity>(
 			std::forward<TArguments>(arguments)...);
 		TEntity *result = entity.get();
-		_engine.addEntity(result);
 		_entities.push_back(std::move(entity));
+		try
+		{
+			_engine.addEntity(result);
+		} catch (...)
+		{
+			_entities.pop_back();
+			throw;
+		}
 		return result;
 	}
 };
