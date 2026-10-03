@@ -442,13 +442,21 @@ Destroying a returned Contract removes the subscription. Multiple subscribers fo
 
 ### Client
 
-`ClientNetworkManager : spk::Widget`:
+The executable composition root creates three independent Client roots:
+
+- `ClientRuntime`, a non-Widget lifetime/composition owner for `ConnectionManager`, `ClientNetworkManager` and `TerrainCollections`;
+- `WorldManager : spk::EngineWidget`, which owns and binds one `spk::Engine` and owns the instantiated Player;
+- `MainInterface : spk::Widget`, which owns the Console and UI layout only.
+
+`ConnectionManager` and `ClientNetworkManager` remain separate Widgets. They are siblings in the window hierarchy with explicit distinct z-orders, so Sparkle's child traversal guarantees connection lifecycle processing before receive-queue draining without a manual runtime update chain.
+
+`ClientNetworkManager`:
 
 - uses `Service::client()`;
 - is the unique drainer of `spk::Client::messages()`;
 - forwards received Messages to `MessageDispatcher`.
 
-ConnectionManager retains the transport disconnection Contract and publishes typed Client::EventCenter lifecycle events. TerrainCollections subscribes to clientDisconnected() to settle network-backed RequestingProviders. The Client connection manager updates before the network drainer.
+ConnectionManager retains the transport disconnection Contract and publishes typed Client::EventCenter lifecycle events. TerrainCollections subscribes to clientDisconnected() to settle network-backed RequestingProviders.
 
 Composition root bindings include:
 
@@ -488,6 +496,22 @@ A node-side dispatcher adapter:
 No parser independently drains a Sparkle receive FIFO.
 
 ## Client streaming behavior
+
+`WorldManager` owns the Client `spk::Engine` through `spk::EngineWidget` and subscribes to `playerReady(const PlayerInformation &)`. The Player is created only from that event and then added to the Engine. `PlayerInformation` is intentionally fieldless in ST-001-11; its authoritative identifier/position/session fields belong to the future player-information protocol and are not guessed by this ticket.
+
+The intended lifecycle is:
+
+```text
+clientConnected
+    -> account/session stage
+    -> playerLoadingRequested
+    -> player-information request
+    -> playerReady(PlayerInformation)
+    -> WorldManager
+    -> Player construction
+```
+
+Until the account/session and player-information protocol exist, ClientRuntime provides a prototype bridge from `clientConnected` to `playerLoadingRequested`, then to `playerReady` with an empty `PlayerInformation`, preserving the current validation Player bootstrap while keeping the future lifecycle boundary explicit.
 
 The Player owns one terrain-streaming `spk::Behaviour`.
 
@@ -722,4 +746,4 @@ Validation: a local GCC 13 C++23 executable linked to the real Sparkle Message/E
 
 ### Owner decision: separate event services
 
-Core, Client and Terrain each expose an independent typed EventCenter service. Core::Event<TArguments...> reuses spk::ContractProvider for subscriptions and synchronous emission. No inheritance or heterogeneous string map is required. Collection instances also use Core::Event directly for local Available/Removed lifecycle channels; those are deliberately not routed through the global Core::EventCenter because multiple independent Collections can coexist in one process. Client declares connection-request, connection, disconnection and player chunk-change events. ConnectCommand publishes Client::ConnectionRequest through connectionRequested(), and ConnectionManager owns the subscription; MainApplicationWidget only registers the command. Core and Terrain can gain their own named process-wide events as their domain contracts are defined. Event tests cover typed payloads, independent channels, subscription lifetime and the emitting thread. Connection integration checks lifecycle counts and delivery on the update thread; routed acquisition now uses ConnectionManager to exercise disconnect handling through the event service. Windows runtime validation remains a CI responsibility.
+Core, Client and Terrain each expose an independent typed EventCenter service. Core::Event<TArguments...> reuses spk::ContractProvider for subscriptions and synchronous emission. No inheritance or heterogeneous string map is required. Collection instances also use Core::Event directly for local Available/Removed lifecycle channels; those are deliberately not routed through the global Core::EventCenter because multiple independent Collections can coexist in one process. Client declares connection-request, connection, disconnection, player-loading, player-ready and player chunk-change events. ConnectCommand publishes Client::ConnectionRequest through connectionRequested(), and ConnectionManager owns the subscription. MainInterface only owns UI; command registration is performed by the executable composition root. ClientRuntime owns the temporary connection-to-player-loading bridge, while WorldManager subscribes only to playerReady(PlayerInformation) and owns Player/Engine lifetime. Core and Terrain can gain their own named process-wide events as their domain contracts are defined. Event tests cover typed payloads, independent channels, subscription lifetime and the emitting thread. Connection integration checks lifecycle counts and delivery on the update thread; routed acquisition now uses ConnectionManager to exercise disconnect handling through the event service. Windows runtime validation remains a CI responsibility.
