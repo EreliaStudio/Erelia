@@ -19,7 +19,6 @@ ClientRuntime::ClientRuntime(
 {
 	_connectionManager.setZOrder(Client::WidgetOrder::Connection);
 	_networkManager.setZOrder(Client::WidgetOrder::Network);
-	Service::clientWorldCollection().bind(_networkManager);
 
 	_worldChangedContract =
 		Service::clientEventCenter().worldChanged().subscribe(
@@ -39,6 +38,8 @@ ClientRuntime::ClientRuntime(
 			const PlayerInformation information;
 			Service::clientEventCenter().playerReady().trigger(information);
 		});
+
+	Service::clientWorldCollection().bind(_networkManager);
 }
 
 ClientRuntime::~ClientRuntime()
