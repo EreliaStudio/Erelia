@@ -442,16 +442,16 @@ Destroying a returned Contract removes the subscription. Multiple subscribers fo
 
 ### Client
 
-Core owns a protocol-free `World` abstraction. A World owns one `spk::Engine`, owned Entities, and lazily-created Chunk/Column Collections. Public `chunkCollection()` / `columnCollection()` accessors return stable non-owning pointers; private virtual factory hooks let each process specialization choose its providers only when a collection is first requested. `WorldCollection` is an abstract Core lazy factory/owner for multiple named Worlds by string identifier such as `world.level1` or `spawn.hub`. Core does not expose a WorldCollection service. Concrete services live in the owning process layer: `Service::clientWorldCollection()` and `Service::terrainWorldCollection()`.
+Core owns protocol-free `WorldIdentifier`, `World`, `WorldProvider` and `WorldService` abstractions. A World carries its identifier, owns one `spk::Engine`, owned Entities, and lazily-created Chunk/Column Collections. Public `chunkCollection()` / `columnCollection()` accessors return stable non-owning pointers; private virtual factory hooks let each World specialization choose its collection Providers only when first requested. `WorldService` owns/caches Worlds by `WorldIdentifier` and delegates missing-world acquisition to its `WorldProvider`, mirroring the existing Collection/Provider split.
 
 The executable composition root creates independent Client roots:
 
 - `ClientRuntime`, a non-Widget lifetime/composition owner for `ConnectionManager` and `ClientNetworkManager`; it tracks the current non-owning `World *` from the Client world lifecycle event;
-- one current prototype `ClientWorld : World`, whose lazy collections own RequestingProviders, Updaters and MessageDispatcher subscriptions;
+- `Service::clientWorldService()`, backed by `RequestingWorldProvider`, which creates named blank `ClientWorld` instances whose lazy Collections own RequestingProviders, Updaters and MessageDispatcher subscriptions;
 - `WorldManager : spk::EngineWidget`, which tracks the active `World *`, binds that World's Engine, and inserts the Player into the World rather than owning either Engine or Player;
 - `MainInterface : spk::Widget`, which owns the Console and UI layout only.
 
-The prototype ClientWorld is currently composed directly because ST-001-11 has no authoritative world identifier in configuration/session/player data. It is announced through `worldChanged(World *)`. Named Client ownership is available through `Service::clientWorldCollection()` for the future session/world-selection layer without inventing a default persistent key in this ticket. The Terrain node exposes the symmetric `Service::terrainWorldCollection()`.
+The prototype bootstrap currently asks `Service::clientWorldService()` for the temporary named `prototype` World because ST-001-11 still has no authoritative world identifier in configuration/session/player data, then announces it through `worldChanged(World *)`. The Terrain node exposes the symmetric `Service::terrainWorldService()` backed by `GeneratingWorldProvider`.
 
 `ConnectionManager` and `ClientNetworkManager` remain separate Widgets. They are siblings in the window hierarchy with explicit distinct z-orders, so Sparkle's child traversal guarantees connection lifecycle processing before receive-queue draining without a manual runtime update chain.
 
@@ -490,7 +490,7 @@ Unconfigured MessageIDs remain invalid under Sparkle's existing strict NodeRoute
 
 ### Terrain node
 
-`TerrainWorld : World` supplies the same lazy Chunk/Column accessors as ClientWorld, but its private factory hooks construct the existing prototype GeneratingProviders. TerrainNode owns one TerrainWorld and routes requests through those World collections. World itself owns no network protocol.
+`GeneratingWorldProvider` is the Terrain-side WorldProvider. It owns server-side World definitions (`identifier`, `generatorType`, `family`) and selects the matching World construction strategy. The current `Prototype` type creates a `TerrainWorld` whose lazy Chunk/Column Collections use the existing deterministic prototype GeneratingProviders. TerrainNode defines/acquires that prototype World through `Service::terrainWorldService()` and routes requests through the returned World. The same `GeneratingWorldProvider + WorldService` path is used by the prototype terrain TU, so validation and the real Terrain node share the world-generation entry point. World itself owns no network protocol.
 
 A node-side dispatcher adapter:
 
@@ -518,7 +518,7 @@ clientConnected
     -> Player construction
 ```
 
-Until the account/session and player-information protocol exist, ClientRuntime provides a prototype bridge from `clientConnected` to `playerLoadingRequested`, then to `playerReady` with an empty `PlayerInformation`. The executable announces its directly-composed prototype ClientWorld through `worldChanged` before the update loop starts, preserving the current validation Player bootstrap while keeping future named-world selection explicit.
+Until the account/session and player-information protocol exist, ClientRuntime provides a prototype bridge from `clientConnected` to `playerLoadingRequested`, then to `playerReady` with an empty `PlayerInformation`. The executable acquires the temporary `prototype` ClientWorld from `Service::clientWorldService()` and announces it through `worldChanged` before the update loop starts, preserving the current validation Player bootstrap while keeping future authoritative named-world selection explicit.
 
 The current Collection wire messages do not carry a World identifier. Therefore this ticket does not invent cross-world network routing: multiple Worlds may coexist process-locally, but only one network-active Client world is part of the ST-001-11 transport contract.
 
@@ -762,6 +762,6 @@ Core, Client and Terrain each expose an independent typed EventCenter service. C
 
 Core now defines `World` as a process-local world-state container rather than a wire protocol. It owns a Sparkle Engine, Entity lifetime and lazily-created Chunk/Column Collections. Derived `ClientWorld` and `TerrainWorld` implement the private collection factories with RequestingProvider and GeneratingProvider strategies respectively. Public collection accessors return stable pointers so systems may cache their current collection directly.
 
-`WorldCollection` is an abstract Core lazy factory/owner keyed by string identifiers. Its `world(identifier)` accessor returns an existing World or invokes the private virtual `_createWorld(identifier)` hook. Core owns no WorldCollection service instance. Client and Terrain provide their own concrete WorldCollection types and service accessors, so callers select a named World without knowing whether it is a ClientWorld or TerrainWorld. Client active-world selection is deliberately separate from ownership: `Client::EventCenter::worldChanged(World *)` tells ClientRuntime, WorldManager and future subscribers which World is active. Callers must publish a replacement or `nullptr` before destroying an active World so cached non-owning pointers are not left dangling.
+`WorldService` replaces the former WorldCollection abstraction. It owns Worlds by `WorldIdentifier`, returns cached Worlds from `world(identifier)`, and asks its owned `WorldProvider` to acquire a missing World. Client uses `RequestingWorldProvider`: it creates an empty named ClientWorld whose Collections request their contents from the Server. Terrain uses `GeneratingWorldProvider`: definitions select a generation type and currently support the deterministic `Prototype` type used by both TerrainNode and the prototype terrain TU. The Client and Terrain expose separate `Service::clientWorldService()` / `Service::terrainWorldService()` instances because integration tests link both domains into one process. Client active-world selection remains separate from ownership: `Client::EventCenter::worldChanged(World *)` tells ClientRuntime, WorldManager and future subscribers which World is active. Callers must publish a replacement or `nullptr` before removing an active World so cached non-owning pointers are not left dangling.
 
 No World message family or World protocol is introduced. The current Chunk/Column protocol has no World identifier, so simultaneous network routing for several ClientWorld instances remains future work rather than being implicitly encoded into ST-001-11.
