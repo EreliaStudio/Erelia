@@ -10,12 +10,9 @@ TEST(PrototypeTerrainColumns, SparseMembershipMatchesEveryGeneratedChunk)
 	GeneratingWorldProvider provider;
 	provider.define(
 		{
-			.identifier =
-				GeneratingWorldProvider::PrototypeWorld,
-			.generatorType =
-				GeneratingWorldProvider::Type::Prototype,
-			.family = {}
-		});
+			.identifier = GeneratingWorldProvider::PrototypeWorld,
+			.generatorType = GeneratingWorldProvider::Type::Prototype,
+			.family = {}});
 	WorldCollection worlds(
 		std::move(provider));
 	World *world =
