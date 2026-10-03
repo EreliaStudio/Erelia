@@ -1,5 +1,5 @@
 #include "erelia/core/world.hpp"
-#include "erelia/core/world_collection.hpp"
+#include "erelia/core/world_service.hpp"
 
 #include <engine/entity3d.hpp>
 #include <gtest/gtest.h>
@@ -46,29 +46,50 @@ namespace
 		}
 
 	public:
+		explicit TestWorld(WorldIdentifier identifier) :
+			World(std::move(identifier))
+		{
+		}
+
 		std::size_t chunkCreations = 0;
 		std::size_t columnCreations = 0;
 	};
 
-	class TestWorldCollection final : public WorldCollection
+	class TestWorldProvider final : public WorldProvider
 	{
-	private:
-		[[nodiscard]] std::unique_ptr<World> _createWorld(
-			const Identifier &) override
+	protected:
+		[[nodiscard]] std::unique_ptr<World> _acquire(
+			const WorldIdentifier &identifier) override
 		{
-			++creations;
-			return std::make_unique<TestWorld>();
+			++acquisitions;
+			return std::make_unique<TestWorld>(
+				identifier);
 		}
 
 	public:
-		std::size_t creations = 0;
+		std::size_t acquisitions = 0;
+	};
+
+	class MismatchedWorldProvider final : public WorldProvider
+	{
+	protected:
+		[[nodiscard]] std::unique_ptr<World> _acquire(
+			const WorldIdentifier &) override
+		{
+			return std::make_unique<TestWorld>(
+				WorldIdentifier{
+					.name = "other"});
+		}
 	};
 }
 
 TEST(World, LazilyCreatesStableCollectionPointers)
 {
-	TestWorld world;
+	TestWorld world(
+		WorldIdentifier{
+			.name = "test.world"});
 
+	EXPECT_EQ(world.identifier().name, "test.world");
 	EXPECT_EQ(world.chunkCreations, 0u);
 	EXPECT_EQ(world.columnCreations, 0u);
 
@@ -88,7 +109,9 @@ TEST(World, LazilyCreatesStableCollectionPointers)
 
 TEST(World, OwnsEntitiesAddedToItsEngine)
 {
-	TestWorld world;
+	TestWorld world(
+		WorldIdentifier{
+			.name = "test.world"});
 
 	spk::Entity3D *entity =
 		world.addEntity<spk::Entity3D>("Entity");
@@ -98,33 +121,62 @@ TEST(World, OwnsEntitiesAddedToItsEngine)
 	EXPECT_EQ(world.engine().root().children().front(), entity);
 }
 
-TEST(WorldCollection, LazilyCreatesAndOwnsNamedWorlds)
+TEST(WorldService, LazilyAcquiresAndOwnsNamedWorlds)
 {
-	TestWorldCollection worlds;
+	WorldService worlds(
+		TestWorldProvider{});
 
-	World *level = worlds.world("world.level1");
-	World *sameLevel = worlds.world("world.level1");
-	World *hub = worlds.world("spawn.hub");
+	const WorldIdentifier levelIdentifier{
+		.name = "world.level1"};
+	const WorldIdentifier hubIdentifier{
+		.name = "spawn.hub"};
+
+	World *level = worlds.world(levelIdentifier);
+	World *sameLevel = worlds.world(levelIdentifier);
+	World *hub = worlds.world(hubIdentifier);
 
 	ASSERT_NE(level, nullptr);
 	ASSERT_NE(hub, nullptr);
 	EXPECT_EQ(level, sameLevel);
 	EXPECT_NE(level, hub);
-	EXPECT_EQ(worlds.creations, 2u);
+	EXPECT_EQ(level->identifier(), levelIdentifier);
+	EXPECT_EQ(hub->identifier(), hubIdentifier);
+	EXPECT_EQ(
+		static_cast<TestWorldProvider &>(
+			worlds.provider())
+			.acquisitions,
+		2u);
 	EXPECT_EQ(worlds.size(), 2u);
-	EXPECT_EQ(worlds.find("world.level1"), level);
-	EXPECT_EQ(worlds.find("spawn.hub"), hub);
-	EXPECT_EQ(worlds.find("missing"), nullptr);
+	EXPECT_EQ(worlds.find(levelIdentifier), level);
+	EXPECT_EQ(worlds.find(hubIdentifier), hub);
 
-	EXPECT_EQ(worlds.remove("world.level1"), true);
-	EXPECT_EQ(worlds.find("world.level1"), nullptr);
+	EXPECT_EQ(worlds.remove(levelIdentifier), true);
+	EXPECT_EQ(worlds.find(levelIdentifier), nullptr);
 	EXPECT_EQ(worlds.size(), 1u);
 
-	World *recreated = worlds.world("world.level1");
+	World *recreated =
+		worlds.world(levelIdentifier);
 	ASSERT_NE(recreated, nullptr);
-	EXPECT_EQ(worlds.creations, 3u);
-	EXPECT_EQ(worlds.size(), 2u);
+	EXPECT_EQ(recreated->identifier(), levelIdentifier);
+	EXPECT_EQ(
+		static_cast<TestWorldProvider &>(
+			worlds.provider())
+			.acquisitions,
+		3u);
 
 	worlds.clear();
+	EXPECT_EQ(worlds.size(), 0u);
+}
+
+TEST(WorldService, RejectsProviderIdentifierMismatch)
+{
+	WorldService worlds(
+		MismatchedWorldProvider{});
+
+	EXPECT_THROW(
+		(void)worlds.world(
+			WorldIdentifier{
+				.name = "requested"}),
+		spk::Exception);
 	EXPECT_EQ(worlds.size(), 0u);
 }
