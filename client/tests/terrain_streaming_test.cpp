@@ -1,8 +1,8 @@
 #include "erelia/client/client_configuration.hpp"
-#include "erelia/core/world.hpp"
 #include "erelia/client/service.hpp"
 #include "erelia/client/terrain_streaming_behaviour.hpp"
 #include "erelia/core/chunk_builder.hpp"
+#include "erelia/core/world.hpp"
 #include <chrono>
 #include <diagnostics/logger.hpp>
 #include <fstream>
