@@ -259,9 +259,7 @@ TEST(ClientWorldLifecycle, WorldChangedRebindsRuntimeAndEngineWidget)
 		Service::clientEventCenter().worldChanged().subscribe(
 			[&](World *world) {
 				currentChunks =
-					world == nullptr
-						? nullptr
-						: world->chunkCollection();
+					world == nullptr ? nullptr : world->chunkCollection();
 			});
 
 	Service::clientEventCenter().worldChanged().trigger(&first);
