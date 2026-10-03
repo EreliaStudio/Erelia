@@ -195,10 +195,10 @@ TEST(TerrainNodeRuntime, ServiceEndpointHasExactlyOneDispatcher)
 	EXPECT_NO_THROW((void)TerrainNode({.port = 0}));
 }
 
-TEST(TerrainWorldService, GeneratesDefinedWorlds)
+TEST(TerrainWorldCollection, GeneratesDefinedWorlds)
 {
-	WorldService &worlds =
-		Service::terrainWorldService();
+	WorldCollection &worlds =
+		Service::terrainWorldCollection();
 	auto &provider =
 		static_cast<GeneratingWorldProvider &>(
 			worlds.provider());
@@ -230,7 +230,7 @@ TEST(TerrainWorldService, GeneratesDefinedWorlds)
 
 TEST(GeneratingWorldProvider, RejectsUndefinedWorld)
 {
-	WorldService worlds(
+	WorldCollection worlds(
 		GeneratingWorldProvider{});
 
 	EXPECT_THROW(
