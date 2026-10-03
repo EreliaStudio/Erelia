@@ -17,7 +17,7 @@ namespace
 		TerrainNode terrain{{.port = 0}};
 		std::unique_ptr<Router> router;
 		ClientNetworkManager manager;
-		ClientWorld client{manager};
+		ClientWorld client{{.name = "test.integration"}, manager};
 		std::unique_ptr<ConnectionManager> connection;
 		void updateConnection()
 		{
