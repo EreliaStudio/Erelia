@@ -114,6 +114,44 @@ TEST(Collection, StrictMutationsAndStaleCompletion)
 	stale->validate(100);
 	EXPECT_EQ(cache.state(1), Cache::State::Absent);
 }
+TEST(Collection, LifecycleEventsCoverAvailabilityAndActualRemoval)
+{
+	auto tasks = std::make_shared<Tasks>();
+	Cache cache{Controlled(tasks)};
+	std::vector<std::pair<int, int>> available;
+	std::vector<int> removed;
+	auto availableContract = cache.availableEvent().subscribe(
+		[&](const int &key, const int &value) {
+			EXPECT_EQ(cache.state(key), Cache::State::Available);
+			available.emplace_back(key, value);
+		});
+	auto removedContract = cache.removedEvent().subscribe(
+		[&](const int &key) {
+			EXPECT_EQ(cache.state(key), Cache::State::Absent);
+			removed.push_back(key);
+		});
+
+	cache.insert(1, 10);
+	cache.replace(1, 11);
+	cache.remove(2);
+
+	auto invalidated = cache.request(2);
+	cache.remove(2);
+	EXPECT_EQ(invalidated.status(), spk::Task<int>::Status::Failed);
+
+	auto acquired = cache.request(3);
+	tasks->at(3)->validate(30);
+	EXPECT_EQ(acquired.result(), 30);
+
+	cache.remove(1);
+	cache.remove(3);
+
+	EXPECT_EQ(
+		available,
+		(std::vector<std::pair<int, int>>{{1, 10}, {1, 11}, {3, 30}}));
+	EXPECT_EQ(removed, (std::vector<int>{1, 3}));
+}
+
 TEST(Collection, RemoveThenRerequestRejectsPreviousIdentity)
 {
 	auto tasks = std::make_shared<Tasks>();
