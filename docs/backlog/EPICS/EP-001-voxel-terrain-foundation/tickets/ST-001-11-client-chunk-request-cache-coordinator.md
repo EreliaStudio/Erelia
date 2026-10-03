@@ -82,6 +82,17 @@ public:
     class RequestingProvider;
     class Updater;
 
+    using AvailableEvent =
+        Core::Event<const TKey&, const TElement&>;
+    using RemovedEvent =
+        Core::Event<const TKey&>;
+
+    [[nodiscard]]
+    AvailableEvent& availableEvent();
+
+    [[nodiscard]]
+    RemovedEvent& removedEvent();
+
     [[nodiscard]]
     State state(const TKey& key) const;
 
@@ -143,6 +154,8 @@ remove:
 ```
 
 Once a Pending acquisition has been invalidated/removed, a later network Response for it is stale and cannot republish data.
+
+Collection lifecycle notifications are instance-local typed `Core::Event` channels. `availableEvent()` fires after an authoritative value enters or replaces Available storage through direct mutation, Provider completion, or Update Set. `removedEvent()` fires only when an actually Available value is erased; removing Absent state or invalidating Pending-only state does not emit it. Both channels are triggered outside the acquisition mutex so subscribers may safely query/request Collection state.
 
 ## Provider lifecycle
 
@@ -575,7 +588,10 @@ The Behaviour never serializes or sends protocol Messages directly.
 - insert/replace/remove strict semantics;
 - Pending invalidation by mutation;
 - late completion cannot republish removed/replaced data;
-- Provider completion Contract lifetime including synchronous completion.
+- Provider completion Contract lifetime including synchronous completion;
+- instance-local availability events for direct mutation, Provider completion and Update Set;
+- removal events only for actually Available values, including Update Remove;
+- Collection lifecycle callbacks execute outside the acquisition mutex.
 
 ### Protocol
 
@@ -706,4 +722,4 @@ Validation: a local GCC 13 C++23 executable linked to the real Sparkle Message/E
 
 ### Owner decision: separate event services
 
-Core, Client and Terrain each expose an independent typed EventCenter service. Core::Event<TArguments...> reuses spk::ContractProvider for subscriptions and synchronous emission. No inheritance or heterogeneous string map is required. Client currently declares connection, disconnection and player chunk-change events; Core and Terrain can gain their own named events as their domain contracts are defined. Event tests cover typed payloads, independent channels, subscription lifetime and the emitting thread. Connection integration checks lifecycle counts and delivery on the update thread; routed acquisition now uses ConnectionManager to exercise disconnect handling through the event service. Windows runtime validation remains a CI responsibility.
+Core, Client and Terrain each expose an independent typed EventCenter service. Core::Event<TArguments...> reuses spk::ContractProvider for subscriptions and synchronous emission. No inheritance or heterogeneous string map is required. Collection instances also use Core::Event directly for local Available/Removed lifecycle channels; those are deliberately not routed through the global Core::EventCenter because multiple independent Collections can coexist in one process. Client declares connection-request, connection, disconnection and player chunk-change events. ConnectCommand publishes Client::ConnectionRequest through connectionRequested(), and ConnectionManager owns the subscription; MainApplicationWidget only registers the command. Core and Terrain can gain their own named process-wide events as their domain contracts are defined. Event tests cover typed payloads, independent channels, subscription lifetime and the emitting thread. Connection integration checks lifecycle counts and delivery on the update thread; routed acquisition now uses ConnectionManager to exercise disconnect handling through the event service. Windows runtime validation remains a CI responsibility.
