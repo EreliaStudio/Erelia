@@ -442,11 +442,16 @@ Destroying a returned Contract removes the subscription. Multiple subscribers fo
 
 ### Client
 
-The executable composition root creates three independent Client roots:
+Core owns a protocol-free `World` abstraction. A World owns one `spk::Engine`, owned Entities, and lazily-created Chunk/Column Collections. Public `chunkCollection()` / `columnCollection()` accessors return stable non-owning pointers; private virtual factory hooks let each process specialization choose its providers only when a collection is first requested. `WorldCollection`, exposed through `Service::worldCollection()`, owns multiple named Worlds by string identifier such as `world.level1` or `spawn.hub`.
 
-- `ClientRuntime`, a non-Widget lifetime/composition owner for `ConnectionManager`, `ClientNetworkManager` and `TerrainCollections`;
-- `WorldManager : spk::EngineWidget`, which owns and binds one `spk::Engine` and owns the instantiated Player;
+The executable composition root creates independent Client roots:
+
+- `ClientRuntime`, a non-Widget lifetime/composition owner for `ConnectionManager` and `ClientNetworkManager`; it tracks the current non-owning `World *` from the Client world lifecycle event;
+- one current prototype `ClientWorld : World`, whose lazy collections own RequestingProviders, Updaters and MessageDispatcher subscriptions;
+- `WorldManager : spk::EngineWidget`, which tracks the active `World *`, binds that World's Engine, and inserts the Player into the World rather than owning either Engine or Player;
 - `MainInterface : spk::Widget`, which owns the Console and UI layout only.
+
+The prototype ClientWorld is currently composed directly because ST-001-11 has no authoritative world identifier in configuration/session/player data. It is announced through `worldChanged(World *)`. Named `Service::worldCollection()` ownership is available for the future session/world-selection layer without inventing a default persistent key in this ticket.
 
 `ConnectionManager` and `ClientNetworkManager` remain separate Widgets. They are siblings in the window hierarchy with explicit distinct z-orders, so Sparkle's child traversal guarantees connection lifecycle processing before receive-queue draining without a manual runtime update chain.
 
@@ -456,7 +461,7 @@ The executable composition root creates three independent Client roots:
 - is the unique drainer of `spk::Client::messages()`;
 - forwards received Messages to `MessageDispatcher`.
 
-ConnectionManager retains the transport disconnection Contract and publishes typed Client::EventCenter lifecycle events. TerrainCollections subscribes to clientDisconnected() to settle network-backed RequestingProviders.
+ConnectionManager retains the transport disconnection Contract and publishes typed Client::EventCenter lifecycle events. ClientWorld subscribes to clientDisconnected() and disconnects only collections that have actually been instantiated, preserving lazy creation while settling network-backed RequestingProviders.
 
 Composition root bindings include:
 
@@ -485,6 +490,8 @@ Unconfigured MessageIDs remain invalid under Sparkle's existing strict NodeRoute
 
 ### Terrain node
 
+`TerrainWorld : World` supplies the same lazy Chunk/Column accessors as ClientWorld, but its private factory hooks construct the existing prototype GeneratingProviders. TerrainNode owns one TerrainWorld and routes requests through those World collections. World itself owns no network protocol.
+
 A node-side dispatcher adapter:
 
 - advances the existing service-owned `spk::RemoteNode::Endpoint`;
@@ -497,7 +504,7 @@ No parser independently drains a Sparkle receive FIFO.
 
 ## Client streaming behavior
 
-`WorldManager` owns the Client `spk::Engine` through `spk::EngineWidget` and subscribes to `playerReady(const PlayerInformation &)`. The Player is created only from that event and then added to the Engine. `PlayerInformation` is intentionally fieldless in ST-001-11; its authoritative identifier/position/session fields belong to the future player-information protocol and are not guessed by this ticket.
+`WorldManager` subscribes to `worldChanged(World *)` and `playerReady(const PlayerInformation &)`. A world change detaches the previous EngineWidget binding, updates its non-owning World pointer, and binds the selected World's Engine; `nullptr` represents no active World. The Player is created only when player information is ready and an active World exists, and `World::addEntity<Player>()` owns that Player inside the World. `PlayerInformation` remains intentionally fieldless in ST-001-11; its authoritative identifier/position/session/world fields belong to the future player-information protocol and are not guessed by this ticket.
 
 The intended lifecycle is:
 
@@ -511,7 +518,9 @@ clientConnected
     -> Player construction
 ```
 
-Until the account/session and player-information protocol exist, ClientRuntime provides a prototype bridge from `clientConnected` to `playerLoadingRequested`, then to `playerReady` with an empty `PlayerInformation`, preserving the current validation Player bootstrap while keeping the future lifecycle boundary explicit.
+Until the account/session and player-information protocol exist, ClientRuntime provides a prototype bridge from `clientConnected` to `playerLoadingRequested`, then to `playerReady` with an empty `PlayerInformation`. The executable announces its directly-composed prototype ClientWorld through `worldChanged` before the update loop starts, preserving the current validation Player bootstrap while keeping future named-world selection explicit.
+
+The current Collection wire messages do not carry a World identifier. Therefore this ticket does not invent cross-world network routing: multiple Worlds may coexist process-locally, but only one network-active Client world is part of the ST-001-11 transport contract.
 
 The Player owns one terrain-streaming `spk::Behaviour`.
 
@@ -746,4 +755,13 @@ Validation: a local GCC 13 C++23 executable linked to the real Sparkle Message/E
 
 ### Owner decision: separate event services
 
-Core, Client and Terrain each expose an independent typed EventCenter service. Core::Event<TArguments...> reuses spk::ContractProvider for subscriptions and synchronous emission. No inheritance or heterogeneous string map is required. Collection instances also use Core::Event directly for local Available/Removed lifecycle channels; those are deliberately not routed through the global Core::EventCenter because multiple independent Collections can coexist in one process. Client declares connection-request, connection, disconnection, player-loading, player-ready and player chunk-change events. ConnectCommand publishes Client::ConnectionRequest through connectionRequested(), and ConnectionManager owns the subscription. MainInterface only owns UI; command registration is performed by the executable composition root. ClientRuntime owns the temporary connection-to-player-loading bridge, while WorldManager subscribes only to playerReady(PlayerInformation) and owns Player/Engine lifetime. Core and Terrain can gain their own named process-wide events as their domain contracts are defined. Event tests cover typed payloads, independent channels, subscription lifetime and the emitting thread. Connection integration checks lifecycle counts and delivery on the update thread; routed acquisition now uses ConnectionManager to exercise disconnect handling through the event service. Windows runtime validation remains a CI responsibility.
+Core, Client and Terrain each expose an independent typed EventCenter service. Core::Event<TArguments...> reuses spk::ContractProvider for subscriptions and synchronous emission. No inheritance or heterogeneous string map is required. Collection instances also use Core::Event directly for local Available/Removed lifecycle channels; those are deliberately not routed through the global Core::EventCenter because multiple independent Collections can coexist in one process. Client declares connection-request, connection, disconnection, world-change, player-loading, player-ready and player chunk-change events. `worldChanged(World *)` carries a non-owning pointer and accepts `nullptr` for detachment; subscribers update their cached World/collection pointers synchronously before an old World may be destroyed. ConnectCommand publishes Client::ConnectionRequest through connectionRequested(), and ConnectionManager owns the subscription. MainInterface only owns UI; command registration is performed by the executable composition root. ClientRuntime owns the temporary connection-to-player-loading bridge and tracks the selected World, while WorldManager binds the selected World's Engine and inserts Player into that World when playerReady is emitted. Core and Terrain can gain their own named process-wide events as their domain contracts are defined. Event tests cover typed payloads, independent channels, subscription lifetime and the emitting thread. Connection integration checks lifecycle counts and delivery on the update thread; routed acquisition now uses ConnectionManager to exercise disconnect handling through the event service. Windows runtime validation remains a CI responsibility.
+
+
+### Owner decision: protocol-free World ownership — 3 October 2026
+
+Core now defines `World` as a process-local world-state container rather than a wire protocol. It owns a Sparkle Engine, Entity lifetime and lazily-created Chunk/Column Collections. Derived `ClientWorld` and `TerrainWorld` implement the private collection factories with RequestingProvider and GeneratingProvider strategies respectively. Public collection accessors return stable pointers so systems may cache their current collection directly.
+
+`WorldCollection` is a Core service keyed by string identifiers and owns named Worlds. Client active-world selection is deliberately separate from ownership: `Client::EventCenter::worldChanged(World *)` tells ClientRuntime, WorldManager and future subscribers which World is active. Callers must publish a replacement or `nullptr` before destroying an active World so cached non-owning pointers are not left dangling.
+
+No World message family or World protocol is introduced. The current Chunk/Column protocol has no World identifier, so simultaneous network routing for several ClientWorld instances remains future work rather than being implicitly encoded into ST-001-11.
