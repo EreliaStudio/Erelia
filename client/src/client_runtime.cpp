@@ -41,15 +41,15 @@ ClientRuntime::ClientRuntime(
 		});
 
 	static_cast<RequestingWorldProvider &>(
-		Service::clientWorldService().provider())
+		Service::clientWorldCollection().provider())
 		.bind(_networkManager);
 }
 
 ClientRuntime::~ClientRuntime()
 {
-	Service::clientWorldService().clear();
+	Service::clientWorldCollection().clear();
 	static_cast<RequestingWorldProvider &>(
-		Service::clientWorldService().provider())
+		Service::clientWorldCollection().provider())
 		.unbind(_networkManager);
 }
 
