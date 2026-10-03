@@ -9,7 +9,6 @@
 #include <cstdint>
 #include <limits>
 #include <string>
-#include <utility>
 
 ConnectCommand::ConnectCommand() :
 	Command(
@@ -61,10 +60,6 @@ void ConnectCommand::execute(const spk::CommandParser::Invocation &invocation)
 		request.port = static_cast<std::uint16_t>(port);
 	}
 
-	_requestProvider.trigger(request);
+	Service::clientEventCenter().connectionRequested().trigger(request);
 }
 
-ConnectCommand::RequestContract ConnectCommand::subscribeToRequest(RequestCallback callback)
-{
-	return _requestProvider.subscribe(std::move(callback));
-}
