@@ -1,6 +1,6 @@
 #pragma once
-#include "erelia/core/world.hpp"
 #include "erelia/core/player_information.hpp"
+#include "erelia/core/world.hpp"
 #include <atomic>
 #include <container/thread_safe_fifo.hpp>
 #include <engine/behaviour3d.hpp>
