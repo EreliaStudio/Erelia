@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <gtest/gtest.h>
 
+#include <utility>
+
 TEST(PrototypeTerrainColumns, SparseMembershipMatchesEveryGeneratedChunk)
 {
 	GeneratingWorldProvider provider;
