@@ -1,6 +1,7 @@
 #include "erelia/client/client_runtime.hpp"
 
 #include "erelia/client/service.hpp"
+#include "erelia/client/requesting_world_provider.hpp"
 #include "erelia/client/widget_order.hpp"
 #include "erelia/core/player_information.hpp"
 
@@ -39,12 +40,17 @@ ClientRuntime::ClientRuntime(
 			Service::clientEventCenter().playerReady().trigger(information);
 		});
 
-	Service::clientWorldCollection().bind(_networkManager);
+	static_cast<RequestingWorldProvider &>(
+		Service::clientWorldService().provider())
+		.bind(_networkManager);
 }
 
 ClientRuntime::~ClientRuntime()
 {
-	Service::clientWorldCollection().unbind(_networkManager);
+	Service::clientWorldService().clear();
+	static_cast<RequestingWorldProvider &>(
+		Service::clientWorldService().provider())
+		.unbind(_networkManager);
 }
 
 ConnectionManager &ClientRuntime::connectionManager() noexcept
