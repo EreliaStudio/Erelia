@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 			&mainWindow.root());
 
 		World *clientWorld =
-			Service::clientWorldService().world(
+			Service::clientWorldCollection().world(
 				WorldIdentifier{.name = "prototype"});
 
 		WorldManager world(
