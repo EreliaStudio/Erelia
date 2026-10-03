@@ -1,10 +1,31 @@
-#include "prototype_chunk_provider.hpp"
+#include "generating_world_provider.hpp"
+
 #include <algorithm>
 #include <gtest/gtest.h>
+
 TEST(PrototypeTerrainColumns, SparseMembershipMatchesEveryGeneratedChunk)
 {
-	Collection<Column::Coordinate, Column> columns{PrototypeColumnProvider{}};
-	Collection<Chunk::Coordinate, Chunk> chunks{PrototypeChunkProvider{}};
+	GeneratingWorldProvider provider;
+	provider.define(
+		{
+			.identifier =
+				GeneratingWorldProvider::PrototypeWorld,
+			.generatorType =
+				GeneratingWorldProvider::Type::Prototype,
+			.family = {}
+		});
+	WorldService worlds(
+		std::move(provider));
+	World *world =
+		worlds.world(
+			GeneratingWorldProvider::PrototypeWorld);
+
+	ASSERT_NE(world, nullptr);
+	auto &columns =
+		*world->columnCollection();
+	auto &chunks =
+		*world->chunkCollection();
+
 	for (const auto &[key, top] : std::vector<std::pair<Column::Coordinate, int>>{{{3, 3}, 1}, {{3, 4}, 2}, {{4, 3}, 2}, {{4, 4}, 3}, {{-1, -1}, 0}, {{1, 1}, 0}, {{2, 1}, 0}, {{1, 2}, 0}})
 	{
 		const Column column = columns.request(key).get();
