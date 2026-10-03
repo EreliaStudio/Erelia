@@ -21,7 +21,6 @@ ClientWorld::ClientWorld(
 					columns->provider().disconnect();
 				}
 			});
-
 }
 
 std::unique_ptr<World::Chunks> ClientWorld::_createChunkCollection()
