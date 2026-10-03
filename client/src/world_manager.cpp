@@ -33,14 +33,13 @@ WorldManager::~WorldManager()
 
 void WorldManager::_instantiatePlayer(const PlayerInformation &information)
 {
-	(void)information;
-
 	if (_player != nullptr)
 	{
 		return;
 	}
 
 	_player = std::make_unique<Player>(
+		information,
 		_terrainCollections,
 		_ranges);
 	_engine.addEntity(_player.get());
