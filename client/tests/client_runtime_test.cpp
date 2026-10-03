@@ -253,18 +253,31 @@ TEST(ClientWorldLifecycle, WorldChangedRebindsRuntimeAndEngineWidget)
 		{1, 2},
 		&mainWindow.root());
 
+	World::Chunks *currentChunks = nullptr;
+	auto collectionBinding =
+		Service::clientEventCenter().worldChanged().subscribe(
+			[&](World *world) {
+				currentChunks =
+					world == nullptr
+						? nullptr
+						: world->chunkCollection();
+			});
+
 	Service::clientEventCenter().worldChanged().trigger(&first);
 	EXPECT_EQ(runtime.world(), &first);
 	EXPECT_EQ(manager.world(), &first);
 	EXPECT_EQ(manager.engine(), &first.engine());
+	EXPECT_EQ(currentChunks, first.chunkCollection());
 
 	Service::clientEventCenter().worldChanged().trigger(&second);
 	EXPECT_EQ(runtime.world(), &second);
 	EXPECT_EQ(manager.world(), &second);
 	EXPECT_EQ(manager.engine(), &second.engine());
+	EXPECT_EQ(currentChunks, second.chunkCollection());
 
 	Service::clientEventCenter().worldChanged().trigger(nullptr);
 	EXPECT_EQ(runtime.world(), nullptr);
 	EXPECT_EQ(manager.world(), nullptr);
 	EXPECT_EQ(manager.engine(), nullptr);
+	EXPECT_EQ(currentChunks, nullptr);
 }
