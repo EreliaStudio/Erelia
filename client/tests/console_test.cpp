@@ -186,18 +186,15 @@ TEST_F(ConsoleTest, GlobalHelpReachesModelWithoutTrailingEmptyRow)
 		"[Command] : /connect - Starts a new dedicated Server connection cycle.");
 }
 
-TEST_F(ConsoleTest, CommandParserExposesExplicitlyRegisteredConnectCommand)
+TEST_F(ConsoleTest, RegisteredConnectCommandPublishesClientConnectionRequest)
 {
-	std::optional<ConnectCommand::Request> received;
+	std::optional<Client::ConnectionRequest> received;
 	Console console("Console");
 	registerConnectCommand(console);
-	auto contract =
-		console.commandParser()
-			.command<ConnectCommand>()
-			.subscribeToRequest(
-				[&](const ConnectCommand::Request &request) {
-					received = request;
-				});
+	auto contract = Service::clientEventCenter().connectionRequested().subscribe(
+		[&](const Client::ConnectionRequest &request) {
+			received = request;
+		});
 
 	console.submit("/connect --address 192.0.2.1 --port 2550");
 
