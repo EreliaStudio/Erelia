@@ -1,12 +1,12 @@
 #pragma once
 
-#include "erelia/core/world_service.hpp"
+#include "erelia/core/world_collection.hpp"
 
 #include <cstdint>
 #include <string>
 #include <unordered_map>
 
-class GeneratingWorldProvider final : public WorldProvider
+class GeneratingWorldProvider final : public WorldCollection::Provider
 {
 public:
 	enum class Type : std::uint8_t
