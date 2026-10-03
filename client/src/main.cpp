@@ -1,6 +1,9 @@
 #include "erelia/client/client_configuration.hpp"
-#include "erelia/client/main_application_widget.hpp"
+#include "erelia/client/client_runtime.hpp"
+#include "erelia/client/command/connect_command.hpp"
+#include "erelia/client/main_interface.hpp"
 #include "erelia/client/service.hpp"
+#include "erelia/client/world_manager.hpp"
 
 #include <core/application.hpp>
 #include <diagnostics/logger.hpp>
@@ -51,12 +54,24 @@ int main(int argc, char **argv)
 		const ClientConfiguration configuration =
 			ClientConfiguration::load(std::filesystem::path(arguments.get("config").values.front()));
 
-		MainApplicationWidget mainWidget(
+		ClientRuntime runtime(
 			std::move(configuration.server),
 			configuration.retryDelay,
-			&mainWindow.root(),
-			configuration.terrain);
-		mainWidget.setGeometry(mainWindow.root().geometry());
+			&mainWindow.root());
+
+		WorldManager world(
+			"/WorldManager",
+			runtime.terrainCollections(),
+			configuration.terrain,
+			&mainWindow.root());
+
+		MainInterface interface(
+			"/MainInterface",
+			&mainWindow.root());
+		interface.console().commandParser().addCommand<ConnectCommand>();
+
+		world.setGeometry(mainWindow.root().geometry());
+		interface.setGeometry(mainWindow.root().geometry());
 
 		return application.run();
 	} catch (const std::exception &exception)
