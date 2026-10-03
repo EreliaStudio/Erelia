@@ -1,5 +1,4 @@
 #include "terrain_node.hpp"
-#include "prototype_chunk_provider.hpp"
 #include "terrain_service.hpp"
 #include <atomic>
 #include <container/json/reader.hpp>
@@ -55,8 +54,6 @@ TerrainNode::Configuration TerrainNode::Configuration::load(const std::string &p
 TerrainNode::TerrainNode(Configuration configuration) :
 	_configuration(configuration),
 	_endpoint(Service::terrainEndpoint()),
-	_chunks(PrototypeChunkProvider{}),
-	_columns(PrototypeColumnProvider{}),
 	_async(std::make_unique<AsyncState>())
 {
 	if (drainerOwned.exchange(true) == true)
@@ -66,10 +63,10 @@ TerrainNode::TerrainNode(Configuration configuration) :
 	try
 	{
 		_subscriptions.push_back(_dispatcher.subscribe(static_cast<spk::Message::Type>(Networking::MessageType::ChunkRequest), [this](const Request &request) {
-			_request(request, _chunks);
+			_request(request, *_world.chunkCollection());
 		}));
 		_subscriptions.push_back(_dispatcher.subscribe(static_cast<spk::Message::Type>(Networking::MessageType::ColumnRequest), [this](const Request &request) {
-			_request(request, _columns);
+			_request(request, *_world.columnCollection());
 		}));
 	} catch (...)
 	{
