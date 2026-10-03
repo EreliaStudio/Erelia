@@ -1,6 +1,5 @@
 #include "erelia/client/client_configuration.hpp"
 #include "erelia/client/client_runtime.hpp"
-#include "erelia/client/client_world.hpp"
 #include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/main_interface.hpp"
 #include "erelia/client/service.hpp"
@@ -60,7 +59,9 @@ int main(int argc, char **argv)
 			configuration.retryDelay,
 			&mainWindow.root());
 
-		ClientWorld clientWorld(runtime.networkManager());
+		World *clientWorld =
+			Service::clientWorldService().world(
+				WorldIdentifier{.name = "prototype"});
 
 		WorldManager world(
 			"/WorldManager",
@@ -77,7 +78,7 @@ int main(int argc, char **argv)
 
 		// The prototype client has no authoritative world identifier yet.
 		// Keep selection explicit through the Client world lifecycle event.
-		Service::clientEventCenter().worldChanged().trigger(&clientWorld);
+		Service::clientEventCenter().worldChanged().trigger(clientWorld);
 
 		return application.run();
 	} catch (const std::exception &exception)
