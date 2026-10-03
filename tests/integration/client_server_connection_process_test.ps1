@@ -1,6 +1,7 @@
 param(
     [Parameter(Mandatory = $true)][string]$ServerExecutable,
-    [Parameter(Mandatory = $true)][string]$ClientExecutable
+    [Parameter(Mandatory = $true)][string]$ClientExecutable,
+    [Parameter(Mandatory = $true)][string]$TerrainExecutable
 )
 
 $ErrorActionPreference = 'Stop'
@@ -97,13 +98,16 @@ function Wait-LogText {
         }
 
         if ($Process.HasExited) {
-            throw "Client exited before reporting a successful connection. Exit code: $($Process.ExitCode)"
+            $Process.WaitForExit()
+            $output = if (Test-Path -LiteralPath $Path) { Get-Content -LiteralPath $Path -Raw } else { '' }
+            throw "Client exited before reporting '$Text'. Exit code: $($Process.ExitCode).`nClient log:`n$output"
         }
 
         Start-Sleep -Milliseconds 20
     }
 
-    throw "Client did not report '$Text' before the deadline."
+    $output = if (Test-Path -LiteralPath $Path) { Get-Content -LiteralPath $Path -Raw } else { '' }
+    throw "Client did not report '$Text' before the deadline.`nClient log:`n$output"
 }
 
 $tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("erelia-client-server-" + [Guid]::NewGuid().ToString('N'))
@@ -111,12 +115,22 @@ New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
 
 $serverProcess = $null
 $clientProcess = $null
+$terrainProcess = $null
 
 try {
     $port = Get-FreeTcpPort
     do {
         $terrainPort = Get-FreeTcpPort
     } while ($terrainPort -eq $port)
+
+    $terrainConfigPath = Join-Path $tempRoot 'terrain.json'
+    Write-JsonFile -Path $terrainConfigPath -Value ([ordered]@{
+        'server config' = [ordered]@{ port = $terrainPort }
+    })
+    $terrainOut = Join-Path $tempRoot 'terrain.out.log'
+    $terrainErr = Join-Path $tempRoot 'terrain.err.log'
+    $terrainProcess = Start-Process -FilePath $TerrainExecutable -WorkingDirectory (Split-Path -Parent $TerrainExecutable) -ArgumentList @("--config=$terrainConfigPath") -RedirectStandardOutput $terrainOut -RedirectStandardError $terrainErr -PassThru
+    Wait-TcpEndpoint -Port $terrainPort -Process $terrainProcess -StandardOutputPath $terrainOut -StandardErrorPath $terrainErr
 
     $serverConfigPath = Join-Path $tempRoot 'server.json'
     Write-JsonFile -Path $serverConfigPath -Value ([ordered]@{
@@ -140,6 +154,7 @@ try {
             port = $port
             retryDelayMs = 25
         }
+        'terrain config' = [ordered]@{ viewRange = 2; unloadRange = 3 }
     })
 
     $serverOut = Join-Path $tempRoot 'server.out.log'
@@ -154,6 +169,7 @@ try {
     $clientProcess = Start-Process -FilePath $ClientExecutable -WorkingDirectory (Split-Path -Parent $ClientExecutable) -ArgumentList @("--config=$clientConfigPath") -RedirectStandardOutput $clientOut -RedirectStandardError $clientErr -PassThru
 
     Wait-LogText -Path $clientErr -Text 'Connected to dedicated Server' -Process $clientProcess
+    Wait-LogText -Path $clientErr -Text 'Chunk acquired' -Process $clientProcess
 
     if ($clientProcess.HasExited) {
         throw "Client did not remain alive after connecting. Exit code: $($clientProcess.ExitCode)"
@@ -162,12 +178,32 @@ try {
     Stop-Process -Id $serverProcess.Id -Force
     $serverProcess.WaitForExit(5000) | Out-Null
 
-    if ($clientProcess.WaitForExit(5000) -eq $false) {
-        throw 'Client did not terminate after the Server connection was lost.'
+    Wait-LogText -Path $clientErr -Text 'Dedicated Server connection was lost' -Process $clientProcess
+    Wait-LogText -Path $clientErr -Text 'automatic connection attempts stopped. Use /connect to start a new connection cycle' -Process $clientProcess -TimeoutMilliseconds 15000
+
+    # A stopped retry cycle keeps the graphical Client available for /connect.
+    # Observe it beyond several configured retry intervals to catch an extra cycle.
+    if ($clientProcess.WaitForExit(500)) {
+        throw "Client must remain alive after exhausting reconnect attempts. Exit code: $($clientProcess.ExitCode)"
     }
 
-    if ($clientProcess.ExitCode -eq 0) {
-        throw 'Unexpected Server loss must terminate EreliaClient with a failure exit code.'
+    $output = Get-Content -LiteralPath $clientErr -Raw
+    $lossOffset = $output.IndexOf('Dedicated Server connection was lost')
+    $reconnectOutput = $output.Substring($lossOffset)
+    $attempts = [regex]::Matches($reconnectOutput, 'Connecting to dedicated Server \(attempt (\d+)/(\d+)\)')
+    if ($attempts.Count -ne 3) {
+        throw "Expected exactly three reconnect attempts after Server loss, received $($attempts.Count).`nClient log:`n$output"
+    }
+    for ($index = 0; $index -lt 3; ++$index) {
+        if ($attempts[$index].Groups[1].Value -ne [string]($index + 1) -or $attempts[$index].Groups[2].Value -ne '3') {
+            throw "Reconnect attempts must run in order from 1/3 through 3/3.`nClient log:`n$output"
+        }
+    }
+    if ($reconnectOutput.Contains('Connected to dedicated Server')) {
+        throw "Client reported a successful connection while the Server was stopped.`nClient log:`n$output"
+    }
+    if ($output.Contains('Missing translation key: client.')) {
+        throw "The Client English catalog must cover all startup and streaming translations.`nClient log:`n$output"
     }
 }
 finally {
@@ -176,6 +212,10 @@ finally {
     }
     if ($serverProcess -ne $null -and $serverProcess.HasExited -eq $false) {
         Stop-Process -Id $serverProcess.Id -Force -ErrorAction SilentlyContinue
+    }
+
+    if ($terrainProcess -ne $null -and $terrainProcess.HasExited -eq $false) {
+        Stop-Process -Id $terrainProcess.Id -Force -ErrorAction SilentlyContinue
     }
 
     Remove-Item -LiteralPath $tempRoot -Recurse -Force -ErrorAction SilentlyContinue

@@ -1,16 +1,11 @@
 #pragma once
-
-#include <cstddef>
 #include <cstdint>
-#include <string>
-
 #include <network/message.hpp>
-
+#include <string>
 namespace Networking
 {
-	class Diagnostic : public spk::Message
+	struct Diagnostic
 	{
-	public:
 		enum class Severity : std::uint8_t
 		{
 			Trace = 0,
@@ -18,47 +13,9 @@ namespace Networking
 			Warning = 2,
 			Error = 3
 		};
-
-		class Builder final
-		{
-		private:
-			Severity _severity;
-			std::string _message;
-			spk::Message::RequestID _requestID;
-
-		public:
-			Builder(
-				Severity severity,
-				std::string message,
-				spk::Message::RequestID requestID = 0u);
-
-			[[nodiscard]] Diagnostic build() &&;
-		};
-
-	protected:
-		explicit Diagnostic(
-			spk::Message::Type type,
-			spk::Message::RequestID requestID);
-		Diagnostic(
-			spk::Message message,
-			spk::Message::Type expectedType,
-			bool allowTrailingPayload);
-
-		[[nodiscard]] std::size_t diagnosticSize() const;
-
-	private:
-		void _validate(
-			spk::Message::Type expectedType,
-			bool allowTrailingPayload) const;
-
-	public:
-		explicit Diagnostic(spk::Message message);
-
-		[[nodiscard]] Severity severity() const;
-		[[nodiscard]] std::string message() const;
+		Severity severity = Severity::Info;
+		std::string message;
 	};
-
-	spk::Message &operator<<(
-		spk::Message &message,
-		const Diagnostic &diagnostic);
+	spk::Message::Writer &operator<<(spk::Message::Writer &writer, const Diagnostic &diagnostic);
+	const spk::Message::Reader &operator>>(const spk::Message::Reader &reader, Diagnostic &diagnostic);
 }

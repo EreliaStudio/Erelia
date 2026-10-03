@@ -1,0 +1,17 @@
+{
+  "client.console.placeholder": "Enter text or /help",
+  "client.console.user_label": "User",
+  "client.console.command_label": "Command",
+  "client.console.command.unknown": "Unknown command: /{}",
+  "client.console.command.invalid_format": "Invalid command format.",
+  "client.console.command.parameter_unknown": "Unknown parameter: --{}",
+  "client.console.command.parameter_duplicate": "Duplicate parameter: --{}",
+  "client.console.command.parameter_missing": "Missing parameter: --{}",
+  "client.console.command.value_missing": "Missing value for --{} (expected {}).",
+  "client.console.command.too_many_values": "Too many values for --{} (expected {}, received {}).",
+  "client.console.command.too_many_parameters": "Too many parameters.",
+  "client.command.connect.description": "Starts a new dedicated Server connection cycle.",
+  "client.command.connect.address.description": "Dedicated Server address",
+  "client.command.connect.port.description": "Dedicated Server port",
+  "client.command.connect.invalid_port": "Invalid port: {}"
+}

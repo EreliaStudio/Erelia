@@ -1,10 +1,15 @@
 #include "erelia/client/client_configuration.hpp"
-#include "erelia/client/main_application_widget.hpp"
+#include "erelia/client/client_runtime.hpp"
+#include "erelia/client/command/connect_command.hpp"
+#include "erelia/client/main_interface.hpp"
+#include "erelia/client/service.hpp"
+#include "erelia/client/world_manager.hpp"
 
 #include <core/application.hpp>
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
 #include <system/argument_parser.hpp>
+#include <system/translator.hpp>
 
 #include <cstdlib>
 #include <exception>
@@ -34,6 +39,8 @@ int main(int argc, char **argv)
 
 		spk::logger.setLevelIdentifier(spk::Logger::Level::UserValueA, "User message");
 		spk::logger.setLevelIdentifier(spk::Logger::Level::UserValueB, "Command");
+		Service::translator().append(
+			std::filesystem::absolute(argv[0]).parent_path() / "i18n" / "en.json");
 
 		spk::Application application;
 		spk::Window &mainWindow = application.createWindow(
@@ -47,11 +54,31 @@ int main(int argc, char **argv)
 		const ClientConfiguration configuration =
 			ClientConfiguration::load(std::filesystem::path(arguments.get("config").values.front()));
 
-		MainApplicationWidget mainWidget(
+		ClientRuntime runtime(
 			std::move(configuration.server),
 			configuration.retryDelay,
 			&mainWindow.root());
-		mainWidget.setGeometry(mainWindow.root().geometry());
+
+		World *clientWorld =
+			Service::clientWorldCollection().world(
+				WorldIdentifier{.name = "prototype"});
+
+		WorldManager world(
+			"/WorldManager",
+			configuration.terrain,
+			&mainWindow.root());
+
+		MainInterface interface(
+			"/MainInterface",
+			&mainWindow.root());
+		interface.console().commandParser().addCommand<ConnectCommand>();
+
+		world.setGeometry(mainWindow.root().geometry());
+		interface.setGeometry(mainWindow.root().geometry());
+
+		// The prototype client has no authoritative world identifier yet.
+		// Keep selection explicit through the Client world lifecycle event.
+		Service::clientEventCenter().worldChanged().trigger(clientWorld);
 
 		return application.run();
 	} catch (const std::exception &exception)

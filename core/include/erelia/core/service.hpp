@@ -1,5 +1,7 @@
 #pragma once
 
+#include "erelia/core/event_center.hpp"
+
 namespace spk
 {
 	class WorkerPool;
@@ -8,4 +10,5 @@ namespace spk
 namespace Service
 {
 	[[nodiscard]] spk::WorkerPool &workerPool();
+	[[nodiscard]] Core::EventCenter &coreEventCenter();
 }

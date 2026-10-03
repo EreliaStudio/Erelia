@@ -159,7 +159,7 @@ This rule is intentionally suitable for the future Client without inventing an "
 - whole-value replacement remains available for later canonical refresh/replacement;
 - the render thread may safely finish work against an older copied Chunk value.
 
-The exact network batching, retry, eviction, unsolicited-response and partial-response policy remains owned by OQ-038 / ST-001-11. The generic Collection already owns duplicate Pending suppression and stale-generation rejection.
+The exact network batching, response, eviction, disconnect, and unsolicited-update policy is finalized by OQ-038 / ST-001-11. The generic Collection owns duplicate Pending suppression and stale-result rejection; network correlation/reliability stays in the network-backed Provider layer.
 
 ### Server implementation
 
@@ -214,7 +214,7 @@ ST-001-06 implementation must update/add Core coverage proving at least:
 - concurrent Collection lookup/replacement follows the implemented synchronization contract without exposing mutable Chunk Cells;
 - generic Volume Message decode replaces content rather than overwriting Cell storage shared with an existing copy.
 
-Future ST-001-08/ST-001-11 tests own dedicated Chunk wire encoding and Client network retry/cache/response semantics. The generic Pending state and stale-generation rejection are already fixed here.
+ST-001-08 historically owns the delivered Chunk wire encoding; ST-001-11 owns the superseding generic Collection protocol and Client network/cache/response semantics. Generic Pending and stale-result protection remain fixed here.
 
 ## Resolution provenance
 
@@ -329,3 +329,29 @@ Multiple overlapping Collection requests that include the same Pending coordinat
 TerrainNode may group several Collection batch Answers in one `spk::TaskGroup<BatchResult>`. Because TaskGroup accepts arbitrary `Task<TResult>::Answer` values, these manually-settled Collection Tasks compose with the same API as WorkerPool-produced Tasks.
 
 ST-001-09 later refined the terminal protocol representation so `Chunk::Protocol::Response` owns nested `Response::Success { coordinate, chunk }` and `Response::Failure { coordinate, Failure::Code, message }` entries. Collection remains networking-agnostic and must not return those protocol types directly. TerrainNode owns the translation from acquisition outcomes into protocol entries. On 26 September 2026 the project owner explicitly selected per-coordinate failure-as-data semantics and fixed the Collection result names as `Chunk::Collection::BatchResult::Acquired` and `Chunk::Collection::BatchResult::Failed`; `Failed` preserves the originating `std::exception_ptr`. Ordinary coordinate generation/acquisition failure completes the Collection batch with a `Failed` entry; it does not fail the batch Task.
+
+## ST-001-11 generic Collection refinement — 2026-10-01
+
+ST-001-11 generalizes the asynchronous acquisition/storage mechanics established here from `Chunk::Collection` into `Collection<TKey, TElement>`.
+
+The immutable-value/lifetime decisions of DR-019 remain unchanged. The generic refinement supersedes only the Chunk-specific Collection API/implementation shape:
+
+- Collection storage owns Available values only;
+- Provider owns synchronized Pending Answers and their completion Contracts;
+- `Collection::state(key)` derives Available from storage, otherwise Pending from Provider state, otherwise Absent;
+- Pending acquisition reuse and successful Provider -> Collection publication are implemented once in the generic Provider lifecycle;
+- successful publication occurs before Pending disappears, avoiding an observable Absent/non-Pending gap;
+- `insert`, `replace`, and `remove` invalidate conflicting Pending work so late completion cannot republish stale values;
+- Client and Server may instantiate the same generic Collection with different Provider implementations.
+
+ST-001-11 uses at least:
+
+```cpp
+Collection<Chunk::Coordinate, Chunk>
+Collection<Column::Coordinate, Column>
+```
+
+The previous ST-001-09 `Chunk::Collection::BatchResult` model remains historical completion evidence for the delivered Server handler. ST-001-11 migrates callers to single-key `Task<TElement>::Answer` plus ordered `TaskGroup<TElement>::Answer` batch composition.
+
+Networking remains outside generic Collection storage itself. Network-specific correlation, remembered Response failures, batching, and Message parsing live in `Collection<TKey, TElement>::RequestingProvider`; unsolicited canonical Set/Remove application lives in the generic `Updater`.
+

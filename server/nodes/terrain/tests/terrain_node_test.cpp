@@ -1,5 +1,7 @@
+#include "generating_world_provider.hpp"
 #include "terrain_node.hpp"
 #include "terrain_node_application.hpp"
+#include "terrain_service.hpp"
 
 #include <exception.hpp>
 #include <gtest/gtest.h>
@@ -179,4 +181,60 @@ TEST(TerrainNodeApplication, StopsCleanlyOnInterruptSignal)
 TEST(TerrainNodeApplication, StopsCleanlyOnTerminationSignal)
 {
 	expectApplicationStopsOnSignal(SIGTERM);
+}
+
+TEST(TerrainNodeRuntime, ServiceEndpointHasExactlyOneDispatcher)
+{
+	{
+		TerrainNode node({.port = 0});
+		EXPECT_THROW((void)TerrainNode({.port = 0}), spk::Exception);
+		node.start();
+		EXPECT_EQ(node.port(), Service::terrainEndpoint().port());
+	}
+	EXPECT_EQ(Service::terrainEndpoint().isRunning(), false);
+	EXPECT_NO_THROW((void)TerrainNode({.port = 0}));
+}
+
+TEST(TerrainWorldCollection, GeneratesDefinedWorlds)
+{
+	WorldCollection &worlds =
+		Service::terrainWorldCollection();
+	auto &provider =
+		static_cast<GeneratingWorldProvider &>(
+			worlds.provider());
+	const WorldIdentifier identifier{
+		.name = "test.terrain.world"};
+
+	(void)worlds.remove(identifier);
+	provider.define(
+		{
+			.identifier = identifier,
+			.generatorType = GeneratingWorldProvider::Type::Prototype,
+			.family = "test"});
+
+	World *world =
+		worlds.world(identifier);
+
+	ASSERT_NE(world, nullptr);
+	EXPECT_EQ(world->identifier(), identifier);
+	EXPECT_EQ(
+		worlds.world(identifier),
+		world);
+
+	EXPECT_EQ(
+		worlds.remove(identifier),
+		true);
+}
+
+TEST(GeneratingWorldProvider, RejectsUndefinedWorld)
+{
+	WorldCollection worlds(
+		GeneratingWorldProvider{});
+
+	EXPECT_THROW(
+		(void)worlds.world(
+			WorldIdentifier{
+				.name = "undefined.world"}),
+		spk::Exception);
+	EXPECT_EQ(worlds.size(), 0u);
 }

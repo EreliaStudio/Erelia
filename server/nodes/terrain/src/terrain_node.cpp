@@ -1,169 +1,95 @@
 #include "terrain_node.hpp"
-
-#include "prototype_chunk_provider.hpp"
-
-#include "erelia/core/chunk_protocol_response.hpp"
-#include "erelia/core/networking/diagnostic.hpp"
-
+#include "generating_world_provider.hpp"
+#include "terrain_service.hpp"
+#include <atomic>
 #include <container/json/reader.hpp>
 #include <container/thread_safe_fifo.hpp>
 #include <diagnostics/logger.hpp>
-#include <exception.hpp>
-#include <threading/task_group.hpp>
-
-#include <algorithm>
-#include <cstddef>
-#include <exception>
-#include <filesystem>
-#include <memory>
-#include <mutex>
 #include <optional>
-#include <string>
-#include <string_view>
-#include <utility>
-#include <vector>
-
+#include <set>
 namespace
 {
-	constexpr std::size_t ChunkBatchSize = 1024u;
-	constexpr std::string_view AggregationFailureKey =
-		"Chunk_Request_Aggregation_Failure";
-
-	using BatchResult = Chunk::Collection::BatchResult;
-	using BatchTask = spk::Task<BatchResult>;
-	using BatchGroup = spk::TaskGroup<BatchResult>;
-	using BatchGroupAnswer = BatchGroup::Answer;
-
-	[[nodiscard]] std::string failureMessage(
-		const std::exception_ptr &exception)
+	std::atomic_bool drainerOwned = false;
+	std::string failureMessage(std::exception_ptr failure)
 	{
-		if (exception == nullptr)
-		{
-			return "Unknown acquisition failure";
-		}
-
 		try
 		{
-			std::rethrow_exception(exception);
-		} catch (const spk::Exception &current)
+			std::rethrow_exception(failure);
+		} catch (const spk::Exception &error)
 		{
-			return current.message();
-		} catch (const std::exception &current)
+			return error.message();
+		} catch (const std::exception &error)
 		{
-			return current.what();
+			return error.what();
 		} catch (...)
 		{
 			return "Unknown acquisition failure";
 		}
 	}
 }
-
 struct TerrainNode::AsyncState
 {
-	struct RequestContext final
+	struct Context
+	{
+		spk::ContractProvider<>::Contract contract;
+	};
+	struct Reply
 	{
 		Request request;
-		BatchGroupAnswer answer;
-		std::optional<BatchGroupAnswer::CompletionContract> contract;
-
-		RequestContext(
-			Request requestValue,
-			BatchGroupAnswer answerValue) :
-			request(std::move(requestValue)),
-			answer(std::move(answerValue))
-		{
-		}
+		spk::Message message;
 	};
-
-	using CompletionQueue =
-		spk::ThreadSafeFIFO<std::shared_ptr<RequestContext>>;
-
-	struct CompletionMailbox final
-	{
-		std::mutex mutex;
-		bool accepting = false;
-		CompletionQueue::Producer producer;
-
-		explicit CompletionMailbox(
-			CompletionQueue::Producer producerValue) :
-			producer(std::move(producerValue))
-		{
-		}
-
-		void activate()
-		{
-			const std::scoped_lock lock(mutex);
-			accepting = true;
-		}
-
-		void deactivate()
-		{
-			const std::scoped_lock lock(mutex);
-			accepting = false;
-		}
-
-		void publish(
-			const std::shared_ptr<RequestContext> &context)
-		{
-			const std::scoped_lock lock(mutex);
-			if (accepting)
-			{
-				producer.publish(context);
-			}
-		}
-	};
-
-	CompletionQueue completions;
-	std::shared_ptr<CompletionMailbox> mailbox =
-		std::make_shared<CompletionMailbox>(
-			completions.producer());
-	std::vector<std::shared_ptr<RequestContext>> outstanding;
-	std::vector<std::shared_ptr<RequestContext>> drained;
-
-	void activate()
-	{
-		mailbox->activate();
-	}
-
-	void deactivate()
-	{
-		mailbox->deactivate();
-		outstanding.clear();
-		(void)completions.drain(drained);
-		drained.clear();
-	}
-
-	void remove(
-		const std::shared_ptr<RequestContext> &context)
-	{
-		std::erase(outstanding, context);
-	}
+	spk::ThreadSafeFIFO<Reply> replies;
+	std::vector<Reply> drained;
+	std::vector<std::shared_ptr<Context>> outstanding;
 };
-
-TerrainNode::Configuration TerrainNode::Configuration::load(
-	const std::string &path)
+TerrainNode::Configuration TerrainNode::Configuration::load(const std::string &path)
 {
 	const std::filesystem::path file(path);
-	const spk::JSON::Value document =
-		spk::JSON::Loader::parseFile(file);
+	const auto document = spk::JSON::Loader::parseFile(file);
 	const spk::JSON::Reader root(document, file);
 	root.forbidUnknown({"server config"});
-
-	const spk::JSON::Reader server =
-		root.child("server config");
+	const auto server = root.child("server config");
 	server.forbidUnknown({"port"});
-
-	return Configuration{
-		.port = server.require<std::uint16_t>("port")};
+	return {.port = server.require<std::uint16_t>("port")};
 }
-
 TerrainNode::TerrainNode(Configuration configuration) :
-	_configuration(std::move(configuration)),
-	_chunks(PrototypeChunkProvider{}),
+	_configuration(configuration),
+	_endpoint(Service::terrainEndpoint()),
 	_async(std::make_unique<AsyncState>())
 {
-}
+	if (drainerOwned.exchange(true) == true)
+	{
+		throw spk::Exception("Terrain Endpoint already has a dispatcher");
+	}
+	try
+	{
+		auto &provider =
+			static_cast<GeneratingWorldProvider &>(
+				Service::terrainWorldCollection().provider());
+		provider.define(
+			{
+				.identifier = GeneratingWorldProvider::PrototypeWorld,
+				.generatorType = GeneratingWorldProvider::Type::Prototype,
+				.family = {}});
+		_world =
+			Service::terrainWorldCollection().world(
+				GeneratingWorldProvider::PrototypeWorld);
 
+		_subscriptions.push_back(_dispatcher.subscribe(static_cast<spk::Message::Type>(Networking::MessageType::ChunkRequest), [this](const Request &request) {
+			_request(request, *_world->chunkCollection());
+		}));
+		_subscriptions.push_back(_dispatcher.subscribe(static_cast<spk::Message::Type>(Networking::MessageType::ColumnRequest), [this](const Request &request) {
+			_request(request, *_world->columnCollection());
+		}));
+	} catch (...)
+	{
+		(void)Service::terrainWorldCollection().remove(
+			GeneratingWorldProvider::PrototypeWorld);
+		_world = nullptr;
+		drainerOwned.store(false);
+		throw;
+	}
+}
 TerrainNode::~TerrainNode()
 {
 	try
@@ -172,245 +98,130 @@ TerrainNode::~TerrainNode()
 	} catch (...)
 	{
 	}
+	(void)Service::terrainWorldCollection().remove(
+		GeneratingWorldProvider::PrototypeWorld);
+	_world = nullptr;
+	drainerOwned.store(false);
 }
-
 void TerrainNode::start()
 {
-	if (isRunning())
-	{
-		stop();
-	}
-
+	stop();
 	_endpoint.start(_configuration.port);
-	_async->activate();
 }
-
 void TerrainNode::stop()
 {
-	_async->deactivate();
 	_endpoint.stop();
+	_async = std::make_unique<AsyncState>();
+	_requests.clear();
 }
-
 void TerrainNode::dispatch()
 {
-	if (!isRunning())
+	if (isRunning() == false)
 	{
 		return;
 	}
-
 	_endpoint.dispatch();
+	for (const auto &request : _endpoint.requests().drain(_requests))
+	{
+		_dispatcher.dispatch(request.message.type(), request);
+	}
+	_requests.clear();
 	_drainCompletions();
 }
-
-void TerrainNode::requestChunks(
-	Request request,
-	std::vector<Chunk::Coordinate> coordinates) noexcept
+template <typename TKey, typename TElement>
+void TerrainNode::_request(const Request &request, Collection<TKey, TElement> &collection)
 {
-	std::shared_ptr<AsyncState::RequestContext> context;
-
+	using Protocol = Networking::CollectionProtocol::Codec<TKey, TElement>;
+	const std::string domain = std::is_same_v<TElement, Chunk> == true ? "Chunk" : "Column";
+	std::vector<TKey> keys;
 	try
 	{
-		BatchGroup group;
-
-		for (
-			std::size_t offset = 0u;
-			offset < coordinates.size();
-			offset += ChunkBatchSize)
+		keys = typename Protocol::Request(request.message).keys();
+	} catch (const spk::Exception &)
+	{
+		reply(request, Protocol::Error::build(request.message.requestID(), {Networking::Diagnostic::Severity::Error, domain + "_Request_Malformed"}));
+		return;
+	}
+	std::set<TKey> seen, duplicated;
+	std::vector<TKey> distinct;
+	for (const auto &key : keys)
+	{
+		if (seen.insert(key).second == true)
 		{
-			const std::size_t end =
-				std::min(
-					coordinates.size(),
-					offset + ChunkBatchSize);
-			std::vector<Chunk::Coordinate> batch(
-				coordinates.begin() +
-					static_cast<std::ptrdiff_t>(offset),
-				coordinates.begin() +
-					static_cast<std::ptrdiff_t>(end));
-			group.add(_chunks.request(batch));
+			distinct.push_back(key);
 		}
-
-		context =
-			std::make_shared<AsyncState::RequestContext>(
-				request,
-				std::move(group).answer());
+		else
+		{
+			duplicated.insert(key);
+		}
+	}
+	if (duplicated.empty() == false)
+	{
+		reply(request, Protocol::Error::build(request.message.requestID(), {Networking::Diagnostic::Severity::Warning, domain + "_Coordinates_Duplication"}, {duplicated.begin(), duplicated.end()}));
+	}
+	try
+	{
+		auto answer = collection.request(distinct);
+		auto context = std::make_shared<AsyncState::Context>();
+		auto producer = _async->replies.producer();
 		_async->outstanding.push_back(context);
-
-		const std::weak_ptr<AsyncState::RequestContext> weakContext =
-			context;
-		const std::shared_ptr<AsyncState::CompletionMailbox> mailbox =
-			_async->mailbox;
-
-		context->contract.emplace(
-			context->answer.subscribeToCompletion(
-				[weakContext, mailbox] {
-					if (const auto current = weakContext.lock();
-						current != nullptr)
+		context->contract = answer.subscribeToCompletion([producer, answer, request, distinct, domain]() mutable {
+			try
+			{
+				std::vector<typename Protocol::Success> success;
+				std::vector<typename Protocol::Failed> failed;
+				for (std::size_t index = 0; index < distinct.size(); ++index)
+				{
+					const auto &child = answer.at(index);
+					if (child.status() == spk::Task<TElement>::Status::Completed)
 					{
-						mailbox->publish(current);
+						success.push_back({distinct[index], child.result()});
 					}
-				}));
-	} catch (const std::exception &exception)
-	{
-		if (context != nullptr)
-		{
-			_async->remove(context);
-		}
-
-		SPK_LOG(Error)
-			<< "Unable to aggregate TerrainNode Chunk request: "
-			<< exception.what()
-			<< std::endl;
-
-		try
-		{
-			Networking::Diagnostic::Builder builder(
-				Networking::Diagnostic::Severity::Error,
-				std::string(AggregationFailureKey),
-				request.message.requestID());
-			reply(
-				request,
-				std::move(builder).build());
-		} catch (...)
-		{
-			SPK_LOG(Error)
-				<< "Unable to build Chunk aggregation failure diagnostic"
-				<< std::endl;
-		}
+					else
+					{
+						failed.push_back({distinct[index], {Protocol::Failure::Code::AcquisitionFailed, failureMessage(child.failure())}});
+					}
+				}
+				producer.publish({request, Protocol::Response::build(request.message.requestID(), std::move(success), std::move(failed))});
+			} catch (...)
+			{
+				producer.publish({request, Protocol::Error::build(request.message.requestID(), {Networking::Diagnostic::Severity::Error, domain + "_Request_Aggregation_Failure"})});
+			}
+		});
 	} catch (...)
 	{
-		if (context != nullptr)
-		{
-			_async->remove(context);
-		}
-
-		SPK_LOG(Error)
-			<< "Unable to aggregate TerrainNode Chunk request: unknown exception"
-			<< std::endl;
-
-		try
-		{
-			Networking::Diagnostic::Builder builder(
-				Networking::Diagnostic::Severity::Error,
-				std::string(AggregationFailureKey),
-				request.message.requestID());
-			reply(
-				request,
-				std::move(builder).build());
-		} catch (...)
-		{
-			SPK_LOG(Error)
-				<< "Unable to build Chunk aggregation failure diagnostic"
-				<< std::endl;
-		}
+		reply(request, Protocol::Error::build(request.message.requestID(), {Networking::Diagnostic::Severity::Error, domain + "_Request_Aggregation_Failure"}));
 	}
 }
-
-void TerrainNode::reply(
-	const Request &request,
-	spk::Message message) noexcept
-{
-	try
-	{
-		_endpoint.reply(
-			request,
-			std::move(message));
-	} catch (const std::exception &exception)
-	{
-		SPK_LOG(Error)
-			<< "Unable to reply from TerrainNode: "
-			<< exception.what()
-			<< std::endl;
-	} catch (...)
-	{
-		SPK_LOG(Error)
-			<< "Unable to reply from TerrainNode: unknown exception"
-			<< std::endl;
-	}
-}
-
 void TerrainNode::_drainCompletions()
 {
-	for (const auto &context :
-		 _async->completions.drain(_async->drained))
+	for (const auto &result : _async->replies.drain(_async->drained))
 	{
-		if (
-			context->answer.status() ==
-			BatchTask::Status::Failed)
-		{
-			Networking::Diagnostic::Builder builder(
-				Networking::Diagnostic::Severity::Error,
-				std::string(AggregationFailureKey),
-				context->request.message.requestID());
-			reply(
-				context->request,
-				std::move(builder).build());
-			_async->remove(context);
-			continue;
-		}
-
-		try
-		{
-			Chunk::Protocol::Response::Builder builder(
-				context->request.message.requestID());
-
-			for (const BatchTask::Answer &batch :
-				 context->answer.answers())
-			{
-				const BatchResult &result =
-					batch.result();
-
-				for (const BatchResult::Acquired &acquired :
-					 result.acquired)
-				{
-					builder.addSuccess(
-						acquired.coordinate,
-						acquired.chunk);
-				}
-
-				for (const BatchResult::Failed &failed :
-					 result.failed)
-				{
-					builder.addFailure(
-						failed.coordinate,
-						Chunk::Protocol::Response::Failure::Code::
-							AcquisitionFailed,
-						failureMessage(failed.exception));
-				}
-			}
-
-			reply(
-				context->request,
-				std::move(builder).build());
-		} catch (const std::exception &exception)
-		{
-			SPK_LOG(Error)
-				<< "Unable to build TerrainNode Chunk response: "
-				<< exception.what()
-				<< std::endl;
-		} catch (...)
-		{
-			SPK_LOG(Error)
-				<< "Unable to build TerrainNode Chunk response: unknown exception"
-				<< std::endl;
-		}
-
-		_async->remove(context);
+		reply(result.request, result.message);
 	}
-
 	_async->drained.clear();
+	std::erase_if(_async->outstanding, [](const auto &context) {
+		return context->contract.isValid() == false;
+	});
 }
-
+void TerrainNode::reply(const Request &request, spk::Message message) noexcept
+{
+	try
+	{
+		_endpoint.reply(request, std::move(message));
+	} catch (const std::exception &error)
+	{
+		SPK_LOG(Warning) << "Unable to reply from TerrainNode: " << error.what() << std::endl;
+	} catch (...)
+	{
+		SPK_LOG(Warning) << "Unable to reply from TerrainNode" << std::endl;
+	}
+}
 bool TerrainNode::isRunning() const noexcept
 {
 	return _endpoint.isRunning();
 }
-
 std::uint16_t TerrainNode::port() const noexcept
 {
 	return _endpoint.port();
-}
-
-TerrainNode::RequestQueue &TerrainNode::requests() noexcept
-{
-	return _endpoint.requests();
 }

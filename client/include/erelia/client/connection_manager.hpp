@@ -1,9 +1,13 @@
 #pragma once
 
+#include "erelia/client/event_center.hpp"
+
 #include <core/platform/timer.hpp>
+#include <network/client.hpp>
 #include <threading/task.hpp>
 #include <ui/widget.hpp>
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -28,6 +32,12 @@ private:
 	std::optional<ConnectionAnswer> _connectionAttempt;
 	spk::Timer _retryTimer;
 	std::size_t _attemptCount = 0;
+	std::atomic_bool _disconnected = false;
+	spk::Client::DisconnectionContract _disconnectionContract;
+	Core::Event<const Client::ConnectionRequest &>::Contract _connectionRequestContract;
+	// Transport callbacks only flag the event; processing stays on the Client update thread.
+	void _processDisconnection();
+	void _processConnectionRequest(const Client::ConnectionRequest &request);
 
 	void _launchAttempt();
 	void _processAttempt();

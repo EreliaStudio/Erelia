@@ -282,3 +282,19 @@ Not applicable.
 ## Completion evidence
 
 Implementation is complete and merged into `master` through PR #17 on 26 September 2026. Final PR CI run #478 (run ID `36260702871`) passed the full matrix on reviewed head `18a2a52dbd43215c4a9a51d42e872ff7d32731f7`: clang-format, Core/Server Linux Debug+Release, Core/Server Windows Debug+Release, Client Windows Debug+Release, and dedicated Integration Windows Debug+Release. Server integration tests cover the real Client -> Router -> RemoteNode -> terrain Endpoint path, canonical single- and multi-coordinate responses, duplicate-coordinate diagnostics, malformed-request diagnostics, two-Client response correlation, and disconnect during an outstanding acquisition with continued Terrain service afterward; Core tests cover the asynchronous Collection/Provider result and lifetime contracts. Because the protocol maximum and internal TerrainNode batch size are both 1024, every valid protocol request currently maps to one Collection batch, so a multi-batch TaskGroup protocol fixture is intentionally deferred until those limits diverge.
+
+### Follow-up migration target in ST-001-11 — 1 October 2026
+
+ST-001-09 remains historically **Done**. Its delivered Server/TerrainNode behavior and integration evidence remain the migration baseline.
+
+ST-001-11 now supersedes the long-term protocol shape while preserving the semantic lessons from this ticket:
+
+- generic `Collection<TKey, TElement>` replaces the Chunk-specific Collection batch API;
+- Chunk and Column use generic Request/Response/Update/Error Message families;
+- `Networking::Diagnostic` becomes an Error-payload value and has no standalone MessageID;
+- generic Response owns an offset table spanning Success and Failure sections instead of the historical Chunk-only `failureOffset` framing;
+- RequestIDs are generated independently per request type, start at 1, and are never recycled;
+- finalized Sparkle Messages are constructed with `Message::Writer` and parsed with independent `Message::Reader` values.
+
+The historical aggregation-failure behavior remains intentionally relevant: a request-level Error may be emitted without a terminal Response. For ST-001-11, Client Error handling is diagnostic-only, so this can leave correlated Pending acquisition unresolved until another lifecycle event. That behavior is explicitly accepted technical debt for later reliability work rather than silently redefined here.
+

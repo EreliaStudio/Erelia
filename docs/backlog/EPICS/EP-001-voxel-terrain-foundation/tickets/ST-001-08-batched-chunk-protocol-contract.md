@@ -66,7 +66,7 @@ The protocol uses typed Erelia messages built on `spk::Message`:
 - only Success entries carry the fixed 4096-Cell Chunk payload;
 - the response payload starts with absolute `std::uint32_t` byte offsets `successOffset`, `rejectedOffset`, and `unavailableOffset`; no redundant response count is serialized because each group count is derived from its byte range and fixed entry size;
 - strict Core decoding throws `spk::Exception` for malformed protocol payloads; later network consumers own Warning logging, dropping the message, and continuing processing;
-- a Client may reuse request IDs only after it has stopped issuing new requests and all outstanding requests in the connection/session have received their terminal `ChunkResponse`; the operational recycle threshold belongs to ST-001-11.
+- historical ST-001-08 safety rule: RequestID reuse would require draining all outstanding terminal Responses first; ST-001-11 later supersedes reuse entirely and uses monotonic non-recycled per-request-type `uint64_t` sequences.
 
 
 ### Public API direction
@@ -299,3 +299,20 @@ The Core implementation adds:
 CI run #356 (run ID `36138476545`) passed the complete required matrix on reviewed PR head `a4c0e29059cec422bee848dff2c465ad26c53493`: clang-format, Linux Core/Server Debug + Release, Windows Core/Server Debug + Release, and Windows Client Debug + Release.
 
 The ticket is **Done**. ST-001-09 Server handling and ST-001-11 Client coordinator policy remain outside this implementation.
+
+### Follow-up supersession by ST-001-11 — 1 October 2026
+
+ST-001-08 remains historically **Done** and its reviewed implementation/CI evidence is preserved.
+
+For new work, ST-001-11 intentionally supersedes these protocol-policy details:
+
+- the exact historical numeric MessageIDs;
+- the standalone Diagnostic MessageID introduced by the later ST-001-09 refinement;
+- request-ID recycling/drain-threshold planning;
+- Chunk-specific Request/Response/Error as the final reusable protocol abstraction;
+- the old mutable Sparkle Message construction/read API.
+
+The active ST-001-11 design uses generic Collection Request/Response/Update/Error families for Chunk and Column, payload-only `Networking::Diagnostic`, independent monotonic non-recycled RequestID sequences per request type, generic Response offset-table sectioning, `spk::Message::Writer` construction, and independent `spk::Message::Reader` decoding.
+
+The old 1..1024 Chunk Request boundary remains useful as an initial Chunk implementation tuning value, but ST-001-11 moves request/section limits into domain-owned static constants rather than durable numeric wire-policy decisions.
+

@@ -3,7 +3,7 @@
 **Status:** Resolved
 **Date opened:** 2026-09-22
 **Date resolved:** 2026-09-22
-**Last clarified:** 2026-09-24
+**Last clarified:** 2026-09-28
 **Applies to:** EP-001 Server Chunk generation, Client terrain rendering, golden/manual validation
 
 ## Context
@@ -117,6 +117,23 @@ This deliberately exercises:
 - horizontal adjacency;
 - four direct vertical Shape-on-Shape contacts;
 - empty space below elevated geometry for later visual inspection and meshing validation.
+
+### Multi-layer Column fixture extension
+
+The column-based Collection/Provider revision adds explicit elevated non-empty Chunk layers so the temporary validation terrain exercises sparse Columns containing multiple Chunks.
+
+Approved Column membership:
+
+| Column `(X,Z)` | Additional non-empty Chunk Y layers |
+| --- | --- |
+| `(3,3)` | `1` |
+| `(3,4)` | `1, 2` |
+| `(4,3)` | `1, 2` |
+| `(4,4)` | `1, 2, 3` |
+
+The existing Y=0 baseline remains non-empty in those Columns, so their complete non-empty Chunk-layer sets are respectively `{0,1}`, `{0,1,2}`, `{0,1,2}`, and `{0,1,2,3}`.
+
+Every added elevated Chunk at Y=1..3 is completely filled with Definition 1 (`cube`) Cells across all 16×16×16 local coordinates. There are no Air cells inside those added Chunks. This makes the elevated Column fixture deterministic and intentionally simple for validating multi-Chunk Column acquisition, storage, serialization, lookup, and rendering.
 
 ### Empty world rule
 

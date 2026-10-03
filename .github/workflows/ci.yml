@@ -165,6 +165,8 @@ jobs:
           cmake --build --preset $preset --target EreliaIntegrationTestSuite --parallel 4
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           ./Sparkle/tools/ci/install-mesa.ps1 -Destination "build/$preset/tests/integration"
+          # The process smoke launches the actual graphical Client from this directory.
+          Copy-Item "build/$preset/tests/integration/*.dll" "build/$preset/client" -Force
       - name: Run integration tests
         shell: pwsh
         run: |

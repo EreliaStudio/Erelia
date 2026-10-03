@@ -18,7 +18,7 @@ The tickets are ordered by dependency, not by implementation status.
 | [ST-001-08 — Batched Chunk request/response protocol contract](ST-001-08-batched-chunk-protocol-contract.md) | **Done** | ST-001-01, ST-001-03, ST-001-05; OQ-038 resolved; DR-022 |
 | [ST-001-09 — Server Chunk request handler](ST-001-09-server-chunk-request-handler.md) | **Done** | ST-001-06, ST-001-07, ST-001-08 |
 | [ST-001-10 — Client dedicated-Server connection](ST-001-10-client-dedicated-server-connection.md) | **Done** | ST-001-07 |
-| [ST-001-11 — Client Chunk request/cache coordinator](ST-001-11-client-chunk-request-cache-coordinator.md) | **Blocked** | ST-001-08, ST-001-10; Client cache/retry/recycle policy specification |
+| [ST-001-11 — Client Chunk request/cache coordinator](ST-001-11-client-chunk-request-cache-coordinator.md) | **In Progress** | Implemented in PR #19; revised integration CI and owner review outstanding |
 | [ST-001-12 — Client terrain mesher](ST-001-12-client-terrain-mesher.md) | **Blocked** | ST-001-03, ST-001-04; OQ-036 |
 | [ST-001-13 — Client terrain rendering integration](ST-001-13-client-terrain-rendering-integration.md) | **Draft** | ST-001-01, ST-001-12; render-fixture/material/lifecycle specification |
 | [ST-001-14 — Temporary free-flight inspection controller](ST-001-14-temporary-free-flight-inspection-controller.md) | **Draft** | ST-001-13; full input/numeric camera-control specification |
@@ -45,12 +45,16 @@ The tickets are ordered by dependency, not by implementation status.
 
 **ST-001-10 — Client dedicated-Server connection** is **Done** and merged into `master` through PR #18. The delivered Client uses explicit endpoint configuration, `MainApplicationWidget` composition, Service-owned `spk::WorkerPool` / `spk::Client` / `spk::Translator` instances, serialized WorkerPool connection Tasks, a bounded three-attempt automatic retry cycle, `/connect` restart/endpoint override behavior, pending-attempt-safe destruction, Client component coverage, real Router integration, and a separate-process `EreliaClient -> EreliaServer` smoke. Final PR CI run #604 (run ID `36409915048`) passed the complete required matrix.
 
+## Active implementation work
+
+**ST-001-11 — Client Chunk request/cache coordinator** is **In Progress** on `feat/st-001-11-client-chunk-request-cache-coordinator`. PR #19 implements generic `Collection<TKey, TElement>`, Column -> Chunk streaming, Provider-owned Pending state, generic Request/Response/Update/Error families, payload-only diagnostics, per-request-type monotonic non-recycled RequestIDs, generic Response offset-table sectioning, and Client-side view/unload retention.
+
 ## Remaining blockers
 
 Existing OQs:
 
 - OQ-036 — missing-neighbor/remesh policy;
-- OQ-038 — resolved for ST-001-08 by DR-022; later Client cache/retry/recycle-threshold policy remains ST-001-11;
+- OQ-038 — resolved; ST-001-11 now fixes the remaining Client streaming/cache/request-ID policy and uses no RequestID recycling;
 - OQ-039 — resolved exact generator/Definition fixture (DR-015);
 - OQ-029 / OQ-030 — golden platform and comparison policy;
 - OQ-031 — performance evidence methodology.
@@ -61,3 +65,5 @@ Additional Draft-ticket specification gaps exposed by decomposition:
 - complete temporary free-flight input map and numeric camera/movement semantics.
 
 ST-001-01 through ST-001-10 are completed on `master`. OQ-039 and the ST-001-06 readiness decisions are resolved. ST-001-06 is **Done** and merged through PR #13. ST-001-07 is **Done** and merged through PR #14 after project-owner review. ST-001-08 is **Done** and merged through PR #16 after project-owner review. ST-001-09 is **Done** and merged through PR #17 with green final PR CI run #478. ST-001-10 is **Done** and merged through PR #18 after project-owner review; final PR CI run #604 (run ID `36409915048`) passed the full required matrix.
+
+ST-001-11 local evidence: formatting passes; Linux Debug and Release headless CTest 3/3 each; Core 121/121, Server/Terrain 18/18 and focused streaming 9/9 pass. CI run #613 (head `d74040a`, final Core 124 tests) passes all component and routed integration suites. The process smoke retains its failing exit-on-disconnect assertion, conflicting with the implemented/documented ST-001-10 reconnect cycle; the owner has confirmed bounded retries/stay-alive; revised integration CI and final owner approval are outstanding, so it is not Done. Next: ST-001-12 remains Blocked by OQ-036; there is no next Ready ticket.

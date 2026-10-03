@@ -16,7 +16,7 @@ EP-001 demonstrates that its independently tested pieces actually compose at rea
 ## Starting state / prerequisites
 
 - Depends on ST-001-06, ST-001-09, ST-001-10, ST-001-11, ST-001-12, and ST-001-13.
-- OQ-036 and OQ-038 still block exact boundary/request semantics. OQ-039 is resolved; DR-015 fixes the generator scene.
+- OQ-038 is resolved and ST-001-11 now fixes the Client request/cache/streaming semantics consumed here. OQ-036 still blocks exact meshing boundary/remesh semantics. OQ-039 is resolved; DR-015 fixes the generator scene.
 
 ## Product ownership
 
@@ -152,7 +152,7 @@ Not required to mark this semantic integration ticket Done; ST-001-16 owns visua
 ## Decisions / unresolved questions
 
 - [OQ-036](../../../OPEN_QUESTIONS/OQ-036-TERRAIN-MESHING-NEIGHBOR-POLICY.md) — blocking.
-- [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — resolved by DR-022 for the shared Chunk protocol.
+- [OQ-038](../../../OPEN_QUESTIONS/OQ-038-CHUNK-REQUEST-STREAMING.md) — resolved; ST-001-11 fixes the current generic Collection/Client streaming policy.
 - [DR-019](../../../DECISIONS/DR-019-IMMUTABLE-VOLUME-CHUNK-COLLECTION-PROVIDER.md) — immutable Chunk/Collection lifetime contract.
 - [OQ-039](../../../OPEN_QUESTIONS/OQ-039-FIRST-TERRAIN-GENERATOR-FIXTURE.md) — resolved; DR-015 supplies the canonical terrain fixture.
 

@@ -1,5 +1,10 @@
+#include "erelia/client/client_runtime.hpp"
+#include "erelia/client/client_world.hpp"
+#include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/console.hpp"
-#include "erelia/client/main_application_widget.hpp"
+#include "erelia/client/main_interface.hpp"
+#include "erelia/client/service.hpp"
+#include "erelia/client/world_manager.hpp"
 
 #include <core/application.hpp>
 #include <core/context/update_context.hpp>
@@ -30,27 +35,35 @@ namespace
 	{
 	public:
 		spk::Application application;
-		MainApplicationWidget mainWidget;
+		spk::Window &mainWindow;
+		ClientRuntime runtime;
+		ClientWorld clientWorld;
+		WorldManager world;
+		MainInterface mainInterface;
 
 		PreparedApplication() :
-			mainWidget(
-				{"127.0.0.1", 1},
-				std::chrono::milliseconds(1),
-				&application.createWindow(
-								"main",
-								spk::Window::Configuration{
-									.title = "Erelia",
-									.area = spk::Rect2D{
-										.anchor = {0, 0},
-										.size = {640, 480}}})
-					 .root())
+			mainWindow(
+				application.createWindow(
+					"main",
+					spk::Window::Configuration{
+						.title = "Erelia",
+						.area = spk::Rect2D{
+							.anchor = {0, 0},
+							.size = {640, 480}}})),
+			runtime({"127.0.0.1", 1}, std::chrono::milliseconds(1), &mainWindow.root()),
+			clientWorld({.name = "test.golden"}, runtime.networkManager()),
+			world("/WorldManager", {1, 2}, &mainWindow.root()),
+			mainInterface("/MainInterface", &mainWindow.root())
 		{
-			mainWidget.setGeometry(application.window("main").root().geometry());
+			mainInterface.console().commandParser().addCommand<ConnectCommand>();
+			world.setGeometry(mainWindow.root().geometry());
+			mainInterface.setGeometry(mainWindow.root().geometry());
+			Service::clientEventCenter().worldChanged().trigger(&clientWorld);
 		}
 
 		[[nodiscard]] spk::Widget &root()
 		{
-			return application.window("main").root();
+			return mainWindow.root();
 		}
 	};
 
@@ -61,8 +74,9 @@ namespace
 			.anchor = {0, 0},
 			.size = {640, 480}};
 		EXPECT_EQ(root.geometry(), expectedGeometry);
-		EXPECT_EQ(prepared.mainWidget.geometry(), expectedGeometry);
-		EXPECT_EQ(prepared.mainWidget.console().geometry(), expectedGeometry);
+		EXPECT_EQ(prepared.world.geometry(), expectedGeometry);
+		EXPECT_EQ(prepared.mainInterface.geometry(), expectedGeometry);
+		EXPECT_EQ(prepared.mainInterface.console().geometry(), expectedGeometry);
 		advance(root);
 		return root;
 	}
@@ -174,7 +188,7 @@ TEST_F(ClientGoldenImageTest, ApplicationMixedConsole)
 {
 	PreparedApplication application;
 	spk::Widget &root = prepareApplication(application);
-	Console &console = application.mainWidget.console();
+	Console &console = application.mainInterface.console();
 	SPK_LOG(UserValueA) << "Player message" << std::endl;
 	SPK_LOG(UserValueB) << "Command result" << std::endl;
 	SPK_LOG(Info) << "System information" << std::endl;
@@ -187,7 +201,7 @@ TEST_F(ClientGoldenImageTest, ApplicationConsoleOverflow)
 {
 	PreparedApplication application;
 	spk::Widget &root = prepareApplication(application);
-	Console &console = application.mainWidget.console();
+	Console &console = application.mainInterface.console();
 	for (std::size_t index = 0; index < 200; ++index)
 	{
 		SPK_LOG(UserValueA) << "application-history-" << index << std::endl;

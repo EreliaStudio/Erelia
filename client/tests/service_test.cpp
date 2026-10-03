@@ -245,3 +245,10 @@ TEST_F(ClientTranslatorServiceTest, MissingTranslationFallsBackToKey)
 			42),
 		"client.connection.missing");
 }
+
+TEST(ClientWorldCollection, ProvidesStableInstance)
+{
+	EXPECT_EQ(
+		&Service::clientWorldCollection(),
+		&Service::clientWorldCollection());
+}

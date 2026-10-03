@@ -9,7 +9,6 @@
 #include <cstdint>
 #include <limits>
 #include <string>
-#include <utility>
 
 ConnectCommand::ConnectCommand() :
 	Command(
@@ -31,7 +30,7 @@ ConnectCommand::ConnectCommand() :
 
 void ConnectCommand::execute(const spk::CommandParser::Invocation &invocation)
 {
-	Request request;
+	Client::ConnectionRequest request;
 
 	if (invocation.parameters.contains("address") == true)
 	{
@@ -61,10 +60,5 @@ void ConnectCommand::execute(const spk::CommandParser::Invocation &invocation)
 		request.port = static_cast<std::uint16_t>(port);
 	}
 
-	_requestProvider.trigger(request);
-}
-
-ConnectCommand::RequestContract ConnectCommand::subscribeToRequest(RequestCallback callback)
-{
-	return _requestProvider.subscribe(std::move(callback));
+	Service::clientEventCenter().connectionRequested().trigger(request);
 }

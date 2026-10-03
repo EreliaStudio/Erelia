@@ -48,7 +48,7 @@ Server owns the canonical temporary validation terrain implementation:
 
 No Client production implementation is owned by this ticket.
 
-Future Client work may implement a request-driven Provider that returns an empty valid Chunk placeholder and later replaces the Collection entry with Server-canonical data. ST-001-11/OQ-038 own the detailed request/outstanding/retry/response semantics.
+Future Client work uses Provider Pending state rather than a fabricated empty Chunk placeholder. ST-001-11/OQ-038 now fix the detailed request/outstanding/response/cache semantics through the generic Collection architecture.
 
 ## Allowed dependencies
 
@@ -253,7 +253,7 @@ Generation itself produces no images.
 
 - Client `RequestChunkProvider` or equivalent;
 - request batching/outstanding/retry/disconnect semantics;
-- exact Client response replacement behavior when no placeholder/current entry exists;
+- exact Client response publication/replacement behavior when no Available value exists;
 - dedicated Chunk `spk::Message` operators;
 - Chunk request/response message IDs;
 - Server NodeRouter handler;
@@ -418,7 +418,7 @@ Server `PrototypeChunkProvider` output is canonical for this validation fixture.
 
 Core Provider/Collection types contain no Server authority by themselves.
 
-A future Client request provider may return an empty placeholder only as local non-authoritative state; canonical Server response replaces it.
+Client request Providers must not publish fabricated placeholder terrain. Pending is acquisition state; only canonical resolved Server data becomes Available.
 
 ## Exact terrain fixture
 
@@ -550,7 +550,7 @@ JSON/resource parse failures retain existing Catalog behavior. Exact Provider co
 
 ### Cross-system integration
 
-Later ST-001-09 uses the Server provider/Collection; later ST-001-11 uses the Core Collection with a Client request provider.
+ST-001-09 uses the delivered Server provider/Collection baseline; ST-001-11 migrates the shared mechanics to generic `Collection<TKey, TElement>` with Client network-backed Providers.
 
 ### Performance
 

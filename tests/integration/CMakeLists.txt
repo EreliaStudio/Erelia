@@ -15,6 +15,7 @@ add_dependencies(
     EreliaIntegrationTestSuite
     EreliaClient
     EreliaServer
+    EreliaTerrainNode
 )
 
 add_test(
@@ -37,11 +38,12 @@ if(WIN32)
             -File ${CMAKE_CURRENT_SOURCE_DIR}/client_server_connection_process_test.ps1
             -ServerExecutable $<TARGET_FILE:EreliaServer>
             -ClientExecutable $<TARGET_FILE:EreliaClient>
+            -TerrainExecutable $<TARGET_FILE:EreliaTerrainNode>
     )
     set_tests_properties(
         EreliaClientServerProcessSmoke
         PROPERTIES
             LABELS "integration;client;server;process"
-            TIMEOUT 20
+            TIMEOUT 45
     )
 endif()

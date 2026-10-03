@@ -1,4 +1,7 @@
 add_executable(EreliaClientTestSuite
+    event_center_test.cpp
+    terrain_streaming_test.cpp
+    client_network_manager_test.cpp
     client_runtime_test.cpp
     connection_manager_test.cpp
     console_test.cpp

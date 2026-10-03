@@ -51,7 +51,7 @@ Use a 32-bit packed `Voxel::Cell` carrying Definition ID + Orientation + FlipOri
 - Buffers are reset through the Pool per-obtain callback without intentionally discarding retained capacity;
 - `VersionedTrait` and the previous Editor mutation model are no longer part of Volume.
 
-`Voxel::Volume` later declares/uses the friend `spk::Message` insertion/extraction contract required by DR-017. The wire encoding itself belongs to ST-001-05 and is not decided here.
+`Voxel::Volume` later declares/uses the Sparkle `Message::Writer` insertion / `Message::Reader` extraction contract required by DR-017. The wire encoding itself belongs to ST-001-05 and is not decided here.
 
 ### Follow-up ownership clarification
 

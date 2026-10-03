@@ -1,7 +1,7 @@
 #include "erelia/server/router.hpp"
 
-#include "erelia/core/chunk_protocol_request.hpp"
 #include "erelia/core/networking/message_type.hpp"
+#include "erelia/core/networking/terrain_protocol.hpp"
 
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
@@ -278,10 +278,7 @@ TEST(ServerRouterRuntime, RoutesChunkRequestToTerrainEndpointPreservingMessage)
 	spk::Client client;
 	client.connect("127.0.0.1", router.port());
 
-	Chunk::Protocol::Request::Builder builder;
-	builder.add({-2, 3, 4});
-	builder.add({8, -1, 0});
-	const auto request = std::move(builder).build();
+	const auto request = Networking::ChunkProtocol::Request::build(1, {{-2, 3, 4}, {8, -1, 0}});
 
 	client.send(request);
 

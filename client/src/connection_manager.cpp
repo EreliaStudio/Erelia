@@ -30,12 +30,21 @@ ConnectionManager::ConnectionManager(
 		throw spk::Exception("Client Server port cannot be zero");
 	}
 
+	_connectionRequestContract = Service::clientEventCenter().connectionRequested().subscribe(
+		[this](const Client::ConnectionRequest &request) {
+			_processConnectionRequest(request);
+		});
+	_disconnectionContract = Service::client().subscribeToDisconnection([this] {
+		_disconnected.store(true);
+	});
 	activate();
 	connect();
 }
 
 ConnectionManager::~ConnectionManager()
 {
+	_connectionRequestContract.resign();
+
 	if (
 		_connectionAttempt.has_value() == true &&
 		_connectionAttempt->status() == ConnectionTask::Status::Pending)
@@ -47,6 +56,38 @@ ConnectionManager::~ConnectionManager()
 	{
 		Service::client().disconnect();
 	}
+	_processDisconnection();
+}
+
+void ConnectionManager::_processDisconnection()
+{
+	if (_disconnected.exchange(false) == true)
+	{
+		Service::clientEventCenter().clientDisconnected().trigger();
+	}
+}
+
+void ConnectionManager::_processConnectionRequest(const Client::ConnectionRequest &request)
+{
+	Endpoint endpoint = _endpoint;
+	if (request.address.has_value() == true)
+	{
+		endpoint.address = *request.address;
+	}
+	if (request.port.has_value() == true)
+	{
+		endpoint.port = *request.port;
+	}
+
+	if (
+		_endpoint.address == endpoint.address &&
+		_endpoint.port == endpoint.port)
+	{
+		connect();
+		return;
+	}
+
+	connect(std::move(endpoint));
 }
 
 void ConnectionManager::_launchAttempt()
@@ -132,6 +173,7 @@ void ConnectionManager::_processAttempt()
 		_attemptCount = 0;
 		_retryTimer.reset();
 		SPK_LOG(Info) << "Connected to dedicated Server" << std::endl;
+		Service::clientEventCenter().clientConnected().trigger();
 		return;
 	}
 
@@ -149,6 +191,7 @@ void ConnectionManager::_processAttempt()
 
 void ConnectionManager::_updateState(spk::UpdateContext &)
 {
+	_processDisconnection();
 	_processAttempt();
 
 	if (
@@ -224,6 +267,7 @@ void ConnectionManager::connect(Endpoint endpoint)
 	if (Service::client().isConnected() == true)
 	{
 		Service::client().disconnect();
+		_processDisconnection();
 	}
 
 	_endpoint = std::move(endpoint);

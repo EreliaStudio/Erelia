@@ -1,4 +1,6 @@
 add_executable(EreliaCoreTestSuite
+    collection_protocol_types_test.cpp
+    collection_requesting_provider_test.cpp
     chunk_collection_test.cpp
     chunk_protocol_error_test.cpp
     chunk_protocol_request_test.cpp
@@ -13,6 +15,7 @@ add_executable(EreliaCoreTestSuite
     voxel_shape_test.cpp
     voxel_volume_message_test.cpp
     voxel_volume_test.cpp
+    world_test.cpp
 )
 target_link_libraries(EreliaCoreTestSuite PRIVATE EreliaCore GTest::gtest_main)
 

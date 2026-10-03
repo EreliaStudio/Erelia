@@ -100,15 +100,16 @@ namespace
 	}
 
 	void validateCellBytesAvailable(
-		const spk::Message &message,
+		const spk::Message::Reader &reader,
 		std::size_t cellBytes)
 	{
-		if (message.readOffset() > message.size())
+		if (reader.readOffset() > reader.size())
 		{
 			throw spk::Exception("Voxel::Volume Message read offset is outside the payload");
 		}
 
-		const std::size_t remainingBytes = message.size() - message.readOffset();
+		const std::size_t remainingBytes =
+			reader.size() - reader.readOffset();
 		if (cellBytes > remainingBytes)
 		{
 			throw spk::Exception("Voxel::Volume Message does not contain the complete Cell block");
@@ -120,46 +121,47 @@ namespace Voxel
 {
 	Volume::Volume(const spk::Message &message)
 	{
-		message >> *this;
+		auto reader = message.reader();
+		reader >> *this;
 	}
 
-	spk::Message &operator<<(
-		spk::Message &message,
+	spk::Message::Writer &operator<<(
+		spk::Message::Writer &writer,
 		const Volume &volume)
 	{
 		const SerializedVolumeLayout layout =
 			validatedSerializedVolumeLayout(volume);
 
-		message << volume._dimensions;
-		message << volume._unitSize;
-		message.append(volume.cells().data(), layout.cellBytes);
+		writer << volume._dimensions;
+		writer << volume._unitSize;
+		writer.append(volume.cells().data(), layout.cellBytes);
 
-		return message;
+		return writer;
 	}
 
-	const spk::Message &operator>>(
-		const spk::Message &message,
+	const spk::Message::Reader &operator>>(
+		const spk::Message::Reader &reader,
 		Volume &volume)
 	{
 		spk::Vector3UInt dimensions{};
 		Volume::UnitSize unitSize = 0.0f;
 
-		message >> dimensions;
-		message >> unitSize;
+		reader >> dimensions;
+		reader >> unitSize;
 
 		const SerializedVolumeLayout layout =
 			validatedSerializedVolumeLayout(dimensions, unitSize);
-		validateCellBytesAvailable(message, layout.cellBytes);
+		validateCellBytesAvailable(reader, layout.cellBytes);
 
 		if (layout.cellCount == 0)
 		{
 			volume = Volume();
-			return message;
+			return reader;
 		}
 
 		Volume::Buffer::Lease cells =
 			Volume::obtainCellBuffer(layout.cellCount);
-		message.pull(cells->data(), layout.cellBytes);
+		reader.pull(cells->data(), layout.cellBytes);
 
 		Volume decoded(
 			dimensions,
@@ -167,6 +169,6 @@ namespace Voxel
 			std::move(cells));
 		volume = std::move(decoded);
 
-		return message;
+		return reader;
 	}
 }

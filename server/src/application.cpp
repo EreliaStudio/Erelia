@@ -38,13 +38,13 @@ int runServer(int argc, char **argv)
 			{"help", 'h', "Print this help"});
 		arguments.parse(argc, argv);
 
-		if (arguments.has("help"))
+		if (arguments.has("help") == true)
 		{
 			arguments.printHelp();
 			return EXIT_SUCCESS;
 		}
 
-		if (!arguments.has("config"))
+		if (arguments.has("config") == false)
 		{
 			throw spk::Exception(
 				"Missing required option --config");
@@ -57,6 +57,8 @@ int runServer(int argc, char **argv)
 			static_cast<spk::Message::Type>(
 				Networking::MessageType::ChunkRequest),
 			"terrain");
+
+		router.redirect(static_cast<spk::Message::Type>(Networking::MessageType::ColumnRequest), "terrain");
 
 		Running = 1;
 		std::signal(SIGINT, onSignal);

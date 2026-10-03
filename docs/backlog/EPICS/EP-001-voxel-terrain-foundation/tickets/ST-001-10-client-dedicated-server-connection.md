@@ -300,6 +300,12 @@ Project-owner decisions approved on 27 September 2026:
 
 No unresolved observable ST-001-10 contract question remains. The ticket satisfies the project Definition of Ready.
 
+## Connection policy clarification — 1 October 2026
+
+The project owner confirmed that unexpected Server loss starts a fresh bounded connection cycle and leaves the graphical Client running after three failed attempts, awaiting `/connect`. This supersedes the earlier recorded requirement to fail the executable on unexpected remote disconnect. Invalid configuration still fails startup. Local shutdown behavior is unchanged.
+
+The process smoke now checks remote-loss detection, exactly three ordered reconnect attempts, the stopped-cycle message and continued Client lifetime. The routed ConnectionManager fixture additionally verifies explicit reconnect after the Server returns. Historical completion evidence below describes the earlier validation and is preserved.
+
 ## Completion evidence
 
 Implementation is complete and merged into `master` through PR #18 on 28 September 2026 after project-owner review.
