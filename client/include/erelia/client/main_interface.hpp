@@ -5,6 +5,8 @@
 #include <ui/layout/linear_layout.hpp>
 #include <ui/widget.hpp>
 
+#include <string>
+
 class MainInterface final : public spk::Widget
 {
 private:
