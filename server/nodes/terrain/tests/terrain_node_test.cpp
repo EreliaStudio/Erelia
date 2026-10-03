@@ -1,6 +1,7 @@
 #include "terrain_node.hpp"
 #include "terrain_node_application.hpp"
 #include "terrain_service.hpp"
+#include "terrain_world.hpp"
 
 #include <exception.hpp>
 #include <gtest/gtest.h>
@@ -192,4 +193,26 @@ TEST(TerrainNodeRuntime, ServiceEndpointHasExactlyOneDispatcher)
 	}
 	EXPECT_EQ(Service::terrainEndpoint().isRunning(), false);
 	EXPECT_NO_THROW((void)TerrainNode({.port = 0}));
+}
+
+TEST(TerrainWorldCollectionService, LazilyCreatesTerrainWorlds)
+{
+	TerrainWorldCollection &worlds =
+		Service::terrainWorldCollection();
+	(void)worlds.remove("test.terrain.world");
+
+	World *world =
+		worlds.world("test.terrain.world");
+
+	ASSERT_NE(world, nullptr);
+	EXPECT_NE(
+		dynamic_cast<TerrainWorld *>(world),
+		nullptr);
+	EXPECT_EQ(
+		worlds.world("test.terrain.world"),
+		world);
+
+	EXPECT_EQ(
+		worlds.remove("test.terrain.world"),
+		true);
 }
