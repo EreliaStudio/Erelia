@@ -1,6 +1,11 @@
 #include "erelia/client/client_configuration.hpp"
-#include "erelia/client/console.hpp"
-#include "erelia/client/main_application_widget.hpp"
+#include "erelia/client/client_runtime.hpp"
+#include "erelia/client/command/connect_command.hpp"
+#include "erelia/client/main_interface.hpp"
+#include "erelia/client/service.hpp"
+#include "erelia/client/widget_order.hpp"
+#include "erelia/client/world_manager.hpp"
+
 #include <core/application.hpp>
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
@@ -112,7 +117,7 @@ TEST(ClientConsole, OrdinarySubmissionUsesUserValueA)
 	EXPECT_EQ(receivedMessage, "player input");
 }
 
-TEST(ClientBootstrap, InitializesWidgetHierarchyFromConfiguredWindowGeometry)
+TEST(ClientRuntime, ConnectionStartsPlayerLoadingLifecycle)
 {
 	spk::Application application;
 	spk::Window &mainWindow = application.createWindow(
@@ -122,37 +127,91 @@ TEST(ClientBootstrap, InitializesWidgetHierarchyFromConfiguredWindowGeometry)
 			.area = spk::Rect2D{
 				.anchor = {0, 0},
 				.size = {640, 480}}});
-	MainApplicationWidget mainWidget(
+
+	int loadingRequests = 0;
+	int readyPlayers = 0;
+	auto loading = Service::clientEventCenter().playerLoadingRequested().subscribe([&] {
+		++loadingRequests;
+	});
+	auto ready = Service::clientEventCenter().playerReady().subscribe(
+		[&](const PlayerInformation &) {
+			++readyPlayers;
+		});
+
+	ClientRuntime runtime(
 		{"127.0.0.1", 1},
 		std::chrono::milliseconds(1),
-		&mainWindow.root(),
-		{1, 2});
-	mainWidget.setGeometry(mainWindow.root().geometry());
+		&mainWindow.root());
+
+	Service::clientEventCenter().clientConnected().trigger();
+
+	EXPECT_EQ(loadingRequests, 1);
+	EXPECT_EQ(readyPlayers, 1);
+}
+
+TEST(ClientBootstrap, InitializesSeparatedClientRootsFromConfiguredWindowGeometry)
+{
+	spk::Application application;
+	spk::Window &mainWindow = application.createWindow(
+		"main",
+		spk::Window::Configuration{
+			.title = "Erelia",
+			.area = spk::Rect2D{
+				.anchor = {0, 0},
+				.size = {640, 480}}});
+
+	ClientRuntime runtime(
+		{"127.0.0.1", 1},
+		std::chrono::milliseconds(1),
+		&mainWindow.root());
+	WorldManager world(
+		"/WorldManager",
+		runtime.terrainCollections(),
+		{1, 2},
+		&mainWindow.root());
+	MainInterface interface(
+		"/MainInterface",
+		&mainWindow.root());
+	interface.console().commandParser().addCommand<ConnectCommand>();
+
+	world.setGeometry(mainWindow.root().geometry());
+	interface.setGeometry(mainWindow.root().geometry());
 
 	const spk::Rect2D expectedGeometry{
 		.anchor = {0, 0},
 		.size = {640, 480}};
 
 	EXPECT_EQ(mainWindow.root().geometry(), expectedGeometry);
-	EXPECT_EQ(mainWidget.geometry(), expectedGeometry);
-	EXPECT_EQ(mainWidget.name(), "/MainApplicationWidget");
+	EXPECT_EQ(world.geometry(), expectedGeometry);
+	EXPECT_EQ(interface.geometry(), expectedGeometry);
+	EXPECT_EQ(interface.name(), "/MainInterface");
 	EXPECT_EQ(
-		mainWidget.connectionManager().name(),
-		"/MainApplicationWidget/ConnectionManager");
+		runtime.connectionManager().name(),
+		"/ClientRuntime/ConnectionManager");
 	EXPECT_EQ(
-		mainWidget.console().name(),
-		"/MainApplicationWidget/Console");
+		runtime.connectionManager().zOrder(),
+		Client::WidgetOrder::Connection);
 	EXPECT_EQ(
-		mainWidget.console().entryView().name(),
-		"/MainApplicationWidget/Console/entries");
+		runtime.networkManager().zOrder(),
+		Client::WidgetOrder::Network);
+	EXPECT_EQ(world.zOrder(), Client::WidgetOrder::World);
+	EXPECT_EQ(interface.zOrder(), Client::WidgetOrder::Interface);
+	EXPECT_EQ(world.engine(), &world.gameEngine());
+	EXPECT_EQ(world.player(), nullptr);
 	EXPECT_EQ(
-		mainWidget.console().commandEntry().name(),
-		"/MainApplicationWidget/Console/command");
+		interface.console().name(),
+		"/MainInterface/Console");
 	EXPECT_EQ(
-		mainWidget.console()
+		interface.console().entryView().name(),
+		"/MainInterface/Console/entries");
+	EXPECT_EQ(
+		interface.console().commandEntry().name(),
+		"/MainInterface/Console/command");
+	EXPECT_EQ(
+		interface.console()
 			.commandParser()
 			.command<ConnectCommand>()
 			.name(),
 		"connect");
-	EXPECT_EQ(mainWidget.console().geometry(), expectedGeometry);
+	EXPECT_EQ(interface.console().geometry(), expectedGeometry);
 }
