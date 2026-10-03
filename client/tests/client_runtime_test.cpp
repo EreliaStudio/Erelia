@@ -230,3 +230,41 @@ TEST(ClientBootstrap, InitializesSeparatedClientRootsFromConfiguredWindowGeometr
 		"connect");
 	EXPECT_EQ(interface.console().geometry(), expectedGeometry);
 }
+
+TEST(ClientWorldLifecycle, WorldChangedRebindsRuntimeAndEngineWidget)
+{
+	spk::Application application;
+	spk::Window &mainWindow = application.createWindow(
+		"main",
+		spk::Window::Configuration{
+			.title = "Erelia",
+			.area = spk::Rect2D{
+				.anchor = {0, 0},
+				.size = {640, 480}}});
+
+	ClientRuntime runtime(
+		{"127.0.0.1", 1},
+		std::chrono::milliseconds(1),
+		&mainWindow.root());
+	ClientWorld first(runtime.networkManager());
+	ClientWorld second(runtime.networkManager());
+	WorldManager manager(
+		"/WorldManager",
+		{1, 2},
+		&mainWindow.root());
+
+	Service::clientEventCenter().worldChanged().trigger(&first);
+	EXPECT_EQ(runtime.world(), &first);
+	EXPECT_EQ(manager.world(), &first);
+	EXPECT_EQ(manager.engine(), &first.engine());
+
+	Service::clientEventCenter().worldChanged().trigger(&second);
+	EXPECT_EQ(runtime.world(), &second);
+	EXPECT_EQ(manager.world(), &second);
+	EXPECT_EQ(manager.engine(), &second.engine());
+
+	Service::clientEventCenter().worldChanged().trigger(nullptr);
+	EXPECT_EQ(runtime.world(), nullptr);
+	EXPECT_EQ(manager.world(), nullptr);
+	EXPECT_EQ(manager.engine(), nullptr);
+}
