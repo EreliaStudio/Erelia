@@ -244,6 +244,24 @@ TEST_F(ConnectionManagerTest, ConnectStartsFreshCycleAfterBudgetIsExhausted)
 	EXPECT_EQ(manager.attemptCount(), 1u);
 }
 
+TEST_F(ConnectionManagerTest, ConnectionRequestEventUpdatesEndpointAndStartsFreshCycle)
+{
+	ConnectionManager manager(
+		"ConnectionManager",
+		_endpoint,
+		TestRetryDelay);
+
+	ASSERT_TRUE(advanceUntilStopped(manager));
+
+	Service::clientEventCenter().connectionRequested().trigger(
+		Client::ConnectionRequest{.address = "localhost"});
+
+	EXPECT_EQ(manager.endpoint().address, "localhost");
+	EXPECT_EQ(manager.endpoint().port, _endpoint.port);
+	EXPECT_EQ(manager.attemptCount(), 1u);
+	EXPECT_FALSE(manager.isCycleStopped());
+}
+
 TEST_F(ConnectionManagerTest, ConnectDoesNotLaunchConcurrentAttempt)
 {
 	WorkerPoolBlocker workerPoolBlocker;
