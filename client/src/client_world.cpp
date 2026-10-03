@@ -5,8 +5,12 @@
 
 #include <network/client.hpp>
 
+#include <utility>
+
 ClientWorld::ClientWorld(
+	WorldIdentifier identifier,
 	ClientNetworkManager &networkManager) :
+	World(std::move(identifier)),
 	_networkManager(networkManager)
 {
 	_disconnectContract =
