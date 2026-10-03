@@ -44,10 +44,6 @@ ClientRuntime::ClientRuntime(
 
 ClientRuntime::~ClientRuntime()
 {
-	if (_world != nullptr)
-	{
-		Service::clientEventCenter().worldChanged().trigger(nullptr);
-	}
 	Service::clientWorldCollection().unbind(_networkManager);
 }
 
