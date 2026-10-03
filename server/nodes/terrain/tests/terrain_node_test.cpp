@@ -1,7 +1,7 @@
+#include "generating_world_provider.hpp"
 #include "terrain_node.hpp"
 #include "terrain_node_application.hpp"
 #include "terrain_service.hpp"
-#include "terrain_world.hpp"
 
 #include <exception.hpp>
 #include <gtest/gtest.h>
@@ -195,24 +195,35 @@ TEST(TerrainNodeRuntime, ServiceEndpointHasExactlyOneDispatcher)
 	EXPECT_NO_THROW((void)TerrainNode({.port = 0}));
 }
 
-TEST(TerrainWorldCollectionService, LazilyCreatesTerrainWorlds)
+TEST(TerrainWorldService, GeneratesDefinedWorlds)
 {
-	TerrainWorldCollection &worlds =
-		Service::terrainWorldCollection();
-	(void)worlds.remove("test.terrain.world");
+	WorldService &worlds =
+		Service::terrainWorldService();
+	auto &provider =
+		static_cast<GeneratingWorldProvider &>(
+			worlds.provider());
+	const WorldIdentifier identifier{
+		.name = "test.terrain.world"};
+
+	(void)worlds.remove(identifier);
+	provider.define(
+		{
+			.identifier = identifier,
+			.generatorType =
+				GeneratingWorldProvider::Type::Prototype,
+			.family = "test"
+		});
 
 	World *world =
-		worlds.world("test.terrain.world");
+		worlds.world(identifier);
 
 	ASSERT_NE(world, nullptr);
-	EXPECT_NE(
-		dynamic_cast<TerrainWorld *>(world),
-		nullptr);
+	EXPECT_EQ(world->identifier(), identifier);
 	EXPECT_EQ(
-		worlds.world("test.terrain.world"),
+		worlds.world(identifier),
 		world);
 
 	EXPECT_EQ(
-		worlds.remove("test.terrain.world"),
+		worlds.remove(identifier),
 		true);
 }
