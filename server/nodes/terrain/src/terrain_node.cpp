@@ -86,6 +86,9 @@ TerrainNode::TerrainNode(Configuration configuration) :
 		}));
 	} catch (...)
 	{
+		(void)Service::terrainWorldService().remove(
+			GeneratingWorldProvider::PrototypeWorld);
+		_world = nullptr;
 		drainerOwned.store(false);
 		throw;
 	}
@@ -98,7 +101,7 @@ TerrainNode::~TerrainNode()
 	} catch (...)
 	{
 	}
-	Service::terrainWorldService().remove(
+	(void)Service::terrainWorldService().remove(
 		GeneratingWorldProvider::PrototypeWorld);
 	_world = nullptr;
 	drainerOwned.store(false);
