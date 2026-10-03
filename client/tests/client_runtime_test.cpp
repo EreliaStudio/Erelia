@@ -143,7 +143,7 @@ TEST(ClientRuntime, ConnectionStartsPlayerLoadingLifecycle)
 		{"127.0.0.1", 1},
 		std::chrono::milliseconds(1),
 		&mainWindow.root());
-	ClientWorld clientWorld(runtime.networkManager());
+	ClientWorld clientWorld({.name = "test.lifecycle"}, runtime.networkManager());
 
 	Service::clientEventCenter().worldChanged().trigger(&clientWorld);
 	Service::clientEventCenter().clientConnected().trigger();
@@ -168,7 +168,7 @@ TEST(ClientBootstrap, InitializesSeparatedClientRootsFromConfiguredWindowGeometr
 		{"127.0.0.1", 1},
 		std::chrono::milliseconds(1),
 		&mainWindow.root());
-	ClientWorld clientWorld(runtime.networkManager());
+	ClientWorld clientWorld({.name = "test.bootstrap"}, runtime.networkManager());
 	WorldManager world(
 		"/WorldManager",
 		{1, 2},
@@ -246,8 +246,8 @@ TEST(ClientWorldLifecycle, WorldChangedRebindsRuntimeAndEngineWidget)
 		{"127.0.0.1", 1},
 		std::chrono::milliseconds(1),
 		&mainWindow.root());
-	ClientWorld first(runtime.networkManager());
-	ClientWorld second(runtime.networkManager());
+	ClientWorld first({.name = "test.first"}, runtime.networkManager());
+	ClientWorld second({.name = "test.second"}, runtime.networkManager());
 	WorldManager manager(
 		"/WorldManager",
 		{1, 2},
@@ -300,11 +300,13 @@ TEST(ClientWorldLifecycle, DetachesBeforeRemovingActiveNamedWorld)
 		{1, 2},
 		&mainWindow.root());
 
-	ClientWorldCollection &worlds =
-		Service::clientWorldCollection();
-	(void)worlds.remove("test.client.world");
+	WorldService &worlds =
+		Service::clientWorldService();
+	const WorldIdentifier identifier{
+		.name = "test.client.world"};
+	(void)worlds.remove(identifier);
 	World *world =
-		worlds.world("test.client.world");
+		worlds.world(identifier);
 
 	ASSERT_NE(dynamic_cast<ClientWorld *>(world), nullptr);
 	Service::clientEventCenter().worldChanged().trigger(world);
@@ -318,6 +320,6 @@ TEST(ClientWorldLifecycle, DetachesBeforeRemovingActiveNamedWorld)
 	EXPECT_EQ(manager.engine(), nullptr);
 
 	EXPECT_EQ(
-		worlds.remove("test.client.world"),
+		worlds.remove(identifier),
 		true);
 }
