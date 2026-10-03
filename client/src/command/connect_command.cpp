@@ -30,7 +30,7 @@ ConnectCommand::ConnectCommand() :
 
 void ConnectCommand::execute(const spk::CommandParser::Invocation &invocation)
 {
-	Request request;
+	Client::ConnectionRequest request;
 
 	if (invocation.parameters.contains("address") == true)
 	{
