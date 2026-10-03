@@ -47,18 +47,9 @@ namespace
 						.area = spk::Rect2D{
 							.anchor = {0, 0},
 							.size = {640, 480}}})),
-			runtime(
-				{"127.0.0.1", 1},
-				std::chrono::milliseconds(1),
-				&mainWindow.root()),
-			world(
-				"/WorldManager",
-				runtime.terrainCollections(),
-				{1, 2},
-				&mainWindow.root()),
-			mainInterface(
-				"/MainInterface",
-				&mainWindow.root())
+			runtime({"127.0.0.1", 1}, std::chrono::milliseconds(1), &mainWindow.root()),
+			world("/WorldManager", runtime.terrainCollections(), {1, 2}, &mainWindow.root()),
+			mainInterface("/MainInterface", &mainWindow.root())
 		{
 			mainInterface.console().commandParser().addCommand<ConnectCommand>();
 			world.setGeometry(mainWindow.root().geometry());
