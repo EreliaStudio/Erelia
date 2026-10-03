@@ -8,8 +8,3 @@ spk::WorkerPool &Service::workerPool()
 	return workerPool;
 }
 
-WorldCollection &Service::worldCollection()
-{
-	static WorldCollection worlds;
-	return worlds;
-}
