@@ -51,7 +51,7 @@ namespace
 							.anchor = {0, 0},
 							.size = {640, 480}}})),
 			runtime({"127.0.0.1", 1}, std::chrono::milliseconds(1), &mainWindow.root()),
-			clientWorld(runtime.networkManager()),
+			clientWorld({.name = "test.golden"}, runtime.networkManager()),
 			world("/WorldManager", {1, 2}, &mainWindow.root()),
 			mainInterface("/MainInterface", &mainWindow.root())
 		{
