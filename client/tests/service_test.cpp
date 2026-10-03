@@ -246,9 +246,9 @@ TEST_F(ClientTranslatorServiceTest, MissingTranslationFallsBackToKey)
 		"client.connection.missing");
 }
 
-TEST(ClientWorldService, ProvidesStableInstance)
+TEST(ClientWorldCollection, ProvidesStableInstance)
 {
 	EXPECT_EQ(
-		&Service::clientWorldService(),
-		&Service::clientWorldService());
+		&Service::clientWorldCollection(),
+		&Service::clientWorldCollection());
 }
