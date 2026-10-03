@@ -57,7 +57,7 @@ namespace
 		std::size_t columnCreations = 0;
 	};
 
-	class TestWorldCollection::Provider final : public WorldCollection::Provider
+	class TestWorldProvider final : public WorldCollection::Provider
 	{
 	protected:
 		[[nodiscard]] std::unique_ptr<World> _acquire(
@@ -72,7 +72,7 @@ namespace
 		std::size_t acquisitions = 0;
 	};
 
-	class MismatchedWorldCollection::Provider final : public WorldCollection::Provider
+	class MismatchedWorldProvider final : public WorldCollection::Provider
 	{
 	protected:
 		[[nodiscard]] std::unique_ptr<World> _acquire(
@@ -126,7 +126,7 @@ TEST(World, OwnsEntitiesAddedToItsEngine)
 TEST(WorldCollection, LazilyAcquiresAndOwnsNamedWorlds)
 {
 	WorldCollection worlds(
-		TestWorldCollection::Provider{});
+		TestWorldProvider{});
 
 	const WorldIdentifier levelIdentifier{
 		.name = "world.level1"};
@@ -144,7 +144,7 @@ TEST(WorldCollection, LazilyAcquiresAndOwnsNamedWorlds)
 	EXPECT_EQ(level->identifier(), levelIdentifier);
 	EXPECT_EQ(hub->identifier(), hubIdentifier);
 	EXPECT_EQ(
-		static_cast<TestWorldCollection::Provider &>(
+		static_cast<TestWorldProvider &>(
 			worlds.provider())
 			.acquisitions,
 		2u);
@@ -161,7 +161,7 @@ TEST(WorldCollection, LazilyAcquiresAndOwnsNamedWorlds)
 	ASSERT_NE(recreated, nullptr);
 	EXPECT_EQ(recreated->identifier(), levelIdentifier);
 	EXPECT_EQ(
-		static_cast<TestWorldCollection::Provider &>(
+		static_cast<TestWorldProvider &>(
 			worlds.provider())
 			.acquisitions,
 		3u);
@@ -173,7 +173,7 @@ TEST(WorldCollection, LazilyAcquiresAndOwnsNamedWorlds)
 TEST(WorldCollection, RejectsProviderIdentifierMismatch)
 {
 	WorldCollection worlds(
-		MismatchedWorldCollection::Provider{});
+		MismatchedWorldProvider{});
 
 	EXPECT_THROW(
 		(void)worlds.world(
