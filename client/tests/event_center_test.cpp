@@ -36,8 +36,10 @@ TEST(EventCenter, ServiceInstanceIsStableAndEventsAreIndependent)
 	Service::clientEventCenter().connectionRequested().trigger(
 		Client::ConnectionRequest{.address = "192.0.2.1", .port = 2550});
 	ASSERT_TRUE(requested.has_value());
-	EXPECT_EQ(requested->address, "192.0.2.1");
-	EXPECT_EQ(requested->port, 2550u);
+	ASSERT_TRUE(requested->address.has_value());
+	ASSERT_TRUE(requested->port.has_value());
+	EXPECT_EQ(*requested->address, "192.0.2.1");
+	EXPECT_EQ(*requested->port, 2550u);
 }
 
 TEST(EventCenter, SubscriptionLifetimeAndTypedPayload)
