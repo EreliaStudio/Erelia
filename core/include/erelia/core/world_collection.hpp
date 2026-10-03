@@ -3,6 +3,7 @@
 #include "erelia/core/world.hpp"
 
 #include <concepts>
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <unordered_map>
