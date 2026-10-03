@@ -1,5 +1,5 @@
 #pragma once
-#include "erelia/client/terrain_collections.hpp"
+#include "erelia/core/world.hpp"
 #include "erelia/core/player_information.hpp"
 #include <atomic>
 #include <container/thread_safe_fifo.hpp>
@@ -41,8 +41,8 @@ private:
 		ChunkAnswer::CompletionContract contract;
 		std::shared_ptr<std::atomic_bool> published;
 	};
-	TerrainCollections::Columns &_columns;
-	TerrainCollections::Chunks &_chunks;
+	World::Columns &_columns;
+	World::Chunks &_chunks;
 	Ranges _ranges;
 	std::vector<Column::Coordinate> _viewOffsets;
 	std::unordered_set<Column::Coordinate> _viewRegion;
@@ -62,7 +62,7 @@ private:
 	void _updateState(spk::UpdateContext &) override;
 
 public:
-	TerrainStreamingBehaviour(TerrainCollections::Columns &columns, TerrainCollections::Chunks &chunks, Ranges ranges);
+	TerrainStreamingBehaviour(World::Columns &columns, World::Chunks &chunks, Ranges ranges);
 	void attach(spk::Entity *owner) override;
 	void dispatch();
 	[[nodiscard]] std::optional<Chunk::Coordinate> center() const noexcept
@@ -75,12 +75,15 @@ class Player final : public spk::Entity3D
 public:
 	Player(
 		const PlayerInformation &information,
-		TerrainCollections &terrain,
+		World &world,
 		TerrainStreamingBehaviour::Ranges ranges) :
 		spk::Entity3D("Player")
 	{
 		(void)information;
-		addBehaviour<TerrainStreamingBehaviour>(terrain.columns(), terrain.chunks(), ranges);
+		addBehaviour<TerrainStreamingBehaviour>(
+			*world.columnCollection(),
+			*world.chunkCollection(),
+			ranges);
 		activate();
 	}
 };
