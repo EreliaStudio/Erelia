@@ -2,6 +2,7 @@
 
 #include "erelia/core/collection.hpp"
 #include "erelia/core/column.hpp"
+#include "erelia/core/world_identifier.hpp"
 
 #include <concepts>
 #include <memory>
@@ -18,6 +19,7 @@ public:
 	using Columns = Collection<Column::Coordinate, Column>;
 
 private:
+	WorldIdentifier _identifier;
 	std::unique_ptr<Chunks> _chunks;
 	std::unique_ptr<Columns> _columns;
 	std::vector<std::unique_ptr<spk::Entity>> _entities;
@@ -38,13 +40,21 @@ protected:
 	}
 
 public:
-	World() = default;
+	explicit World(WorldIdentifier identifier) :
+		_identifier(std::move(identifier))
+	{
+	}
 	virtual ~World() = default;
 
 	World(const World &) = delete;
 	World &operator=(const World &) = delete;
 	World(World &&) = delete;
 	World &operator=(World &&) = delete;
+
+	[[nodiscard]] const WorldIdentifier &identifier() const noexcept
+	{
+		return _identifier;
+	}
 
 	[[nodiscard]] Chunks *chunkCollection()
 	{
