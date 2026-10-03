@@ -6,6 +6,7 @@
 #include "erelia/client/service.hpp"
 #include "erelia/client/widget_order.hpp"
 #include "erelia/client/world_manager.hpp"
+#include "erelia/core/service.hpp"
 
 #include <core/application.hpp>
 #include <diagnostics/logger.hpp>
@@ -280,4 +281,44 @@ TEST(ClientWorldLifecycle, WorldChangedRebindsRuntimeAndEngineWidget)
 	EXPECT_EQ(manager.world(), nullptr);
 	EXPECT_EQ(manager.engine(), nullptr);
 	EXPECT_EQ(currentChunks, nullptr);
+}
+
+TEST(ClientWorldLifecycle, RemovingActiveNamedWorldDetachesSubscribers)
+{
+	spk::Application application;
+	spk::Window &mainWindow = application.createWindow(
+		"main",
+		spk::Window::Configuration{
+			.title = "Erelia",
+			.area = spk::Rect2D{
+				.anchor = {0, 0},
+				.size = {640, 480}}});
+
+	ClientRuntime runtime(
+		{"127.0.0.1", 1},
+		std::chrono::milliseconds(1),
+		&mainWindow.root());
+	WorldManager manager(
+		"/WorldManager",
+		{1, 2},
+		&mainWindow.root());
+
+	WorldCollection &worlds = Service::worldCollection();
+	(void)worlds.remove("test.client.world");
+	ClientWorld *world =
+		worlds.create<ClientWorld>(
+			"test.client.world",
+			runtime.networkManager());
+
+	Service::clientEventCenter().worldChanged().trigger(world);
+	ASSERT_EQ(runtime.world(), world);
+	ASSERT_EQ(manager.world(), world);
+	ASSERT_EQ(manager.engine(), &world->engine());
+
+	EXPECT_EQ(
+		worlds.remove("test.client.world"),
+		true);
+	EXPECT_EQ(runtime.world(), nullptr);
+	EXPECT_EQ(manager.world(), nullptr);
+	EXPECT_EQ(manager.engine(), nullptr);
 }
