@@ -296,9 +296,12 @@ protected:
 			{
 				notificationFailure = std::current_exception();
 			}
-			completion.task->validate(std::move(*completion.element));
+			if (completion.task != nullptr)
+			{
+				completion.task->validate(std::move(*completion.element));
+			}
 		}
-		else
+		else if (completion.task != nullptr)
 		{
 			completion.task->fail(completion.failure);
 		}
