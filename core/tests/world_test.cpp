@@ -112,7 +112,21 @@ TEST(WorldCollection, OwnsMultipleNamedWorlds)
 
 TEST(WorldCollectionService, ProvidesStableProcessCollection)
 {
+	WorldCollection &worlds = Service::worldCollection();
+	(void)worlds.remove("test.world.service");
+
 	EXPECT_EQ(
-		&Service::worldCollection(),
+		&worlds,
 		&Service::worldCollection());
+
+	TestWorld *world =
+		worlds.create<TestWorld>("test.world.service");
+	ASSERT_NE(world, nullptr);
+	EXPECT_EQ(
+		worlds.find("test.world.service"),
+		world);
+
+	EXPECT_EQ(
+		worlds.remove("test.world.service"),
+		true);
 }
