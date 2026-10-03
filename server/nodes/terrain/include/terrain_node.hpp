@@ -1,7 +1,7 @@
 #pragma once
 #include "erelia/core/networking/message_dispatcher.hpp"
 #include "erelia/core/networking/terrain_protocol.hpp"
-#include "terrain_world.hpp"
+#include "erelia/core/world.hpp"
 #include <cstdint>
 #include <memory>
 #include <network/remote_node.hpp>
@@ -21,7 +21,7 @@ private:
 	struct AsyncState;
 	Configuration _configuration;
 	spk::RemoteNode::Endpoint &_endpoint;
-	TerrainWorld _world;
+	World *_world = nullptr;
 	Networking::MessageDispatcher<Request> _dispatcher;
 	std::vector<Networking::MessageDispatcher<Request>::Contract> _subscriptions;
 	std::vector<Request> _requests;
