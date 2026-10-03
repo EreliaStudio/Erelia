@@ -309,6 +309,7 @@ TEST(ClientWorldLifecycle, DetachesBeforeRemovingActiveNamedWorld)
 		worlds.world(identifier);
 
 	ASSERT_NE(dynamic_cast<ClientWorld *>(world), nullptr);
+	EXPECT_EQ(world->identifier(), identifier);
 	Service::clientEventCenter().worldChanged().trigger(world);
 	ASSERT_EQ(runtime.world(), world);
 	ASSERT_EQ(manager.world(), world);
