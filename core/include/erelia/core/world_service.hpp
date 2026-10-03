@@ -6,6 +6,7 @@
 #include <concepts>
 #include <cstddef>
 #include <memory>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 
