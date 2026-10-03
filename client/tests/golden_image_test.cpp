@@ -1,7 +1,9 @@
 #include "erelia/client/client_runtime.hpp"
+#include "erelia/client/client_world.hpp"
 #include "erelia/client/command/connect_command.hpp"
 #include "erelia/client/console.hpp"
 #include "erelia/client/main_interface.hpp"
+#include "erelia/client/service.hpp"
 #include "erelia/client/world_manager.hpp"
 
 #include <core/application.hpp>
@@ -35,6 +37,7 @@ namespace
 		spk::Application application;
 		spk::Window &mainWindow;
 		ClientRuntime runtime;
+		ClientWorld clientWorld;
 		WorldManager world;
 		MainInterface mainInterface;
 
@@ -48,12 +51,14 @@ namespace
 							.anchor = {0, 0},
 							.size = {640, 480}}})),
 			runtime({"127.0.0.1", 1}, std::chrono::milliseconds(1), &mainWindow.root()),
-			world("/WorldManager", runtime.terrainCollections(), {1, 2}, &mainWindow.root()),
+			clientWorld(runtime.networkManager()),
+			world("/WorldManager", {1, 2}, &mainWindow.root()),
 			mainInterface("/MainInterface", &mainWindow.root())
 		{
 			mainInterface.console().commandParser().addCommand<ConnectCommand>();
 			world.setGeometry(mainWindow.root().geometry());
 			mainInterface.setGeometry(mainWindow.root().geometry());
+			Service::clientEventCenter().worldChanged().trigger(&clientWorld);
 		}
 
 		[[nodiscard]] spk::Widget &root()
