@@ -15,11 +15,16 @@ ClientRuntime::ClientRuntime(
 		std::move(endpoint),
 		retryDelay,
 		parent),
-	_networkManager(parent),
-	_terrainCollections(_networkManager)
+	_networkManager(parent)
 {
 	_connectionManager.setZOrder(Client::WidgetOrder::Connection);
 	_networkManager.setZOrder(Client::WidgetOrder::Network);
+
+	_worldChangedContract =
+		Service::clientEventCenter().worldChanged().subscribe(
+			[this](World *world) {
+				_world = world;
+			});
 
 	_connectedContract =
 		Service::clientEventCenter().clientConnected().subscribe([] {
@@ -45,7 +50,12 @@ ClientNetworkManager &ClientRuntime::networkManager() noexcept
 	return _networkManager;
 }
 
-TerrainCollections &ClientRuntime::terrainCollections() noexcept
+World *ClientRuntime::world() noexcept
 {
-	return _terrainCollections;
+	return _world;
+}
+
+const World *ClientRuntime::world() const noexcept
+{
+	return _world;
 }
