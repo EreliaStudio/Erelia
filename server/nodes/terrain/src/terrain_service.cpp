@@ -1,12 +1,15 @@
 #include "terrain_service.hpp"
+
+#include "generating_world_provider.hpp"
 spk::RemoteNode::Endpoint &Service::terrainEndpoint()
 {
 	static spk::RemoteNode::Endpoint endpoint;
 	return endpoint;
 }
 
-TerrainWorldCollection &Service::terrainWorldCollection()
+WorldService &Service::terrainWorldService()
 {
-	static TerrainWorldCollection worlds;
+	static WorldService worlds(
+		GeneratingWorldProvider{});
 	return worlds;
 }
