@@ -36,14 +36,30 @@ WorldManager::~WorldManager()
 
 void WorldManager::_changeWorld(World *world)
 {
+	if (_world == world)
+	{
+		return;
+	}
+
 	setEngine(nullptr);
 	_world = world;
 	_player = nullptr;
 
-	if (_world != nullptr)
+	if (_world == nullptr)
 	{
-		setEngine(&_world->engine());
+		return;
 	}
+
+	for (spk::Entity *entity : _world->engine().root().children())
+	{
+		if (Player *player = dynamic_cast<Player *>(entity); player != nullptr)
+		{
+			_player = player;
+			break;
+		}
+	}
+
+	setEngine(&_world->engine());
 }
 
 void WorldManager::_instantiatePlayer(
