@@ -24,4 +24,4 @@ Requirements and scope must be approved before design. If design reveals new obs
 
 ## Delivery authority
 
-An AI never autonomously merges a Story PR, marks a Milestone accepted or declares undocumented work approved. The owner manually merges and explicitly accepts milestones. The one-off v1-to-v2 repository transition is an authorized exception to ordinary Story-PR delivery, not a precedent for future feature work.
+An AI never autonomously merges a Story PR, marks a Milestone accepted or declares undocumented work approved. The owner manually merges and explicitly accepts milestones. 

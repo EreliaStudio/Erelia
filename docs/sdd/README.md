@@ -4,7 +4,7 @@ The SDD records **only owner-approved** observable Erelia software guarantees, i
 
 ## Domain catalog
 
-No SDD domains or prefixes are approved for the v2 baseline yet. The owner must approve each domain name and prefix before its first requirement.
+No SDD domains or prefixes are approved yet. The owner must approve each domain name and prefix before its first requirement.
 
 ## GDD coverage map
 

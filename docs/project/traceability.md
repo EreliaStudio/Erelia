@@ -28,7 +28,7 @@ Production code Stories require at least one approved SDD/ERD requirement before
 
 ## C++ test metadata
 
-Each C++ test within v2 governed sources must have a **globally unique Test ID** and at least one approved requirement, using adjacent comments:
+Each C++ test within the governed project sources must have a **globally unique Test ID** and at least one approved requirement, using adjacent comments:
 
 ```cpp
 //%TestID: TEST-000142
@@ -45,4 +45,4 @@ An M1 generator must update **only generated Story/Test link columns**, preservi
 
 A requirement may legitimately have zero implementing Stories or tests. Traced test existence does not imply passing execution. Final evidence comes from CI and acceptance reports.
 
-**Current state:** This document defines the intended methodology only. No generator, requirement catalog, scanner or CI verification has been implemented in the v2 baseline.
+**Current state:** The traceability generator, scanner and CI verification are planned M1 deliverables. No automated traceability checks are currently operational.

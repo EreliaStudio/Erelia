@@ -19,7 +19,6 @@ Before proposing or changing work, read the following documentation in order:
 - Keep exactly one Story branch and PR for ordinary feature work. Independent reviews are required. **Do not merge PRs.** The owner manually merges and accepts milestones.
 - Traceability must link Stories and C++ tests to approved SDD / ERD requirements. Generator, validators and CI integration are **M1 engineering deliverables**, not prerequisites for this M0 documentation baseline.
 - Preserve the game vision in [the GDD](docs/gdd/Erelia_GDD_Current.md); significant changes require owner approval and an impact assessment.
-- No v1 implementation or tests are grandfathered into v2. Consult [restart boundaries](docs/project/restart.md) before reusing historical material.
 - Existing Sparkle defects belong in the Sparkle repository; proposed general-purpose extensions may use an independent Sparkle Addon in Erelia only through approved design.
 
 This file is an index of rules, not a replacement for the linked documents.
