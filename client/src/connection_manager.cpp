@@ -1,15 +1,14 @@
 #include "erelia/client/connection_manager.hpp"
 
 #include "erelia/client/service.hpp"
-#include "erelia/core/service.hpp"
 
 #include <core/context/update_context.hpp>
 #include <diagnostics/logger.hpp>
 #include <exception.hpp>
 #include <network/client.hpp>
-#include <threading/worker_pool.hpp>
 
 #include <chrono>
+#include <exception>
 #include <utility>
 
 ConnectionManager::ConnectionManager(
@@ -34,9 +33,6 @@ ConnectionManager::ConnectionManager(
 		[this](const Client::ConnectionRequest &request) {
 			_processConnectionRequest(request);
 		});
-	_disconnectionContract = Service::client().subscribeToDisconnection([this] {
-		_disconnected.store(true);
-	});
 	activate();
 	connect();
 }
@@ -44,27 +40,22 @@ ConnectionManager::ConnectionManager(
 ConnectionManager::~ConnectionManager()
 {
 	_connectionRequestContract.resign();
-
-	if (
-		_connectionAttempt.has_value() == true &&
-		_connectionAttempt->status() == ConnectionTask::Status::Pending)
-	{
-		_connectionAttempt->wait();
-	}
-
-	if (Service::client().isConnected() == true)
-	{
-		Service::client().disconnect();
-	}
-	_processDisconnection();
+	Service::client().disconnect();
+	(void)_processDisconnection();
 }
 
-void ConnectionManager::_processDisconnection()
+bool ConnectionManager::_processDisconnection()
 {
-	if (_disconnected.exchange(false) == true)
+	if (_connected == false ||
+		(_connection.has_value() == true && _connection->status() == spk::Connection::Status::Connected))
 	{
-		Service::clientEventCenter().clientDisconnected().trigger();
+		return false;
 	}
+
+	_connected = false;
+	_connection.reset();
+	Service::clientEventCenter().clientDisconnected().trigger();
+	return true;
 }
 
 void ConnectionManager::_processConnectionRequest(const Client::ConnectionRequest &request)
@@ -79,8 +70,7 @@ void ConnectionManager::_processConnectionRequest(const Client::ConnectionReques
 		endpoint.port = *request.port;
 	}
 
-	if (
-		_endpoint.address == endpoint.address &&
+	if (_endpoint.address == endpoint.address &&
 		_endpoint.port == endpoint.port)
 	{
 		connect();
@@ -92,9 +82,8 @@ void ConnectionManager::_processConnectionRequest(const Client::ConnectionReques
 
 void ConnectionManager::_launchAttempt()
 {
-	if (
-		Service::client().isConnected() == true ||
-		_connectionAttempt.has_value() == true)
+	if (_connection.has_value() == true ||
+		Service::client().isConnected() == true)
 	{
 		return;
 	}
@@ -107,12 +96,17 @@ void ConnectionManager::_launchAttempt()
 		<< _attemptCount << '/' << MaximumAttemptCount << ')'
 		<< std::endl;
 
-	const Endpoint endpoint = _endpoint;
-	_connectionAttempt.emplace(
-		Service::workerPool().submit([endpoint] {
-			Service::client().connect(endpoint.address, endpoint.port);
-			return true;
-		}));
+	try
+	{
+		_connection.emplace(
+			Service::client().connect(_endpoint.address, _endpoint.port));
+	} catch (const std::exception &exception)
+	{
+		SPK_LOG(Warning)
+			<< "Dedicated Server connection attempt failed: "
+			<< exception.what() << std::endl;
+		_scheduleRetry();
+	}
 }
 
 void ConnectionManager::_scheduleRetry()
@@ -147,63 +141,42 @@ void ConnectionManager::_stopCycle()
 		<< std::endl;
 }
 
-void ConnectionManager::_processAttempt()
+void ConnectionManager::_processConnection()
 {
-	if (_connectionAttempt.has_value() == false)
+	if (_connection.has_value() == false || _connected == true)
 	{
 		return;
 	}
 
-	const ConnectionTask::Status status = _connectionAttempt->status();
-	if (status == ConnectionTask::Status::Pending)
+	switch (_connection->status())
 	{
+	case spk::Connection::Status::Pending:
 		return;
-	}
-
-	const bool completed =
-		status == ConnectionTask::Status::Completed;
-	const bool connected =
-		completed == true &&
-		Service::client().isConnected() == true;
-
-	_connectionAttempt.reset();
-
-	if (connected == true)
-	{
+	case spk::Connection::Status::Connected:
+		_connected = true;
 		_attemptCount = 0;
 		_retryTimer.reset();
 		SPK_LOG(Info) << "Connected to dedicated Server" << std::endl;
 		Service::clientEventCenter().clientConnected().trigger();
 		return;
-	}
-
-	if (completed == true)
-	{
-		_attemptCount = 0;
-		_retryTimer.reset();
-		SPK_LOG(Warning) << "Dedicated Server connection was lost" << std::endl;
-		connect();
+	case spk::Connection::Status::Disconnected:
+		_connection.reset();
+		_scheduleRetry();
 		return;
 	}
-
-	_scheduleRetry();
 }
 
 void ConnectionManager::_updateState(spk::UpdateContext &)
 {
-	_processDisconnection();
-	_processAttempt();
-
-	if (
-		Service::client().isConnected() == false &&
-		_connectionAttempt.has_value() == false &&
-		_retryTimer.state() == spk::Timer::State::Off &&
-		_attemptCount == 0)
+	if (_processDisconnection() == true)
 	{
-		SPK_LOG(Warning) << "Dedicated Server connection was lost" << std::endl;
-		connect();
+		_attemptCount = 0;
+		_retryTimer.reset();
+		_launchAttempt();
 		return;
 	}
+
+	_processConnection();
 
 	if (_retryTimer.state() == spk::Timer::State::TimedOut)
 	{
@@ -218,24 +191,24 @@ void ConnectionManager::connect()
 		SPK_LOG(Info) << "Client is already connected to the dedicated Server" << std::endl;
 		return;
 	}
-	if (
-		_connectionAttempt.has_value() == true &&
-		_connectionAttempt->status() == ConnectionTask::Status::Pending)
+	if (_connection.has_value() == true &&
+		_connection->status() == spk::Connection::Status::Pending)
 	{
 		SPK_LOG(Info) << "A dedicated Server connection attempt is already running" << std::endl;
 		return;
 	}
 
+	(void)_processDisconnection();
+	_connection.reset();
 	_attemptCount = 0;
 	_retryTimer.reset();
-	_connectionAttempt.reset();
 	_launchAttempt();
 }
 
 bool ConnectionManager::isCycleStopped() const noexcept
 {
 	return _attemptCount >= MaximumAttemptCount &&
-		   _connectionAttempt.has_value() == false &&
+		   _connection.has_value() == false &&
 		   _retryTimer.state() == spk::Timer::State::Off;
 }
 
@@ -255,23 +228,20 @@ void ConnectionManager::connect(Endpoint endpoint)
 		throw spk::Exception("Client Server port cannot be zero");
 	}
 
-	if (
-		Service::client().isConnected() == true &&
-		_endpoint.address == endpoint.address &&
+	if (_endpoint.address == endpoint.address &&
 		_endpoint.port == endpoint.port)
 	{
-		SPK_LOG(Info) << "Client is already connected to the dedicated Server" << std::endl;
+		connect();
 		return;
 	}
 
-	if (Service::client().isConnected() == true)
-	{
-		Service::client().disconnect();
-		_processDisconnection();
-	}
-
+	Service::client().disconnect();
+	(void)_processDisconnection();
+	_connection.reset();
 	_endpoint = std::move(endpoint);
-	connect();
+	_attemptCount = 0;
+	_retryTimer.reset();
+	_launchAttempt();
 }
 
 const ConnectionManager::Endpoint &ConnectionManager::endpoint() const noexcept
