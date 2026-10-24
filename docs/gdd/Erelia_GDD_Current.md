@@ -7,7 +7,7 @@
 
 > This document consolidates the current design decisions for the new version of Erelia. Exact numeric values are intentionally left configurable unless they have already become part of the design. Systems described as future extensions are not required for the first playable version.
 
-Historical implementation planning: [archived Erelia implementation backlog](../../archive/docs/backlog/README.md). The GDD defines gameplay and visual intent; the archived backlog records the previous implementation sequencing, architecture and acceptance criteria.
+Historical implementation planning: [archived Erelia implementation backlog](https://github.com/EreliaStudio/Erelia/blob/7d46dad25dfb5bdf6f792479e993a8bced4e3aef/archive/docs/backlog/README.md). The GDD defines gameplay and visual intent; the archived backlog records the previous implementation sequencing, architecture and acceptance criteria.
 
 ---
 
@@ -1939,7 +1939,7 @@ The target voxel architecture keeps headless volume data separate from graphical
 
 Authoritative simulation determines movement, collision, combat occupancy and effect timing. Animation and material effects present those outcomes; animation keyframes and rendered geometry do not determine damage or other gameplay results. Dynamic replication uses explicit entity state rather than treating every visual voxel as a networked object.
 
-This direction is first validated in Playground using Sparkle Version0.1.1. Generic components may move into Sparkle after their reuse is demonstrated; that extraction is not a prerequisite for the visual prototype. The previous migration and regression requirements live in the [archived implementation backlog](../../archive/docs/backlog/README.md).
+This direction is first validated in Playground using Sparkle Version0.1.1. Generic components may move into Sparkle after their reuse is demonstrated; that extraction is not a prerequisite for the visual prototype. The previous migration and regression requirements live in the [archived implementation backlog](https://github.com/EreliaStudio/Erelia/blob/7d46dad25dfb5bdf6f792479e993a8bced4e3aef/archive/docs/backlog/README.md).
 
 A local authoritative host may support early validation while preserving the same command boundary required by a later dedicated server. This is an implementation stage, not a change to the persistent online game target.
 
@@ -2099,13 +2099,13 @@ No PvP design is currently part of the established GDD. It should not be assumed
 
 ## 42.1 Visual validation prerequisite
 
-Before broad gameplay/content production, [VS-000 — Unified Voxel Visual Validation](../../archive/docs/backlog/milestones/VS-000-UNIFIED-VOXEL-VISUAL-VALIDATION.md) proves one scene containing generated terrain Chunks, cubes/slabs/slopes/stairs, a palette-material prototype, an imported small-scale barrel, an articulated Hero and an attached voxel weapon.
+Before broad gameplay/content production, [VS-000 — Unified Voxel Visual Validation](https://github.com/EreliaStudio/Erelia/blob/7d46dad25dfb5bdf6f792479e993a8bced4e3aef/archive/docs/backlog/milestones/VS-000-UNIFIED-VOXEL-VISUAL-VALIDATION.md) proves one scene containing generated terrain Chunks, cubes/slabs/slopes/stairs, a palette-material prototype, an imported small-scale barrel, an articulated Hero and an attached voxel weapon.
 
 All voxel geometry uses the same volume-to-mesh path. The scene must preserve existing terrain behavior, demonstrate stable materials, animate rigid parts without remeshing, and capture performance measurements. Record visual acceptance or required revisions before expanding the art catalog. Tool selection, precise material sampling and entity collision primitives remain implementation decision gates.
 
 ## 42.2 First playable gameplay slice
 
-A useful first vertical slice does not need the entire MMO progression. It builds on the accepted visual prototype; [VS-001 — First Playable](../../archive/docs/backlog/milestones/VS-001-FIRST-PLAYABLE.md) provides its previous system acceptance criteria.
+A useful first vertical slice does not need the entire MMO progression. It builds on the accepted visual prototype; [VS-001 — First Playable](https://github.com/EreliaStudio/Erelia/blob/7d46dad25dfb5bdf6f792479e993a8bced4e3aef/archive/docs/backlog/milestones/VS-001-FIRST-PLAYABLE.md) provides its previous system acceptance criteria.
 
 A focused prototype can validate the core loop with:
 

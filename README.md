@@ -1,28 +1,23 @@
 # Erelia
 
-This is the new Core, Server, and Client project. The original Playground code and backlog are preserved unchanged in `archive/`.
+Erelia is a C++23 multiplayer voxel-fantasy RPG project. The application is being restarted as **Erelia v2** while preserving the existing v1 Git history.
 
-Game design: [current GDD](docs/gdd/Erelia_GDD_Current.md), with its illustrations and image-generation briefs in `docs/gdd/images/`.
+## Start here
 
-## Windows development
+- [Game Design Document](docs/gdd/Erelia_GDD_Current.md) — working game-vision baseline and illustrated gameplay concepts.
+- [Project documentation](docs/project/README.md) — approved working methodology, planning and development rules.
+- [Current project status](docs/project/STATUS.md) — summary; individual Story documents are the source of truth.
+- [Software requirements (SDD)](docs/sdd/README.md) — observable product requirements, to be established progressively.
+- [Engineering requirements (ERD)](docs/erd/README.md) — internal engineering guarantees, to be established progressively.
+- [Architecture](docs/architecture/README.md) — cross-cutting architecture decisions, to be designed and approved.
+- [Agent instructions](AGENTS.md) — entry point for AI-assisted work.
 
-Requirements: CMake 3.25+, Ninja, Clang, vcpkg, the sibling `Sparkle` checkout, and the VS Code C/C++ extension. Set `VCPKG_ROOT` to your vcpkg directory. The VS Code launch profiles prepare an out-of-tree Sparkle 0.1.3 install, configure Erelia, and build the selected target before launch. All generated files stay under `build/`.
+## Restart boundary
 
-To build and test without VS Code:
+The v2 active tree deliberately does not contain v1 application code, historical CI, CMake configuration, tests, or completed backlog. No v1 capability is automatically considered implemented in v2. The GDD and its illustrations are retained as **game-vision references**, not as approval of old implementation choices.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/dev/prepare-sparkle.ps1 -Configuration Debug
-cmake --preset debug
-cmake --build --preset debug
-ctest --preset debug
-```
+The exact v1 source remains available in [`archive/erelia-v1`](https://github.com/EreliaStudio/Erelia/tree/archive/erelia-v1), from commit `7d46dad25dfb5bdf6f792479e993a8bced4e3aef`.
 
-Replace `Debug`/`debug` with `Release`/`release` for Release. For Core and Server without graphics, prepare Sparkle with `-Variant Core`, then use `headless-debug` or `headless-release`.
+## Development status
 
-The status functions and tests are deliberately small. They verify that the three libraries, executables, package dependencies, and GoogleTest suites build and link. The Client suite currently does not create an OpenGL context.
-
-## Formatting and CI
-
-Erelia uses the same `.clang-format` file as Sparkle. VS Code formats C++ files on save. To check the active source tree locally, run `clang-format --style=file --dry-run --Werror` on the `.cpp` and `.hpp` files under `core/`, `server/`, and `client/`. Each layer keeps its own test suite in a `tests/` subfolder. The archived code is excluded from formatting checks.
-
-CI builds Core and Server without graphics on Linux and Windows, and builds the Client on Windows in both Debug and Release. The Windows Client job installs the same Mesa software OpenGL package used by Sparkle's tests so future OpenGL tests can use it.
+This is the **v2 restart and M0 documentation baseline**. Independent documentation review and owner approval remain necessary before M0 is accepted. The first engineering milestone (M1) will bootstrap tooling, tests and CI. No application feature development is authorized by this reset.
