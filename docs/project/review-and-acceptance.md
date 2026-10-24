@@ -33,4 +33,4 @@ Milestone acceptance is a separate, explicit owner decision requiring integrated
 
 ## M0 documentation review
 
-M0 comprises documentation only; it is **not** subject to M1 tooling that does not yet exist. Its delivered documents still require independent review and owner acceptance. A one-off authorized repository reset does not itself make M0 accepted.
+M0 covers project documentation only. Independent documentation review and explicit owner acceptance are required; M1 traceability and CI tooling are not prerequisites for M0 approval.
