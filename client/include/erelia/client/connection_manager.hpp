@@ -4,10 +4,8 @@
 
 #include <core/platform/timer.hpp>
 #include <network/client.hpp>
-#include <threading/task.hpp>
 #include <ui/widget.hpp>
 
-#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <optional>
@@ -25,22 +23,17 @@ public:
 	static constexpr std::size_t MaximumAttemptCount = 3;
 
 private:
-	using ConnectionTask = spk::Task<bool>;
-	using ConnectionAnswer = ConnectionTask::Answer;
-
 	Endpoint _endpoint;
-	std::optional<ConnectionAnswer> _connectionAttempt;
+	std::optional<spk::Connection> _connection;
 	spk::Timer _retryTimer;
 	std::size_t _attemptCount = 0;
-	std::atomic_bool _disconnected = false;
-	spk::Client::DisconnectionContract _disconnectionContract;
+	bool _connected = false;
 	Core::Event<const Client::ConnectionRequest &>::Contract _connectionRequestContract;
-	// Transport callbacks only flag the event; processing stays on the Client update thread.
-	void _processDisconnection();
+	[[nodiscard]] bool _processDisconnection();
 	void _processConnectionRequest(const Client::ConnectionRequest &request);
 
 	void _launchAttempt();
-	void _processAttempt();
+	void _processConnection();
 	void _scheduleRetry();
 	void _stopCycle();
 	void _updateState(spk::UpdateContext &context) override;
