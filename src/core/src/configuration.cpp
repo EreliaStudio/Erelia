@@ -86,10 +86,10 @@ namespace erelia::core
         window.forbidUnknown({"title", "width", "height"});
         WindowConfiguration windowConfiguration{
             .title = requiredNonemptyString(window, "title"),
-            .width = window.require<int>("width"),
-            .height = window.require<int>("height")
+            .width = window.require<unsigned int>("width"),
+            .height = window.require<unsigned int>("height")
         };
-        if (windowConfiguration.width <= 0 || windowConfiguration.height <= 0)
+        if (windowConfiguration.width == 0 || windowConfiguration.height == 0)
         {
             throw std::invalid_argument(file.string() + ": window dimensions must be positive");
         }
