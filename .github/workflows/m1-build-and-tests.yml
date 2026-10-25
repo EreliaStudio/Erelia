@@ -334,8 +334,8 @@ jobs:
 
   package:
     name: "09 - Downloadable Client, Router and Servers"
-    needs: [integration, traceability]
-    if: ${{ always() && needs.integration.result == 'success' && (needs.traceability.result == 'success' || needs.traceability.result == 'skipped') }}
+    needs: [integration, traceability, linux_tests]
+    if: ${{ always() && needs.integration.result == 'success' && needs.linux_tests.result == 'success' && (needs.traceability.result == 'success' || needs.traceability.result == 'skipped') }}
     runs-on: windows-2022
     permissions:
       contents: read
@@ -403,3 +403,110 @@ jobs:
           name: erelia-m1-windows-x64-preview
           path: _out/Erelia-M1-Windows-x64-preview.zip
           if-no-files-found: error
+
+  linux_build:
+    name: "Linux / 00 - Compile installed Sparkle Core and Erelia"
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+
+      - name: Checkout pinned Sparkle 0.1.3
+        uses: actions/checkout@v4
+        with:
+          repository: EreliaStudio/Sparkle
+          ref: 5117c64a7052457ca2de1864bf23e0e29487bdcf
+          path: _deps/sparkle-source
+
+      - name: Install headless Linux build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtest-dev
+
+      - name: Build and install Sparkle Core only
+        run: |
+          cmake -S _deps/sparkle-source -B _out/sparkle-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DSPARKLE_BUILD_GRAPHICS=OFF \
+            -DSPARKLE_BUILD_TESTS=OFF \
+            -DSPARKLE_BUILD_TEST_LIBRARY=OFF \
+            "-DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/_out/sparkle-prefix"
+          cmake --build _out/sparkle-build --parallel 4
+          cmake --install _out/sparkle-build
+
+      - name: Build Core, Router, Servers and headless tests
+        run: |
+          cmake -S erelia -B _out/erelia-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DERELIA_BUILD_GRAPHICS=OFF \
+            "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/_out/sparkle-prefix" \
+            -DBUILD_TESTING=ON
+          cmake --build _out/erelia-build --parallel 4
+
+      - name: Pack Linux build with executable permissions preserved
+        run: tar -czf _out/erelia-linux-build.tar.gz -C _out erelia-build
+
+      - name: Upload shared Linux CTest binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-m1-linux-ci-build
+          path: _out/erelia-linux-build.tar.gz
+          retention-days: 2
+          if-no-files-found: error
+
+  linux_tests:
+    name: "Linux / ${{ matrix.check }}"
+    needs: linux_build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - check: "01 - Sparkle Addon Core"
+            family: SparkleAddonCore
+          - check: "03 - Erelia Core"
+            family: Core
+          - check: "04 - Erelia Router"
+            family: Router
+          - check: "06 - Erelia Server"
+            family: Server
+          - check: "07 - Headless Integration"
+            family: ClientServerIntegration
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+
+      - name: Download shared Linux build
+        uses: actions/download-artifact@v4
+        with:
+          name: erelia-m1-linux-ci-build
+          path: _out
+
+      - name: Restore executable permissions and compiled tests
+        run: tar -xzf _out/erelia-linux-build.tar.gz -C _out
+
+      - name: Run ${{ matrix.family }} CTest suite
+        run: |
+          mkdir -p _out/test-reports
+          ctest --test-dir _out/erelia-build \
+            -L '^${{ matrix.family }}$' \
+            --no-tests=error --output-on-failure \
+            --output-junit "$GITHUB_WORKSPACE/_out/test-reports/${{ matrix.family }}.xml"
+
+      - name: Upload Linux ${{ matrix.family }} report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-linux-${{ matrix.family }}-ctest
+          path: _out/test-reports/*.xml
+          if-no-files-found: warn
