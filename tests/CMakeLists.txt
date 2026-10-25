@@ -45,3 +45,10 @@ add_test(NAME Executable.SecondRemoteNode.Config
     COMMAND $<TARGET_FILE:EreliaRemoteNode>
         --validate-config "${PROJECT_SOURCE_DIR}/config/examples/chat-node.json")
 set_tests_properties(Executable.SecondRemoteNode.Config PROPERTIES LABELS "Server")
+
+# A copied example node must build as its own executable without central
+# source-file registration or a separate CI workflow.
+add_test(NAME Executable.ExampleRemoteNode.Config
+    COMMAND $<TARGET_FILE:EreliaExampleNode>
+        --validate-config "${PROJECT_SOURCE_DIR}/config/examples/example-node.json")
+set_tests_properties(Executable.ExampleRemoteNode.Config PROPERTIES LABELS "Server")
