@@ -1,8 +1,20 @@
 #include "erelia/core/configuration.hpp"
 #include "erelia/server/processes.hpp"
 
+#include <atomic>
+#include <csignal>
 #include <exception>
 #include <iostream>
+
+namespace
+{
+    std::atomic_bool running{true};
+
+    void requestStop(int)
+    {
+        running.store(false);
+    }
+}
 
 int main(int argc, char **argv)
 {
@@ -14,7 +26,10 @@ int main(int argc, char **argv)
         {
             return 0;
         }
-        return erelia::server::runRouterPlaceholder(configuration);
+
+        std::signal(SIGINT, requestStop);
+        std::signal(SIGTERM, requestStop);
+        return erelia::server::runRouterPlaceholder(configuration, running);
     }
     catch (const std::exception &error)
     {
