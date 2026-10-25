@@ -18,7 +18,9 @@ target_compile_definitions(EreliaCoreTests PRIVATE
     ERELIA_CONFIG_EXAMPLES_DIR="${PROJECT_SOURCE_DIR}/config/examples"
     ERELIA_CONFIG_FIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures/config")
 
-erelia_add_unit_suite(EreliaClientTests Client Client erelia::client)
+if(ERELIA_BUILD_GRAPHICS)
+    erelia_add_unit_suite(EreliaClientTests Client Client erelia::client)
+endif()
 erelia_add_unit_suite(EreliaServerTests Server Server erelia::server)
 erelia_add_unit_suite(EreliaSparkleAddonTests SparkleAddon SparkleAddonCore erelia::sparkle_addon)
 
@@ -26,20 +28,28 @@ erelia_add_unit_suite(EreliaSparkleAddonTests SparkleAddon SparkleAddonCore erel
 # a passing suite while there are no graphics-addon tests to execute.
 file(GLOB_RECURSE ERELIA_GRAPHICS_ADDON_TEST_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/SparkleAddonGraphics/*.cpp")
-if(ERELIA_GRAPHICS_ADDON_TEST_SOURCES)
+if(ERELIA_BUILD_GRAPHICS AND ERELIA_GRAPHICS_ADDON_TEST_SOURCES)
     erelia_add_unit_suite(EreliaSparkleAddonGraphicsTests
         SparkleAddonGraphics SparkleAddonGraphics erelia::sparkle_addon sparkle::sparkle)
 endif()
-erelia_add_unit_suite(EreliaClientServerIntegrationTests ClientServerIntegration ClientServerIntegration
-    erelia::client erelia::server)
+if(ERELIA_BUILD_GRAPHICS)
+    erelia_add_unit_suite(EreliaClientServerIntegrationTests ClientServerIntegration ClientServerIntegration
+        erelia::client erelia::server)
+    target_compile_definitions(EreliaClientServerIntegrationTests PRIVATE ERELIA_WITH_CLIENT)
+else()
+    erelia_add_unit_suite(EreliaClientServerIntegrationTests ClientServerIntegration ClientServerIntegration
+        erelia::server)
+endif()
 
 # The Client starts with no arguments. Check the packaged config without
 # launching a graphical window on a headless CTest machine.
-add_test(NAME Executable.Client.ConfigInstalled
+if(ERELIA_BUILD_GRAPHICS)
+    add_test(NAME Executable.Client.ConfigInstalled
     COMMAND ${CMAKE_COMMAND}
         "-DFILE_TO_CHECK=$<TARGET_FILE_DIR:EreliaClient>/client.json"
         -P "${PROJECT_SOURCE_DIR}/cmake/AssertFileExists.cmake")
-set_tests_properties(Executable.Client.ConfigInstalled PROPERTIES LABELS "Client")
+    set_tests_properties(Executable.Client.ConfigInstalled PROPERTIES LABELS "Client")
+endif()
 
 # Server processes accept instance-specific configuration files.
 add_test(NAME Executable.Router.Config

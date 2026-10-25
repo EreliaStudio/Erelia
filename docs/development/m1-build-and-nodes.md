@@ -4,7 +4,8 @@ This guide documents the **current M1 C++ scaffold**, not the complete M1 engine
 
 ## Platform and dependencies
 
-- Windows x64, CMake 3.25+, Ninja, C++23 capable clang-cl using the MSVC ABI.
+- Windows x64 for the graphical Client: CMake 3.25+, Ninja, C++23 capable clang-cl using the MSVC ABI.
+- Linux x64 for the headless Core, Router, Server, specialized RemoteNodes and their test families: CMake 3.25+, Ninja, C++23-capable clang++, and GoogleTest. Linux does not require Sparkle graphics or OpenGL.
 - Sparkle v0.1.3 from the **pinned immutable revision** in [the CI workflow](../../.github/workflows/m1-build-and-tests.yml), installed outside Erelia.
 - GLEW, stb, GoogleTest and Sparkle's remaining dependencies resolved through vcpkg.
 - Sparkle's package is loaded via `find_package(sparkle CONFIG REQUIRED COMPONENTS Core Graphics)`. Erelia does not compile Sparkle sources into its own project or change Sparkle.
@@ -74,6 +75,17 @@ The CI workflow publishes a downloadable **M1 scaffold preview** with all curren
 
 ## Build and CI expectations
 
-The hosted Windows pipeline builds the complete C++ scaffold, including the example node, and runs every CTest family, publishing per-family JUnit. It does **not** prove that a non-interactive hosted runner can run the graphical Client or inject user input; those belong to the later dedicated Windows interactive runner.
+Windows CI builds the full scaffold and tests every available suite. Linux CI configures Sparkle and Erelia with graphics disabled (`-DSPARKLE_BUILD_GRAPHICS=OFF`, `-DERELIA_BUILD_GRAPHICS=OFF`) and independently tests Sparkle Addon Core, Erelia Core, Router, Server, and the non-graphical integration lifecycle. Each available family receives its own Windows or Linux GitHub check and separate JUnit artifact. The Linux Client and graphical suites are intentionally not built; they are Windows-only at this stage.
+
+For a local Linux build, install CMake, Ninja, a C++23 compiler, and GoogleTest, then install a Core-only Sparkle package before configuring Erelia:
+
+```bash
+cmake -S /path/to/Sparkle -B sparkle-build -G Ninja -DSPARKLE_BUILD_GRAPHICS=OFF -DSPARKLE_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX="$PWD/sparkle-install"
+cmake --build sparkle-build --parallel 4
+cmake --install sparkle-build
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DERELIA_BUILD_GRAPHICS=OFF -DCMAKE_PREFIX_PATH="$PWD/sparkle-install" -DBUILD_TESTING=ON
+cmake --build build --parallel 4
+ctest --test-dir build --output-on-failure
+``` It does **not** prove that a non-interactive hosted runner can run the graphical Client or inject user input; those belong to the later dedicated Windows interactive runner.
 
 Do not merge the draft PR or claim M1 accepted solely because these builds pass. Owner reviews and the M0/M1 evidence gates still apply.

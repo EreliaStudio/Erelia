@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 
+#ifdef ERELIA_WITH_CLIENT
 #include "erelia/client/application.hpp"
+#endif
 #include "erelia/server/processes.hpp"
 
 #include <network/server.hpp>
@@ -12,7 +14,9 @@
 // The compile-only check verifies module linkage, not communication between applications.
 TEST(ClientServerIntegrationScaffold, BothSidesLink)
 {
+#ifdef ERELIA_WITH_CLIENT
     static_assert(std::is_same_v<decltype(&erelia::client::runApplication), int (*)()>);
+#endif
     static_assert(std::is_same_v<decltype(&erelia::server::runRouterPlaceholder),
         int (*)(const erelia::core::ServerRouterConfiguration &, const std::atomic_bool &)>);
 }
