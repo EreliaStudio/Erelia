@@ -9,5 +9,5 @@ TEST(ClientServerIntegrationScaffold, BothSidesLink)
 {
     static_assert(std::is_same_v<decltype(&erelia::client::runApplication), int (*)()>);
     static_assert(std::is_same_v<decltype(&erelia::server::runRouterPlaceholder),
-                                 int (*)(const erelia::core::ServerRouterConfiguration &)>);
+        int (*)(const erelia::core::ServerRouterConfiguration &, const std::atomic_bool &)>);
 }
