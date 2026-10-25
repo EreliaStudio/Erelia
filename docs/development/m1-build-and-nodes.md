@@ -1,12 +1,12 @@
 # M1 scaffold: build, run, and extend
 
-This guide documents the **current M1 C++ scaffold**, not the complete M1 engineering milestone. Full graphical CI, Python MockPlayer scenarios, golden images, automated M0 traceability, and milestone acceptance remain separate engineering work.
+This guide documents the **current M1 C++ scaffold**, not the complete M1 engineering milestone. Full graphical CI, Python MockPlayer scenarios, golden images and automated M0 traceability remain engineering work. M1 is infrastructure preparation and has no separate milestone acceptance gate.
 
 ## Platform and dependencies
 
 - Windows x64 for the graphical Client: CMake 3.25+, Ninja, C++23 capable clang-cl using the MSVC ABI.
 - Linux x64 for the headless Core, Router, Server, specialized RemoteNodes and their test families: CMake 3.25+, Ninja, C++23-capable clang++, and GoogleTest. Linux does not require Sparkle graphics or OpenGL.
-- Sparkle v0.1.3 from the **pinned immutable revision** in [the CI workflow](../../.github/workflows/m1-build-and-tests.yml), installed outside Erelia.
+- Sparkle v0.1.3 from the **pinned immutable revision** in [the CI workflow](../../.github/workflows/ci.yml), installed outside Erelia.
 - GLEW, stb, GoogleTest and Sparkle's remaining dependencies resolved through vcpkg.
 - Sparkle's package is loaded via `find_package(sparkle CONFIG REQUIRED COMPONENTS Core Graphics)`. Erelia does not compile Sparkle sources into its own project or change Sparkle.
 
@@ -77,7 +77,7 @@ Every application has a testable **static library**, separate from its executabl
 
 The CMake targets retain their stable API names (`EreliaClient`, `EreliaServerRouter`, `EreliaRemoteNode`, `EreliaExampleNode`), but their Windows executable filenames are `Erelia - Client.exe`, `Erelia - Router.exe`, `Erelia - Server.exe`, and `Erelia - ExampleNode.exe`. Quote these filenames in PowerShell. New specialized nodes can follow the `Erelia - <Role>.exe` convention without modifying the root CMake file.
 
-The CI workflow publishes a downloadable **M1 scaffold preview** with all currently built app executables and per-instance example JSON configurations. It is not a playable game, installer, or evidence of passing graphical/MockPlayer tests. Each app lives in its own directory. Run the Client from its directory (it reads the adjacent `client.json`); pass `--config <path>` to Router and server executables.
+The permanent **Erelia CI** workflow publishes a downloadable **Windows development build** with all currently built app executables and per-instance example JSON configurations. It is not a playable game, installer, or evidence of passing graphical/MockPlayer tests. Each app lives in its own directory. Run the Client from its directory (it reads the adjacent `client.json`); pass `--config <path>` to Router and server executables.
 
 ## Build and CI expectations
 
@@ -94,4 +94,4 @@ cmake --build build --parallel 4
 ctest --test-dir build --output-on-failure
 ``` It does **not** prove that a non-interactive hosted runner can run the graphical Client or inject user input; those belong to the later dedicated Windows interactive runner.
 
-Do not merge the draft PR or claim M1 accepted solely because these builds pass. Owner reviews and the M0/M1 evidence gates still apply.
+Do not merge the draft PR without the owner's authorization. M1 has no distinct formal milestone acceptance gate, but technical CI results, Story review and implementation limitations must be reported accurately.

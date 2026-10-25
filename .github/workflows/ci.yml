@@ -1,4 +1,4 @@
-name: M1 Engineering Foundation - independent Windows checks
+name: Erelia CI
 
 on:
   push:
@@ -84,19 +84,19 @@ jobs:
           cmake --build _out/erelia-build --parallel 4
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Detect M1 traceability validator
+      - name: Detect traceability validator
         id: detect
         shell: pwsh
         run: |
           $exists = Test-Path 'erelia/tools/traceability.py'
           "has_traceability=$($exists.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
           if (-not $exists) {
-            Write-Host '::notice title=Traceability deferred::Validator unavailable; separate M1 tooling Story is required.'
+            Write-Host '::notice title=Traceability deferred::Validator unavailable; separate engineering tooling Story is required.'
           }
       - name: Share compiled executables and CTest discovery files
         uses: actions/upload-artifact@v4
         with:
-          name: erelia-m1-ci-build
+          name: erelia-windows-ci-build
           path: _out/erelia-build/
           if-no-files-found: error
           compression-level: 1
@@ -116,7 +116,7 @@ jobs:
       - name: Download previously built Erelia executables and CTest metadata
         uses: actions/download-artifact@v4
         with:
-          name: erelia-m1-ci-build
+          name: erelia-windows-ci-build
           path: _out/erelia-build
       - name: Run CTest family
         shell: pwsh
@@ -145,7 +145,7 @@ jobs:
       - name: Download previously built Erelia executables and CTest metadata
         uses: actions/download-artifact@v4
         with:
-          name: erelia-m1-ci-build
+          name: erelia-windows-ci-build
           path: _out/erelia-build
       - name: Run CTest family
         shell: pwsh
@@ -174,7 +174,7 @@ jobs:
       - name: Download previously built Erelia executables and CTest metadata
         uses: actions/download-artifact@v4
         with:
-          name: erelia-m1-ci-build
+          name: erelia-windows-ci-build
           path: _out/erelia-build
       - name: Run CTest family
         shell: pwsh
@@ -203,7 +203,7 @@ jobs:
       - name: Download previously built Erelia executables and CTest metadata
         uses: actions/download-artifact@v4
         with:
-          name: erelia-m1-ci-build
+          name: erelia-windows-ci-build
           path: _out/erelia-build
       - name: Run CTest family
         shell: pwsh
@@ -232,7 +232,7 @@ jobs:
       - name: Download previously built Erelia executables and CTest metadata
         uses: actions/download-artifact@v4
         with:
-          name: erelia-m1-ci-build
+          name: erelia-windows-ci-build
           path: _out/erelia-build
       - name: Run CTest family
         shell: pwsh
@@ -261,7 +261,7 @@ jobs:
       - name: Download previously built Erelia executables and CTest metadata
         uses: actions/download-artifact@v4
         with:
-          name: erelia-m1-ci-build
+          name: erelia-windows-ci-build
           path: _out/erelia-build
       - name: Run CTest family
         shell: pwsh
@@ -290,7 +290,7 @@ jobs:
       - name: Download previously built Erelia executables and CTest metadata
         uses: actions/download-artifact@v4
         with:
-          name: erelia-m1-ci-build
+          name: erelia-windows-ci-build
           path: _out/erelia-build
       - name: Run C++ integration tests and report graphical test availability
         shell: pwsh
@@ -347,7 +347,7 @@ jobs:
       - name: Download previously built Erelia executables and CTest metadata
         uses: actions/download-artifact@v4
         with:
-          name: erelia-m1-ci-build
+          name: erelia-windows-ci-build
           path: _out/erelia-build
       - name: "09 - Prepare downloadable Windows build preview"
         shell: pwsh
@@ -379,7 +379,7 @@ jobs:
           Copy-Item -Path 'erelia/config/examples/*.json' -Destination $configDir
           Copy-Item -LiteralPath 'erelia/docs/development/m1-build-and-nodes.md' -Destination (Join-Path $stage 'BUILD-AND-RUN.md')
           @'
-          Erelia M1 engineering scaffold preview (Windows x64)
+          Erelia Windows x64 development build
           ====================================================
           This archive includes the Client, Router, generic Server/RemoteNode
           and every compiled specialized node (including ExampleNode).
@@ -395,13 +395,13 @@ jobs:
           MockPlayer graphical tests and strict M0 traceability remain pending
           until their separately approved M1 infrastructure is implemented.
           '@ | Set-Content -Path (Join-Path $stage 'README.txt') -Encoding utf8
-          Compress-Archive -Path (Join-Path $stage '*') -DestinationPath '_out/Erelia-M1-Windows-x64-preview.zip' -Force
+          Compress-Archive -Path (Join-Path $stage '*') -DestinationPath '_out/Erelia-Windows-x64-build.zip' -Force
 
       - name: Upload downloadable Windows scaffold preview
         uses: actions/upload-artifact@v4
         with:
-          name: erelia-m1-windows-x64-preview
-          path: _out/Erelia-M1-Windows-x64-preview.zip
+          name: erelia-windows-x64-build
+          path: _out/Erelia-Windows-x64-build.zip
           if-no-files-found: error
 
   linux_build:
@@ -455,7 +455,7 @@ jobs:
       - name: Upload shared Linux CTest binaries
         uses: actions/upload-artifact@v4
         with:
-          name: erelia-m1-linux-ci-build
+          name: erelia-linux-ci-build
           path: _out/erelia-linux-build.tar.gz
           retention-days: 2
           if-no-files-found: error
@@ -489,7 +489,7 @@ jobs:
       - name: Download shared Linux build
         uses: actions/download-artifact@v4
         with:
-          name: erelia-m1-linux-ci-build
+          name: erelia-linux-ci-build
           path: _out
 
       - name: Restore executable permissions and compiled tests

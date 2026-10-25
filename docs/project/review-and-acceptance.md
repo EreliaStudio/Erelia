@@ -29,7 +29,9 @@ Never claim an unrun test passed; distinguish metadata traceability from test ex
 
 ## Milestones
 
-Milestone acceptance is a separate, explicit owner decision requiring integrated evidence against previously owner-approved observable criteria. Epic completion has no independent acceptance gate.
+Delivery Milestone acceptance is a separate, explicit owner decision requiring integrated evidence against previously owner-approved observable criteria. Epic completion has no independent acceptance gate.
+
+**M1 infrastructure-preparation exception:** no distinct formal milestone-acceptance decision or M1-specific integrated acceptance test is required. This exception does not waive implemented-component testing, CI, independent Story review, or owner-controlled PR merges.
 
 ## M0 documentation review
 

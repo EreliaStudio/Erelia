@@ -1,6 +1,12 @@
 # M1 engineering scaffold — implementation staging
 
-**Status:** preliminary branch scaffold; neither a final technical approval nor an M1 acceptance record.
+**Status:** engineering-foundation work in draft PR #20. M1 is exempt from a separate milestone-acceptance gate; code changes remain subject to technical tests, review, and owner-controlled merges.
+
+## M1 purpose and completion approach
+
+M1 exists to prepare the engineering foundation for later game-development milestones, not to deliver or validate a playable game. Its work covers a reusable C++23/CMake architecture, independent installed Sparkle Core and Graphics dependencies, per-application static libraries and thin executables, extensible RemoteNodes, process-local configuration, automatic C++ tests, Windows/Linux CI, external Python player simulation, deterministic input/screenshot testing on a real interactive Windows runner, development documentation, and M0 traceability tooling.
+
+As an explicit exception to M0's general milestone-acceptance rule, **M1 does not require separate end-of-milestone acceptance or its own special integrated validation procedure**. Each implemented infrastructure component still needs meaningful technical tests and the applicable Story/PR review. The owner remains the sole merge authority. The absence of a milestone gate must not be used to classify missing infrastructure or unrun tests as complete.
 
 ## Scope
 
@@ -61,11 +67,11 @@ The JSON fields are a minimal M1 scaffold, not a final routing/deployment schema
 
 CTest originally had five independently executed test families. The CI stages now distinguish the Router configuration test from Server tests and label the Sparkle Addon core tests separately; a graphics addon family is optional until tests are added. Temporary bootstrap tests verify target linking, JSON parsing, independent RemoteNode settings, and config location rules. The Client-specific CTest check verifies its adjacent `client.json` without opening a window in noninteractive CI. Server config checks use `--validate-config`. Actual Client GUI launch and graphical smoke validation remain future acceptance work on the dedicated graphical runner.
 
-The hosted Windows pipeline builds an immutable revision of Sparkle externally, installs its CMake package, builds Erelia against installed public targets and executes the five test families independently. This branch's execution status must be verified before acceptance.
+The hosted Windows pipeline builds an immutable revision of Sparkle externally, installs its CMake package, builds Erelia against installed public targets and executes the five test families independently. Each CI run must be inspected to verify the tests actually executed, independently of M1's exemption from a formal milestone-acceptance gate.
 
 ## M0 limitations
 
-M0 STATUS currently indicates pending review/acceptance, with no approved SDD/ERD prefixes or requirement IDs. The scaffold's smoke tests do not claim formal traceability. Before delivery as an approved Story, use the explicit M1 bootstrap exception, obtain the necessary approvals, establish metadata generation/validation and reconcile the tests to the approved M0 requirements. Do not treat this preliminary branch as an approved implementation.
+M0 STATUS currently indicates pending review/acceptance, with no approved SDD/ERD prefixes or requirement IDs. The scaffold's smoke tests do not claim formal traceability. Before delivery as an approved Story, use the explicit M1 bootstrap exception, obtain the necessary approvals, establish metadata generation/validation and reconcile the tests to the approved M0 requirements. Do not treat this preliminary branch as an approved or merged implementation; M1's absence of milestone-level acceptance does not itself authorize merges.
 
 ## Exclusions
 

@@ -24,4 +24,4 @@ Requirements and scope must be approved before design. If design reveals new obs
 
 ## Delivery authority
 
-An AI never autonomously merges a Story PR, marks a Milestone accepted or declares undocumented work approved. The owner manually merges and explicitly accepts milestones. 
+An AI never autonomously merges a Story PR, marks a Milestone accepted or declares undocumented work approved. The owner manually merges PRs and explicitly accepts delivery milestones. M1 is an infrastructure-preparation exception: it has no separate milestone acceptance decision. This does not delegate merge authority to an AI or waive technical tests or applicable Story reviews. 

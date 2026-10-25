@@ -16,4 +16,4 @@
 
 Work proceeds through owner-approved requirements, technical design, tests-first implementation and independent review. The GDD defines the game vision, while technical details are approved progressively.
 
-**Current stage:** M0 documentation review. Application code, builds, tests, CI and traceability tooling will be introduced through approved M1 engineering Stories. These capabilities are not yet implemented.
+**Current stage:** M0 documentation review remains pending. The M1 engineering foundation is being developed in draft PR #20. M1 prepares permanent development infrastructure for future milestones and has no separate milestone acceptance gate; the owner still reviews and merges each PR. The scaffold exists only on the development branch and the remaining Python/graphical and traceability tooling is not complete.
