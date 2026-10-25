@@ -40,6 +40,7 @@ jobs:
       - name: Install Windows dependencies
         shell: pwsh
         run: |
+          $env:VCPKG_ROOT = $env:ERELIA_VCPKG_ROOT
           & "$env:ERELIA_VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
           & "$env:ERELIA_VCPKG_ROOT\vcpkg.exe" install glew stb gtest --triplet x64-windows-static
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -47,6 +48,7 @@ jobs:
       - name: Build installed Sparkle package (outside its source tree)
         shell: pwsh
         run: |
+          $env:VCPKG_ROOT = $env:ERELIA_VCPKG_ROOT
           cmake -S _deps/sparkle-source -B _out/sparkle-build -G Ninja `
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang-cl `
             "-DCMAKE_TOOLCHAIN_FILE=$env:ERELIA_VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
@@ -63,6 +65,7 @@ jobs:
       - name: Configure and compile Erelia
         shell: pwsh
         run: |
+          $env:VCPKG_ROOT = $env:ERELIA_VCPKG_ROOT
           cmake -S erelia -B _out/erelia-build -G Ninja `
             -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang-cl `
             "-DCMAKE_TOOLCHAIN_FILE=$env:ERELIA_VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
