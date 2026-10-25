@@ -28,6 +28,6 @@ if(BUILD_TESTING)
         target_link_libraries(Erelia${ERELIA_NODE_ROLE}Tests PRIVATE GTest::gtest_main Erelia${ERELIA_NODE_ROLE}Library)
         gtest_discover_tests(Erelia${ERELIA_NODE_ROLE}Tests
             TEST_PREFIX "${ERELIA_NODE_ROLE}."
-            PROPERTIES LABELS "${ERELIA_NODE_ROLE}")
+            PROPERTIES LABELS "Server;${ERELIA_NODE_ROLE}")
     endif()
 endif()

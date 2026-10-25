@@ -59,7 +59,7 @@ set_tests_properties(Executable.Router.Config PROPERTIES LABELS "Router")
 add_test(NAME Executable.RemoteNode.Config
     COMMAND $<TARGET_FILE:EreliaRemoteNode>
         --validate-config "${PROJECT_SOURCE_DIR}/config/examples/world-node.json")
-set_tests_properties(Executable.RemoteNode.Config PROPERTIES LABELS "RemoteNode")
+set_tests_properties(Executable.RemoteNode.Config PROPERTIES LABELS "Server;RemoteNode")
 add_test(NAME Executable.SecondRemoteNode.Config
     COMMAND $<TARGET_FILE:EreliaRemoteNode>
         --validate-config "${PROJECT_SOURCE_DIR}/config/examples/chat-node.json")
@@ -70,4 +70,4 @@ set_tests_properties(Executable.SecondRemoteNode.Config PROPERTIES LABELS "Remot
 add_test(NAME Executable.ExampleRemoteNode.Config
     COMMAND $<TARGET_FILE:EreliaExampleNode>
         --validate-config "${PROJECT_SOURCE_DIR}/config/examples/example-node.json")
-set_tests_properties(Executable.ExampleRemoteNode.Config PROPERTIES LABELS "ExampleNode")
+set_tests_properties(Executable.ExampleRemoteNode.Config PROPERTIES LABELS "Server;ExampleNode")

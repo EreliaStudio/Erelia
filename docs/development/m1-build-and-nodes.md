@@ -71,6 +71,8 @@ The root CMake project automatically discovers newly added `apps/*/CMakeLists.tx
 
 ## Executable names and preview artifacts
 
+CI groups all specialized RemoteNode role tests under the **Server** validation check. Individual roles remain independently runnable via CTest labels (for example, `-L "^ExampleNode$"`), but creating another role does not create another GitHub check. Eligible Core, Router, Server and integration suites run on both Windows and Linux; GitHub Actions reports one result per category **per operating system** because each platform has its own runner.
+
 Every application has a testable **static library**, separate from its executable and `main.cpp`: `EreliaClientLibrary`, `EreliaRouterLibrary`, `EreliaRemoteNodeLibrary`, and `EreliaExampleNodeLibrary`. The shared server host remains in `EreliaServerLibrary`; common code stays in `EreliaCore`, which links only `sparkle::core`. Client application code is the only application requiring Sparkle graphics. CTest suites link against the libraries, not executable entry points.
 
 The CMake targets retain their stable API names (`EreliaClient`, `EreliaServerRouter`, `EreliaRemoteNode`, `EreliaExampleNode`), but their Windows executable filenames are `Erelia - Client.exe`, `Erelia - Router.exe`, `Erelia - Server.exe`, and `Erelia - ExampleNode.exe`. Quote these filenames in PowerShell. New specialized nodes can follow the `Erelia - <Role>.exe` convention without modifying the root CMake file.

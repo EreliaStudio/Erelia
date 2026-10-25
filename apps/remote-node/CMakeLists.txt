@@ -22,6 +22,6 @@ if(BUILD_TESTING)
         target_link_libraries(EreliaRemoteNodeTests PRIVATE GTest::gtest_main EreliaRemoteNodeLibrary)
         gtest_discover_tests(EreliaRemoteNodeTests
             TEST_PREFIX "RemoteNode."
-            PROPERTIES LABELS "RemoteNode")
+            PROPERTIES LABELS "Server;RemoteNode")
     endif()
 endif()
