@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
-#include <string_view>
+#include <stdexcept>
 #include "erelia/core/configuration.hpp"
 
 namespace
@@ -39,14 +39,14 @@ TEST(ConfigurationTest, ConfigurationKindCannotBeUsedByDifferentExecutable)
         std::invalid_argument);
 }
 
-TEST(ConfigurationTest, EveryExecutableAcceptsExplicitConfigPath)
+TEST(ConfigurationTest, ServerExecutablesAcceptExplicitConfigPath)
 {
-    char exe[] = "EreliaClient";
+    char exe[] = "EreliaServerRouter";
     char flag[] = "--config";
-    char filename[] = "node.json";
+    char filename[] = "router.json";
     char *argv[] = {exe, flag, filename};
     const auto args = erelia::core::parseConfigurationArguments(3, argv);
-    EXPECT_EQ(args.file, std::filesystem::path("node.json"));
+    EXPECT_EQ(args.file, std::filesystem::path("router.json"));
     EXPECT_FALSE(args.validateOnly);
 
     char validate[] = "--validate-config";
