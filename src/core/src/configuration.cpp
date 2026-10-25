@@ -79,8 +79,8 @@ namespace erelia::core
     {
         const auto document = loadDocument(file);
         const Reader root(document, file);
-        root.forbidUnknown({"kind", "id", "router", "window"});
         requireKind(root, "client");
+        root.forbidUnknown({"kind", "id", "router", "window"});
 
         const Reader window = root.child("window");
         window.forbidUnknown({"title", "width", "height"});
@@ -105,8 +105,8 @@ namespace erelia::core
     {
         const auto document = loadDocument(file);
         const Reader root(document, file);
-        root.forbidUnknown({"kind", "id", "listenPort", "remoteNodes"});
         requireKind(root, "server-router");
+        root.forbidUnknown({"kind", "id", "listenPort", "remoteNodes"});
 
         ServerRouterConfiguration result{
             .id = requiredNonemptyString(root, "id"),
@@ -136,8 +136,8 @@ namespace erelia::core
     {
         const auto document = loadDocument(file);
         const Reader root(document, file);
-        root.forbidUnknown({"kind", "id", "listenPort", "settings"});
         requireKind(root, "remote-node");
+        root.forbidUnknown({"kind", "id", "listenPort", "settings"});
 
         spk::JSON::Value settings = spk::JSON::Value::object();
         if (root.contains("settings"))
