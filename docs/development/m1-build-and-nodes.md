@@ -60,7 +60,7 @@ Use `--validate-config path.json` to parse a server's file and exit without bind
 
 ## Creating a new RemoteNode role
 
-The buildable starter under [apps/example-node](../../apps/example-node/) demonstrates how to create an independent node process with very little boilerplate. Copy the entire directory to `apps/my-node`, change its executable target name in the directory's own `CMakeLists.txt`, implement the request callback in `main.cpp`, and supply the role's own JSON config.
+The buildable starter under [apps/example-node](../../apps/example-node/) demonstrates how to create an independent node process with very little boilerplate. Copy the entire directory to `apps/my-node`, change only `ERELIA_NODE_ROLE` in the directory's own `CMakeLists.txt`, implement the request callback in `main.cpp`, and supply the role's own JSON config.
 
 The common `erelia::server::serveRemoteNode` host uses Sparkle's `spk::RemoteNode::Endpoint`: it starts and stops the socket and dispatches incoming requests to the node-provided callback. Replies can be sent with `endpoint.reply(request, response)`. The example does not reply yet because no protocol or gameplay messages are part of this milestone.
 
