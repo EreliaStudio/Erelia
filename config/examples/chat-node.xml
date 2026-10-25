@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<service id="chat" role="remote-node">
-    <endpoint host="127.0.0.1" port="43020"/>
-</service>
