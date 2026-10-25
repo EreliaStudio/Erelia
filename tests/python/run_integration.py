@@ -18,6 +18,9 @@ from PIL import ImageChops, ImageGrab, Image
 pyautogui.FAILSAFE = True
 TITLE = "Erelia M1"
 USER32 = ctypes.windll.user32
+USER32.FindWindowW.restype = ctypes.wintypes.HWND
+USER32.FindWindowW.argtypes = [ctypes.wintypes.LPCWSTR, ctypes.wintypes.LPCWSTR]
+USER32.ClientToScreen.argtypes = [ctypes.wintypes.HWND, ctypes.POINTER(ctypes.wintypes.POINT)]
 SW_RESTORE = 9
 
 
