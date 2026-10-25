@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<service id="router" role="router">
-    <endpoint host="127.0.0.1" port="43000"/>
-</service>
