@@ -1,6 +1,7 @@
 """Real Windows-input integration: launches all four M1 applications and compares approved goldens."""
 import argparse
 import ctypes
+import ctypes.wintypes
 import json
 import os
 from pathlib import Path
@@ -207,6 +208,7 @@ def run(build, results, references):
         else:
             raise AssertionError("Concurrent pings were not independently forwarded")
         # The optional localhost API uses exactly the same command executor.
+        game.expect("Client", "PING_RESULT target=A status=Received")
         game.command("/ping A")
         game.expect("Client", "COMMAND_RESULT source=socket status=Accepted")
         assert "COMMAND_ATTEMPT source=button text=/ping A" in game.log["Client"].read_text(encoding="utf-8")

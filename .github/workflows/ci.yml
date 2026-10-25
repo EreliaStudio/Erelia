@@ -24,7 +24,7 @@ jobs:
       - name: Check C++ files
         shell: bash
         run: |
-          base="${ github.event.pull_request.base.sha || github.event.before }}"
+          base="${{ github.event.pull_request.base.sha || github.event.before }}"
           if [[ -z "$base" ]] || ! git cat-file -e "$base" 2>/dev/null; then base="$(git rev-parse HEAD^)"; fi
           git diff --name-only --diff-filter=ACMR -z "$base" HEAD -- '*.cpp' '*.hpp' '*.h' '*.cc' |
             xargs -0 -r clang-format --style=file --dry-run --Werror
@@ -178,7 +178,7 @@ jobs:
           if-no-files-found: error
 
   windows_tests:
-    name: "${ matrix.family } / TU (Windows)"
+    name: "${{ matrix.family }} / TU (Windows)"
     needs: windows_build
     runs-on: windows-2022
     strategy:
@@ -193,7 +193,7 @@ jobs:
       - name: Run unit tests and capture logs
         shell: pwsh
         run: |
-          $family = '${ matrix.family }'
+          $family = '${{ matrix.family }}'
           ctest --test-dir _out/erelia-build -L "^$family$" --no-tests=error --output-on-failure --output-junit results.xml 2>&1 |
             Tee-Object -FilePath test-output.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -201,7 +201,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: erelia-windows-${ matrix.family }-evidence
+          name: erelia-windows-${{ matrix.family }}-evidence
           path: |
             test-output.log
             _out/erelia-build/results.xml
@@ -209,7 +209,7 @@ jobs:
           if-no-files-found: warn
 
   linux_tests:
-    name: "${ matrix.family } / TU (Linux)"
+    name: "${{ matrix.family }} / TU (Linux)"
     needs: linux_build
     runs-on: ubuntu-24.04
     strategy:
@@ -226,12 +226,12 @@ jobs:
         run: |
           tar -xzf _out/erelia-linux-build.tar.gz -C _out
           set -o pipefail
-          ctest --test-dir _out/erelia-build -L '^${ matrix.family }$' --no-tests=error --output-on-failure --output-junit results.xml 2>&1 | tee test-output.log
+          ctest --test-dir _out/erelia-build -L '^${{ matrix.family }}$' --no-tests=error --output-on-failure --output-junit results.xml 2>&1 | tee test-output.log
       - name: Upload test evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: erelia-linux-${ matrix.family }-evidence
+          name: erelia-linux-${{ matrix.family }}-evidence
           path: |
             test-output.log
             _out/erelia-build/results.xml
