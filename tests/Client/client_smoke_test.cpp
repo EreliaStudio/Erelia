@@ -4,8 +4,7 @@
 #include "erelia/client/application.hpp"
 
 // Bootstrap compile/link test; formal M0 requirement linkage is pending.
-TEST(ClientFoundationSmoke, HasApplicationEntryPoint)
+TEST(ClientFoundationSmoke, HasApplicationEntryPointWithoutArguments)
 {
-    static_assert(std::is_same_v<decltype(&erelia::client::runApplication),
-                                 int (*)(const erelia::core::ClientConfiguration &)>);
+    static_assert(std::is_same_v<decltype(&erelia::client::runApplication), int (*)()>);
 }
