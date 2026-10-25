@@ -1,0 +1,9 @@
+BasedOnStyle: LLVM
+NamespaceIndentation: All
+IndentWidth: 4
+TabWidth: 4
+UseTab: Always
+ColumnLimit: 0
+BreakBeforeBraces: Allman
+AllowShortFunctionsOnASingleLine: None
+AllowShortBlocksOnASingleLine: false
