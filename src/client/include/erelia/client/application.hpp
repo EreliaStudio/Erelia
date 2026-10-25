@@ -1,8 +1,9 @@
 #pragma once
 
-#include "erelia/core/configuration.hpp"
+#include <filesystem>
 
 namespace erelia::client
 {
-    int runApplication(const erelia::core::ClientConfiguration &configuration);
+    [[nodiscard]] std::filesystem::path configurationFilePath(const std::filesystem::path &executablePath);
+    int runApplication();
 }
