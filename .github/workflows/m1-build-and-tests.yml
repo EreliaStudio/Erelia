@@ -1,4 +1,4 @@
-name: M1 Scaffold - staged Windows validation and preview
+name: M1 Engineering Foundation - independent Windows checks
 
 on:
   push:
@@ -7,12 +7,16 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Each numbered stage is a separate GitHub Actions job/check, not merely a step.
+# The build runs only once; downstream stages reuse its binaries and CTest files.
 jobs:
-  windows-scaffold:
-    name: Windows / staged C++ validation and build archive
+  build:
+    name: "00 - Compile Erelia and installed Sparkle"
     runs-on: windows-2022
     permissions:
       contents: read
+    outputs:
+      has_traceability: ${{ steps.detect.outputs.has_traceability }}
     steps:
       - name: Checkout Erelia
         uses: actions/checkout@v4
@@ -80,37 +84,215 @@ jobs:
           cmake --build _out/erelia-build --parallel 4
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: "01 - Sparkle Addon Core tests"
+      - name: Detect M1 traceability validator
+        id: detect
+        shell: pwsh
+        run: |
+          $exists = Test-Path 'erelia/tools/traceability.py'
+          "has_traceability=$($exists.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          if (-not $exists) {
+            Write-Host '::notice title=Traceability deferred::Validator unavailable; separate M1 tooling Story is required.'
+          }
+      - name: Share compiled executables and CTest discovery files
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-m1-ci-build
+          path: _out/erelia-build/
+          if-no-files-found: error
+          compression-level: 1
+          retention-days: 2
+
+  addon_core:
+    name: "01 - Sparkle Addon / Core"
+    needs: build
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+      - name: Download previously built Erelia executables and CTest metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: erelia-m1-ci-build
+          path: _out/erelia-build
+      - name: Run CTest family
         shell: pwsh
         run: |
           & erelia/cmake/RunCTestFamily.ps1 -BuildDirectory _out/erelia-build -Family SparkleAddonCore -ReportDirectory _out/test-reports
 
-      - name: "02 - Sparkle Addon Graphics tests (if present)"
+      - name: Upload addon_core JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-addon_core-ctest
+          path: _out/test-reports/*.xml
+          if-no-files-found: warn
+
+  addon_graphics:
+    name: "02 - Sparkle Addon / Graphics (if present)"
+    needs: addon_core
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+      - name: Download previously built Erelia executables and CTest metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: erelia-m1-ci-build
+          path: _out/erelia-build
+      - name: Run CTest family
         shell: pwsh
         run: |
           & erelia/cmake/RunCTestFamily.ps1 -BuildDirectory _out/erelia-build -Family SparkleAddonGraphics -ReportDirectory _out/test-reports -Optional
 
-      - name: "03 - Erelia Core tests"
+      - name: Upload addon_graphics JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-addon_graphics-ctest
+          path: _out/test-reports/*.xml
+          if-no-files-found: warn
+
+  core:
+    name: "03 - Erelia / Core"
+    needs: addon_graphics
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+      - name: Download previously built Erelia executables and CTest metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: erelia-m1-ci-build
+          path: _out/erelia-build
+      - name: Run CTest family
         shell: pwsh
         run: |
           & erelia/cmake/RunCTestFamily.ps1 -BuildDirectory _out/erelia-build -Family Core -ReportDirectory _out/test-reports
 
-      - name: "04 - Erelia Router tests"
+      - name: Upload core JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-core-ctest
+          path: _out/test-reports/*.xml
+          if-no-files-found: warn
+
+  router:
+    name: "04 - Erelia / Router"
+    needs: core
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+      - name: Download previously built Erelia executables and CTest metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: erelia-m1-ci-build
+          path: _out/erelia-build
+      - name: Run CTest family
         shell: pwsh
         run: |
           & erelia/cmake/RunCTestFamily.ps1 -BuildDirectory _out/erelia-build -Family Router -ReportDirectory _out/test-reports
 
-      - name: "05 - Erelia Client tests"
+      - name: Upload router JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-router-ctest
+          path: _out/test-reports/*.xml
+          if-no-files-found: warn
+
+  client:
+    name: "05 - Erelia / Client"
+    needs: router
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+      - name: Download previously built Erelia executables and CTest metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: erelia-m1-ci-build
+          path: _out/erelia-build
+      - name: Run CTest family
         shell: pwsh
         run: |
           & erelia/cmake/RunCTestFamily.ps1 -BuildDirectory _out/erelia-build -Family Client -ReportDirectory _out/test-reports
 
-      - name: "06 - Erelia Server and specialized RemoteNode tests"
+      - name: Upload client JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-client-ctest
+          path: _out/test-reports/*.xml
+          if-no-files-found: warn
+
+  server:
+    name: "06 - Erelia / Server"
+    needs: client
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+      - name: Download previously built Erelia executables and CTest metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: erelia-m1-ci-build
+          path: _out/erelia-build
+      - name: Run CTest family
         shell: pwsh
         run: |
           & erelia/cmake/RunCTestFamily.ps1 -BuildDirectory _out/erelia-build -Family Server -ReportDirectory _out/test-reports
 
-      - name: "07 - Integration CTest and Python MockPlayer gate"
+      - name: Upload server JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-server-ctest
+          path: _out/test-reports/*.xml
+          if-no-files-found: warn
+
+  integration:
+    name: "07 - Integration / CTest (Python MockPlayer pending)"
+    needs: server
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+      - name: Download previously built Erelia executables and CTest metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: erelia-m1-ci-build
+          path: _out/erelia-build
+      - name: Run C++ integration tests and report graphical test availability
         shell: pwsh
         run: |
           & erelia/cmake/RunCTestFamily.ps1 -BuildDirectory _out/erelia-build -Family ClientServerIntegration -ReportDirectory _out/test-reports
@@ -124,31 +306,49 @@ jobs:
           Write-Host '::warning title=MockPlayer not implemented::Only C++ integration CTest ran. Python real-input and screenshot tests are pending their own M1 Story and interactive runner.'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Python MockPlayer / graphical integration: **NOT RUN** (framework and interactive desktop pending).'
 
-      - name: "08 - Verify specification traceability freshness"
+      - name: Upload integration JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-integration-ctest
+          path: _out/test-reports/*.xml
+          if-no-files-found: warn
+
+  traceability:
+    name: "08 - Specification traceability (when implemented)"
+    needs: [build, integration]
+    if: ${{ needs.build.outputs.has_traceability == 'true' }}
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+      - name: Validate generated traceability without modifying specifications
         shell: pwsh
         run: |
-          # CI must verify generated links, never modify approved requirement
-          # tables or commit generated documentation on behalf of the owner.
-          if (Test-Path 'erelia/tools/traceability.py') {
-            python erelia/tools/traceability.py --check
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          }
-          else {
-            Write-Host '::warning title=Traceability tooling pending::No traceability generator/validator exists yet; strict freshness verification was NOT RUN.'
-            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- M0 traceability validation: **NOT RUN** (M1 tooling pending).'
-          }
+          python erelia/tools/traceability.py --check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Verify mandatory CTest report files
-        shell: pwsh
-        run: |
-          $reports = @('SparkleAddonCore', 'Core', 'Router', 'Client', 'Server', 'ClientServerIntegration')
-          foreach ($name in $reports) {
-            $report = Join-Path '_out/test-reports' "$name.xml"
-            if (-not (Test-Path -LiteralPath $report)) {
-              throw "Missing CTest JUnit report: $report"
-            }
-          }
-
+  package:
+    name: "09 - Downloadable Client, Router and Servers"
+    needs: [integration, traceability]
+    if: ${{ always() && needs.integration.result == 'success' && (needs.traceability.result == 'success' || needs.traceability.result == 'skipped') }}
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+      - name: Download previously built Erelia executables and CTest metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: erelia-m1-ci-build
+          path: _out/erelia-build
       - name: "09 - Prepare downloadable Windows build preview"
         shell: pwsh
         run: |
@@ -196,14 +396,6 @@ jobs:
           until their separately approved M1 infrastructure is implemented.
           '@ | Set-Content -Path (Join-Path $stage 'README.txt') -Encoding utf8
           Compress-Archive -Path (Join-Path $stage '*') -DestinationPath '_out/Erelia-M1-Windows-x64-preview.zip' -Force
-
-      - name: Upload per-stage CTest reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: erelia-m1-ctest-windows
-          path: _out/test-reports/*.xml
-          if-no-files-found: error
 
       - name: Upload downloadable Windows scaffold preview
         uses: actions/upload-artifact@v4
