@@ -5,6 +5,7 @@
 #include <network/server.hpp>
 
 #include <atomic>
+#include <stdexcept>
 
 TEST(RemoteNodeApplication, ReleasesListenerWhenStopped)
 {
@@ -22,4 +23,11 @@ TEST(RemoteNodeApplication, ReleasesListenerWhenStopped)
 
     EXPECT_NO_THROW(probe.start(port));
     probe.stop();
+}
+
+TEST(RemoteNodeApplication, RejectsMissingConfigurationArguments)
+{
+    char program[] = "EreliaRemoteNode";
+    char *argv[] = {program};
+    EXPECT_THROW(erelia::remote_node::runApplication(1, argv), std::invalid_argument);
 }

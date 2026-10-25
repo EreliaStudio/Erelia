@@ -5,6 +5,7 @@
 #include <network/server.hpp>
 
 #include <atomic>
+#include <stdexcept>
 
 TEST(RouterApplication, ReleasesListenerWhenStopped)
 {
@@ -22,4 +23,11 @@ TEST(RouterApplication, ReleasesListenerWhenStopped)
 
     EXPECT_NO_THROW(probe.start(port));
     probe.stop();
+}
+
+TEST(RouterApplication, RejectsMissingConfigurationArguments)
+{
+    char program[] = "EreliaServerRouter";
+    char *argv[] = {program};
+    EXPECT_THROW(erelia::router::runApplication(1, argv), std::invalid_argument);
 }
