@@ -1,0 +1,269 @@
+name: Erelia CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+# Each numbered stage is a separate GitHub Actions job/check, not merely a step.
+# The build runs only once; downstream stages reuse its binaries and CTest files.
+jobs:
+  format:
+    name: "Format / clang-format"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install clang-format==21.1.0
+      - name: Check C++ files
+        shell: bash
+        run: |
+          base="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if [[ -z "$base" ]] || ! git cat-file -e "$base" 2>/dev/null; then base="$(git rev-parse HEAD^)"; fi
+          git diff --name-only --diff-filter=ACMR -z "$base" HEAD -- '*.cpp' '*.hpp' '*.h' '*.cc' |
+            xargs -0 -r clang-format --style=file --dry-run --Werror
+
+  windows_build:
+    name: "00 - Compile Erelia and installed Sparkle"
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    outputs:
+      has_traceability: ${{ steps.detect.outputs.has_traceability }}
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+
+      - name: Checkout pinned, unmodified Sparkle v0.1.3
+        uses: actions/checkout@v4
+        with:
+          repository: EreliaStudio/Sparkle
+          ref: 5117c64a7052457ca2de1864bf23e0e29487bdcf
+          path: _deps/sparkle-source
+
+      - name: Checkout pinned vcpkg
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/vcpkg
+          ref: 817892b0ecbc6af994dd6df999c73faf795adbf2
+          path: _deps/vcpkg
+
+      - name: Initialize Windows C++23 build tools
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install external build dependencies
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:GITHUB_WORKSPACE '_deps/vcpkg'
+          $env:VCPKG_ROOT = $root
+          & (Join-Path $root 'bootstrap-vcpkg.bat') -disableMetrics
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & (Join-Path $root 'vcpkg.exe') install glew stb gtest --triplet x64-windows-static
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Build and install Sparkle 0.1.3 externally
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:GITHUB_WORKSPACE '_deps/vcpkg'
+          $env:VCPKG_ROOT = $root
+          cmake -S _deps/sparkle-source -B _out/sparkle-build -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang-cl `
+            "-DCMAKE_TOOLCHAIN_FILE=$root/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
+            -DSPARKLE_BUILD_TESTS=OFF -DSPARKLE_BUILD_TEST_LIBRARY=OFF `
+            "-DCMAKE_INSTALL_PREFIX=$env:GITHUB_WORKSPACE/_out/sparkle-prefix"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --build _out/sparkle-build --parallel 4
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --install _out/sparkle-build
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Configure and compile Erelia Core, Client, Router and every discovered node
+        shell: pwsh
+        run: |
+          $root = Join-Path $env:GITHUB_WORKSPACE '_deps/vcpkg'
+          $env:VCPKG_ROOT = $root
+          cmake -S erelia -B _out/erelia-build -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang-cl `
+            "-DCMAKE_TOOLCHAIN_FILE=$root/scripts/buildsystems/vcpkg.cmake" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded `
+            "-DCMAKE_PREFIX_PATH=$env:GITHUB_WORKSPACE/_out/sparkle-prefix" `
+            -DBUILD_TESTING=ON
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          cmake --build _out/erelia-build --parallel 4
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Detect traceability validator
+        id: detect
+        shell: pwsh
+        run: |
+          $exists = Test-Path 'erelia/tools/traceability.py'
+          "has_traceability=$($exists.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          if (-not $exists) {
+            Write-Host '::notice title=Traceability deferred::Validator unavailable; separate engineering tooling Story is required.'
+          }
+      - name: Share compiled executables and CTest discovery files
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-windows-ci-build
+          path: _out/erelia-build/
+          if-no-files-found: error
+          compression-level: 1
+          retention-days: 2
+
+  linux_build:
+    name: "Linux / 00 - Compile installed Sparkle Core and Erelia"
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+
+      - name: Checkout pinned Sparkle 0.1.3
+        uses: actions/checkout@v4
+        with:
+          repository: EreliaStudio/Sparkle
+          ref: 5117c64a7052457ca2de1864bf23e0e29487bdcf
+          path: _deps/sparkle-source
+
+      - name: Install headless Linux build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libgtest-dev
+
+      - name: Build and install Sparkle Core only
+        run: |
+          cmake -S _deps/sparkle-source -B _out/sparkle-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DSPARKLE_BUILD_GRAPHICS=OFF \
+            -DSPARKLE_BUILD_TESTS=OFF \
+            -DSPARKLE_BUILD_TEST_LIBRARY=OFF \
+            "-DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/_out/sparkle-prefix"
+          cmake --build _out/sparkle-build --parallel 4
+          cmake --install _out/sparkle-build
+
+      - name: Build Core, Router, Servers and headless tests
+        run: |
+          cmake -S erelia -B _out/erelia-build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DERELIA_BUILD_GRAPHICS=OFF \
+            "-DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/_out/sparkle-prefix" \
+            -DBUILD_TESTING=ON
+          cmake --build _out/erelia-build --parallel 4
+
+      - name: Pack Linux build with executable permissions preserved
+        run: tar -czf _out/erelia-linux-build.tar.gz -C _out erelia-build
+
+      - name: Upload shared Linux CTest binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-linux-ci-build
+          path: _out/erelia-linux-build.tar.gz
+          retention-days: 2
+          if-no-files-found: error
+
+  windows_tests:
+    name: "${{ matrix.family }} / TU (Windows)"
+    needs: windows_build
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        family: [Client, Router, ServerA, ServerB]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: erelia-windows-ci-build
+          path: _out/erelia-build
+      - name: Run unit tests and capture logs
+        shell: pwsh
+        run: |
+          $family = '${{ matrix.family }}'
+          ctest --test-dir _out/erelia-build -L "^$family$" --no-tests=error --output-on-failure --output-junit results.xml 2>&1 |
+            Tee-Object -FilePath test-output.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-windows-${{ matrix.family }}-evidence
+          path: |
+            test-output.log
+            _out/erelia-build/results.xml
+            _out/erelia-build/Testing/**
+          if-no-files-found: warn
+
+  linux_tests:
+    name: "${{ matrix.family }} / TU (Linux)"
+    needs: linux_build
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        family: [Router, ServerA, ServerB]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: erelia-linux-ci-build
+          path: _out
+      - name: Restore build and run tests
+        shell: bash
+        run: |
+          tar -xzf _out/erelia-linux-build.tar.gz -C _out
+          set -o pipefail
+          ctest --test-dir _out/erelia-build -L '^${{ matrix.family }}$' --no-tests=error --output-on-failure --output-junit results.xml 2>&1 | tee test-output.log
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-linux-${{ matrix.family }}-evidence
+          path: |
+            test-output.log
+            _out/erelia-build/results.xml
+            _out/erelia-build/Testing/**
+          if-no-files-found: warn
+
+  python_integration:
+    name: "Integration / Real Windows UI and goldens"
+    needs: windows_build
+    runs-on: [self-hosted, Windows, X64, erelia-interactive]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: erelia
+      - uses: actions/download-artifact@v4
+        with:
+          name: erelia-windows-ci-build
+          path: _out/erelia-build
+      - name: Python dependencies
+        shell: pwsh
+        run: python -m pip install Pillow==11.1.0 PyAutoGUI==0.9.54
+      - name: Real OS input and screenshot assertions
+        shell: pwsh
+        run: |
+          python erelia/tests/python/run_integration.py --build _out/erelia-build --results _out/integration-results --references erelia/tests/python/references
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Upload logs and failed screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-python-integration-evidence
+          path: _out/integration-results/
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,5 @@
+file(GLOB_RECURSE ERELIA_SHARED_FILES CONFIGURE_DEPENDS src/*.cpp)
+add_library(EreliaShared STATIC ${ERELIA_SHARED_FILES})
+target_include_directories(EreliaShared PUBLIC include)
+target_link_libraries(EreliaShared PUBLIC sparkle::core)
+target_compile_features(EreliaShared PUBLIC cxx_std_23)

@@ -1,0 +1,5 @@
+{
+  "router": {"host": "127.0.0.1", "port": 43000},
+  "timeoutMs": 3000,
+  "commandPort": 0
+}
