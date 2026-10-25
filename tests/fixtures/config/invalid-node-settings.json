@@ -1,0 +1,6 @@
+{
+    "kind": "remote-node",
+    "id": "invalid-settings",
+    "listenPort": 43030,
+    "settings": [1, 2]
+}
