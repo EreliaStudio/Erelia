@@ -1,27 +1,24 @@
 #include "erelia/client/application.hpp"
+#include "erelia/core/configuration.hpp"
 
 #include <exception>
 #include <iostream>
-#include <string_view>
 
 int main(int argc, char **argv)
 {
-    if (argc == 2 && std::string_view(argv[1]) == "--smoke")
-    {
-        return 0;
-    }
-    if (argc != 1)
-    {
-        std::cerr << "Usage: EreliaClient [--smoke]\n";
-        return 2;
-    }
     try
     {
-        return erelia::client::runApplication();
+        const auto args = erelia::core::parseConfigurationArguments(argc, argv);
+        const auto configuration = erelia::core::loadClientConfiguration(args.file);
+        if (args.validateOnly)
+        {
+            return 0;
+        }
+        return erelia::client::runApplication(configuration);
     }
     catch (const std::exception &error)
     {
-        std::cerr << error.what() << '\n';
+        std::cerr << "EreliaClient: " << error.what() << '\n';
         return 1;
     }
 }
