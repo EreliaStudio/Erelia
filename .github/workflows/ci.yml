@@ -355,14 +355,26 @@ jobs:
           $appBuild = Join-Path $env:GITHUB_WORKSPACE '_out/erelia-build/apps'
           $stage = Join-Path $env:GITHUB_WORKSPACE '_out/erelia-preview'
           New-Item -ItemType Directory -Force -Path $stage | Out-Null
-          $required = @('client', 'server-router', 'remote-node', 'example-node')
-          foreach ($app in $required) {
-            if (@(Get-ChildItem (Join-Path $appBuild $app) -Filter '*.exe' -File -ErrorAction SilentlyContinue).Count -ne 1) {
-              throw "Required executable missing or ambiguous in $app"
+          # Each application directory also contains its GoogleTest executable.
+          # Select distributed applications by their explicit output naming contract.
+          $required = @{
+            'client' = 'Erelia - Client.exe'
+            'server-router' = 'Erelia - Router.exe'
+            'remote-node' = 'Erelia - Server.exe'
+            'example-node' = 'Erelia - ExampleNode.exe'
+          }
+          foreach ($app in $required.Keys) {
+            $expected = Join-Path (Join-Path $appBuild $app) $required[$app]
+            if (-not (Test-Path -LiteralPath $expected -PathType Leaf)) {
+              throw "Required application executable not found: $expected"
             }
           }
 
-          $executables = @(Get-ChildItem -Path $appBuild -Recurse -Filter '*.exe' -File)
+          # Include future specialized nodes without distributing any *Tests.exe files.
+          $executables = @(Get-ChildItem -Path $appBuild -Recurse -Filter 'Erelia - *.exe' -File)
+          if ($executables.Count -lt $required.Count) {
+            throw "Distributable executable discovery found fewer applications than expected."
+          }
           foreach ($executable in $executables) {
             $relative = [System.IO.Path]::GetRelativePath($appBuild, $executable.DirectoryName)
             $targetDir = Join-Path $stage $relative
@@ -397,7 +409,7 @@ jobs:
           '@ | Set-Content -Path (Join-Path $stage 'README.txt') -Encoding utf8
           Compress-Archive -Path (Join-Path $stage '*') -DestinationPath '_out/Erelia-Windows-x64-build.zip' -Force
 
-      - name: Upload downloadable Windows scaffold preview
+      - name: Upload downloadable Windows build
         uses: actions/upload-artifact@v4
         with:
           name: erelia-windows-x64-build
