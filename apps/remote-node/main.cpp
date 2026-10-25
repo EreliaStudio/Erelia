@@ -1,18 +1,24 @@
+#include "erelia/core/configuration.hpp"
 #include "erelia/server/processes.hpp"
 
+#include <exception>
 #include <iostream>
-#include <string_view>
 
 int main(int argc, char **argv)
 {
-    if (argc == 2 && std::string_view(argv[1]) == "--smoke")
+    try
     {
-        return 0;
+        const auto args = erelia::core::parseConfigurationArguments(argc, argv);
+        const auto configuration = erelia::core::loadRemoteNodeConfiguration(args.file);
+        if (args.validateOnly)
+        {
+            return 0;
+        }
+        return erelia::server::runRemoteNodePlaceholder(configuration);
     }
-    if (argc != 1)
+    catch (const std::exception &error)
     {
-        std::cerr << "Usage: EreliaRemoteNode [--smoke]\n";
-        return 2;
+        std::cerr << "EreliaRemoteNode: " << error.what() << '\n';
+        return 1;
     }
-    return erelia::server::runRemoteNodePlaceholder();
 }
