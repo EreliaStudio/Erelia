@@ -276,9 +276,65 @@ jobs:
           path: _out/test-reports/*.xml
           if-no-files-found: warn
 
+  remote_node:
+    name: "06a - Erelia / RemoteNode"
+    needs: server
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+      - name: Download compiled CTest binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: erelia-m1-ci-build
+          path: _out/erelia-build
+      - name: Run RemoteNode tests
+        shell: pwsh
+        run: |
+          & erelia/cmake/RunCTestFamily.ps1 -BuildDirectory _out/erelia-build -Family RemoteNode -ReportDirectory _out/test-reports
+      - name: Upload RemoteNode JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-remote-node-ctest
+          path: _out/test-reports/*.xml
+          if-no-files-found: warn
+
+  example_node:
+    name: "06b - Erelia / ExampleNode"
+    needs: remote_node
+    runs-on: windows-2022
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout Erelia
+        uses: actions/checkout@v4
+        with:
+          path: erelia
+      - name: Download compiled CTest binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: erelia-m1-ci-build
+          path: _out/erelia-build
+      - name: Run ExampleNode tests
+        shell: pwsh
+        run: |
+          & erelia/cmake/RunCTestFamily.ps1 -BuildDirectory _out/erelia-build -Family ExampleNode -ReportDirectory _out/test-reports
+      - name: Upload ExampleNode JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: erelia-example-node-ctest
+          path: _out/test-reports/*.xml
+          if-no-files-found: warn
+
   integration:
     name: "07 - Integration / CTest (Python MockPlayer pending)"
-    needs: server
+    needs: example_node
     runs-on: windows-2022
     permissions:
       contents: read
@@ -478,6 +534,10 @@ jobs:
             family: Router
           - check: "06 - Erelia Server"
             family: Server
+          - check: "06a - Erelia RemoteNode"
+            family: RemoteNode
+          - check: "06b - Erelia ExampleNode"
+            family: ExampleNode
           - check: "07 - Headless Integration"
             family: ClientServerIntegration
     steps:

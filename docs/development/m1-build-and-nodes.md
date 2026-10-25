@@ -36,6 +36,8 @@ ctest --test-dir build -L "^Core$" --output-on-failure
 ctest --test-dir build -L "^Router$" --output-on-failure
 ctest --test-dir build -L "^Client$" --output-on-failure
 ctest --test-dir build -L "^Server$" --output-on-failure
+ctest --test-dir build -L "^RemoteNode$" --output-on-failure
+ctest --test-dir build -L "^ExampleNode$" --output-on-failure
 ctest --test-dir build -L "^ClientServerIntegration$" --output-on-failure
 ```
 
@@ -65,7 +67,7 @@ The buildable starter under [apps/example-node](../../apps/example-node/) demons
 
 The common `erelia::server::serveRemoteNode` host uses Sparkle's `spk::RemoteNode::Endpoint`: it starts and stops the socket and dispatches incoming requests to the node-provided callback. Replies can be sent with `endpoint.reply(request, response)`. The example does not reply yet because no protocol or gameplay messages are part of this milestone.
 
-The root CMake project automatically discovers newly added `apps/*/CMakeLists.txt`, and ordinary tests in `tests/Server/` are discovered automatically. Node-specific messages, policies and configuration must be approved with their own Story rather than silently invented by the template.
+The root CMake project automatically discovers newly added `apps/*/CMakeLists.txt`, and tests added to a node's local `tests/` folder are discovered automatically, with their own CTest label. Node-specific messages, policies and configuration must be approved with their own Story rather than silently invented by the template.
 
 ## Executable names and preview artifacts
 

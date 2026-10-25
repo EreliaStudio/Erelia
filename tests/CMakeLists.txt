@@ -21,9 +21,7 @@ target_compile_definitions(EreliaCoreTests PRIVATE
 if(ERELIA_BUILD_GRAPHICS)
     erelia_add_unit_suite(EreliaClientTests Client Client erelia::client)
 endif()
-erelia_add_unit_suite(EreliaRouterTests Router Router erelia::router)
-erelia_add_unit_suite(EreliaServerTests Server Server
-    erelia::server erelia::remote_node erelia::example_node)
+erelia_add_unit_suite(EreliaServerTests Server Server erelia::server)
 erelia_add_unit_suite(EreliaSparkleAddonTests SparkleAddon SparkleAddonCore erelia::sparkle_addon)
 
 # Future graphics-addon tests live in their own directory. Do not manufacture
@@ -61,15 +59,15 @@ set_tests_properties(Executable.Router.Config PROPERTIES LABELS "Router")
 add_test(NAME Executable.RemoteNode.Config
     COMMAND $<TARGET_FILE:EreliaRemoteNode>
         --validate-config "${PROJECT_SOURCE_DIR}/config/examples/world-node.json")
-set_tests_properties(Executable.RemoteNode.Config PROPERTIES LABELS "Server")
+set_tests_properties(Executable.RemoteNode.Config PROPERTIES LABELS "RemoteNode")
 add_test(NAME Executable.SecondRemoteNode.Config
     COMMAND $<TARGET_FILE:EreliaRemoteNode>
         --validate-config "${PROJECT_SOURCE_DIR}/config/examples/chat-node.json")
-set_tests_properties(Executable.SecondRemoteNode.Config PROPERTIES LABELS "Server")
+set_tests_properties(Executable.SecondRemoteNode.Config PROPERTIES LABELS "RemoteNode")
 
 # A copied example node must build as its own executable without central
 # source-file registration or a separate CI workflow.
 add_test(NAME Executable.ExampleRemoteNode.Config
     COMMAND $<TARGET_FILE:EreliaExampleNode>
         --validate-config "${PROJECT_SOURCE_DIR}/config/examples/example-node.json")
-set_tests_properties(Executable.ExampleRemoteNode.Config PROPERTIES LABELS "Server")
+set_tests_properties(Executable.ExampleRemoteNode.Config PROPERTIES LABELS "ExampleNode")

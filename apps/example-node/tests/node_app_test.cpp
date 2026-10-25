@@ -7,7 +7,7 @@
 #include <atomic>
 #include <stdexcept>
 
-TEST(ExampleNodeApplication, ReleasesListenerWhenStopped)
+TEST(NodeApplication, ReleasesListenerWhenStopped)
 {
     spk::Server probe;
     probe.start(0);
@@ -25,7 +25,7 @@ TEST(ExampleNodeApplication, ReleasesListenerWhenStopped)
     probe.stop();
 }
 
-TEST(ExampleNodeApplication, RejectsMissingConfigurationArguments)
+TEST(NodeApplication, RejectsMissingConfigurationArguments)
 {
     char program[] = "EreliaExampleNode";
     char *argv[] = {program};

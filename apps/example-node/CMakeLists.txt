@@ -16,3 +16,18 @@ add_executable(Erelia${ERELIA_NODE_ROLE} main.cpp)
 target_link_libraries(Erelia${ERELIA_NODE_ROLE} PRIVATE Erelia${ERELIA_NODE_ROLE}Library)
 set_target_properties(Erelia${ERELIA_NODE_ROLE} PROPERTIES
     OUTPUT_NAME "Erelia - ${ERELIA_NODE_ROLE}")
+
+# Tests live with this executable's library and are discovered automatically.
+if(BUILD_TESTING)
+    file(GLOB ERELIA_APP_TEST_SOURCES CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
+    if(ERELIA_APP_TEST_SOURCES)
+        find_package(GTest CONFIG REQUIRED)
+        include(GoogleTest)
+        add_executable(Erelia${ERELIA_NODE_ROLE}Tests ${ERELIA_APP_TEST_SOURCES})
+        target_link_libraries(Erelia${ERELIA_NODE_ROLE}Tests PRIVATE GTest::gtest_main Erelia${ERELIA_NODE_ROLE}Library)
+        gtest_discover_tests(Erelia${ERELIA_NODE_ROLE}Tests
+            TEST_PREFIX "${ERELIA_NODE_ROLE}."
+            PROPERTIES LABELS "${ERELIA_NODE_ROLE}")
+    endif()
+endif()
