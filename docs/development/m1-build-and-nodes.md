@@ -29,10 +29,12 @@ ctest --test-dir build --output-on-failure
 
 ```powershell
 ctest --test-dir build -N
+ctest --test-dir build -L "^SparkleAddonCore$" --output-on-failure
+ctest --test-dir build -L "^SparkleAddonGraphics$" --output-on-failure  # only when that suite exists
 ctest --test-dir build -L "^Core$" --output-on-failure
+ctest --test-dir build -L "^Router$" --output-on-failure
 ctest --test-dir build -L "^Client$" --output-on-failure
 ctest --test-dir build -L "^Server$" --output-on-failure
-ctest --test-dir build -L "^SparkleAddon$" --output-on-failure
 ctest --test-dir build -L "^ClientServerIntegration$" --output-on-failure
 ```
 
@@ -40,16 +42,16 @@ New C++ test sources placed under an existing `tests/<family>/` folder are disco
 
 ## Client configuration (no arguments)
 
-After building, `EreliaClient.exe` has a `client.json` file **in the same directory**. The build seeds the example only when the destination config is absent.
+After building, `Erelia - Client.exe` has a `client.json` file **in the same directory**. The build seeds the example only when the destination config is absent.
 
-Launch `EreliaClient.exe` by double-clicking it or a shortcut, with no parameters. It finds `client.json` relative to the executable itself, not the process's current working directory. Missing or invalid configurations produce a startup error. The current Client opens a normal Sparkle graphical window but does not connect to a server.
+Launch `Erelia - Client.exe` by double-clicking it or a shortcut, with no parameters. It finds `client.json` relative to the executable itself, not the process's current working directory. Missing or invalid configurations produce a startup error. The current Client opens a normal Sparkle graphical window but does not connect to a server.
 
 ## Server configurations (one file per instance)
 
 ```powershell
-EreliaServerRouter.exe --config C:\Erelia\config\router.json
-EreliaRemoteNode.exe --config C:\Erelia\config\world-node.json
-EreliaRemoteNode.exe --config C:\Erelia\config\chat-node.json
+& ".\\Erelia - Router.exe" --config C:\Erelia\config\router.json
+& ".\\Erelia - Server.exe" --config C:\Erelia\config\world-node.json
+& ".\\Erelia - Server.exe" --config C:\Erelia\config\chat-node.json
 ```
 
 These commands launch separate listeners, and console interrupt/termination signals request a clean stop. The Router does not yet install routes or connect to its listed peers. A per-instance file declares its own identity and listening port; the Router's file includes the peer addresses it needs. There is no global configuration registry. The generic `settings` object in a node's JSON is reserved for role-specific configuration and is not interpreted by the common host.
@@ -63,6 +65,12 @@ The buildable starter under [apps/example-node](../../apps/example-node/) demons
 The common `erelia::server::serveRemoteNode` host uses Sparkle's `spk::RemoteNode::Endpoint`: it starts and stops the socket and dispatches incoming requests to the node-provided callback. Replies can be sent with `endpoint.reply(request, response)`. The example does not reply yet because no protocol or gameplay messages are part of this milestone.
 
 The root CMake project automatically discovers newly added `apps/*/CMakeLists.txt`, and ordinary tests in `tests/Server/` are discovered automatically. Node-specific messages, policies and configuration must be approved with their own Story rather than silently invented by the template.
+
+## Executable names and preview artifacts
+
+The CMake targets retain their stable API names (`EreliaClient`, `EreliaServerRouter`, `EreliaRemoteNode`, `EreliaExampleNode`), but their Windows executable filenames are `Erelia - Client.exe`, `Erelia - Router.exe`, `Erelia - Server.exe`, and `Erelia - ExampleNode.exe`. Quote these filenames in PowerShell. New specialized nodes can follow the `Erelia - <Role>.exe` convention without modifying the root CMake file.
+
+The CI workflow publishes a downloadable **M1 scaffold preview** with all currently built app executables and per-instance example JSON configurations. It is not a playable game, installer, or evidence of passing graphical/MockPlayer tests. Each app lives in its own directory. Run the Client from its directory (it reads the adjacent `client.json`); pass `--config <path>` to Router and server executables.
 
 ## Build and CI expectations
 

@@ -59,7 +59,7 @@ The JSON fields are a minimal M1 scaffold, not a final routing/deployment schema
 
 ## Testing and pipeline
 
-CTest has five distinct test families. Temporary bootstrap tests verify target linking, JSON parsing, independent RemoteNode settings, and config location rules. The Client-specific CTest check verifies its adjacent `client.json` without opening a window in noninteractive CI. Server config checks use `--validate-config`. Actual Client GUI launch and graphical smoke validation remain future acceptance work on the dedicated graphical runner.
+CTest originally had five independently executed test families. The CI stages now distinguish the Router configuration test from Server tests and label the Sparkle Addon core tests separately; a graphics addon family is optional until tests are added. Temporary bootstrap tests verify target linking, JSON parsing, independent RemoteNode settings, and config location rules. The Client-specific CTest check verifies its adjacent `client.json` without opening a window in noninteractive CI. Server config checks use `--validate-config`. Actual Client GUI launch and graphical smoke validation remain future acceptance work on the dedicated graphical runner.
 
 The hosted Windows pipeline builds an immutable revision of Sparkle externally, installs its CMake package, builds Erelia against installed public targets and executes the five test families independently. This branch's execution status must be verified before acceptance.
 

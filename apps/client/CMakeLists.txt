@@ -10,3 +10,6 @@ add_custom_command(TARGET EreliaClient POST_BUILD
         "-DTARGET_CONFIG=$<TARGET_FILE_DIR:EreliaClient>/client.json"
         -P "${PROJECT_SOURCE_DIR}/cmake/CopyConfigIfMissing.cmake"
     VERBATIM)
+
+# Preserve the stable CMake target for tooling while naming the distributed binary.
+set_target_properties(EreliaClient PROPERTIES OUTPUT_NAME "Erelia - Client")
