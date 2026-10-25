@@ -7,7 +7,7 @@
 TEST(ServerFoundationSmoke, HasBothServerEntryPoints)
 {
     static_assert(std::is_same_v<decltype(&erelia::server::runRouterPlaceholder),
-                                 int (*)(const erelia::core::ServerRouterConfiguration &)>);
+        int (*)(const erelia::core::ServerRouterConfiguration &, const std::atomic_bool &)>);
     static_assert(std::is_same_v<decltype(&erelia::server::runRemoteNodePlaceholder),
-                                 int (*)(const erelia::core::RemoteNodeConfiguration &)>);
+        int (*)(const erelia::core::RemoteNodeConfiguration &, const std::atomic_bool &)>);
 }
