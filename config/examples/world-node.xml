@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service id="world" role="remote-node">
+    <endpoint host="127.0.0.1" port="43010"/>
+</service>
