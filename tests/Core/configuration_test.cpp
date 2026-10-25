@@ -30,6 +30,11 @@ TEST(ConfigurationTest, EachInstanceLoadsOnlyItsOwnConfiguration)
     const auto chat = erelia::core::loadRemoteNodeConfiguration(examples / "chat-node.json");
     EXPECT_NE(world.id, chat.id);
     EXPECT_NE(world.listenPort, chat.listenPort);
+    EXPECT_TRUE(world.settings.isObject());
+
+    const auto example = erelia::core::loadRemoteNodeConfiguration(examples / "example-node.json");
+    EXPECT_EQ(example.id, "example");
+    EXPECT_TRUE(example.settings.isObject());
 }
 
 TEST(ConfigurationTest, ConfigurationKindCannotBeUsedByDifferentExecutable)
@@ -53,4 +58,11 @@ TEST(ConfigurationTest, ServerExecutablesAcceptExplicitConfigPath)
     argv[1] = validate;
     EXPECT_TRUE(erelia::core::parseConfigurationArguments(3, argv).validateOnly);
     EXPECT_THROW(erelia::core::parseConfigurationArguments(1, argv), std::invalid_argument);
+}
+
+TEST(ConfigurationTest, NodeSettingsMustBeAJsonObject)
+{
+    EXPECT_THROW(
+        erelia::core::loadRemoteNodeConfiguration(fixtures / "invalid-node-settings.json"),
+        std::invalid_argument);
 }
