@@ -14,16 +14,34 @@ function(erelia_add_unit_suite target family)
 endfunction()
 
 erelia_add_unit_suite(EreliaCoreTests Core erelia::core)
+target_compile_definitions(EreliaCoreTests PRIVATE
+    ERELIA_CONFIG_EXAMPLES_DIR="${PROJECT_SOURCE_DIR}/config/examples"
+    ERELIA_CONFIG_FIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures/config")
+
 erelia_add_unit_suite(EreliaClientTests Client erelia::client)
 erelia_add_unit_suite(EreliaServerTests Server erelia::server)
 erelia_add_unit_suite(EreliaSparkleAddonTests SparkleAddon erelia::sparkle_addon)
 erelia_add_unit_suite(EreliaClientServerIntegrationTests ClientServerIntegration
     erelia::client erelia::server)
 
-# Process smoke tests validate that all three executable artifacts launch and exit.
-add_test(NAME Executable.Client COMMAND $<TARGET_FILE:EreliaClient> --smoke)
-set_tests_properties(Executable.Client PROPERTIES LABELS "Client")
-add_test(NAME Executable.Router COMMAND $<TARGET_FILE:EreliaServerRouter> --smoke)
-set_tests_properties(Executable.Router PROPERTIES LABELS "Server")
-add_test(NAME Executable.RemoteNode COMMAND $<TARGET_FILE:EreliaRemoteNode> --smoke)
-set_tests_properties(Executable.RemoteNode PROPERTIES LABELS "Server")
+# The Client starts with no arguments. Check the packaged config without
+# launching a graphical window on a headless CTest machine.
+add_test(NAME Executable.Client.ConfigInstalled
+    COMMAND ${CMAKE_COMMAND}
+        "-DFILE_TO_CHECK=$<TARGET_FILE_DIR:EreliaClient>/client.json"
+        -P "${PROJECT_SOURCE_DIR}/cmake/AssertFileExists.cmake")
+set_tests_properties(Executable.Client.ConfigInstalled PROPERTIES LABELS "Client")
+
+# Server processes accept instance-specific configuration files.
+add_test(NAME Executable.Router.Config
+    COMMAND $<TARGET_FILE:EreliaServerRouter>
+        --validate-config "${PROJECT_SOURCE_DIR}/config/examples/router.json")
+set_tests_properties(Executable.Router.Config PROPERTIES LABELS "Server")
+add_test(NAME Executable.RemoteNode.Config
+    COMMAND $<TARGET_FILE:EreliaRemoteNode>
+        --validate-config "${PROJECT_SOURCE_DIR}/config/examples/world-node.json")
+set_tests_properties(Executable.RemoteNode.Config PROPERTIES LABELS "Server")
+add_test(NAME Executable.SecondRemoteNode.Config
+    COMMAND $<TARGET_FILE:EreliaRemoteNode>
+        --validate-config "${PROJECT_SOURCE_DIR}/config/examples/chat-node.json")
+set_tests_properties(Executable.SecondRemoteNode.Config PROPERTIES LABELS "Server")
