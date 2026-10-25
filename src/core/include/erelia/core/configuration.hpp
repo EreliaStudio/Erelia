@@ -1,5 +1,7 @@
 #pragma once
 
+#include <container/json/object.hpp>
+
 #include <cstdint>
 #include <filesystem>
 #include <string>
@@ -44,6 +46,7 @@ namespace erelia::core
     {
         std::string id;
         std::uint16_t listenPort;
+        spk::JSON::Value settings = spk::JSON::Value::object();
     };
 
     struct ConfigurationArguments
