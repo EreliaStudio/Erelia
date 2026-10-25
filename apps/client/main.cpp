@@ -1,20 +1,13 @@
 #include "erelia/client/application.hpp"
-#include "erelia/core/configuration.hpp"
 
 #include <exception>
 #include <iostream>
 
-int main(int argc, char **argv)
+int main()
 {
     try
     {
-        const auto args = erelia::core::parseConfigurationArguments(argc, argv);
-        const auto configuration = erelia::core::loadClientConfiguration(args.file);
-        if (args.validateOnly)
-        {
-            return 0;
-        }
-        return erelia::client::runApplication(configuration);
+        return erelia::client::runApplication();
     }
     catch (const std::exception &error)
     {
