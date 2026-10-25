@@ -1,0 +1,6 @@
+{
+    "kind": "remote-node",
+    "id": "example",
+    "listenPort": 43030,
+    "settings": {}
+}
