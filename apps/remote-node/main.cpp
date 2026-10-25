@@ -1,0 +1,18 @@
+#include "erelia/server/processes.hpp"
+
+#include <iostream>
+#include <string_view>
+
+int main(int argc, char **argv)
+{
+    if (argc == 2 && std::string_view(argv[1]) == "--smoke")
+    {
+        return 0;
+    }
+    if (argc != 1)
+    {
+        std::cerr << "Usage: EreliaRemoteNode [--smoke]\n";
+        return 2;
+    }
+    return erelia::server::runRemoteNodePlaceholder();
+}
