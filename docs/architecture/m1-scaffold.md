@@ -1,38 +1,67 @@
 # M1 engineering scaffold — implementation staging
 
-**Status:** preliminary scaffold; not an approved production architecture, not an M1 acceptance record.
+**Status:** preliminary branch scaffold; neither a final technical approval nor an M1 acceptance record.
 
 ## Scope
 
-The branch contains source-folder boundaries, CMake targets, five independent GTest/CTest suites, three executable placeholders, sample per-instance XML files and a hosted Windows build/test pipeline. There is no operational multiplayer routing or XML loader. Sparkle is an external installed dependency and remains unchanged.
+This branch establishes the C++23 source-module boundaries, three executable entry points, CMake, five GTest/CTest suites, separate example JSON configurations and a hosted Windows build/test workflow. The server executables are non-networking placeholders; the graphical Client constructs an ordinary Sparkle window. No network communication or gameplay is implemented.
 
 ## Module and executable boundaries
 
-- `src/core`: non-graphical shared Erelia logic; links `sparkle::core`.
-- `src/sparkle_addon`: Erelia-owned extensions; links Core. Sparkle itself must not change.
-- `src/client`: graphical client composition; links `sparkle::sparkle`.
-- `src/server`: server-side reusable logic. Separate router and remote-node entry points currently share placeholder code.
-- `apps/client`, `apps/server-router`, `apps/remote-node`: three independently built executables.
+- `src/core`: non-graphical shared Erelia logic, configuration loading, `sparkle::core`.
+- `src/sparkle_addon`: Erelia-owned extensions. Do not modify Sparkle.
+- `src/client`: graphical Client composition, `sparkle::sparkle`.
+- `src/server`: server-side shared logic; Router and RemoteNode have independent entry points.
+- `apps/client`, `apps/server-router`, `apps/remote-node`: three independently built executable targets.
 - `tests/{Core,Client,Server,SparkleAddon,ClientServerIntegration}`: independently labeled CTest suites.
 
-Add source files under their owning module; CMake discovers `*.cpp` automatically. An additional executable owns an app folder and `CMakeLists.txt`, which `apps/CMakeLists.txt` discovers. Adding an ordinary test needs only an additional test source file.
+Source files and tests are found through scoped CMake `GLOB_RECURSE ... CONFIGURE_DEPENDS`. A new executable may be introduced with a new directory under `apps` and a local `CMakeLists.txt`.
 
-## Network configuration — candidate design, not yet active
+## JSON configuration contracts (accepted direction)
 
-Every process instance gets its **own XML** describing its identity, role and locally published endpoint. To start a second remote-node instance, provide a distinct configuration such as `world-node.xml` or `chat-node.xml`. No shared monolithic file should duplicate every service definition.
+Use Sparkle's existing `spk::JSON::Value` and `spk::JSON::Reader`. Each process has a self-contained JSON file describing only what that process needs; references to peers are stored in the process that uses them. There is no shared configuration directory or discovery daemon.
 
-**Unresolved consequential question:** how does each process discover other instances? Candidate A: read all the separate XML files in a shared deployment directory; candidate B: each process file includes explicit outgoing peer connection information; candidate C: use a central directory/discovery service. Do not implement discovery, routing configuration, or a production XML parser until the owner decides. The example files are data-shape sketches, not an approved schema.
+### Graphical Client
 
-The implementation step must build on Sparkle's existing `spk::NodeRouter`, `spk::RemoteNode`, and `spk::RemoteNode::Endpoint`. No networking is required for this scaffold, and the placeholders intentionally start no sockets.
+`EreliaClient.exe` is launched by double-clicking it or its shortcut. **It accepts no CLI configuration parameters.** It resolves its own executable location through the Windows API and reads `client.json` from the same directory, **not the working directory**. A missing or invalid file causes the launch to fail explicitly.
 
-## Dependency strategy
+The build copies `config/examples/client.json` next to the built executable if it does not already exist. This seed operation does not overwrite a locally edited `client.json`. Distribution must place a suitable `client.json` alongside the binary.
 
-The pipeline builds and installs a pinned, unmodified external Sparkle revision, then consumes it through `find_package(sparkle CONFIG REQUIRED COMPONENTS Core Graphics)`. This avoids an Erelia-side copy or patch. Publication via `erelia-sparkle` vcpkg can replace the package acquisition later without changing targets.
+The current Client config contains its identity, the Server Router address and basic window properties. Router connectivity is only a future dependency; the Client scaffold does not connect.
 
-## M0 limitations before production Story delivery
+### Server Router
 
-Erelia's M0 status still says pending acceptance; SDD and ERD domain prefixes and IDs are not approved yet. This scaffold's smoke tests therefore do not falsely claim approved requirement IDs. They are temporary bootstrap verification artifacts, not proof of M0 traceability compliance. The first authorized M1 infrastructure Story must obtain scope/design/test approval, record its bootstrap exception, establish traceability tooling and backfill formally approved IDs before strict acceptance. Normal feature development remains blocked until those gates operate.
+`EreliaServerRouter --config <router.json>` launches an instance.
+`EreliaServerRouter --validate-config <router.json>` validates its file and exits without starting sockets.
+
+The Router config defines its identity, listening port and the named RemoteNode endpoints it needs to reach. No other node config is read.
+
+### RemoteNode
+
+`EreliaRemoteNode --config <node.json>` launches an instance.
+`EreliaRemoteNode --validate-config <node.json>` validates its file and exits without starting sockets.
+
+`world-node.json` and `chat-node.json` demonstrate launching separate instances from one executable. Each config contains that instance's identity and listening port. New server roles should not require modifying the general launcher. Any future role-specific configuration belongs in that instance's JSON and requires a corresponding reviewed feature.
+
+### Current files
+
+- `config/examples/client.json`
+- `config/examples/router.json`
+- `config/examples/world-node.json`
+- `config/examples/chat-node.json`
+
+The JSON fields are a minimal M1 scaffold, not a final routing/deployment schema. The implementing Stories should add only fields actually needed by their acceptance criteria. Configuration read/validation is implemented; **network connectivity is not**.
+
+## Testing and pipeline
+
+CTest has five distinct test families. Temporary bootstrap tests verify target linking, JSON parsing, independent RemoteNode settings, and config location rules. The Client-specific CTest check verifies its adjacent `client.json` without opening a window in noninteractive CI. Server config checks use `--validate-config`. Actual Client GUI launch and graphical smoke validation remain future acceptance work on the dedicated graphical runner.
+
+The hosted Windows pipeline builds an immutable revision of Sparkle externally, installs its CMake package, builds Erelia against installed public targets and executes the five test families independently. This branch's execution status must be verified before acceptance.
+
+## M0 limitations
+
+M0 STATUS currently indicates pending review/acceptance, with no approved SDD/ERD prefixes or requirement IDs. The scaffold's smoke tests do not claim formal traceability. Before delivery as an approved Story, use the explicit M1 bootstrap exception, obtain the necessary approvals, establish metadata generation/validation and reconcile the tests to the approved M0 requirements. Do not treat this preliminary branch as an approved implementation.
 
 ## Exclusions
 
-No gameplay, authentication, networking protocol, real remote-node connectivity, XML parsing, Python player tests, screenshots or graphical CI in this scaffold.
+No gameplay, login, real Router/RemoteNode links, automatic peer discovery, Python mock players, screenshot testing or dedicated graphical CI yet. Sparkle must remain unchanged.
