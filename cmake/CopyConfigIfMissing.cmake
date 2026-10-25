@@ -1,0 +1,7 @@
+if(NOT DEFINED SOURCE_CONFIG OR NOT DEFINED TARGET_CONFIG)
+    message(FATAL_ERROR "CopyConfigIfMissing requires SOURCE_CONFIG and TARGET_CONFIG")
+endif()
+
+if(NOT EXISTS "${TARGET_CONFIG}")
+    configure_file("${SOURCE_CONFIG}" "${TARGET_CONFIG}" COPYONLY)
+endif()
