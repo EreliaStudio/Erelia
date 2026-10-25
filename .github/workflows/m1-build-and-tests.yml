@@ -3,7 +3,7 @@ name: M1 Scaffold Build and CTest
 on:
   push:
     branches:
-      - feat/m1-engineering-scaffold
+      - master
   pull_request:
   workflow_dispatch:
 
