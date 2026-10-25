@@ -18,8 +18,8 @@ namespace erelia::core
     struct WindowConfiguration
     {
         std::string title;
-        int width;
-        int height;
+        unsigned int width;
+        unsigned int height;
     };
 
     struct ClientConfiguration
