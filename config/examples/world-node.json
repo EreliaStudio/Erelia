@@ -1,0 +1,5 @@
+{
+    "kind": "remote-node",
+    "id": "world",
+    "listenPort": 43010
+}
