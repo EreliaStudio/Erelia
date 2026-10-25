@@ -4,7 +4,7 @@
 
 ## Scope
 
-This branch establishes the C++23 source-module boundaries, three executable entry points, CMake, five GTest/CTest suites, separate example JSON configurations and a hosted Windows build/test workflow. The server executables are non-networking placeholders; the graphical Client constructs an ordinary Sparkle window. No network communication or gameplay is implemented.
+This branch establishes the C++23 source-module boundaries, three application entry points plus a buildable example node, CMake, five GTest/CTest suites, separate example JSON configurations and a hosted Windows build/test workflow. The Server Router and RemoteNode launch Sparkle listeners and dispatch loops, but do not define routes or gameplay-specific message handling. The graphical Client constructs an ordinary Sparkle window without connecting. No gameplay is implemented.
 
 ## Module and executable boundaries
 
@@ -12,7 +12,7 @@ This branch establishes the C++23 source-module boundaries, three executable ent
 - `src/sparkle_addon`: Erelia-owned extensions. Do not modify Sparkle.
 - `src/client`: graphical Client composition, `sparkle::sparkle`.
 - `src/server`: server-side shared logic; Router and RemoteNode have independent entry points.
-- `apps/client`, `apps/server-router`, `apps/remote-node`: three independently built executable targets.
+- `apps/client`, `apps/server-router`, `apps/remote-node`: three main executable targets. `apps/example-node` is a copyable and buildable role-specific RemoteNode template.
 - `tests/{Core,Client,Server,SparkleAddon,ClientServerIntegration}`: independently labeled CTest suites.
 
 Source files and tests are found through scoped CMake `GLOB_RECURSE ... CONFIGURE_DEPENDS`. A new executable may be introduced with a new directory under `apps` and a local `CMakeLists.txt`.
@@ -41,7 +41,11 @@ The Router config defines its identity, listening port and the named RemoteNode 
 `EreliaRemoteNode --config <node.json>` launches an instance.
 `EreliaRemoteNode --validate-config <node.json>` validates its file and exits without starting sockets.
 
-`world-node.json` and `chat-node.json` demonstrate launching separate instances from one executable. Each config contains that instance's identity and listening port. New server roles should not require modifying the general launcher. Any future role-specific configuration belongs in that instance's JSON and requires a corresponding reviewed feature.
+`world-node.json` and `chat-node.json` demonstrate launching separate instances from one executable. Each config contains that instance's identity and listening port. A RemoteNode may additionally define a `settings` object for role-specific data, without changing the common JSON loader.
+
+To create a distinct new node type, copy `apps/example-node` into a new directory under `apps/`, rename the executable target in its local CMakeLists, and replace its placeholder request handler. `erelia::server::serveRemoteNode()` owns the `spk::RemoteNode::Endpoint`, socket lifecycle, periodic dispatch and shutdown; the node supplies only its request handling. See [example node instructions](../../apps/example-node/README.md). The root CMake project and CI source/test discovery do not need edits. A new node requires its own owner-approved Story and appropriately traced tests.
+
+The generic server launcher and example node begin listening once `--config` is provided; `--validate-config` merely validates and exits. They terminate on console interrupt/termination signals. The Router currently has no registered routes. Do not interpret listener availability as a completed routing protocol.
 
 ### Current files
 
@@ -49,6 +53,7 @@ The Router config defines its identity, listening port and the named RemoteNode 
 - `config/examples/router.json`
 - `config/examples/world-node.json`
 - `config/examples/chat-node.json`
+- `config/examples/example-node.json`
 
 The JSON fields are a minimal M1 scaffold, not a final routing/deployment schema. The implementing Stories should add only fields actually needed by their acceptance criteria. Configuration read/validation is implemented; **network connectivity is not**.
 
@@ -64,4 +69,4 @@ M0 STATUS currently indicates pending review/acceptance, with no approved SDD/ER
 
 ## Exclusions
 
-No gameplay, login, real Router/RemoteNode links, automatic peer discovery, Python mock players, screenshot testing or dedicated graphical CI yet. Sparkle must remain unchanged.
+No gameplay, login, Router-to-RemoteNode links/routing table, automatic peer discovery, Python mock players, screenshot testing or dedicated graphical CI yet. Sparkle must remain unchanged.
