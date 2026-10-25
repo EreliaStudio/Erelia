@@ -138,6 +138,17 @@ jobs:
             Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- M0 traceability validation: **NOT RUN** (M1 tooling pending).'
           }
 
+      - name: Verify mandatory CTest report files
+        shell: pwsh
+        run: |
+          $reports = @('SparkleAddonCore', 'Core', 'Router', 'Client', 'Server', 'ClientServerIntegration')
+          foreach ($name in $reports) {
+            $report = Join-Path '_out/test-reports' "$name.xml"
+            if (-not (Test-Path -LiteralPath $report)) {
+              throw "Missing CTest JUnit report: $report"
+            }
+          }
+
       - name: "09 - Prepare downloadable Windows build preview"
         shell: pwsh
         run: |
@@ -192,7 +203,7 @@ jobs:
         with:
           name: erelia-m1-ctest-windows
           path: _out/test-reports/*.xml
-          if-no-files-found: warn
+          if-no-files-found: error
 
       - name: Upload downloadable Windows scaffold preview
         uses: actions/upload-artifact@v4

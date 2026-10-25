@@ -6,6 +6,9 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+# CTest resolves output-junit paths from its build directory, so pass an
+# absolute destination rather than a path relative to the caller.
+$ReportDirectory = [System.IO.Path]::GetFullPath($ReportDirectory)
 New-Item -ItemType Directory -Path $ReportDirectory -Force | Out-Null
 
 # CTest succeeds even when -L matches zero tests; distinguish that from a
