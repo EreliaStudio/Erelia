@@ -1,0 +1,17 @@
+# Example RemoteNode application
+
+This is a **compilable starter project** for new Erelia server roles.
+
+## Create a new node
+
+1. Copy this directory under `apps/` with a role-specific name, such as `apps/inventory-node/`.
+2. Rename the CMake executable target from `EreliaExampleNode` to `EreliaInventoryNode`.
+3. Implement the request handler in `main.cpp`. It receives the existing Sparkle `RemoteNode::Endpoint` and a routed request; responses can use `endpoint.reply(request, message)`. Do not add any test-only interfaces to Sparkle.
+4. Add a self-contained JSON configuration file for each deployed instance, following `config/examples/example-node.json`. Change the node identity and port. A specialization may consume its own `settings` JSON section.
+5. Build normally. `apps/CMakeLists.txt` discovers the new app directory automatically. Add C++ tests under `tests/Server/` to have them discovered by the existing Server CTest suite.
+
+The common `erelia::server::serveRemoteNode` host owns socket start/stop, Sparkle request dispatch, and graceful shutdown when the process is signalled. The handler adds only the role-specific behavior.
+
+Use `--config path.json` to run and `--validate-config path.json` to validate configuration without starting a server. This example does not respond to any protocol message: it is a template, not gameplay infrastructure.
+
+This README is not a replacement for an owner-approved Story and reviewed tests under M0.
