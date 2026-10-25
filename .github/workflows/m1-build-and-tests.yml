@@ -28,10 +28,11 @@ jobs:
           ref: 5117c64a7052457ca2de1864bf23e0e29487bdcf
           path: _deps/sparkle-source
 
-      - name: Checkout vcpkg for external dependencies
+      - name: Checkout pinned vcpkg for external dependencies
         uses: actions/checkout@v4
         with:
           repository: microsoft/vcpkg
+          ref: 817892b0ecbc6af994dd6df999c73faf795adbf2
           path: _deps/vcpkg
 
       - name: Enable MSVC toolchain environment
