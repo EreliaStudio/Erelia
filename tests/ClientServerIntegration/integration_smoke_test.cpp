@@ -3,7 +3,8 @@
 #ifdef ERELIA_WITH_CLIENT
 #include "erelia/client/application.hpp"
 #endif
-#include "erelia/server/processes.hpp"
+#include "erelia/router/application.hpp"
+#include "erelia/remote_node/application.hpp"
 
 #include <network/server.hpp>
 
@@ -17,7 +18,7 @@ TEST(ClientServerIntegrationScaffold, BothSidesLink)
 #ifdef ERELIA_WITH_CLIENT
     static_assert(std::is_same_v<decltype(&erelia::client::runApplication), int (*)()>);
 #endif
-    static_assert(std::is_same_v<decltype(&erelia::server::runRouterPlaceholder),
+    static_assert(std::is_same_v<decltype(&erelia::router::run),
         int (*)(const erelia::core::ServerRouterConfiguration &, const std::atomic_bool &)>);
 }
 
@@ -41,8 +42,8 @@ TEST(ClientServerIntegrationScaffold, RouterAndRemoteNodeReleaseListeningPorts)
         .listenPort = port
     };
 
-    EXPECT_EQ(erelia::server::runRouterPlaceholder(router, running), 0);
-    EXPECT_EQ(erelia::server::runRemoteNodePlaceholder(remoteNode, running), 0);
+    EXPECT_EQ(erelia::router::run(router, running), 0);
+    EXPECT_EQ(erelia::remote_node::run(remoteNode, running), 0);
 
     ASSERT_NO_THROW(probe.start(port));
     EXPECT_TRUE(probe.isRunning());

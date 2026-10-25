@@ -1,13 +1,14 @@
 #include <gtest/gtest.h>
 
-#include <type_traits>
-#include "erelia/server/processes.hpp"
+#include "erelia/server/remote_node_host.hpp"
 
-// Bootstrap compile/link test; formal M0 requirement linkage is pending.
-TEST(ServerFoundationSmoke, HasBothServerEntryPoints)
+#include <type_traits>
+
+// Verify the shared server library exposes the reusable node host.
+TEST(ServerFoundationSmoke, ProvidesRemoteNodeHost)
 {
-    static_assert(std::is_same_v<decltype(&erelia::server::runRouterPlaceholder),
-        int (*)(const erelia::core::ServerRouterConfiguration &, const std::atomic_bool &)>);
-    static_assert(std::is_same_v<decltype(&erelia::server::runRemoteNodePlaceholder),
-        int (*)(const erelia::core::RemoteNodeConfiguration &, const std::atomic_bool &)>);
+    static_assert(std::is_same_v<decltype(&erelia::server::serveRemoteNode),
+        int (*)(const erelia::core::RemoteNodeConfiguration &,
+                const std::atomic_bool &,
+                const erelia::server::RemoteNodeRequestHandler &)>);
 }

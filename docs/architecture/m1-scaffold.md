@@ -12,7 +12,7 @@ This branch establishes the C++23 source-module boundaries, three application en
 - `src/sparkle_addon`: Erelia-owned extensions. Do not modify Sparkle.
 - `src/client`: graphical Client composition, `sparkle::sparkle`.
 - `src/server`: server-side shared logic; Router and RemoteNode have independent entry points.
-- `apps/client`, `apps/server-router`, `apps/remote-node`: three main executable targets. `apps/example-node` is a copyable and buildable role-specific RemoteNode template.
+- Each application has a static library for all logic except the thin `main.cpp`; executable targets link their own library. `EreliaCore` and the shared `EreliaServerLibrary` remain reusable. `apps/client`, `apps/server-router`, `apps/remote-node`: three main executable targets. `apps/example-node` is a copyable and buildable role-specific RemoteNode template.
 - `tests/{Core,Client,Server,SparkleAddon,ClientServerIntegration}`: independently labeled CTest suites.
 
 Source files and tests are found through scoped CMake `GLOB_RECURSE ... CONFIGURE_DEPENDS`. A new executable may be introduced with a new directory under `apps` and a local `CMakeLists.txt`.

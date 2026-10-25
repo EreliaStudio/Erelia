@@ -1,5 +1,5 @@
 #include "erelia/core/configuration.hpp"
-#include "erelia/server/processes.hpp"
+#include "erelia/remote_node/application.hpp"
 
 #include <atomic>
 #include <csignal>
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
         std::signal(SIGINT, requestStop);
         std::signal(SIGTERM, requestStop);
-        return erelia::server::runRemoteNodePlaceholder(configuration, running);
+        return erelia::remote_node::run(configuration, running);
     }
     catch (const std::exception &error)
     {

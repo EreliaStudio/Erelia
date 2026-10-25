@@ -21,7 +21,9 @@ target_compile_definitions(EreliaCoreTests PRIVATE
 if(ERELIA_BUILD_GRAPHICS)
     erelia_add_unit_suite(EreliaClientTests Client Client erelia::client)
 endif()
-erelia_add_unit_suite(EreliaServerTests Server Server erelia::server)
+erelia_add_unit_suite(EreliaRouterTests Router Router erelia::router)
+erelia_add_unit_suite(EreliaServerTests Server Server
+    erelia::server erelia::remote_node erelia::example_node)
 erelia_add_unit_suite(EreliaSparkleAddonTests SparkleAddon SparkleAddonCore erelia::sparkle_addon)
 
 # Future graphics-addon tests live in their own directory. Do not manufacture
@@ -34,11 +36,11 @@ if(ERELIA_BUILD_GRAPHICS AND ERELIA_GRAPHICS_ADDON_TEST_SOURCES)
 endif()
 if(ERELIA_BUILD_GRAPHICS)
     erelia_add_unit_suite(EreliaClientServerIntegrationTests ClientServerIntegration ClientServerIntegration
-        erelia::client erelia::server)
+        erelia::client erelia::router erelia::remote_node)
     target_compile_definitions(EreliaClientServerIntegrationTests PRIVATE ERELIA_WITH_CLIENT)
 else()
     erelia_add_unit_suite(EreliaClientServerIntegrationTests ClientServerIntegration ClientServerIntegration
-        erelia::server)
+        erelia::router erelia::remote_node)
 endif()
 
 # The Client starts with no arguments. Check the packaged config without

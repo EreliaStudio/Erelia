@@ -1,5 +1,5 @@
 #include "erelia/core/configuration.hpp"
-#include "erelia/server/remote_node_host.hpp"
+#include "erelia/node_app/application.hpp"
 
 #include <atomic>
 #include <csignal>
@@ -30,16 +30,7 @@ int main(int argc, char **argv)
         std::signal(SIGINT, requestStop);
         std::signal(SIGTERM, requestStop);
 
-        return erelia::server::serveRemoteNode(
-            configuration,
-            running,
-            [](spk::RemoteNode::Endpoint &endpoint, const erelia::server::RemoteNodeRequest &request)
-            {
-                // Implement this node's protocol-specific request handling here.
-                // The generic host owns the listening socket and dispatch loop.
-                (void)endpoint;
-                (void)request;
-            });
+        return erelia::node_app::run(configuration, running);
     }
     catch (const std::exception &error)
     {

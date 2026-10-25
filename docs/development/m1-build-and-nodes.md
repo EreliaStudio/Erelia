@@ -61,13 +61,15 @@ Use `--validate-config path.json` to parse a server's file and exit without bind
 
 ## Creating a new RemoteNode role
 
-The buildable starter under [apps/example-node](../../apps/example-node/) demonstrates how to create an independent node process with very little boilerplate. Copy the entire directory to `apps/my-node`, change only `ERELIA_NODE_ROLE` in the directory's own `CMakeLists.txt`, implement the request callback in `main.cpp`, and supply the role's own JSON config.
+The buildable starter under [apps/example-node](../../apps/example-node/) demonstrates how to create an independent node process with very little boilerplate. Copy the entire directory to `apps/my-node`, change only `ERELIA_NODE_ROLE` in the directory's own `CMakeLists.txt`, implement the request callback in `src/application.cpp`, and supply the role's own JSON config.
 
 The common `erelia::server::serveRemoteNode` host uses Sparkle's `spk::RemoteNode::Endpoint`: it starts and stops the socket and dispatches incoming requests to the node-provided callback. Replies can be sent with `endpoint.reply(request, response)`. The example does not reply yet because no protocol or gameplay messages are part of this milestone.
 
 The root CMake project automatically discovers newly added `apps/*/CMakeLists.txt`, and ordinary tests in `tests/Server/` are discovered automatically. Node-specific messages, policies and configuration must be approved with their own Story rather than silently invented by the template.
 
 ## Executable names and preview artifacts
+
+Every application has a testable **static library**, separate from its executable and `main.cpp`: `EreliaClientLibrary`, `EreliaRouterLibrary`, `EreliaRemoteNodeLibrary`, and `EreliaExampleNodeLibrary`. The shared server host remains in `EreliaServerLibrary`; common code stays in `EreliaCore`, which links only `sparkle::core`. Client application code is the only application requiring Sparkle graphics. CTest suites link against the libraries, not executable entry points.
 
 The CMake targets retain their stable API names (`EreliaClient`, `EreliaServerRouter`, `EreliaRemoteNode`, `EreliaExampleNode`), but their Windows executable filenames are `Erelia - Client.exe`, `Erelia - Router.exe`, `Erelia - Server.exe`, and `Erelia - ExampleNode.exe`. Quote these filenames in PowerShell. New specialized nodes can follow the `Erelia - <Role>.exe` convention without modifying the root CMake file.
 
