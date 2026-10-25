@@ -136,11 +136,22 @@ namespace erelia::core
     {
         const auto document = loadDocument(file);
         const Reader root(document, file);
-        root.forbidUnknown({"kind", "id", "listenPort"});
+        root.forbidUnknown({"kind", "id", "listenPort", "settings"});
         requireKind(root, "remote-node");
+
+        spk::JSON::Value settings = spk::JSON::Value::object();
+        if (root.contains("settings"))
+        {
+            settings = root.value().at("settings");
+            if (!settings.isObject())
+            {
+                throw std::invalid_argument(file.string() + ": $.settings must be a JSON object");
+            }
+        }
         return {
             .id = requiredNonemptyString(root, "id"),
-            .listenPort = requiredPort(root, "listenPort")
+            .listenPort = requiredPort(root, "listenPort"),
+            .settings = std::move(settings)
         };
     }
 }
