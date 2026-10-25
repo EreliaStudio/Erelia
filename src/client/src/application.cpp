@@ -4,12 +4,12 @@
 
 namespace erelia::client
 {
-    int runApplication()
+    int runApplication(const erelia::core::ClientConfiguration &settings)
     {
         spk::Application application;
         spk::Window::Configuration configuration{
-            .title = "Erelia (M1 placeholder)",
-            .area = {.anchor = {80, 80}, .size = {960, 600}}
+            .title = settings.window.title,
+            .area = {.anchor = {80, 80}, .size = {settings.window.width, settings.window.height}}
         };
         static_cast<void>(application.createWindow("main", configuration));
         return application.run();
