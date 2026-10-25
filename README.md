@@ -1,19 +1,14 @@
-# Erelia
+# Erelia — M1 Ping network
+Erelia is a C++23 MMO project built with Sparkle. M1 implements one Client, one Router and two independent Server executables. The Client uses a graphical Sparkle window with two buttons; both buttons execute `/ping A` or `/ping B` through `spk::CommandParser`. The Router routes by message type, servers reply with the original timestamp and request ID, and the Client shows only Idle / Waiting / Received / Failed.
 
-**Erelia** is a C++23 multiplayer fantasy RPG built around persistent voxel Worlds, shared progression, classless Heroes and tactical combat on the same terrain used during exploration.
+## Applications
+- `Erelia-Client` (Windows GUI) — Core + Graphics.
+- `Erelia-Router` (Windows/Linux) — Core.
+- `Erelia-Server-A` and `Erelia-Server-B` (Windows/Linux) — Core.
 
-## Project documentation
+Default JSON files live beside the executables. Override with `--config /path/to/config.json`. Example configs are in `config/`. The Client loads `translations/en.i18l` relative to its executable. Logging is configured through optional `logFile` in the JSON.
 
-- [Game Design Document](docs/gdd/Erelia_GDD_Current.md) — game vision and 34 illustrations.
-- [Project governance](docs/project/README.md) — methodology, owner approvals and agent workflow.
-- [Project status](docs/project/STATUS.md) — current stage and approved work.
-- [Software requirements (SDD)](docs/sdd/README.md) — observable product guarantees.
-- [Engineering requirements (ERD)](docs/erd/README.md) — internal engineering guarantees.
-- [Architecture](docs/architecture/README.md) — cross-cutting technical decisions.
-- [AI development instructions](AGENTS.md) — starting point for agents.
+The optional Client `commandPort` accepts one UTF-8 command per TCP connection on **127.0.0.1 only** and returns `OK` or `ERROR`. It is disabled by default (`0`); it is **not authenticated** and must never be exposed to untrusted local processes. The command executor logs known Ping commands but redacts arbitrary command input to avoid future password leakage. No authentication commands are implemented.
 
-## Development
-
-Work proceeds through owner-approved requirements, technical design, tests-first implementation and independent review. The GDD defines the game vision, while technical details are approved progressively.
-
-**Current stage:** M0 documentation review. Application code, builds, tests, CI and traceability tooling will be introduced through approved M1 engineering Stories. These capabilities are not yet implemented.
+## Tests
+CTest labels: Client, Router, ServerA and ServerB. Python graphical integration uses a dedicated interactive Windows desktop and captures actual screenshots. Golden references must be approved manually; a missing reference is a failing test whose actual screenshot remains in CI artifacts. Each failed test retains logs.

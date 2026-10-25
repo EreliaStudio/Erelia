@@ -1,0 +1,10 @@
+{
+  "client.server_a": "Server A",
+  "client.server_b": "Server B",
+  "client.ping_a": "Ping Server A",
+  "client.ping_b": "Ping Server B",
+  "client.idle": "Idle",
+  "client.waiting": "Waiting",
+  "client.received": "Received",
+  "client.failed": "Failed"
+}
