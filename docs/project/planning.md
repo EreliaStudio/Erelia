@@ -4,7 +4,7 @@
 
 The structure is **Milestone → Epic → Story → technical-task checklist**. There are no sprints.
 
-- **Milestone:** ordinarily, an integrated observable capability with owner-approved acceptance criteria and explicit owner acceptance after verification. **M1 is the infrastructure-preparation exception**: it establishes the reusable engineering foundation and requires no separate milestone-acceptance gate.
+- **Milestone:** an integrated, observable capability with owner-approved acceptance criteria and explicit owner acceptance after verification.
 - **Epic:** a grouping of Stories toward an objective; no separate completion/acceptance gate.
 - **Story:** coherent independently verifiable delivery, often crossing modules, with its own branch and PR.
 - **Technical task:** checkbox inside the Story, never an independent PR or authority.
@@ -25,6 +25,4 @@ AI recommends the next ready Story based on priorities and dependencies; the own
 
 ## Acceptance
 
-For delivery Milestones, the owner approves acceptance criteria in advance and accepts the integrated result explicitly; completing subordinate Stories alone does not prove the capability works.
-
-**M1 exception:** M1 prepares the common project infrastructure for subsequent milestones. It has no separate end-of-milestone acceptance or milestone-specific validation procedure. Applicable tests, CI, Story evidence, independent reviews, and the owner's manual PR merge authority remain in force. Missing technical infrastructure must not be reported as implemented.
+The owner approves Milestone acceptance criteria in advance and acceptance explicitly at delivery. Completing subordinate Stories is necessary but does not independently prove the integrated Milestone works.

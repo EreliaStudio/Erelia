@@ -1,0 +1,6 @@
+add_library(EreliaServerB STATIC src/server.cpp)
+target_include_directories(EreliaServerB PUBLIC include)
+target_link_libraries(EreliaServerB PUBLIC EreliaShared)
+add_executable(EreliaServerBApp main.cpp)
+target_link_libraries(EreliaServerBApp PRIVATE EreliaServerB)
+set_target_properties(EreliaServerBApp PROPERTIES OUTPUT_NAME "Erelia-Server-B")
