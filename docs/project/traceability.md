@@ -2,7 +2,7 @@
 
 ## Three distinct purposes
 
-- [GDD](../gdd/Erelia_GDD_Current.md): presentable, evolving game vision. It must remain readable, not a test database.
+- [GDD](https://github.com/Hyarius/Game-Idea/blob/main/docs/erelia/gdd.md): presentable, evolving game vision. It must remain readable, not a test database.
 - [SDD](../sdd/README.md): **owner-approved observable product** capabilities and verifiable functional/nonfunctional requirements.
 - [ERD](../erd/README.md): **owner-approved internal engineering guarantees**, such as ownership, memory, synchronization and correctness contracts.
 

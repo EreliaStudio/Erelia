@@ -4,7 +4,7 @@
 
 ## Project documentation
 
-- [Game Design Document](docs/gdd/Erelia_GDD_Current.md) — game vision and 34 illustrations.
+- [Game Design Document](https://github.com/Hyarius/Game-Idea/blob/main/docs/erelia/gdd.md) — game vision and 34 illustrations.
 - [Project governance](docs/project/README.md) — methodology, owner approvals and agent workflow.
 - [Project status](docs/project/STATUS.md) — current stage and approved work.
 - [Software requirements (SDD)](docs/sdd/README.md) — observable product guarantees.

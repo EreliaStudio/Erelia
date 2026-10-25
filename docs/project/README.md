@@ -17,6 +17,6 @@ This directory defines Erelia's repository-first development methodology. The M0
 | [Epics](epics/README.md) | Epic navigation |
 | [Stories](stories/README.md) | Story navigation |
 
-See also the [GDD](../gdd/Erelia_GDD_Current.md), [SDD](../sdd/README.md), [ERD](../erd/README.md) and [architecture](../architecture/README.md).
+See also the [GDD](https://github.com/Hyarius/Game-Idea/blob/main/docs/erelia/gdd.md), [SDD](../sdd/README.md), [ERD](../erd/README.md) and [architecture](../architecture/README.md).
 
 M0 defines the project documentation and governance rules. Requirements traceability tooling, Story metadata/dependency validation and CI integration are early **M1 engineering deliverables**.

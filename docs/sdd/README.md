@@ -14,4 +14,4 @@ A high-level map of **all significant GDD features** to SDD families must be pre
 
 Each family contains the approved requirement ID, name, verifiable guarantee, and generated Story/Test columns. The generator, validation and CI enforcement are early M1 work; no automatically generated links are claimed yet.
 
-See [traceability rules](../project/traceability.md) and [GDD](../gdd/Erelia_GDD_Current.md).
+See [traceability rules](../project/traceability.md) and [GDD](https://github.com/Hyarius/Game-Idea/blob/main/docs/erelia/gdd.md).

@@ -18,7 +18,7 @@ Before proposing or changing work, read the following documentation in order:
 - Implement reviewed, approved tests first in a distinct **test-only PR checkpoint**. They must compile, run and fail for the expected missing behavior; separate review and owner authorization precede production code. The same development AI may implement both phases; reviewers are independent and read-only.
 - Keep exactly one Story branch and PR for ordinary feature work. Independent reviews are required. **Do not merge PRs.** The owner manually merges and accepts milestones.
 - Traceability must link Stories and C++ tests to approved SDD / ERD requirements. Generator, validators and CI integration are **M1 engineering deliverables**, not prerequisites for this M0 documentation baseline.
-- Preserve the game vision in [the GDD](docs/gdd/Erelia_GDD_Current.md); significant changes require owner approval and an impact assessment.
+- Preserve the game vision in [the GDD](https://github.com/Hyarius/Game-Idea/blob/main/docs/erelia/gdd.md); significant changes require owner approval and an impact assessment.
 - Existing Sparkle defects belong in the Sparkle repository; proposed general-purpose extensions may use an independent Sparkle Addon in Erelia only through approved design.
 
 This file is an index of rules, not a replacement for the linked documents.
